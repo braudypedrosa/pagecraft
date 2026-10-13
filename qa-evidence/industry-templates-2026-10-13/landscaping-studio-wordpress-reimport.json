@@ -1,0 +1,40 @@
+{
+  "packageSha256": "1d65eeb73e2816d623b09d802fda3b13b6c2cccfea04689523ecfd84d497872a",
+  "result": {
+    "jobId": 2125,
+    "created": 0,
+    "updated": 4,
+    "absent": 0,
+    "projectId": "template:landscaping-studio:1.0.0",
+    "sourceVersion": 1,
+    "homepageId": 2029
+  },
+  "pages": [
+    {
+      "id": 2029,
+      "name": "Home",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/index-18/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2029"
+    },
+    {
+      "id": 2030,
+      "name": "Services",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/services-11/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2030"
+    },
+    {
+      "id": 2031,
+      "name": "Gardens",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/gardens/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2031"
+    },
+    {
+      "id": 2032,
+      "name": "Contact",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/contact-14/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2032"
+    }
+  ],
+  "wordpress": "7.1.3",
+  "php": "8.1.29"
+}

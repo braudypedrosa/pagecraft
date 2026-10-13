@@ -1,0 +1,40 @@
+{
+  "packageSha256": "ea28ab1aba53053efcef888f54b86920af42b05520cce862a1eb9b5898889e68",
+  "result": {
+    "jobId": 1978,
+    "created": 0,
+    "updated": 4,
+    "absent": 0,
+    "projectId": "template:residential-cleaning:1.0.0",
+    "sourceVersion": 1,
+    "homepageId": 1938
+  },
+  "pages": [
+    {
+      "id": 1938,
+      "name": "Home",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/index-16/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=1938"
+    },
+    {
+      "id": 1939,
+      "name": "Services",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/services-9/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=1939"
+    },
+    {
+      "id": 1940,
+      "name": "Approach",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/approach-2/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=1940"
+    },
+    {
+      "id": 1941,
+      "name": "Contact",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/contact-12/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=1941"
+    }
+  ],
+  "wordpress": "7.1.3",
+  "php": "8.1.29"
+}

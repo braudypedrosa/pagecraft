@@ -1,0 +1,27 @@
+[
+  {
+    "id": "electrician-service",
+    "opened": true,
+    "escapeCloses": true
+  },
+  {
+    "id": "residential-cleaning",
+    "opened": true,
+    "escapeCloses": true
+  },
+  {
+    "id": "landscaping-studio",
+    "opened": true,
+    "escapeCloses": true
+  },
+  {
+    "id": "salon-studio",
+    "opened": true,
+    "escapeCloses": true
+  },
+  {
+    "id": "bookkeeping-practice",
+    "opened": true,
+    "escapeCloses": true
+  }
+]

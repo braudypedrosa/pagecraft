@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160" role="img" aria-labelledby="title desc">
+  <title id="title">Ledger &amp; Loom</title>
+  <desc id="desc">A woven ledger-line mark beside the Ledger and Loom name.</desc>
+  <rect width="720" height="160" fill="#fffaf0"/>
+  <g transform="translate(8 8)">
+    <rect width="144" height="144" rx="4" fill="#1d1b18"/>
+    <path d="M30 41h84M30 72h84M30 103h84" stroke="#f6f0e4" stroke-width="8" stroke-linecap="square"/>
+    <path d="M48 24v96M72 24v96M96 24v96" stroke="#b66b17" stroke-width="6"/>
+    <circle cx="48" cy="41" r="6" fill="#f6f0e4"/>
+    <circle cx="72" cy="72" r="6" fill="#f6f0e4"/>
+    <circle cx="96" cy="103" r="6" fill="#f6f0e4"/>
+  </g>
+  <text x="186" y="75" fill="#1d1b18" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700" letter-spacing="-1">LEDGER &amp; LOOM</text>
+  <text x="188" y="112" fill="#6b6257" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" letter-spacing="4">BOOKKEEPING PRACTICE</text>
+</svg>

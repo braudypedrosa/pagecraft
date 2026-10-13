@@ -1,0 +1,25 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "electrician-service",
+  "version": "1.0.0",
+  "name": "Electrician Service",
+  "sampleName": "Copperline Electric",
+  "description": "A four-page electrician service site with editable services, work method and an honest unconfigured inquiry form.",
+  "categories": [
+    "Home services",
+    "Electrician",
+    "Trades"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "logo-light", "file": "assets/logo-light.svg" },
+    { "id": "panel-hero", "file": "assets/panel-hero.webp" },
+    { "id": "rewire-detail", "file": "assets/rewire-detail.webp" },
+    { "id": "lighting-room", "file": "assets/lighting-room.webp" },
+    { "id": "team-planning", "file": "assets/team-planning.webp" }
+  ],
+  "customCssPolicy": "native-only"
+}

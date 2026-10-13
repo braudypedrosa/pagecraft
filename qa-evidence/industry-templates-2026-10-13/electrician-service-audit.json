@@ -1,0 +1,164 @@
+{
+  "format": "pagecraft.template-library-audit.v1",
+  "generatedAt": "2026-10-13T12:58:08.849Z",
+  "scope": "Exact electrician-service@1.0.0 draft artifact; source and archived files were read only.",
+  "summary": {
+    "templates": 1,
+    "pages": 4,
+    "archivedHashesValid": 1,
+    "archivedPackagesValid": 1,
+    "nativeSourcesEqual": 1,
+    "sourceAssetsEqual": 1,
+    "currentCheckPasses": 1,
+    "renderErrors": 0,
+    "rendererWarnings": 0,
+    "configuredIntegrationFindings": 1
+  },
+  "interpretation": "Released archive integrity is independent from current rebuild reproducibility. Integrity requires importer validation, archive/config/manifest agreement, catalog agreement for releases, and source document/assets/provenance parity. Drafts remain valid only when they reproduce the current build exactly.",
+  "risks": [
+    "A released archive can remain valid while a newer renderer produces different generated HTML or CSS. Rebuild differences are recorded and must not overwrite immutable releases.",
+    "The schema-compatible pagecraft-core renderer tag remains stable for existing WordPress readers. New packages add an independent renderer revision, and updated readers reject unknown revisions.",
+    "Configured form prerequisites are exempted only by exact template version, page slug and node ID. Unexpected missing actions remain errors."
+  ],
+  "limitations": "This is a static archive, reconstruction, render, image-reference and link-target audit. It does not replace real browser, Cloud or WordPress import/edit/save/reopen/publication checks.",
+  "templates": [
+    {
+      "id": "electrician-service",
+      "version": "1.0.0",
+      "artifactState": "draft",
+      "pages": 4,
+      "catalog": {
+        "packageSha256": null,
+        "equalsArchivedManifest": null
+      },
+      "archive": {
+        "packageSha256": "ffd49739131db38e4f279b49e48c4d60bdb6eeb9d317273550fa7b6de1f79cc2",
+        "hashMatchesCatalog": null,
+        "hashMatchesArchivedManifest": true,
+        "validatesWithCurrentImporter": true,
+        "validationError": null,
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "manifestMatchesArchiveAndConfig": true,
+        "integrityValid": true
+      },
+      "sourceParity": {
+        "nativeDocumentEqual": true,
+        "archivedDocumentSha256": "95587536bbe74ad9603d606ef685dd88cfdd3531f4728297d58933b766afc6fa",
+        "sourceDocumentSha256": "95587536bbe74ad9603d606ef685dd88cfdd3531f4728297d58933b766afc6fa",
+        "provenanceEqual": true,
+        "assetsEqual": true,
+        "assets": [
+          {
+            "id": "logo",
+            "sourceSha256": "0bd2a83ab7f92fc3d9d16237ce6c2669d2ae17e2482bba882a459e4246b2a393",
+            "archivedSha256": "0bd2a83ab7f92fc3d9d16237ce6c2669d2ae17e2482bba882a459e4246b2a393",
+            "bytes": 724,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "logo-light",
+            "sourceSha256": "bb4b3e0131cc996f6d0600638cf0fdef658935029866247f1dabf575a8d225e7",
+            "archivedSha256": "bb4b3e0131cc996f6d0600638cf0fdef658935029866247f1dabf575a8d225e7",
+            "bytes": 724,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "panel-hero",
+            "sourceSha256": "d617764630300cbc2db84d00b7aa463c6fc68822c0a30e9581ffc8c7f43881e3",
+            "archivedSha256": "d617764630300cbc2db84d00b7aa463c6fc68822c0a30e9581ffc8c7f43881e3",
+            "bytes": 69728,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "rewire-detail",
+            "sourceSha256": "63c38959bd4999fc1f86d14576e2364b8409924daa9685d40d047b743380b2f2",
+            "archivedSha256": "63c38959bd4999fc1f86d14576e2364b8409924daa9685d40d047b743380b2f2",
+            "bytes": 144202,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "lighting-room",
+            "sourceSha256": "e062e4f557810748c8ad53fee6bcf207109ca55853c5fdfa895fb5515be91b40",
+            "archivedSha256": "e062e4f557810748c8ad53fee6bcf207109ca55853c5fdfa895fb5515be91b40",
+            "bytes": 212280,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "team-planning",
+            "sourceSha256": "88daf2af0894d93082e905c361612268bdbf23e8d7ecd649892bd58a6958918a",
+            "archivedSha256": "88daf2af0894d93082e905c361612268bdbf23e8d7ecd649892bd58a6958918a",
+            "bytes": 149544,
+            "metadataEqual": true,
+            "equal": true
+          }
+        ]
+      },
+      "currentCompiler": {
+        "packageSha256": "ffd49739131db38e4f279b49e48c4d60bdb6eeb9d317273550fa7b6de1f79cc2",
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "equalsArchivedPackage": true,
+        "outerManifestDifferences": [],
+        "packageManifestDifferences": {
+          "topLevel": [],
+          "files": []
+        },
+        "globalCssLineDifferences": {
+          "removed": [],
+          "added": []
+        }
+      },
+      "checkCommand": {
+        "passes": true,
+        "firstFailure": null,
+        "rebuildReproducible": true
+      },
+      "render": {
+        "pages": 4,
+        "rendererFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "copperline-inquiry-form-197"
+          }
+        ],
+        "errors": [],
+        "warnings": [],
+        "configuredIntegrationFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "copperline-inquiry-form-197"
+          }
+        ],
+        "checkedLinks": 54,
+        "linkErrors": [],
+        "referencedImagePaths": 6,
+        "expectedImagePaths": 6,
+        "missingImagePaths": [],
+        "unreferencedImagePaths": [],
+        "externalOrConfiguredTargets": []
+      }
+    }
+  ]
+}

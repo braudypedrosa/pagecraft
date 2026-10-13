@@ -1,0 +1,23 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "salon-studio",
+  "version": "1.0.0",
+  "name": "Salon Studio",
+  "sampleName": "Morrow & Muse",
+  "description": "An editorial, image-led salon site for independent hair studios.",
+  "categories": [
+    "Beauty",
+    "Salon",
+    "Services"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "studio-interior", "file": "assets/studio-interior.webp" },
+    { "id": "texture-craft", "file": "assets/texture-craft.webp" },
+    { "id": "studio-team", "file": "assets/studio-team.webp" }
+  ],
+  "customCssPolicy": "native-only"
+}

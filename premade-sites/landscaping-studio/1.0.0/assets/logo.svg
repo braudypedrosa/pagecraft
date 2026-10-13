@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 132" role="img" aria-labelledby="title desc">
+  <title id="title">Mossline Gardens</title>
+  <desc id="desc">A contour-line leaf mark beside the words Mossline Gardens.</desc>
+  <g fill="none" stroke="#173c2c" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 106C44 76 55 48 67 17c12 32 24 59 47 89" stroke-width="8"/>
+    <path d="M38 104c11-9 21-18 29-30 8 12 18 21 30 30" stroke-width="5"/>
+    <path d="M67 18c-18 16-24 31-20 46 7-8 14-13 20-15 7 2 14 7 21 15 4-15-2-30-21-46Z" fill="#dbe5d5" stroke-width="4"/>
+  </g>
+  <text x="145" y="66" fill="#173c2c" font-family="Outfit, Arial, sans-serif" font-size="47" font-weight="600" letter-spacing="1">MOSSLINE</text>
+  <text x="148" y="101" fill="#9b4050" font-family="Work Sans, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="8">GARDENS</text>
+</svg>

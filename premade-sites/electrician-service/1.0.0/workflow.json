@@ -1,0 +1,56 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Homeowners, renovators and small business operators comparing an electrician service site structure.",
+    "primaryAction": "Start a project inquiry after reviewing the service fit and working method.",
+    "pages": ["index", "services", "work", "contact"],
+    "content": "Fictional Copperline Electric demo. It uses honest illustrative service language and avoids real licenses, reviews, customer outcomes, response times and availability claims.",
+    "imagery": "Distinct generated photography roles: panel assessment hero, renovation rewiring detail, finished lighting interior and collaborative team planning. Two SVG logo treatments support light and dark surfaces.",
+    "provenance": [
+      { "asset": "panel-hero.webp", "source": "OpenAI built-in image generation; project-original prompt recorded in ASSETS.md", "license": "AI-generated original for this template; no third-party source image" },
+      { "asset": "rewire-detail.webp", "source": "OpenAI built-in image generation; project-original prompt recorded in ASSETS.md", "license": "AI-generated original for this template; no third-party source image" },
+      { "asset": "lighting-room.webp", "source": "OpenAI built-in image generation; project-original prompt recorded in ASSETS.md", "license": "AI-generated original for this template; no third-party source image" },
+      { "asset": "team-planning.webp", "source": "OpenAI built-in image generation; project-original prompt recorded in ASSETS.md", "license": "AI-generated original for this template; no third-party source image" },
+      { "asset": "logo.svg and logo-light.svg", "source": "Original vector mark authored for this template", "license": "Project-original vector artwork" }
+    ]
+  },
+  "directions": [
+    {
+      "id": "switchboard-editorial",
+      "thesis": "Operational clarity with an editorial service voice, crisp linework and photography that shows both process and finished effect.",
+      "fingerprint": { "header": "Compact cream header with graphic wordmark, native menu and copper inquiry control", "hero": "Split copy and panel-assessment photograph with a factual demo disclosure", "textAnchor": "Large Inter headlines balanced by restrained Playfair lead copy", "inventory": "Service ledgers, dark process band, photo essay and planning lists", "cta": "Solid cobalt inquiry bands and compact copper controls", "footer": "Compact ink footer with reversed logo, wrapping links and quiet demo disclosure" },
+      "comparison": "Selected as authoring direction for its strong trade relevance, calm authority and adaptable native composition. Human selection remains unset.",
+      "sections": [
+        { "purpose": "Establish service fit", "archetype": "split hero", "composition": "Copy and action beside panel-assessment photography", "typography": "Large direct sans headline with editorial lead", "imagery": "Electrical panel assessment", "action": "Start inquiry or review services" },
+        { "purpose": "Explain scope", "archetype": "service ledger", "composition": "Two balanced columns of icon-led rows", "typography": "Compact service headings and practical copy", "imagery": "Native semantic icons", "action": "Discuss the relevant work" },
+        { "purpose": "Build process confidence", "archetype": "dark process band", "composition": "Three plainly named phases without numeric counters", "typography": "Crisp labels with restrained body copy", "imagery": "No decorative imagery", "action": "Continue to work method" }
+      ]
+    },
+    {
+      "id": "residential-field-notes",
+      "thesis": "A warmer home-focused direction led by annotated room stories, soft serif typography and material details.",
+      "fingerprint": { "header": "Centered wordmark and quiet menu", "hero": "Full room image with a separate cream introduction panel", "textAnchor": "Serif-led domestic editorial typography", "inventory": "Room stories, homeowner questions and paired material images", "cta": "Warm paper inquiry cards", "footer": "Cream one-line footer with legal disclosure" },
+      "comparison": "Warmer and more domestic, but less immediate for fault-finding and small commercial content.",
+      "sections": [
+        { "purpose": "Connect with homeowners", "archetype": "room story hero", "composition": "Large finished interior followed by stacked introduction", "typography": "Serif-led", "imagery": "Finished residential lighting", "action": "Explore room services" },
+        { "purpose": "Explain choices", "archetype": "field notes", "composition": "Grouped practical questions beside detail photography", "typography": "Editorial notes", "imagery": "Switching and fixture details", "action": "Prepare an inquiry" }
+      ]
+    },
+    {
+      "id": "technical-grid",
+      "thesis": "A denser technical direction using sharp grids, monospace details and schematic-like content grouping.",
+      "fingerprint": { "header": "Dark utility bar with compact mark", "hero": "Structured grid with narrow technical image crop", "textAnchor": "Condensed sans plus monospace labels", "inventory": "Capability matrix, scope checklist and specification panels", "cta": "High-contrast orange utility strip", "footer": "Dark single-row utility footer" },
+      "comparison": "Strong for commercial or industrial positioning, but colder and less suited to the mixed residential audience.",
+      "sections": [
+        { "purpose": "Show capability", "archetype": "technical matrix", "composition": "Dense but responsive service matrix", "typography": "Sans and monospace labels", "imagery": "Panel and conduit details", "action": "Filter to a service" },
+        { "purpose": "Capture scope", "archetype": "project checklist", "composition": "Requirements beside inquiry controls", "typography": "Compact operational copy", "imagery": "Minimal iconography", "action": "Start technical brief" }
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}
