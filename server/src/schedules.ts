@@ -10,7 +10,8 @@
    per site" a plain check-then-write, and an exclusive claim file gives each run one runner. */
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, open, readdir, readFile, rename, rm, stat } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
+import { FileRecords } from './record-files.ts';
 
 export const SCHEDULE_PAUSE_REASONS = [
   'baseline_superseded',
@@ -195,16 +196,20 @@ export class MemoryPublicationScheduleStore implements PublicationScheduleStore 
 }
 
 const siteKey = (siteId: string) => createHash('sha256').update(siteId).digest('hex');
+type FileLease = { path: string; owner: string; worker?: string; at: number; released: boolean; phase: 'claim' | 'settle' };
 
-/** Durable schedules beside the publication bytes they name. */
+/** Durable schedules beside the publication bytes they name. Lease generations are retained
+    until site removal: deleting old slots while contenders may still name them would allow ABA. */
 export class FilePublicationScheduleStore implements PublicationScheduleStore {
   private readonly directory: string;
+  private readonly records: FileRecords;
 
   constructor(root: string) {
     if (!root || !resolve(root).startsWith('/')) {
       throw new Error('schedule storage root must be an absolute path');
     }
     this.directory = join(resolve(root), '.schedules');
+    this.records = new FileRecords(this.directory);
   }
 
   private rowPath(id: string) {
@@ -250,46 +255,61 @@ export class FilePublicationScheduleStore implements PublicationScheduleStore {
       .map(name => this.read(name.slice(0, -5))));
     return rows.filter((row): row is PublicationSchedule => !!row);
   }
-  /** Create a lock file exclusively. The caller decides what an existing one means. */
-  private async lock(path: string, body: string) {
-    await mkdir(this.directory, { recursive: true });
-    try {
-      const handle = await open(path, 'wx');
-      try {
-        await handle.writeFile(body);
-      } finally {
-        await handle.close();
+  /** Lease slots and release markers are immutable. Removing an expired lock after reading it
+      can instead remove a new winner; contenders now compete for one exclusive successor slot.
+      Existing .claim/.lock files are generation zero, including incomplete legacy writes. */
+  private async latestLease(base: string): Promise<{ held: FileLease | null; next: string }> {
+    let held: FileLease | null = null;
+    for (let generation = 0; ; generation++) {
+      const path = generation ? `${base}.${generation}` : base;
+      let raw: string;
+      try { raw = await readFile(path, 'utf8'); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { held, next: path };
+        throw error;
       }
-      return true;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
-      throw error;
+      let row: { worker?: string; at?: number; phase?: string } = {};
+      try { row = JSON.parse(raw); } catch (error) { if (!(error instanceof SyntaxError)) throw error; }
+      const owner = createHash('sha256').update(raw).digest('hex');
+      const released = await this.records.read<{ owner: string }>(basename(path) + '.released');
+      held = {
+        path, owner, worker: typeof row?.worker === 'string' ? row.worker : undefined,
+        at: Number.isFinite(row?.at) ? row.at! : (await stat(path)).mtimeMs,
+        released: released?.owner === owner,
+        phase: row?.phase === 'settle' ? 'settle' : 'claim',
+      };
     }
   }
-  private async unlockIfOwned(path: string, body: string) {
-    try {
-      if ((await readFile(path, 'utf8')) === body) await rm(path, { force: true });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
+
+  private async acquireLease(base: string, worker: string, now: number, duration: number): Promise<FileLease | null> {
+    const { held, next } = await this.latestLease(base);
+    if (held && !held.released && now - held.at < duration) return null;
+    return this.createLease(next, worker, now);
+  }
+
+  private async createLease(path: string, worker: string, now: number, phase: FileLease['phase'] = 'claim'): Promise<FileLease | null> {
+    const row = { worker, at: now, nonce: randomUUID(), phase };
+    // FileRecords stages complete bytes before atomically linking the exclusive final name.
+    if (!await this.records.create(basename(path), row)) return null;
+    return { path, owner: createHash('sha256').update(JSON.stringify(row)).digest('hex'), worker, at: now, released: false, phase };
+  }
+
+  private async releaseLease(held: FileLease) {
+    await this.records.create(basename(held.path) + '.released', { owner: held.owner });
   }
 
   /* Wall-clock time, not the caller's `now`: staleness is about real processes dying. */
   private async withSiteMutex<T>(siteId: string, work: () => Promise<T>): Promise<T> {
     const path = this.mutexPath(siteId), token = randomUUID(), started = Date.now();
-    while (!(await this.lock(path, token))) {
-      const age = await stat(path).then(info => Date.now() - info.mtimeMs, () => 0);
-      /* A takeover can in principle race another takeover. That needs a process to die inside a
-         millisecond-long section and two creates for the same site in the next moment; the
-         worst outcome is a second pending schedule, which then pauses as superseded. */
-      if (age > SITE_MUTEX_STALE_MS) await rm(path, { force: true });
-      else if (Date.now() - started > SITE_MUTEX_WAIT_MS) throw new Error('publication schedule lock is contended');
-      else await new Promise(done => setTimeout(done, 20));
+    let held: FileLease | null;
+    while (!(held = await this.acquireLease(path, token, Date.now(), SITE_MUTEX_STALE_MS))) {
+      if (Date.now() - started > SITE_MUTEX_WAIT_MS) throw new Error('publication schedule lock is contended');
+      await new Promise(done => setTimeout(done, 20));
     }
     try {
       return await work();
     } finally {
-      await this.unlockIfOwned(path, token);
+      await this.releaseLease(held);
     }
   }
 
@@ -340,38 +360,24 @@ export class FilePublicationScheduleStore implements PublicationScheduleStore {
   }
 
   async claim(id: string, worker: string, now = new Date()) {
-    const path = this.claimPath(id);
-    const body = JSON.stringify({ worker, at: now.getTime() });
-    if (await this.lock(path, body)) return true;
-    /* Take over a claim whose runner died. A rename would silently let two takers both
-       win, so remove the stale file and race for a fresh exclusive create instead. */
-    try {
-      const held = JSON.parse(await readFile(path, 'utf8')) as { at?: number };
-      const age = now.getTime() - Number(held.at || (await stat(path)).mtimeMs);
-      if (age < SCHEDULE_CLAIM_LEASE_MS) return false;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT' && !(error instanceof SyntaxError)) throw error;
-    }
-    await rm(path, { force: true });
-    return this.lock(path, body);
+    if (!ID.test(id)) return false;
+    return !!await this.acquireLease(this.claimPath(id), worker, now.getTime(), SCHEDULE_CLAIM_LEASE_MS);
   }
 
   async release(id: string, worker: string) {
-    try {
-      const held = JSON.parse(await readFile(this.claimPath(id), 'utf8')) as { worker?: string };
-      if (held.worker === worker) await rm(this.claimPath(id), { force: true });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT' && !(error instanceof SyntaxError)) throw error;
-    }
+    if (!ID.test(id)) return;
+    const { held } = await this.latestLease(this.claimPath(id));
+    if (held?.worker === worker && !held.released && held.phase === 'claim') await this.releaseLease(held);
   }
 
   async settle(id: string, worker: string, outcome: ScheduleOutcome, now = new Date()) {
-    try {
-      const held = JSON.parse(await readFile(this.claimPath(id), 'utf8')) as { worker?: string };
-      if (held.worker !== worker) return null;
-    } catch {
-      return null;
-    }
+    if (!ID.test(id)) return null;
+    const { held, next } = await this.latestLease(this.claimPath(id));
+    if (!held || held.worker !== worker || held.released || held.phase === 'settle') return null;
+    // Settlement and an expired-lease takeover compete for the same successor slot. A late
+    // settler cannot pass an ownership check, then write after a new runner takes over.
+    const settlement = await this.createLease(next, worker, now.getTime(), 'settle');
+    if (!settlement) return null;
     try {
       const row = await this.read(id);
       if (!row || row.status !== 'pending') return null;
@@ -379,15 +385,25 @@ export class FilePublicationScheduleStore implements PublicationScheduleStore {
       await this.write(next);
       return next;
     } finally {
-      await this.release(id, worker);
+      // Release this exact generation; a late runner must never release its successor.
+      await this.releaseLease(settlement);
     }
   }
 
   async removeSite(siteId: string) {
     for (const row of (await this.all()).filter(row => row.siteId === siteId)) {
       await rm(this.rowPath(row.id), { force: true });
-      await rm(this.claimPath(row.id), { force: true });
+      await this.removeLeaseFiles(this.claimPath(row.id));
     }
-    await rm(this.mutexPath(siteId), { force: true });
+    await this.removeLeaseFiles(this.mutexPath(siteId));
+  }
+
+  private async removeLeaseFiles(base: string) {
+    const name = basename(base);
+    let entries: string[];
+    try { entries = await readdir(this.directory); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
+    await Promise.all(entries.filter(entry => entry === name || entry.startsWith(name + '.'))
+      .map(entry => rm(join(this.directory, entry), { force: true })));
   }
 }

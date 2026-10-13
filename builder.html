@@ -3423,22 +3423,12 @@ function syncFonts() {
   if (link.getAttribute('href') !== href) link.setAttribute('href', href);
 }
 
-/* A divider can be one CSS pixel tall, then half a screen pixel at Fit. Give its existing
-   <hr> a larger editor-only pointer box without changing its layout or exported markup. */
-const DIVIDER_EDITOR_HIT_CSS = `
-[data-t=divider].pagecraft-divider::before{
-  content:"";position:absolute;inset:-12px 0;z-index:1;pointer-events:auto;background:transparent;
-}`;
-function canvasCss(sets, editing) {
-  return assetsToBlob(treeCss(sets, editing)) + (editing ? DIVIDER_EDITOR_HIT_CSS : '');
-}
-
 function paintCss() {
   if (!cdoc) return;
   syncFonts();
   const el = cdoc.getElementById('s-css');
   if (!el) return;
-  el.textContent = canvasCss(curSets(), !document.body.classList.contains('preview'));
+  el.textContent = assetsToBlob(treeCss(curSets(), !document.body.classList.contains('preview')));
   positionHud();
 }
 
@@ -3590,7 +3580,7 @@ function paint() {
   const editing = !document.body.classList.contains('preview');
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
-  const css = canvasCss(curSets(), editing);
+  const css = treeCss(curSets(), editing);
 
   let html = '';
   for (const R of regions()) {
@@ -3623,7 +3613,7 @@ function paint() {
   if (!editing) html = html || '';
 
   syncFonts();
-  cdoc.getElementById('s-css').textContent = css;
+  cdoc.getElementById('s-css').textContent = assetsToBlob(css);
   cdoc.getElementById('s-root').innerHTML = assetsToBlob(html);
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
@@ -3994,6 +3984,45 @@ document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
 /* ========================================================= canvas events */
+function canvasPointerHit(e) {
+  const hit = e.target.closest && e.target.closest('[data-id]');
+  if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
+
+  /* At Fit a one-CSS-pixel divider can land between screen pixels, so the browser reports
+     its structural ancestor. Only let that ancestor yield within the divider's own width and
+     a narrow vertical band; real child controls and neighbouring elements keep their clicks. */
+  let nearest = null, distance = Infinity;
+  hit.querySelectorAll('[data-t=divider][data-id]').forEach(divider => {
+    const r = divider.getBoundingClientRect();
+    if (!r.width || e.clientX < r.left || e.clientX > r.right) return;
+    const dy = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+    if (dy <= 12 && dy < distance) { nearest = divider; distance = dy; }
+  });
+  return nearest || hit;
+}
+
+function activateHudButton(hudBtn, e, keyboard = false) {
+  const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
+  if (act === 'drag') {
+    /* Keyboard users move elements with the adjacent edge controls and shortcuts. Keep the
+       drag gesture on pointerdown so a synthesized click cannot start a stranded drag. */
+    if (keyboard) return;
+    const many = ids.length > 1 && ids.includes(id);
+    startDrag(e, {
+      kind: 'move', id, ids: many ? ids : [id],
+      label: many ? ids.length + ' elements' : kindOf(locate(id).node)
+    }, true);
+  } else if (act === 'more') {
+    /* Pointer activation opens at the pointer. Keyboard activation has no pointer location,
+       so anchor the menu to the button while keeping both positions in outer coordinates. */
+    const fr = frameRect();
+    const r = keyboard ? hudBtn.getBoundingClientRect() : null;
+    const x = r ? r.left + r.width / 2 : e.clientX;
+    const y = r ? r.top + r.height / 2 : e.clientY;
+    openCtx(toScreen(x, fr.left), toScreen(y, fr.top), ids);
+  } else runAct(act, ids);
+}
+
 function bindCanvas() {
   /* The context menu lives in the outer document, and so did every one of its closers —
      but the canvas is an iframe, and events inside it never reach the outer document. So
@@ -4013,19 +4042,7 @@ function bindCanvas() {
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
       e.preventDefault();
-      const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
-      if (act === 'drag') {
-        /* dragging any member of a selection drags the whole set */
-        const many = ids.length > 1 && ids.includes(id);
-        startDrag(e, {
-          kind: 'move', id, ids: many ? ids : [id],
-          label: many ? ids.length + ' elements' : kindOf(locate(id).node)
-        }, true);
-      } else if (act === 'more') {
-        /* the bar lives inside the scaled iframe, so its coordinates need the factor */
-        const fr = frameRect();
-        openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), ids);
-      } else runAct(act, ids);
+      activateHudButton(hudBtn, e);
       return;
     }
     const grip = e.target.closest && e.target.closest('[data-grip]');
@@ -4045,7 +4062,7 @@ function bindCanvas() {
     const region = e.target.closest('.s-region');
     if (region && region.dataset.state !== 'edit') { e.preventDefault(); select(null); return; }
 
-    const hit = e.target.closest('[data-id]');
+    const hit = canvasPointerHit(e);
     if (!hit) { select(null); return; }
     if (editing.on) exitEdit();
     /* Both modifiers add here. A range needs a flat list to sweep, and the canvas
@@ -4059,6 +4076,17 @@ function bindCanvas() {
     if (add) { e.preventDefault(); const g = cwin.getSelection(); if (g) g.removeAllRanges(); }
     select(hit.dataset.id, { add });
   }, true);
+
+  /* Native button activation from Enter, Space and assistive technology dispatches a click
+     with detail 0. Pointer clicks already ran on pointerdown above, so accepting only that
+     native click keeps one action per gesture. */
+  cdoc.addEventListener('click', e => {
+    if (e.detail !== 0 || document.body.classList.contains('preview')) return;
+    const hudBtn = e.target.closest && e.target.closest('#s-hud button');
+    if (!hudBtn) return;
+    e.preventDefault();
+    activateHudButton(hudBtn, e, true);
+  });
 
   cdoc.addEventListener('click', e => {
     const a = e.target.closest('a');

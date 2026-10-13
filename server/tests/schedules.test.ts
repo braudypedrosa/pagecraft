@@ -1,7 +1,7 @@
 import { afterAll, test } from 'vitest';
 import a from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -168,7 +168,11 @@ test('file: a site mutex left by a process that died mid-create is taken over', 
   a.equal((await store.create(input({ siteId: 'site-9' }), t0)).status, 'created');
   // The mutex is released afterwards, so the next create answers immediately.
   a.equal((await store.create(input({ siteId: 'site-9' }), t0)).status, 'conflict');
-  a.equal((await readdir(join(root, '.schedules'))).some(name => name.endsWith('.lock')), false);
+  // Released generations remain immutable so a late contender cannot reuse an old slot.
+  const latest = await readFile(mutex + '.2', 'utf8');
+  const released = JSON.parse(await readFile(mutex + '.2.released', 'utf8'));
+  a.equal(released.owner, createHash('sha256').update(latest).digest('hex'));
+  a.equal((await readdir(join(root, '.schedules'))).some(name => name.endsWith('.tmp')), false);
 });
 
 test('file: ids from the outside cannot reach paths outside the schedule directory', async () => {
