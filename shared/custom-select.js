@@ -249,6 +249,10 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
 
   function sync(record) {
     if (!record.select.isConnected) return;
+    /* Frameworks only know about the native select. When conditional siblings are inserted,
+       they can land between it and our enhanced trigger; keep the trigger in the select's
+       exact visual slot without changing the framework-owned sibling order. */
+    if (record.select.nextElementSibling !== record.trigger) record.select.after(record.trigger);
     const option = selectedOption(record.select);
     record.label.textContent = option?.label || 'Choose an option';
     record.trigger.disabled = record.select.disabled;
@@ -406,10 +410,18 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         return mutation.target.nodeType === 1
           && mutation.target.matches('select,option,optgroup');
       }
-      return [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
+      const changesOptions = [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
         node.nodeType === 1
           && (node.matches('select,option,optgroup') || node.querySelector('select,option,optgroup'))
       );
+      if (changesOptions) return true;
+      /* A conditional input is not select-shaped, but it still matters when a renderer puts it
+         between an enhanced select and its trigger. The corrective move creates another
+         childList record; checking current adjacency keeps that record from scheduling a loop. */
+      for (const [select, record] of records) {
+        if (select.parentNode === mutation.target && select.nextElementSibling !== record.trigger) return true;
+      }
+      return false;
     });
     if (affectsSelect) schedule();
   }).observe(document.documentElement, {

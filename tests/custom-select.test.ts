@@ -72,6 +72,51 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(dynamicTrigger.getAttribute('aria-expanded'), 'true');
 });
 
+test('conditional controls cannot separate native selects from their visible triggers', async () => {
+  document.body.innerHTML = `
+    <div id="url-field"><select id="link-type" aria-label="Link type">
+      <option value="url">A URL</option><option value="page" selected>A page in this project</option>
+    </select></div>
+    <div id="page-field"><select id="target-type" aria-label="Target type">
+      <option value="url">A URL</option><option value="page" selected>A page in this project</option>
+    </select></div>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const link = document.querySelector<HTMLSelectElement>('#link-type')!;
+  const linkTrigger = link.nextElementSibling as HTMLButtonElement;
+  const url = document.createElement('input');
+  url.id = 'link-url';
+  url.value = 'https://example.test/';
+  link.parentElement!.insertBefore(url, linkTrigger);
+  await new Promise(resolve => setTimeout(resolve, 30));
+  a.equal(link.nextElementSibling, linkTrigger, 'a conditional text field stays after the Link type trigger');
+  a.equal(linkTrigger.nextElementSibling, url);
+  a.equal(link.value, 'page');
+  a.match(linkTrigger.textContent || '', /A page in this project/);
+
+  const target = document.querySelector<HTMLSelectElement>('#target-type')!;
+  const targetTrigger = target.nextElementSibling as HTMLButtonElement;
+  const page = document.createElement('select');
+  page.id = 'link-page';
+  page.setAttribute('aria-label', 'Link page');
+  page.innerHTML = '<option value="home">Home</option><option value="about" selected>About</option>';
+  const anchor = document.createElement('input');
+  anchor.id = 'link-anchor';
+  target.parentElement!.insertBefore(page, targetTrigger);
+  target.parentElement!.insertBefore(anchor, targetTrigger);
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const pageTrigger = page.nextElementSibling as HTMLButtonElement;
+  a.equal(target.nextElementSibling, targetTrigger, 'conditional page controls stay after the Target type trigger');
+  a.equal(targetTrigger.nextElementSibling, page);
+  a.equal(page.nextElementSibling, pageTrigger);
+  a.equal(pageTrigger.nextElementSibling, anchor);
+  a.equal(target.value, 'page');
+  a.equal(page.value, 'about');
+  a.match(pageTrigger.textContent || '', /About/);
+  a.equal(document.querySelectorAll('.pc-custom-select-trigger').length, 3, 'one visible trigger remains per native select');
+  a.equal(document.querySelectorAll('.pc-custom-select-popover').length, 3, 'no orphan popup is created');
+});
+
 test('command-modified printable keys stay available to app shortcuts without opening the menu', async () => {
   HTMLElement.prototype.scrollIntoView = () => {};
   document.body.innerHTML = `<label for="style">Text style</label><select id="style">
