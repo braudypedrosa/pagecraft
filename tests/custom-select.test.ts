@@ -60,6 +60,43 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(dynamicTrigger.getAttribute('aria-expanded'), 'true');
 });
 
+test('command-modified printable keys stay available to app shortcuts without opening the menu', async () => {
+  HTMLElement.prototype.scrollIntoView = () => {};
+  document.body.innerHTML = `<label for="style">Text style</label><select id="style">
+    <option value="body">Body</option><option value="section">Section title</option>
+  </select>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  let saves = 0;
+  const save = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') saves++;
+  };
+  document.addEventListener('keydown', save);
+
+  trigger.focus();
+  for (const modifier of [{ metaKey: true }, { ctrlKey: true }, { altKey: true }]) {
+    const event = new KeyboardEvent('keydown', { key: 's', ...modifier, bubbles: true, cancelable: true });
+    trigger.dispatchEvent(event);
+    a.equal(trigger.getAttribute('aria-expanded'), 'false');
+    a.equal(document.activeElement, trigger);
+    a.equal(event.defaultPrevented, false, 'the owning app can handle its shortcut');
+  }
+  a.equal(saves, 2, 'Command/Ctrl+S still reaches the draft-save shortcut');
+
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'Alt+Arrow keeps native combobox opening semantics');
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'Space still opens the menu');
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true, cancelable: true }));
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'unmodified printable keys still type ahead');
+  a.match(document.activeElement?.textContent || '', /Section title/);
+  document.removeEventListener('keydown', save);
+});
+
 test('menus fit below, above or in the larger scrollable space and clamp to the viewport', async () => {
   document.body.innerHTML = '<select aria-label="Geometry"><option>A</option><option disabled>B</option><option>C</option></select>';
   await new Promise(resolve => setTimeout(resolve, 30));

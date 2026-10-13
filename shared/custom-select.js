@@ -332,7 +332,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
         return;
       }
-      if (event.key.length === 1 && /\S/.test(event.key)) {
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && /\S/.test(event.key)) {
         typeahead += event.key.toLowerCase();
         clearTimeout(typeaheadTimer);
         typeaheadTimer = window.setTimeout(() => { typeahead = ''; }, 650);
