@@ -21,7 +21,9 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
     if (pending.current) return;
     const ok = await L.askConfirm('Delete this collection?',
       `<b>${esc(col.name)}</b> and its ${n(col.items.length, 'item')}. Anything bound to its `
-      + 'fields falls back to placeholder text.', { ok: 'Delete collection' });
+      + 'fields falls back to placeholder text. Collection Lists and detail pages using it '
+      + 'will be disconnected. Reference fields will need a new collection, and their saved '
+      + 'selections will be cleared.', { ok: 'Delete collection' });
     if (!ok) return;
     if (L.dynamicContentProvider() !== 'pagecraft') { C.edit(() => C.collectionDelete(col.id)); return; }
     pending.current = true; setBusy(true);

@@ -3823,7 +3823,9 @@ function collectionAdd(name: string): any {
   collections().push(col);
   return col;
 }
-const collectionDelete = (id: string) => { state.meta.collections = collections().filter(c => c.id !== id); };
+function collectionDelete(id: string) {
+  collectionsReplace(doc(), collections().filter(c => c.id !== id));
+}
 function collectionRename(id: string, name: string) {
   const col = findCollection(id); if (!col) return;
   col.name = String(name || col.name).slice(0, 40);
@@ -3880,12 +3882,44 @@ function clearListFieldReferences(trees: PcNode[][], removed: RemovedCollectionF
   return cleared;
 }
 
+/** Disconnect every persisted use of a collection that no longer exists. Keeping its id on a
+    list, detail template or reference field makes the editor offer settings it cannot resolve,
+    and can silently reconnect old item ids if a later collection reuses that id. */
+function clearRemovedCollectionReferences(d: Doc, removed: Set<string>) {
+  if (!removed.size) return;
+  for (const tree of documentTrees(d)) eachNode(tree, n => {
+    if (!n.src || !removed.has(n.src)) return;
+    delete n.src;
+    if (n.type === 'list') {
+      n.props.sort = '';
+      n.props.where = '';
+      n.props.op = 'is';
+      delete n.props.val;
+    }
+  });
+  for (const pg of d.pages) {
+    if (!pg.collection || !removed.has(pg.collection)) continue;
+    delete pg.collection;
+    delete pg.bindTitle;
+    delete pg.bindDesc;
+  }
+  for (const col of d.meta.collections || []) for (const field of col.fields || []) {
+    if (!field.ref || !removed.has(field.ref)) continue;
+    delete field.ref;
+    for (const item of col.items || []) delete item.values[field.id];
+  }
+}
+
 /** Replace collection schemas and recover Collection Lists whose sort/filter field disappeared.
     Pass a cloned doc before saving, and the live doc inside edit(), to keep persistence and history
     atomic. Field bindings stay visible as missing bindings so an editor can reconnect them. */
 function collectionsReplace(d: Doc, next: Collection[]) {
-  const removed = removedCollectionFields(d.meta.collections || [], next);
+  const before = d.meta.collections || [];
+  const removed = removedCollectionFields(before, next);
+  const removedCollections = new Set(before.map(col => col.id));
+  next.forEach(col => removedCollections.delete(col.id));
   d.meta.collections = next;
+  clearRemovedCollectionReferences(d, removedCollections);
   return clearListFieldReferences(documentTrees(d), removed);
 }
 
