@@ -3110,12 +3110,11 @@ function lint() {
         if (isFront(pg)) labels.add('home');
         ((n.props.items as NavItem[]) || []).forEach(it => {
           const h = String(it && it.href || '').trim();
-          const [path, frag = ''] = h.split('#');
-          const target = path === '' ? here : path;
+          const destination = projectLinkTarget(h, here);
           /* A menu label promises a destination. “Work” pointing to the top of Home is a
              working URL and still a broken journey, so the ordinary dead-link check cannot
              catch it. A genuine Home item is intentionally allowed. */
-          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ''))) {
+          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ''))) {
             add('warn', 'nav-page-top', `“${String(it && it.label || 'A menu item')}” in the ${region} links to the top of “${pg.name}”. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
@@ -3133,7 +3132,7 @@ function lint() {
           add('error', 'wordpress-link-invalid', `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
           return;
         }
-        if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
+        if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return;
         /* `cms:item` resolves per item at export, so it cannot be checked as a path.
            What can go wrong is that nothing templates the collection — then it
            resolves to nothing at all. */
@@ -3148,8 +3147,9 @@ function lint() {
           else if (!state.pages.some(x => x.collection === owner.id)) add('error', 'item-link-no-template', `A link in the ${region} points at an item’s own page, but no page is a detail template for “${owner.name}”.`, w, n.id);
           return;
         }
-        const [path, frag] = h.split('#');
-        const target = path === '' ? here : path;
+        const destination = projectLinkTarget(h, here);
+        // Unsupported custom schemes still fail review instead of becoming project paths.
+        const { path, frag, target } = destination || { path: h, frag: '', target: h };
         /* A bare `#anchor` in a global region resolves only on the page that has it — unless
            there is one page, where "every page" and "this page" are the same thing and the
            warning is noise. A one-pager with an anchor nav is a normal site, and this fired
@@ -4312,6 +4312,21 @@ function paginatorOf(pg: Page): { node: PcNode; col: Collection; extra: number }
   return hit;
 }
 
+/** The hosted router's clean paths and exported filenames identify the same target. Query
+    parameters do not change the page, and a rooted slash names the real front-page file. */
+function projectLinkTarget(href: string, here: string): { path: string; target: string; frag: string } | null {
+  const value = href.trim();
+  if (!value || /^([a-z][\w+.-]*:|\/\/)/i.test(value)) return null;
+  const hash = value.indexOf('#');
+  const frag = hash >= 0 ? value.slice(hash + 1) : '';
+  const path = (hash >= 0 ? value.slice(0, hash) : value).split('?')[0];
+  if (!path) return { path, target: here, frag };
+  let target = path.replace(/^(\.\.?\/)+/, '').replace(/^\/+/, '');
+  if (!target || target.endsWith('/')) target += 'index.html';
+  else if (!/\.[a-z0-9]+$/i.test(target)) target += '.html';
+  return { path, target, frag };
+}
+
 /* ---- where a link points, inside this project -------------------------
    `parseLink` answers "what kind of link is this" for the inspector, in slugs. This answers
    a different question — "which page of this project does it land on" — and it has to cope
@@ -4322,35 +4337,17 @@ function paginatorOf(pg: Page): { node: PcNode; col: Collection; extra: number }
    identity of a page; the slug is. So this is the one place that knows the extension is a
    file-naming detail, which is what lets Preview follow a link the way a browser would. */
 function pageAt(href: unknown): { at: number; col: Collection | null; item: Item | null; frag: string; pageNo: number } | null {
-  let v = String(href == null ? '' : href).trim();
-  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;     // a scheme, or protocol-relative
-  const hash = v.indexOf('#');
-  const frag = hash >= 0 ? v.slice(hash + 1) : '';
-  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, '').replace(/^\//, '');
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;   // a bare fragment
-
-  const bits = v.replace(/\.html?$/i, '').split('/');
-  if (bits.length === 1) {
-    const at = state.pages.findIndex(p => p.slug === bits[0]);
-    return at < 0 ? null : { at, col: null, item: null, frag, pageNo: 1 };
-  }
-  if (bits.length !== 2) return null;
-
-  /* `<slug>/page-2` before the collection reading, and deliberately: a page slugged
-     `journal` and a collection slugged `journal` are both plausible at the same time, so
-     without this a pager link went looking for an item called `page-2`. Anchoring on a real
-     page slug makes it unambiguous. */
-  const pn = bits[1].match(/^page-(\d+)$/);
-  if (pn) {
-    const at = state.pages.findIndex(p => p.slug === bits[0]);
-    if (at >= 0) return { at, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
-  }
-
-  const col = collections().find(c => c.slug === bits[0]) || null;
-  if (!col) return null;
-  const item = published(col).find(i => i.slug === bits[1]) || null;
-  const at = state.pages.findIndex(p => p.collection === col.id);
-  return (item && at >= 0) ? { at, col, item, frag, pageNo: 1 } : null;
+  const value = String(href == null ? '' : href).trim();
+  const destination = projectLinkTarget(value, page().slug + '.html');
+  if (!destination) return null;
+  const { path, target, frag } = destination;
+  if (!path) return frag || value.startsWith('?')
+    ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
+  // Match real generated files, including nested page slugs, details and pagination.
+  const exported = exportTargets().find(candidate => candidate.path === target);
+  if (!exported) return null;
+  const at = state.pages.findIndex(pg => pg.id === exported.pg.id);
+  return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
 
 /* Every file the project exports: one per ordinary page, and one per item for a

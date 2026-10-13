@@ -92,6 +92,41 @@ test('page and project changes receive generic labels without exposing names', (
   expect(C.historyLabel('undo')).not.toContain('Private client');
 });
 
+test('collection deletion outranks atomic list, page, and reference cleanup', () => {
+  const removed = C.collectionAdd('Articles');
+  const summary = C.fieldAdd(removed.id, 'Summary', 'text')!;
+  const article = C.itemAdd(removed.id)!;
+  const related = C.collectionAdd('Authors');
+  const favourite = C.fieldAdd(related.id, 'Favourite article', 'ref')!;
+  favourite.ref = removed.id;
+  const author = C.itemAdd(related.id)!;
+  C.itemSet(related.id, author.id, favourite.id, article.id);
+  const list = C.insert('list', null, 0)!;
+  list.src = removed.id; list.props.sort = summary.id; list.props.where = summary.id;
+  const detail = C.clone(C.page()); detail.id = 'article-detail'; detail.collection = removed.id; detail.bindTitle = 'title'; detail.bindDesc = summary.id; C.state.pages.push(detail);
+  C.hist.u.length = 0;
+
+  C.edit(() => C.collectionDelete(removed.id));
+  expect(C.historyLabel('undo')).toBe('Delete collection');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Delete collection');
+});
+
+test('collection schema and content changes outrank their binding cleanup', () => {
+  const collection = C.collectionAdd('Journal');
+  const category = C.fieldAdd(collection.id, 'Category', 'text')!;
+  const item = C.itemAdd(collection.id)!;
+  C.itemSet(collection.id, item.id, category.id, 'Update');
+  const list = C.insert('list', null, 0)!; list.src = collection.id; list.props.sort = category.id;
+  C.hist.u.length = 0;
+
+  C.edit(() => C.fieldDelete(collection.id, category.id));
+  expect(C.historyLabel('undo')).toBe('Delete collection field');
+  C.edit(() => C.itemSet(collection.id, item.id, 'title', 'Changed privately'));
+  expect(C.historyLabel('undo')).toBe('Change collection content');
+  expect(C.historyLabel('undo')).not.toContain('Changed privately');
+});
+
 test('history still caps undo at 80 and new edits clear redo', () => {
   for (let i = 0; i < 85; i++) C.edit(() => { C.state.meta.size = `${i}px`; });
   expect(C.hist.u).toHaveLength(80);

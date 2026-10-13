@@ -82,6 +82,31 @@ export function inferHistoryAction(before: Doc, after: Doc): string {
   if (before.pages.some(page => !afterPages.has(page.id))) return 'Remove page';
   if (after.pages.some((page, index) => beforePages.get(page.id)?.index !== index)) return 'Move page';
 
+  /* CMS deletes atomically disconnect list, page and reference bindings. Recognize the
+     collection/schema change before those necessary node prop changes so history names the
+     action the editor chose rather than one cleanup side effect. */
+  const beforeCollections = before.meta.collections || [];
+  const afterCollections = after.meta.collections || [];
+  const oldCollections = new Map(beforeCollections.map(collection => [collection.id, collection]));
+  const newCollections = new Map(afterCollections.map(collection => [collection.id, collection]));
+  if (afterCollections.some(collection => !oldCollections.has(collection.id))) return 'Add collection';
+  if (beforeCollections.some(collection => !newCollections.has(collection.id))) return 'Delete collection';
+  for (const collection of afterCollections) {
+    const old = oldCollections.get(collection.id)!;
+    const oldFields = new Map((old.fields || []).map(field => [field.id, field]));
+    const newFields = new Map((collection.fields || []).map(field => [field.id, field]));
+    if (collection.fields.some(field => !oldFields.has(field.id))) return 'Add collection field';
+    if (old.fields.some(field => !newFields.has(field.id))) return 'Delete collection field';
+    if (!same(old.fields, collection.fields)) return 'Change collection fields';
+    const oldItems = new Map((old.items || []).map(item => [item.id, item]));
+    const newItems = new Map((collection.items || []).map(item => [item.id, item]));
+    if (collection.items.some(item => !oldItems.has(item.id))) return 'Add collection entry';
+    if (old.items.some(item => !newItems.has(item.id))) return 'Delete collection entry';
+    if (!same(old.items, collection.items)) return 'Change collection content';
+    if (old.name !== collection.name) return 'Rename collection';
+    if (!same({ slug: old.slug, detail: old.detail, views: old.views }, { slug: collection.slug, detail: collection.detail, views: collection.views })) return 'Change collection settings';
+  }
+
   const a = nodes(before), b = nodes(after);
   const added = [...b.values()].reverse().find(place => !a.has(place.node.id));
   if (added) return `Add ${kind(added.node)}`;
