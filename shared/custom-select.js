@@ -403,7 +403,10 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (invalid) records.get(invalid)?.trigger.focus();
   });
   window.addEventListener('resize', () => openRecord && position(openRecord));
-  window.addEventListener('scroll', () => openRecord && position(openRecord), true);
+  window.addEventListener('scroll', event => {
+    if (!openRecord || event.composedPath().includes(openRecord.menu)) return;
+    position(openRecord);
+  }, true);
   new MutationObserver(mutations => {
     const affectsSelect = mutations.some(mutation => {
       if (mutation.type === 'attributes') {

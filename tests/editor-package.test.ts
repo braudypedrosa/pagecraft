@@ -20,6 +20,10 @@ describe('@pagecraft/editor package', () => {
     expect(html).toContain('id="brandHome"');
     expect(html).toContain("WP.pagesUrl || WP.exitUrl || ''");
     expect(html).toContain('.templateControls>.f,.templateControls>.f:last-child{margin-bottom:0}');
+    expect(html).toMatch(/class:\s*"ctl",\s*"aria-label":\s*"Animation"/);
+    expect(html).toContain('const changed = record.select.value !== option.value');
+    expect(html).toContain('record.select.nextElementSibling !== record.trigger');
+    expect(html).toContain('event.composedPath().includes(openRecord.menu)');
     expect(contract).toMatchObject({
       format: 'pagecraft.editor-contract.v1',
       schemaVersion: SCHEMA,

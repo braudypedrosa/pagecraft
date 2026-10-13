@@ -7,11 +7,11 @@
   "scripts": {
     "dev": "vite",
     "build": "node build.mjs",
-    "build:editor-package": "npm run build && node packages/editor/build.mjs",
+    "build:editor-package": "node packages/editor/build.mjs",
     "build:next": "vite build",
     "template": "node tools/premade-sites.ts",
     "template:legacy": "node tools/build-premade-sites.ts",
-    "test": "node build.mjs && tsc --noEmit && vitest run",
+    "test": "node packages/editor/build.mjs && tsc --noEmit && vitest run",
     "typecheck": "tsc --noEmit",
     "serve": "python3 -m http.server 4877",
     "smoke": "node tools/smoke.mjs",

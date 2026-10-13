@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { transformSync } from 'esbuild';
 import * as Core from '../../app/src/core/index.ts';
 import { ANIM_JS } from '../../app/src/core/anim.ts';
@@ -17,6 +18,11 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
 const dist = join(here, 'dist');
 const editorSource = join(root, 'index.html');
+
+// index.html is generated from builder.html plus the TypeScript UI and core. Package
+// builds must refresh it themselves: callers may invoke this file directly, and a
+// tracked index.html can legitimately lag behind the source modules in a checkout.
+execFileSync(process.execPath, [join(root, 'build.mjs')], { cwd: root, stdio: 'inherit' });
 const editor = readFileSync(editorSource, 'utf8');
 
 if (!editor.includes('window.PC_WORDPRESS') || !editor.includes('createWordPressHostAdapter')

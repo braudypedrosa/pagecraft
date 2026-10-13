@@ -188,6 +188,44 @@ test('menus fit below, above or in the larger scrollable space and clamp to the 
   trigger.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 });
 
+test('menu scrolling stays under pointer control while external scroll and keyboard positioning remain active', async () => {
+  HTMLElement.prototype.scrollIntoView = () => {};
+  document.body.innerHTML = `<div id="scroll-host"><select aria-label="Font family">${Array.from({ length: 40 }, (_, index) =>
+    `<option value="font-${index}">${index === 0 ? 'Inherit' : `Font ${index}`}</option>`).join('')}</select></div>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  let triggerTop = 100;
+  trigger.getBoundingClientRect = () => ({ top: triggerTop, bottom: triggerTop + 37, left: 20, right: 220, width: 200, height: 37 } as DOMRect);
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+  trigger.click();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+  const active = menu.querySelector<HTMLButtonElement>('[aria-selected="true"]')!;
+  Object.defineProperty(menu, 'scrollHeight', { configurable: true, value: 2122 });
+  Object.defineProperty(menu, 'offsetHeight', { configurable: true, value: 360 });
+  Object.defineProperty(menu, 'clientHeight', { configurable: true, value: 360 });
+  Object.defineProperty(menu, 'scrollTop', { configurable: true, writable: true, value: 40 });
+  menu.getBoundingClientRect = () => ({ top: 100, bottom: 460, left: 20, right: 220, width: 200, height: 360 } as DOMRect);
+  active.getBoundingClientRect = () => ({ top: 20, bottom: 54, left: 20, right: 220, width: 200, height: 34 } as DOMRect);
+
+  menu.dispatchEvent(new Event('scroll'));
+  a.equal(menu.scrollTop, 40, 'wheel scrolling the menu does not snap back to its active option');
+
+  active.getBoundingClientRect = () => ({ top: 120, bottom: 154, left: 20, right: 220, width: 200, height: 34 } as DOMRect);
+  triggerTop = 200;
+  document.querySelector('#scroll-host')!.dispatchEvent(new Event('scroll'));
+  a.equal(menu.style.top, '243px', 'scrolling an ancestor still repositions the floating menu');
+
+  const last = menu.querySelectorAll<HTMLButtonElement>('[role="option"]')[39];
+  let revealed = 0;
+  last.scrollIntoView = () => { revealed++; };
+  active.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+  a.equal(document.activeElement, last);
+  a.equal(revealed, 1, 'keyboard navigation still reveals the newly active option');
+});
+
 
 test('floating options stay opaque when toolbar triggers are transparent or tinted', async () => {
   document.body.innerHTML = '<select aria-label="Current page"><option>Home</option><option>Plan your stay</option></select>';
