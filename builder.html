@@ -2393,7 +2393,7 @@ function clearPublicationFrames() {
   publicationFrameCleanup.forEach(cleanup => cleanup());
   publicationFrameCleanup.clear();
 }
-function loadPublicationFrame(frame, source) {
+function loadPublicationFrame(frame, source, navigation = {}) {
   publicationFrameCleanup.get(frame)?.();
   let strip = frame.parentElement.querySelector('.pc-preview-state');
   if (!strip) {
@@ -2403,22 +2403,33 @@ function loadPublicationFrame(frame, source) {
   strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
   const status = strip.querySelector('span'), retry = strip.querySelector('button');
   const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
-  let active = true;
+  let active = true, settled = false;
   const cleanup = () => { active = false; clearTimeout(timer); window.removeEventListener('message', received); };
   const finish = (text, canRetry) => {
-    if (!active || !frame.isConnected) return;
+    if (!active || settled || !frame.isConnected) return;
+    settled = true;
     status.textContent = text; retry.hidden = !canRetry;
-    frame.setAttribute('aria-busy', 'false'); cleanup();
+    frame.setAttribute('aria-busy', 'false'); clearTimeout(timer);
   };
   const received = event => {
-    if (event.source !== frame.contentWindow || event.data?.type !== 'pagecraft-preview-ready' || event.data.token !== token) return;
+    if (!active || !frame.isConnected || event.source !== frame.contentWindow || event.data?.token !== token) return;
+    if (event.data.type === 'pagecraft-preview-navigate') {
+      const path = event.data.path, hash = event.data.hash;
+      if (typeof path !== 'string' || !Array.isArray(navigation.pages) || !navigation.pages.includes(path)
+        || path.split('/').some(part => !part || part === '.' || part === '..')
+        || path.length > 512 || !/^[a-zA-Z0-9._@+/-]+\.html$/.test(path)
+        || typeof hash !== 'string' || (hash && !hash.startsWith('#')) || hash.length > 2048) return;
+      if (typeof navigation.onNavigate === 'function') navigation.onNavigate(path, hash);
+      return;
+    }
+    if (event.data.type !== 'pagecraft-preview-ready') return;
     if (event.data.status === 'ready') finish('Page preview displayed.', false);
     else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
   };
   const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
   window.addEventListener('message', received);
   publicationFrameCleanup.set(frame, cleanup);
-  retry.addEventListener('click', () => loadPublicationFrame(frame, source));
+  retry.addEventListener('click', () => loadPublicationFrame(frame, source, navigation));
   frame.setAttribute('aria-busy', 'true');
   frame.removeAttribute('srcdoc');
   const target = new URL(source, location.href); target.searchParams.set('pcPreviewReady', token);
@@ -2520,7 +2531,7 @@ async function preparePublicationReview(button) {
         <div><h4>Reviewed draft</h4><iframe id="publicationAfter" title="Reviewed draft comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
       </div>`;
     const page = $('#publicationPage');
-    const update = () => {
+    const update = (hash = '') => {
       const show = (frame, id, paths) => {
         if (!frame) return;
         if (paths && !paths.includes(page.value)) {
@@ -2528,7 +2539,14 @@ async function preparePublicationReview(button) {
           frame.parentElement.querySelector('.pc-preview-state')?.remove();
           frame.removeAttribute('aria-busy');
           frame.removeAttribute('src'); frame.srcdoc = '<p style="font:14px system-ui;padding:16px">This page is not included in this version.</p>';
-        } else { loadPublicationFrame(frame, url(id, page.value)); }
+        } else { loadPublicationFrame(frame, url(id, page.value) + (typeof hash === 'string' ? hash : ''), {
+          pages: paths || reviewed.pages,
+          onNavigate: (path, hash) => {
+            if (!reviewed.pages.includes(path)) return;
+            page.value = path;
+            update(hash);
+          }
+        }); }
       };
       show($('#publicationAfter'), reviewed.snapshotId, reviewed.draftPages);
       show($('#publicationBefore'), reviewed.baselinePublicationId, reviewed.publishedPages);
@@ -5414,7 +5432,7 @@ function tx(key) {
   txKey = key; checkpoint();
   paintHistory();
 }
-const endTx = () => { txKey = null; paintHistory(); };
+const endTx = () => { txKey = null; paintHistory(); refreshReview(); };
 /* Both end in a save, and the change they paint is already in the document — so it is unsaved
    from the call, not from when the debounce lets it through. */
 const repaintSoon = dbounce(() => { paint(); save(); renderLayers(); refreshReview(); paintHistory(); }, 90);

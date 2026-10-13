@@ -48,6 +48,37 @@ function fixture(prepare) {
 }
 
 describe('publication preview failure feedback', () => {
+  test('snapshot navigation stays gated by frame, token and exact page inventory after paint readiness', () => {
+    const { dom, w, doc } = fixture(async () => {});
+    const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');
+    wrapper.append(frame); doc.body.append(wrapper);
+    frame.setAttribute('sandbox', 'allow-scripts');
+    const onNavigate = vi.fn();
+    const source = '/api/sites/qa/publication-snapshots/reviewed-4/files/index.html';
+    const navigation = {pages:['index.html', 'menu.html', 'projects/study.html'], onNavigate};
+    w.loadPublicationFrame(frame, source, navigation);
+    const token = new URL(frame.src).searchParams.get('pcPreviewReady');
+    const send = (data, from = frame.contentWindow) => w.dispatchEvent(new w.MessageEvent('message', {source:from, data}));
+    send({type:'pagecraft-preview-ready', token, status:'ready'});
+    expect(wrapper.textContent).toContain('Page preview displayed.');
+    const valid = {type:'pagecraft-preview-navigate', token, path:'menu.html', hash:'#morning'};
+    send(valid, w); send({...valid, token:'wrong'});
+    for (const path of ['unknown.html', '../menu.html', '/menu.html', 'https://evil.test/menu.html']) send({...valid, path});
+    send({...valid, hash:'https://evil.test'});
+    expect(onNavigate).not.toHaveBeenCalled();
+    send(valid);
+    expect(onNavigate).toHaveBeenCalledExactlyOnceWith('menu.html', '#morning');
+    expect(frame.getAttribute('sandbox')).toBe('allow-scripts');
+    w.loadPublicationFrame(frame, source, navigation);
+    send(valid);
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    const freshToken = new URL(frame.src).searchParams.get('pcPreviewReady');
+    w.clearPublicationFrames();
+    send({...valid, token:freshToken});
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    dom.window.close();
+  });
+
   test('persists escaped 422 findings with page context and safe navigation', async () => {
     const error = Object.assign(new Error('publication_validation_failed'), {
       status: 422,

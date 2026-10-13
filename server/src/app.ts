@@ -3249,10 +3249,13 @@ export function createApp(o: Options) {
     c.header("Content-Security-Policy", "sandbox allow-scripts; connect-src 'none'; form-action 'none'; frame-ancestors 'self'");
     if (record.mediaType.startsWith("text/html")) {
       const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes));
-      // The opaque preview may report paint readiness, without gaining editor-origin access.
+      // The opaque preview reports readiness and requests known-page navigation through its parent.
       // Existing snapshot CSP permits scripts; no nonce exception or sandbox relaxation is needed.
       return c.body(withPreviewReadiness(hostedHtml(html, path,
-        new Map(publication.files.map(file => [file.path, ""])), prefix), c.req.query("pcPreviewReady")));
+        new Map(publication.files.map(file => [file.path, ""])), prefix), c.req.query("pcPreviewReady"), {
+          prefix,
+          pages: publication.files.filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
+        }));
     }
     return c.body(new Uint8Array(bytes).buffer);
   });
