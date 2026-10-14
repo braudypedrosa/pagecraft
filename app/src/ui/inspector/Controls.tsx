@@ -582,15 +582,20 @@ function RichCtl({ n, c }: P) {
 function TstyleCtl({ n, c }: P) {
   const cur = C.findStyle(String(valueOf(n, c) || ''));
   const used = cur ? C.tsUsage(cur.id) : 0;
+  const canUpdate = C.tsCanUpdateFrom(n);
 
   const push = async () => {
+    if (!C.tsCanUpdateFrom(n)) return;
     const t = C.findStyle(n.props.ts);
     const k = t ? C.tsUsage(t.id) : 0;
-    if (k > 1 && !await L.askConfirm('Update the style everywhere?',
-      `<b>${esc(t!.name)}</b> is used ${k}×. Taking this element's typography into the `
-      + `style changes the other ${k - 1} too.`, { ok: 'Update style', danger: false })) return;
-    C.edit(() => C.tsUpdateFrom(n));
-    L.toast('Style updated everywhere');
+    if (k > 1 && !await L.askConfirm('Update typography everywhere?',
+      `Share this element's typography through <b>${esc(t!.name)}</b> (${k} uses)? `
+      + `Spacing, backgrounds and borders stay local; other elements keep their overrides.`,
+      { ok: 'Update typography', danger: false })) return;
+    if (!C.tsCanUpdateFrom(n)) return;
+    let updated = false;
+    C.edit(() => { updated = C.tsUpdateFrom(n); });
+    if (updated) L.toast('Typography updated');
   };
   const create = async () => {
     const name = await L.askText('New text style', 'Style name', C.DEF[n.type].label,
@@ -613,8 +618,11 @@ function TstyleCtl({ n, c }: P) {
       {cur
         ? <>
           <button class="btn"
-            title="Copy this element's typography into the style, everywhere it is used"
-            onClick={push}>Update style{used > 1 ? ` · ${used} uses` : ''}</button>
+            disabled={!canUpdate}
+            title={canUpdate
+              ? "Share this element's typography. Spacing, backgrounds and borders stay local."
+              : "Change this element's typography to update the text style. Spacing, backgrounds and borders stay local."}
+            onClick={push}>Update typography{used > 1 ? ` · ${used} uses` : ''}</button>
           <button class="btn"
             title="Keep the look, stop following the style"
             onClick={() => { C.edit(() => C.tsUnlink(n)); L.toast('Detached — the look is now local'); }}>
