@@ -7273,7 +7273,7 @@ var PATTERNS = [
       cols(
         2,
         [[T_MARK("Your name")], [T_NAV()]],
-        { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "20px", ...BURGER } }
+        { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, t: { ...BURGER }, m: { gap: "20px", ...BURGER } }
       )
     ])
   },
@@ -7312,7 +7312,7 @@ var PATTERNS = [
           },
           m: { ...BOX("8px", "12px", "8px", "12px"), "font-size": "14px" }
         })]
-      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "14px", ...BURGER } }))
+      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, t: { ...BURGER }, m: { gap: "14px", ...BURGER } }))
     ])
   },
   {
@@ -7344,7 +7344,7 @@ var PATTERNS = [
       cols(2, [
         [T_MARK("Your name", cvar("surface"))],
         [T_NAV({ d: { color: cvar("muted-i"), "--nav-hover": cvar("surface"), "--nav-panel": cvar("ink") } })]
-      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, m: { gap: "20px", ...BURGER } })
+      ], { d: { gap: "16px", "flex-wrap": "nowrap", ...BASELINE }, t: { ...BURGER }, m: { gap: "20px", ...BURGER } })
     ])
   },
   /* ---- footers ------------------------------------------------------------

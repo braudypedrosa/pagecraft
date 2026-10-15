@@ -6238,7 +6238,7 @@ const PATTERNS: Pattern[] = [
       'background-color': cvar('bg'), ...HAIRLINE('bottom'), ...STICKY
     }, [
       cols(2, [[T_MARK('Your name')], [T_NAV()]],
-        { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
+        { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '20px', ...BURGER } })
     ])
   },
   {
@@ -6267,7 +6267,7 @@ const PATTERNS: Pattern[] = [
           },
           m: { ...BOX('8px', '12px', '8px', '12px'), 'font-size': '14px' }
         })]
-      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '14px', ...BURGER } }))
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '14px', ...BURGER } }))
     ])
   },
   {
@@ -6291,7 +6291,7 @@ const PATTERNS: Pattern[] = [
       cols(2, [
         [T_MARK('Your name', cvar('surface'))],
         [T_NAV({ d: { color: cvar('muted-i'), '--nav-hover': cvar('surface'), '--nav-panel': cvar('ink') } })]
-      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '20px', ...BURGER } })
     ])
   },
 
@@ -6441,11 +6441,10 @@ const STICKY = { position: 'sticky', top: '0px', 'z-index': '50' };
    A box among the text still wants its box centred — see the button in header-cta, which
    overrides this on its own column.
 
-   And it only holds while the menu *is* text. Once it collapses to a burger there is no
-   baseline worth sharing and an icon reads as centred or not: baseline alignment left the
-   burger 4.3px low at 414px. `BURGER` goes on `m`, which is the same `max-width:767px` the
-   default `collapse:'mobile'` emits into — so the switch happens exactly where the menu
-   stops being words. A nav set to collapse at tablet would want this on `t` as well. */
+   And it only holds while the wide header is text. At narrower widths there is no stable
+   baseline to share: a tablet-collapsed burger sat about 6px below the wordmark, while baseline
+   alignment left the default mobile burger 4.3px low. `BURGER` therefore centres the row
+   at both responsive breakpoints, whether the Nav collapses at Tablet or Mobile. */
 const BASELINE = { 'align-items': 'baseline' };
 const BURGER = { 'align-items': 'center' };
 /* Opt one column back out of the row's baseline alignment. `cols()` only gives each

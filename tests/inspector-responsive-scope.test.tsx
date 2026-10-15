@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, test } from 'vitest';
+import { afterEach, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
@@ -9,8 +9,13 @@ import { rig, type Rig } from './ui.setup';
 import type { Control } from '../app/src/core/types';
 
 let r: Rig;
-beforeEach(() => { r = rig(); });
-afterEach(() => { act(() => r.draw(null)); r.host.remove(); });
+beforeEach(() => { vi.useFakeTimers(); r = rig(); });
+afterEach(() => {
+  act(() => r.draw(null));
+  vi.runOnlyPendingTimers();
+  vi.useRealTimers();
+  r.host.remove();
+});
 const size: Control = { t: 'unit', c: 'font-size', label: 'Size', r: 1, units: ['px'] };
 
 function heading() {

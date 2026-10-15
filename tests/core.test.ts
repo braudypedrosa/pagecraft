@@ -3983,7 +3983,7 @@ test('every region pattern is scoped, tagged and offered only in its region', ()
   });
 });
 
-test('a bar aligns its text on the baseline, and re-centres once the menu is an icon', () => {
+test('a bar keeps its desktop baseline and centres tablet and mobile header contents', () => {
   /* `align-items:center` centred the line boxes exactly — both at 33.2px, measured — and
      still read as wrong: a 19px wordmark and a 15px menu centred in their own boxes end up
      with baselines 2px apart, and the eye follows the baseline. Equal line-heights do not
@@ -4003,12 +4003,19 @@ test('a bar aligns its text on the baseline, and re-centres once the menu is an 
   ['header-bar', 'header-cta', 'header-ink'].forEach(id => {
     const row = rowOf(id);
     a.equal(row.css.d['align-items'], 'baseline', id + ': text beside text shares a baseline');
-    /* once the menu collapses to a burger there is no baseline worth sharing, and an icon
-       reads as centred or not — this left it 4.3px low at 414px. `m` is the same
-       max-width:767px that `collapse:'mobile'` emits into, so the switch lands exactly
-       where the menu stops being words. */
+    a.equal(row.css.t['align-items'], 'center', id + ': tablet contents are vertically centred');
     a.equal(row.css.m['align-items'], 'center', id + ': centred once the menu is a burger');
     a.equal(row.css.d['flex-wrap'], 'nowrap', id + ': a header must not reflow to two lines');
+
+    const navs: PcNode[] = [];
+    C.eachNode([row], node => { if (node.type === 'nav') navs.push(node); });
+    const nav = must(navs[0], id + ' Nav');
+    nav.props.collapse = 'tablet';
+    const css = blocks(C.treeCss([[row]], false));
+    const rowSelector = new RegExp('\\.' + C.nodeClass(row) + '\\{[^}]*align-items:center');
+    const navSelector = `.${C.nodeClass(nav)} .pagecraft-nav-toggle{display:flex}`;
+    a.match(css.tablet, rowSelector, id + ': tablet stylesheet centres the row');
+    a.equal(css.tablet.includes(navSelector), true, id + ': Tablet collapse emits burger CSS in tablet query');
   });
 
   /* a padded box among the text wants its box centred, not its baseline shared */
