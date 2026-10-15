@@ -24,8 +24,9 @@ const json = (value: unknown) => encoder.encode(canonicalJson(value));
 test('portable renderer revision is independent, legacy-compatible, and fails unknown revisions closed', () => {
   const rendererVersion = portableRendererVersionForSchema(Core.SCHEMA);
   a.equal(supportsPortableRendererContract(rendererVersion, PORTABLE_RENDERER_REVISION, Core.SCHEMA, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), true);
   a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-2', Core.SCHEMA, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-3', Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract('pagecraft-renderer-1', undefined, Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract(`pagecraft-core-${Core.SCHEMA - 1}`, undefined, Core.SCHEMA, Core.SCHEMA), false);
 
@@ -39,10 +40,10 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
   a.equal(built.manifest.rendererRevision, PORTABLE_RENDERER_REVISION);
   const files = extractPortableZip(built.bytes);
   const manifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
-  manifest.rendererRevision = 'pagecraft-renderer-2';
+  manifest.rendererRevision = 'pagecraft-renderer-3';
   files.set('manifest.json', json(manifest));
   const unsupported = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
-  a.throws(() => validatePortablePackage(unsupported), /unsupported renderer pagecraft-core-13 \/ pagecraft-renderer-2/);
+  a.throws(() => validatePortablePackage(unsupported), /unsupported renderer pagecraft-core-13 \/ pagecraft-renderer-3/);
 });
 
 test('released checks preserve immutable legacy archives while drafts stay reproducible', async () => {

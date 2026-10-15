@@ -1857,6 +1857,17 @@ let dirty = false;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+/* The package build replaces only this marked literal. Saved output must identify
+   the renderer that actually produced it, never the server version that requested it. */
+const BUNDLED_COMPILER_CONTRACT = Object.freeze(
+  /*PAGECRAFT_COMPILER_DESCRIPTOR_START*/ {
+    format: 'pagecraft.editor-contract.v1',
+    editorVersion: 'development',
+    schemaVersion: SCHEMA,
+    rendererVersion: `pagecraft-core-${SCHEMA}`,
+    rendererRevision: 'development'
+  } /*PAGECRAFT_COMPILER_DESCRIPTOR_END*/
+);
 if (SRV && !IS_WORDPRESS) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
   const submissions = document.createElement('button');
@@ -2778,6 +2789,27 @@ function writeNow() {
 let saving = false, saveAgain = false;
 let deliberateReload = false, saveTimer = null;
 
+function snapshotPageForWP() {
+  const styles = wordpressStyles(page());
+  const compiled = {
+    compiler: BUNDLED_COMPILER_CONTRACT,
+    html: assetsToBlob(buildPage(page())),
+    globalCss: assetsToBlob(styles.global),
+    pageCss: assetsToBlob(styles.page)
+  };
+  /* Rendering may materialize optional empty collections through legacy lazy accessors.
+     Capture the source after those synchronous normalizations so an exact retry stays exact. */
+  const document = clone(doc());
+  return {
+    document,
+    compiled
+  };
+}
+
+async function compilePageForWP(compiled) {
+  return compiled;
+}
+
 async function writeServer(opts = {}) {
   if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (saving) { saveAgain = true; return; }
@@ -2789,15 +2821,14 @@ async function writeServer(opts = {}) {
     /* cleared as the request takes its copy of the document, so an edit made while it is in
        flight marks the page dirty again rather than being counted as saved */
     dirty = false;
+    /* WordPress font loading can await the network. Freeze both source and generated output
+       first so an edit made during that wait belongs wholly to the queued next save. */
+    const wordpressSnapshot = IS_WORDPRESS ? snapshotPageForWP() : null;
     const body = await HOST.documents.save({
-      document: doc(),
+      document: wordpressSnapshot ? wordpressSnapshot.document : doc(),
       version: SRV.version,
       keepalive: !!opts.keepalive,
-      ...(IS_WORDPRESS ? { compiled: {
-        html: assetsToBlob(buildPage(page())),
-        globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
-        pageCss: assetsToBlob(treeCss([page().tree], false))
-      } } : {})
+      ...(wordpressSnapshot ? { compiled: await compilePageForWP(wordpressSnapshot.compiled) } : {})
     });
     SRV.version = body.version;
     if (!IS_WORDPRESS) lastCloudDocument = cloudDocument;
