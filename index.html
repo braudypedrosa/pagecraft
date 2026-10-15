@@ -5990,9 +5990,10 @@ var classUsage = (id) => {
   }));
   return k;
 };
-function classDelete(id) {
+var CLASS_DELETE_COMPOUND_REASON = "This class combines Hover and Focus styles in a way Pagecraft cannot preserve yet. Remove it from those elements first.";
+function classDeletePlan(id) {
   const c = findClass(id);
-  if (!c) return false;
+  if (!c) return { ok: false, reason: "This class no longer exists." };
   const ordered = classes();
   const at = (o, stateKey) => stateKey ? o.st && o.st[stateKey] : o.css;
   const quad = {
@@ -6085,12 +6086,68 @@ function classDelete(id) {
       }
     }
   };
-  allTrees().forEach((l) => eachNode(l, (x) => {
-    if (!(x.cls || []).includes(id)) return;
-    preserve(x);
-    STATES.forEach(([k]) => preserve(x, k));
-    classRemove(x, id);
+  const compound = (x, b) => {
+    const winners = /* @__PURE__ */ new Map();
+    const put = (map, specificity) => {
+      const expanded = {};
+      cascade(expanded, map, () => true);
+      for (const [property, value] of Object.entries(expanded)) {
+        const prev = winners.get(property);
+        if (!prev || specificity >= prev.specificity) winners.set(property, { value, specificity });
+      }
+    };
+    const chain = [...BP_CHAIN[b] || ["d"]].reverse();
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (!(x.cls || []).includes(cls.id)) continue;
+        const base2 = cls.css && cls.css[bp] || {};
+        put(base2, 1);
+        if (x.type === "button") put(buttonVariantDeclarations(base2), 2);
+        STATES.forEach(([key]) => put(cls.st && cls.st[key] && cls.st[key][bp] || {}, 2));
+      }
+      const base = x.css && x.css[bp] || {};
+      put(base, 1);
+      if (x.type === "button") {
+        const forced = new Set(Object.keys(base).filter((property) => property.startsWith(BUTTON_AUTHORED) && base[property] === "1").map((property) => property.slice(BUTTON_AUTHORED.length)));
+        put(buttonVariantDeclarations(base, bp === "d" ? BUTTON_VARIANT_DEFAULTS : null, forced), 2);
+      }
+      STATES.forEach(([key]) => put(x.st && x.st[key] && x.st[key][bp] || {}, 2));
+    }
+    return new Map([...winners].map(([property, winner]) => [property, winner.value]));
+  };
+  const sameCompound = (before, after) => ["d", "t", "m"].every((b) => {
+    const a = compound(before, b), z = compound(after, b);
+    return [.../* @__PURE__ */ new Set([...a.keys(), ...z.keys()])].every((property) => a.get(property) === z.get(property));
+  });
+  const plans = [];
+  const seen = /* @__PURE__ */ new Set();
+  allTrees().forEach((l) => eachNode(l, (node) => {
+    if (seen.has(node) || !(node.cls || []).includes(id)) return;
+    seen.add(node);
+    const next = clone(node);
+    preserve(next);
+    STATES.forEach(([k]) => preserve(next, k));
+    classRemove(next, id);
+    plans.push({ node, next });
   }));
+  if (plans.some(({ node, next }) => !sameCompound(node, next))) {
+    return { ok: false, reason: CLASS_DELETE_COMPOUND_REASON };
+  }
+  return { ok: true, nodes: plans };
+}
+function classDeleteCheck(id) {
+  const plan = classDeletePlan(id);
+  return plan.ok ? { ok: true } : plan;
+}
+function classDelete(id) {
+  const plan = classDeletePlan(id);
+  if (!plan.ok) return false;
+  for (const { node, next } of plan.nodes) {
+    node.css = next.css;
+    if (next.st) node.st = next.st;
+    else delete node.st;
+    node.cls = next.cls;
+  }
   ensureTokens().classes = classes().filter((x) => x.id !== id);
   return true;
 }
@@ -11774,6 +11831,7 @@ var __CORE = {
   classAdd,
   classApply,
   classDelete,
+  classDeleteCheck,
   classFrom,
   classMove,
   classRemove,
@@ -21677,13 +21735,26 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const remove = async (id) => {
       const c3 = C2.findClass(id);
       if (!c3) return;
+      const check = C2.classDeleteCheck(id);
+      if (!check.ok) {
+        L2.toast(check.reason, { tone: "error" });
+        return;
+      }
       const uses = C2.classUsage(id);
       if (uses && !await L2.askConfirm(
         "Delete this class?",
         `<b>${esc9(c3.name)}</b> is used by ${uses} element${uses === 1 ? "" : "s"}. They keep their current look \u2014 they just stop sharing it.`,
         { ok: "Delete class" }
       )) return;
-      C2.edit(() => C2.classDelete(id), "Delete class");
+      let deleted = false;
+      C2.edit(() => {
+        deleted = C2.classDelete(id);
+      }, "Delete class");
+      if (!deleted) {
+        const latest = C2.classDeleteCheck(id);
+        L2.toast(latest.ok ? "Class could not be deleted." : latest.reason, { tone: "error" });
+        return;
+      }
       repaint("classes");
       L2.toast("Class deleted, looks kept");
     };

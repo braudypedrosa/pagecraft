@@ -1073,6 +1073,30 @@ test('style-class delete and reorder keep useful Undo and Redo labels', async ()
   a.equal(C.historyLabel('undo'), 'Delete class');
 });
 
+test('style-class delete explains an unsupported compound state without mutating history', async () => {
+  C.ensureTokens().classes = [];
+  const heading = C.insert('heading', null, 0)!;
+  const gone = C.classAdd('Low focus');
+  const high = C.classAdd('High hover');
+  C.findClass(gone)!.st = { focus: { d: { color: '#b42318' }, t: {}, m: {} } };
+  C.findClass(high)!.st = { hover: { d: { color: '#1d4ed8' }, t: {}, m: {} } };
+  C.classApply(heading, gone); C.classApply(heading, high);
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.calls.length = 0;
+  r.draw(() => <StyleClasses />, 'classes');
+
+  r.click(r.$$('button[title^="Delete"]')[0]);
+  await Promise.resolve();
+
+  a.ok(C.findClass(gone), 'unsupported class remains');
+  a.deepEqual(heading.cls, [gone, high], 'element classes remain untouched');
+  a.equal(C.hist.u.length, 0, 'rejected deletion creates no Undo entry');
+  a.equal(r.names().includes('askConfirm'), false, 'UI does not promise look preservation');
+  const toast = r.arg('toast');
+  a.match(String(toast?.[0]), /Hover and Focus styles/);
+  a.deepEqual(toast?.[1], { tone: 'error' });
+});
+
 test('style-class rows omit implementation-detail declaration counts', () => {
   C.classAdd('Card');
   r.draw(() => <StyleClasses />, 'classes');

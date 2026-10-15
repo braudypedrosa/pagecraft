@@ -22,11 +22,22 @@ export function StyleClasses() {
   const remove = async (id: string) => {
     const c = C.findClass(id);
     if (!c) return;
+    const check = C.classDeleteCheck(id);
+    if (!check.ok) {
+      L.toast(check.reason, { tone: 'error' });
+      return;
+    }
     const uses = C.classUsage(id);
     if (uses && !await L.askConfirm('Delete this class?',
       `<b>${esc(c.name)}</b> is used by ${uses} element${uses === 1 ? '' : 's'}. They keep `
       + 'their current look — they just stop sharing it.', { ok: 'Delete class' })) return;
-    C.edit(() => C.classDelete(id), 'Delete class');
+    let deleted = false;
+    C.edit(() => { deleted = C.classDelete(id); }, 'Delete class');
+    if (!deleted) {
+      const latest = C.classDeleteCheck(id);
+      L.toast(latest.ok ? 'Class could not be deleted.' : latest.reason, { tone: 'error' });
+      return;
+    }
     repaint('classes');
     L.toast('Class deleted, looks kept');
   };

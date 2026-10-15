@@ -2632,11 +2632,20 @@ const classUsage = (id: string) => {
   allTrees().forEach(l => eachNode(l, x => { if ((x.cls || []).includes(id)) k++; }));
   return k;
 };
-/* deleting a class bakes its declarations into every user, so nothing moves — its hover and
-   focus rules included, or every card that lifted on hover would go flat */
-function classDelete(id: string) {
+type ClassDeleteCheck = { ok: true } | { ok: false; reason: string };
+type ClassDeletePlan = { ok: true; nodes: Array<{ node: PcNode; next: PcNode }> }
+  | { ok: false; reason: string };
+const CLASS_DELETE_COMPOUND_REASON = 'This class combines Hover and Focus styles in a way Pagecraft cannot preserve yet. Remove it from those elements first.';
+
+/* Plan the whole deletion before touching the document. Most class values can be baked into
+   their users without changing the cascade. One combination cannot: reusable state rules are
+   class-major (`low:hover`, `low:focus`, `high:hover`, `high:focus`), while a retained local
+   state comes after every reusable class. When hover and focus-visible are active together,
+   that move can change the winner. Pagecraft has no compound-state storage, so reject that
+   deletion instead of silently changing the page. */
+function classDeletePlan(id: string): ClassDeletePlan {
   const c = findClass(id);
-  if (!c) return false;
+  if (!c) return { ok: false, reason: 'This class no longer exists.' };
   const ordered = classes();
   const at = (o: { css?: Css; st?: States }, stateKey?: StateKey) =>
     stateKey ? o.st && o.st[stateKey] : o.css;
@@ -2723,12 +2732,74 @@ function classDelete(id: string) {
       }
     }
   };
-  allTrees().forEach(l => eachNode(l, x => {
-    if (!(x.cls || []).includes(id)) return;
-    preserve(x);
-    STATES.forEach(([k]) => preserve(x, k));
-    classRemove(x, id);
+  /* Resolve the winner when both editable states apply. This follows emitted stylesheet order
+     across desktop, tablet and mobile. Specificity matters: state selectors and the authored
+     Button bridge have two classes; ordinary base declarations have one. */
+  const compound = (x: PcNode, b: Bp) => {
+    const winners = new Map<string, { value: string; specificity: number }>();
+    const put = (map: Decls, specificity: number) => {
+      const expanded: Decls = {};
+      cascade(expanded, map, () => true);
+      for (const [property, value] of Object.entries(expanded)) {
+        const prev = winners.get(property);
+        if (!prev || specificity >= prev.specificity) winners.set(property, { value, specificity });
+      }
+    };
+    const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (!(x.cls || []).includes(cls.id)) continue;
+        const base = (cls.css && cls.css[bp]) || {};
+        put(base, 1);
+        if (x.type === 'button') put(buttonVariantDeclarations(base), 2);
+        STATES.forEach(([key]) => put((cls.st && cls.st[key] && cls.st[key]![bp]) || {}, 2));
+      }
+      const base = (x.css && x.css[bp]) || {};
+      put(base, 1);
+      if (x.type === 'button') {
+        const forced = new Set(Object.keys(base)
+          .filter(property => property.startsWith(BUTTON_AUTHORED) && base[property] === '1')
+          .map(property => property.slice(BUTTON_AUTHORED.length)));
+        put(buttonVariantDeclarations(base, bp === 'd' ? BUTTON_VARIANT_DEFAULTS : null, forced), 2);
+      }
+      STATES.forEach(([key]) => put((x.st && x.st[key] && x.st[key]![bp]) || {}, 2));
+    }
+    return new Map([...winners].map(([property, winner]) => [property, winner.value]));
+  };
+  const sameCompound = (before: PcNode, after: PcNode) => (['d', 't', 'm'] as Bp[]).every(b => {
+    const a = compound(before, b), z = compound(after, b);
+    return [...new Set([...a.keys(), ...z.keys()])].every(property => a.get(property) === z.get(property));
+  });
+  const plans: Array<{ node: PcNode; next: PcNode }> = [];
+  const seen = new Set<PcNode>();
+  allTrees().forEach(l => eachNode(l, node => {
+    if (seen.has(node) || !(node.cls || []).includes(id)) return;
+    seen.add(node);
+    const next = clone(node);
+    preserve(next);
+    STATES.forEach(([k]) => preserve(next, k));
+    classRemove(next, id);
+    plans.push({ node, next });
   }));
+  if (plans.some(({ node, next }) => !sameCompound(node, next))) {
+    return { ok: false, reason: CLASS_DELETE_COMPOUND_REASON };
+  }
+  return { ok: true, nodes: plans };
+}
+function classDeleteCheck(id: string): ClassDeleteCheck {
+  const plan = classDeletePlan(id);
+  return plan.ok ? { ok: true } : plan;
+}
+/* deleting a class bakes its declarations into every user, so nothing moves — its hover and
+   focus rules included, or every card that lifted on hover would go flat */
+function classDelete(id: string) {
+  const plan = classDeletePlan(id);
+  if (!plan.ok) return false;
+  for (const { node, next } of plan.nodes) {
+    node.css = next.css;
+    if (next.st) node.st = next.st; else delete node.st;
+    node.cls = next.cls;
+  }
   ensureTokens().classes = classes().filter(x => x.id !== id);
   return true;
 }
@@ -9260,7 +9331,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";

@@ -3177,6 +3177,61 @@ test('deleting a class preserves the effective multi-class cascade without overr
   a.deepEqual(h.cls, [low, high]);
 });
 
+test('class deletion rejects a compound-state winner change before mutating any user', () => {
+  blank();
+  const safe = insert('heading', null, 0);
+  const unsafe = insert('heading', null, 1);
+  const gone = C.classAdd('Low focus');
+  const high = C.classAdd('High hover');
+  klass(gone).st = { focus: {
+    d: { color: '#b42318' }, t: { 'background-color': '#fff1f0' }, m: { opacity: '.7' }
+  } };
+  klass(high).st = { hover: {
+    d: { color: '#1d4ed8' }, t: { 'background-color': '#eff6ff' }, m: { opacity: '1' }
+  } };
+  C.classApply(safe, gone);
+  C.classApply(unsafe, gone); C.classApply(unsafe, high);
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const lowFocus = css.indexOf(`.c-${gone}:focus-visible{color:#b42318;`);
+  const highHover = css.indexOf(`.c-${high}:hover{color:#1d4ed8;`);
+  a.equal(lowFocus > -1 && highHover > lowFocus, true,
+    'before deletion, later high:hover wins when hover and focus-visible are both active');
+  const before = C.clone(C.doc());
+
+  const check = C.classDeleteCheck(gone);
+  a.equal(check.ok, false);
+  if (!check.ok) a.match(check.reason, /Hover and Focus styles/);
+  a.equal(C.classDelete(gone), false, 'core API fails closed even without the UI preflight');
+  a.deepEqual(C.doc(), before,
+    'the safe first user, unsafe later user, class list and all breakpoints remain untouched');
+  a.ok(C.findClass(gone));
+  a.deepEqual(safe.cls, [gone]);
+  a.deepEqual(unsafe.cls, [gone, high]);
+});
+
+test('class deletion replays responsive Button bridges exactly under state rules', () => {
+  blank();
+  const button = insert('button', null, 0);
+  const stateClass = C.classAdd('Wide hover');
+  klass(stateClass).st = { hover: { d: {}, t: { 'padding-left': '40px' }, m: {} } };
+  C.classApply(button, stateClass);
+  /* Responsive buckets contain authored overrides only. Unlike the desktop factory copy,
+     this explicit factory-equal value emits the high-specificity Button bridge. */
+  button.css.t['padding-left'] = '26px';
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const classHover = css.indexOf(`.c-${stateClass}:hover{padding-left:40px;`);
+  const localBridge = css.indexOf(`.${C.nodeClass(button)}.pagecraft-button{padding-left:26px;`);
+  a.equal(classHover > -1 && localBridge > classHover, true,
+    'responsive local bridge is the rendered winner before deletion');
+  const before = C.clone(C.doc());
+
+  const check = C.classDeleteCheck(stateClass);
+  a.equal(check.ok, false,
+    'moving the class hover value local would place it after the responsive bridge and change the winner');
+  a.equal(C.classDelete(stateClass), false);
+  a.deepEqual(C.doc(), before, 'failed deletion remains atomic');
+});
+
 test('deleting a class preserves Button bridge values hidden by stored factory defaults', () => {
   blank();
   const button = insert('button', null, 0);
