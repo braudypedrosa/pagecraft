@@ -14,6 +14,7 @@ export type Call = [string, ...any[]];
 type StubOptions = {
   canStructure?: boolean;
   dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
+  managedForms?: boolean;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
   asset?: Legacy['asset'];
   libraries?: ReturnType<Legacy['libraries']>;
@@ -30,6 +31,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
        roles. `stubLegacy(calls, { canStructure: false })` is how a case asks for the other. */
     canStructure: () => opts.canStructure !== false,
     dynamicContentProvider: () => opts.dynamicContentProvider || 'pagecraft',
+    managedForms: () => opts.managedForms === true,
     wordpressContent: () => opts.wordpressContent || [],
     select: rec('select'),
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a

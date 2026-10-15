@@ -1136,7 +1136,8 @@ test('Cloud form controls describe the actual submission destination', () => {
     a.match(r.host.textContent || '', /Add an HTTPS destination for this search/);
     C.setCloudFormEndpoint('');
     r.draw(<Inspector />);
-    a.ok(r.$('select option[value="wordpress"]'), 'portable host keeps its existing receiver choices');
+    a.equal(r.$('select option[value="wordpress"]'), null,
+      'a portable host without a receiver does not offer WordPress-managed submissions');
   } finally { C.setCloudFormEndpoint(''); }
 });
 

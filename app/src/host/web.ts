@@ -36,7 +36,8 @@ export const WEB_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
   preview: 'pagecraft',
   publishing: 'pagecraft',
   globals: 'pagecraft',
-  dynamicContent: 'pagecraft'
+  dynamicContent: 'pagecraft',
+  managedForms: false
 });
 
 const webCapabilities = (role: WebHostOptions['role']): HostCapability[] => {

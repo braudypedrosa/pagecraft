@@ -60,6 +60,8 @@ export interface Legacy {
   /** Which product owns dynamic content in this host. The existing Collection widget is
       Pagecraft's in-document CMS and must not be offered when WordPress owns queries. */
   dynamicContentProvider(): false | 'pagecraft' | 'wordpress';
+  /** True only when the host has a receiver for the Form widget's WordPress-managed mode. */
+  managedForms(): boolean;
   /** Native WordPress pages/posts available as link destinations. Empty in the
       standalone build. Returning a snapshot keeps the UI read-only by construction. */
   wordpressContent(): readonly WordPressContentTarget[];

@@ -27,6 +27,33 @@ import {
 const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
 
+const managedFormsAvailable = () => L.managedForms();
+
+/** Keep the portable document contract, but never offer a receiver the current host does not
+    have. A legacy managed value gets its own explicit recovery action below; omitting its
+    select here avoids both a blank native select and a choice that cannot be saved. */
+function formControlForHost(n: PcNode, c: Control): Control | null {
+  if (n.type !== 'form' || c.k !== 'mode' || C.cloudFormsEnabled() || managedFormsAvailable()) return c;
+  if (n.props.mode === 'wordpress') return null;
+  return { ...c, opts: [['external', 'External HTTPS endpoint']] };
+}
+
+function UnsupportedManagedForm({ n }: { n: PcNode }) {
+  if (n.type !== 'form' || n.props.mode !== 'wordpress' || C.cloudFormsEnabled() || managedFormsAvailable()) return null;
+  const useExternal = () => {
+    C.edit(() => { n.props.mode = 'external'; }, 'Use external HTTPS form handling');
+    repaint('right');
+  };
+  return (
+    <div class="note" role="alert" style="padding:12px">
+      WordPress-managed submissions are not available in this host.
+      <button type="button" class="btn block" style={{ marginTop: 'var(--gap-1)' }} onClick={useExternal}>
+        Use external HTTPS
+      </button>
+    </div>
+  );
+}
+
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
 function Group({ title, n, items, gk, collapsed = false }: { title: string; n: PcNode; items?: Control[]; gk?: string; collapsed?: boolean; children?: any }) {
@@ -34,7 +61,9 @@ function Group({ title, n, items, gk, collapsed = false }: { title: string; n: P
   const closed = C.state.ui.open[key] === false || (C.state.ui.open[key] === undefined && collapsed);
   /* `when` lets a control depend on the node: a background's position appears once
      there is a background, the collection filter's operator once a field is chosen. */
-  const shown = items ? items.filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && c.k === 'mode')) : null;
+  const shown = items ? items
+    .filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && c.k === 'mode'))
+    .map(c => formControlForHost(n, c)).filter((c): c is Control => c !== null) : null;
   /* A group whose every control is out of scope for this widget is not an empty group,
      it is no group — a heading has no Background section to collapse. */
   if (shown && !shown.length) return null;
@@ -671,6 +700,7 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
         ) : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
         {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
+        {tab === 'content' ? <UnsupportedManagedForm n={n} /> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
         {tab === 'content' ? (
           content.length

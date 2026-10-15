@@ -35,7 +35,8 @@ export const WORDPRESS_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
   preview: 'wordpress',
   publishing: 'wordpress',
   globals: 'wordpress',
-  dynamicContent: 'wordpress'
+  dynamicContent: 'wordpress',
+  managedForms: false
 });
 
 const expiredNonce = (error: unknown) => error instanceof HostRequestError && error.status === 403

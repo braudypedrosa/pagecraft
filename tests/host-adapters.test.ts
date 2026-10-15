@@ -94,6 +94,7 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   a.equal(host.features.projectExport, false);
   a.equal(host.features.media, 'wordpress');
   a.equal(host.features.dynamicContent, 'wordpress');
+  a.equal(host.features.managedForms, false);
   a.equal(host.authentication.can('edit_document'), true);
   a.equal(host.authentication.can('manage_pages'), false);
   const session = await host.authentication.session();
@@ -253,6 +254,7 @@ test('web and WordPress hosts adopt and compile the identical document identical
   a.equal(web.features.hostedPublishing, true);
   a.equal(web.features.projectExport, true);
   a.equal(web.features.pages, 'pagecraft');
+  a.equal(web.features.managedForms, false);
   const fixture = wordpressFetch(doc);
   const wordpress = createWordPressHostAdapter({
     restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'n', fetch: fixture.fetcher

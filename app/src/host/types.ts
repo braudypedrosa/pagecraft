@@ -25,6 +25,8 @@ export interface HostFeatures {
   readonly publishing: HostFeatureProvider;
   readonly globals: HostFeatureProvider;
   readonly dynamicContent: HostFeatureProvider;
+  /** Whether this host has a real receiver for the WordPress-managed Form mode. */
+  readonly managedForms: boolean;
 }
 
 export type HostCapability =

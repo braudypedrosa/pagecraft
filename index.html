@@ -20486,10 +20486,29 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
 
   // app/src/ui/inspector/Inspector.tsx
   var esc7 = (v3) => String(v3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  var managedFormsAvailable = () => L2.managedForms();
+  function formControlForHost(n2, c3) {
+    if (n2.type !== "form" || c3.k !== "mode" || C2.cloudFormsEnabled() || managedFormsAvailable()) return c3;
+    if (n2.props.mode === "wordpress") return null;
+    return { ...c3, opts: [["external", "External HTTPS endpoint"]] };
+  }
+  function UnsupportedManagedForm({ n: n2 }) {
+    if (n2.type !== "form" || n2.props.mode !== "wordpress" || C2.cloudFormsEnabled() || managedFormsAvailable()) return null;
+    const useExternal = () => {
+      C2.edit(() => {
+        n2.props.mode = "external";
+      }, "Use external HTTPS form handling");
+      repaint("right");
+    };
+    return /* @__PURE__ */ u2("div", { class: "note", role: "alert", style: "padding:12px", children: [
+      "WordPress-managed submissions are not available in this host.",
+      /* @__PURE__ */ u2("button", { type: "button", class: "btn block", style: { marginTop: "var(--gap-1)" }, onClick: useExternal, children: "Use external HTTPS" })
+    ] });
+  }
   function Group({ title, n: n2, items, gk, collapsed = false }) {
     const key2 = gk || n2.type + ":" + title;
     const closed = C2.state.ui.open[key2] === false || C2.state.ui.open[key2] === void 0 && collapsed;
-    const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && c3.k === "mode")) : null;
+    const shown2 = items ? items.filter((c3) => (!c3.when || c3.when(n2)) && !(C2.cloudFormsEnabled() && n2.type === "form" && c3.k === "mode")).map((c3) => formControlForHost(n2, c3)).filter((c3) => c3 !== null) : null;
     if (shown2 && !shown2.length) return null;
     return /* @__PURE__ */ u2(Disclosure, { title, open: !closed, onToggle: (open) => {
       C2.state.ui.open[key2] = open;
@@ -21219,6 +21238,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ] }) : null,
             tab2 === "content" && n2.use ? /* @__PURE__ */ u2(VariantPick, { n: n2 }) : null,
             tab2 === "content" && formHandling ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: formHandling.note }) : null,
+            tab2 === "content" ? /* @__PURE__ */ u2(UnsupportedManagedForm, { n: n2 }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
             tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys3]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys3.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "No editable properties. ",
@@ -24571,7 +24591,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     preview: "pagecraft",
     publishing: "pagecraft",
     globals: "pagecraft",
-    dynamicContent: "pagecraft"
+    dynamicContent: "pagecraft",
+    managedForms: false
   });
   var webCapabilities = (role) => {
     if (role === "reviewer") return [];
@@ -24778,7 +24799,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     preview: "wordpress",
     publishing: "wordpress",
     globals: "wordpress",
-    dynamicContent: "wordpress"
+    dynamicContent: "wordpress",
+    managedForms: false
   });
   var expiredNonce = (error) => error instanceof HostRequestError && error.status === 403 && error.payload?.code === "rest_cookie_invalid_nonce";
   function createWordPressHostAdapter(options) {
@@ -25154,7 +25176,8 @@ const HOST_FEATURES = HOST ? HOST.features : Object.freeze({
   sites: false, account: false, billing: false, sharing: false,
   hostedPublishing: false, cloudPageManager: true, projectExport: true,
   pages: 'pagecraft', media: 'pagecraft', menus: 'pagecraft', revisions: false,
-  preview: 'pagecraft', publishing: false, globals: 'pagecraft', dynamicContent: 'pagecraft'
+  preview: 'pagecraft', publishing: false, globals: 'pagecraft', dynamicContent: 'pagecraft',
+  managedForms: false
 });
 
 /* WordPress owns sitewide design settings independently from any one Pagecraft document.
@@ -26016,7 +26039,41 @@ function writeNow() {
    is about to consume, and the server correctly calls it stale — so the editor would report
    a conflict it caused itself. */
 let saving = false, saveAgain = false;
+let ambiguousCloudSave = null;
 let deliberateReload = false, saveTimer = null;
+
+/* A cloud PUT can commit and still lose its response. Compare a fresh server read with the
+   exact attempted version and document before advancing the local version; version proximity
+   alone is never enough, because another editor may have saved in the meantime. */
+const saveDocumentKey = value => JSON.stringify(value, (_key, part) => {
+  if (!part || typeof part !== 'object' || Array.isArray(part)) return part;
+  return Object.fromEntries(Object.keys(part).sort().map(key => [key, part[key]]));
+});
+async function readCloudDraft() {
+  const headers = SRV.editorSessionToken
+    ? { 'X-Pagecraft-Editor-Session': SRV.editorSessionToken } : {};
+  const response = await fetch('/api/sites/' + encodeURIComponent(SRV.siteId), {
+    headers, credentials: 'same-origin', cache: 'no-store'
+  });
+  if (!response.ok) throw new Error('Draft readback failed (' + response.status + ')');
+  const body = await response.json();
+  return { version: Number(body.version), document: body.doc ?? body.document };
+}
+async function reconcileAmbiguousCloudSave(attempt) {
+  let remote;
+  try { remote = await readCloudDraft(); } catch (_) { return 'unavailable'; }
+  if (remote.version !== attempt.version + 1
+      || saveDocumentKey(remote.document) !== saveDocumentKey(attempt.document)) return 'different';
+  SRV.version = remote.version;
+  lastCloudDocument = attempt.serialized;
+  ambiguousCloudSave = null;
+  saveState = 'ok';
+  saveWarned = false;
+  dirty = JSON.stringify(doc()) !== lastCloudDocument;
+  if (dirty) saveAgain = true;
+  stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
+  return 'matched';
+}
 
 function snapshotPageForWP() {
   const styles = wordpressStyles(page());
@@ -26042,8 +26099,16 @@ async function compilePageForWP(compiled) {
 async function writeServer(opts = {}) {
   if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (saving) { saveAgain = true; return; }
-  const cloudDocument = !IS_WORDPRESS ? JSON.stringify(doc()) : null;
+  /* Freeze the same migrated clone the Web adapter serializes. Comparing a pre-adoption
+     source to a post-adoption GET would otherwise reject an exact response-loss recovery. */
+  const cloudSnapshot = !IS_WORDPRESS ? migrate(clone(doc())) : null;
+  const cloudDocument = !IS_WORDPRESS ? JSON.stringify(cloudSnapshot) : null;
   if (!IS_WORDPRESS && saveState === 'ok' && cloudDocument === lastCloudDocument) { dirty = false; return; }
+  const cloudAttempt = !IS_WORDPRESS ? {
+    version: SRV.version,
+    document: cloudSnapshot,
+    serialized: cloudDocument
+  } : null;
   saving = true;
   stamp('Saving…', false);
   try {
@@ -26055,12 +26120,12 @@ async function writeServer(opts = {}) {
     const wordpressSnapshot = IS_WORDPRESS ? snapshotPageForWP() : null;
     const body = await HOST.documents.save({
       document: wordpressSnapshot ? wordpressSnapshot.document : doc(),
-      version: SRV.version,
+      version: cloudAttempt ? cloudAttempt.version : SRV.version,
       keepalive: !!opts.keepalive,
       ...(wordpressSnapshot ? { compiled: await compilePageForWP(wordpressSnapshot.compiled) } : {})
     });
     SRV.version = body.version;
-    if (!IS_WORDPRESS) lastCloudDocument = cloudDocument;
+    if (!IS_WORDPRESS) { lastCloudDocument = cloudDocument; ambiguousCloudSave = null; }
     saveState = 'ok';
     saveWarned = false;
     stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
@@ -26072,6 +26137,13 @@ async function writeServer(opts = {}) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
     if (e && e.status === 409) {
+      if (!IS_WORDPRESS && ambiguousCloudSave) {
+        const reconciled = await reconcileAmbiguousCloudSave(ambiguousCloudSave);
+        if (reconciled === 'matched') return;
+        if (reconciled === 'unavailable') {
+          saveState = 'failed'; stamp('NOT SAVED', true); warnSaveUnconfirmed(e.payload || {}); return;
+        }
+      }
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
     }
     /* The adapter already fetched a fresh nonce and retried once; this one means the WordPress
@@ -26081,6 +26153,10 @@ async function writeServer(opts = {}) {
     }
     if (e && e.status === 403 && !IS_WORDPRESS) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
+    }
+    if (!IS_WORDPRESS && cloudAttempt && !(e && Number.isInteger(e.status))) {
+      ambiguousCloudSave = cloudAttempt;
+      if (await reconcileAmbiguousCloudSave(cloudAttempt) === 'matched') return;
     }
     saveState = 'failed';
     stamp('NOT SAVED', true);
@@ -26109,6 +26185,28 @@ function warnSaveBusy() {
   $('#busyRetry').addEventListener('click', () => {
     closeModal(); writeNow();
   });
+}
+
+/* A previous cloud request may have committed after its response was lost. If the host cannot
+   be read back now, neither retrying nor calling this a foreign edit is safe. */
+function warnSaveUnconfirmed(info) {
+  rememberSaveProblem('The host has a newer draft, but this editor could not verify whether it came from your interrupted save. Download your copy before reloading.', () => warnSaveUnconfirmed(info));
+  if (saveWarned) return;
+  saveWarned = true;
+  const theirs = info && info.conflict ? info.conflict.theirs : '?';
+  openModal('Save outcome needs checking', `
+    <div class="alert">
+      <b>The host is on version ${theirs}, but this editor could not safely read it back.</b>
+      <span>Your interrupted save may have reached the host. It may also contain a change from another editor, so Pagecraft will not overwrite it.</span>
+    </div>
+    <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
+      Download your copy, then reload the host draft. Keep both copies until you confirm which changes are present.
+    </div>`, `
+    <button class="btn" id="ucBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="ucReload">Reload host draft</button>`);
+  $('#ucBackup').addEventListener('click', event => backupJson(event));
+  $('#ucReload').addEventListener('click', reloadDiscardingChanges);
 }
 
 /* Somebody else saved between this editor loading and this editor saving. Reloading is the
@@ -26204,8 +26302,8 @@ function warnSaveFailed(err) {
   const connectionLost = SRV && (navigator.onLine === false || /failed to fetch|networkerror|network request failed|load failed/i.test(err?.message || ''));
   openModal('Your work is no longer being saved', `
     <div class="alert">
-      <b>${quota ? 'This browser is out of local storage space.' : (connectionLost ? 'The connection to the host was lost. This page has not been saved.' : (SRV ? 'The host could not save this page.' : 'This browser refused to save the project.'))}</b>
-      <span>Everything you do from now on lives only in this tab. Closing or reloading it will lose the work.</span>
+      <b>${quota ? 'This browser is out of local storage space.' : (connectionLost ? 'The connection to the host was lost. The editor could not confirm whether this page was saved.' : (SRV ? 'The host could not confirm this save.' : 'This browser refused to save the project.'))}</b>
+      <span>Your latest changes are still in this tab. Closing or reloading can lose changes the host did not receive.</span>
     </div>
     <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
       <b>Download backup now</b> keeps a project file of your current draft.
@@ -28140,7 +28238,8 @@ const ui = () => UI || (UI = PC_UI.mount(
   /* __CORE is generated by build.mjs from the core bundle's own export list, so it
      cannot drift from what the core actually exports. See the note there. */
   __CORE,
-  { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent, wordpressContent,
+  { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent,
+    managedForms: () => HOST_FEATURES.managedForms === true, wordpressContent,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart, insertionHint, previewInsertion,
     guideSavedDocument: () => { try { return lastCloudDocument ? JSON.parse(lastCloudDocument) : null; } catch { return null; } },
