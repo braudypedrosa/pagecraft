@@ -149,9 +149,11 @@ __export(index_exports, {
   codeSpans: () => codeSpans,
   collectionAdd: () => collectionAdd,
   collectionDelete: () => collectionDelete,
+  collectionFieldSettingUsage: () => collectionFieldSettingUsage,
   collectionIndex: () => collectionIndex,
   collectionRename: () => collectionRename,
   collections: () => collections,
+  collectionsReplace: () => collectionsReplace,
   colorAdd: () => colorAdd,
   colorDelete: () => colorDelete,
   colorUsage: () => colorUsage,
@@ -403,6 +405,7 @@ __export(index_exports, {
   tree: () => tree,
   treeCss: () => treeCss,
   tsApply: () => tsApply,
+  tsCanUpdateFrom: () => tsCanUpdateFrom,
   tsCreateFrom: () => tsCreateFrom,
   tsUnlink: () => tsUnlink,
   tsUpdateFrom: () => tsUpdateFrom,
@@ -1591,6 +1594,43 @@ function inferHistoryAction(before, after) {
   if (after.pages.some((page2) => !beforePages.has(page2.id))) return "Add page";
   if (before.pages.some((page2) => !afterPages.has(page2.id))) return "Remove page";
   if (after.pages.some((page2, index) => beforePages.get(page2.id)?.index !== index)) return "Move page";
+  const beforeBlocks = before.meta.blocks || [], afterBlocks = after.meta.blocks || [];
+  const oldBlocks = new Map(beforeBlocks.map((block) => [block.id, block]));
+  const newBlocks = new Map(afterBlocks.map((block) => [block.id, block]));
+  if (afterBlocks.some((block) => !oldBlocks.has(block.id))) return "Save block";
+  if (beforeBlocks.some((block) => !newBlocks.has(block.id))) return "Delete block";
+  const beforeComponents = before.meta.components || [], afterComponents = after.meta.components || [];
+  const oldComponents = new Map(beforeComponents.map((component) => [component.id, component]));
+  const newComponents = new Map(afterComponents.map((component) => [component.id, component]));
+  if (afterComponents.some((component) => !oldComponents.has(component.id))) return "Create component";
+  if (beforeComponents.some((component) => !newComponents.has(component.id))) return "Delete component";
+  for (const block of afterBlocks) if (oldBlocks.get(block.id)?.name !== block.name) return "Rename block";
+  for (const component of afterComponents) {
+    const old = oldComponents.get(component.id);
+    if (old.name !== component.name) return "Rename component";
+    if (!same(old.props, component.props)) return "Change component settings";
+  }
+  const beforeCollections = before.meta.collections || [];
+  const afterCollections = after.meta.collections || [];
+  const oldCollections = new Map(beforeCollections.map((collection) => [collection.id, collection]));
+  const newCollections = new Map(afterCollections.map((collection) => [collection.id, collection]));
+  if (afterCollections.some((collection) => !oldCollections.has(collection.id))) return "Add collection";
+  if (beforeCollections.some((collection) => !newCollections.has(collection.id))) return "Delete collection";
+  for (const collection of afterCollections) {
+    const old = oldCollections.get(collection.id);
+    const oldFields = new Map((old.fields || []).map((field) => [field.id, field]));
+    const newFields = new Map((collection.fields || []).map((field) => [field.id, field]));
+    if (collection.fields.some((field) => !oldFields.has(field.id))) return "Add collection field";
+    if (old.fields.some((field) => !newFields.has(field.id))) return "Delete collection field";
+    if (!same(old.fields, collection.fields)) return "Change collection fields";
+    const oldItems = new Map((old.items || []).map((item) => [item.id, item]));
+    const newItems = new Map((collection.items || []).map((item) => [item.id, item]));
+    if (collection.items.some((item) => !oldItems.has(item.id))) return "Add collection entry";
+    if (old.items.some((item) => !newItems.has(item.id))) return "Delete collection entry";
+    if (!same(old.items, collection.items)) return "Change collection content";
+    if (old.name !== collection.name) return "Rename collection";
+    if (!same({ slug: old.slug, detail: old.detail, views: old.views }, { slug: collection.slug, detail: collection.detail, views: collection.views })) return "Change collection settings";
+  }
   const a = nodes(before), b = nodes(after);
   const added = [...b.values()].reverse().find((place) => !a.has(place.node.id));
   if (added) return `Add ${kind(added.node)}`;
@@ -1863,6 +1903,14 @@ var FILTER_OPS = [
   ["unset", "is empty"]
 ];
 var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
+var BUTTON_VARIANT_DEFAULTS = {
+  "padding-top": "13px",
+  "padding-right": "26px",
+  "padding-bottom": "13px",
+  "padding-left": "26px",
+  "border-radius": "8px",
+  "background-color": "var(--c-brand)"
+};
 var U = {
   size: ["px", "rem", "em", "vw"],
   len: ["px", "rem", "%", "vw", "vh"],
@@ -2120,7 +2168,7 @@ var DEF = {
     level: 2,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
-      props: { arrows: 1, aria: "Slides" },
+      props: { arrows: 1, controlsPosition: "sides", aria: "Slides" },
       css: {
         d: { "--sl-gap": "24px", "--sl-w": "calc((100% - 2 * var(--sl-gap,24px)) / 3)" },
         t: { "--sl-w": "calc((100% - var(--sl-gap,24px)) / 2)" },
@@ -2344,8 +2392,8 @@ var DEF = {
         { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
       ]
     }
   },
@@ -2368,10 +2416,10 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-        { t: "color", c: "--link", label: "Link colour" }
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "color", c: "--link", label: "Link colour", r: 1 }
       ]
     }
   },
@@ -2444,9 +2492,9 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
         /* ch first, and not U.len: the default measure is in ch, and a unit control
            whose list omits the stored unit falls back to its first entry — which would
            quietly rewrite 34ch as 34px the moment anyone touched the field. */
@@ -2460,7 +2508,7 @@ var DEF = {
           note: "How wide the lines may run. 34ch reads well."
         },
         { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
-        { t: "color", c: "border-left-color", label: "Rule colour", layout: "inline" },
+        { t: "color", c: "border-left-color", label: "Rule colour", r: 1, layout: "inline" },
         { t: "unit", c: "border-left-width", label: "Rule width", layout: "inline", r: 1, units: U.border },
         { t: "box", c: "padding", label: "Padding", r: 1 }
       ]
@@ -2498,10 +2546,10 @@ var DEF = {
       style: [
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
         { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
-        { t: "select", c: "object-fit", label: "Fit", opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+        { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-        { t: "opt", c: "filter", label: "Filter", opts: FILTERS, ph: "grayscale(1) blur(2px)" }
+        { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+        { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
       ]
     }
   },
@@ -2541,14 +2589,9 @@ var DEF = {
       props: { text: "Get started", link: "", target: "", variant: "solid", icon: "none", align: "flex-start", wrap: "inline-flex", ts: "btn" },
       css: {
         d: {
-          "padding-top": "13px",
-          "padding-right": "26px",
-          "padding-bottom": "13px",
-          "padding-left": "26px",
-          "border-radius": "8px",
-          "background-color": cvar("brand"),
-          color: cvar("ink"),
-          "align-self": "flex-start"
+          "--pc-solid-fg": brandActionForeground(),
+          "align-self": "flex-start",
+          ...BUTTON_VARIANT_DEFAULTS
         },
         t: {},
         m: {}
@@ -2573,13 +2616,13 @@ var DEF = {
         }
       ],
       style: [
-        { t: "color", c: "background-color", label: "Background" },
-        { t: "color", c: "color", label: "Text colour", layout: "inline" },
+        { t: "color", c: "background-color", label: "Background", r: 1 },
+        { t: "color", c: "color", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
   },
@@ -2627,12 +2670,12 @@ var DEF = {
       style: [
         { t: "unit", c: "--nav-gap", label: "Link spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-        { t: "color", c: "color", label: "Link colour" },
-        { t: "color", c: "--nav-hover", label: "Hover colour" },
+        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "color", c: "color", label: "Link colour", r: 1 },
+        { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
         { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
   },
@@ -2665,7 +2708,7 @@ var DEF = {
           "--f-text": cvar("text"),
           "--f-label": cvar("muted"),
           "--f-btn-bg": cvar("brand"),
-          "--f-btn-fg": cvar("ink"),
+          "--f-btn-fg": brandActionForeground(),
           "font-size": "15px"
         },
         t: {},
@@ -2687,13 +2730,13 @@ var DEF = {
         { t: "select", c: "--f-button-align", label: "Alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
         { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--f-bg", label: "Field background" },
-        { t: "color", c: "--f-border", label: "Field border" },
-        { t: "color", c: "--f-text", label: "Field text" },
-        { t: "color", c: "--f-label", label: "Label colour" },
+        { t: "color", c: "--f-bg", label: "Field background", r: 1 },
+        { t: "color", c: "--f-border", label: "Field border", r: 1 },
+        { t: "color", c: "--f-text", label: "Field text", r: 1 },
+        { t: "color", c: "--f-label", label: "Label colour", r: 1 },
         { t: "unit", c: "--f-radius", label: "Field radius", r: 1, units: U.radius },
-        { t: "color", c: "--f-btn-bg", label: "Button background" },
-        { t: "color", c: "--f-btn-fg", label: "Button text" }
+        { t: "color", c: "--f-btn-bg", label: "Button background", r: 1 },
+        { t: "color", c: "--f-btn-fg", label: "Button text", r: 1 }
       ]
     }
   },
@@ -2714,8 +2757,8 @@ var DEF = {
     controls: {
       content: [
         { t: "unit", c: "border-top-width", label: "Thickness", layout: "inline", r: 1, units: U.border },
-        { t: "select", c: "border-top-style", label: "Style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
-        { t: "color", c: "border-top-color", label: "Colour", layout: "inline" },
+        { t: "select", c: "border-top-style", label: "Style", r: 1, opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
+        { t: "color", c: "border-top-color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len }
       ],
       style: []
@@ -2778,8 +2821,8 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--cb-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--cb-color", label: "Link colour" },
-        { t: "color", c: "--cb-current", label: "Current page colour" },
+        { t: "color", c: "--cb-color", label: "Link colour", r: 1 },
+        { t: "color", c: "--cb-current", label: "Current page colour", r: 1 },
         { t: "unit", c: "--cb-gap", label: "Spacing", layout: "inline", r: 1, units: U.space }
       ]
     }
@@ -2837,16 +2880,16 @@ var DEF = {
         }
       ],
       style: [
-        { t: "color", c: "--cd-bg", label: "Background" },
-        { t: "color", c: "--cd-text", label: "Text colour", layout: "inline" },
+        { t: "color", c: "--cd-bg", label: "Background", r: 1 },
+        { t: "color", c: "--cd-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
         { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "color", c: "--cd-com", label: "Comments", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-str", label: "Strings", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-kw", label: "Keywords", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-num", label: "Numbers", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-key", label: "Names", layout: "inline", when: (n) => n.props.lang !== "text" }
+        { t: "color", c: "--cd-com", label: "Comments", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-str", label: "Strings", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-kw", label: "Keywords", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-num", label: "Numbers", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-key", label: "Names", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" }
       ]
     }
   },
@@ -2905,13 +2948,13 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--tbl-text", label: "Text colour", layout: "inline" },
+        { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
-        { t: "color", c: "--tbl-line", label: "Line colour", layout: "inline" },
-        { t: "color", c: "--tbl-head-bg", label: "Header background" },
-        { t: "color", c: "--tbl-head-text", label: "Heading colour" },
-        { t: "color", c: "--tbl-zebra", label: "Shading", layout: "inline", when: (n) => !!n.props.zebra },
-        { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n) => !!String(n.props.caption || "").trim() }
+        { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
+        { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
+        { t: "color", c: "--tbl-zebra", label: "Shading", r: 1, layout: "inline", when: (n) => !!n.props.zebra },
+        { t: "color", c: "--tbl-caption-color", label: "Caption colour", r: 1, when: (n) => !!String(n.props.caption || "").trim() }
       ]
     }
   },
@@ -2961,13 +3004,13 @@ var DEF = {
         { t: "pick", c: "--tb-align", label: "Tabs sit", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
       ],
       style: [
-        { t: "color", c: "--tb-on", label: "Selected label" },
-        { t: "color", c: "--tb-off", label: "Other labels" },
-        { t: "color", c: "--tb-line", label: "Rule" },
+        { t: "color", c: "--tb-on", label: "Selected label", r: 1 },
+        { t: "color", c: "--tb-off", label: "Other labels", r: 1 },
+        { t: "color", c: "--tb-line", label: "Rule", r: 1 },
         { t: "unit", c: "--tb-size", label: "Label size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
         { t: "unit", c: "--tb-body-size", label: "Body size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--tb-body-color", label: "Body colour", layout: "inline" },
+        { t: "color", c: "--tb-body-color", label: "Body colour", r: 1, layout: "inline" },
         { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
       ]
     }
@@ -3014,15 +3057,15 @@ var DEF = {
         { t: "select", k: "marker", label: "Marker", opts: [["plus", "Plus / minus"], ["caret", "Caret"], ["none", "None"]] }
       ],
       style: [
-        { t: "color", c: "--ac-line", label: "Divider colour" },
+        { t: "color", c: "--ac-line", label: "Divider colour", r: 1 },
         { t: "unit", c: "--ac-pad", label: "Row padding", r: 1, units: U.space },
         { t: "unit", c: "--ac-gap", label: "Row gap", layout: "inline", r: 1, units: U.space },
         { t: "unit", c: "--ac-q-size", label: "Question size", r: 1, units: U.size },
-        { t: "select", c: "--ac-q-weight", label: "Question weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-        { t: "color", c: "--ac-q-color", label: "Question colour" },
+        { t: "select", c: "--ac-q-weight", label: "Question weight", r: 1, opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "color", c: "--ac-q-color", label: "Question colour", r: 1 },
         { t: "unit", c: "--ac-a-size", label: "Answer size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--ac-a-color", label: "Answer colour" },
-        { t: "color", c: "--ac-mark", label: "Marker colour" },
+        { t: "color", c: "--ac-a-color", label: "Answer colour", r: 1 },
+        { t: "color", c: "--ac-mark", label: "Marker colour", r: 1 },
         { t: "unit", c: "--ac-radius", label: "Row radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
@@ -3088,9 +3131,9 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--icon-size", label: "Glyph size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
-        { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
-        { t: "color", c: "background-color", label: "Badge background" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
+        { t: "slider", c: "--icon-stroke", label: "Stroke weight", r: 1, min: 1, max: 3, step: 0.05, raw: 1 },
+        { t: "color", c: "background-color", label: "Badge background", r: 1 },
         { t: "box", c: "padding", label: "Badge padding", r: 1 },
         { t: "unit", c: "border-radius", label: "Badge radius", r: 1, units: U.radius }
       ]
@@ -3377,15 +3420,15 @@ var COMMON_STYLE = [
     g: "Background",
     cap: "decoration",
     items: [
-      { t: "color", c: "background-color", label: "Colour", paint: 1 },
-      { t: "img", c: "background-image", label: "Image", bg: 1 },
-      { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+      { t: "color", c: "background-color", label: "Colour", r: 1, paint: 1 },
+      { t: "img", c: "background-image", label: "Image", r: 1, bg: 1 },
+      { t: "select", c: "background-size", label: "Size", r: 1, when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
+      { t: "pick", c: "background-position", label: "Position", r: 1, when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+      { t: "select", c: "background-repeat", label: "Repeat", r: 1, when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
     ]
   },
   {
@@ -3397,7 +3440,7 @@ var COMMON_STYLE = [
          render on the canvas while the inspector appeared to say there was no border. */
       { t: "border", label: "Border" },
       { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-      { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
+      { t: "opt", c: "box-shadow", label: "Shadow", r: 1, opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
   },
   {
@@ -3408,8 +3451,8 @@ var COMMON_STYLE = [
     g: "Effects",
     cap: "effects",
     items: [
-      { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
+      { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+      { t: "text", c: "transform", label: "Transform", r: 1, ph: "translateY(-4px) rotate(2deg)" }
     ]
   }
 ];
@@ -3958,9 +4001,10 @@ var nodeClasses = (n) => {
 var resolveColor = (v) => {
   const id = refId(v);
   if (!id) return String(v || "");
-  const t = findColor(id);
+  const t = findColor(id) || (id === "brand" ? findColor("accent") : null);
   return t ? t.value : "";
 };
+var usesAccentBrandFallback = () => !findColor("brand") && !!findColor("accent");
 function defaultTokens(meta = {}) {
   return {
     classes: [],
@@ -3988,9 +4032,21 @@ function defaultTokens(meta = {}) {
   };
 }
 function tokenVars() {
-  const body = colors().map((c) => `--c-${c.id}:${c.value}`).join(";");
+  const vars = colors().map((c) => `--c-${c.id}:${c.value}`);
+  if (usesAccentBrandFallback()) vars.push(`--c-brand:${cvar("accent")}`);
+  const body = vars.join(";");
   return body ? `:root{${body}}` : "";
 }
+var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
+var buttonVariantDeclarations = (map, defaults = null) => {
+  const out = {};
+  for (const [property, value] of Object.entries(map)) {
+    if (!buttonVariantProperty(property)) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value) continue;
+    out[property] = value;
+  }
+  return out;
+};
 function tokenCss() {
   const acc = { d: "", t: "", m: "" };
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => {
@@ -3998,8 +4054,11 @@ function tokenCss() {
     if (decls) acc[b] += `.ts-${t.id}{${decls}}`;
   }));
   classes().forEach((c) => ["d", "t", "m"].forEach((b) => {
-    const decls = decl(c.css && c.css[b] || {});
+    const map = c.css && c.css[b] || {};
+    const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    const buttonDecls = decl(buttonVariantDeclarations(map));
+    if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     STATES.forEach(([k, , sel]) => {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
       if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
@@ -4018,6 +4077,13 @@ var grabTypo = (n) => {
   }));
   return out;
 };
+function tsCanUpdateFrom(n) {
+  if (!findStyle(n.props.ts)) return false;
+  return ["d", "t", "m"].some((b) => TYPO_KEYS.some((k) => {
+    const v = n.css[b] && n.css[b][k];
+    return v !== void 0 && v !== "";
+  }));
+}
 function tsApply(n, id) {
   const t = findStyle(id);
   if (!t) return false;
@@ -4035,6 +4101,7 @@ function tsUnlink(n) {
   return !!t;
 }
 function tsUpdateFrom(n) {
+  if (!tsCanUpdateFrom(n)) return false;
   const t = findStyle(n.props.ts);
   if (!t) return false;
   const got = grabTypo(n);
@@ -4249,8 +4316,13 @@ var propVal = (n, k) => {
     const scope = bindScope(n.id);
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
+  if (n.type === "nav" && k === "collapse") {
+    const collapse = n.props.collapse;
+    return collapse === "tablet" || collapse === "never" ? collapse : "mobile";
+  }
   if (n.type === "nav" && k === "mobileMenu") return n.props.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown";
   const value = n.props[k];
+  if (value == null && n.type === "slider" && k === "controlsPosition") return "sides";
   if (value == null && n.type === "list" && Object.prototype.hasOwnProperty.call(LIST_PROP_DEFAULTS, k)) {
     return LIST_PROP_DEFAULTS[k];
   }
@@ -4447,6 +4519,7 @@ function effective(node, prop, chain) {
   }
   const t = findStyle(node.props.ts);
   if (t && (t.css.d || {})[prop]) return t.css.d[prop];
+  if (prop === "color" && node.type === "button" && node.props.variant === "solid" && (node.css.d || {})["--pc-solid-fg"]) return node.css.d["--pc-solid-fg"];
   for (let i = chain.length - 1; i >= 0; i--) {
     const v = (chain[i].css.d || {})[prop];
     if (v) return v;
@@ -4491,7 +4564,6 @@ function lint() {
     if (!pg2.desc) add("warn", "no-desc", `\u201C${pg2.name}\u201D has no meta description, so search results pick their own snippet.`, scope);
     const seenIds = /* @__PURE__ */ new Set(), dupIds = /* @__PURE__ */ new Set();
     let headings = [];
-    let heroImageReviewed = false;
     const stack = [];
     const visit = (list, chain, region) => list.forEach((n) => {
       const w = { ...scope, region, node: kindOf(n) };
@@ -4533,9 +4605,8 @@ function lint() {
         if (isFront(pg2)) labels.add("home");
         (n.props.items || []).forEach((it) => {
           const h = String(it && it.href || "").trim();
-          const [path, frag = ""] = h.split("#");
-          const target = path === "" ? here : path;
-          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ""))) {
+          const destination = projectLinkTarget(h, here);
+          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ""))) {
             add("warn", "nav-page-top", `\u201C${String(it && it.label || "A menu item")}\u201D in the ${region} links to the top of \u201C${pg2.name}\u201D. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
@@ -4556,7 +4627,7 @@ function lint() {
           add("error", "wordpress-link-invalid", `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
           return;
         }
-        if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
+        if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return;
         if (h === "cms:item") {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
@@ -4576,8 +4647,8 @@ function lint() {
           else if (!state.pages.some((x) => x.collection === owner.id)) add("error", "item-link-no-template", `A link in the ${region} points at an item\u2019s own page, but no page is a detail template for \u201C${owner.name}\u201D.`, w, n.id);
           return;
         }
-        const [path, frag] = h.split("#");
-        const target = path === "" ? here : path;
+        const destination = projectLinkTarget(h, here);
+        const { path, frag, target } = destination || { path: h, frag: "", target: h };
         if (path === "" && region !== "page" && state.pages.length > 1) {
           add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
           return;
@@ -4588,18 +4659,6 @@ function lint() {
         }
         if (frag && !pageOf(target).has(frag)) add("error", "dead-anchor", `\u201C${h}\u201D in the ${region} has no matching element id on ${target}.`, w, n.id);
       });
-      if (n.type === "image") {
-        if (!n.props.src) add("warn", "no-image", `An image in the ${region} has no source and will export a placeholder.`, w, n.id);
-        if (n.props.src && !n.props.decorative && !String(n.props.alt || "").trim())
-          add("error", "no-alt", `An image in the ${region} has no alt text. Describe it, or mark it decorative.`, w, n.id);
-        if (n.props.src && !(n.props.w && n.props.h))
-          add("warn", "no-dimensions", `An image in the ${region} has no width/height, so the page will shift as it loads.`, w, n.id);
-        const inFirstSection = region === "page" && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
-        if (!heroImageReviewed && inFirstSection && n.props.src) {
-          heroImageReviewed = true;
-          if (n.props.lazy) add("warn", "hero-image-lazy", `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`, w, n.id);
-        }
-      }
       if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
       if (n.type === "slider" && (n.children || []).length < 2)
@@ -4734,6 +4793,129 @@ function lint() {
     visit(state.header, [], "global header");
     visit(pg2.tree, [], "page");
     visit(state.footer, [], "global footer");
+    const imageReviews = /* @__PURE__ */ new Map();
+    const queueImage = (level, code, msg, region, node, inst, col, item) => {
+      const nodeId = inst ? inst.id : node.id;
+      const key = [code, region, nodeId, node.id].join("|");
+      let review = imageReviews.get(key);
+      if (!review) {
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map() };
+        imageReviews.set(key, review);
+      }
+      if (col && item) review.items.set(`${col.id}|${item.id}`, `\u201C${itemTitle(col, item)}\u201D`);
+    };
+    const walkImages = (list, chain, region, context) => {
+      list.forEach((n) => {
+        if (n.use) {
+          const cd = findComponent(n.use);
+          if (cd && !context.stack.includes(n.use)) {
+            walkImages([cd.node], chain.concat(n), `${region}, in \u201C${cd.name}\u201D`, {
+              ...context,
+              inst: n,
+              cdef: cd,
+              stack: context.stack.concat(n.use)
+            });
+          }
+          return;
+        }
+        const host = context.inst && context.cdef && n === context.cdef.node ? context.inst : null;
+        const self = host || n;
+        const source = self.src || n.src;
+        const sc = source ? findCollection(source) : null;
+        const scoped = sc ? {
+          ...context,
+          col: sc,
+          item: sourceItem(sc, context.col, context.item, context.repeat)
+        } : context;
+        if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
+        if (n.type === "image") {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!p.src) queueImage(
+            "warn",
+            "no-image",
+            `An image in the ${region} has no source and will export a placeholder.`,
+            region,
+            n,
+            context.inst,
+            scoped.col,
+            scoped.item
+          );
+          if (p.src && !p.decorative && !String(p.alt || "").trim()) queueImage(
+            "error",
+            "no-alt",
+            `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
+            region,
+            n,
+            context.inst,
+            scoped.col,
+            scoped.item
+          );
+          if (p.src && !(p.w && p.h)) queueImage(
+            "warn",
+            "no-dimensions",
+            `An image in the ${region} has no width/height, so the page will shift as it loads.`,
+            region,
+            n,
+            context.inst,
+            scoped.col,
+            scoped.item
+          );
+          const inFirstSection = region.startsWith("page") && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
+          if (!scoped.hero.reviewed && inFirstSection && p.src) {
+            scoped.hero.reviewed = true;
+            if (p.lazy) queueImage(
+              "warn",
+              "hero-image-lazy",
+              `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
+              region,
+              n,
+              context.inst,
+              scoped.col,
+              scoped.item
+            );
+          }
+        }
+        if (n.type === "list") {
+          const lc = n.src ? findCollection(n.src) : null;
+          if (lc) for (const item of listItems(n, lc)) {
+            walkImages(n.children || [], chain.concat(n), region, {
+              ...context,
+              col: lc,
+              item,
+              repeat: true
+            });
+          }
+          return;
+        }
+        const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
+        const kids = filled && filled.length ? filled : n.children || [];
+        const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null } : scoped;
+        walkImages(kids, chain.concat(n), region, childContext);
+      });
+    };
+    const contexts = [];
+    const detailCollection = pg2.collection ? findCollection(pg2.collection) : null;
+    if (detailCollection) published(detailCollection).forEach((item) => contexts.push({ col: detailCollection, item }));
+    else contexts.push({ col: null, item: null });
+    for (const context of contexts) {
+      const imageContext = {
+        ...context,
+        repeat: false,
+        inst: null,
+        cdef: null,
+        stack: [],
+        hero: { reviewed: false }
+      };
+      walkImages(state.header, [], "global header", imageContext);
+      walkImages(pg2.tree, [], "page", imageContext);
+      walkImages(state.footer, [], "global footer", imageContext);
+    }
+    for (const review of imageReviews.values()) {
+      const labels = [...review.items.values()];
+      const shown = labels.slice(0, 3).join(", ");
+      const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId);
+    }
     dupIds.forEach((id) => add("error", "duplicate-id", `The anchor id \u201C${id}\u201D is used more than once on \u201C${pg2.name}\u201D.`, scope));
     const h1s = headings.filter((h) => h.level === 1);
     if (!h1s.length && pg2.tree.length) add("warn", "no-h1", `\u201C${pg2.name}\u201D has no H1, so its main subject is unstated.`, scope);
@@ -5135,9 +5317,9 @@ function collectionAdd(name) {
   collections().push(col);
   return col;
 }
-var collectionDelete = (id) => {
-  state.meta.collections = collections().filter((c) => c.id !== id);
-};
+function collectionDelete(id) {
+  collectionsReplace(doc(), collections().filter((c) => c.id !== id));
+}
 function collectionRename(id, name) {
   const col = findCollection(id);
   if (!col) return;
@@ -5155,10 +5337,92 @@ function fieldAdd(colId, name, type) {
   col.fields.push(f);
   return f;
 }
+function documentTrees(d) {
+  return [
+    d.header,
+    d.footer,
+    ...d.pages.map((p) => p.tree),
+    ...(d.meta.components || []).map((c) => [c.node]),
+    ...(d.meta.blocks || []).map((b) => [b.node])
+  ];
+}
+function removedCollectionFields(before, after) {
+  const next = new Map(after.map((col) => [col.id, new Set((col.fields || []).map((field) => field.id))]));
+  const removed = /* @__PURE__ */ new Map();
+  for (const col of before) {
+    const remaining = next.get(col.id);
+    if (!remaining) continue;
+    const ids = new Set((col.fields || []).map((field) => field.id).filter((id) => !remaining.has(id)));
+    if (ids.size) removed.set(col.id, ids);
+  }
+  return removed;
+}
+function clearListFieldReferences(trees, removed) {
+  let cleared = 0;
+  for (const list of trees) eachNode(list, (n) => {
+    if (n.type !== "list" || !n.src) return;
+    const fields = removed.get(n.src);
+    if (!fields) return;
+    if (fields.has(String(n.props.sort || ""))) {
+      n.props.sort = "";
+      cleared++;
+    }
+    if (fields.has(String(n.props.where || ""))) {
+      n.props.where = "";
+      n.props.op = "is";
+      delete n.props.val;
+      cleared++;
+    }
+  });
+  return cleared;
+}
+function clearRemovedCollectionReferences(d, removed) {
+  if (!removed.size) return;
+  for (const tree2 of documentTrees(d)) eachNode(tree2, (n) => {
+    if (!n.src || !removed.has(n.src)) return;
+    delete n.src;
+    if (n.type === "list") {
+      n.props.sort = "";
+      n.props.where = "";
+      n.props.op = "is";
+      delete n.props.val;
+    }
+  });
+  for (const pg2 of d.pages) {
+    if (!pg2.collection || !removed.has(pg2.collection)) continue;
+    delete pg2.collection;
+    delete pg2.bindTitle;
+    delete pg2.bindDesc;
+  }
+  for (const col of d.meta.collections || []) for (const field of col.fields || []) {
+    if (!field.ref || !removed.has(field.ref)) continue;
+    delete field.ref;
+    for (const item of col.items || []) delete item.values[field.id];
+  }
+}
+function collectionsReplace(d, next) {
+  const before = d.meta.collections || [];
+  const removed = removedCollectionFields(before, next);
+  const removedCollections = new Set(before.map((col) => col.id));
+  next.forEach((col) => removedCollections.delete(col.id));
+  d.meta.collections = next;
+  clearRemovedCollectionReferences(d, removedCollections);
+  return clearListFieldReferences(documentTrees(d), removed);
+}
+function collectionFieldSettingUsage(colId, fid) {
+  let sort = 0, filter = 0;
+  for (const list of allTrees()) eachNode(list, (n) => {
+    if (n.type !== "list" || n.src !== colId) return;
+    if (n.props.sort === fid) sort++;
+    if (n.props.where === fid) filter++;
+  });
+  return { sort, filter };
+}
 function fieldDelete(colId, fid) {
   const col = findCollection(colId);
   if (!col) return 0;
   if (col.fields.length <= 1) return 0;
+  const hadField = col.fields.some((f) => f.id === fid);
   col.fields = col.fields.filter((f) => f.id !== fid);
   let cleared = 0;
   col.items.forEach((it) => {
@@ -5167,6 +5431,7 @@ function fieldDelete(colId, fid) {
       cleared++;
     }
   });
+  if (hadField) clearListFieldReferences(allTrees(), /* @__PURE__ */ new Map([[colId, /* @__PURE__ */ new Set([fid])]]));
   return cleared;
 }
 var swap = (list, i, dir) => {
@@ -5213,7 +5478,12 @@ function itemSet(colId, iid, fid, value) {
   if (!col) return;
   const it = findItem(col, iid);
   if (!it) return;
-  it.values[fid] = value;
+  Object.defineProperty(it.values, fid, {
+    value,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
@@ -5239,8 +5509,9 @@ function listItems(n, col) {
     return f.type === "number" ? (parseFloat(av) || 0) - (parseFloat(bv) || 0) : String(av).localeCompare(String(bv));
   });
   if (n.props.dir === "desc") out.reverse();
+  const per = parseInt(String(n.props.per || ""), 10);
   const lim = parseInt(n.props.limit || "", 10);
-  return lim > 0 ? out.slice(0, lim) : out;
+  return lim > 0 && !(per > 0) ? out.slice(0, lim) : out;
 }
 function pageHref(link, o) {
   let v = String(link || "");
@@ -5336,7 +5607,7 @@ function pageFront(i) {
 }
 var NOT_FOUND = "404";
 var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
-function contentImport(raw) {
+function contentImport(raw, options = {}) {
   const d = raw;
   if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
   const rep = {
@@ -5345,54 +5616,110 @@ function contentImport(raw) {
     items: { added: 0, updated: 0 },
     notes: []
   };
+  const contexts = [];
+  const collectionMap = /* @__PURE__ */ new Map();
+  const owns = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   for (const fc of d.collections) {
     if (!fc || typeof fc !== "object") continue;
     const fid = String(fc.id || ""), fslug = String(fc.slug || "");
-    let col = fid && collections().find((c) => c.id === fid) || fslug && collections().find((c) => c.slug === fslug) || null;
+    const idHit = fid ? collections().find((c) => c.id === fid) : void 0;
+    const slugHit = fslug ? collections().find((c) => c.slug === fslug) : void 0;
+    let col = idHit && slugHit && idHit !== slugHit ? slugHit : idHit || slugHit || null;
+    if (idHit && slugHit && idHit !== slugHit) {
+      rep.notes.push(`Collection id \u201C${fid}\u201D is ambiguous here; \u201C${fc.name || fslug}\u201D was matched by slug.`);
+    }
     if (col) rep.collections.matched++;
     else {
       col = collectionAdd(String(fc.name || fslug || fid || "Collection"));
       rep.collections.added++;
     }
     if (!col) continue;
-    const map = {};
+    if (fid && collectionMap.has(fid)) {
+      rep.notes.push(`Duplicate collection id \u201C${fid}\u201D is ambiguous; references keep the first imported match.`);
+    } else if (fid) collectionMap.set(fid, col);
+    contexts.push({ fc, col, fields: /* @__PURE__ */ new Map(), items: /* @__PURE__ */ new Map(), rows: [], unknown: /* @__PURE__ */ new Set() });
+  }
+  for (const context of contexts) {
+    const { fc, col, fields: map } = context;
     for (const ff of Array.isArray(fc.fields) ? fc.fields : []) {
       if (!ff) continue;
       const key = String(ff.id || ff.name || "");
       if (!key) continue;
-      const hit = col.fields.find((x) => x.id === key) || col.fields.find((x) => x.name === String(ff.name || ""));
-      if (hit) {
-        map[key] = hit.id;
+      if (map.has(key)) {
+        rep.notes.push(`${col.name}: duplicate field id \u201C${key}\u201D is ambiguous; values keep the first imported match.`);
         continue;
       }
-      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
+      const fieldName = String(ff.name || "");
+      const idHit = col.fields.find((x) => x.id === key);
+      const nameHit = fieldName ? col.fields.find((x) => x.name === fieldName) : void 0;
+      const idNameConflict = !!(idHit && fieldName && idHit.name !== fieldName);
+      const hit = idNameConflict ? nameHit : idHit || nameHit;
+      if (idNameConflict) {
+        rep.notes.push(nameHit ? `${col.name}: field id \u201C${key}\u201D is ambiguous here; \u201C${fieldName}\u201D was matched by name.` : `${col.name}: field id \u201C${key}\u201D already belongs to \u201C${idHit.name}\u201D; \u201C${fieldName}\u201D was imported as a distinct field.`);
+      }
+      const made = hit || fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
       if (!made) continue;
-      map[key] = made.id;
-      rep.fields.added++;
+      map.set(key, made.id);
+      if (!hit) rep.fields.added++;
       if (ff.type && made.type !== ff.type) {
         rep.notes.push(`\u201C${made.name}\u201D came in as text: this build has no \u201C${ff.type}\u201D field type.`);
       }
+      if (owns(ff, "required")) made.required = ff.required ? 1 : 0;
+      if (made.type === "option" && owns(ff, "opts")) made.opts = typeof ff.opts === "string" ? ff.opts : "";
+      if (made.type === "ref" && owns(ff, "ref")) {
+        const sourceRef = String(ff.ref || "");
+        if (!sourceRef) delete made.ref;
+        else {
+          const target = collectionMap.get(sourceRef);
+          if (target) made.ref = target.id;
+          else rep.notes.push(`\u201C${made.name}\u201D could not restore its referenced collection.`);
+        }
+      }
     }
-    const unknown = /* @__PURE__ */ new Set();
     for (const fi of Array.isArray(fc.items) ? fc.items : []) {
       if (!fi || typeof fi !== "object") continue;
       const iid = String(fi.id || ""), islug = String(fi.slug || "");
-      let it = iid && findItem(col, iid) || islug && col.items.find((x) => x.slug === islug) || null;
+      const idHit = iid ? findItem(col, iid) : void 0;
+      const slugHit = islug ? col.items.find((x) => x.slug === islug) : void 0;
+      let it = idHit && slugHit && idHit !== slugHit ? slugHit : idHit || slugHit || null;
+      if (idHit && slugHit && idHit !== slugHit) {
+        rep.notes.push(`${col.name}: item id \u201C${iid}\u201D is ambiguous here; \u201C${islug}\u201D was matched by slug.`);
+      }
       if (it) rep.items.updated++;
       else {
         it = itemAdd(col.id);
         if (!it) continue;
         rep.items.added++;
       }
+      if (iid && context.items.has(iid)) {
+        rep.notes.push(`${col.name}: duplicate item id \u201C${iid}\u201D is ambiguous; references keep the first imported match.`);
+      } else if (iid) context.items.set(iid, it);
+      context.rows.push({ fi, item: it });
+    }
+  }
+  for (const context of contexts) {
+    const { col, fields: map, unknown } = context;
+    for (const { fi, item: it } of context.rows) {
+      const islug = String(fi.slug || "");
       const vals = fi.values && typeof fi.values === "object" ? fi.values : {};
       for (const k of Object.keys(vals)) {
-        const to = map[k] || (findField(col, k) ? k : "");
+        const to = map.get(k) || (findField(col, k) ? k : "");
         if (!to) {
           unknown.add(k);
           continue;
         }
-        const v = vals[k];
-        itemSet(col.id, it.id, to, v == null ? "" : String(v));
+        let v = vals[k];
+        const field = findField(col, to);
+        if (field?.type === "ref" && v != null && field.ref) {
+          const target = contexts.find((candidate) => candidate.col.id === field.ref);
+          const mapped = target?.items.get(String(v));
+          if (mapped) v = mapped.id;
+        }
+        let value = v == null ? "" : String(v);
+        if (field?.type === "image" && options.resolveImage) {
+          value = options.resolveImage(value);
+        }
+        itemSet(col.id, it.id, to, value);
       }
       if (islug) itemSetSlug(col.id, it.id, islug);
     }
@@ -5425,29 +5752,28 @@ function paginatorOf(pg2) {
   });
   return hit;
 }
+function projectLinkTarget(href, here) {
+  const value = href.trim();
+  if (!value || /^([a-z][\w+.-]*:|\/\/)/i.test(value)) return null;
+  const hash = value.indexOf("#");
+  const frag = hash >= 0 ? value.slice(hash + 1) : "";
+  const path = (hash >= 0 ? value.slice(0, hash) : value).split("?")[0];
+  if (!path) return { path, target: here, frag };
+  let target = path.replace(/^(\.\.?\/)+/, "").replace(/^\/+/, "");
+  if (!target || target.endsWith("/")) target += "index.html";
+  else if (!/\.[a-z0-9]+$/i.test(target)) target += ".html";
+  return { path, target, frag };
+}
 function pageAt(href) {
-  let v = String(href == null ? "" : href).trim();
-  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;
-  const hash = v.indexOf("#");
-  const frag = hash >= 0 ? v.slice(hash + 1) : "";
-  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, "").replace(/^\//, "");
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
-  const bits = v.replace(/\.html?$/i, "").split("/");
-  if (bits.length === 1) {
-    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
-    return at2 < 0 ? null : { at: at2, col: null, item: null, frag, pageNo: 1 };
-  }
-  if (bits.length !== 2) return null;
-  const pn = bits[1].match(/^page-(\d+)$/);
-  if (pn) {
-    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
-    if (at2 >= 0) return { at: at2, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
-  }
-  const col = collections().find((c) => c.slug === bits[0]) || null;
-  if (!col) return null;
-  const item = published(col).find((i) => i.slug === bits[1]) || null;
-  const at = state.pages.findIndex((p) => p.collection === col.id);
-  return item && at >= 0 ? { at, col, item, frag, pageNo: 1 } : null;
+  const value = String(href == null ? "" : href).trim();
+  const destination = projectLinkTarget(value, page().slug + ".html");
+  if (!destination) return null;
+  const { path, target, frag } = destination;
+  if (!path) return frag || value.startsWith("?") ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
+  const exported = exportTargets().find((candidate) => candidate.path === target);
+  if (!exported) return null;
+  const at = state.pages.findIndex((pg2) => pg2.id === exported.pg.id);
+  return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
 function exportTargets() {
   const out = [];
@@ -5494,11 +5820,18 @@ function contentJson(imgPath = (v) => v == null ? "" : String(v)) {
       id: c.id,
       name: c.name,
       slug: c.slug,
-      fields: c.fields.map((f) => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
+      fields: c.fields.map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        required: !!f.required,
+        ...f.type === "option" ? { opts: f.opts || "" } : {},
+        ...f.type === "ref" ? { ref: f.ref || "" } : {}
+      })),
       items: published(c).map((it) => {
-        const values = {};
+        const values = /* @__PURE__ */ Object.create(null);
         for (const f of c.fields) {
-          const v = it.values[f.id];
+          const v = Object.prototype.hasOwnProperty.call(it.values, f.id) ? it.values[f.id] : void 0;
           values[f.id] = f.type === "image" ? imgPath(v) : v == null ? "" : v;
         }
         const url = urlOf[c.id + "|" + it.id];
@@ -5642,6 +5975,7 @@ function previewItem(col) {
   if (!col || !col.items.length) return null;
   return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
+var sourceItem = (col, currentCol, currentItem, repeat) => repeat && currentCol === col ? currentItem : previewItem(col);
 var REF_DEPTH = 4;
 var fieldValue = (col, item, path, depth = 0) => {
   if (!col || !item) return "";
@@ -6461,7 +6795,8 @@ function migrate(d) {
     n.props = n.props || {};
     if (n.props.mode !== "wordpress") n.props.mode = "external";
   });
-  d.v = SCHEMA;
+  if (legacyVersion !== void 0 || schemaVersion === void 0) d.v = SCHEMA;
+  else delete d.v;
   d.schemaVersion = SCHEMA;
   return d;
 }
@@ -6470,6 +6805,16 @@ var pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 var pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 var pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
 var ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+var brandActionForeground = () => {
+  const background = cvar("brand");
+  for (const id of ["ink", "paper", "bg", "surface"]) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = "#000000", light = "#ffffff";
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar("ink");
+  return darkRatio >= lightRatio ? dark : light;
+};
 var starterActionForeground = () => {
   const background = cvar("brand");
   for (const id of ["ink", "surface", "bg"]) {
@@ -7808,6 +8153,11 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   const body = decl(map) + extra;
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (n.type === "button") {
+    const defaults = b === "d" ? BUTTON_VARIANT_DEFAULTS : null;
+    const variantBody = decl(buttonVariantDeclarations(map, defaults));
+    if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
+  }
   if (imageNode && decl(imageMap)) {
     const reset = {};
     if (imageMap.height !== void 0) reset.height = "auto";
@@ -7874,6 +8224,7 @@ function inheritedElementPriority(n, b) {
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
   acc.d += bucket(n, "d", editing, parent, detachedComponentRoot);
+  if (n.type === "spacer") acc.m += `:where(${selOf(n)}){height:32px}`;
   if (n.type === "form" && n.props.fields?.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
     const selector = selOf(n);
     acc.d += `${selector}.pagecraft-form-percent{display:var(--f-layout,flex)}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
@@ -7979,7 +8330,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || "inherit"}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
-.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+:where(.pagecraft-button){max-width:100%;color:inherit}
+:where(.pagecraft-button[data-variant=solid]){color:var(--pc-solid-fg,inherit)}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
@@ -8178,6 +8531,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
+:where(.pagecraft-spacer){height:48px}
 
 .pagecraft-accordion{display:flex;flex-direction:column;gap:var(--ac-gap,0px);width:100%}
 .pagecraft-accordion-item{border-top:1px solid var(--ac-line,currentColor);border-radius:var(--ac-radius,0px)}
@@ -8541,7 +8895,11 @@ function renderNode(n, o) {
   const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
-  const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
+  const o2 = sc ? {
+    ...o,
+    col: sc,
+    item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
+  } : o;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
@@ -8808,8 +9166,10 @@ function renderNode(n, o) {
       const tiles = shown.map((it, k) => {
         const dim = it.w && it.h ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : "";
         const tsrc = esc(it.src || PH);
-        const img = `<img src="${tsrc}" alt="${esc(it.alt || "")}"${dim}${lz} class="pagecraft-gallery-img">`;
-        const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}"${it.alt ? ` aria-label="${esc(it.alt)}"` : ""}>${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
+        const authoredAlt = String(it.alt == null ? "" : it.alt);
+        const img = `<img src="${tsrc}" alt="${esc(authoredAlt)}"${dim}${lz} class="pagecraft-gallery-img">`;
+        const actionLabel = authoredAlt.trim() ? authoredAlt : String(it.caption == null ? "" : it.caption).trim() || `Open image ${k + 1}`;
+        const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ""}</figure>`;
       }).join("");
       return `<div ${at} ${cx("pagecraft-gallery" + (p.ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
@@ -9563,9 +9923,11 @@ function proposalApply(changes, proposalId = "") {
   codeSpans,
   collectionAdd,
   collectionDelete,
+  collectionFieldSettingUsage,
   collectionIndex,
   collectionRename,
   collections,
+  collectionsReplace,
   colorAdd,
   colorDelete,
   colorUsage,
@@ -9817,6 +10179,7 @@ function proposalApply(changes, proposalId = "") {
   tree,
   treeCss,
   tsApply,
+  tsCanUpdateFrom,
   tsCreateFrom,
   tsUnlink,
   tsUpdateFrom,

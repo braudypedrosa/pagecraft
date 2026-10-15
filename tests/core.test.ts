@@ -321,6 +321,37 @@ test('breakpoint overrides land in the matching media query only', () => {
   a.equal(css.indexOf(C.MQ.t) < css.indexOf(C.MQ.m), true, 'tablet before mobile');
 });
 
+test('a cleared Spacer restores responsive defaults while explicit heights keep priority', () => {
+  blank();
+  const spacer = C.N('spacer');
+  C.state.pages[0].tree = [spacer];
+  delete spacer.css.d.height;
+  delete spacer.css.m.height;
+
+  let out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  a.match(out.base, /:where\(\.pagecraft-spacer\)\{height:48px\}/,
+    'cleared desktop height falls back to the factory default');
+  a.match(out.mobile, new RegExp(':where\\(\\.' + C.nodeClass(spacer) + '\\)\\{height:32px\\}'),
+    'cleared mobile height falls back to the factory default');
+
+  const own = new RegExp('\\.' + C.nodeClass(spacer) + '\\{[^}]*height:0px');
+  spacer.css.d.height = '0px';
+  spacer.css.m.height = '0px';
+  out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  a.match(out.base, own, 'an authored desktop zero is preserved');
+  a.match(out.mobile, own, 'an authored mobile zero is preserved');
+
+  spacer.css.d.height = '72px';
+  spacer.css.t.height = '56px';
+  delete spacer.css.m.height;
+  C.state.ui.dev = 'mobile';
+  a.deepEqual(C.cssVal(spacer, 'height', true), { v: '56px', own: false },
+    'clearing mobile continues to inherit an authored tablet height');
+  out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  a.doesNotMatch(out.mobile, new RegExp('\\.' + C.nodeClass(spacer) + '\\{[^}]*height:'),
+    'no mobile node declaration interrupts normal responsive inheritance');
+});
+
 test('columns follow their row vertically until a breakpoint overrides them', () => {
   blank();
   const sec = insert('section', null, 0);
@@ -1378,6 +1409,47 @@ test('a page count is items over per-page, rounded up, and one when it does not 
   a.equal(C.listPageCount(list, col), 1);
   list.props.per = 'lots';
   a.equal(C.listPageCount(list, col), 1, 'junk paginates nothing rather than crashing');
+});
+
+test('items per page overrides a retained limit across filtered and sorted pages', () => {
+  const { col, fields, add } = cmsFixture();
+  add('Ninth', 'Journal', '9');
+  add('Excluded', 'Notes', '1');
+  add('Fifth', 'Journal', '5');
+  add('Second', 'journal', '2');
+  add('Seventh', 'Journal', '7');
+
+  const title = C.N('heading', { text: 'Fallback' });
+  C.bindSet(title, 'text', C.bindField(fields.title));
+  const list = C.N('list', {
+    where: fields.cat, op: 'is', val: 'Journal', sort: fields.rank, dir: 'asc',
+    limit: '1', per: '2'
+  });
+  list.src = col.id;
+  list.children.push(C.N('column', {}, {}, [title]));
+  const pg = C.state.pages[0];
+  pg.slug = 'journal';
+  pg.tree.push(C.N('section', {}, {}, [list]));
+
+  a.deepEqual(C.listItems(list, col).map(item => item.values[fields.title]),
+    ['Second', 'Fifth', 'Seventh', 'Ninth'], 'hidden limit does not truncate paginated results');
+  a.equal(C.listPageCount(list, col), 2);
+  a.deepEqual(C.exportTargets().filter(target => target.path.startsWith('journal')).map(target => target.path),
+    ['journal.html', 'journal/page-2.html']);
+
+  const first = C.buildPage(pg, { pageNo: 1, pages: 2, rel: '' });
+  const second = C.buildPage(pg, { pageNo: 2, pages: 2, rel: '../' });
+  a.ok(first.indexOf('Second') < first.indexOf('Fifth'));
+  a.doesNotMatch(first, />Seventh</);
+  a.match(first, /href="journal\/page-2\.html" rel="next"/);
+  a.ok(second.indexOf('Seventh') < second.indexOf('Ninth'));
+  a.doesNotMatch(second, />Fifth</);
+  a.match(second, /href="\.\.\/journal\.html" rel="prev"/);
+
+  list.props.per = '';
+  a.deepEqual(C.listItems(list, col).map(item => item.values[fields.title]), ['Second'],
+    'stored limit applies again when pagination is removed');
+  a.equal(C.listPageCount(list, col), 1);
 });
 
 test('page one keeps the page address and the rest sit in a folder', () => {
@@ -2590,6 +2662,219 @@ test('an opening-section image is expected to load eagerly', () => {
   a.equal(find(C.lint(), 'hero-image-lazy').length, 1);
   img.props.lazy = 0;
   a.equal(find(C.lint(), 'hero-image-lazy').length, 0);
+});
+
+test('image review resolves every filtered paginated CMS row and excludes drafts', () => {
+  blank();
+  C.state.meta.components = [];
+  const col = collectionAdd('Places');
+  const photo = must(C.fieldAdd(col.id, 'Photo', 'image'), 'photo field');
+  const alt = must(C.fieldAdd(col.id, 'Alt text', 'text'), 'alt field');
+  const group = must(C.fieldAdd(col.id, 'Group', 'text'), 'group field');
+  const add = (title: string, src: string, description: string, included = true, draft = false) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, photo.id, src);
+    C.itemSet(col.id, item.id, alt.id, description);
+    C.itemSet(col.id, item.id, group.id, included ? 'Published set' : 'Filtered out');
+    if (draft) C.itemDraft(col.id, item.id, true);
+    return item;
+  };
+  add('A complete item', 'https://example.test/a.webp', 'A complete description');
+  add('B missing alt', 'https://example.test/b.webp', '');
+  add('C missing alt', 'https://example.test/c.webp', '   ');
+  add('D missing photo', '', 'Description without a photo');
+  add('Filtered missing alt', 'https://example.test/filtered.webp', '', false);
+  add('Draft missing alt', 'https://example.test/draft.webp', '', true, true);
+
+  const image = C.N('image', {
+    src: 'https://example.test/fallback.webp', alt: 'Fallback description', w: '800', h: '600'
+  });
+  C.bindSet(image, 'src', C.bindField(photo.id));
+  C.bindSet(image, 'alt', C.bindField(alt.id));
+  const list = C.N('list', {
+    where: group.id, op: 'is', val: 'Published set', sort: 'title', dir: 'asc',
+    per: '1', limit: '1'
+  }, {}, [C.N('column', {}, {}, [image])]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+
+  const review = C.lint();
+  const missingAlt = find(review, 'no-alt');
+  a.equal(missingAlt.length, 1, 'one actionable finding, not one duplicate per generated page');
+  a.match(missingAlt[0].msg, /B missing alt/);
+  a.match(missingAlt[0].msg, /C missing alt/);
+  a.doesNotMatch(missingAlt[0].msg, /Filtered missing alt|Draft missing alt/);
+  const missingImage = find(review, 'no-image');
+  a.equal(missingImage.length, 1, 'the bound empty source wins over the authored fallback');
+  a.match(missingImage[0].msg, /D missing photo/);
+  a.equal(find(review, 'no-dimensions').length, 0, 'authored dimensions still apply to bound sources');
+  const secondPage = C.buildPage(C.state.pages[0], { pageNo: 2, pages: 4, rel: '../' });
+  a.match(secondPage, /src="https:\/\/example\.test\/b\.webp"[^>]* alt=""/,
+    'the finding describes the same bound values the later export page renders');
+  const fourthPage = C.buildPage(C.state.pages[0], { pageNo: 4, pages: 4, rel: '../' });
+  a.doesNotMatch(fourthPage, /fallback\.webp/, 'an empty bound source does not revive the authored fallback');
+});
+
+test('image review resolves component properties for every published detail item', () => {
+  blank();
+  C.state.meta.components = [];
+  const col = collectionAdd('Case studies');
+  const photo = must(C.fieldAdd(col.id, 'Photo', 'image'), 'photo field');
+  const alt = must(C.fieldAdd(col.id, 'Alt text', 'text'), 'alt field');
+  const add = (title: string, description: string, draft = false) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, photo.id, `https://example.test/${C.slugify(title)}.webp`);
+    C.itemSet(col.id, item.id, alt.id, description);
+    if (draft) C.itemDraft(col.id, item.id, true);
+    return item;
+  };
+  add('Complete detail', 'A useful description');
+  const missing = add('Missing detail alt', '');
+  add('Draft detail alt', '', true);
+
+  const image = C.N('image', {
+    src: 'https://example.test/fallback.webp', alt: 'Fallback description', w: '800', h: '600'
+  });
+  C.bindSet(image, 'src', { src: 'prop', path: 'photo' });
+  C.bindSet(image, 'alt', { src: 'prop', path: 'alt' });
+  const definition = C.N('box', {}, {}, [image]);
+  C.state.meta.components.push({
+    id: 'detail-card', name: 'Detail card', node: definition,
+    props: [
+      { k: 'photo', label: 'Photo', t: 'img', def: '' },
+      { k: 'alt', label: 'Alt text', t: 'text', def: '' }
+    ]
+  });
+  const instance = C.N('box');
+  instance.use = 'detail-card';
+  C.bindSet(instance, C.VAL + 'photo', C.bindField(photo.id));
+  C.bindSet(instance, C.VAL + 'alt', C.bindField(alt.id));
+  const pg = C.state.pages[0];
+  pg.collection = col.id;
+  pg.tree = [C.N('section', {}, {}, [instance])];
+  C.state.pages = [pg];
+  C.state.cur = 0;
+
+  const missingAlt = find(C.lint(), 'no-alt');
+  a.equal(missingAlt.length, 1);
+  a.equal(missingAlt[0].nodeId, instance.id, 'the finding selects the placed component');
+  a.match(String(missingAlt[0].where.region), /in “Detail card”/);
+  a.match(missingAlt[0].msg, /Missing detail alt/);
+  a.doesNotMatch(missingAlt[0].msg, /Complete detail|Draft detail alt/);
+  a.match(C.buildPage(pg, { col, item: missing }),
+    /src="https:\/\/example\.test\/missing-detail-alt\.webp"[^>]* alt=""/,
+    'detail export and review resolve the same component property values');
+});
+
+test('a static source scope reviews the exact selected item, including a later draft', () => {
+  blank();
+  C.state.meta.components = [];
+  const col = collectionAdd('Preview cards');
+  const photo = must(C.fieldAdd(col.id, 'Photo', 'image'), 'photo field');
+  const alt = must(C.fieldAdd(col.id, 'Alt text', 'text'), 'alt field');
+  const add = (title: string, description: string, draft = false) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, photo.id, `https://example.test/${C.slugify(title)}.webp`);
+    C.itemSet(col.id, item.id, alt.id, description);
+    if (draft) C.itemDraft(col.id, item.id, true);
+    return item;
+  };
+  add('First published preview', 'A complete description');
+  add('Selected draft preview', '', true);
+  const image = C.N('image', { src: 'fallback.webp', alt: 'Fallback alt', w: '800', h: '600' });
+  C.bindSet(image, 'src', C.bindField(photo.id));
+  C.bindSet(image, 'alt', C.bindField(alt.id));
+  const source = C.N('section', {}, {}, [image]);
+  C.srcSet(source, col.id);
+  C.state.pages[0].tree = [source];
+  C.state.ui.item = { [col.id]: 1 };
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /src="https:\/\/example\.test\/selected-draft-preview\.webp"[^>]* alt=""/,
+    'static source export keeps the explicit later draft preview');
+  const missingAlt = find(C.lint(), 'no-alt');
+  a.equal(missingAlt.length, 1);
+  a.match(missingAlt[0].msg, /Selected draft preview/);
+  a.doesNotMatch(missingAlt[0].msg, /First published preview/);
+});
+
+test('image review skips a hidden conditional ancestor for each collection row', () => {
+  blank();
+  const col = collectionAdd('Conditional cards');
+  const photo = must(C.fieldAdd(col.id, 'Photo', 'image'), 'photo field');
+  const alt = must(C.fieldAdd(col.id, 'Alt text', 'text'), 'alt field');
+  const visible = must(C.fieldAdd(col.id, 'Visible', 'bool'), 'visibility field');
+  const add = (title: string, shown: string) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, photo.id, `https://example.test/${C.slugify(title)}.webp`);
+    C.itemSet(col.id, item.id, alt.id, '');
+    C.itemSet(col.id, item.id, visible.id, shown);
+  };
+  add('Shown missing alt', '1');
+  add('Hidden missing alt', '');
+  const image = C.N('image', { src: 'fallback.webp', alt: 'Fallback alt', w: '800', h: '600' });
+  C.bindSet(image, 'src', C.bindField(photo.id));
+  C.bindSet(image, 'alt', C.bindField(alt.id));
+  const card = C.N('column', {}, {}, [image]);
+  C.condSet(card, { bind: { src: 'field', path: visible.id }, op: 'set' });
+  const list = C.N('list', {}, {}, [card]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+
+  const missingAlt = find(C.lint(), 'no-alt');
+  a.equal(missingAlt.length, 1);
+  a.match(missingAlt[0].msg, /Shown missing alt/);
+  a.doesNotMatch(missingAlt[0].msg, /Hidden missing alt/);
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /shown-missing-alt\.webp/);
+  a.doesNotMatch(html, /hidden-missing-alt\.webp/);
+});
+
+test('filled component slots keep row scope but do not inherit component property bindings', () => {
+  blank();
+  C.state.meta.components = [];
+  const col = collectionAdd('Slotted cards');
+  const photo = must(C.fieldAdd(col.id, 'Photo', 'image'), 'photo field');
+  const add = (title: string, src: string) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, photo.id, src);
+  };
+  add('Filled slot photo', 'https://example.test/filled.webp');
+  add('Empty slot photo', '');
+
+  const definition = C.N('column');
+  definition.slot = 'content';
+  C.state.meta.components.push({
+    id: 'slotted-card', name: 'Slotted card', node: definition,
+    props: [{ k: 'alt', label: 'Alt text', t: 'text', def: '' }]
+  });
+  const filledImage = C.N('image', {
+    src: 'fallback.webp', alt: 'Authored slot description', w: '800', h: '600'
+  });
+  C.bindSet(filledImage, 'src', C.bindField(photo.id));
+  C.bindSet(filledImage, 'alt', { src: 'prop', path: 'alt' });
+  const instance = C.N('column');
+  instance.use = 'slotted-card';
+  instance.vals = { alt: '' };
+  instance.children = [filledImage];
+  const list = C.N('list', {}, {}, [instance]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+
+  const review = C.lint();
+  a.equal(find(review, 'no-alt').length, 0,
+    'filled page content renders outside component property scope and keeps its authored alt');
+  const missingImage = find(review, 'no-image');
+  a.equal(missingImage.length, 1, 'the filled child still inherits its collection row');
+  a.match(missingImage[0].msg, /Empty slot photo/);
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /filled\.webp[^>]* alt="Authored slot description"/);
+  a.doesNotMatch(html, /fallback\.webp/);
 });
 
 test('heading order and h1 count are checked per page', () => {
@@ -6565,6 +6850,43 @@ test('propVal reads a prop, and tolerates a control with no key', () => {
   a.equal(C.propVal(h, 'nope'), undefined);
   /* a `toggle` or a section header carries no `k`, and the inspector calls this anyway */
   a.equal(C.propVal(h, undefined), undefined);
+});
+
+test('legacy Nav collapse values show the renderer fallback without rewriting storage', () => {
+  blank();
+  const control = C.DEF.nav.controls.content.find(control => control.k === 'collapse');
+  a.ok(control && control.opts, 'the current Collapse at options exist');
+  const cases: Array<[unknown, string]> = [
+    [undefined, 'mobile'], ['', 'mobile'], ['760', 'mobile'], [900, 'mobile'],
+    ['mobile', 'mobile'], ['tablet', 'tablet'], ['never', 'never']
+  ];
+  for (const [stored, shown] of cases) {
+    const nav: any = C.N('nav');
+    if (stored === undefined) delete nav.props.collapse;
+    else nav.props.collapse = stored;
+    const before = JSON.stringify(nav.props);
+    a.equal(C.propVal(nav, 'collapse'), shown, `stored ${String(stored)} reads as ${shown}`);
+    a.equal(JSON.stringify(nav.props), before, 'reading the control does not rewrite the document');
+    const options: string[][] = typeof control!.opts === 'function' ? control!.opts(nav) : control!.opts!;
+    a.ok(options.some(option => option[0] === shown), `${shown} is a real select option`);
+  }
+});
+
+test('legacy Nav collapse normalization leaves rendered breakpoints unchanged', () => {
+  blank();
+  for (const stored of [undefined, '', '760', 900]) {
+    const legacy: any = C.N('nav');
+    if (stored === undefined) delete legacy.props.collapse;
+    else legacy.props.collapse = stored;
+    const before = C.treeCss([[legacy]], false);
+    const raw = legacy.props.collapse;
+    a.equal(C.propVal(legacy, 'collapse'), 'mobile');
+    a.equal(legacy.props.collapse, raw, 'the getter leaves the legacy value intact');
+    const canonical: any = structuredClone(legacy);
+    canonical.props.collapse = 'mobile';
+    a.equal(C.treeCss([[canonical]], false), before,
+      `stored ${String(stored)} already renders at the mobile breakpoint`);
+  }
 });
 
 test('kb reads as a size a person would say out loud', () => {

@@ -2749,6 +2749,13 @@ const propVal = (n: PcNode, k?: string) => {
     const scope = bindScope(n.id);
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
+  /* Legacy Navs stored a numeric pixel threshold. Rendering already treats every value except
+     Tablet and Never as Mobile; show that real fallback in the enum without rewriting signed
+     templates, portable packages or saved documents. */
+  if (n.type === 'nav' && k === 'collapse') {
+    const collapse = n.props.collapse;
+    return collapse === 'tablet' || collapse === 'never' ? collapse : 'mobile';
+  }
   if (n.type === 'nav' && k === 'mobileMenu') return n.props.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown';
   const value = (n.props as PropBag)[k];
   /* Sliders made before Controls position existed render their arrows beside the slides.
@@ -3107,7 +3114,6 @@ function lint() {
 
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
-    let heroImageReviewed = false;
     /* the components being walked into, so one that contains itself is a finding-free stop
        rather than a stack overflow in the review */
     const stack: string[] = [];
@@ -3221,25 +3227,9 @@ function lint() {
         if (frag && !pageOf(target).has(frag)) add('error', 'dead-anchor', `“${h}” in the ${region} has no matching element id on ${target}.`, w, n.id);
       });
 
-      /* images */
-      if (n.type === 'image') {
-        if (!n.props.src) add('warn', 'no-image', `An image in the ${region} has no source and will export a placeholder.`, w, n.id);
-        /* Demand alt text once there is an image to describe. Until a source is
-           set the element is a placeholder — `no-image` already reports that,
-           and raising an error too made every template with a photo slot open
-           on a wall of problems the user cannot yet act on. */
-        if (n.props.src && !n.props.decorative && !String(n.props.alt || '').trim())
-          add('error', 'no-alt', `An image in the ${region} has no alt text. Describe it, or mark it decorative.`, w, n.id);
-        if (n.props.src && !(n.props.w && n.props.h))
-          add('warn', 'no-dimensions', `An image in the ${region} has no width/height, so the page will shift as it loads.`, w, n.id);
-        /* The first image in the first body section is the only position the review can call
-           above-the-fold without guessing at authored heights. Later images should stay lazy. */
-        const inFirstSection = region === 'page' && (n === pg.tree[0] || chain[0] === pg.tree[0]);
-        if (!heroImageReviewed && inFirstSection && n.props.src) {
-          heroImageReviewed = true;
-          if (n.props.lazy) add('warn', 'hero-image-lazy', `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`, w, n.id);
-        }
-      }
+      /* Images are reviewed below with the same collection/component context the renderer
+         uses. Reading `n.props` here made an authored placeholder win over its bound value:
+         a real CMS image could be reported missing, while an empty bound alt could pass. */
       /* video */
       if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
         add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
@@ -3406,6 +3396,120 @@ function lint() {
     visit(state.header, [], 'global header');
     visit(pg.tree, [], 'page');
     visit(state.footer, [], 'global footer');
+
+    /* Image review is the one lint pass that needs rendered content rather than the authored
+       fallback. Keep it separate from the static review above so collection repetition does
+       not duplicate link, heading or contrast findings. This follows the renderer's scopes:
+       lists use their filtered/sorted published rows, detail templates use every published
+       item, and component properties/slots resolve exactly where the instance renders them. */
+    type ImageReview = {
+      level: 'error' | 'warn'; code: string; msg: string; where: any; nodeId: string;
+      items: Map<string, string>;
+    };
+    const imageReviews = new Map<string, ImageReview>();
+    const queueImage = (level: 'error' | 'warn', code: string, msg: string, region: string,
+      node: PcNode, inst: PcNode | null, col: Collection | null, item: Item | null) => {
+      const nodeId = inst ? inst.id : node.id;
+      const key = [code, region, nodeId, node.id].join('|');
+      let review = imageReviews.get(key);
+      if (!review) {
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: new Map() };
+        imageReviews.set(key, review);
+      }
+      if (col && item) review.items.set(`${col.id}|${item.id}`, `“${itemTitle(col, item)}”`);
+    };
+    type ImageContext = {
+      col: Collection | null; item: Item | null; repeat: boolean;
+      inst: PcNode | null; cdef: ComponentDef | null; stack: string[];
+      hero: { reviewed: boolean };
+    };
+    const walkImages = (list: PcNode[], chain: PcNode[], region: string, context: ImageContext): void => {
+      list.forEach(n => {
+        if (n.use) {
+          const cd = findComponent(n.use);
+          if (cd && !context.stack.includes(n.use)) {
+            walkImages([cd.node], chain.concat(n), `${region}, in “${cd.name}”`, {
+              ...context, inst: n, cdef: cd, stack: context.stack.concat(n.use)
+            });
+          }
+          return;
+        }
+
+        const host = context.inst && context.cdef && n === context.cdef.node ? context.inst : null;
+        const self = host || n;
+        const source = self.src || n.src;
+        const sc = source ? findCollection(source) : null;
+        const scoped = sc ? {
+          ...context, col: sc,
+          item: sourceItem(sc, context.col, context.item, context.repeat)
+        } : context;
+        if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
+
+        if (n.type === 'image') {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!p.src) queueImage('warn', 'no-image',
+            `An image in the ${region} has no source and will export a placeholder.`,
+            region, n, context.inst, scoped.col, scoped.item);
+          /* Demand alt text once there is an image to describe. Until a source is set the
+             placeholder finding is the only action the author can take. */
+          if (p.src && !p.decorative && !String(p.alt || '').trim()) queueImage('error', 'no-alt',
+            `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
+            region, n, context.inst, scoped.col, scoped.item);
+          if (p.src && !(p.w && p.h)) queueImage('warn', 'no-dimensions',
+            `An image in the ${region} has no width/height, so the page will shift as it loads.`,
+            region, n, context.inst, scoped.col, scoped.item);
+          /* As before, only the first sourced image in the opening body section is known to be
+             above the fold. The flag belongs to one exported page context, not the project. */
+          const inFirstSection = region.startsWith('page') && (n === pg.tree[0] || chain[0] === pg.tree[0]);
+          if (!scoped.hero.reviewed && inFirstSection && p.src) {
+            scoped.hero.reviewed = true;
+            if (p.lazy) queueImage('warn', 'hero-image-lazy',
+              `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
+              region, n, context.inst, scoped.col, scoped.item);
+          }
+        }
+
+        /* A Collection List renders its children once for every row. `listItems` is the same
+           filter/sort/limit decision used by export; with pagination active it deliberately
+           returns every row, including those that only appear in later generated files. */
+        if (n.type === 'list') {
+          const lc = n.src ? findCollection(n.src) : null;
+          if (lc) for (const item of listItems(n, lc)) {
+            walkImages(n.children || [], chain.concat(n), region, {
+              ...context, col: lc, item, repeat: true
+            });
+          }
+          return;
+        }
+
+        const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
+        const kids = filled && filled.length ? filled : (n.children || []);
+        const childContext = filled && filled.length
+          ? { ...scoped, inst: null, cdef: null }
+          : scoped;
+        walkImages(kids, chain.concat(n), region, childContext);
+      });
+    };
+    const contexts: { col: Collection | null; item: Item | null }[] = [];
+    const detailCollection = pg.collection ? findCollection(pg.collection) : null;
+    if (detailCollection) published(detailCollection).forEach(item => contexts.push({ col: detailCollection, item }));
+    else contexts.push({ col: null, item: null });
+    for (const context of contexts) {
+      const imageContext: ImageContext = {
+        ...context, repeat: false, inst: null, cdef: null, stack: [], hero: { reviewed: false }
+      };
+      walkImages(state.header, [], 'global header', imageContext);
+      walkImages(pg.tree, [], 'page', imageContext);
+      walkImages(state.footer, [], 'global footer', imageContext);
+    }
+    for (const review of imageReviews.values()) {
+      const labels = [...review.items.values()];
+      const shown = labels.slice(0, 3).join(', ');
+      const affected = labels.length
+        ? ` Affected item${labels.length === 1 ? '' : 's'}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}.`
+        : '';
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId);
+    }
 
     dupIds.forEach(id => add('error', 'duplicate-id', `The anchor id “${id}” is used more than once on “${pg.name}”.`, scope));
 
@@ -4095,8 +4199,12 @@ function listItems(n: PcNode, col: Collection) {
       : String(av).localeCompare(String(bv));
   });
   if (n.props.dir === 'desc') out.reverse();
+  const per = parseInt(String(n.props.per || ''), 10);
   const lim = parseInt(n.props.limit || '', 10);
-  return lim > 0 ? out.slice(0, lim) : out;
+  /* Pagination exposes every matching item across generated pages. Keep a stored limit so
+     returning to an unpaginated list restores the author's earlier choice, but do not apply
+     that hidden value while Items per page is active. */
+  return lim > 0 && !(per > 0) ? out.slice(0, lim) : out;
 }
 
 /* Every link a page emits goes through here. Two jobs: `cms:item` becomes the
@@ -4732,13 +4840,18 @@ function bindScope(id: string): { node: PcNode | null; col: Collection } | null 
 }
 /* which item the canvas is previewing, per collection */
 const previewIndex = (colId: string) => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
-/* The canvas stands in for the published page, so it previews a published item. A project
-   whose every item is a draft falls back to the first one rather than rendering an empty
-   template — there is nothing else to show, and showing nothing looks like a bug. */
+/* An explicit preview is an authoring choice and may be a draft. Collection Lists and detail
+   templates apply their public-item policy separately; a static source container renders the
+   exact selected row in both canvas and export. */
 function previewItem(col: Collection | null) {
   if (!col || !col.items.length) return null;
   return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
+/** The item a source-bearing node renders. A repeated child keeps the row its Collection List
+    supplied; every other source scope uses the explicit preview selection. Shared by render
+    and binding-aware review so neither quietly substitutes a different row. */
+const sourceItem = (col: Collection, currentCol: Collection | null, currentItem: Item | null,
+  repeat: boolean) => repeat && currentCol === col ? currentItem : previewItem(col);
 /* ---- reading a field, and following a reference ----------------------
    A reference field holds an item id in another collection, so displaying anything from it
    takes two hops: the reference, then a field of what it points at. Every binding before this
@@ -6885,7 +6998,6 @@ const PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`);
 
 const MQ = { t: '@media (max-width:1024px)', m: '@media (max-width:767px)' };
-
 function decl(map: Decls) {
   let out = '';
   /* CSS preserves declaration order. Broad border declarations must precede their
@@ -7057,6 +7169,11 @@ const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:fl
 function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
   parent: PcNode | null = null, detachedComponentRoot = false) {
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
+  /* Restore default deletes the stored height. A zero-specificity per-node fallback restores
+     the factory mobile size without outranking an authored desktop/tablet value that should
+     inherit, a reusable class, or an explicit mobile zero. It lives in the existing mobile
+     bucket so standalone, WordPress and hosted styles keep one breakpoint cascade. */
+  if (n.type === 'spacer') acc.m += `:where(${selOf(n)}){height:32px}`;
   if (n.type === 'form' && n.props.fields?.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
     const selector = selOf(n);
     acc.d += `${selector}.pagecraft-form-percent{display:var(--f-layout,flex)}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
@@ -7400,6 +7517,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
 .pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
+:where(.pagecraft-spacer){height:48px}
 
 .pagecraft-accordion{display:flex;flex-direction:column;gap:var(--ac-gap,0px);width:100%}
 .pagecraft-accordion-item{border-top:1px solid var(--ac-line,currentColor);border-radius:var(--ac-radius,0px)}
@@ -7829,7 +7947,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
-  const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
+  const o2 = sc ? {
+    ...o, col: sc,
+    item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
+  } : o;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
      page's nodes, so they render outside the instance's scope: their bindings are the page's
