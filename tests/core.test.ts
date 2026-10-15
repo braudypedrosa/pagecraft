@@ -352,6 +352,47 @@ test('a cleared Spacer restores responsive defaults while explicit heights keep 
     'no mobile node declaration interrupts normal responsive inheritance');
 });
 
+test('a cleared Divider restores its visible defaults while authored and responsive values win', () => {
+  blank();
+  const divider = C.N('divider');
+  C.state.pages[0].tree = [divider];
+  for (const property of ['border-top-width','border-top-style','border-top-color','width','margin-top','margin-bottom'])
+    delete divider.css.d[property];
+
+  let out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const foundation = ':where\\(\\.pagecraft-divider\\)\\{[^}]*';
+  a.match(out.base, new RegExp(foundation + 'width:100%'));
+  a.match(out.base, new RegExp(foundation + 'border-top:1px solid var\\(--c-line\\)'));
+  a.match(out.base, new RegExp(foundation + 'margin:20px 0'));
+  a.doesNotMatch(out.mobile, new RegExp('\\.' + C.nodeClass(divider) + '\\{'),
+    'a cleared mobile scope inherits the visible foundation');
+
+  divider.css.d['border-top-width'] = '0px';
+  divider.css.d['border-top-style'] = 'dotted';
+  divider.css.d['border-top-color'] = '#123456';
+  divider.css.d.width = '70%';
+  out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const local = new RegExp('\\.' + C.nodeClass(divider) + '\\{[^}]*border-top-width:0px[^}]*border-top-style:dotted[^}]*border-top-color:#123456[^}]*width:70%');
+  a.match(out.base, local, 'an authored zero remains hidden and the other authored values retain priority');
+
+  divider.css.t['border-top-width'] = '4px';
+  divider.css.t['border-top-style'] = 'dashed';
+  divider.css.t['border-top-color'] = '#654321';
+  divider.css.t.width = '55%';
+  delete divider.css.m['border-top-width'];
+  delete divider.css.m['border-top-style'];
+  delete divider.css.m['border-top-color'];
+  delete divider.css.m.width;
+  C.state.ui.dev = 'mobile';
+  a.deepEqual(C.cssVal(divider, 'border-top-width', true), {v:'4px',own:false});
+  a.deepEqual(C.cssVal(divider, 'border-top-style', true), {v:'dashed',own:false});
+  a.deepEqual(C.cssVal(divider, 'border-top-color', true), {v:'#654321',own:false});
+  a.deepEqual(C.cssVal(divider, 'width', true), {v:'55%',own:false});
+  out = blocks(C.treeCss([C.state.pages[0].tree], false));
+  a.doesNotMatch(out.mobile, new RegExp('\\.' + C.nodeClass(divider) + '\\{'),
+    'no mobile declaration interrupts tablet inheritance');
+});
+
 test('columns follow their row vertically until a breakpoint overrides them', () => {
   blank();
   const sec = insert('section', null, 0);

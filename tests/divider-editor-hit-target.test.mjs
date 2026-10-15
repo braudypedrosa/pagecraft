@@ -47,12 +47,12 @@ test('the divider keeps its native markup and public geometry', () => {
   const divider = C.N('divider');
   const editing = C.renderNode(divider, { edit: true });
   const published = C.renderNode(divider, { edit: false });
-  const publicRule = C.baseCss(false).match(/\.pagecraft-divider\{[^}]*\}/)?.[0] || '';
+  const publicRule = C.baseCss(false).match(/:where\(\.pagecraft-divider\)\{[^}]*\}/)?.[0] || '';
 
   expect(editing).toMatch(/^<hr\b/);
   expect(editing).toContain('data-t="divider"');
   expect(published).toMatch(/^<hr\b/);
   expect(published).not.toContain('data-t="divider"');
-  expect(publicRule).toBe('.pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}');
+  expect(publicRule).toBe(':where(.pagecraft-divider){width:100%;border:0 solid transparent;border-top:1px solid var(--c-line);margin:20px 0;align-self:stretch}');
   expect(C.baseCss(false)).not.toContain('[data-t=divider].pagecraft-divider::before');
 });
