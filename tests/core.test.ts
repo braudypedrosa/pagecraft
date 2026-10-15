@@ -4965,12 +4965,47 @@ test('a limit caps the list, and a bad limit does not', () => {
   for (const bad of ['', '0', '-3', 'abc']) { list.props.limit = bad; a.equal(C.listItems(list, col).length, 3, `limit ${JSON.stringify(bad)} means all`); }
 });
 
-test('an empty collection exports nothing rather than an empty shell', () => {
-  withList();
-  C.collections()[0].items = [];
-  const shipped = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+test('an empty collection keeps its collection guidance in the editor', () => {
+  const { col, list } = withList();
+  col.items = [];
+  const shipped = C.renderNode(list, { edit: false });
   a.equal(/pagecraft-list/.test(shipped), false, 'no stray wrapper in the export');
-  a.match(C.renderNode(C.state.pages[0].tree[0], { edit: true }), /has no items yet/, 'but the editor says why');
+  a.match(C.renderNode(list, { edit: true }), /Projects has no items yet/, 'but the editor says why');
+});
+
+test('a populated collection with zero filter matches explains the empty result', () => {
+  const { col, list } = withList();
+  Object.assign(list.props, { where: 'year', op: 'is', val: '1999' });
+  a.equal(C.listItems(list, col).length, 0, 'the filter excludes every existing item');
+  a.match(C.renderNode(list, { edit: true }), /No items match these filters\./);
+  a.doesNotMatch(C.renderNode(list, { edit: true }), /has no items yet/);
+  a.equal(C.renderNode(list, { edit: false }), '', 'the public export still omits empty lists');
+});
+
+test('a collection with only drafts uses neutral empty guidance without filters', () => {
+  const { col, list } = withList();
+  col.items.forEach((item: Item) => C.itemDraft(col.id, item.id, true));
+  a.equal(C.listItems(list, col).length, 0);
+  a.match(C.renderNode(list, { edit: true }), /No items to display\./);
+  a.doesNotMatch(C.renderNode(list, { edit: true }), /No items match these filters/);
+});
+
+test('invalid or incomplete filters do not claim to exclude items', () => {
+  const { col, list } = withList();
+  col.items.forEach((item: Item) => C.itemDraft(col.id, item.id, true));
+  Object.assign(list.props, { where: 'deleted-field', op: 'is', val: '2025' });
+  a.match(C.renderNode(list, { edit: true }), /No items to display\./, 'unknown field does not filter draft-only content');
+
+  Object.assign(list.props, { where: 'year', op: 'is', val: '   ' });
+  a.match(C.renderNode(list, { edit: true }), /No items to display\./, 'blank comparison value is not an active filter');
+  a.doesNotMatch(C.renderNode(list, { edit: true }), /No items match these filters/);
+});
+
+test('a populated unfiltered collection renders cards without an empty message', () => {
+  const { list } = withList();
+  const html = C.renderNode(list, { edit: true });
+  a.match(html, /Acme rebrand/);
+  a.doesNotMatch(html, /No items match these filters|has no items yet/);
 });
 
 test('a list with no collection exports nothing and prompts in the editor', () => {

@@ -21,6 +21,8 @@ import { Cms } from '../app/src/ui/Cms';
 import { ColorTokens } from '../app/src/ui/ColorTokens';
 import { StyleClasses } from '../app/src/ui/StyleClasses';
 import { TextStyles } from '../app/src/ui/TextStyles';
+import { registerPainter } from '../app/src/ui/ctx';
+import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
@@ -1054,6 +1056,79 @@ test('an unsafe colour-token deletion reports the CSS problem without history or
   a.match(String(toasts[0][1]), /cannot safely rewrite/);
   a.deepEqual(toasts[0][2], { tone: 'error' });
   a.equal(toasts.some(call => String(call[1]).includes('Token deleted')), false);
+});
+
+test('colour changes refresh the mounted text-style palette', async () => {
+  const styleId = C.styleAdd('Palette QA');
+  const tokenId = C.colorAdd('Palette accent', '#106b50');
+  const stylesHost = document.createElement('div');
+  document.body.appendChild(stylesHost);
+  const drawStyles = () => render(<TextStyles />, stylesHost);
+  registerPainter('styles', drawStyles);
+
+  try {
+    act(drawStyles);
+    const expand = stylesHost.querySelector(`button[aria-label="Expand Palette QA"]`)!;
+    act(() => r.click(expand));
+    a.ok(stylesHost.querySelector('button[title="Palette accent"]'));
+
+    r.draw(() => <ColorTokens />, 'colors');
+    const value = r.$('input[aria-label="Palette accent colour value"]')!;
+    const tokenRow = value.closest('.arow')!;
+    const name = tokenRow.querySelector('input[aria-label="Colour token name"]')!;
+    r.type(name, 'Renamed accent');
+    a.ok(stylesHost.querySelector('button[title="Renamed accent"]'), 'name refreshed');
+
+    r.type(value, '#225577');
+    const changed = stylesHost.querySelector('button[title="Renamed accent"]') as HTMLElement;
+    a.match(changed.getAttribute('style') || '', /(?:#225577|rgb\(34, 85, 119\))/,
+      'value refreshed');
+
+    const remove = tokenRow.querySelector('button[title^="Delete"]');
+    await act(async () => { r.click(remove); await Promise.resolve(); });
+    a.equal(C.findColor(tokenId), null);
+    a.equal(stylesHost.querySelector('button[title="Renamed accent"]'), null, 'delete refreshed');
+    a.ok(C.findStyle(styleId), 'the text style remains');
+
+    const add = r.$$('button').find(button => button.textContent?.includes('Add colour'))!;
+    await act(async () => { r.click(add); await Promise.resolve(); });
+    a.ok(stylesHost.querySelector('button[title="Stub name"]'), 'add refreshed');
+  } finally {
+    act(() => render(null, stylesHost));
+    stylesHost.remove();
+    registerPainter('styles', () => {});
+  }
+});
+
+test('a stale text-style palette button cannot author a deleted token reference', () => {
+  const styleId = C.styleAdd('Stale palette QA');
+  const tokenId = C.colorAdd('Soon deleted', '#106b50');
+  const stylesHost = document.createElement('div');
+  document.body.appendChild(stylesHost);
+  const drawStyles = () => render(<TextStyles />, stylesHost);
+  registerPainter('styles', drawStyles);
+
+  try {
+    act(drawStyles);
+    act(() => r.click(stylesHost.querySelector('button[aria-label="Expand Stale palette QA"]')));
+    const stale = stylesHost.querySelector('button[title="Soon deleted"]')!;
+    a.equal(C.colorDelete(tokenId), true);
+    r.calls.length = 0;
+
+    act(() => r.click(stale));
+
+    a.equal(C.findStyle(styleId)!.css.d?.color, undefined);
+    a.equal(r.names().includes('tx'), false);
+    a.equal(r.names().includes('save'), false);
+    const toasts = r.calls.filter(call => call[0] === 'toast');
+    a.equal(toasts.length, 1);
+    a.match(String(toasts[0][1]), /no longer exists/);
+    a.deepEqual(toasts[0][2], { tone: 'error' });
+  } finally {
+    act(() => render(null, stylesHost));
+    stylesHost.remove();
+    registerPainter('styles', () => {});
+  }
 });
 
 test('style classes can be created from project settings', async () => {

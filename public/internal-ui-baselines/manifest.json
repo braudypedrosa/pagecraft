@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-15T19:39:01.259Z",
+  "capturedAt": "2026-10-15T21:24:32.449Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "7cdb0deacfdee1bdd76d7166cc8d776a82ad48fac00566e3d2b149bdcfc423a2",
+    "builder.html": "425ff12c44c331d903525ae0867db0c1fcb8409886f8f742a06fd7f7ff6c2163",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -24,7 +24,7 @@
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
     "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
     "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
-    "shared/custom-select.js": "5a2f4968cd4748e5514a1a2e827d14b75b529a97a839edf77327893d90578cbf",
+    "shared/custom-select.js": "d2f92d7d071f7a6fe5b7884fd353c6b9b098a4890468bcd9acc51e3e0ced1eae",
     "shared/action-feedback.js": "b74e2f3f0085655f4e224626c3623b080d24ea32a80e48c5f461621611a3c5ae",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",

@@ -274,6 +274,10 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     else record.trigger.removeAttribute('aria-required');
     record.trigger.title = record.select.title;
     if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
+    /* Framework repaints can keep this record while inserting controls above its trigger.
+       An open menu must follow that new rect; style writes are outside the observer's attribute
+       filter, so positioning here does not schedule another synchronization pass. */
+    if (openRecord === record && !isClosed(record.menu)) position(record);
   }
 
   const bindNative = record => {
@@ -446,6 +450,13 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     position(openRecord);
   }, true);
   new MutationObserver(mutations => {
+    /* Content inserted above an open trigger can move it without touching the select itself.
+       Follow child-list layout changes outside the popup. Positioning writes only `style`,
+       which is deliberately absent from this observer's attribute filter. */
+    if (openRecord && mutations.some(mutation =>
+      mutation.type === 'childList' && !openRecord.menu.contains(mutation.target))) {
+      position(openRecord);
+    }
     const affectsSelect = mutations.some(mutation => {
       if (mutation.type === 'attributes') {
         return mutation.target.nodeType === 1

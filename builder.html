@@ -4218,8 +4218,8 @@ function runAct(act, ids) {
       edit(() => sendEdge(list, dir));
       break;
     }
-    case 'dup': if (canStructure()) { edit(() => (many ? dupMany(list) : dupNode(id))); toast(many ? `${list.length} elements duplicated` : 'Element duplicated'); } break;
-    case 'del': if (canStructure()) { edit(() => (many ? delMany(list) : delNode(id))); toast(many ? `${list.length} elements deleted. Undo restores them.` : 'Element deleted. Undo restores it.'); } break;
+    case 'dup': if (canStructure()) { edit(() => (many ? dupMany(list) : dupNode(id)), many ? `Duplicate ${list.length} elements` : 'Duplicate ' + kindOf(locate(id).node).toLowerCase()); toast(many ? `${list.length} elements duplicated` : 'Element duplicated'); } break;
+    case 'del': if (canStructure()) { const label = many ? `Delete ${list.length} elements` : 'Delete ' + kindOf(locate(id).node).toLowerCase(); edit(() => (many ? delMany(list) : delNode(id)), label); toast(many ? `${list.length} elements deleted. Undo restores them.` : 'Element deleted. Undo restores it.'); } break;
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
@@ -6973,6 +6973,17 @@ function newPageModal() {
   }));
 }
 
+/** Resource editors can rewrite project CSS while this legacy modal remains mounted. Refresh
+    its code controls when that section is reopened, without disturbing a field being edited. */
+function syncProjectSettingsCodeFields() {
+  [['mCss', 'css'], ['mHeadHtml', 'headHtml']].forEach(([id, key]) => {
+    const field = $('#' + id);
+    if (!field || document.activeElement === field) return;
+    const live = String(state.meta[key] || '');
+    if (field.value !== live) field.value = live;
+  });
+}
+
 function projectModal() {
   const m = state.meta;
   const wordpressPageWasDirty = IS_WORDPRESS && typeof wordpressSaveState !== 'undefined'
@@ -7050,6 +7061,7 @@ function projectModal() {
       });
       panel.append(grid); content.append(panel); nav.append(button);
       button.addEventListener('click', () => {
+        if (id === 'code') syncProjectSettingsCodeFields();
         $$('[data-settings-section]', nav).forEach(item => item.removeAttribute('aria-current'));
         button.setAttribute('aria-current', 'true');
         $$('section', content).forEach(item => item.hidden = item !== panel);
@@ -7464,7 +7476,7 @@ function hotkey(e) {
   if (meta && k === 'd') {
     e.preventDefault();
     const ids = selIds();
-    if (ids.length && canStructure()) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]));
+    if (ids.length && canStructure()) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]), ids.length > 1 ? `Duplicate ${ids.length} elements` : 'Duplicate ' + kindOf(locate(ids[0]).node).toLowerCase());
     return;
   }
   /* Styles first: the ⌘C and ⌘V branches below never checked shift, so without this

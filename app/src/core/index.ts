@@ -8361,10 +8361,19 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       if (!kidz.length) return o.edit
         ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
       const all = listItems(n, lc);
-      /* An empty collection exports nothing rather than an empty shell; the editor
-         still says so, or the list would look broken. */
-      if (!all.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : '';
+      /* Keep true empty collections distinct from filters that exclude existing content. */
+      if (!all.length) {
+        const activeFilter = !!findField(lc, p.where as string)
+          && FILTER_OPS.some(([op]) => op === p.op)
+          && (p.op === 'set' || p.op === 'unset' || String(p.val ?? '').trim() !== '');
+        const message = !lc.items.length
+          ? `${esc(lc.name)} has no items yet`
+          : activeFilter && published(lc).length
+            ? 'No items match these filters.'
+            : 'No items to display.';
+        return o.edit
+          ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${message}</div></div>` : '';
+      }
 
       /* Only the paginator on this page slices. A second paginated list would otherwise
          show its own page 3 next to the first list's page 3, which means nothing. */

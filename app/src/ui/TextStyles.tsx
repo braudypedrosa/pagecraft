@@ -152,7 +152,15 @@ function Editor({ t }: { t: TextStyle }) {
             {C.colors().map(c => (
               <button key={c.id} class={'tok' + (tok && tok.id === c.id ? ' on' : '')}
                 title={c.name} style={{ background: c.value }}
-                onClick={() => setColor(C.cvar(c.id))} />
+                onClick={() => {
+                  const live = C.findColor(c.id);
+                  if (!live) {
+                    repaint('styles');
+                    L.toast('That colour token no longer exists. Choose another colour.', { tone: 'error' });
+                    return;
+                  }
+                  setColor(C.cvar(live.id));
+                }} />
             ))}
           </div>
         </div>

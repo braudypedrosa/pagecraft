@@ -11014,7 +11014,11 @@ function renderNode(n, o) {
       if (!lc) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Pick a collection for this list</div></div>` : "";
       if (!kidz.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes the card</div></div>` : "";
       const all = listItems(n, lc);
-      if (!all.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : "";
+      if (!all.length) {
+        const activeFilter = !!findField(lc, p.where) && FILTER_OPS.some(([op]) => op === p.op) && (p.op === "set" || p.op === "unset" || String(p.val ?? "").trim() !== "");
+        const message = !lc.items.length ? `${esc(lc.name)} has no items yet` : activeFilter && published(lc).length ? "No items match these filters." : "No items to display.";
+        return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${message}</div></div>` : "";
+      }
       const per = parseInt(String(p.per || ""), 10);
       const drives = per > 0 && o.pg ? paginatorOf(o.pg) : null;
       const mine = !!drives && drives.node.id === n.id;
@@ -18405,8 +18409,24 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         L2.endTx();
         repaint("right");
       },
-      done() {
+      done(event) {
         L2.endTx();
+        const next = event?.relatedTarget;
+        if (next instanceof HTMLElement && next.matches(".pc-custom-select-trigger")) {
+          let pending2 = true;
+          const finish = () => {
+            if (!pending2) return;
+            pending2 = false;
+            next.removeEventListener("click", finish);
+            next.removeEventListener("keydown", finish);
+            next.removeEventListener("blur", finish);
+            requestAnimationFrame(() => repaint("right"));
+          };
+          next.addEventListener("click", finish);
+          next.addEventListener("keydown", finish);
+          next.addEventListener("blur", finish);
+          return;
+        }
         repaint("right");
       },
       clearOverride() {
@@ -21765,6 +21785,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
 
   // app/src/ui/ColorTokens.tsx
+  var repaintColorDependents = () => repaint("styles");
   function Row({ id }) {
     const t3 = C2.findColor(id);
     if (!t3) return null;
@@ -21783,6 +21804,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (cv && cv.value !== v3) cv.value = v3;
       L2.paintCss();
       L2.save();
+      repaintColorDependents();
     };
     const remove = async () => {
       let check = C2.colorDeleteCheck(id);
@@ -21803,6 +21825,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
       C2.edit(() => C2.colorDelete(id), "Delete colour token");
       repaint("colors");
+      repaintColorDependents();
       L2.toast("Token deleted, colours kept");
     };
     const row = (e3) => e3.target.closest(".arow");
@@ -21832,6 +21855,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             if (tok) {
               tok.name = e3.target.value;
               L2.save();
+              repaintColorDependents();
             }
           },
           onBlur: L2.endTx,
@@ -21866,6 +21890,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (name === null) return;
       C2.edit(() => C2.colorAdd(name, "#888888"));
       repaint("colors");
+      repaintColorDependents();
     };
     return /* @__PURE__ */ u2(S, { children: [
       C2.colors().map((t3) => /* @__PURE__ */ u2(Row, { id: t3.id }, t3.id)),
@@ -22221,7 +22246,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               class: "tok" + (tok && tok.id === c3.id ? " on" : ""),
               title: c3.name,
               style: { background: c3.value },
-              onClick: () => setColor(C2.cvar(c3.id))
+              onClick: () => {
+                const live = C2.findColor(c3.id);
+                if (!live) {
+                  repaint("styles");
+                  L2.toast("That colour token no longer exists. Choose another colour.", { tone: "error" });
+                  return;
+                }
+                setColor(C2.cvar(live.id));
+              }
             },
             c3.id
           )) })
@@ -22688,6 +22721,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       else record.trigger.removeAttribute("aria-required");
       record.trigger.title = record.select.title;
       if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
+      if (openRecord === record && !isClosed(record.menu)) position(record);
     }
     const bindNative = (record) => {
       const select = record.select;
@@ -22873,6 +22907,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       position(openRecord);
     }, true);
     new MutationObserver((mutations) => {
+      if (openRecord && mutations.some((mutation) => mutation.type === "childList" && !openRecord.menu.contains(mutation.target))) {
+        position(openRecord);
+      }
       const affectsSelect = mutations.some((mutation) => {
         if (mutation.type === "attributes") {
           return mutation.target.nodeType === 1 && mutation.target.matches("select,option,optgroup");
@@ -27989,8 +28026,8 @@ function runAct(act, ids) {
       edit(() => sendEdge(list, dir));
       break;
     }
-    case 'dup': if (canStructure()) { edit(() => (many ? dupMany(list) : dupNode(id))); toast(many ? `${list.length} elements duplicated` : 'Element duplicated'); } break;
-    case 'del': if (canStructure()) { edit(() => (many ? delMany(list) : delNode(id))); toast(many ? `${list.length} elements deleted. Undo restores them.` : 'Element deleted. Undo restores it.'); } break;
+    case 'dup': if (canStructure()) { edit(() => (many ? dupMany(list) : dupNode(id)), many ? `Duplicate ${list.length} elements` : 'Duplicate ' + kindOf(locate(id).node).toLowerCase()); toast(many ? `${list.length} elements duplicated` : 'Element duplicated'); } break;
+    case 'del': if (canStructure()) { const label = many ? `Delete ${list.length} elements` : 'Delete ' + kindOf(locate(id).node).toLowerCase(); edit(() => (many ? delMany(list) : delNode(id)), label); toast(many ? `${list.length} elements deleted. Undo restores them.` : 'Element deleted. Undo restores it.'); } break;
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
@@ -30744,6 +30781,17 @@ function newPageModal() {
   }));
 }
 
+/** Resource editors can rewrite project CSS while this legacy modal remains mounted. Refresh
+    its code controls when that section is reopened, without disturbing a field being edited. */
+function syncProjectSettingsCodeFields() {
+  [['mCss', 'css'], ['mHeadHtml', 'headHtml']].forEach(([id, key]) => {
+    const field = $('#' + id);
+    if (!field || document.activeElement === field) return;
+    const live = String(state.meta[key] || '');
+    if (field.value !== live) field.value = live;
+  });
+}
+
 function projectModal() {
   const m = state.meta;
   const wordpressPageWasDirty = IS_WORDPRESS && typeof wordpressSaveState !== 'undefined'
@@ -30821,6 +30869,7 @@ function projectModal() {
       });
       panel.append(grid); content.append(panel); nav.append(button);
       button.addEventListener('click', () => {
+        if (id === 'code') syncProjectSettingsCodeFields();
         $$('[data-settings-section]', nav).forEach(item => item.removeAttribute('aria-current'));
         button.setAttribute('aria-current', 'true');
         $$('section', content).forEach(item => item.hidden = item !== panel);
@@ -31235,7 +31284,7 @@ function hotkey(e) {
   if (meta && k === 'd') {
     e.preventDefault();
     const ids = selIds();
-    if (ids.length && canStructure()) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]));
+    if (ids.length && canStructure()) edit(() => ids.length > 1 ? dupMany(ids) : dupNode(ids[0]), ids.length > 1 ? `Duplicate ${ids.length} elements` : 'Duplicate ' + kindOf(locate(ids[0]).node).toLowerCase());
     return;
   }
   /* Styles first: the ⌘C and ⌘V branches below never checked shift, so without this

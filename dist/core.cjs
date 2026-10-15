@@ -9277,7 +9277,11 @@ function renderNode(n, o) {
       if (!lc) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Pick a collection for this list</div></div>` : "";
       if (!kidz.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes the card</div></div>` : "";
       const all = listItems(n, lc);
-      if (!all.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : "";
+      if (!all.length) {
+        const activeFilter = !!findField(lc, p.where) && FILTER_OPS.some(([op]) => op === p.op) && (p.op === "set" || p.op === "unset" || String(p.val ?? "").trim() !== "");
+        const message = !lc.items.length ? `${esc(lc.name)} has no items yet` : activeFilter && published(lc).length ? "No items match these filters." : "No items to display.";
+        return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${message}</div></div>` : "";
+      }
       const per = parseInt(String(p.per || ""), 10);
       const drives = per > 0 && o.pg ? paginatorOf(o.pg) : null;
       const mine = !!drives && drives.node.id === n.id;

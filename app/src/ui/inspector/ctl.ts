@@ -29,7 +29,7 @@ export interface Writer {
   /** committed: for a click or a select. Repaints now and re-renders the panel. */
   hard(v: any): void;
   /** close the transaction — on blur, or after a select settles */
-  done(): void;
+  done(event?: Event): void;
   /** drop this breakpoint's override, which is what the responsive badge does */
   clearOverride(): void;
 }
@@ -52,8 +52,29 @@ export function writer(n: PcNode, c: Control): Writer {
       L.endTx();
       repaint('right');
     },
-    done() {
+    done(event?: Event) {
       L.endTx();
+      const next = (event as FocusEvent | undefined)?.relatedTarget;
+      if (next instanceof HTMLElement && next.matches('.pc-custom-select-trigger')) {
+        /* The first instance-property override inserts reset/status controls above the
+           neighboring select. Repainting during the input's blur moves that trigger between
+           pointerdown and click, so the click lands on empty space. Let the activation finish,
+           then refresh the structural controls. Keyboard focus follows the same path; repaint
+           on its first activation or when it leaves without opening. */
+        let pending = true;
+        const finish = () => {
+          if (!pending) return;
+          pending = false;
+          next.removeEventListener('click', finish);
+          next.removeEventListener('keydown', finish);
+          next.removeEventListener('blur', finish);
+          requestAnimationFrame(() => repaint('right'));
+        };
+        next.addEventListener('click', finish);
+        next.addEventListener('keydown', finish);
+        next.addEventListener('blur', finish);
+        return;
+      }
       repaint('right');
     },
     clearOverride() {
