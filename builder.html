@@ -2886,11 +2886,21 @@ async function writeServer(opts = {}) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
     if (e && e.status === 409) {
-      if (!IS_WORDPRESS && ambiguousCloudSave) {
-        const reconciled = await reconcileAmbiguousCloudSave(ambiguousCloudSave);
-        if (reconciled === 'matched') return;
-        if (reconciled === 'unavailable') {
-          saveState = 'failed'; stamp('NOT SAVED', true); warnSaveUnconfirmed(e.payload || {}); return;
+      if (!IS_WORDPRESS && cloudAttempt) {
+        /* A prior interrupted attempt remains the first candidate: the author may have edited
+           again before retrying, so the host can match those older bytes and the newer draft
+           must stay queued. With no recorded interruption, a version+1 host carrying this
+           exact attempted document is still safe to acknowledge — no overwrite or rebase is
+           involved, and accepting identical bytes cannot discard another author's work. */
+        const candidates = ambiguousCloudSave ? [ambiguousCloudSave] : [];
+        if (!ambiguousCloudSave || ambiguousCloudSave.version !== cloudAttempt.version
+            || ambiguousCloudSave.serialized !== cloudAttempt.serialized) candidates.push(cloudAttempt);
+        for (const candidate of candidates) {
+          const reconciled = await reconcileAmbiguousCloudSave(candidate);
+          if (reconciled === 'matched') return;
+          if (reconciled === 'unavailable') {
+            saveState = 'failed'; stamp('NOT SAVED', true); warnSaveUnconfirmed(e.payload || {}); return;
+          }
         }
       }
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
@@ -2903,7 +2913,11 @@ async function writeServer(opts = {}) {
     if (e && e.status === 403 && !IS_WORDPRESS) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
     }
-    if (!IS_WORDPRESS && cloudAttempt && !(e && Number.isInteger(e.status))) {
+    /* An upstream 5xx can be returned after the database transaction committed but before
+       its result reached this editor. Treat it like a dropped response and prove the outcome
+       by readback; never retry or advance the version from status proximity alone. */
+    const uncertainCloudFailure = !(e && Number.isInteger(e.status)) || e.status >= 500;
+    if (!IS_WORDPRESS && cloudAttempt && uncertainCloudFailure) {
       ambiguousCloudSave = cloudAttempt;
       if (await reconcileAmbiguousCloudSave(cloudAttempt) === 'matched') return;
     }

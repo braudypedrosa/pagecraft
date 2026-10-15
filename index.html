@@ -4265,7 +4265,7 @@ var DEF = {
          'Descriptive alt text', which satisfied the review's alt check — so a
          hand-placed image exported meaningless alt text and nothing ever said so.
          The guidance belongs in the field's placeholder, which already carries it. */
-      props: { src: "", alt: "", link: "", target: "", caption: "", lazy: 1, w: "", h: "", decorative: 0 },
+      props: { src: "", alt: "", link: "", target: "", caption: "", label: "", lazy: 1, w: "", h: "", decorative: 0 },
       css: { d: { width: "100%", "max-width": "100%", "border-radius": "10px", "object-fit": "cover", "align-self": "flex-start" }, t: {}, m: {} }
     }),
     controls: {
@@ -4277,6 +4277,14 @@ var DEF = {
           k: "decorative",
           label: "Decorative image",
           note: "Screen readers skip decorative images."
+        },
+        {
+          t: "text",
+          k: "label",
+          label: "Link label",
+          ph: "What the link opens",
+          note: "Names the link while the decorative image stays hidden from screen readers.",
+          when: (n) => (!!n.props.decorative || !!n.bind?.decorative) && (!!String(n.props.link || "").trim() || !!n.bind?.link)
         },
         { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
         { t: "text", k: "caption", label: "Caption", ph: "Optional" },
@@ -6595,6 +6603,17 @@ function lint() {
             scoped.col,
             scoped.item
           );
+          if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim())
+            queueImage(
+              "error",
+              "image-link-no-label",
+              `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
+              region,
+              n,
+              context.inst,
+              scoped.col,
+              scoped.item
+            );
           if (p.src && !(p.w && p.h)) queueImage(
             "warn",
             "no-dimensions",
@@ -6728,7 +6747,7 @@ var TEXT_SLOTS = {
   crumbs: ["home", ["items", "label"]],
   table: ["body", "caption"],
   tabs: [["items", "label", "panel"]],
-  image: ["alt", "caption"],
+  image: ["alt", "caption", "label"],
   accordion: [["items", "q", "a"]],
   gallery: [["items", "alt", "caption"]],
   nav: [["items", "label"]],
@@ -10723,13 +10742,14 @@ function renderNode(n, o) {
       const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : !p.src ? ' width="800" height="500"' : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      const linkLabel = p.decorative && String(p.label || "").trim() ? ` aria-label="${esc(String(p.label).trim())}"` : "";
       const set = o.variants && !o.edit && /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
@@ -23362,7 +23382,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
            'Descriptive alt text', which satisfied the review's alt check — so a
            hand-placed image exported meaningless alt text and nothing ever said so.
            The guidance belongs in the field's placeholder, which already carries it. */
-        props: { src: "", alt: "", link: "", target: "", caption: "", lazy: 1, w: "", h: "", decorative: 0 },
+        props: { src: "", alt: "", link: "", target: "", caption: "", label: "", lazy: 1, w: "", h: "", decorative: 0 },
         css: { d: { width: "100%", "max-width": "100%", "border-radius": "10px", "object-fit": "cover", "align-self": "flex-start" }, t: {}, m: {} }
       }),
       controls: {
@@ -23374,6 +23394,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             k: "decorative",
             label: "Decorative image",
             note: "Screen readers skip decorative images."
+          },
+          {
+            t: "text",
+            k: "label",
+            label: "Link label",
+            ph: "What the link opens",
+            note: "Names the link while the decorative image stays hidden from screen readers.",
+            when: (n2) => (!!n2.props.decorative || !!n2.bind?.decorative) && (!!String(n2.props.link || "").trim() || !!n2.bind?.link)
           },
           { t: "dims", label: "Intrinsic size", note: "Stops the page shifting as it loads." },
           { t: "text", k: "caption", label: "Caption", ph: "Optional" },
@@ -26263,11 +26291,21 @@ async function writeServer(opts = {}) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
     if (e && e.status === 409) {
-      if (!IS_WORDPRESS && ambiguousCloudSave) {
-        const reconciled = await reconcileAmbiguousCloudSave(ambiguousCloudSave);
-        if (reconciled === 'matched') return;
-        if (reconciled === 'unavailable') {
-          saveState = 'failed'; stamp('NOT SAVED', true); warnSaveUnconfirmed(e.payload || {}); return;
+      if (!IS_WORDPRESS && cloudAttempt) {
+        /* A prior interrupted attempt remains the first candidate: the author may have edited
+           again before retrying, so the host can match those older bytes and the newer draft
+           must stay queued. With no recorded interruption, a version+1 host carrying this
+           exact attempted document is still safe to acknowledge — no overwrite or rebase is
+           involved, and accepting identical bytes cannot discard another author's work. */
+        const candidates = ambiguousCloudSave ? [ambiguousCloudSave] : [];
+        if (!ambiguousCloudSave || ambiguousCloudSave.version !== cloudAttempt.version
+            || ambiguousCloudSave.serialized !== cloudAttempt.serialized) candidates.push(cloudAttempt);
+        for (const candidate of candidates) {
+          const reconciled = await reconcileAmbiguousCloudSave(candidate);
+          if (reconciled === 'matched') return;
+          if (reconciled === 'unavailable') {
+            saveState = 'failed'; stamp('NOT SAVED', true); warnSaveUnconfirmed(e.payload || {}); return;
+          }
         }
       }
       saveState = 'failed'; stamp('NOT SAVED', true); warnStale(e.payload || {}); return;
@@ -26280,7 +26318,11 @@ async function writeServer(opts = {}) {
     if (e && e.status === 403 && !IS_WORDPRESS) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnContentOnly(e.payload || {}); return;
     }
-    if (!IS_WORDPRESS && cloudAttempt && !(e && Number.isInteger(e.status))) {
+    /* An upstream 5xx can be returned after the database transaction committed but before
+       its result reached this editor. Treat it like a dropped response and prove the outcome
+       by readback; never retry or advance the version from status proximity alone. */
+    const uncertainCloudFailure = !(e && Number.isInteger(e.status)) || e.status >= 500;
+    if (!IS_WORDPRESS && cloudAttempt && uncertainCloudFailure) {
       ambiguousCloudSave = cloudAttempt;
       if (await reconcileAmbiguousCloudSave(cloudAttempt) === 'matched') return;
     }

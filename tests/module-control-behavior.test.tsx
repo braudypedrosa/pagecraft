@@ -63,6 +63,10 @@ const conditionalSetup: Record<string, {
   'box:Wrap': { off: n => { n.props.layout = 'grid'; }, on: n => { n.props.layout = 'flex'; } },
   'box:Columns': { off: n => { n.props.layout = 'flex'; }, on: n => { n.props.layout = 'grid'; } },
   'box:HTML tag': { off: n => { n.props.link = '#target'; }, on: n => { n.props.link = ''; } },
+  'image:Link label': {
+    off: n => { n.props.decorative = 0; n.props.link = ''; },
+    on: n => { n.props.decorative = 1; n.props.link = 'https://example.com/details'; },
+  },
   'button:Position': { off: () => {}, on: () => {}, onParent: 'column' },
   'form:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
   'form:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
@@ -88,7 +92,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 29 conditional declarations render only in their applicable state', () => {
+test('all 30 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -97,7 +101,7 @@ test('all 29 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(29);
+  expect(declarations).toHaveLength(30);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );
@@ -211,6 +215,9 @@ function makeApplicable(owner: string, n: PcNode, c: Control) {
   if (owner === 'crumbs') n.props.mode = c.label === 'Crumbs' ? 'manual' : 'path';
   if (owner === 'code') n.props.lang = 'js';
   if (owner === 'table') { n.props.zebra = 1; n.props.caption = 'Prices'; }
+  if (owner === 'image' && c.label === 'Link label') {
+    n.props.decorative = 1; n.props.link = 'https://example.com/details';
+  }
   if (owner === 'shared') n.css.d['background-image'] = 'url(qa.jpg)';
 }
 
@@ -249,7 +256,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(84);
+  expect(declarations).toHaveLength(85);
   for (const { owner, control } of declarations) {
     const n = place(owner);
     makeApplicable(owner, n, control);

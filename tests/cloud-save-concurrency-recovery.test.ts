@@ -192,6 +192,107 @@ test('a retry conflict accepts only an exact readback of the ambiguous committed
   expect(h.state()).toMatchObject({ saveState: 'ok', version: 101 });
 });
 
+test('an exact version-plus-one conflict readback acknowledges identical host bytes without a prior network error', async () => {
+  let remoteDocument: Record<string, unknown> = {};
+  const conflict = Object.assign(new Error('stale'), {
+    status: 409, payload: { error: 'stale', conflict: { yours: 99, theirs: 100 } },
+  });
+  const h = harness(async input => {
+    remoteDocument = structuredClone(input.document);
+    throw conflict;
+  }, async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ version: 100, doc: structuredClone(remoteDocument) }),
+  }));
+
+  h.setName('Already stored exact draft');
+  await h.writeServer();
+
+  expect(h.warnings.stale).not.toHaveBeenCalled();
+  expect(h.warnings.unconfirmed).not.toHaveBeenCalled();
+  expect(h.state()).toMatchObject({
+    saving: false, saveState: 'ok', dirty: false, version: 100, ambiguousCloudSave: null,
+  });
+});
+
+test.each([
+  ['different document at version plus one', 100, { meta: { name: 'Other writer' }, pages: [] }],
+  ['identical document at version plus two', 101, null],
+])('a conflict readback stays blocked for %s', async (_label, remoteVersion, differentDocument) => {
+  let attempted: Record<string, unknown> = {};
+  const conflict = Object.assign(new Error('stale'), {
+    status: 409, payload: { error: 'stale', conflict: { yours: 99, theirs: remoteVersion } },
+  });
+  const h = harness(async input => {
+    attempted = structuredClone(input.document);
+    throw conflict;
+  }, async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      version: remoteVersion,
+      doc: differentDocument || structuredClone(attempted),
+    }),
+  }));
+
+  h.setName('Local conflicting draft');
+  await h.writeServer();
+
+  expect(h.warnings.stale).toHaveBeenCalledTimes(1);
+  expect(h.warnings.unconfirmed).not.toHaveBeenCalled();
+  expect(h.state()).toMatchObject({ saveState: 'failed', dirty: true, version: 99 });
+});
+
+test('an HTTP 502 after commit reconciles exact bytes and queues a newer local edit', async () => {
+  let remoteDocument: Record<string, unknown> = {};
+  const requests: SaveInput[] = [];
+  let resolveReadback!: (response: unknown) => void;
+  const h = harness(async input => {
+    requests.push(structuredClone(input));
+    if (requests.length === 1) {
+      remoteDocument = structuredClone(input.document);
+      throw Object.assign(new Error('gateway answered 502'), { status: 502, payload: null });
+    }
+    expect(input.version).toBe(100);
+    return { version: 101 };
+  }, async () => new Promise(resolve => { resolveReadback = resolve; }));
+
+  h.setName('Committed before gateway failure');
+  const first = h.writeServer();
+  await tick();
+  h.setName('Edited during 502 readback');
+  await h.writeServer();
+  expect(requests).toHaveLength(1);
+
+  resolveReadback({
+    ok: true,
+    status: 200,
+    json: async () => ({ version: 100, doc: structuredClone(remoteDocument) }),
+  });
+  await first;
+  await tick();
+
+  expect(requests).toHaveLength(2);
+  expect(requests[1].document.meta).toMatchObject({ name: 'Edited during 502 readback' });
+  expect(h.warnings.failed).not.toHaveBeenCalled();
+  expect(h.state()).toMatchObject({ saveState: 'ok', version: 101, ambiguousCloudSave: null });
+});
+
+test('an unavailable exact-conflict readback remains blocked as unconfirmed', async () => {
+  const conflict = Object.assign(new Error('stale'), {
+    status: 409, payload: { error: 'stale', conflict: { yours: 99, theirs: 100 } },
+  });
+  const h = harness(async () => { throw conflict; }, async () => { throw new TypeError('Failed to fetch'); });
+
+  h.setName('Cannot confirm matching host bytes');
+  await h.writeServer();
+
+  expect(h.warnings.unconfirmed).toHaveBeenCalledTimes(1);
+  expect(h.warnings.stale).not.toHaveBeenCalled();
+  expect(h.state()).toMatchObject({ saveState: 'failed', dirty: true, version: 99 });
+});
+
 test('an unmatched readback remains a blocking foreign-version conflict', async () => {
   let request = 0;
   let readbackOnline = false;

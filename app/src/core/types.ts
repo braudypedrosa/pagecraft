@@ -101,7 +101,7 @@ export interface HeadingProps extends Linkable, Styled { text?: string; level?: 
 export interface TextProps extends Styled { html?: string }
 export interface QuoteProps extends Styled { text?: string; by?: string; source?: string }
 export interface ImageProps extends Linkable {
-  src?: string; alt?: string; caption?: string; decorative?: 0 | 1 | boolean;
+  src?: string; alt?: string; caption?: string; label?: string; decorative?: 0 | 1 | boolean;
   w?: string; h?: string; lazy?: 0 | 1 | boolean;
 }
 export interface GalleryProps {

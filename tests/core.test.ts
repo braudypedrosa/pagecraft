@@ -6401,6 +6401,10 @@ test('a text slot is declared once and every walker agrees', () => {
   a.equal(C.slotGet(g, slots[0]), 'A plate');
   C.slotSet(g, slots[1], 'Changed');
   a.equal(g.props.items[0].caption, 'Changed');
+
+  const image = insert('image', null, 1);
+  a.deepEqual(C.textSlots(image).map(C.slotName), ['Alt text', 'Caption', 'Label'],
+    'an Image declares its accessible link label as searchable content');
 });
 
 test('every widget that carries text declares it', () => {
@@ -6432,9 +6436,9 @@ const cardIn = () => {
 test('the sheet lists content, not settings', () => {
   const { list } = cardIn();
   const slots = C.bindSlots(list.id);
-  /* every bindable key would be sixteen rows for this card, thirteen of them things
-     nobody binds — a list's sort order, a heading's HTML tag, an image's lazy flag */
-  a.equal(slots.length, 9);
+  /* every bindable key would add settings nobody binds — a list's sort order, a
+     heading's HTML tag, an image's lazy flag. Link label is authored content. */
+  a.equal(slots.length, 10);
   slots.forEach(s => a.ok(C.BIND_CTL.includes(s.ctl), s.label + ' is a content control'));
   a.equal(slots.filter(s => s.key === 'html').length, 1, 'the WYSIWYG body is in there');
 });

@@ -764,7 +764,7 @@ const DEF: Record<string, WidgetDef> = {
          'Descriptive alt text', which satisfied the review's alt check — so a
          hand-placed image exported meaningless alt text and nothing ever said so.
          The guidance belongs in the field's placeholder, which already carries it. */
-      props: { src: '', alt: '', link: '', target: '', caption: '', lazy: 1, w: '', h: '', decorative: 0 },
+      props: { src: '', alt: '', link: '', target: '', caption: '', label: '', lazy: 1, w: '', h: '', decorative: 0 },
       css: { d: { width: '100%', 'max-width': '100%', 'border-radius': '10px', 'object-fit': 'cover', 'align-self': 'flex-start' }, t: {}, m: {} }
     }),
     controls: {
@@ -773,6 +773,10 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'alt', label: 'Alt text', ph: 'Describe the image' },
         { t: 'toggle', k: 'decorative', label: 'Decorative image',
           note: 'Screen readers skip decorative images.' },
+        { t: 'text', k: 'label', label: 'Link label', ph: 'What the link opens',
+          note: 'Names the link while the decorative image stays hidden from screen readers.',
+          when: n => (!!n.props.decorative || !!n.bind?.decorative)
+            && (!!String(n.props.link || '').trim() || !!n.bind?.link) },
         { t: 'dims', label: 'Intrinsic size', note: 'Stops the page shifting as it loads.' },
         { t: 'text', k: 'caption', label: 'Caption', ph: 'Optional' },
         { t: 'link', k: 'link', label: 'Link' },
@@ -3462,6 +3466,10 @@ function lint() {
           if (p.src && !p.decorative && !String(p.alt || '').trim()) queueImage('error', 'no-alt',
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
             region, n, context.inst, scoped.col, scoped.item);
+          if (p.src && p.decorative && String(p.link || '').trim() && !String(p.label || '').trim())
+            queueImage('error', 'image-link-no-label',
+              `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
+              region, n, context.inst, scoped.col, scoped.item);
           if (p.src && !(p.w && p.h)) queueImage('warn', 'no-dimensions',
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
             region, n, context.inst, scoped.col, scoped.item);
@@ -3617,7 +3625,7 @@ const TEXT_SLOTS = {
   crumbs: ['home', ['items', 'label']],
   table: ['body', 'caption'],
   tabs: [['items', 'label', 'panel']],
-  image: ['alt', 'caption'],
+  image: ['alt', 'caption', 'label'],
   accordion: [['items', 'q', 'a']],
   gallery: [['items', 'alt', 'caption']],
   nav: [['items', 'label']],
@@ -8088,6 +8096,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : (!p.src ? ' width="800" height="500"' : '');
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      const linkLabel = p.decorative && String(p.label || '').trim()
+        ? ` aria-label="${esc(String(p.label).trim())}"` : '';
       /* `asset:<id>@<w>` is a variant of the same asset. The export rewrites every asset
          token to a path once the whole page is rendered, so a width marker rides along in
          the token rather than needing the renderer to know where files land. Only for a
@@ -8098,9 +8108,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {

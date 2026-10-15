@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-15T15:03:02.857Z",
+  "capturedAt": "2026-10-15T15:48:06.627Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "9347a4d17d6b62c3276e73e9e9cfe9a248f60c14a7b4c4dcc02f3c62f4222650",
+    "builder.html": "7eb2468a75875d2361e27097f79fb4d5bc1ee7913ae5980e1131890d9cee0312",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -581,7 +581,7 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-actions-768.png": {
-      "sha256": "84b0c44223e4225ac891da7a23784ab93522860914882d72ab6481d91f223cb1",
+      "sha256": "4c7ddcea303f0a29db4c252afa427f7cdd396ccc83c438fe86f2e5b10b181984",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions"
@@ -593,7 +593,7 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-tables-768.png": {
-      "sha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+      "sha256": "cfa19bea83b13509d88b11cb4573f3e8a4066c939dbbe69b451da4731c89c459",
       "width": 768,
       "height": 1172,
       "state": "First row hovered, second row neutral, empty result"
@@ -701,7 +701,7 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-feedback-768.png": {
-      "sha256": "b6e1863db290ff3aac268233e527db34f79c64c6e2d6e14c67af45f871144cc5",
+      "sha256": "32df81f4371ee14c6e71e151117262cee8cd8c45fe482c7280ca418ec666858e",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
