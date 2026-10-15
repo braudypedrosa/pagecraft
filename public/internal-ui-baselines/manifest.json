@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-15T12:56:40.564Z",
+  "capturedAt": "2026-10-15T15:03:02.857Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -52,8 +52,7 @@
           "role": "combobox",
           "value": "Home"
         }
-      },
-      "retestedAt": "2026-10-15T12:53:15.647Z"
+      }
     },
     {
       "host": "cloud",
@@ -564,13 +563,13 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "d29bd5af11bf033c932f042ef575744fba02a23897208a5b2648d2f765915d65",
+      "sha256": "825d59bba388fd51b2fad87e843b8cc24d4db59df3d2df9469e7b0e2706c2e3c",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-fields-768.png": {
-      "sha256": "5a3c1929c682846eac8a19ffc3868a78673210e1a87f121d369ccc0a90160f4b",
+      "sha256": "0509114c21adabf8bc28c96c22de7f7da7fafab19ce3bb2bbd29d6365f57cb70",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples"
@@ -582,7 +581,7 @@
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-actions-768.png": {
-      "sha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+      "sha256": "84b0c44223e4225ac891da7a23784ab93522860914882d72ab6481d91f223cb1",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions"
@@ -636,37 +635,37 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "aa7761f8a5e760d5fbf7d32017c52d29239b87414b0d1e6f95220a33ff8bca41",
+      "sha256": "1b004cdede4d8653863f346d3e8bf190de4bd6cdfbce63ed017e9a21a18f2568",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "079af5c890e18f829129b1eabc0ac71638622dbc497065b8dd9d6a953d18c78c",
+      "sha256": "f727c6d124b07fec2bd1bee0ad0b0e4fa899282f2064b5cb5f235410432c16e7",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+      "sha256": "56c76ecd212ee9769db91d00d921206ffc5f071d07c47d1ea6347e715c670109",
       "width": 1440,
       "height": 1224,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-actions-768.png": {
-      "sha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+      "sha256": "31e69e47f58dd5a9314a1a6224788f8770557aba654ff46c91f7a4cf0a9b5249",
       "width": 768,
       "height": 1279,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {
-      "sha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+      "sha256": "6d5011b294d0e9b389e27ed365578d746a6a23c74fda0b95fa77c1494c42bf38",
       "width": 1440,
       "height": 1228,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-tables-768.png": {
-      "sha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+      "sha256": "002677be8d879cb1bf3058fb061f3f11330440a19757d8a28fba3b61c2a54e8a",
       "width": 768,
       "height": 1284,
       "state": "First row hovered, second row neutral, empty result"
@@ -678,7 +677,7 @@
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "246b0b16c0ccd4df2345028c2a0f95116e89822e3b0a598609247e3e80d8e676",
+      "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
       "width": 768,
       "height": 959,
       "state": "Open picker, selected/disabled options and menu items"
@@ -702,7 +701,7 @@
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-feedback-768.png": {
-      "sha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+      "sha256": "b6e1863db290ff3aac268233e527db34f79c64c6e2d6e14c67af45f871144cc5",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
