@@ -97,20 +97,29 @@ describe('missing brand semantic compatibility', () => {
     expect(darkForm.css.d['--f-btn-fg']).toBe(C.cvar('paper'));
   });
 
-  test('projects with a real brand token retain their existing module defaults', () => {
-    C.blankProject('Existing brand');
-    C.state.meta.tokens = C.defaultTokens();
+  test('projects with a real dark brand derive AA action defaults while transparent variants inherit', () => {
+    palette([
+      { id: 'text', name: 'Text', value: '#3f4943' },
+      { id: 'bg', name: 'Background', value: '#f3f0e9' },
+      { id: 'brand', name: 'Brand', value: '#6c472f' },
+      { id: 'ink', name: 'Ink', value: '#242c27' },
+      { id: 'paper', name: 'Paper', value: '#faf9f6' },
+      { id: 'surface', name: 'Surface', value: '#ffffff' },
+    ]);
     const before = JSON.stringify(C.state.meta.tokens);
-    const button = C.N('button');
+    const button = onPage(C.N('button'));
     const form = C.N('form');
 
-    expect(button.css.d.color).toBe(C.cvar('ink'));
-    expect(button.css.d['--pc-solid-fg']).toBeUndefined();
-    for (const variant of ['solid', 'outline', 'ghost', 'link']) {
+    expect(button.css.d.color).toBeUndefined();
+    expect(button.css.d['--pc-solid-fg']).toBe(C.cvar('paper'));
+    expect(C.effectiveAt(button.id, 'color')).toBe(C.cvar('paper'));
+    expect(C.contrast(button.css.d['--pc-solid-fg'], button.css.d['background-color'])).toBeGreaterThanOrEqual(4.5);
+    for (const variant of ['outline', 'ghost', 'link']) {
       button.props.variant = variant;
-      expect(button.css.d.color).toBe(C.cvar('ink'));
+      expect(C.effectiveAt(button.id, 'color')).toBe(C.cvar('ink'));
     }
-    expect(form.css.d['--f-btn-fg']).toBe(C.cvar('ink'));
+    expect(form.css.d['--f-btn-fg']).toBe(C.cvar('paper'));
+    expect(C.contrast(form.css.d['--f-btn-fg'], form.css.d['--f-btn-bg'])).toBeGreaterThanOrEqual(4.5);
     expect(C.tokenVars()).not.toContain('--c-brand:var(--c-accent)');
     expect(JSON.stringify(C.state.meta.tokens)).toBe(before);
   });

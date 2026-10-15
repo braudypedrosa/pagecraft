@@ -3335,6 +3335,43 @@ function inferHistoryAction(before, after) {
   if (after.pages.some((page2) => !beforePages.has(page2.id))) return "Add page";
   if (before.pages.some((page2) => !afterPages.has(page2.id))) return "Remove page";
   if (after.pages.some((page2, index) => beforePages.get(page2.id)?.index !== index)) return "Move page";
+  const beforeBlocks = before.meta.blocks || [], afterBlocks = after.meta.blocks || [];
+  const oldBlocks = new Map(beforeBlocks.map((block) => [block.id, block]));
+  const newBlocks = new Map(afterBlocks.map((block) => [block.id, block]));
+  if (afterBlocks.some((block) => !oldBlocks.has(block.id))) return "Save block";
+  if (beforeBlocks.some((block) => !newBlocks.has(block.id))) return "Delete block";
+  const beforeComponents = before.meta.components || [], afterComponents = after.meta.components || [];
+  const oldComponents = new Map(beforeComponents.map((component) => [component.id, component]));
+  const newComponents = new Map(afterComponents.map((component) => [component.id, component]));
+  if (afterComponents.some((component) => !oldComponents.has(component.id))) return "Create component";
+  if (beforeComponents.some((component) => !newComponents.has(component.id))) return "Delete component";
+  for (const block of afterBlocks) if (oldBlocks.get(block.id)?.name !== block.name) return "Rename block";
+  for (const component of afterComponents) {
+    const old = oldComponents.get(component.id);
+    if (old.name !== component.name) return "Rename component";
+    if (!same(old.props, component.props)) return "Change component settings";
+  }
+  const beforeCollections = before.meta.collections || [];
+  const afterCollections = after.meta.collections || [];
+  const oldCollections = new Map(beforeCollections.map((collection) => [collection.id, collection]));
+  const newCollections = new Map(afterCollections.map((collection) => [collection.id, collection]));
+  if (afterCollections.some((collection) => !oldCollections.has(collection.id))) return "Add collection";
+  if (beforeCollections.some((collection) => !newCollections.has(collection.id))) return "Delete collection";
+  for (const collection of afterCollections) {
+    const old = oldCollections.get(collection.id);
+    const oldFields = new Map((old.fields || []).map((field) => [field.id, field]));
+    const newFields = new Map((collection.fields || []).map((field) => [field.id, field]));
+    if (collection.fields.some((field) => !oldFields.has(field.id))) return "Add collection field";
+    if (old.fields.some((field) => !newFields.has(field.id))) return "Delete collection field";
+    if (!same(old.fields, collection.fields)) return "Change collection fields";
+    const oldItems = new Map((old.items || []).map((item) => [item.id, item]));
+    const newItems = new Map((collection.items || []).map((item) => [item.id, item]));
+    if (collection.items.some((item) => !oldItems.has(item.id))) return "Add collection entry";
+    if (old.items.some((item) => !newItems.has(item.id))) return "Delete collection entry";
+    if (!same(old.items, collection.items)) return "Change collection content";
+    if (old.name !== collection.name) return "Rename collection";
+    if (!same({ slug: old.slug, detail: old.detail, views: old.views }, { slug: collection.slug, detail: collection.detail, views: collection.views })) return "Change collection settings";
+  }
   const a = nodes(before), b = nodes(after);
   const added = [...b.values()].reverse().find((place) => !a.has(place.node.id));
   if (added) return `Add ${kind(added.node)}`;
@@ -3607,6 +3644,14 @@ var FILTER_OPS = [
   ["unset", "is empty"]
 ];
 var BOX = (t, r, b, l) => ({ "padding-top": t, "padding-right": r, "padding-bottom": b, "padding-left": l });
+var BUTTON_VARIANT_DEFAULTS = {
+  "padding-top": "13px",
+  "padding-right": "26px",
+  "padding-bottom": "13px",
+  "padding-left": "26px",
+  "border-radius": "8px",
+  "background-color": "var(--c-brand)"
+};
 var U = {
   size: ["px", "rem", "em", "vw"],
   len: ["px", "rem", "%", "vw", "vh"],
@@ -4088,8 +4133,8 @@ var DEF = {
         { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
       ]
     }
   },
@@ -4112,10 +4157,10 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-        { t: "color", c: "--link", label: "Link colour" }
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "color", c: "--link", label: "Link colour", r: 1 }
       ]
     }
   },
@@ -4188,9 +4233,9 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-        { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+        { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
         /* ch first, and not U.len: the default measure is in ch, and a unit control
            whose list omits the stored unit falls back to its first entry — which would
            quietly rewrite 34ch as 34px the moment anyone touched the field. */
@@ -4204,7 +4249,7 @@ var DEF = {
           note: "How wide the lines may run. 34ch reads well."
         },
         { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
-        { t: "color", c: "border-left-color", label: "Rule colour", layout: "inline" },
+        { t: "color", c: "border-left-color", label: "Rule colour", r: 1, layout: "inline" },
         { t: "unit", c: "border-left-width", label: "Rule width", layout: "inline", r: 1, units: U.border },
         { t: "box", c: "padding", label: "Padding", r: 1 }
       ]
@@ -4242,10 +4287,10 @@ var DEF = {
       style: [
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
         { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
-        { t: "select", c: "object-fit", label: "Fit", opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+        { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-        { t: "opt", c: "filter", label: "Filter", opts: FILTERS, ph: "grayscale(1) blur(2px)" }
+        { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+        { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
       ]
     }
   },
@@ -4285,14 +4330,9 @@ var DEF = {
       props: { text: "Get started", link: "", target: "", variant: "solid", icon: "none", align: "flex-start", wrap: "inline-flex", ts: "btn" },
       css: {
         d: {
-          "padding-top": "13px",
-          "padding-right": "26px",
-          "padding-bottom": "13px",
-          "padding-left": "26px",
-          "border-radius": "8px",
-          "background-color": cvar("brand"),
-          color: cvar("ink"),
-          "align-self": "flex-start"
+          "--pc-solid-fg": brandActionForeground(),
+          "align-self": "flex-start",
+          ...BUTTON_VARIANT_DEFAULTS
         },
         t: {},
         m: {}
@@ -4317,13 +4357,13 @@ var DEF = {
         }
       ],
       style: [
-        { t: "color", c: "background-color", label: "Background" },
-        { t: "color", c: "color", label: "Text colour", layout: "inline" },
+        { t: "color", c: "background-color", label: "Background", r: 1 },
+        { t: "color", c: "color", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
   },
@@ -4371,12 +4411,12 @@ var DEF = {
       style: [
         { t: "unit", c: "--nav-gap", label: "Link spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-        { t: "color", c: "color", label: "Link colour" },
-        { t: "color", c: "--nav-hover", label: "Hover colour" },
+        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "color", c: "color", label: "Link colour", r: 1 },
+        { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
         { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-        { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+        { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
   },
@@ -4409,7 +4449,7 @@ var DEF = {
           "--f-text": cvar("text"),
           "--f-label": cvar("muted"),
           "--f-btn-bg": cvar("brand"),
-          "--f-btn-fg": cvar("ink"),
+          "--f-btn-fg": brandActionForeground(),
           "font-size": "15px"
         },
         t: {},
@@ -4431,13 +4471,13 @@ var DEF = {
         { t: "select", c: "--f-button-align", label: "Alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
         { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--f-bg", label: "Field background" },
-        { t: "color", c: "--f-border", label: "Field border" },
-        { t: "color", c: "--f-text", label: "Field text" },
-        { t: "color", c: "--f-label", label: "Label colour" },
+        { t: "color", c: "--f-bg", label: "Field background", r: 1 },
+        { t: "color", c: "--f-border", label: "Field border", r: 1 },
+        { t: "color", c: "--f-text", label: "Field text", r: 1 },
+        { t: "color", c: "--f-label", label: "Label colour", r: 1 },
         { t: "unit", c: "--f-radius", label: "Field radius", r: 1, units: U.radius },
-        { t: "color", c: "--f-btn-bg", label: "Button background" },
-        { t: "color", c: "--f-btn-fg", label: "Button text" }
+        { t: "color", c: "--f-btn-bg", label: "Button background", r: 1 },
+        { t: "color", c: "--f-btn-fg", label: "Button text", r: 1 }
       ]
     }
   },
@@ -4458,8 +4498,8 @@ var DEF = {
     controls: {
       content: [
         { t: "unit", c: "border-top-width", label: "Thickness", layout: "inline", r: 1, units: U.border },
-        { t: "select", c: "border-top-style", label: "Style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
-        { t: "color", c: "border-top-color", label: "Colour", layout: "inline" },
+        { t: "select", c: "border-top-style", label: "Style", r: 1, opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
+        { t: "color", c: "border-top-color", label: "Colour", r: 1, layout: "inline" },
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len }
       ],
       style: []
@@ -4522,8 +4562,8 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--cb-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--cb-color", label: "Link colour" },
-        { t: "color", c: "--cb-current", label: "Current page colour" },
+        { t: "color", c: "--cb-color", label: "Link colour", r: 1 },
+        { t: "color", c: "--cb-current", label: "Current page colour", r: 1 },
         { t: "unit", c: "--cb-gap", label: "Spacing", layout: "inline", r: 1, units: U.space }
       ]
     }
@@ -4581,16 +4621,16 @@ var DEF = {
         }
       ],
       style: [
-        { t: "color", c: "--cd-bg", label: "Background" },
-        { t: "color", c: "--cd-text", label: "Text colour", layout: "inline" },
+        { t: "color", c: "--cd-bg", label: "Background", r: 1 },
+        { t: "color", c: "--cd-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
         { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "color", c: "--cd-com", label: "Comments", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-str", label: "Strings", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-kw", label: "Keywords", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-num", label: "Numbers", layout: "inline", when: (n) => n.props.lang !== "text" },
-        { t: "color", c: "--cd-key", label: "Names", layout: "inline", when: (n) => n.props.lang !== "text" }
+        { t: "color", c: "--cd-com", label: "Comments", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-str", label: "Strings", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-kw", label: "Keywords", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-num", label: "Numbers", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
+        { t: "color", c: "--cd-key", label: "Names", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" }
       ]
     }
   },
@@ -4649,13 +4689,13 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--tbl-text", label: "Text colour", layout: "inline" },
+        { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
-        { t: "color", c: "--tbl-line", label: "Line colour", layout: "inline" },
-        { t: "color", c: "--tbl-head-bg", label: "Header background" },
-        { t: "color", c: "--tbl-head-text", label: "Heading colour" },
-        { t: "color", c: "--tbl-zebra", label: "Shading", layout: "inline", when: (n) => !!n.props.zebra },
-        { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n) => !!String(n.props.caption || "").trim() }
+        { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
+        { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1 },
+        { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1 },
+        { t: "color", c: "--tbl-zebra", label: "Shading", r: 1, layout: "inline", when: (n) => !!n.props.zebra },
+        { t: "color", c: "--tbl-caption-color", label: "Caption colour", r: 1, when: (n) => !!String(n.props.caption || "").trim() }
       ]
     }
   },
@@ -4705,13 +4745,13 @@ var DEF = {
         { t: "pick", c: "--tb-align", label: "Tabs sit", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
       ],
       style: [
-        { t: "color", c: "--tb-on", label: "Selected label" },
-        { t: "color", c: "--tb-off", label: "Other labels" },
-        { t: "color", c: "--tb-line", label: "Rule" },
+        { t: "color", c: "--tb-on", label: "Selected label", r: 1 },
+        { t: "color", c: "--tb-off", label: "Other labels", r: 1 },
+        { t: "color", c: "--tb-line", label: "Rule", r: 1 },
         { t: "unit", c: "--tb-size", label: "Label size", layout: "inline", r: 1, units: U.size },
         { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
         { t: "unit", c: "--tb-body-size", label: "Body size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--tb-body-color", label: "Body colour", layout: "inline" },
+        { t: "color", c: "--tb-body-color", label: "Body colour", r: 1, layout: "inline" },
         { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
       ]
     }
@@ -4758,15 +4798,15 @@ var DEF = {
         { t: "select", k: "marker", label: "Marker", opts: [["plus", "Plus / minus"], ["caret", "Caret"], ["none", "None"]] }
       ],
       style: [
-        { t: "color", c: "--ac-line", label: "Divider colour" },
+        { t: "color", c: "--ac-line", label: "Divider colour", r: 1 },
         { t: "unit", c: "--ac-pad", label: "Row padding", r: 1, units: U.space },
         { t: "unit", c: "--ac-gap", label: "Row gap", layout: "inline", r: 1, units: U.space },
         { t: "unit", c: "--ac-q-size", label: "Question size", r: 1, units: U.size },
-        { t: "select", c: "--ac-q-weight", label: "Question weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-        { t: "color", c: "--ac-q-color", label: "Question colour" },
+        { t: "select", c: "--ac-q-weight", label: "Question weight", r: 1, opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "color", c: "--ac-q-color", label: "Question colour", r: 1 },
         { t: "unit", c: "--ac-a-size", label: "Answer size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "--ac-a-color", label: "Answer colour" },
-        { t: "color", c: "--ac-mark", label: "Marker colour" },
+        { t: "color", c: "--ac-a-color", label: "Answer colour", r: 1 },
+        { t: "color", c: "--ac-mark", label: "Marker colour", r: 1 },
         { t: "unit", c: "--ac-radius", label: "Row radius", layout: "inline", r: 1, units: U.radius }
       ]
     }
@@ -4832,9 +4872,9 @@ var DEF = {
       ],
       style: [
         { t: "unit", c: "--icon-size", label: "Glyph size", layout: "inline", r: 1, units: U.size },
-        { t: "color", c: "color", label: "Colour", layout: "inline" },
-        { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
-        { t: "color", c: "background-color", label: "Badge background" },
+        { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
+        { t: "slider", c: "--icon-stroke", label: "Stroke weight", r: 1, min: 1, max: 3, step: 0.05, raw: 1 },
+        { t: "color", c: "background-color", label: "Badge background", r: 1 },
         { t: "box", c: "padding", label: "Badge padding", r: 1 },
         { t: "unit", c: "border-radius", label: "Badge radius", r: 1, units: U.radius }
       ]
@@ -5121,15 +5161,15 @@ var COMMON_STYLE = [
     g: "Background",
     cap: "decoration",
     items: [
-      { t: "color", c: "background-color", label: "Colour", paint: 1 },
-      { t: "img", c: "background-image", label: "Image", bg: 1 },
-      { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+      { t: "color", c: "background-color", label: "Colour", r: 1, paint: 1 },
+      { t: "img", c: "background-image", label: "Image", r: 1, bg: 1 },
+      { t: "select", c: "background-size", label: "Size", r: 1, when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
+      { t: "pick", c: "background-position", label: "Position", r: 1, when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+      { t: "select", c: "background-repeat", label: "Repeat", r: 1, when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
     ]
   },
   {
@@ -5141,7 +5181,7 @@ var COMMON_STYLE = [
          render on the canvas while the inspector appeared to say there was no border. */
       { t: "border", label: "Border" },
       { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-      { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
+      { t: "opt", c: "box-shadow", label: "Shadow", r: 1, opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
     ]
   },
   {
@@ -5152,8 +5192,8 @@ var COMMON_STYLE = [
     g: "Effects",
     cap: "effects",
     items: [
-      { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-      { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
+      { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+      { t: "text", c: "transform", label: "Transform", r: 1, ph: "translateY(-4px) rotate(2deg)" }
     ]
   }
 ];
@@ -5702,9 +5742,10 @@ var nodeClasses = (n) => {
 var resolveColor = (v) => {
   const id = refId(v);
   if (!id) return String(v || "");
-  const t = findColor(id);
+  const t = findColor(id) || (id === "brand" ? findColor("accent") : null);
   return t ? t.value : "";
 };
+var usesAccentBrandFallback = () => !findColor("brand") && !!findColor("accent");
 function defaultTokens(meta = {}) {
   return {
     classes: [],
@@ -5732,9 +5773,21 @@ function defaultTokens(meta = {}) {
   };
 }
 function tokenVars() {
-  const body = colors().map((c) => `--c-${c.id}:${c.value}`).join(";");
+  const vars = colors().map((c) => `--c-${c.id}:${c.value}`);
+  if (usesAccentBrandFallback()) vars.push(`--c-brand:${cvar("accent")}`);
+  const body = vars.join(";");
   return body ? `:root{${body}}` : "";
 }
+var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
+var buttonVariantDeclarations = (map, defaults = null) => {
+  const out = {};
+  for (const [property, value] of Object.entries(map)) {
+    if (!buttonVariantProperty(property)) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value) continue;
+    out[property] = value;
+  }
+  return out;
+};
 function tokenCss() {
   const acc = { d: "", t: "", m: "" };
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => {
@@ -5742,8 +5795,11 @@ function tokenCss() {
     if (decls) acc[b] += `.ts-${t.id}{${decls}}`;
   }));
   classes().forEach((c) => ["d", "t", "m"].forEach((b) => {
-    const decls = decl(c.css && c.css[b] || {});
+    const map = c.css && c.css[b] || {};
+    const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    const buttonDecls = decl(buttonVariantDeclarations(map));
+    if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     STATES.forEach(([k, , sel]) => {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
       if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
@@ -5762,6 +5818,13 @@ var grabTypo = (n) => {
   }));
   return out;
 };
+function tsCanUpdateFrom(n) {
+  if (!findStyle(n.props.ts)) return false;
+  return ["d", "t", "m"].some((b) => TYPO_KEYS.some((k) => {
+    const v = n.css[b] && n.css[b][k];
+    return v !== void 0 && v !== "";
+  }));
+}
 function tsApply(n, id) {
   const t = findStyle(id);
   if (!t) return false;
@@ -5779,6 +5842,7 @@ function tsUnlink(n) {
   return !!t;
 }
 function tsUpdateFrom(n) {
+  if (!tsCanUpdateFrom(n)) return false;
   const t = findStyle(n.props.ts);
   if (!t) return false;
   const got = grabTypo(n);
@@ -6191,6 +6255,7 @@ function effective(node, prop, chain) {
   }
   const t = findStyle(node.props.ts);
   if (t && (t.css.d || {})[prop]) return t.css.d[prop];
+  if (prop === "color" && node.type === "button" && node.props.variant === "solid" && (node.css.d || {})["--pc-solid-fg"]) return node.css.d["--pc-solid-fg"];
   for (let i = chain.length - 1; i >= 0; i--) {
     const v = (chain[i].css.d || {})[prop];
     if (v) return v;
@@ -6277,9 +6342,8 @@ function lint() {
         if (isFront(pg2)) labels.add("home");
         (n.props.items || []).forEach((it) => {
           const h = String(it && it.href || "").trim();
-          const [path, frag = ""] = h.split("#");
-          const target = path === "" ? here : path;
-          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ""))) {
+          const destination = projectLinkTarget(h, here);
+          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ""))) {
             add("warn", "nav-page-top", `\u201C${String(it && it.label || "A menu item")}\u201D in the ${region} links to the top of \u201C${pg2.name}\u201D. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
@@ -6300,7 +6364,7 @@ function lint() {
           add("error", "wordpress-link-invalid", `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
           return;
         }
-        if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
+        if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return;
         if (h === "cms:item") {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
@@ -6320,8 +6384,8 @@ function lint() {
           else if (!state.pages.some((x) => x.collection === owner.id)) add("error", "item-link-no-template", `A link in the ${region} points at an item\u2019s own page, but no page is a detail template for \u201C${owner.name}\u201D.`, w, n.id);
           return;
         }
-        const [path, frag] = h.split("#");
-        const target = path === "" ? here : path;
+        const destination = projectLinkTarget(h, here);
+        const { path, frag, target } = destination || { path: h, frag: "", target: h };
         if (path === "" && region !== "page" && state.pages.length > 1) {
           add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
           return;
@@ -6879,9 +6943,9 @@ function collectionAdd(name) {
   collections().push(col);
   return col;
 }
-var collectionDelete = (id) => {
-  state.meta.collections = collections().filter((c) => c.id !== id);
-};
+function collectionDelete(id) {
+  collectionsReplace(doc(), collections().filter((c) => c.id !== id));
+}
 function collectionRename(id, name) {
   const col = findCollection(id);
   if (!col) return;
@@ -6899,10 +6963,92 @@ function fieldAdd(colId, name, type) {
   col.fields.push(f);
   return f;
 }
+function documentTrees(d) {
+  return [
+    d.header,
+    d.footer,
+    ...d.pages.map((p) => p.tree),
+    ...(d.meta.components || []).map((c) => [c.node]),
+    ...(d.meta.blocks || []).map((b) => [b.node])
+  ];
+}
+function removedCollectionFields(before, after) {
+  const next = new Map(after.map((col) => [col.id, new Set((col.fields || []).map((field) => field.id))]));
+  const removed = /* @__PURE__ */ new Map();
+  for (const col of before) {
+    const remaining = next.get(col.id);
+    if (!remaining) continue;
+    const ids = new Set((col.fields || []).map((field) => field.id).filter((id) => !remaining.has(id)));
+    if (ids.size) removed.set(col.id, ids);
+  }
+  return removed;
+}
+function clearListFieldReferences(trees, removed) {
+  let cleared = 0;
+  for (const list of trees) eachNode(list, (n) => {
+    if (n.type !== "list" || !n.src) return;
+    const fields = removed.get(n.src);
+    if (!fields) return;
+    if (fields.has(String(n.props.sort || ""))) {
+      n.props.sort = "";
+      cleared++;
+    }
+    if (fields.has(String(n.props.where || ""))) {
+      n.props.where = "";
+      n.props.op = "is";
+      delete n.props.val;
+      cleared++;
+    }
+  });
+  return cleared;
+}
+function clearRemovedCollectionReferences(d, removed) {
+  if (!removed.size) return;
+  for (const tree2 of documentTrees(d)) eachNode(tree2, (n) => {
+    if (!n.src || !removed.has(n.src)) return;
+    delete n.src;
+    if (n.type === "list") {
+      n.props.sort = "";
+      n.props.where = "";
+      n.props.op = "is";
+      delete n.props.val;
+    }
+  });
+  for (const pg2 of d.pages) {
+    if (!pg2.collection || !removed.has(pg2.collection)) continue;
+    delete pg2.collection;
+    delete pg2.bindTitle;
+    delete pg2.bindDesc;
+  }
+  for (const col of d.meta.collections || []) for (const field of col.fields || []) {
+    if (!field.ref || !removed.has(field.ref)) continue;
+    delete field.ref;
+    for (const item of col.items || []) delete item.values[field.id];
+  }
+}
+function collectionsReplace(d, next) {
+  const before = d.meta.collections || [];
+  const removed = removedCollectionFields(before, next);
+  const removedCollections = new Set(before.map((col) => col.id));
+  next.forEach((col) => removedCollections.delete(col.id));
+  d.meta.collections = next;
+  clearRemovedCollectionReferences(d, removedCollections);
+  return clearListFieldReferences(documentTrees(d), removed);
+}
+function collectionFieldSettingUsage(colId, fid) {
+  let sort = 0, filter = 0;
+  for (const list of allTrees()) eachNode(list, (n) => {
+    if (n.type !== "list" || n.src !== colId) return;
+    if (n.props.sort === fid) sort++;
+    if (n.props.where === fid) filter++;
+  });
+  return { sort, filter };
+}
 function fieldDelete(colId, fid) {
   const col = findCollection(colId);
   if (!col) return 0;
   if (col.fields.length <= 1) return 0;
+  const hadField = col.fields.some((f) => f.id === fid);
   col.fields = col.fields.filter((f) => f.id !== fid);
   let cleared = 0;
   col.items.forEach((it) => {
@@ -6911,6 +7057,7 @@ function fieldDelete(colId, fid) {
       cleared++;
     }
   });
+  if (hadField) clearListFieldReferences(allTrees(), /* @__PURE__ */ new Map([[colId, /* @__PURE__ */ new Set([fid])]]));
   return cleared;
 }
 var swap = (list, i, dir) => {
@@ -6957,7 +7104,12 @@ function itemSet(colId, iid, fid, value) {
   if (!col) return;
   const it = findItem(col, iid);
   if (!it) return;
-  it.values[fid] = value;
+  Object.defineProperty(it.values, fid, {
+    value,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
@@ -7080,7 +7232,7 @@ function pageFront(i) {
 }
 var NOT_FOUND = "404";
 var isNotFound = (pg2) => pg2.slug === NOT_FOUND;
-function contentImport(raw) {
+function contentImport(raw, options = {}) {
   const d = raw;
   if (!d || typeof d !== "object" || !Array.isArray(d.collections)) return null;
   const rep = {
@@ -7089,54 +7241,110 @@ function contentImport(raw) {
     items: { added: 0, updated: 0 },
     notes: []
   };
+  const contexts = [];
+  const collectionMap = /* @__PURE__ */ new Map();
+  const owns = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   for (const fc of d.collections) {
     if (!fc || typeof fc !== "object") continue;
     const fid = String(fc.id || ""), fslug = String(fc.slug || "");
-    let col = fid && collections().find((c) => c.id === fid) || fslug && collections().find((c) => c.slug === fslug) || null;
+    const idHit = fid ? collections().find((c) => c.id === fid) : void 0;
+    const slugHit = fslug ? collections().find((c) => c.slug === fslug) : void 0;
+    let col = idHit && slugHit && idHit !== slugHit ? slugHit : idHit || slugHit || null;
+    if (idHit && slugHit && idHit !== slugHit) {
+      rep.notes.push(`Collection id \u201C${fid}\u201D is ambiguous here; \u201C${fc.name || fslug}\u201D was matched by slug.`);
+    }
     if (col) rep.collections.matched++;
     else {
       col = collectionAdd(String(fc.name || fslug || fid || "Collection"));
       rep.collections.added++;
     }
     if (!col) continue;
-    const map = {};
+    if (fid && collectionMap.has(fid)) {
+      rep.notes.push(`Duplicate collection id \u201C${fid}\u201D is ambiguous; references keep the first imported match.`);
+    } else if (fid) collectionMap.set(fid, col);
+    contexts.push({ fc, col, fields: /* @__PURE__ */ new Map(), items: /* @__PURE__ */ new Map(), rows: [], unknown: /* @__PURE__ */ new Set() });
+  }
+  for (const context of contexts) {
+    const { fc, col, fields: map } = context;
     for (const ff of Array.isArray(fc.fields) ? fc.fields : []) {
       if (!ff) continue;
       const key = String(ff.id || ff.name || "");
       if (!key) continue;
-      const hit = col.fields.find((x) => x.id === key) || col.fields.find((x) => x.name === String(ff.name || ""));
-      if (hit) {
-        map[key] = hit.id;
+      if (map.has(key)) {
+        rep.notes.push(`${col.name}: duplicate field id \u201C${key}\u201D is ambiguous; values keep the first imported match.`);
         continue;
       }
-      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
+      const fieldName = String(ff.name || "");
+      const idHit = col.fields.find((x) => x.id === key);
+      const nameHit = fieldName ? col.fields.find((x) => x.name === fieldName) : void 0;
+      const idNameConflict = !!(idHit && fieldName && idHit.name !== fieldName);
+      const hit = idNameConflict ? nameHit : idHit || nameHit;
+      if (idNameConflict) {
+        rep.notes.push(nameHit ? `${col.name}: field id \u201C${key}\u201D is ambiguous here; \u201C${fieldName}\u201D was matched by name.` : `${col.name}: field id \u201C${key}\u201D already belongs to \u201C${idHit.name}\u201D; \u201C${fieldName}\u201D was imported as a distinct field.`);
+      }
+      const made = hit || fieldAdd(col.id, String(ff.name || key), String(ff.type || "text"));
       if (!made) continue;
-      map[key] = made.id;
-      rep.fields.added++;
+      map.set(key, made.id);
+      if (!hit) rep.fields.added++;
       if (ff.type && made.type !== ff.type) {
         rep.notes.push(`\u201C${made.name}\u201D came in as text: this build has no \u201C${ff.type}\u201D field type.`);
       }
+      if (owns(ff, "required")) made.required = ff.required ? 1 : 0;
+      if (made.type === "option" && owns(ff, "opts")) made.opts = typeof ff.opts === "string" ? ff.opts : "";
+      if (made.type === "ref" && owns(ff, "ref")) {
+        const sourceRef = String(ff.ref || "");
+        if (!sourceRef) delete made.ref;
+        else {
+          const target = collectionMap.get(sourceRef);
+          if (target) made.ref = target.id;
+          else rep.notes.push(`\u201C${made.name}\u201D could not restore its referenced collection.`);
+        }
+      }
     }
-    const unknown = /* @__PURE__ */ new Set();
     for (const fi of Array.isArray(fc.items) ? fc.items : []) {
       if (!fi || typeof fi !== "object") continue;
       const iid = String(fi.id || ""), islug = String(fi.slug || "");
-      let it = iid && findItem(col, iid) || islug && col.items.find((x) => x.slug === islug) || null;
+      const idHit = iid ? findItem(col, iid) : void 0;
+      const slugHit = islug ? col.items.find((x) => x.slug === islug) : void 0;
+      let it = idHit && slugHit && idHit !== slugHit ? slugHit : idHit || slugHit || null;
+      if (idHit && slugHit && idHit !== slugHit) {
+        rep.notes.push(`${col.name}: item id \u201C${iid}\u201D is ambiguous here; \u201C${islug}\u201D was matched by slug.`);
+      }
       if (it) rep.items.updated++;
       else {
         it = itemAdd(col.id);
         if (!it) continue;
         rep.items.added++;
       }
+      if (iid && context.items.has(iid)) {
+        rep.notes.push(`${col.name}: duplicate item id \u201C${iid}\u201D is ambiguous; references keep the first imported match.`);
+      } else if (iid) context.items.set(iid, it);
+      context.rows.push({ fi, item: it });
+    }
+  }
+  for (const context of contexts) {
+    const { col, fields: map, unknown } = context;
+    for (const { fi, item: it } of context.rows) {
+      const islug = String(fi.slug || "");
       const vals = fi.values && typeof fi.values === "object" ? fi.values : {};
       for (const k of Object.keys(vals)) {
-        const to = map[k] || (findField(col, k) ? k : "");
+        const to = map.get(k) || (findField(col, k) ? k : "");
         if (!to) {
           unknown.add(k);
           continue;
         }
-        const v = vals[k];
-        itemSet(col.id, it.id, to, v == null ? "" : String(v));
+        let v = vals[k];
+        const field = findField(col, to);
+        if (field?.type === "ref" && v != null && field.ref) {
+          const target = contexts.find((candidate) => candidate.col.id === field.ref);
+          const mapped = target?.items.get(String(v));
+          if (mapped) v = mapped.id;
+        }
+        let value = v == null ? "" : String(v);
+        if (field?.type === "image" && options.resolveImage) {
+          value = options.resolveImage(value);
+        }
+        itemSet(col.id, it.id, to, value);
       }
       if (islug) itemSetSlug(col.id, it.id, islug);
     }
@@ -7169,29 +7377,28 @@ function paginatorOf(pg2) {
   });
   return hit;
 }
+function projectLinkTarget(href, here) {
+  const value = href.trim();
+  if (!value || /^([a-z][\w+.-]*:|\/\/)/i.test(value)) return null;
+  const hash = value.indexOf("#");
+  const frag = hash >= 0 ? value.slice(hash + 1) : "";
+  const path = (hash >= 0 ? value.slice(0, hash) : value).split("?")[0];
+  if (!path) return { path, target: here, frag };
+  let target = path.replace(/^(\.\.?\/)+/, "").replace(/^\/+/, "");
+  if (!target || target.endsWith("/")) target += "index.html";
+  else if (!/\.[a-z0-9]+$/i.test(target)) target += ".html";
+  return { path, target, frag };
+}
 function pageAt(href) {
-  let v = String(href == null ? "" : href).trim();
-  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;
-  const hash = v.indexOf("#");
-  const frag = hash >= 0 ? v.slice(hash + 1) : "";
-  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, "").replace(/^\//, "");
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
-  const bits = v.replace(/\.html?$/i, "").split("/");
-  if (bits.length === 1) {
-    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
-    return at2 < 0 ? null : { at: at2, col: null, item: null, frag, pageNo: 1 };
-  }
-  if (bits.length !== 2) return null;
-  const pn = bits[1].match(/^page-(\d+)$/);
-  if (pn) {
-    const at2 = state.pages.findIndex((p) => p.slug === bits[0]);
-    if (at2 >= 0) return { at: at2, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
-  }
-  const col = collections().find((c) => c.slug === bits[0]) || null;
-  if (!col) return null;
-  const item = published(col).find((i) => i.slug === bits[1]) || null;
-  const at = state.pages.findIndex((p) => p.collection === col.id);
-  return item && at >= 0 ? { at, col, item, frag, pageNo: 1 } : null;
+  const value = String(href == null ? "" : href).trim();
+  const destination = projectLinkTarget(value, page().slug + ".html");
+  if (!destination) return null;
+  const { path, target, frag } = destination;
+  if (!path) return frag || value.startsWith("?") ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
+  const exported = exportTargets().find((candidate) => candidate.path === target);
+  if (!exported) return null;
+  const at = state.pages.findIndex((pg2) => pg2.id === exported.pg.id);
+  return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
 function exportTargets() {
   const out = [];
@@ -7238,11 +7445,18 @@ function contentJson(imgPath = (v) => v == null ? "" : String(v)) {
       id: c.id,
       name: c.name,
       slug: c.slug,
-      fields: c.fields.map((f) => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
+      fields: c.fields.map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        required: !!f.required,
+        ...f.type === "option" ? { opts: f.opts || "" } : {},
+        ...f.type === "ref" ? { ref: f.ref || "" } : {}
+      })),
       items: published(c).map((it) => {
-        const values = {};
+        const values = /* @__PURE__ */ Object.create(null);
         for (const f of c.fields) {
-          const v = it.values[f.id];
+          const v = Object.prototype.hasOwnProperty.call(it.values, f.id) ? it.values[f.id] : void 0;
           values[f.id] = f.type === "image" ? imgPath(v) : v == null ? "" : v;
         }
         const url = urlOf[c.id + "|" + it.id];
@@ -8205,7 +8419,8 @@ function migrate(d) {
     n.props = n.props || {};
     if (n.props.mode !== "wordpress") n.props.mode = "external";
   });
-  d.v = SCHEMA;
+  if (legacyVersion !== void 0 || schemaVersion === void 0) d.v = SCHEMA;
+  else delete d.v;
   d.schemaVersion = SCHEMA;
   return d;
 }
@@ -8214,6 +8429,16 @@ var pb = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 var pl = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="3" rx="1.5" class="pv-l"/>`;
 var pg = (x, y, w) => `<rect x="${x}" y="${y}" width="${w || 20}" height="7" rx="3.5" class="pv-g"/>`;
 var ph = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" class="pv-h"/>`;
+var brandActionForeground = () => {
+  const background = cvar("brand");
+  for (const id of ["ink", "paper", "bg", "surface"]) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = "#000000", light = "#ffffff";
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar("ink");
+  return darkRatio >= lightRatio ? dark : light;
+};
 var starterActionForeground = () => {
   const background = cvar("brand");
   for (const id of ["ink", "surface", "bg"]) {
@@ -9552,6 +9777,11 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   const body = decl(map) + extra;
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (n.type === "button") {
+    const defaults = b === "d" ? BUTTON_VARIANT_DEFAULTS : null;
+    const variantBody = decl(buttonVariantDeclarations(map, defaults));
+    if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
+  }
   if (imageNode && decl(imageMap)) {
     const reset = {};
     if (imageMap.height !== void 0) reset.height = "auto";
@@ -9723,7 +9953,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || "inherit"}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
-.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+:where(.pagecraft-button){max-width:100%;color:inherit}
+:where(.pagecraft-button[data-variant=solid]){color:var(--pc-solid-fg,inherit)}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
@@ -11307,9 +11539,11 @@ var __CORE = {
   codeSpans,
   collectionAdd,
   collectionDelete,
+  collectionFieldSettingUsage,
   collectionIndex,
   collectionRename,
   collections,
+  collectionsReplace,
   colorAdd,
   colorDelete,
   colorUsage,
@@ -11561,6 +11795,7 @@ var __CORE = {
   tree,
   treeCss,
   tsApply,
+  tsCanUpdateFrom,
   tsCreateFrom,
   tsUnlink,
   tsUpdateFrom,
@@ -12684,7 +12919,7 @@ var PC_UI = (() => {
       if (pending2.current) return;
       const ok = await L2.askConfirm(
         "Delete this collection?",
-        `<b>${esc(col.name)}</b> and its ${n2(col.items.length, "item")}. Anything bound to its fields falls back to placeholder text.`,
+        `<b>${esc(col.name)}</b> and its ${n2(col.items.length, "item")}. Anything bound to its fields falls back to placeholder text. Collection Lists and detail pages using it will be disconnected. Reference fields will need a new collection, and their saved selections will be cleared.`,
         { ok: "Delete collection" }
       );
       if (!ok) return;
@@ -14469,7 +14704,14 @@ var PC_UI = (() => {
           affected.add(page2.name + " / " + C2.nameOf(n2));
       });
     }
-    return affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
+    const bindings = affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
+    const settings = C2.collectionFieldSettingUsage(collectionId, fieldId);
+    const resets = [];
+    if (settings.sort)
+      resets.push(`${settings.sort} Collection List ${settings.sort === 1 ? "sort" : "sorts"} will reset to CMS order.`);
+    if (settings.filter)
+      resets.push(`${settings.filter} Collection List ${settings.filter === 1 ? "filter" : "filters"} will reset to show every item.`);
+    return bindings + (resets.length ? " " + resets.join(" ") : "");
   }
 
   // app/src/ui/ProposalsWorkspace.tsx
@@ -16236,7 +16478,7 @@ var PC_UI = (() => {
     const page2 = document2.pages.find((page3) => guideNodes(page3.tree).some((node) => node.type === "heading")) || document2.pages[0];
     const nodes = page2 ? guideNodes(page2.tree) : [];
     return { version: 1, dismissed: false, tasks: STEPS.flatMap((step) => {
-      const node = nodes.find((node2) => node2.type === step.type);
+      const node = step.type === "heading" ? nodes.find((node2) => node2.type === "heading" && node2.props?.level === "h1") || nodes.find((node2) => node2.type === "heading" && /^h[2-6]$/.test(String(node2.props?.level))) || nodes.find((node2) => node2.type === "heading") : nodes.find((node2) => node2.type === step.type);
       return node ? [{ id: node.id, pageId: page2.id, type: step.type, before: guideFingerprint(node) }] : [];
     }) };
   }
@@ -17971,11 +18213,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (part.trim()) parts.push(part.trim());
     const anglePart = /^(-?\d+(?:\.\d+)?)deg$/i.exec(parts[0] || "");
     const angle = anglePart ? Number(anglePart[1]) : 180;
-    const colors = (anglePart ? parts.slice(1) : parts).slice(0, 2).map((raw) => {
+    const colors2 = (anglePart ? parts.slice(1) : parts).slice(0, 2).map((raw) => {
       const value2 = raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, "");
       return C2.parseColor(C2.resolveColor(value2) || value2);
     });
-    return colors.length === 2 && colors.every(Boolean) ? { angle, stops: colors } : null;
+    return colors2.length === 2 && colors2.every(Boolean) ? { angle, stops: colors2 } : null;
   };
   function Surface({ cls, onPick, children, aria, value, onKey }) {
     const el = A2(null);
@@ -18371,10 +18613,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     );
   }
-  function RowActs({ n: n2, c: c3, k: k3 }) {
+  function RowActs({ n: n2, c: c3, k: k3, context }) {
     return /* @__PURE__ */ u2(S, { children: [
-      /* @__PURE__ */ u2("button", { class: "x", title: "Move up", disabled: k3 === 0, onClick: () => liftRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 }) }),
-      /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+      /* @__PURE__ */ u2("button", { class: "x", title: "Move up", "aria-label": `Move ${context} up`, disabled: k3 === 0, onClick: () => liftRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 }) }),
+      /* @__PURE__ */ u2("button", { class: "x", title: "Remove", "aria-label": `Remove ${context}`, onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
     ] });
   }
   function AddButton({ label, onClick, gap, small }) {
@@ -18480,6 +18722,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const page2 = link.page || C2.page().slug;
         const anchors = mode === "page" ? C2.anchorsOf(page2) : [];
         const isDragging = dragging === k3;
+        const itemContext = `${it.label || "untitled link"}, item ${k3 + 1}`;
         return /* @__PURE__ */ u2(
           "div",
           {
@@ -18499,7 +18742,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   {
                     class: "navitem-drag",
                     draggable: true,
-                    "aria-label": `Drag ${it.label || "untitled link"} to reorder`,
+                    "aria-label": `Drag ${itemContext} to reorder`,
                     title: "Drag to reorder",
                     onDragStart: (e3) => {
                       dragFrom.current = k3;
@@ -18522,6 +18765,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   "button",
                   {
                     class: "navitem-main",
+                    "aria-label": `Edit ${itemContext}`,
                     "aria-expanded": open === k3 ? "true" : "false",
                     onClick: () => setOpen(open === k3 ? null : k3),
                     children: [
@@ -18533,11 +18777,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     ]
                   }
                 ),
-                /* @__PURE__ */ u2("button", { class: "x", title: "Remove", onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
+                /* @__PURE__ */ u2("button", { class: "x", title: "Remove", "aria-label": `Remove ${itemContext}`, onClick: () => dropRow(n2, c3, k3), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
               ] }),
               /* @__PURE__ */ u2(MotionPresence, { show: open === k3, class: "navitem-body", kind: "panel", children: [
                 /* @__PURE__ */ u2("label", { children: "Navigation label" }),
-                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Link label" }),
+                /* @__PURE__ */ u2(
+                  RowInput,
+                  {
+                    n: n2,
+                    c: c3,
+                    k: k3,
+                    prop: "label",
+                    placeholder: "Link label",
+                    "aria-label": `Navigation label for ${itemContext}`
+                  }
+                ),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
                   /* @__PURE__ */ u2("label", { children: "Destination" }),
                   /* @__PURE__ */ u2(
@@ -18548,7 +18802,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     }
                   )
                 ] }),
-                /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${it.label || "untitled link"}`, onChange: (e3) => {
+                /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${itemContext}`, onChange: (e3) => {
                   const next = e3.target.value;
                   commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "");
                 }, children: [
@@ -18557,14 +18811,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   /* @__PURE__ */ u2("option", { value: "custom", children: "Custom URL" })
                 ] }),
                 mode === "page" ? /* @__PURE__ */ u2(S, { children: [
-                  /* @__PURE__ */ u2("select", { class: "ctl", value: page2, onChange: (e3) => {
+                  /* @__PURE__ */ u2("select", { class: "ctl", value: page2, "aria-label": `Destination page for ${itemContext}`, onChange: (e3) => {
                     commitDestination(k3, C2.buildLink({ mode: "page", page: e3.target.value, frag: "" }));
                   }, children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
                     p3.name,
                     " \xB7 ",
                     p3.slug === "index" ? "/" : "/" + p3.slug
                   ] }, p3.id)) }),
-                  /* @__PURE__ */ u2("select", { class: "ctl", value: link.frag || "", onChange: (e3) => {
+                  /* @__PURE__ */ u2("select", { class: "ctl", value: link.frag || "", "aria-label": `Destination section/anchor for ${itemContext}`, onChange: (e3) => {
                     commit2(k3, "href", C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }));
                   }, children: [
                     /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
@@ -18578,7 +18832,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                       " \u2014 missing"
                     ] }) : null
                   ] })
-                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "href", placeholder: "https://example.com or #section" }) }),
+                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(
+                  RowInput,
+                  {
+                    n: n2,
+                    c: c3,
+                    k: k3,
+                    prop: "href",
+                    placeholder: "https://example.com or #section",
+                    "aria-label": `Custom URL or section for ${itemContext}`
+                  }
+                ) }),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
                   /* @__PURE__ */ u2("label", { children: "CSS classes" }),
                   /* @__PURE__ */ u2(
@@ -18589,20 +18853,39 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     }
                   )
                 ] }),
-                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "cls", placeholder: "featured-link another-class" }),
+                /* @__PURE__ */ u2(
+                  RowInput,
+                  {
+                    n: n2,
+                    c: c3,
+                    k: k3,
+                    prop: "cls",
+                    placeholder: "featured-link another-class",
+                    "aria-label": `CSS classes for ${itemContext}`
+                  }
+                ),
                 /* @__PURE__ */ u2("label", { children: "Parent item" }),
-                /* @__PURE__ */ u2("select", { class: "ctl", value: it.parentId || "", onChange: (e3) => commitParent(k3, e3.target.value), children: [
-                  /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
-                  arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
-                    "option",
-                    {
-                      value: itemIds[index],
-                      disabled: wouldCreateParentCycle(k3, index),
-                      children: candidate.label || "Untitled link"
-                    },
-                    itemIds[index]
-                  ))
-                ] }),
+                /* @__PURE__ */ u2(
+                  "select",
+                  {
+                    class: "ctl",
+                    value: it.parentId || "",
+                    "aria-label": `Parent item for ${itemContext}`,
+                    onChange: (e3) => commitParent(k3, e3.target.value),
+                    children: [
+                      /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
+                      arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
+                        "option",
+                        {
+                          value: itemIds[index],
+                          disabled: wouldCreateParentCycle(k3, index),
+                          children: candidate.label || "Untitled link"
+                        },
+                        itemIds[index]
+                      ))
+                    ]
+                  }
+                ),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
                   /* @__PURE__ */ u2("label", { children: "Link relationship" }),
                   /* @__PURE__ */ u2(
@@ -18613,7 +18896,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     }
                   )
                 ] }),
-                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "rel", placeholder: "nofollow sponsored" }),
+                /* @__PURE__ */ u2(
+                  RowInput,
+                  {
+                    n: n2,
+                    c: c3,
+                    k: k3,
+                    prop: "rel",
+                    placeholder: "nofollow sponsored",
+                    "aria-label": `Link relationship for ${itemContext}`
+                  }
+                ),
                 /* @__PURE__ */ u2("div", { class: "tog-row navitem-target", children: [
                   /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
                   /* @__PURE__ */ u2(
@@ -18621,7 +18914,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     {
                       type: "button",
                       role: "switch",
-                      "aria-label": "Open in a new tab",
+                      "aria-label": `Open ${itemContext} in a new tab`,
                       "aria-checked": it.target === "_blank" ? "true" : "false",
                       class: "sw-tog" + (it.target === "_blank" ? " on" : ""),
                       onClick: () => {
@@ -18670,6 +18963,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           {
             type: "button",
             class: "repeater-toggle",
+            "aria-label": `Edit ${title}, item ${k3 + 1}`,
             "aria-expanded": expanded,
             onClick: () => {
               L2.endTx();
@@ -18687,6 +18981,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             type: "button",
             class: "x",
             title: "Move up",
+            "aria-label": `Move ${title}, item ${k3 + 1} up`,
             disabled: k3 === 0,
             onClick: () => {
               liftRow(n2, c3, k3);
@@ -18695,7 +18990,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 })
           }
         ),
-        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Duplicate", onClick: () => {
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Duplicate", "aria-label": `Duplicate ${title}, item ${k3 + 1}`, onClick: () => {
           C2.edit(() => {
             const copy2 = structuredClone(rows(n2, c3)[k3]);
             if (c3.t === "fields") {
@@ -18708,7 +19003,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           });
           setOpen(k3 + 1);
         }, children: /* @__PURE__ */ u2(Icon, { name: "copy", size: 11 }) }),
-        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", onClick: () => {
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", title: "Remove", "aria-label": `Remove ${title}, item ${k3 + 1}`, onClick: () => {
           dropRow(n2, c3, k3);
           setOpen(open === k3 ? null : open !== null && open > k3 ? open - 1 : open);
         }, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
@@ -18828,7 +19123,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           children: [
             /* @__PURE__ */ u2("label", { class: "frow-control", children: [
               /* @__PURE__ */ u2("span", { children: phA }),
-              /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: kA, placeholder: phA })
+              /* @__PURE__ */ u2(
+                RowInput,
+                {
+                  n: n2,
+                  c: c3,
+                  k: k3,
+                  prop: kA,
+                  placeholder: phA,
+                  "aria-label": `${phA} for ${it[kA] || "untitled item"}, item ${k3 + 1}`
+                }
+              )
             ] }),
             /* @__PURE__ */ u2("label", { class: "repeater-long", children: [
               /* @__PURE__ */ u2("span", { children: kB === "a" ? "Answer" : "Content" }),
@@ -18839,6 +19144,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   rows: 4,
                   value: it[kB] || "",
                   placeholder: phB,
+                  "aria-label": `${kB === "a" ? "Answer" : "Content"} for ${it[kA] || "untitled item"}, item ${k3 + 1}`,
                   onInput: (e3) => {
                     L2.tx(key2);
                     rows(n2, c3)[k3][kB] = e3.target.value;
@@ -18884,10 +19190,30 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "project"
           ] }) }),
           /* @__PURE__ */ u2("span", { class: "gmeta", children: [
-            /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "alt", placeholder: "Alt text \u2014 describe it" }),
-            /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "caption", placeholder: "Caption (optional)" })
+            /* @__PURE__ */ u2(
+              RowInput,
+              {
+                n: n2,
+                c: c3,
+                k: k3,
+                prop: "alt",
+                placeholder: "Alt text \u2014 describe it",
+                "aria-label": `Alt text for image ${k3 + 1}`
+              }
+            ),
+            /* @__PURE__ */ u2(
+              RowInput,
+              {
+                n: n2,
+                c: c3,
+                k: k3,
+                prop: "caption",
+                placeholder: "Caption (optional)",
+                "aria-label": `Caption for image ${k3 + 1}`
+              }
+            )
           ] }),
-          /* @__PURE__ */ u2("span", { class: "gacts", children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3 }) })
+          /* @__PURE__ */ u2("span", { class: "gacts", children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3, context: `image ${k3 + 1}` }) })
         ] }, k3);
       }),
       /* @__PURE__ */ u2("div", { class: "pc-field-actions" + (arr.length ? "" : " flush"), children: [
@@ -19083,10 +19409,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     probe.color = input;
     return probe.color !== "";
   };
+  var linkedColorToken = (value) => {
+    const id = C2.refId(value);
+    if (!id) return null;
+    return C2.findColor(id) || (id === "brand" ? C2.findColor("accent") : null);
+  };
   function ColorCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const v3 = String(valueOf(n2, c3) || "");
-    const tok = C2.refId(v3) ? C2.findColor(C2.refId(v3)) : null;
+    const tok = linkedColorToken(v3);
     const lit = tok ? tok.value : v3;
     const cur = () => c3.c ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).v : C2.propVal(n2, c3.k);
     const imagePaint = c3.paint ? String(C2.cssVal(C2.tgtObj(n2), "background-image", !!c3.r).v || "") : "";
@@ -19229,6 +19560,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         type: "button",
         class: val === String(v3) ? "on" : "",
         "aria-pressed": val === String(v3) ? "true" : "false",
+        disabled: inert(n2, c3),
         title: C2.IC[l3] ? PICK_TIP[l3] || l3 : l3,
         onClick: () => w3.hard(v3),
         children: C2.IC[l3] ? /* @__PURE__ */ u2(Icon, { name: l3, size: 13 }) : l3
@@ -19258,6 +19590,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         "aria-label": c3.label || "Toggle",
         "aria-describedby": c3.note && !c3.k?.startsWith(C2.VAL) ? helpId : void 0,
         class: "sw-tog" + (on ? " on" : ""),
+        disabled: inert(n2, c3),
         onClick: () => w3.hard(on ? 0 : 1),
         children: /* @__PURE__ */ u2("i", {})
       }
@@ -19315,7 +19648,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const w3 = writer(n2, c3);
     const vals = boxValues(n2, c3.c).map(C2.parseU);
     const withUnit = vals.find((x2) => x2.u);
-    const u4 = withUnit ? withUnit.u : "px";
+    const resolvedUnit = withUnit ? withUnit.u : "px";
+    const choiceKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
+    const [choice, setChoice] = d2({ key: choiceKey, unit: resolvedUnit });
+    const u4 = withUnit ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
     const push = (root) => {
       L2.tx(key2);
       const unit = root.querySelector("select").value;
@@ -19354,8 +19690,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             value: u4,
             style: { fontSize: "var(--fs-1)" },
             onChange: (e3) => {
-              push(e3.target.closest(".f"));
-              w3.done();
+              const select = e3.target;
+              setChoice({ key: choiceKey, unit: select.value });
+              const root = select.parentElement;
+              const hasValue = [...root.querySelectorAll("input")].some((input) => input.value.trim() !== "");
+              if (hasValue) {
+                push(root);
+                w3.done();
+              }
             },
             children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
           }
@@ -19607,16 +19949,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function TstyleCtl({ n: n2, c: c3 }) {
     const cur = C2.findStyle(String(valueOf(n2, c3) || ""));
     const used = cur ? C2.tsUsage(cur.id) : 0;
+    const canUpdate = C2.tsCanUpdateFrom(n2);
     const push = async () => {
+      if (!C2.tsCanUpdateFrom(n2)) return;
       const t3 = C2.findStyle(n2.props.ts);
       const k3 = t3 ? C2.tsUsage(t3.id) : 0;
       if (k3 > 1 && !await L2.askConfirm(
-        "Update the style everywhere?",
-        `<b>${esc6(t3.name)}</b> is used ${k3}\xD7. Taking this element's typography into the style changes the other ${k3 - 1} too.`,
-        { ok: "Update style", danger: false }
+        "Update typography everywhere?",
+        `Share this element's typography through <b>${esc6(t3.name)}</b> (${k3} uses)? Spacing, backgrounds and borders stay local; other elements keep their overrides.`,
+        { ok: "Update typography", danger: false }
       )) return;
-      C2.edit(() => C2.tsUpdateFrom(n2));
-      L2.toast("Style updated everywhere");
+      if (!C2.tsCanUpdateFrom(n2)) return;
+      let updated = false;
+      C2.edit(() => {
+        updated = C2.tsUpdateFrom(n2);
+      });
+      if (updated) L2.toast("Typography updated");
     };
     const create = async () => {
       const name = await L2.askText(
@@ -19653,10 +20001,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "button",
           {
             class: "btn",
-            title: "Copy this element's typography into the style, everywhere it is used",
+            disabled: !canUpdate,
+            title: canUpdate ? "Share this element's typography. Spacing, backgrounds and borders stay local." : "Change this element's typography to update the text style. Spacing, backgrounds and borders stay local.",
             onClick: push,
             children: [
-              "Update style",
+              "Update typography",
               used > 1 ? ` \xB7 ${used} uses` : ""
             ]
           }
@@ -19942,6 +20291,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         {
           class: nm === cur ? "on" : "",
           title: nm,
+          disabled: inert(n2, c3),
           onClick: () => w3.hard(nm),
           dangerouslySetInnerHTML: { __html: C2.iconSvg(nm) }
         },
@@ -20364,8 +20714,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       repaint("right");
     };
     return /* @__PURE__ */ u2("div", { class: "f", children: [
-      /* @__PURE__ */ u2("label", { children: "Variant" }),
-      /* @__PURE__ */ u2("select", { "aria-label": "Variant", value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
+      /* @__PURE__ */ u2("label", { children: "Component variant" }),
+      /* @__PURE__ */ u2("select", { "aria-label": "Component variant", value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
         /* @__PURE__ */ u2("option", { value: "", children: "Default" }),
         list2.map((v3) => /* @__PURE__ */ u2("option", { value: v3.id, children: v3.name }, v3.id))
       ] }),
@@ -20471,6 +20821,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         "input",
         {
           class: "ctl",
+          "aria-label": label,
           value: a3[k3] || "",
           placeholder: ph,
           onInput: (e3) => live(k3, e3.target.value),
@@ -20497,6 +20848,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "select",
             {
               class: "ctl",
+              "aria-label": "Animation",
               value: a3.name || "",
               onChange: (e3) => hard({ name: e3.target.value }),
               children: [
@@ -20515,6 +20867,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               "input",
               {
                 class: "ctl",
+                "aria-label": "Easing",
                 value: a3.ease || "",
                 placeholder: "ease-in-out",
                 onInput: (e3) => live("ease", e3.target.value),
@@ -20545,8 +20898,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     { t: "text", k: "_cls", label: "CSS classes", ph: "hero card--dark" },
     { t: "select", c: "position", label: "Position", r: 1, opts: [["static", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
     { t: "unit", c: "top", label: "Top", r: 1, units: ["px", "%", "rem"] },
-    { t: "unit", c: "z-index", label: "Z-index", units: [""] },
-    { t: "select", c: "overflow", label: "Overflow", opts: [["", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
+    { t: "unit", c: "z-index", label: "Z-index", r: 1, units: [""] },
+    { t: "select", c: "overflow", label: "Overflow", r: 1, opts: [["", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
     { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
     { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
   ];
@@ -21672,7 +22025,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!record || record.menu.hidden || record.menu.hasAttribute("data-pc-motion-closing")) return;
       record.trigger.setAttribute("aria-expanded", "false");
       if (openRecord === record) openRecord = null;
-      if (focus) record.trigger.focus();
+      record.restoreFocus = focus && !record.trigger.isConnected;
+      if (focus) record.trigger.focus({ preventScroll: true });
       const finishPopover = () => {
         if (record.popoverOpen) {
           try {
@@ -21699,10 +22053,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     };
     const choose = (record, option) => {
-      if (!option || option.disabled || option.parentElement?.disabled) return;
+      if (!record.select.isConnected || record.select.disabled || !option || !record.select.contains(option) || option.disabled || option.parentElement?.disabled) return;
+      const changed = record.select.value !== option.value;
       record.select.value = option.value;
-      record.select.dispatchEvent(new Event("input", { bubbles: true }));
-      record.select.dispatchEvent(new Event("change", { bubbles: true }));
+      if (changed) {
+        record.select.dispatchEvent(new Event("input", { bubbles: true }));
+        record.select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
       sync(record);
       close(record, true);
     };
@@ -21719,6 +22076,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const optionsForButton = (record, button) => [...record.select.options].find((option) => option.value === button.dataset.value);
     const setActive = (record, option) => {
+      if (openRecord !== record || !record.select.isConnected || isClosed(record.menu)) return;
       const buttons = [...record.menu.querySelectorAll(".pc-custom-select-option:not(:disabled)")];
       buttons.forEach((button) => {
         button.dataset.active = String(button.dataset.value === option?.value);
@@ -21759,7 +22117,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     };
     const open = (record) => {
-      if (record.select.disabled) return;
+      if (!record.select.isConnected || !record.trigger.isConnected || record.select.disabled) return;
       if (openRecord && openRecord !== record) close(openRecord);
       record.modal = modalFor(record);
       const host = record.modal || document.body;
@@ -21805,6 +22163,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     function sync(record) {
       if (!record.select.isConnected) return;
+      record.owner = record.select.parentNode;
+      if (record.select.nextElementSibling !== record.trigger) record.select.after(record.trigger);
+      if (record.restoreFocus) {
+        record.restoreFocus = false;
+        record.trigger.focus({ preventScroll: true });
+      }
       const option = selectedOption(record.select);
       record.label.textContent = option?.label || "Choose an option";
       record.trigger.disabled = record.select.disabled;
@@ -21819,14 +22183,47 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       record.trigger.title = record.select.title;
       if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
     }
+    const bindNative = (record) => {
+      const select = record.select;
+      const refresh = () => sync(record);
+      const focus = () => record.trigger.focus();
+      const invalid = (event) => {
+        event.preventDefault();
+        record.trigger.focus();
+        open(record);
+      };
+      select.addEventListener("change", refresh);
+      select.addEventListener("input", refresh);
+      select.addEventListener("focus", focus);
+      select.addEventListener("invalid", invalid);
+      record.unbindNative = () => {
+        select.removeEventListener("change", refresh);
+        select.removeEventListener("input", refresh);
+        select.removeEventListener("focus", focus);
+        select.removeEventListener("invalid", invalid);
+      };
+    };
+    const hideNative = (select) => {
+      select.classList.add("pc-custom-select-native");
+      select.hidden = true;
+      select.setAttribute("aria-hidden", "true");
+      select.tabIndex = -1;
+    };
     const enhance = (select) => {
       if (!(select instanceof HTMLSelectElement) || select.multiple || select.size > 1) return;
-      const current = records.get(select);
-      if (current?.trigger.isConnected) {
+      const current = records.get(select) || select.id && [...records.values()].find((record2) => !record2.select.isConnected && record2.owner === select.parentNode && record2.select.id === select.id);
+      if (current) {
+        if (current.select !== select) {
+          current.unbindNative();
+          records.delete(current.select);
+          current.select = select;
+          records.set(select, current);
+          hideNative(select);
+          bindNative(current);
+        }
         sync(current);
         return;
       }
-      if (current) records.delete(select);
       const trigger = document.createElement("button");
       trigger.type = "button";
       trigger.className = `${select.className} pc-custom-select-trigger`.trim();
@@ -21853,25 +22250,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       trigger.setAttribute("aria-controls", menu.id);
       document.body.append(menu);
       select.after(trigger);
-      select.classList.add("pc-custom-select-native");
-      select.hidden = true;
-      select.setAttribute("aria-hidden", "true");
-      select.tabIndex = -1;
-      const record = { select, trigger, label, menu, signature: "", modal: null, popoverOpen: false };
+      hideNative(select);
+      const record = { select, trigger, label, menu, owner: select.parentNode, signature: "", modal: null, popoverOpen: false };
       records.set(select, record);
       sync(record);
-      select.addEventListener("change", () => sync(record));
-      select.addEventListener("input", () => sync(record));
-      select.addEventListener("focus", () => trigger.focus());
-      select.addEventListener("invalid", (event) => {
-        event.preventDefault();
-        trigger.focus();
-        open(record);
-      });
+      bindNative(record);
       trigger.addEventListener("click", () => isClosed(menu) ? open(record) : close(record, true));
       trigger.addEventListener("keydown", (event) => {
-        const options = enabledOptions(select);
-        const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
+        const options = enabledOptions(record.select);
+        const currentIndex = Math.max(0, options.indexOf(selectedOption(record.select)));
         if (event.key === "Escape") {
           if (!isClosed(menu)) {
             event.preventDefault();
@@ -21887,7 +22274,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          isClosed(menu) ? open(record) : choose(record, selectedOption(select));
+          isClosed(menu) ? open(record) : choose(record, selectedOption(record.select));
           return;
         }
         if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Home" || event.key === "End") {
@@ -21900,7 +22287,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           } else activate();
           return;
         }
-        if (event.key.length === 1 && /\S/.test(event.key)) {
+        if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && /\S/.test(event.key)) {
           typeahead += event.key.toLowerCase();
           clearTimeout(typeaheadTimer);
           typeaheadTimer = window.setTimeout(() => {
@@ -21944,13 +22331,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       for (const [select, record] of records) {
         if (!select.isConnected) {
           close(record);
+          record.unbindNative();
           record.trigger.remove();
           record.menu.remove();
           records.delete(select);
-        } else if (!record.trigger.isConnected) {
-          record.menu.remove();
-          records.delete(select);
-          enhance(select);
         } else sync(record);
       }
     };
@@ -21978,15 +22362,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (invalid) records.get(invalid)?.trigger.focus();
     });
     window.addEventListener("resize", () => openRecord && position(openRecord));
-    window.addEventListener("scroll", () => openRecord && position(openRecord), true);
+    window.addEventListener("scroll", (event) => {
+      if (!openRecord || event.composedPath().includes(openRecord.menu)) return;
+      position(openRecord);
+    }, true);
     new MutationObserver((mutations) => {
       const affectsSelect = mutations.some((mutation) => {
         if (mutation.type === "attributes") {
           return mutation.target.nodeType === 1 && mutation.target.matches("select,option,optgroup");
         }
-        return [...mutation.addedNodes, ...mutation.removedNodes].some(
+        const changesOptions = [...mutation.addedNodes, ...mutation.removedNodes].some(
           (node) => node.nodeType === 1 && (node.matches("select,option,optgroup") || node.querySelector("select,option,optgroup"))
         );
+        if (changesOptions) return true;
+        for (const [select, record] of records) {
+          if (select.parentNode === mutation.target && select.nextElementSibling !== record.trigger) return true;
+        }
+        return false;
       });
       if (affectsSelect) schedule();
     }).observe(document.documentElement, {
@@ -22284,6 +22676,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ["unset", "is empty"]
   ];
   var BOX = (t3, r3, b2, l3) => ({ "padding-top": t3, "padding-right": r3, "padding-bottom": b2, "padding-left": l3 });
+  var BUTTON_VARIANT_DEFAULTS = {
+    "padding-top": "13px",
+    "padding-right": "26px",
+    "padding-bottom": "13px",
+    "padding-left": "26px",
+    "border-radius": "8px",
+    "background-color": "var(--c-brand)"
+  };
   var U = {
     size: ["px", "rem", "em", "vw"],
     len: ["px", "rem", "%", "vw", "vh"],
@@ -22681,8 +23081,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
           { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
           { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
+          { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+          { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
         ]
       }
     },
@@ -22705,10 +23105,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ],
         style: [
           { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "color", label: "Colour", layout: "inline" },
+          { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
           { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
-          { t: "color", c: "--link", label: "Link colour" }
+          { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+          { t: "color", c: "--link", label: "Link colour", r: 1 }
         ]
       }
     },
@@ -22781,9 +23181,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ],
         style: [
           { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "color", label: "Colour", layout: "inline" },
+          { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
           { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-          { t: "opt", c: "font-family", label: "Font", og: fontGroups, ph: "'Family',sans-serif" },
+          { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
           /* ch first, and not U.len: the default measure is in ch, and a unit control
              whose list omits the stored unit falls back to its first entry — which would
              quietly rewrite 34ch as 34px the moment anyone touched the field. */
@@ -22797,7 +23197,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             note: "How wide the lines may run. 34ch reads well."
           },
           { t: "pick", c: "text-align", label: "Text alignment", r: 1, opts: [["left", "alignL"], ["center", "alignC"], ["right", "alignR"]] },
-          { t: "color", c: "border-left-color", label: "Rule colour", layout: "inline" },
+          { t: "color", c: "border-left-color", label: "Rule colour", r: 1, layout: "inline" },
           { t: "unit", c: "border-left-width", label: "Rule width", layout: "inline", r: 1, units: U.border },
           { t: "box", c: "padding", label: "Padding", r: 1 }
         ]
@@ -22835,10 +23235,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         style: [
           { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
           { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
-          { t: "select", c: "object-fit", label: "Fit", opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+          { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
           { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-          { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-          { t: "opt", c: "filter", label: "Filter", opts: FILTERS, ph: "grayscale(1) blur(2px)" }
+          { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+          { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
         ]
       }
     },
@@ -22878,14 +23278,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         props: { text: "Get started", link: "", target: "", variant: "solid", icon: "none", align: "flex-start", wrap: "inline-flex", ts: "btn" },
         css: {
           d: {
-            "padding-top": "13px",
-            "padding-right": "26px",
-            "padding-bottom": "13px",
-            "padding-left": "26px",
-            "border-radius": "8px",
-            "background-color": cvar("brand"),
-            color: cvar("ink"),
-            "align-self": "flex-start"
+            "--pc-solid-fg": brandActionForeground(),
+            "align-self": "flex-start",
+            ...BUTTON_VARIANT_DEFAULTS
           },
           t: {},
           m: {}
@@ -22910,13 +23305,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           }
         ],
         style: [
-          { t: "color", c: "background-color", label: "Background" },
-          { t: "color", c: "color", label: "Text colour", layout: "inline" },
+          { t: "color", c: "background-color", label: "Background", r: 1 },
+          { t: "color", c: "color", label: "Text colour", r: 1, layout: "inline" },
           { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-          { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
           { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
           { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+          { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
         ]
       }
     },
@@ -22964,12 +23359,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         style: [
           { t: "unit", c: "--nav-gap", label: "Link spacing", r: 1, units: U.space },
           { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-          { t: "select", c: "font-weight", label: "Weight", layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-          { t: "color", c: "color", label: "Link colour" },
-          { t: "color", c: "--nav-hover", label: "Hover colour" },
+          { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "color", c: "color", label: "Link colour", r: 1 },
+          { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
           { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
           { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
-          { t: "select", c: "text-transform", label: "Transform", opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
+          { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
         ]
       }
     },
@@ -23002,7 +23397,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "--f-text": cvar("text"),
             "--f-label": cvar("muted"),
             "--f-btn-bg": cvar("brand"),
-            "--f-btn-fg": cvar("ink"),
+            "--f-btn-fg": brandActionForeground(),
             "font-size": "15px"
           },
           t: {},
@@ -23024,13 +23419,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "select", c: "--f-button-align", label: "Alignment", r: 1, opts: [["flex-start", "Top"], ["end", "Bottom"]] },
           { t: "unit", c: "--f-gap", label: "Field spacing", r: 1, units: U.space },
           { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "--f-bg", label: "Field background" },
-          { t: "color", c: "--f-border", label: "Field border" },
-          { t: "color", c: "--f-text", label: "Field text" },
-          { t: "color", c: "--f-label", label: "Label colour" },
+          { t: "color", c: "--f-bg", label: "Field background", r: 1 },
+          { t: "color", c: "--f-border", label: "Field border", r: 1 },
+          { t: "color", c: "--f-text", label: "Field text", r: 1 },
+          { t: "color", c: "--f-label", label: "Label colour", r: 1 },
           { t: "unit", c: "--f-radius", label: "Field radius", r: 1, units: U.radius },
-          { t: "color", c: "--f-btn-bg", label: "Button background" },
-          { t: "color", c: "--f-btn-fg", label: "Button text" }
+          { t: "color", c: "--f-btn-bg", label: "Button background", r: 1 },
+          { t: "color", c: "--f-btn-fg", label: "Button text", r: 1 }
         ]
       }
     },
@@ -23051,8 +23446,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       controls: {
         content: [
           { t: "unit", c: "border-top-width", label: "Thickness", layout: "inline", r: 1, units: U.border },
-          { t: "select", c: "border-top-style", label: "Style", opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
-          { t: "color", c: "border-top-color", label: "Colour", layout: "inline" },
+          { t: "select", c: "border-top-style", label: "Style", r: 1, opts: [["solid", "Solid"], ["dashed", "Dashed"], ["dotted", "Dotted"]] },
+          { t: "color", c: "border-top-color", label: "Colour", r: 1, layout: "inline" },
           { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len }
         ],
         style: []
@@ -23115,8 +23510,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ],
         style: [
           { t: "unit", c: "--cb-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "--cb-color", label: "Link colour" },
-          { t: "color", c: "--cb-current", label: "Current page colour" },
+          { t: "color", c: "--cb-color", label: "Link colour", r: 1 },
+          { t: "color", c: "--cb-current", label: "Current page colour", r: 1 },
           { t: "unit", c: "--cb-gap", label: "Spacing", layout: "inline", r: 1, units: U.space }
         ]
       }
@@ -23174,16 +23569,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           }
         ],
         style: [
-          { t: "color", c: "--cd-bg", label: "Background" },
-          { t: "color", c: "--cd-text", label: "Text colour", layout: "inline" },
+          { t: "color", c: "--cd-bg", label: "Background", r: 1 },
+          { t: "color", c: "--cd-text", label: "Text colour", r: 1, layout: "inline" },
           { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
           { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
           { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-          { t: "color", c: "--cd-com", label: "Comments", layout: "inline", when: (n2) => n2.props.lang !== "text" },
-          { t: "color", c: "--cd-str", label: "Strings", layout: "inline", when: (n2) => n2.props.lang !== "text" },
-          { t: "color", c: "--cd-kw", label: "Keywords", layout: "inline", when: (n2) => n2.props.lang !== "text" },
-          { t: "color", c: "--cd-num", label: "Numbers", layout: "inline", when: (n2) => n2.props.lang !== "text" },
-          { t: "color", c: "--cd-key", label: "Names", layout: "inline", when: (n2) => n2.props.lang !== "text" }
+          { t: "color", c: "--cd-com", label: "Comments", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-str", label: "Strings", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-kw", label: "Keywords", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-num", label: "Numbers", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
+          { t: "color", c: "--cd-key", label: "Names", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" }
         ]
       }
     },
@@ -23242,13 +23637,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ],
         style: [
           { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "--tbl-text", label: "Text colour", layout: "inline" },
+          { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
           { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
-          { t: "color", c: "--tbl-line", label: "Line colour", layout: "inline" },
-          { t: "color", c: "--tbl-head-bg", label: "Header background" },
-          { t: "color", c: "--tbl-head-text", label: "Heading colour" },
-          { t: "color", c: "--tbl-zebra", label: "Shading", layout: "inline", when: (n2) => !!n2.props.zebra },
-          { t: "color", c: "--tbl-caption-color", label: "Caption colour", when: (n2) => !!String(n2.props.caption || "").trim() }
+          { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
+          { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1 },
+          { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1 },
+          { t: "color", c: "--tbl-zebra", label: "Shading", r: 1, layout: "inline", when: (n2) => !!n2.props.zebra },
+          { t: "color", c: "--tbl-caption-color", label: "Caption colour", r: 1, when: (n2) => !!String(n2.props.caption || "").trim() }
         ]
       }
     },
@@ -23298,13 +23693,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "pick", c: "--tb-align", label: "Tabs sit", r: 1, opts: [["flex-start", "alignL"], ["center", "alignC"], ["flex-end", "alignR"]] }
         ],
         style: [
-          { t: "color", c: "--tb-on", label: "Selected label" },
-          { t: "color", c: "--tb-off", label: "Other labels" },
-          { t: "color", c: "--tb-line", label: "Rule" },
+          { t: "color", c: "--tb-on", label: "Selected label", r: 1 },
+          { t: "color", c: "--tb-off", label: "Other labels", r: 1 },
+          { t: "color", c: "--tb-line", label: "Rule", r: 1 },
           { t: "unit", c: "--tb-size", label: "Label size", layout: "inline", r: 1, units: U.size },
           { t: "unit", c: "--tb-gap", label: "Label spacing", r: 1, units: U.space },
           { t: "unit", c: "--tb-body-size", label: "Body size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "--tb-body-color", label: "Body colour", layout: "inline" },
+          { t: "color", c: "--tb-body-color", label: "Body colour", r: 1, layout: "inline" },
           { t: "unit", c: "--tb-body-pad", label: "Body padding", r: 1, units: U.space }
         ]
       }
@@ -23351,15 +23746,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "select", k: "marker", label: "Marker", opts: [["plus", "Plus / minus"], ["caret", "Caret"], ["none", "None"]] }
         ],
         style: [
-          { t: "color", c: "--ac-line", label: "Divider colour" },
+          { t: "color", c: "--ac-line", label: "Divider colour", r: 1 },
           { t: "unit", c: "--ac-pad", label: "Row padding", r: 1, units: U.space },
           { t: "unit", c: "--ac-gap", label: "Row gap", layout: "inline", r: 1, units: U.space },
           { t: "unit", c: "--ac-q-size", label: "Question size", r: 1, units: U.size },
-          { t: "select", c: "--ac-q-weight", label: "Question weight", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
-          { t: "color", c: "--ac-q-color", label: "Question colour" },
+          { t: "select", c: "--ac-q-weight", label: "Question weight", r: 1, opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+          { t: "color", c: "--ac-q-color", label: "Question colour", r: 1 },
           { t: "unit", c: "--ac-a-size", label: "Answer size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "--ac-a-color", label: "Answer colour" },
-          { t: "color", c: "--ac-mark", label: "Marker colour" },
+          { t: "color", c: "--ac-a-color", label: "Answer colour", r: 1 },
+          { t: "color", c: "--ac-mark", label: "Marker colour", r: 1 },
           { t: "unit", c: "--ac-radius", label: "Row radius", layout: "inline", r: 1, units: U.radius }
         ]
       }
@@ -23425,9 +23820,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ],
         style: [
           { t: "unit", c: "--icon-size", label: "Glyph size", layout: "inline", r: 1, units: U.size },
-          { t: "color", c: "color", label: "Colour", layout: "inline" },
-          { t: "slider", c: "--icon-stroke", label: "Stroke weight", min: 1, max: 3, step: 0.05, raw: 1 },
-          { t: "color", c: "background-color", label: "Badge background" },
+          { t: "color", c: "color", label: "Colour", r: 1, layout: "inline" },
+          { t: "slider", c: "--icon-stroke", label: "Stroke weight", r: 1, min: 1, max: 3, step: 0.05, raw: 1 },
+          { t: "color", c: "background-color", label: "Badge background", r: 1 },
           { t: "box", c: "padding", label: "Badge padding", r: 1 },
           { t: "unit", c: "border-radius", label: "Badge radius", r: 1, units: U.radius }
         ]
@@ -23522,15 +23917,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       g: "Background",
       cap: "decoration",
       items: [
-        { t: "color", c: "background-color", label: "Colour", paint: 1 },
-        { t: "img", c: "background-image", label: "Image", bg: 1 },
-        { t: "select", c: "background-size", label: "Size", when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+        { t: "color", c: "background-color", label: "Colour", r: 1, paint: 1 },
+        { t: "img", c: "background-image", label: "Image", r: 1, bg: 1 },
+        { t: "select", c: "background-size", label: "Size", r: 1, when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
         /* A pick, not a select: where an image sits is a spatial choice, and five words in a
            dropdown make you read to find the one you could have pointed at. The glyphs are the
            alignment ones already in the set, which is what the same question looks like
            everywhere else in this panel. */
-        { t: "pick", c: "background-position", label: "Position", when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-        { t: "select", c: "background-repeat", label: "Repeat", when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
+        { t: "pick", c: "background-position", label: "Position", r: 1, when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
+        { t: "select", c: "background-repeat", label: "Repeat", r: 1, when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
       ]
     },
     {
@@ -23542,7 +23937,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
            render on the canvas while the inspector appeared to say there was no border. */
         { t: "border", label: "Border" },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "opt", c: "box-shadow", label: "Shadow", opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
+        { t: "opt", c: "box-shadow", label: "Shadow", r: 1, opts: SHADOWS, ph: "0 20px 40px -12px rgba(17,19,17,.2)" }
       ]
     },
     {
@@ -23553,8 +23948,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       g: "Effects",
       cap: "effects",
       items: [
-        { t: "slider", c: "opacity", label: "Opacity", min: 0, max: 1, step: 0.01, raw: 1 },
-        { t: "text", c: "transform", label: "Transform", ph: "translateY(-4px) rotate(2deg)" }
+        { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
+        { t: "text", c: "transform", label: "Transform", r: 1, ph: "translateY(-4px) rotate(2deg)" }
       ]
     }
   ];
@@ -23666,11 +24061,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return v3 === "center" ? "Center" : v3 === "flex-end" ? "Bottom" : "Top";
   }
   var cvar = (id) => `var(--c-${id})`;
+  var refId = (v3) => {
+    const m3 = String(v3 || "").trim().match(/^var\(--c-([\w-]+)\)$/);
+    return m3 ? m3[1] : null;
+  };
+  var colors = () => state.meta.tokens && state.meta.tokens.colors || [];
   var classes = () => state.meta.tokens && state.meta.tokens.classes || [];
+  var findColor = (id) => colors().find((c3) => c3.id === id) || null;
   var findClass = (id) => classes().find((c3) => c3.id === id) || null;
   var nodeClasses = (n2) => {
     const ids = Array.isArray(n2.cls) ? n2.cls : [];
     return classes().filter((c3) => ids.includes(c3.id));
+  };
+  var resolveColor = (v3) => {
+    const id = refId(v3);
+    if (!id) return String(v3 || "");
+    const t3 = findColor(id) || (id === "brand" ? findColor("accent") : null);
+    return t3 ? t3.value : "";
   };
   function defaultTokens(meta = {}) {
     return {
@@ -23702,6 +24109,45 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const id = state.ui.target;
     const c3 = id ? findClass(id) : null;
     return c3 && (n2.cls || []).includes(id) ? c3 : n2;
+  }
+  var clamp = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
+  var parseColor = (v3) => {
+    const h3 = String(v3 == null ? "" : v3).trim();
+    const hex = h3.match(/^#([0-9a-f]{3,8})$/i);
+    if (hex) {
+      const d3 = hex[1];
+      const full = d3.length === 3 || d3.length === 4 ? d3.split("").map((x2) => x2 + x2).join("") : d3;
+      if (full.length !== 6 && full.length !== 8) return null;
+      const n2 = parseInt(full.slice(0, 6), 16);
+      const a3 = full.length === 8 ? parseInt(full.slice(6), 16) / 255 : 1;
+      return { r: n2 >> 16 & 255, g: n2 >> 8 & 255, b: n2 & 255, a: a3 };
+    }
+    const f4 = h3.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?\s*\)?/i);
+    if (!f4) return null;
+    const al = f4[4] === void 0 ? 1 : f4[4].endsWith("%") ? parseFloat(f4[4]) / 100 : parseFloat(f4[4]);
+    return {
+      r: clamp(Math.round(+f4[1]), 0, 255),
+      g: clamp(Math.round(+f4[2]), 0, 255),
+      b: clamp(Math.round(+f4[3]), 0, 255),
+      a: clamp(isNaN(al) ? 1 : al, 0, 1)
+    };
+  };
+  var hex2rgb = (v3) => {
+    const c3 = parseColor(v3);
+    return c3 ? [c3.r, c3.g, c3.b] : null;
+  };
+  var lum = (c3) => {
+    const f4 = c3.map((v3) => {
+      v3 /= 255;
+      return v3 <= 0.03928 ? v3 / 12.92 : Math.pow((v3 + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * f4[0] + 0.7152 * f4[1] + 0.0722 * f4[2];
+  };
+  function contrast(fg, bg) {
+    const a3 = hex2rgb(resolveColor(fg)), b2 = hex2rgb(resolveColor(bg));
+    if (!a3 || !b2) return null;
+    const l1 = lum(a3), l22 = lum(b2);
+    return (Math.max(l1, l22) + 0.05) / (Math.min(l1, l22) + 0.05);
   }
   var CRC_T = (() => {
     const t3 = new Uint32Array(256);
@@ -23889,10 +24335,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       n2.props = n2.props || {};
       if (n2.props.mode !== "wordpress") n2.props.mode = "external";
     });
-    d3.v = SCHEMA;
+    if (legacyVersion !== void 0 || schemaVersion === void 0) d3.v = SCHEMA;
+    else delete d3.v;
     d3.schemaVersion = SCHEMA;
     return d3;
   }
+  var brandActionForeground = () => {
+    const background = cvar("brand");
+    for (const id of ["ink", "paper", "bg", "surface"]) {
+      if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+    }
+    const dark = "#000000", light = "#ffffff";
+    const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+    if (darkRatio == null || lightRatio == null) return cvar("ink");
+    return darkRatio >= lightRatio ? dark : light;
+  };
   var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`
   );
@@ -24626,6 +25083,17 @@ let dirty = false;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+/* The package build replaces only this marked literal. Saved output must identify
+   the renderer that actually produced it, never the server version that requested it. */
+const BUNDLED_COMPILER_CONTRACT = Object.freeze(
+  /*PAGECRAFT_COMPILER_DESCRIPTOR_START*/ {
+    format: 'pagecraft.editor-contract.v1',
+    editorVersion: 'development',
+    schemaVersion: SCHEMA,
+    rendererVersion: `pagecraft-core-${SCHEMA}`,
+    rendererRevision: 'development'
+  } /*PAGECRAFT_COMPILER_DESCRIPTOR_END*/
+);
 if (SRV && !IS_WORDPRESS) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
   const submissions = document.createElement('button');
@@ -25547,6 +26015,27 @@ function writeNow() {
 let saving = false, saveAgain = false;
 let deliberateReload = false, saveTimer = null;
 
+function snapshotPageForWP() {
+  const styles = wordpressStyles(page());
+  const compiled = {
+    compiler: BUNDLED_COMPILER_CONTRACT,
+    html: assetsToBlob(buildPage(page())),
+    globalCss: assetsToBlob(styles.global),
+    pageCss: assetsToBlob(styles.page)
+  };
+  /* Rendering may materialize optional empty collections through legacy lazy accessors.
+     Capture the source after those synchronous normalizations so an exact retry stays exact. */
+  const document = clone(doc());
+  return {
+    document,
+    compiled
+  };
+}
+
+async function compilePageForWP(compiled) {
+  return compiled;
+}
+
 async function writeServer(opts = {}) {
   if (loadBlocked) { dirty = false; stamp('Not saving', true); return; }
   if (saving) { saveAgain = true; return; }
@@ -25558,15 +26047,14 @@ async function writeServer(opts = {}) {
     /* cleared as the request takes its copy of the document, so an edit made while it is in
        flight marks the page dirty again rather than being counted as saved */
     dirty = false;
+    /* WordPress font loading can await the network. Freeze both source and generated output
+       first so an edit made during that wait belongs wholly to the queued next save. */
+    const wordpressSnapshot = IS_WORDPRESS ? snapshotPageForWP() : null;
     const body = await HOST.documents.save({
-      document: doc(),
+      document: wordpressSnapshot ? wordpressSnapshot.document : doc(),
       version: SRV.version,
       keepalive: !!opts.keepalive,
-      ...(IS_WORDPRESS ? { compiled: {
-        html: assetsToBlob(buildPage(page())),
-        globalCss: assetsToBlob(treeCss([state.header, state.footer], false)),
-        pageCss: assetsToBlob(treeCss([page().tree], false))
-      } } : {})
+      ...(wordpressSnapshot ? { compiled: await compilePageForWP(wordpressSnapshot.compiled) } : {})
     });
     SRV.version = body.version;
     if (!IS_WORDPRESS) lastCloudDocument = cloudDocument;
@@ -25926,16 +26414,19 @@ async function assetsLoadServer() {
     list = await HOST.assets.list();
   } catch (e) { }
   await Promise.all(list.map(async m => {
-    let url = m.url;
+    const record = {
+      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
+      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null,
+      url: m.url
+    };
     if (SRV.editorSessionToken) {
       try {
-        url = URL.createObjectURL(await HOST.assets.download(m.id));
-      } catch { return; }
+        const blob = await HOST.assets.download(m.id);
+        record.blob = blob;
+        record.url = URL.createObjectURL(blob);
+      } catch { /* retain metadata so a later export can retry the byte download */ }
     }
-    AS.mem.set(m.id, {
-      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
-      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null, url
-    });
+    AS.mem.set(m.id, record);
   }));
 }
 
@@ -25993,23 +26484,63 @@ const imgSize = url => new Promise(res => {
   i.src = url;
 });
 
-const blobToData = b => new Promise(res => {
+const blobToData = b => new Promise((res, rej) => {
   const fr = new FileReader();
   fr.onload = () => res(fr.result);
-  fr.onerror = () => res(PH);
+  fr.onerror = () => rej(new Error('An image could not be read for export. Try again.'));
   fr.readAsDataURL(b);
 });
 
 /* canvas: cheap object URLs */
 const assetsToBlob = str => str.replace(A_RE, (m, id) => (AS.mem.get(id) || {}).url || PH);
 
+const assetIdsIn = str => [...new Set([...String(str).matchAll(A_RE)].map(m => m[1]))];
+const assetFetches = new Map();
+
+/* Hosted asset lists deliberately carry metadata and a display URL, not every byte in the
+   library. Export fetches only the tokens its output actually references. A failed fetch is
+   actionable: returning a placeholder or omitting the file would create a download that looks
+   successful but is broken. Standalone projects keep their existing IndexedDB/blob behaviour. */
+async function materializeAsset(id) {
+  const asset = AS.mem.get(id);
+  if (!asset) {
+    if (SRV) throw new Error(`Image “${id}” is no longer available. Reload the editor or replace it, then try exporting again.`);
+    return null;
+  }
+  if (asset.blob) return asset;
+  if (!SRV) return asset;
+  if (!HOST?.assets?.download) throw new Error(`Image “${asset.name || id}” cannot be downloaded by this host. Try exporting again after reconnecting.`);
+
+  let job = assetFetches.get(id);
+  if (!job) {
+    job = (async () => {
+      try {
+        const blob = await HOST.assets.download(id);
+        if (!blob || typeof blob.arrayBuffer !== 'function' || blob.size === 0) throw new Error('The host returned no image bytes.');
+        asset.blob = blob;
+        if (!asset.size) asset.size = blob.size || 0;
+        if (!asset.type && blob.type) asset.type = blob.type;
+        return asset;
+      } catch {
+        throw new Error(`Image “${asset.name || id}” could not be downloaded for export. Check your connection and try again.`);
+      }
+    })();
+    assetFetches.set(id, job);
+  }
+  try { return await job; }
+  finally { if (assetFetches.get(id) === job) assetFetches.delete(id); }
+}
+
+async function materializeAssetsFor(str) {
+  return Promise.all(assetIdsIn(str).map(materializeAsset));
+}
+
 /* export: inline as data URIs, or rewrite to a relative assets/ path */
 async function assetsToData(str) {
-  const ids = [...new Set([...str.matchAll(A_RE)].map(m => m[1]))];
-  const map = {};
-  for (const id of ids) {
-    const a = AS.mem.get(id);
-    map[id] = a && a.blob ? await blobToData(a.blob) : PH;
+  const assets = await materializeAssetsFor(str);
+  const map = Object.create(null);
+  for (const asset of assets) {
+    if (asset) map[asset.id] = asset.blob ? await blobToData(asset.blob) : PH;
   }
   return str.replace(A_RE, (m, id) => map[id] || PH);
 }
@@ -26019,6 +26550,14 @@ const assetPath = v => {
   const m = /^asset:(\w+)$/.exec(String(v == null ? '' : v));
   const a = m && AS.mem.get(m[1]);
   return a ? assetFile(a) : String(v == null ? '' : v);
+};
+/* `content.json` uses the same generated asset paths as an exported site. On re-import into
+   that site, translate only exact paths currently owned by its media library back to tokens;
+   a URL, an existing token, or an unknown path must remain exactly what the file supplied. */
+const contentImageResolver = () => {
+  const byPath = new Map();
+  for (const a of AS.mem.values()) byPath.set(assetFile(a), `asset:${a.id}`);
+  return value => byPath.has(value) ? byPath.get(value) : value;
 };
 /* A variant is named by the width it was written at, and by the type it came out as rather
    than the type it went in as — a WebP downscaled through a canvas comes out JPEG, and a
@@ -26046,7 +26585,7 @@ const assetVariantsIn = str => {
   const out = new Map();
   for (const m of str.matchAll(A_RE)) {
     const a = AS.mem.get(m[1]);
-    if (!m[2] || !a || !a.blob || !rasterable(a)) continue;
+    if (!m[2] || !a || !rasterable(a)) continue;
     out.set(m[1] + '@' + m[2], { a, w: +m[2] });
   }
   return [...out.values()];
@@ -26060,20 +26599,51 @@ function variantBlob(a, w) {
   const key = a.id + '@' + w;
   if (VAR.has(key)) return VAR.get(key);
   const job = (async () => {
+    a = await materializeAsset(a.id);
+    if (!a?.blob) throw new Error(`Image “${a?.name || a?.id || 'unknown'}” has no stored bytes for export. Replace it and try again.`);
     let bmp = null;
-    try { bmp = await createImageBitmap(a.blob); } catch { return null; }
-    if (bmp.width <= w) { bmp.close?.(); return a.blob; }   // never upscale
-    const h = Math.max(1, Math.round(bmp.height * (w / bmp.width)));
-    const cv = document.createElement('canvas');
-    cv.width = w; cv.height = h;
-    const cx = cv.getContext('2d');
-    cx.imageSmoothingQuality = 'high';
-    cx.drawImage(bmp, 0, 0, w, h);
-    bmp.close?.();
-    return await new Promise(res => cv.toBlob(res, variantType(a), 0.82));
+    try { bmp = await createImageBitmap(a.blob); }
+    catch { throw new Error(`Image “${a.name || a.id}” could not be decoded for responsive export. Replace it or try again.`); }
+    try {
+      /* A source narrower than the requested slot keeps its real dimensions, but is still
+         encoded to the MIME type promised by assetVariantFile. Returning the original WebP
+         bytes under a .jpg name made otherwise complete archives invalid. */
+      const sourceWidth = Number(bmp.width), sourceHeight = Number(bmp.height);
+      if (!(sourceWidth > 0) || !(sourceHeight > 0)) throw new Error('The decoded image has no dimensions.');
+      const width = Math.max(1, Math.min(sourceWidth, w));
+      const height = Math.max(1, Math.round(sourceHeight * (width / sourceWidth)));
+      const type = variantType(a);
+      const cv = document.createElement('canvas');
+      cv.width = width; cv.height = height;
+      const cx = cv.getContext('2d');
+      if (!cx) throw new Error('Canvas encoding is unavailable.');
+      cx.imageSmoothingQuality = 'high';
+      cx.drawImage(bmp, 0, 0, width, height);
+      const blob = await new Promise((resolve, reject) => cv.toBlob(
+        value => value ? resolve(value) : reject(new Error('The browser returned no encoded bytes.')),
+        type, 0.82));
+      if (blob.type !== type) throw new Error(`The browser encoded ${blob.type || 'an unknown type'} instead of ${type}.`);
+      return blob;
+    } catch {
+      throw new Error(`Image “${a.name || a.id}” could not be encoded for responsive export. Try again or replace it.`);
+    } finally { bmp.close?.(); }
   })();
   VAR.set(key, job);
+  job.catch(() => { if (VAR.get(key) === job) VAR.delete(key); });
   return job;
+}
+
+/* The byte files promised by a token-bearing page/content source. Both originals and
+   responsive variants come from this one list so single pages, all pages and site ZIPs cannot
+   disagree, and unused library assets are never fetched or exported. */
+async function exportAssetFiles(str) {
+  const assets = (await materializeAssetsFor(str)).filter(Boolean);
+  const files = assets.filter(a => a.blob).map(a => ({ path: assetFile(a), data: a.blob, type: a.type }));
+  for (const { a, w } of assetVariantsIn(str)) {
+    const blob = await variantBlob(a, w);
+    files.push({ path: assetVariantFile(a, w), data: blob, type: variantType(a) });
+  }
+  return files;
 }
 /* ---- zip -----------------------------------------------------------------
    Written by hand rather than pulled in: a whole site is a handful of files, and
@@ -26119,7 +26689,7 @@ async function makeZip(entries) {
     { type: 'application/zip' });
 }
 
-const assetsUsedIn = str => [...new Set([...str.matchAll(A_RE)].map(m => m[1]))].map(id => AS.mem.get(id)).filter(Boolean);
+const assetsUsedIn = str => assetIdsIn(str).map(id => AS.mem.get(id)).filter(Boolean);
 
 
 /* =============================================================== canvas */
@@ -26753,6 +27323,45 @@ document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
 /* ========================================================= canvas events */
+function canvasPointerHit(e) {
+  const hit = e.target.closest && e.target.closest('[data-id]');
+  if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
+
+  /* At Fit a one-CSS-pixel divider can land between screen pixels, so the browser reports
+     its structural ancestor. Only let that ancestor yield within the divider's own width and
+     a narrow vertical band; real child controls and neighbouring elements keep their clicks. */
+  let nearest = null, distance = Infinity;
+  hit.querySelectorAll('[data-t=divider][data-id]').forEach(divider => {
+    const r = divider.getBoundingClientRect();
+    if (!r.width || e.clientX < r.left || e.clientX > r.right) return;
+    const dy = e.clientY < r.top ? r.top - e.clientY : e.clientY > r.bottom ? e.clientY - r.bottom : 0;
+    if (dy <= 12 && dy < distance) { nearest = divider; distance = dy; }
+  });
+  return nearest || hit;
+}
+
+function activateHudButton(hudBtn, e, keyboard = false) {
+  const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
+  if (act === 'drag') {
+    /* Keyboard users move elements with the adjacent edge controls and shortcuts. Keep the
+       drag gesture on pointerdown so a synthesized click cannot start a stranded drag. */
+    if (keyboard) return;
+    const many = ids.length > 1 && ids.includes(id);
+    startDrag(e, {
+      kind: 'move', id, ids: many ? ids : [id],
+      label: many ? ids.length + ' elements' : kindOf(locate(id).node)
+    }, true);
+  } else if (act === 'more') {
+    /* Pointer activation opens at the pointer. Keyboard activation has no pointer location,
+       so anchor the menu to the button while keeping both positions in outer coordinates. */
+    const fr = frameRect();
+    const r = keyboard ? hudBtn.getBoundingClientRect() : null;
+    const x = r ? r.left + r.width / 2 : e.clientX;
+    const y = r ? r.top + r.height / 2 : e.clientY;
+    openCtx(toScreen(x, fr.left), toScreen(y, fr.top), ids);
+  } else runAct(act, ids);
+}
+
 function bindCanvas() {
   /* The context menu lives in the outer document, and so did every one of its closers —
      but the canvas is an iframe, and events inside it never reach the outer document. So
@@ -26772,19 +27381,7 @@ function bindCanvas() {
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
       e.preventDefault();
-      const act = hudBtn.dataset.act, id = state.ui.sel, ids = selIds();
-      if (act === 'drag') {
-        /* dragging any member of a selection drags the whole set */
-        const many = ids.length > 1 && ids.includes(id);
-        startDrag(e, {
-          kind: 'move', id, ids: many ? ids : [id],
-          label: many ? ids.length + ' elements' : kindOf(locate(id).node)
-        }, true);
-      } else if (act === 'more') {
-        /* the bar lives inside the scaled iframe, so its coordinates need the factor */
-        const fr = frameRect();
-        openCtx(toScreen(e.clientX, fr.left), toScreen(e.clientY, fr.top), ids);
-      } else runAct(act, ids);
+      activateHudButton(hudBtn, e);
       return;
     }
     const grip = e.target.closest && e.target.closest('[data-grip]');
@@ -26804,7 +27401,7 @@ function bindCanvas() {
     const region = e.target.closest('.s-region');
     if (region && region.dataset.state !== 'edit') { e.preventDefault(); select(null); return; }
 
-    const hit = e.target.closest('[data-id]');
+    const hit = canvasPointerHit(e);
     if (!hit) { select(null); return; }
     if (editing.on) exitEdit();
     /* Both modifiers add here. A range needs a flat list to sweep, and the canvas
@@ -26818,6 +27415,17 @@ function bindCanvas() {
     if (add) { e.preventDefault(); const g = cwin.getSelection(); if (g) g.removeAllRanges(); }
     select(hit.dataset.id, { add });
   }, true);
+
+  /* Native button activation from Enter, Space and assistive technology dispatches a click
+     with detail 0. Pointer clicks already ran on pointerdown above, so accepting only that
+     native click keeps one action per gesture. */
+  cdoc.addEventListener('click', e => {
+    if (e.detail !== 0 || document.body.classList.contains('preview')) return;
+    const hudBtn = e.target.closest && e.target.closest('#s-hud button');
+    if (!hudBtn) return;
+    e.preventDefault();
+    activateHudButton(hudBtn, e, true);
+  });
 
   cdoc.addEventListener('click', e => {
     const a = e.target.closest('a');
@@ -27234,11 +27842,115 @@ async function linkPrompt() {
     editing.prompt = false;
   }
 }
+
+/* formatBlock is inconsistent around lists: Chromium can put an OL inside a P,
+   which is invalid HTML and changes again when saved. Split structural containers
+   at the selection instead, then replace only their selected leaf blocks. Text
+   offsets restore the live selection without inserting marker nodes into lists. */
+function formatRichBlock(tag) {
+  const host = editing.el;
+  const selection = cwin.getSelection();
+  if (!host || !selection || !selection.rangeCount) return false;
+  const range = selection.getRangeAt(0);
+  if (!host.contains(range.commonAncestorContainer)) return false;
+  tag = String(tag || '').toLowerCase();
+  if (!['p', 'h2', 'h3', 'blockquote'].includes(tag)) return false;
+
+  const textOffset = (node, offset) => {
+    const before = cdoc.createRange(); before.setStart(host, 0); before.setEnd(node, offset);
+    return before.toString().length;
+  };
+  const startOffset = textOffset(range.startContainer, range.startOffset);
+  const endOffset = textOffset(range.endContainer, range.endOffset);
+  const rootCaret = range.collapsed && range.startContainer === host;
+  const selectedNodes = new Set();
+  const selectionWalker = cdoc.createTreeWalker(host, cwin.NodeFilter.SHOW_ALL);
+  let selectionNode;
+  while ((selectionNode = selectionWalker.nextNode())) {
+    const node = selectionNode;
+    const contents = cdoc.createRange(); contents.selectNodeContents(node);
+    const from = textOffset(contents.startContainer, contents.startOffset);
+    const to = textOffset(contents.endContainer, contents.endOffset);
+    if (endOffset > from && startOffset < to) selectedNodes.add(node);
+  }
+  if (range.collapsed) {
+    let node = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    if (node === host) node = host.children[range.startOffset] || host.children[range.startOffset - 1];
+    for (; node && node !== host; node = node.parentElement) selectedNodes.add(node);
+  }
+  const selected = node => selectedNodes.has(node) || [...selectedNodes].some(selectedNode => node.contains(selectedNode));
+  const replacement = child => {
+    const out = cdoc.createDocumentFragment(); let block = null;
+    [...child.childNodes].forEach(node => {
+      if (node.nodeType === 1 && node.matches('ol,ul')) { block = null; out.appendChild(node); return; }
+      if (!block) { block = cdoc.createElement(tag); out.appendChild(block); }
+      block.appendChild(node);
+    });
+    if (!out.childNodes.length) out.appendChild(cdoc.createElement(tag));
+    return out;
+  };
+  const splitContainer = (container, childTag) => {
+    const out = cdoc.createDocumentFragment();
+    let retained = null;
+    [...container.children].forEach(child => {
+      if ((childTag && child.tagName !== childTag) || !selected(child)) {
+        if (!retained) retained = container.cloneNode(false);
+        retained.appendChild(child); return;
+      }
+      if (retained) { out.appendChild(retained); retained = null; }
+      out.appendChild(child.matches('ol,ul') ? child : replacement(child));
+    });
+    if (retained) out.appendChild(retained);
+    container.replaceWith(out);
+  };
+
+  /* Repair malformed output already produced by formatBlock before this fix.
+     Lists become siblings; inline content on either side stays in requested blocks. */
+  [...host.querySelectorAll('p,h1,h2,h3,h4,h5,h6')]
+    .filter(block => selected(block) && block.querySelector(':scope > ol,:scope > ul'))
+    .forEach(block => {
+      const out = cdoc.createDocumentFragment(); let inline = null;
+      [...block.childNodes].forEach(child => {
+        if (child.nodeType === 1 && child.matches('ol,ul')) { inline = null; out.appendChild(child); return; }
+        if (!inline) { inline = cdoc.createElement(tag); out.appendChild(inline); }
+        inline.appendChild(child);
+      });
+      block.replaceWith(out);
+    });
+
+  /* Outermost quotes first. A selected list moved out of a quote is then split
+     into sibling blocks below, never wrapped in the requested block element. */
+  [...host.querySelectorAll('blockquote')].filter(q => !q.parentElement.closest('blockquote'))
+    .filter(selected).forEach(q => splitContainer(q));
+  [...host.querySelectorAll('ol,ul')].filter(selected).forEach(list => splitContainer(list, 'LI'));
+  [...host.querySelectorAll('p,h1,h2,h3,h4,h5,h6')]
+    .filter(block => selected(block) && !block.closest('ol,ul,blockquote'))
+    .forEach(block => { if (block.tagName.toLowerCase() !== tag) block.replaceWith(replacement(block)); });
+
+  if (!host.children.length) {
+    const block = cdoc.createElement(tag); block.appendChild(cdoc.createElement('br')); host.appendChild(block);
+  }
+  const pointAt = (offset, forwardBoundary = false) => {
+    const walker = cdoc.createTreeWalker(host, cwin.NodeFilter.SHOW_TEXT);
+    let left = offset, text;
+    while ((text = walker.nextNode())) {
+      if (left < text.data.length || (left === text.data.length && !forwardBoundary)) return [text, left];
+      left -= text.data.length;
+    }
+    const last = host.lastElementChild || host;
+    return [last, last.childNodes.length];
+  };
+  const [startNode, startAt] = pointAt(startOffset, rootCaret), [endNode, endAt] = pointAt(endOffset, rootCaret);
+  const restored = cdoc.createRange();
+  restored.setStart(startNode, startAt); restored.setEnd(endNode, endAt);
+  selection.removeAllRanges(); selection.addRange(restored);
+  return true;
+}
 $('#rt').addEventListener('mousedown', async e => {
   const b = e.target.closest('button'); if (!b) return;
   e.preventDefault();
   if (b.dataset.c) cdoc.execCommand(b.dataset.c, false, null);
-  else if (b.dataset.b) cdoc.execCommand('formatBlock', false, b.dataset.b);
+  else if (b.dataset.b) formatRichBlock(b.dataset.b);
   else if (b.dataset.link) await linkPrompt();
   syncEdit();
 });
@@ -27255,6 +27967,13 @@ $('#rt').addEventListener('mousedown', async e => {
    paragraph is its own child. */
 const EDIT_IN = { button: 'span', quote: 'p' };
 const editTarget = (n, host) => (EDIT_IN[n.type] && host.querySelector(EDIT_IN[n.type])) || host;
+
+/* Entering inline edit creates the undo snapshot before the first input event. Update only
+   history controls here: a full paint would replace the contenteditable node and steal focus. */
+function checkpointInlineEdit(label) {
+  checkpoint(label);
+  paintHistory();
+}
 
 function enterEdit(id) {
   const h = locate(id); if (!h) return;
@@ -27279,7 +27998,7 @@ function enterEdit(id) {
   const host = cdoc.getElementById(id); if (!host) return;
   const target = editTarget(n, host);
 
-  checkpoint('Change ' + kindOf(n).toLowerCase() + ' text');
+  checkpointInlineEdit('Change ' + kindOf(n).toLowerCase() + ' text');
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
   editing.prop = n.use ? property.path : null;
   target.contentEditable = 'true';
@@ -27955,7 +28674,7 @@ async function cmsCommit(collections) {
   if (loadBlocked) throw new Error('This site could not be opened, so nothing is being saved.');
   if (saveState === 'failed') throw new Error('Resolve the draft save error in the builder before saving CMS changes. Your entry is still here.');
   const next = JSON.parse(JSON.stringify(doc()));
-  next.meta.collections = collections;
+  collectionsReplace(next, collections);
   saving = true;
   try {
     if (SRV) {
@@ -27965,7 +28684,7 @@ async function cmsCommit(collections) {
     } else {
       localStorage.setItem(LS, JSON.stringify({ ...next, v: SCHEMA, cur: state.cur, tab: TABID }));
     }
-    edit(() => { state.meta.collections = collections; });
+    edit(() => { collectionsReplace(doc(), collections); });
     saveState = 'ok';
     stamp('Draft saved — not published', false);
   } catch (error) {
@@ -28450,6 +29169,38 @@ function togglePreview() {
    image inside a single self-contained file is worse than not trying. */
 const withVariants = (ctx, mode) => ({ ...ctx, variants: mode === 'files' });
 
+const EXPORT_DRAFT_CHANGED = 'The site changed while this export was being prepared. Close Export, finish your edits, then open it and try again. No files were downloaded.';
+
+/* An export action owns one mode, target list and document version. Rendering and hosted
+   asset reads can all await; checking on both sides of every awaited preparation prevents a
+   later draft from being mixed into files that were built from the earlier one. Target
+   records are copied so changing the picker while an action runs cannot redirect it. */
+function captureExportAction(mode, targets) {
+  const baseline = JSON.stringify(doc());
+  const stableTargets = targets.map(target => ({ ...target }));
+  const check = () => {
+    if (JSON.stringify(doc()) !== baseline) throw new Error(EXPORT_DRAFT_CHANGED);
+  };
+  const wait = async work => {
+    check();
+    const value = await work();
+    check();
+    return value;
+  };
+  return { mode, targets: stableTargets, check, wait };
+}
+
+/* Prepare every page before the first browser download. Besides avoiding mixed output when
+   the draft changes, this lets hosted inline exports fetch all required bytes before any
+   file is presented as successfully downloaded. */
+async function prepareExportPages(action, render) {
+  const pages = [];
+  for (const target of action.targets) {
+    pages.push({ target, data: await action.wait(() => render(target, action.mode)) });
+  }
+  return pages;
+}
+
 /* Fetch the faces once per export run and keep them: several pages want the same files, and
    a zip of twelve pages should not ask Google twelve times. `null` means it could not be done
    — offline, or a request refused — and the caller falls back to linking, because a page that
@@ -28482,20 +29233,17 @@ async function exportPage(pg, mode, ctx = {}) {
      and inlining four of them as base64 is a worse trade than one request to Google */
   const pack = mode === 'files' && state.meta.selfHostFonts ? await selfHostedFonts() : null;
   const raw = buildPage(pg, { ...withVariants(ctx, mode), fontCss: pack ? pack.css : '' });
-  return mode === 'files' ? assetsToPaths(raw, ctx.rel || '') : await assetsToData(raw);
+  if (mode === 'files') {
+    await materializeAssetsFor(raw);
+    return assetsToPaths(raw, ctx.rel || '');
+  }
+  return assetsToData(raw);
 }
 
-/* Hand over an asset and every downscaled variant a page asked for. Shared by the two
-   single-page download buttons, which used to write only the originals. */
-async function writeAssetsFor(html, download) {
-  for (const a of assetsUsedIn(html)) {
-    if (!a.blob) continue;
-    if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
-  }
-  for (const { a, w } of assetVariantsIn(html)) {
-    const b = await variantBlob(a, w);
-    if (!b) continue;
-    if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
+/* Hand over each asset and downscaled variant promised by a token-bearing page source. */
+async function writeAssetsFor(source, download) {
+  for (const file of await exportAssetFiles(source)) {
+    if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
   }
   return true;
 }
@@ -28883,45 +29631,51 @@ function exportModal() {
   mode.addEventListener('change', draw);
   draw();
 
-  /* in files mode a page download also hands over the images it references */
-  /* Reads the html that was actually exported rather than rebuilding the page, which is
-     what makes the srcset and the files agree: the tokens in that string are exactly the
-     ones the writer has to satisfy. */
-  const saveAssetsFor = html => writeAssetsFor(html, download);
-
   $('#exOne').addEventListener('click', event => withAction(event.currentTarget, 'Preparing page…', async () => {
-    const t = target();
-    const html = await cur();
+    const action = captureExportAction(mode.value, [target()]);
+    const [{ target: t, data: html }] = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
+    let assetFiles = [];
+    if (action.mode === 'files') {
+      /* Build the unresolved source with the same frozen target and preflight every original
+         and variant before downloading the HTML that promises those files. */
+      const source = buildPage(t.pg, withVariants(t, action.mode));
+      assetFiles = await action.wait(() => exportAssetFiles(source));
+    }
+    action.check();
     /* a nested file keeps its folder in the name; browsers save it flat, so the note
        says where it belongs */
     if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
     if (t.rel) toast('Put this in a ' + t.path.split('/')[0] + '/ folder, named ' + t.path.split('/').pop());
-    if (mode.value === 'files' && await saveAssetsFor(html) === false) return false;
+    for (const file of assetFiles) {
+      if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
+    }
   }, 'Page export ready. Download started.'));
 
   $('#exAll').addEventListener('click', event => withAction(event.currentTarget, 'Preparing pages…', async () => {
-    for (const t of targets) {
-      const html = await exportPage(t.pg, mode.value, t);
-      if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
-    }
-    if (mode.value === 'files') {
+    const action = captureExportAction(mode.value, targets);
+    const pages = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
+    let assetFiles = [];
+    if (action.mode === 'files') {
       /* every page's worth of tokens, so a variant used on one page only is still written */
       let all = '';
-      for (const t of targets) all += buildPage(t.pg, withVariants(t, 'files'));
-      for (const a of AS.mem.values()) {
-        if (!a.blob) continue;
-        if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
-      }
-      for (const { a, w } of assetVariantsIn(all)) {
-        const b = await variantBlob(a, w);
-        if (!b) continue;
-        if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
-      }
+      for (const t of action.targets) all += buildPage(t.pg, withVariants(t, action.mode));
+      assetFiles = await action.wait(() => exportAssetFiles(all));
+    }
+    action.check();
+    for (const { target: t, data: html } of pages) {
+      if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
+    }
+    for (const file of assetFiles) {
+      if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
     }
   }, 'Page exports ready. Downloads started.'));
 
   $('#exCopy').addEventListener('click', event => withAction(event.currentTarget, 'Preparing HTML…', async () => {
-    const html = await cur();
+    const action = captureExportAction(mode.value, [target()]);
+    const [{ data: html }] = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
     try { await navigator.clipboard.writeText(html); }
     catch (e) {
       const r = document.createRange(); r.selectNodeContents(code);
@@ -28943,13 +29697,16 @@ function exportModal() {
   /* The whole site as one archive: real folder paths, the images beside them, and
      the SEO files. This is the only export that can honour a nested detail page,
      since a browser download saves flat. */
-  const buildSite = async () => {
+  const buildSite = async (action, plan) => {
     const files = [];
     /* fetched once for the whole archive, and null when it could not be — offline, or a
        request refused — in which case every page links Google as it always did */
-    const pack = state.meta.selfHostFonts ? await selfHostedFonts() : null;
+    const pack = state.meta.selfHostFonts
+      ? await action.wait(() => selfHostedFonts())
+      : null;
     if (pack) pack.files.forEach(f => files.push({ path: f.path, data: f.blob }));
-    for (const step of sitePlan()) {
+    action.check();
+    for (const step of plan) {
       /* a zip is separate files by definition, so it always carries variants */
       if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, { ...withVariants(step.target, 'files'), fontCss: pack ? pack.css : '' }), step.target.rel) });
       else if (step.kind === 'content') files.push({ path: step.path, data: contentJson(assetPath) });
@@ -28957,24 +29714,20 @@ function exportModal() {
       else if (step.kind === 'robots') files.push({ path: step.path, data: robotsTxt() });
     }
     /* every image any page references, once, at the path those pages point to */
-    const seen = new Set();
     let every = '';
-    for (const t of exportTargets()) every += buildPage(t.pg, withVariants(t, 'files'));
-    for (const a of assetsUsedIn(every)) seen.add(a.id);
-    for (const { a, w } of assetVariantsIn(every)) {
-      const b = await variantBlob(a, w);
-      if (b) files.push({ path: assetVariantFile(a, w), data: b });
-    }
-    for (const id of seen) {
-      const a = AS.mem.get(id);
-      if (a && a.blob) files.push({ path: assetFile(a), data: a.blob });
-    }
+    for (const t of action.targets) every += buildPage(t.pg, withVariants(t, 'files'));
+    /* content.json can carry a published CMS image that no rendered page happens to use. Its
+       path is still a promise made by the archive, so include those tokens in the byte plan. */
+    if (collections().length) every += contentJson();
+    for (const file of await action.wait(() => exportAssetFiles(every))) files.push({ path: file.path, data: file.data });
     return files;
   };
   $('#exZip').addEventListener('click', event => withAction(event.currentTarget, 'Building archive…', async () => {
-    const files = await buildSite();
-    const blob = await makeZip(files);
+    const action = captureExportAction('files', targets);
+    const plan = sitePlan();
     const name = (slugify(state.meta.name) || 'site') + '.zip';
+    const files = await buildSite(action, plan);
+    const blob = await action.wait(() => makeZip(files));
     return download(name, blob, 'application/zip');
   }, 'Site archive ready. Download started.', {key:'site-export', paint:true}));
   /* The footer says what the committed action will actually produce, so the count
@@ -29011,7 +29764,10 @@ function exportModal() {
         let rep = null;
         /* inside `edit` so the whole file is one undo step: an import that landed forty
            items should come back out in one press, not forty */
-        try { edit(() => { rep = contentImport(JSON.parse(rd.result)); }); } catch (e) { rep = null; }
+        try {
+          const resolveImage = contentImageResolver();
+          edit(() => { rep = contentImport(JSON.parse(rd.result), {resolveImage}); });
+        } catch (e) { rep = null; }
         if (!rep) { action.error('That file has no collections in it — expected a content.json'); return; }
         render();
         /* the counts, because an upsert is invisible otherwise: nothing was deleted and you
@@ -29587,7 +30343,7 @@ function helpModal() {
   openModal('Help & keyboard shortcuts', `
     <div class="pc-workflow-help">
       <h3>Build your first page</h3>
-      <p>Add a heading, rich text or an image from Common, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.</p>
+      <p>Add a heading, rich text or an image from Elements, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.</p>
       <h3>From draft to finished site</h3>
       <p>${IS_WORDPRESS ? 'Preview checks your WordPress page. Changes save to WordPress; use Done when finished. Publish from WordPress.'
         : SRV ? 'Preview shows your working draft. Site checks helps find problems. Saving keeps your draft; Publish makes a reviewed version public. Live link copies the published site address.'

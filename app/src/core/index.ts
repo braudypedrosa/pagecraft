@@ -822,11 +822,9 @@ const DEF: Record<string, WidgetDef> = {
       props: { text: 'Get started', link: '', target: '', variant: 'solid', icon: 'none', align: 'flex-start', wrap: 'inline-flex', ts: 'btn' },
       css: {
         d: {
-          ...BUTTON_VARIANT_DEFAULTS,
-          ...(usesAccentBrandFallback()
-            ? { '--pc-solid-fg': accentBrandForeground() }
-            : { color: cvar('ink') }),
-          'align-self': 'flex-start'
+          '--pc-solid-fg': brandActionForeground(),
+          'align-self': 'flex-start',
+          ...BUTTON_VARIANT_DEFAULTS
         }, t: {}, m: {}
       }
     }),
@@ -916,7 +914,7 @@ const DEF: Record<string, WidgetDef> = {
           width: '100%', '--f-gap': '16px', '--f-radius': '8px', '--f-pad': '11px 13px',
           '--f-bg': cvar('surface'), '--f-border': cvar('line'), '--f-text': cvar('text'),
           '--f-label': cvar('muted'), '--f-btn-bg': cvar('brand'),
-          '--f-btn-fg': usesAccentBrandFallback() ? accentBrandForeground() : cvar('ink'),
+          '--f-btn-fg': brandActionForeground(),
           'font-size': '15px'
         }, t: {}, m: {}
       }
@@ -5763,11 +5761,11 @@ interface Pattern {
   preview: () => string;
   build: () => PcNode;
 }
-/* A missing-brand palette uses `accent` as its action fill. Pick a named foreground that
-   clears WCAG AA so a newly inserted solid Button or Form does not become accent-on-ink by
-   accident. `paper` is common in imported editorial palettes; the defaults call it `bg` or
-   `surface`. Black/white remains a deterministic fallback for a smaller custom palette. */
-const accentBrandForeground = () => {
+/* Pick a named foreground that clears WCAG AA against the resolved action fill. This covers
+   both current palettes with `brand` and older palettes where `brand` aliases `accent`, without
+   rewriting either token list. Black/white remains a deterministic fallback for a smaller
+   custom palette. */
+const brandActionForeground = () => {
   const background = cvar('brand');
   for (const id of ['ink', 'paper', 'bg', 'surface']) {
     if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
@@ -5777,10 +5775,9 @@ const accentBrandForeground = () => {
   if (darkRatio == null || lightRatio == null) return cvar('ink');
   return darkRatio >= lightRatio ? dark : light;
 };
-/* Starter actions inherit the project's brand fill, but `ink` is not guaranteed to
-   contrast with a customized brand. Keep the default semantic pair when it clears AA,
-   then prefer an existing light palette surface. Black or white is the last resort for
-   a palette that omitted those standard tokens. */
+/* Starter actions are authored pattern content rather than fresh widgets. Preserve their
+   established palette order and stored `color` declaration; this hardening targets factory
+   defaults and must not rewrite template-authored colours. */
 const starterActionForeground = () => {
   const background = cvar('brand');
   for (const id of ['ink', 'surface', 'bg']) {
