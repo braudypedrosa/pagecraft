@@ -3157,16 +3157,19 @@ async function assetsLoadServer() {
     list = await HOST.assets.list();
   } catch (e) { }
   await Promise.all(list.map(async m => {
-    let url = m.url;
+    const record = {
+      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
+      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null,
+      url: m.url
+    };
     if (SRV.editorSessionToken) {
       try {
-        url = URL.createObjectURL(await HOST.assets.download(m.id));
-      } catch { return; }
+        const blob = await HOST.assets.download(m.id);
+        record.blob = blob;
+        record.url = URL.createObjectURL(blob);
+      } catch { /* retain metadata so a later export can retry the byte download */ }
     }
-    AS.mem.set(m.id, {
-      id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
-      w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null, url
-    });
+    AS.mem.set(m.id, record);
   }));
 }
 
@@ -3224,23 +3227,63 @@ const imgSize = url => new Promise(res => {
   i.src = url;
 });
 
-const blobToData = b => new Promise(res => {
+const blobToData = b => new Promise((res, rej) => {
   const fr = new FileReader();
   fr.onload = () => res(fr.result);
-  fr.onerror = () => res(PH);
+  fr.onerror = () => rej(new Error('An image could not be read for export. Try again.'));
   fr.readAsDataURL(b);
 });
 
 /* canvas: cheap object URLs */
 const assetsToBlob = str => str.replace(A_RE, (m, id) => (AS.mem.get(id) || {}).url || PH);
 
+const assetIdsIn = str => [...new Set([...String(str).matchAll(A_RE)].map(m => m[1]))];
+const assetFetches = new Map();
+
+/* Hosted asset lists deliberately carry metadata and a display URL, not every byte in the
+   library. Export fetches only the tokens its output actually references. A failed fetch is
+   actionable: returning a placeholder or omitting the file would create a download that looks
+   successful but is broken. Standalone projects keep their existing IndexedDB/blob behaviour. */
+async function materializeAsset(id) {
+  const asset = AS.mem.get(id);
+  if (!asset) {
+    if (SRV) throw new Error(`Image “${id}” is no longer available. Reload the editor or replace it, then try exporting again.`);
+    return null;
+  }
+  if (asset.blob) return asset;
+  if (!SRV) return asset;
+  if (!HOST?.assets?.download) throw new Error(`Image “${asset.name || id}” cannot be downloaded by this host. Try exporting again after reconnecting.`);
+
+  let job = assetFetches.get(id);
+  if (!job) {
+    job = (async () => {
+      try {
+        const blob = await HOST.assets.download(id);
+        if (!blob || typeof blob.arrayBuffer !== 'function' || blob.size === 0) throw new Error('The host returned no image bytes.');
+        asset.blob = blob;
+        if (!asset.size) asset.size = blob.size || 0;
+        if (!asset.type && blob.type) asset.type = blob.type;
+        return asset;
+      } catch {
+        throw new Error(`Image “${asset.name || id}” could not be downloaded for export. Check your connection and try again.`);
+      }
+    })();
+    assetFetches.set(id, job);
+  }
+  try { return await job; }
+  finally { if (assetFetches.get(id) === job) assetFetches.delete(id); }
+}
+
+async function materializeAssetsFor(str) {
+  return Promise.all(assetIdsIn(str).map(materializeAsset));
+}
+
 /* export: inline as data URIs, or rewrite to a relative assets/ path */
 async function assetsToData(str) {
-  const ids = [...new Set([...str.matchAll(A_RE)].map(m => m[1]))];
-  const map = {};
-  for (const id of ids) {
-    const a = AS.mem.get(id);
-    map[id] = a && a.blob ? await blobToData(a.blob) : PH;
+  const assets = await materializeAssetsFor(str);
+  const map = Object.create(null);
+  for (const asset of assets) {
+    if (asset) map[asset.id] = asset.blob ? await blobToData(asset.blob) : PH;
   }
   return str.replace(A_RE, (m, id) => map[id] || PH);
 }
@@ -3250,6 +3293,14 @@ const assetPath = v => {
   const m = /^asset:(\w+)$/.exec(String(v == null ? '' : v));
   const a = m && AS.mem.get(m[1]);
   return a ? assetFile(a) : String(v == null ? '' : v);
+};
+/* `content.json` uses the same generated asset paths as an exported site. On re-import into
+   that site, translate only exact paths currently owned by its media library back to tokens;
+   a URL, an existing token, or an unknown path must remain exactly what the file supplied. */
+const contentImageResolver = () => {
+  const byPath = new Map();
+  for (const a of AS.mem.values()) byPath.set(assetFile(a), `asset:${a.id}`);
+  return value => byPath.has(value) ? byPath.get(value) : value;
 };
 /* A variant is named by the width it was written at, and by the type it came out as rather
    than the type it went in as — a WebP downscaled through a canvas comes out JPEG, and a
@@ -3277,7 +3328,7 @@ const assetVariantsIn = str => {
   const out = new Map();
   for (const m of str.matchAll(A_RE)) {
     const a = AS.mem.get(m[1]);
-    if (!m[2] || !a || !a.blob || !rasterable(a)) continue;
+    if (!m[2] || !a || !rasterable(a)) continue;
     out.set(m[1] + '@' + m[2], { a, w: +m[2] });
   }
   return [...out.values()];
@@ -3291,20 +3342,51 @@ function variantBlob(a, w) {
   const key = a.id + '@' + w;
   if (VAR.has(key)) return VAR.get(key);
   const job = (async () => {
+    a = await materializeAsset(a.id);
+    if (!a?.blob) throw new Error(`Image “${a?.name || a?.id || 'unknown'}” has no stored bytes for export. Replace it and try again.`);
     let bmp = null;
-    try { bmp = await createImageBitmap(a.blob); } catch { return null; }
-    if (bmp.width <= w) { bmp.close?.(); return a.blob; }   // never upscale
-    const h = Math.max(1, Math.round(bmp.height * (w / bmp.width)));
-    const cv = document.createElement('canvas');
-    cv.width = w; cv.height = h;
-    const cx = cv.getContext('2d');
-    cx.imageSmoothingQuality = 'high';
-    cx.drawImage(bmp, 0, 0, w, h);
-    bmp.close?.();
-    return await new Promise(res => cv.toBlob(res, variantType(a), 0.82));
+    try { bmp = await createImageBitmap(a.blob); }
+    catch { throw new Error(`Image “${a.name || a.id}” could not be decoded for responsive export. Replace it or try again.`); }
+    try {
+      /* A source narrower than the requested slot keeps its real dimensions, but is still
+         encoded to the MIME type promised by assetVariantFile. Returning the original WebP
+         bytes under a .jpg name made otherwise complete archives invalid. */
+      const sourceWidth = Number(bmp.width), sourceHeight = Number(bmp.height);
+      if (!(sourceWidth > 0) || !(sourceHeight > 0)) throw new Error('The decoded image has no dimensions.');
+      const width = Math.max(1, Math.min(sourceWidth, w));
+      const height = Math.max(1, Math.round(sourceHeight * (width / sourceWidth)));
+      const type = variantType(a);
+      const cv = document.createElement('canvas');
+      cv.width = width; cv.height = height;
+      const cx = cv.getContext('2d');
+      if (!cx) throw new Error('Canvas encoding is unavailable.');
+      cx.imageSmoothingQuality = 'high';
+      cx.drawImage(bmp, 0, 0, width, height);
+      const blob = await new Promise((resolve, reject) => cv.toBlob(
+        value => value ? resolve(value) : reject(new Error('The browser returned no encoded bytes.')),
+        type, 0.82));
+      if (blob.type !== type) throw new Error(`The browser encoded ${blob.type || 'an unknown type'} instead of ${type}.`);
+      return blob;
+    } catch {
+      throw new Error(`Image “${a.name || a.id}” could not be encoded for responsive export. Try again or replace it.`);
+    } finally { bmp.close?.(); }
   })();
   VAR.set(key, job);
+  job.catch(() => { if (VAR.get(key) === job) VAR.delete(key); });
   return job;
+}
+
+/* The byte files promised by a token-bearing page/content source. Both originals and
+   responsive variants come from this one list so single pages, all pages and site ZIPs cannot
+   disagree, and unused library assets are never fetched or exported. */
+async function exportAssetFiles(str) {
+  const assets = (await materializeAssetsFor(str)).filter(Boolean);
+  const files = assets.filter(a => a.blob).map(a => ({ path: assetFile(a), data: a.blob, type: a.type }));
+  for (const { a, w } of assetVariantsIn(str)) {
+    const blob = await variantBlob(a, w);
+    files.push({ path: assetVariantFile(a, w), data: blob, type: variantType(a) });
+  }
+  return files;
 }
 /* ---- zip -----------------------------------------------------------------
    Written by hand rather than pulled in: a whole site is a handful of files, and
@@ -3350,7 +3432,7 @@ async function makeZip(entries) {
     { type: 'application/zip' });
 }
 
-const assetsUsedIn = str => [...new Set([...str.matchAll(A_RE)].map(m => m[1]))].map(id => AS.mem.get(id)).filter(Boolean);
+const assetsUsedIn = str => assetIdsIn(str).map(id => AS.mem.get(id)).filter(Boolean);
 
 
 /* =============================================================== canvas */
@@ -5830,6 +5912,38 @@ function togglePreview() {
    image inside a single self-contained file is worse than not trying. */
 const withVariants = (ctx, mode) => ({ ...ctx, variants: mode === 'files' });
 
+const EXPORT_DRAFT_CHANGED = 'The site changed while this export was being prepared. Close Export, finish your edits, then open it and try again. No files were downloaded.';
+
+/* An export action owns one mode, target list and document version. Rendering and hosted
+   asset reads can all await; checking on both sides of every awaited preparation prevents a
+   later draft from being mixed into files that were built from the earlier one. Target
+   records are copied so changing the picker while an action runs cannot redirect it. */
+function captureExportAction(mode, targets) {
+  const baseline = JSON.stringify(doc());
+  const stableTargets = targets.map(target => ({ ...target }));
+  const check = () => {
+    if (JSON.stringify(doc()) !== baseline) throw new Error(EXPORT_DRAFT_CHANGED);
+  };
+  const wait = async work => {
+    check();
+    const value = await work();
+    check();
+    return value;
+  };
+  return { mode, targets: stableTargets, check, wait };
+}
+
+/* Prepare every page before the first browser download. Besides avoiding mixed output when
+   the draft changes, this lets hosted inline exports fetch all required bytes before any
+   file is presented as successfully downloaded. */
+async function prepareExportPages(action, render) {
+  const pages = [];
+  for (const target of action.targets) {
+    pages.push({ target, data: await action.wait(() => render(target, action.mode)) });
+  }
+  return pages;
+}
+
 /* Fetch the faces once per export run and keep them: several pages want the same files, and
    a zip of twelve pages should not ask Google twelve times. `null` means it could not be done
    — offline, or a request refused — and the caller falls back to linking, because a page that
@@ -5862,20 +5976,17 @@ async function exportPage(pg, mode, ctx = {}) {
      and inlining four of them as base64 is a worse trade than one request to Google */
   const pack = mode === 'files' && state.meta.selfHostFonts ? await selfHostedFonts() : null;
   const raw = buildPage(pg, { ...withVariants(ctx, mode), fontCss: pack ? pack.css : '' });
-  return mode === 'files' ? assetsToPaths(raw, ctx.rel || '') : await assetsToData(raw);
+  if (mode === 'files') {
+    await materializeAssetsFor(raw);
+    return assetsToPaths(raw, ctx.rel || '');
+  }
+  return assetsToData(raw);
 }
 
-/* Hand over an asset and every downscaled variant a page asked for. Shared by the two
-   single-page download buttons, which used to write only the originals. */
-async function writeAssetsFor(html, download) {
-  for (const a of assetsUsedIn(html)) {
-    if (!a.blob) continue;
-    if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
-  }
-  for (const { a, w } of assetVariantsIn(html)) {
-    const b = await variantBlob(a, w);
-    if (!b) continue;
-    if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
+/* Hand over each asset and downscaled variant promised by a token-bearing page source. */
+async function writeAssetsFor(source, download) {
+  for (const file of await exportAssetFiles(source)) {
+    if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
   }
   return true;
 }
@@ -6263,45 +6374,51 @@ function exportModal() {
   mode.addEventListener('change', draw);
   draw();
 
-  /* in files mode a page download also hands over the images it references */
-  /* Reads the html that was actually exported rather than rebuilding the page, which is
-     what makes the srcset and the files agree: the tokens in that string are exactly the
-     ones the writer has to satisfy. */
-  const saveAssetsFor = html => writeAssetsFor(html, download);
-
   $('#exOne').addEventListener('click', event => withAction(event.currentTarget, 'Preparing page…', async () => {
-    const t = target();
-    const html = await cur();
+    const action = captureExportAction(mode.value, [target()]);
+    const [{ target: t, data: html }] = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
+    let assetFiles = [];
+    if (action.mode === 'files') {
+      /* Build the unresolved source with the same frozen target and preflight every original
+         and variant before downloading the HTML that promises those files. */
+      const source = buildPage(t.pg, withVariants(t, action.mode));
+      assetFiles = await action.wait(() => exportAssetFiles(source));
+    }
+    action.check();
     /* a nested file keeps its folder in the name; browsers save it flat, so the note
        says where it belongs */
     if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
     if (t.rel) toast('Put this in a ' + t.path.split('/')[0] + '/ folder, named ' + t.path.split('/').pop());
-    if (mode.value === 'files' && await saveAssetsFor(html) === false) return false;
+    for (const file of assetFiles) {
+      if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
+    }
   }, 'Page export ready. Download started.'));
 
   $('#exAll').addEventListener('click', event => withAction(event.currentTarget, 'Preparing pages…', async () => {
-    for (const t of targets) {
-      const html = await exportPage(t.pg, mode.value, t);
-      if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
-    }
-    if (mode.value === 'files') {
+    const action = captureExportAction(mode.value, targets);
+    const pages = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
+    let assetFiles = [];
+    if (action.mode === 'files') {
       /* every page's worth of tokens, so a variant used on one page only is still written */
       let all = '';
-      for (const t of targets) all += buildPage(t.pg, withVariants(t, 'files'));
-      for (const a of AS.mem.values()) {
-        if (!a.blob) continue;
-        if (await download(assetFile(a).replace(/^assets\//, ''), a.blob, a.type) === false) return false;
-      }
-      for (const { a, w } of assetVariantsIn(all)) {
-        const b = await variantBlob(a, w);
-        if (!b) continue;
-        if (await download(assetVariantFile(a, w).replace(/^assets\//, ''), b, variantType(a)) === false) return false;
-      }
+      for (const t of action.targets) all += buildPage(t.pg, withVariants(t, action.mode));
+      assetFiles = await action.wait(() => exportAssetFiles(all));
+    }
+    action.check();
+    for (const { target: t, data: html } of pages) {
+      if (await download(t.path.replace(/\//g, '-'), html) === false) return false;
+    }
+    for (const file of assetFiles) {
+      if (await download(file.path.replace(/^assets\//, ''), file.data, file.type) === false) return false;
     }
   }, 'Page exports ready. Downloads started.'));
 
   $('#exCopy').addEventListener('click', event => withAction(event.currentTarget, 'Preparing HTML…', async () => {
-    const html = await cur();
+    const action = captureExportAction(mode.value, [target()]);
+    const [{ data: html }] = await prepareExportPages(action,
+      (candidate, exportMode) => exportPage(candidate.pg, exportMode, candidate));
     try { await navigator.clipboard.writeText(html); }
     catch (e) {
       const r = document.createRange(); r.selectNodeContents(code);
@@ -6323,13 +6440,16 @@ function exportModal() {
   /* The whole site as one archive: real folder paths, the images beside them, and
      the SEO files. This is the only export that can honour a nested detail page,
      since a browser download saves flat. */
-  const buildSite = async () => {
+  const buildSite = async (action, plan) => {
     const files = [];
     /* fetched once for the whole archive, and null when it could not be — offline, or a
        request refused — in which case every page links Google as it always did */
-    const pack = state.meta.selfHostFonts ? await selfHostedFonts() : null;
+    const pack = state.meta.selfHostFonts
+      ? await action.wait(() => selfHostedFonts())
+      : null;
     if (pack) pack.files.forEach(f => files.push({ path: f.path, data: f.blob }));
-    for (const step of sitePlan()) {
+    action.check();
+    for (const step of plan) {
       /* a zip is separate files by definition, so it always carries variants */
       if (step.kind === 'page') files.push({ path: step.path, data: assetsToPaths(buildPage(step.target.pg, { ...withVariants(step.target, 'files'), fontCss: pack ? pack.css : '' }), step.target.rel) });
       else if (step.kind === 'content') files.push({ path: step.path, data: contentJson(assetPath) });
@@ -6337,24 +6457,20 @@ function exportModal() {
       else if (step.kind === 'robots') files.push({ path: step.path, data: robotsTxt() });
     }
     /* every image any page references, once, at the path those pages point to */
-    const seen = new Set();
     let every = '';
-    for (const t of exportTargets()) every += buildPage(t.pg, withVariants(t, 'files'));
-    for (const a of assetsUsedIn(every)) seen.add(a.id);
-    for (const { a, w } of assetVariantsIn(every)) {
-      const b = await variantBlob(a, w);
-      if (b) files.push({ path: assetVariantFile(a, w), data: b });
-    }
-    for (const id of seen) {
-      const a = AS.mem.get(id);
-      if (a && a.blob) files.push({ path: assetFile(a), data: a.blob });
-    }
+    for (const t of action.targets) every += buildPage(t.pg, withVariants(t, 'files'));
+    /* content.json can carry a published CMS image that no rendered page happens to use. Its
+       path is still a promise made by the archive, so include those tokens in the byte plan. */
+    if (collections().length) every += contentJson();
+    for (const file of await action.wait(() => exportAssetFiles(every))) files.push({ path: file.path, data: file.data });
     return files;
   };
   $('#exZip').addEventListener('click', event => withAction(event.currentTarget, 'Building archive…', async () => {
-    const files = await buildSite();
-    const blob = await makeZip(files);
+    const action = captureExportAction('files', targets);
+    const plan = sitePlan();
     const name = (slugify(state.meta.name) || 'site') + '.zip';
+    const files = await buildSite(action, plan);
+    const blob = await action.wait(() => makeZip(files));
     return download(name, blob, 'application/zip');
   }, 'Site archive ready. Download started.', {key:'site-export', paint:true}));
   /* The footer says what the committed action will actually produce, so the count
@@ -6391,7 +6507,10 @@ function exportModal() {
         let rep = null;
         /* inside `edit` so the whole file is one undo step: an import that landed forty
            items should come back out in one press, not forty */
-        try { edit(() => { rep = contentImport(JSON.parse(rd.result)); }); } catch (e) { rep = null; }
+        try {
+          const resolveImage = contentImageResolver();
+          edit(() => { rep = contentImport(JSON.parse(rd.result), {resolveImage}); });
+        } catch (e) { rep = null; }
         if (!rep) { action.error('That file has no collections in it — expected a content.json'); return; }
         render();
         /* the counts, because an upsert is invisible otherwise: nothing was deleted and you
@@ -6967,7 +7086,7 @@ function helpModal() {
   openModal('Help & keyboard shortcuts', `
     <div class="pc-workflow-help">
       <h3>Build your first page</h3>
-      <p>Add a heading, rich text or an image from Common, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.</p>
+      <p>Add a heading, rich text or an image from Elements, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.</p>
       <h3>From draft to finished site</h3>
       <p>${IS_WORDPRESS ? 'Preview checks your WordPress page. Changes save to WordPress; use Done when finished. Publish from WordPress.'
         : SRV ? 'Preview shows your working draft. Site checks helps find problems. Saving keeps your draft; Publish makes a reviewed version public. Live link copies the published site address.'

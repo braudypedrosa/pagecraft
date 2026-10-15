@@ -219,6 +219,13 @@ const FILTER_OPS: [string, string][] = [
    level: 0 root · 1 section · 2 row · 3 column · 4 leaf                 */
 const BOX = (t: string, r: string, b: string, l: string) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
 
+/* These are the Button factory declarations a variant is allowed to replace when untouched.
+   Keep one side-effect-free source for both new Buttons and renderer precedence checks. */
+const BUTTON_VARIANT_DEFAULTS: Decls = {
+  'padding-top': '13px', 'padding-right': '26px', 'padding-bottom': '13px', 'padding-left': '26px',
+  'border-radius': '8px', 'background-color': 'var(--c-brand)'
+};
+
 /* One vocabulary per kind of measurement, so the same property always offers
    the same units wherever it appears. */
 const U = {
@@ -815,8 +822,11 @@ const DEF: Record<string, WidgetDef> = {
       props: { text: 'Get started', link: '', target: '', variant: 'solid', icon: 'none', align: 'flex-start', wrap: 'inline-flex', ts: 'btn' },
       css: {
         d: {
-          'padding-top': '13px', 'padding-right': '26px', 'padding-bottom': '13px', 'padding-left': '26px',
-          'border-radius': '8px', 'background-color': cvar('brand'), color: cvar('ink'), 'align-self': 'flex-start'
+          ...BUTTON_VARIANT_DEFAULTS,
+          ...(usesAccentBrandFallback()
+            ? { '--pc-solid-fg': accentBrandForeground() }
+            : { color: cvar('ink') }),
+          'align-self': 'flex-start'
         }, t: {}, m: {}
       }
     }),
@@ -905,7 +915,8 @@ const DEF: Record<string, WidgetDef> = {
         d: {
           width: '100%', '--f-gap': '16px', '--f-radius': '8px', '--f-pad': '11px 13px',
           '--f-bg': cvar('surface'), '--f-border': cvar('line'), '--f-text': cvar('text'),
-          '--f-label': cvar('muted'), '--f-btn-bg': cvar('brand'), '--f-btn-fg': cvar('ink'),
+          '--f-label': cvar('muted'), '--f-btn-bg': cvar('brand'),
+          '--f-btn-fg': usesAccentBrandFallback() ? accentBrandForeground() : cvar('ink'),
           'font-size': '15px'
         }, t: {}, m: {}
       }
@@ -2331,9 +2342,17 @@ const nodeClasses = (n: PcNode) => {
 const resolveColor = (v: unknown) => {
   const id = refId(v);
   if (!id) return String(v || '');
-  const t = findColor(id);
+  /* Premade and imported palettes may call their primary action colour `accent`. Keep the
+     stored palette intact while making the editor's reserved `brand` semantic resolve the
+     same way the exported CSS does. A real brand token always remains authoritative. */
+  const t = findColor(id) || (id === 'brand' ? findColor('accent') : null);
   return t ? t.value : '';
 };
+
+/** Compatibility for palettes authored before `brand` became the editor's reserved action
+ * colour. This is deliberately an alias rather than a migration: opening a released template
+ * must not rewrite its design-token list. */
+const usesAccentBrandFallback = () => !findColor('brand') && !!findColor('accent');
 
 function defaultTokens(meta: any = {}): Tokens {
   return {
@@ -2364,9 +2383,25 @@ function defaultTokens(meta: any = {}): Tokens {
 
 /* ---- token CSS: emitted ahead of element rules so elements still win ---- */
 function tokenVars() {
-  const body = colors().map(c => `--c-${c.id}:${c.value}`).join(';');
+  const vars = colors().map(c => `--c-${c.id}:${c.value}`);
+  if (usesAccentBrandFallback()) vars.push(`--c-brand:${cvar('accent')}`);
+  const body = vars.join(';');
   return body ? `:root{${body}}` : '';
 }
+/* Button variants intentionally own their untouched defaults, but an authored Button value
+   must outrank those two-class selectors. Keep the bridge narrow: ordinary declarations still
+   use the normal text style < class < element cascade. */
+const buttonVariantProperty = (property: string) => property === 'background-color'
+  || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
+const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null) => {
+  const out: Decls = {};
+  for (const [property, value] of Object.entries(map)) {
+    if (!buttonVariantProperty(property)) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value) continue;
+    out[property] = value;
+  }
+  return out;
+};
 function tokenCss() {
   const acc = { d: '', t: '', m: '' };
   styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => {
@@ -2376,8 +2411,11 @@ function tokenCss() {
   /* classes come after text styles and before element rules, so the order of
      precedence reads: text style < class < this element */
   classes().forEach(c => (['d', 't', 'm'] as Bp[]).forEach(b => {
-    const decls = decl((c.css && c.css[b]) || {});
+    const map = (c.css && c.css[b]) || {};
+    const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    const buttonDecls = decl(buttonVariantDeclarations(map));
+    if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     /* a class hover is the one people actually want — restyle every card's hover once. It
        still loses to an element's own hover, which has the same specificity and comes later. */
     STATES.forEach(([k, , sel]) => {
@@ -3005,6 +3043,11 @@ function effective(node: PcNode, prop: string, chain: PcNode[]) {
   }
   const t = findStyle(node.props.ts);
   if (t && (t.css.d || {})[prop]) return t.css.d[prop];
+  /* The compatibility foreground is consumed only by the zero-specificity solid-button
+     rule. Local, class and text-style colours above still win, while transparent variants
+     inherit from their surroundings exactly as the exported CSS does. */
+  if (prop === 'color' && node.type === 'button' && node.props.variant === 'solid'
+    && (node.css.d || {})['--pc-solid-fg']) return node.css.d['--pc-solid-fg'];
   for (let i = chain.length - 1; i >= 0; i--) {
     const v = (chain[i].css.d || {})[prop];
     if (v) return v;
@@ -4000,7 +4043,12 @@ function itemMove(colId: string, iid: string, dir: number) {
 function itemSet(colId: string, iid: string, fid: string, value: string) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
-  it.values[fid] = value;
+  /* Imported/legacy field ids are not guaranteed to be token ids. Assignment to `__proto__`
+     on an ordinary object invokes its legacy prototype setter instead of creating a value,
+     so define an enumerable own data property for every id. Normal ids serialize identically. */
+  Object.defineProperty(it.values, fid, {
+    value, enumerable: true, configurable: true, writable: true
+  });
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
@@ -4214,7 +4262,10 @@ interface ImportReport {
   items: { added: number; updated: number };
   notes: string[];
 }
-function contentImport(raw: unknown): ImportReport | null {
+interface ContentImportOptions {
+  resolveImage?: (value: string) => string;
+}
+function contentImport(raw: unknown, options: ContentImportOptions = {}): ImportReport | null {
   const d = raw as any;
   if (!d || typeof d !== 'object' || !Array.isArray(d.collections)) return null;
   const rep: ImportReport = {
@@ -4222,51 +4273,133 @@ function contentImport(raw: unknown): ImportReport | null {
     items: { added: 0, updated: 0 }, notes: []
   };
 
+  type ImportContext = {
+    fc: any; col: Collection; fields: Map<string, string>;
+    items: Map<string, Item>; rows: { fi: any; item: Item }[]; unknown: Set<string>;
+  };
+  const contexts: ImportContext[] = [];
+  const collectionMap = new Map<string, Collection>();
+  const owns = (value: object, key: string) => Object.prototype.hasOwnProperty.call(value, key);
+
+  /* Resolve every collection before importing fields. A reference field may point to a
+     collection later in the file, and its local id may differ when the destination already
+     uses the source id. One pass cannot answer that without leaving a broken reference. */
   for (const fc of d.collections) {
     if (!fc || typeof fc !== 'object') continue;
     const fid = String(fc.id || ''), fslug = String(fc.slug || '');
-    let col = (fid && collections().find(c => c.id === fid))
-      || (fslug && collections().find(c => c.slug === fslug)) || null;
+    const idHit = fid ? collections().find(c => c.id === fid) : undefined;
+    const slugHit = fslug ? collections().find(c => c.slug === fslug) : undefined;
+    /* IDs are only unique inside their source project. If an unrelated local collection owns
+       that id while the source slug identifies another collection, the slug is the useful
+       identity and the collision must be visible rather than silently updating the wrong CMS. */
+    let col = (idHit && slugHit && idHit !== slugHit) ? slugHit : idHit || slugHit || null;
+    if (idHit && slugHit && idHit !== slugHit) {
+      rep.notes.push(`Collection id “${fid}” is ambiguous here; “${fc.name || fslug}” was matched by slug.`);
+    }
     if (col) rep.collections.matched++;
     else { col = collectionAdd(String(fc.name || fslug || fid || 'Collection')); rep.collections.added++; }
     if (!col) continue;                 // collectionAdd does not fail; this is what says so
 
+    if (fid && collectionMap.has(fid)) {
+      rep.notes.push(`Duplicate collection id “${fid}” is ambiguous; references keep the first imported match.`);
+    } else if (fid) collectionMap.set(fid, col);
+    contexts.push({ fc, col, fields: new Map(), items: new Map(), rows: [], unknown: new Set() });
+  }
+
+  for (const context of contexts) {
+    const { fc, col, fields: map } = context;
     /* field id in the file → field id here. They differ the moment a collection is created
        locally, since ids are made unique against what is already there. */
-    const map: Record<string, string> = {};
     for (const ff of (Array.isArray(fc.fields) ? fc.fields : [])) {
       if (!ff) continue;
       const key = String(ff.id || ff.name || '');
       if (!key) continue;
-      const hit = col.fields.find((x: Field) => x.id === key)
-        || col.fields.find((x: Field) => x.name === String(ff.name || ''));
-      if (hit) { map[key] = hit.id; continue; }
-      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || 'text'));
+      if (map.has(key)) {
+        rep.notes.push(`${col.name}: duplicate field id “${key}” is ambiguous; values keep the first imported match.`);
+        continue;
+      }
+      const fieldName = String(ff.name || '');
+      const idHit = col.fields.find((x: Field) => x.id === key);
+      const nameHit = fieldName ? col.fields.find((x: Field) => x.name === fieldName) : undefined;
+      /* A field id is project-local just like collection and item ids. If the source id is
+         already owned by another local field while the name identifies the intended field,
+         importing metadata or values into the id hit would corrupt the wrong schema column. */
+      const idNameConflict = !!(idHit && fieldName && idHit.name !== fieldName);
+      const hit = idNameConflict ? nameHit : idHit || nameHit;
+      if (idNameConflict) {
+        rep.notes.push(nameHit
+          ? `${col.name}: field id “${key}” is ambiguous here; “${fieldName}” was matched by name.`
+          : `${col.name}: field id “${key}” already belongs to “${idHit!.name}”; “${fieldName}” was imported as a distinct field.`);
+      }
+      const made = hit || fieldAdd(col.id, String(ff.name || key), String(ff.type || 'text'));
       if (!made) continue;
-      map[key] = made.id;
-      rep.fields.added++;
+      map.set(key, made.id);
+      if (!hit) rep.fields.added++;
       /* `fieldAdd` falls back to text for a type it does not know, which is right — but
          silently would leave someone wondering why their dates are strings */
       if (ff.type && made.type !== ff.type) {
         rep.notes.push(`“${made.name}” came in as text: this build has no “${ff.type}” field type.`);
       }
+      /* Exported false/empty metadata is an instruction to clear the local setting. Older
+         content files omitted these keys, so absence must continue to mean preserve. */
+      if (owns(ff, 'required')) made.required = ff.required ? 1 : 0;
+      if (made.type === 'option' && owns(ff, 'opts')) made.opts = typeof ff.opts === 'string' ? ff.opts : '';
+      if (made.type === 'ref' && owns(ff, 'ref')) {
+        const sourceRef = String(ff.ref || '');
+        if (!sourceRef) delete made.ref;
+        else {
+          const target = collectionMap.get(sourceRef);
+          if (target) made.ref = target.id;
+          else rep.notes.push(`“${made.name}” could not restore its referenced collection.`);
+        }
+      }
     }
 
-    const unknown = new Set<string>();
+    /* Resolve every entry before copying values. Reference values store item ids, so all
+       source-to-local item identities must exist before either collection writes its rows. */
     for (const fi of (Array.isArray(fc.items) ? fc.items : [])) {
       if (!fi || typeof fi !== 'object') continue;
       const iid = String(fi.id || ''), islug = String(fi.slug || '');
-      let it = (iid && findItem(col, iid))
-        || (islug && col.items.find((x: Item) => x.slug === islug)) || null;
+      const idHit = iid ? findItem(col, iid) : undefined;
+      const slugHit = islug ? col.items.find((x: Item) => x.slug === islug) : undefined;
+      let it = (idHit && slugHit && idHit !== slugHit) ? slugHit : idHit || slugHit || null;
+      if (idHit && slugHit && idHit !== slugHit) {
+        rep.notes.push(`${col.name}: item id “${iid}” is ambiguous here; “${islug}” was matched by slug.`);
+      }
       if (it) rep.items.updated++;
       else { it = itemAdd(col.id); if (!it) continue; rep.items.added++; }
 
+      if (iid && context.items.has(iid)) {
+        rep.notes.push(`${col.name}: duplicate item id “${iid}” is ambiguous; references keep the first imported match.`);
+      } else if (iid) context.items.set(iid, it);
+      context.rows.push({ fi, item: it });
+    }
+  }
+
+  for (const context of contexts) {
+    const { col, fields: map, unknown } = context;
+    for (const { fi, item: it } of context.rows) {
+      const islug = String(fi.slug || '');
       const vals = (fi.values && typeof fi.values === 'object') ? fi.values : {};
       for (const k of Object.keys(vals)) {
-        const to = map[k] || (findField(col, k) ? k : '');
+        const to = map.get(k) || (findField(col, k) ? k : '');
         if (!to) { unknown.add(k); continue; }
-        const v = (vals as any)[k];
-        itemSet(col.id, it.id, to, v == null ? '' : String(v));
+        let v = (vals as any)[k];
+        const field = findField(col, to);
+        if (field?.type === 'ref' && v != null && field.ref) {
+          const target = contexts.find(candidate => candidate.col.id === field.ref);
+          const mapped = target?.items.get(String(v));
+          if (mapped) v = mapped.id;
+        }
+        let value = v == null ? '' : String(v);
+        /* A portable content export names an image by its generated assets/ path. The editor
+           owns the media library, so it may translate that exact path back to the existing
+           site asset token. Core otherwise preserves the file value verbatim: URLs, tokens,
+           and unknown paths stay portable and standalone imports keep their old behaviour. */
+        if (field?.type === 'image' && options.resolveImage) {
+          value = options.resolveImage(value);
+        }
+        itemSet(col.id, it.id, to, value);
       }
       /* after the values, because setting the title field re-slugs an unlocked item and
          would otherwise overwrite the slug the file asked for */
@@ -4406,11 +4539,17 @@ function contentJson(imgPath: (v: unknown) => string = v => (v == null ? '' : St
     site: { name: state.meta.name, lang: state.meta.lang || 'en', baseUrl: state.meta.baseUrl || '' },
     collections: collections().map(c => ({
       id: c.id, name: c.name, slug: c.slug,
-      fields: c.fields.map(f => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
+      fields: c.fields.map(f => ({
+        id: f.id, name: f.name, type: f.type, required: !!f.required,
+        ...(f.type === 'option' ? { opts: f.opts || '' } : {}),
+        ...(f.type === 'ref' ? { ref: f.ref || '' } : {})
+      })),
       items: published(c).map(it => {
-        const values: Record<string, string> = {};
+        /* A null-prototype record keeps imported legacy ids such as `__proto__`, `constructor`
+           and `prototype` as plain JSON keys rather than object internals. */
+        const values = Object.create(null) as Record<string, string>;
         for (const f of c.fields) {
-          const v = it.values[f.id];
+          const v = Object.prototype.hasOwnProperty.call(it.values, f.id) ? it.values[f.id] : undefined;
           values[f.id] = f.type === 'image' ? imgPath(v) : (v == null ? '' : v);
         }
         const url = urlOf[c.id + '|' + it.id];
@@ -5589,7 +5728,13 @@ function migrate(d: any) {
     n.props = n.props || {};
     if (n.props.mode !== 'wordpress') n.props.mode = 'external';
   });
-  d.v = SCHEMA;
+  /* `v` is an input compatibility marker, not part of `Doc`. Adding it to an already-current
+     document makes the public save/load contract oscillate: `migrate()` adds `v`, then
+     `restore()` + `doc()` drops it because state stores only the typed document fields. Keep
+     stamping legacy inputs that arrived through `v` (or with no marker), but leave a current
+     schemaVersion-only document byte-stable across adoption. */
+  if (legacyVersion !== undefined || schemaVersion === undefined) d.v = SCHEMA;
+  else delete d.v;
   d.schemaVersion = SCHEMA;
   return d;
 }
@@ -5618,6 +5763,20 @@ interface Pattern {
   preview: () => string;
   build: () => PcNode;
 }
+/* A missing-brand palette uses `accent` as its action fill. Pick a named foreground that
+   clears WCAG AA so a newly inserted solid Button or Form does not become accent-on-ink by
+   accident. `paper` is common in imported editorial palettes; the defaults call it `bg` or
+   `surface`. Black/white remains a deterministic fallback for a smaller custom palette. */
+const accentBrandForeground = () => {
+  const background = cvar('brand');
+  for (const id of ['ink', 'paper', 'bg', 'surface']) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = '#000000', light = '#ffffff';
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar('ink');
+  return darkRatio >= lightRatio ? dark : light;
+};
 /* Starter actions inherit the project's brand fill, but `ink` is not guaranteed to
    contrast with a customized brand. Keep the default semantic pair when it clears AA,
    then prefer an existing light palette surface. Black or white is the last resort for
@@ -6803,6 +6962,16 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
   const body = decl(map) + extra;
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (n.type === 'button') {
+    /* Desktop Button documents include factory styling even when nobody touched the Style
+       panel. Repeating those values here would erase Outline/Text link defaults, so only a
+       value that differs from today's factory default is treated as authored. Responsive
+       buckets contain overrides only and can all be bridged. The document model cannot tell
+       an explicit desktop value equal to the factory default from the untouched default. */
+    const defaults = b === 'd' ? BUTTON_VARIANT_DEFAULTS : null;
+    const variantBody = decl(buttonVariantDeclarations(map, defaults));
+    if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
+  }
   if (imageNode && decl(imageMap)) {
     const reset: Decls = {};
     if (imageMap.height !== undefined) reset.height = 'auto';
@@ -7030,7 +7199,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || 'inherit'}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
-.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+:where(.pagecraft-button){max-width:100%;color:inherit}
+:where(.pagecraft-button[data-variant=solid]){color:var(--pc-solid-fg,inherit)}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
