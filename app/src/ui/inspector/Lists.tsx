@@ -273,9 +273,10 @@ function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
           const copy = structuredClone(rows(n, c)[k]);
           // A copied form control must have a distinct submission key.
           if (c.t === 'fields') {
-            const base = copy.name || C.slugify(copy.label) || 'field';
+            const existing = new Set(rows(n, c).map((row, index) => C.formFieldName(row, index)));
+            const base = C.formFieldName(copy, k);
             let suffix = 2;
-            while (rows(n, c).some(row => row.name === base + '-' + suffix)) suffix++;
+            while (existing.has(base + '-' + suffix)) suffix++;
             copy.name = base + '-' + suffix;
           }
           rows(n, c).splice(k + 1, 0, copy);
@@ -295,6 +296,7 @@ export function FieldsCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(null);
   const [advanced, setAdvanced] = useState(false);
+  const grid = C.cssAt(n, C.dk(), '--f-layout') === 'grid';
   return <Field n={n} c={c}>
     {arr.map((f, k) => (
       <RepeaterRow n={n} c={c} k={k} key={k} title={f.label || 'Field ' + (k + 1)}
@@ -320,7 +322,7 @@ export function FieldsCtl({ n, c }: P) {
           </label> : null}
           <label class="frow-control"><span>Required</span><input class="field-switch" type="checkbox" role="switch" checked={!!f.required}
             onChange={() => C.edit(() => { rows(n, c)[k].required = f.required ? 0 : 1; })} /></label>
-          <label class="frow-control"><span>Width</span>
+          {!grid ? <label class="frow-control"><span>Width</span>
             <select class="ctl" aria-label="Field width" value={f.width || (f.half ? 50 : 100)}
               onChange={e => C.edit(() => {
                 rows(n, c)[k].width = Number((e.target as HTMLSelectElement).value);
@@ -328,7 +330,7 @@ export function FieldsCtl({ n, c }: P) {
               })}>
               {[100, 50, 33, 25, 20].map(width => <option key={width} value={width}>{width === 100 ? 'Full width' : width + '%'}</option>)}
             </select>
-          </label>
+          </label> : null}
         </>}
       </RepeaterRow>
     ))}

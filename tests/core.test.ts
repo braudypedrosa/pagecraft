@@ -3676,6 +3676,25 @@ test('a field with no name falls back to its label', () => {
   a.equal(find(C.lint(), 'field-dup-name').length, 0);
 });
 
+test('form field names use one trimmed fallback for rendering, GET queries, and review', () => {
+  blank();
+  const fm = insert('form', null, 0);
+  fm.props.method = 'get';
+  fm.props.action = 'https://forms.example.test/find?company-name=from-query';
+  fm.props.fields = [
+    { type: 'text', label: 'Company name', name: '   ' },
+    { type: 'text', label: 'Company name', name: '' }
+  ];
+  a.equal(C.formFieldName(fm.props.fields[0], 0), 'company-name');
+  const html = C.renderNode(fm, { edit: false });
+  a.equal([...html.matchAll(/name="company-name"/g)].length, 2,
+    'the authored query key is not emitted as a hidden third control');
+  a.equal(html.includes('value="from-query"'), false);
+  const duplicate = find(C.lint(), 'field-dup-name');
+  a.equal(duplicate.length, 1);
+  a.match(duplicate[0].msg, /company-name/);
+});
+
 test('unsafe or non-submission form actions are refused', () => {
   blank();
   const fm = insert('form', null, 0);
@@ -3769,6 +3788,31 @@ test('the submit button and field text are checked against their own grounds', (
   const f = find(C.lint(), 'form-contrast');
   a.equal(f.length, 1);
   a.match(f[0].msg, /submit button label/);
+});
+
+test('form contrast follows responsive class declarations and groups breakpoint findings', () => {
+  blank();
+  const fm = insert('form', null, 0);
+  fm.props.action = 'https://x.dev/f';
+  const id = C.classAdd('Mobile fields');
+  C.findClass(id)!.css.m = { '--f-text': C.cvar('surface'), '--f-bg': C.cvar('surface') };
+  C.classApply(fm, id);
+  const findings = find(C.lint(), 'form-contrast').filter(f => /Text typed/.test(f.msg));
+  a.equal(findings.length, 1, 'one field/background pair produces one finding');
+  a.match(findings[0].msg, /Mobile \(1\.00:1\)/);
+  a.equal(findings[0].msg.includes('Desktop'), false);
+  a.equal(findings[0].msg.includes('Tablet'), false);
+});
+
+test('form contrast reports inherited failures once with every affected breakpoint', () => {
+  blank();
+  const fm = insert('form', null, 0);
+  fm.props.action = 'https://x.dev/f';
+  fm.css.d['--f-btn-fg'] = C.cvar('surface');
+  fm.css.d['--f-btn-bg'] = C.cvar('surface');
+  const findings = find(C.lint(), 'form-contrast').filter(f => /submit button/.test(f.msg));
+  a.equal(findings.length, 1);
+  a.match(findings[0].msg, /Desktop, Tablet, Mobile \(1\.00:1\)/);
 });
 
 /* ------------------------------------------------------- blocks + templates */

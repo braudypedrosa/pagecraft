@@ -180,6 +180,7 @@ __export(index_exports, {
   crc32: () => crc32,
   crumbTrail: () => crumbTrail,
   crumbsShown: () => crumbsShown,
+  cssAt: () => cssAt,
   cssVal: () => cssVal,
   ctlKeys: () => ctlKeys,
   cvar: () => cvar,
@@ -229,6 +230,7 @@ __export(index_exports, {
   fontFaceCss: () => fontFaceCss,
   fontFile: () => fontFile,
   fontGroups: () => fontGroups,
+  formFieldName: () => formFieldName,
   gfontsHref: () => gfontsHref,
   gfontsLink: () => gfontsLink,
   grabTypo: () => grabTypo,
@@ -4207,6 +4209,9 @@ function buildLink(o) {
   if (o.mode === "page") return o.page ? o.page + ".html" + (o.frag ? "#" + o.frag : "") : "";
   return o.value || "";
 }
+function formFieldName(field, index) {
+  return String(field && field.name || "").trim() || slugify(field && field.label) || "field-" + (index + 1);
+}
 function classAdd(name, css) {
   const base = tokenId(name) || "class";
   let id = base, k = 2;
@@ -4894,26 +4899,40 @@ function lint() {
           if (!String(fl.label || "").trim())
             add("error", "field-no-label", `Field ${fi + 1} of a form in the ${region} has no label, so nobody using a screen reader can tell what it wants.`, w, n.id);
         });
-        let behind = "";
-        for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = (chain[i].css.d || {})["background-color"] || "";
-        if (!behind) behind = (findColor("bg") || {}).value || "";
-        const pairs = [
-          ["--f-label", behind, "Field labels"],
-          ["--f-text", (n.css.d || {})["--f-bg"] || behind, "Text typed into the fields"],
-          ["--f-btn-fg", (n.css.d || {})["--f-btn-bg"] || behind, "The submit button label"]
+        const bpLabels = { d: "Desktop", t: "Tablet", m: "Mobile" };
+        const contrastPairs = [
+          ["--f-label", "", "Field labels"],
+          ["--f-text", "--f-bg", "Text typed into the fields"],
+          ["--f-btn-fg", "--f-btn-bg", "The submit button label"]
         ];
-        pairs.forEach(([prop, bg, what]) => {
-          const fg = (n.css.d || {})[prop];
-          const r = fg && bg ? contrast(fg, bg) : null;
-          if (r && r < 4.5) add(
-            "warn",
-            "form-contrast",
-            `${what} in a form in the ${region} sit at ${r.toFixed(2)}:1 against their background \u2014 WCAG AA wants 4.5:1.`,
-            w,
-            n.id
-          );
+        contrastPairs.forEach(([fgProp, bgProp, what]) => {
+          const misses = [];
+          ["d", "t", "m"].forEach((bp) => {
+            let behind = "";
+            for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = cssAt(chain[i], bp, "background-color");
+            if (!behind) behind = (findColor("bg") || {}).value || "";
+            const fg = cssAt(n, bp, fgProp);
+            const bg = bgProp ? cssAt(n, bp, bgProp) || behind : behind;
+            const ratio = fg && bg ? contrast(fg, bg) : null;
+            if (ratio && ratio < 4.5) misses.push({ bp, ratio });
+          });
+          if (misses.length) {
+            const grouped = /* @__PURE__ */ new Map();
+            misses.forEach(({ bp, ratio }) => {
+              const key = ratio.toFixed(2);
+              grouped.set(key, [...grouped.get(key) || [], bpLabels[bp]]);
+            });
+            const where = Array.from(grouped, ([ratio, labels]) => `${labels.join(", ")} (${ratio}:1)`).join("; ");
+            add(
+              "warn",
+              "form-contrast",
+              `${what} in a form in the ${region} miss WCAG AA contrast on ${where}; minimum is 4.5:1.`,
+              w,
+              n.id
+            );
+          }
         });
-        const names = fields.map((fl, fi) => String(fl.name || "").trim() || slugify(fl.label) || "field-" + (fi + 1));
+        const names = fields.map(formFieldName);
         names.forEach((nm, fi) => {
           if (names.indexOf(nm) !== fi)
             add("warn", "field-dup-name", `Two fields in a form in the ${region} both submit as \u201C${nm}\u201D, so one value will overwrite the other.`, w, n.id);
@@ -9227,16 +9246,15 @@ function renderNode(n, o) {
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i) => domId + "-f" + i;
-      const fieldName = (f, i) => String(f.name || slugify(f.label) || "field-" + (i + 1));
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
       const handling = resolveFormHandling(p, formId);
       const act = handling.action;
       const disabled = act ? "" : " disabled";
-      const authoredNames = new Set(fields.map(fieldName));
+      const authoredNames = new Set(fields.map(formFieldName));
       const getQueryFields = handling.kind === "external" && handling.method === "get" ? Array.from(new URL(handling.action).searchParams.entries()).filter(([name]) => !authoredNames.has(name)).map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`).join("") : "";
       const percentWidths = fields.some((f) => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
-        const name = esc(fieldName(f, i));
+        const name = esc(formFieldName(f, i));
         const req = f.required ? " required" : "";
         const ph2 = f.ph ? ` placeholder="${esc(f.ph)}"` : "";
         const width = [100, 50, 33, 25, 20].includes(Number(f.width)) ? Number(f.width) : f.half ? 50 : 100;
@@ -10137,6 +10155,7 @@ function proposalApply(changes, proposalId = "") {
   crc32,
   crumbTrail,
   crumbsShown,
+  cssAt,
   cssVal,
   ctlKeys,
   cvar,
@@ -10186,6 +10205,7 @@ function proposalApply(changes, proposalId = "") {
   fontFaceCss,
   fontFile,
   fontGroups,
+  formFieldName,
   gfontsHref,
   gfontsLink,
   grabTypo,

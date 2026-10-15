@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-15T18:16:59.320Z",
+  "capturedAt": "2026-10-15T19:39:01.259Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
@@ -15,7 +15,7 @@
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
     "app/src/ui/inspector/Inspector.tsx": "ec50412dca9e4fd791a5f26f5fbe9e8110b501ac029c2e0e4ca62191df793675",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
-    "app/src/ui/inspector/Lists.tsx": "88df7855535c32e56b609ac52f3d9e52de4fa0ac64b84261416a7702318c3620",
+    "app/src/ui/inspector/Lists.tsx": "c9e1a1cba023d7578cf8b324e13826b50be5f3cabf224c7c4c016ef8018d237d",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
@@ -214,7 +214,7 @@
         "busy": {
           "busy": "true",
           "disabled": true,
-          "label": "Processing preview…",
+          "label": "Processing preview\u2026",
           "x": 296.0546875,
           "y": 433.03125
         },
@@ -283,7 +283,7 @@
       "passed": true,
       "detail": {
         "errorShown": true,
-        "previous": "Sample inbox · 3 entries",
+        "previous": "Sample inbox \u00b7 3 entries",
         "retryEnabled": true,
         "role": "alert"
       }
@@ -294,7 +294,7 @@
       "passed": true,
       "detail": {
         "errorHidden": true,
-        "previous": "Sample inbox · 3 entries",
+        "previous": "Sample inbox \u00b7 3 entries",
         "noticesAdded": 0
       }
     },
@@ -476,7 +476,7 @@
         "busy": {
           "busy": "true",
           "disabled": true,
-          "label": "Processing preview…",
+          "label": "Processing preview\u2026",
           "x": 296.0546875,
           "y": 427.03125
         },
@@ -545,7 +545,7 @@
       "passed": true,
       "detail": {
         "errorShown": true,
-        "previous": "Sample inbox · 3 entries",
+        "previous": "Sample inbox \u00b7 3 entries",
         "retryEnabled": true,
         "role": "alert"
       }
@@ -556,7 +556,7 @@
       "passed": true,
       "detail": {
         "errorHidden": true,
-        "previous": "Sample inbox · 3 entries",
+        "previous": "Sample inbox \u00b7 3 entries",
         "noticesAdded": 0
       }
     }
@@ -671,13 +671,13 @@
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {
-      "sha256": "793659dbdb598ee283e9dbbda7aabbd1b4897df7b4699b99f5b83d71488087dd",
+      "sha256": "96d00d6377cff13db153e4d7555f970d7c5ed01dd5d38400eb8131f077d9231f",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "b814a72bdf2fc9611ae952bf7f6181156fe1037f9617199df5db44156fe11787",
+      "sha256": "246b0b16c0ccd4df2345028c2a0f95116e89822e3b0a598609247e3e80d8e676",
       "width": 768,
       "height": 959,
       "state": "Open picker, selected/disabled options and menu items"

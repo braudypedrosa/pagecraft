@@ -2587,6 +2587,12 @@ function buildLink(o: any) {
   return o.value || '';
 }
 
+/** The submission key used everywhere a form field is interpreted. Whitespace-only
+    authored keys are absent, so label and positional fallbacks remain stable. */
+function formFieldName(field: any, index: number) {
+  return String(field && field.name || '').trim() || slugify(field && field.label) || 'field-' + (index + 1);
+}
+
 /* ---- reusable style classes -------------------------------------------
    A class is any set of CSS declarations, per breakpoint, shared by any number
    of elements. Text styles are the typography-only special case of the same
@@ -3500,24 +3506,39 @@ function lint() {
           if (!String(fl.label || '').trim())
             add('error', 'field-no-label', `Field ${fi + 1} of a form in the ${region} has no label, so nobody using a screen reader can tell what it wants.`, w, n.id);
         });
-        /* a form dropped onto a dark section keeps light-section defaults, so
-           its own colours need the same contrast check as any other text */
-        let behind = '';
-        for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = (chain[i].css.d || {})['background-color'] || '';
-        if (!behind) behind = (findColor('bg') || {}).value || '';
-        const pairs = [
-          ['--f-label', behind, 'Field labels'],
-          ['--f-text', (n.css.d || {})['--f-bg'] || behind, 'Text typed into the fields'],
-          ['--f-btn-fg', (n.css.d || {})['--f-btn-bg'] || behind, 'The submit button label']
+        /* Check the declarations the responsive stylesheet will actually use, including
+           reusable classes and colour tokens. One finding per pair keeps the review useful
+           when the same problem inherits through several breakpoints. */
+        const bpLabels: Record<Bp, string> = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
+        const contrastPairs = [
+          ['--f-label', '', 'Field labels'],
+          ['--f-text', '--f-bg', 'Text typed into the fields'],
+          ['--f-btn-fg', '--f-btn-bg', 'The submit button label']
         ];
-        pairs.forEach(([prop, bg, what]) => {
-          const fg = (n.css.d || {})[prop];
-          const r = fg && bg ? contrast(fg, bg) : null;
-          if (r && r < 4.5) add('warn', 'form-contrast',
-            `${what} in a form in the ${region} sit at ${r.toFixed(2)}:1 against their background — WCAG AA wants 4.5:1.`, w, n.id);
+        contrastPairs.forEach(([fgProp, bgProp, what]) => {
+          const misses: { bp: Bp; ratio: number }[] = [];
+          (['d', 't', 'm'] as Bp[]).forEach(bp => {
+            let behind = '';
+            for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = cssAt(chain[i], bp, 'background-color');
+            if (!behind) behind = (findColor('bg') || {}).value || '';
+            const fg = cssAt(n, bp, fgProp);
+            const bg = bgProp ? cssAt(n, bp, bgProp) || behind : behind;
+            const ratio = fg && bg ? contrast(fg, bg) : null;
+            if (ratio && ratio < 4.5) misses.push({ bp, ratio });
+          });
+          if (misses.length) {
+            const grouped = new Map<string, string[]>();
+            misses.forEach(({ bp, ratio }) => {
+              const key = ratio.toFixed(2);
+              grouped.set(key, [...(grouped.get(key) || []), bpLabels[bp]]);
+            });
+            const where = Array.from(grouped, ([ratio, labels]) => `${labels.join(', ')} (${ratio}:1)`).join('; ');
+            add('warn', 'form-contrast',
+              `${what} in a form in the ${region} miss WCAG AA contrast on ${where}; minimum is 4.5:1.`, w, n.id);
+          }
         });
 
-        const names = fields.map((fl, fi) => String(fl.name || '').trim() || slugify(fl.label) || 'field-' + (fi + 1));
+        const names = fields.map(formFieldName);
         names.forEach((nm, fi) => {
           if (names.indexOf(nm) !== fi)
             add('warn', 'field-dup-name', `Two fields in a form in the ${region} both submit as “${nm}”, so one value will overwrite the other.`, w, n.id);
@@ -8345,12 +8366,11 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const fid = (i: number) => domId + '-f' + i;
-      const fieldName = (f: any, i: number) => String(f.name || slugify(f.label) || 'field-' + (i + 1));
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
       const handling = resolveFormHandling(p, formId);
       const act = handling.action;
       const disabled = act ? '' : ' disabled';
-      const authoredNames = new Set(fields.map(fieldName));
+      const authoredNames = new Set(fields.map(formFieldName));
       const getQueryFields = handling.kind === 'external' && handling.method === 'get'
         ? Array.from(new URL(handling.action).searchParams.entries())
           .filter(([name]) => !authoredNames.has(name))
@@ -8359,7 +8379,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : '';
       const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
-        const name = esc(fieldName(f, i));
+        const name = esc(formFieldName(f, i));
         const req = f.required ? ' required' : '';
         const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
         /* Half-width fields share a row. A class rather than a declaration, so the mobile rule
@@ -9331,7 +9351,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";

@@ -1133,6 +1133,44 @@ test('form repeaters disclose one field and preserve values across switching and
   a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'Guest name');
 });
 
+test('duplicating a form field avoids every effective fallback submission name', async () => {
+  const n = C.insert('form', null, 0)!;
+  n.props.fields = [
+    { type: 'text', label: 'Name', name: '' },
+    { type: 'text', label: 'Other', name: 'name-2' }
+  ];
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  r.draw(<Ctl n={n} c={c} />);
+  await act(() => r.click(r.$$('.repeater-head [title="Duplicate"]')[0]));
+
+  const fields = n.props.fields as any[];
+  a.equal(fields[1].name, 'name-3');
+  const effective = fields.map((field, index) => C.formFieldName(field, index));
+  a.equal(new Set(effective).size, effective.length);
+});
+
+test('Grid hides field Width at the active responsive breakpoint without clearing it', async () => {
+  const n = C.insert('form', null, 0)!;
+  const fields = n.props.fields as any[];
+  fields[0].width = 33;
+  const layout = C.classAdd('Tablet form grid');
+  C.findClass(layout)!.css.t = { '--f-layout': 'grid' };
+  C.classApply(n, layout);
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  const draw = () => r.draw(<Ctl n={n} c={c} />);
+
+  draw();
+  await act(() => r.click(r.$$('.repeater-toggle')[0]));
+  a.ok(r.$('select[aria-label="Field width"]'), 'Desktop remains flex and offers Width');
+  C.state.ui.dev = 'tablet';
+  draw();
+  a.equal(r.$('select[aria-label="Field width"]'), null, 'the class-backed Tablet grid hides Width');
+  a.equal(fields[0].width, 33, 'the hidden setting remains stored');
+  C.state.ui.dev = 'desktop';
+  draw();
+  a.equal((r.$('select[aria-label="Field width"]') as HTMLSelectElement).value, '33');
+});
+
 test('adding and moving a repeater keeps the edited row open', async () => {
   const n = C.insert('form', null, 0)!;
   const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
