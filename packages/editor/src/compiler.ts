@@ -1,6 +1,7 @@
 import * as Core from '../../../app/src/core/index.ts';
 import type { Doc, NavItem, UnknownDocumentInput } from '../../../app/src/core/types.ts';
 import { adoptHostDocument } from '../../../app/src/host/schema.ts';
+import { sha256 as sha256Fallback } from '../../../app/src/core/libraries.ts';
 import {
   COMPILER_DESCRIPTOR, COMPILER_RESULT_FORMAT, type CompilerDescriptor
 } from './contract.ts';
@@ -50,7 +51,8 @@ export interface CompilerResult {
 
 export interface CompilerDependencies {
   fetch: typeof fetch;
-  crypto: Crypto;
+  /** Web Crypto is unavailable in non-secure local WordPress workers. */
+  crypto?: Crypto;
 }
 
 export class PagecraftCompilerError extends Error {
@@ -224,10 +226,27 @@ async function wordpressFontCss(fetcher: typeof fetch) {
   return Core.fontFaceCss(faces, face => face.url) + '\n';
 }
 
-async function sha256(value: string, cryptoApi: Crypto) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await cryptoApi.subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+export async function compilerSha256(value: string, cryptoApi?: Crypto) {
+  /* Web Crypto is the fast path on secure origins. Local WordPress development commonly
+     runs over plain HTTP, where a Worker can expose `crypto` without `subtle`; use the
+     core's UTF-8 SHA-256 there so maintenance compilation remains deterministic. */
+  try {
+    if (cryptoApi?.subtle && typeof cryptoApi.subtle.digest === 'function') {
+      const bytes = new TextEncoder().encode(value);
+      const digest = await cryptoApi.subtle.digest('SHA-256', bytes);
+      return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+  } catch {
+    /* An unavailable or disabled implementation is equivalent to no Web Crypto. */
+  }
+  try {
+    return sha256Fallback(value);
+  } catch {
+    throw new PagecraftCompilerError(
+      'hash_failed',
+      'Pagecraft could not verify the generated output in this browser. Reload the editor and retry.'
+    );
+  }
 }
 
 async function compileIsolated(
@@ -256,7 +275,7 @@ async function compileIsolated(
     const html = resolve(Core.buildPage(page));
     const globalCss = fontCss + resolve(styles.global);
     const pageCss = resolve(styles.page);
-    const contentHash = await sha256(JSON.stringify({ html, globalCss, pageCss }), dependencies.crypto);
+    const contentHash = await compilerSha256(JSON.stringify({ html, globalCss, pageCss }), dependencies.crypto);
     return {
       format: COMPILER_RESULT_FORMAT,
       compiler: COMPILER_DESCRIPTOR,

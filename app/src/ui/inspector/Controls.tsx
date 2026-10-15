@@ -145,10 +145,19 @@ const validCssColor = (value: string) => {
   return probe.color !== '';
 };
 
+/* Older palettes use `accent` for the editor's reserved `brand` semantic. Core resolves
+   that alias for rendering; present the same link here so the inspector does not expose
+   the CSS variable as a raw value. Keep an actual brand token authoritative. */
+const linkedColorToken = (value: string) => {
+  const id = C.refId(value);
+  if (!id) return null;
+  return C.findColor(id) || (id === 'brand' ? C.findColor('accent') : null);
+};
+
 function ColorCtl({ n, c }: P) {
   const w = writer(n, c);
   const v = String(valueOf(n, c) || '');
-  const tok = C.refId(v) ? C.findColor(C.refId(v)!) : null;
+  const tok = linkedColorToken(v);
   const lit = tok ? tok.value : v;
   const cur = () => (c.c ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v : C.propVal(n, c.k));
   const imagePaint = c.paint ? String(C.cssVal(C.tgtObj(n), 'background-image', !!c.r).v || '') : '';

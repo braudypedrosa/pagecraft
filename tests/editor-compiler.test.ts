@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import * as Core from '../app/src/core/index.ts';
 import type { Doc } from '../app/src/core/types.ts';
 import {
-  compileDocument, type CompilerDependencies,
+  compileDocument, compilerSha256, type CompilerDependencies,
 } from '../packages/editor/src/compiler.ts';
 import { compile as compileInWorker, dispose as disposeCompiler } from '../packages/editor/src/compiler-client.ts';
 import { COMPILER_DESCRIPTOR, COMPILER_RESULT_FORMAT } from '../packages/editor/src/contract.ts';
@@ -48,6 +48,65 @@ beforeEach(() => {
 });
 
 describe('sealed editor compiler', () => {
+  it('matches Node SHA-256 without Web Crypto for empty, Unicode, and large compiler output', async () => {
+    const samples = [
+      '',
+      'Caf\u00e9 \u2615\ufe0f \u4f60\u597d \ud83c\udf0d',
+      'Pagecraft local compiler \u2014 '.repeat(100_000),
+    ];
+    for (const sample of samples) {
+      expect(await compilerSha256(sample, undefined)).toBe(createHash('sha256').update(sample).digest('hex'));
+    }
+  });
+
+  it('uses Web Crypto when available and falls back when its digest is disabled', async () => {
+    let fastPathCalls = 0;
+    const fastCrypto = {
+      subtle: {
+        digest: async (_algorithm: string, input: BufferSource) => {
+          fastPathCalls++;
+          return Uint8Array.from(createHash('sha256').update(new Uint8Array(input as ArrayBuffer)).digest()).buffer;
+        },
+      },
+    } as unknown as Crypto;
+    expect(await compilerSha256('fast path', fastCrypto)).toBe(createHash('sha256').update('fast path').digest('hex'));
+    expect(fastPathCalls).toBe(1);
+
+    const disabledCrypto = {
+      subtle: { digest: async () => { throw new Error('SubtleCrypto unavailable'); } },
+    } as unknown as Crypto;
+    expect(await compilerSha256('fallback', disabledCrypto)).toBe(createHash('sha256').update('fallback').digest('hex'));
+  });
+
+  it('reports an actionable compiler error when neither hashing implementation can run', async () => {
+    const original = globalThis.TextEncoder;
+    Object.defineProperty(globalThis, 'TextEncoder', { configurable: true, writable: true, value: undefined });
+    try {
+      await expect(compilerSha256('cannot hash', undefined)).rejects.toMatchObject({
+        name: 'PagecraftCompilerError',
+        code: 'hash_failed',
+        message: 'Pagecraft could not verify the generated output in this browser. Reload the editor and retry.',
+      });
+    } finally {
+      Object.defineProperty(globalThis, 'TextEncoder', { configurable: true, writable: true, value: original });
+    }
+  });
+
+  it('completes a document compile when a local worker exposes no SubtleCrypto', async () => {
+    const input = compilerDocument();
+    const result = await compileDocument(input, {
+      pageId: 'page-compile',
+      assets: { hero: { url: 'http://pagecraft.local/uploads/hero.jpg' } },
+      wordpressContent: {
+        [Core.buildWordPressContentReference('page', '/contact/')]: 'http://pagecraft.local/contact/',
+      },
+    }, { ...dependencies(), crypto: {} as Crypto });
+
+    expect(result.contentHash).toBe(createHash('sha256').update(JSON.stringify({
+      html: result.html, globalCss: result.globalCss, pageCss: result.pageCss,
+    })).digest('hex'));
+  });
+
   it('compiles current WordPress snapshots with exact provenance and restores Core state', async () => {
     const input = compilerDocument();
     Core.blankProject('Still open in the editor');
