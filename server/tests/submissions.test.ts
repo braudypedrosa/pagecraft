@@ -75,6 +75,7 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await app.request(exportUrl)).status).toBe(403);
     const exported = await app.request(exportUrl,{headers:{cookie:'owner=1'}});
     expect(exported.headers.get('content-type')).toContain('text/csv');
+    expect(exported.headers.get('content-disposition')).toBe('attachment; filename="submissions.csv"');
     expect(await exported.text()).toContain('qa@example.test');
     expect((await app.request(base+'/'+entries[0].id+'/status',{method:'POST',headers:{cookie:'owner=1'},body:'status=read'})).status).toBe(404);
     const remove = (origin: string, body='confirmed=yes&embedded=1&form=qa-form') => app.request(base+'/'+entries[0].id+'/delete',{method:'POST',headers:{cookie:'owner=1',origin},body});
@@ -87,6 +88,21 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await app.request(base, { headers: { cookie: 'owner=1', 'x-pagecraft-editor-session': 'wp' } })).status).toBe(403);
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+test('native CSV downloads preserve endpoint authorization and failure statuses', async () => {
+  const app = new Hono();
+  submissionRoutes(app, {
+    store: new MemoryStore(),
+    requestSource: () => 'qa',
+    allowed: async c => c.req.header('cookie') === 'owner=1'
+      ? {ok:true,user:{id:'user',email:'qa@example.test',name:'QA'},role:'owner'}
+      : {ok:false,status:403}
+  });
+  const url = 'https://editor.test/sites/site/submissions/export.csv?form=qa-form';
+  expect((await app.request(url)).status).toBe(403);
+  const unavailable = await app.request(url, {headers:{cookie:'owner=1'}});
+  expect(unavailable.status).toBe(503);
+  expect(await unavailable.text()).toBe('Submissions are unavailable.');
 });
 test('a form posted after another process changed the slug still reaches the site', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pagecraft-submissions-'));
@@ -205,6 +221,7 @@ test('Date header toggles order and retains it for filtering, export and deletio
   expect(html).toContain('Date: sort newest first');
   expect(html).toContain('order=desc&amp;embedded=1');
   expect(html).toContain('export.csv?form=qa-form&amp;status=success&amp;order=asc');
+  expect(html).toContain('download>Export CSV</a>');
   expect(html).toContain('name="order" value="asc"');
   expect(html).not.toContain('<th>Received</th>');
 });

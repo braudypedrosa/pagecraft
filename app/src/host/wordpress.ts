@@ -1,6 +1,6 @@
 import { assetAdapter, authenticationAdapter, contentAdapter, documentAdapter, menuAdapter, pageAdapter, revisionAdapter, settingsAdapter } from './shared';
 import { FetchHostTransport, HostRequestError, type FetchLike, type HostRequest, type HostTransport } from './transport';
-import type { HostCapability, HostFeatures, HostSession, WordPressHostAdapter } from './types';
+import type { HostCapability, HostFeatures, HostMedia, HostSession, WordPressHostAdapter } from './types';
 
 export interface WordPressHostOptions {
   restUrl?: string;
@@ -19,6 +19,40 @@ export interface WordPressHostOptions {
 }
 
 const normalizeRestUrl = (value: string) => value.replace(/\/+$/, '');
+
+const WORDPRESS_MEDIA_REFERENCES = new Set(['managed_document', 'native_content', 'featured_image']);
+const completeWordPressMediaUsage = (value: unknown) => {
+  if (!value || typeof value !== 'object') return false;
+  const usage = value as Record<string, unknown>;
+  return typeof usage.id === 'string' && typeof usage.type === 'string'
+    && typeof usage.title === 'string' && typeof usage.status === 'string'
+    && (usage.parentId === null || typeof usage.parentId === 'string')
+    && Array.isArray(usage.references) && usage.references.length > 0
+    && usage.references.every(reference => typeof reference === 'string'
+      && WORDPRESS_MEDIA_REFERENCES.has(reference));
+};
+
+/** Older plugin versions return ordinary media rows without an authoritative usage scan.
+ * Treat those rows as unknown and non-deletable instead of letting the shared editor infer
+ * site-wide safety from the one Pagecraft document it currently has open. */
+const normalizeWordPressMedia = (media: HostMedia): HostMedia => {
+  const complete = media.usageKnown === true
+    && Number.isInteger(media.usageCount) && Number(media.usageCount) >= 0
+    && typeof media.canDelete === 'boolean' && Array.isArray(media.usedBy)
+    && media.usedBy.every(completeWordPressMediaUsage);
+  const count = complete ? Number(media.usageCount) : null;
+  const usedBy = complete ? media.usedBy! : [];
+  const known = complete
+    && (count === 0 ? usedBy.length === 0 : usedBy.length > 0)
+    && !(media.canDelete === true && count !== 0);
+  return {
+    ...media,
+    usageKnown: known,
+    usageCount: known ? count : null,
+    canDelete: known && count === 0 && media.canDelete === true,
+    usedBy: known ? usedBy : []
+  };
+};
 
 export const WORDPRESS_HOST_FEATURES: Readonly<HostFeatures> = Object.freeze({
   sites: false,
@@ -91,6 +125,14 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
     capabilities.splice(0, capabilities.length, ...current.capabilities);
     return current;
   });
+  const sharedAssets = assetAdapter(transport, '/media');
+  const assets = {
+    ...sharedAssets,
+    async list() { return (await sharedAssets.list()).map(normalizeWordPressMedia); },
+    async upload(file: File | Blob, filename?: string) {
+      return normalizeWordPressMedia(await sharedAssets.upload(file, filename));
+    }
+  };
 
   return {
     kind: 'wordpress',
@@ -100,7 +142,7 @@ export function createWordPressHostAdapter(options: WordPressHostOptions): WordP
     pages: pageAdapter(transport, '/pages'),
     menus: menuAdapter(transport, '/menus'),
     revisions: revisionAdapter(transport, revisionsPath),
-    assets: assetAdapter(transport, '/media'),
+    assets,
     settings: settingsAdapter(transport, '/settings'),
     content: contentAdapter(transport, '/content'),
     setNonce(value) { nonce = value; }

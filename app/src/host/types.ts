@@ -122,6 +122,23 @@ export interface HostMedia {
   size: number;
   width?: number;
   height?: number;
+  /** WordPress-only authoritative usage. Missing means an older host that cannot prove
+   * deletion safety; adapters normalize that state to `usageKnown: false`. */
+  usageKnown?: boolean;
+  usageCount?: number | null;
+  canDelete?: boolean;
+  usedBy?: readonly HostMediaUsage[];
+}
+
+export type HostMediaReference = 'managed_document' | 'native_content' | 'featured_image';
+
+export interface HostMediaUsage {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  parentId: string | null;
+  references: readonly HostMediaReference[];
 }
 
 export interface HostContentSource {

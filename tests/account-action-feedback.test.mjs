@@ -110,8 +110,8 @@ test("custom async forms retain their handlers and OAuth remains native with a r
   expect(button.disabled).toBe(false);
   expect(button.textContent).toBe("Save profile");
 });
-test("submissions refresh bypasses cached content; export failures preserve the download action", async () => {
-  const { w } = setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old entries</h1><a href="/sites/qa/submissions" data-inbox-refresh>Refresh</a><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div></section>', "https://example.test/sites/qa/submissions");
+test("submissions refresh bypasses cached content; CSV export remains a native download", async () => {
+  const { w } = setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old entries</h1><a href="/sites/qa/submissions" data-inbox-refresh>Refresh</a><a href="/sites/qa/submissions/export.csv" class="pc-sub-export" download>Export CSV</a></div></section>', "https://example.test/sites/qa/submissions");
   w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g, ""));
   let resolve;
   w.fetch = vi.fn(() => new Promise((yes) => {
@@ -121,16 +121,17 @@ test("submissions refresh bypasses cached content; export failures preserve the 
   refresh.click();
   expect(w.fetch).toHaveBeenCalledTimes(1);
   expect(refresh.textContent).toBe("Refreshing submissions\u2026");
-  resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div>', w.location.href));
+  resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1><a href="/sites/qa/submissions/export.csv" class="pc-sub-export" download>Export CSV</a></div>', w.location.href));
   await vi.waitFor(() => expect(w.document.querySelector("h1")?.textContent).toBe("Fresh entries"));
-  w.fetch = vi.fn(async () => ({ ok: false, status: 500 }));
+  w.fetch = vi.fn();
+  w.URL.createObjectURL = vi.fn();
   const csv = w.document.querySelector(".pc-sub-export");
-  csv.click();
-  csv.click();
-  await vi.waitFor(() => expect(w.document.querySelector("[role=alert]")?.textContent).toContain("CSV export failed"));
-  expect(w.fetch).toHaveBeenCalledTimes(1);
-  expect(csv.getAttribute("aria-busy")).toBeNull();
-  expect(csv.textContent).toBe("Export CSV");
+  const click = new w.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+  expect(csv.dispatchEvent(click)).toBe(true);
+  expect(click.defaultPrevented).toBe(false);
+  expect(csv.hasAttribute("download")).toBe(true);
+  expect(w.fetch).not.toHaveBeenCalled();
+  expect(w.URL.createObjectURL).not.toHaveBeenCalled();
 });
 test.each([false,true])('status changes immediately filter submissions and survive replacement (embedded=%s)', async (embedded) => {
   const base='/sites/qa/submissions';

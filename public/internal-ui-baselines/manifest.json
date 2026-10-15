@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "capturedAt": "2026-10-15T15:48:06.627Z",
+  "capturedAt": "2026-10-15T17:06:45.409Z",
   "browser": "Codex In-app Browser",
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "7eb2468a75875d2361e27097f79fb4d5bc1ee7913ae5980e1131890d9cee0312",
+    "builder.html": "2d2a9841742fe8db41f6048a2b8d858c1f1ccd4ccb241bdebfe7c312f30d9d27",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -563,145 +563,145 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "825d59bba388fd51b2fad87e843b8cc24d4db59df3d2df9469e7b0e2706c2e3c",
+      "sha256": "719dcd0ed8877efdb108a3c227e912e0674eb1d134a1e8753716ef49cf81fd3e",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-fields-768.png": {
-      "sha256": "0509114c21adabf8bc28c96c22de7f7da7fafab19ce3bb2bbd29d6365f57cb70",
+      "sha256": "b5167eee89ca3beddfa1ce584eab5fd1be2b305e78472f1190189ca2d76b14c5",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "cloud-actions-1440.png": {
-      "sha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+      "sha256": "7b15249f59c828aec41d043b7e601b286d5d315214f10b962dd2bdc56a7feb04",
       "width": 1440,
       "height": 959,
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-actions-768.png": {
-      "sha256": "4c7ddcea303f0a29db4c252afa427f7cdd396ccc83c438fe86f2e5b10b181984",
+      "sha256": "7222baed39b52f79eead5cfc3b1ba5a614f36e0eeff68d0c2e07d68a66263c75",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions"
     },
     "cloud-tables-1440.png": {
-      "sha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+      "sha256": "55d1c28792a4fa19fa3212ba14bd3e4bd81c1d79ef8ddf239fe7133e484db41f",
       "width": 1440,
       "height": 1106,
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-tables-768.png": {
-      "sha256": "cfa19bea83b13509d88b11cb4573f3e8a4066c939dbbe69b451da4731c89c459",
+      "sha256": "35e0cd8579c584fbf224ef8001767235f225bd8b1d77e1922148969329e1ca3f",
       "width": 768,
       "height": 1172,
       "state": "First row hovered, second row neutral, empty result"
     },
     "cloud-menus-1440.png": {
-      "sha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+      "sha256": "b19074659ba146fc001215923b623cf8251c95ca39dd425c6011b10f27569bbf",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-menus-768.png": {
-      "sha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+      "sha256": "1e8c739cf675fff8aa42e58ae63985ddf1f9d68b0ffb8b6c34d4845375bb8958",
       "width": 768,
       "height": 1008,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+      "sha256": "306c9f49d04de16c56c71619a65a84d7ba2c4c1bf784f83386b5157d979fd2b0",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "cloud-dialogs-768.png": {
-      "sha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+      "sha256": "1d74bf8eb8499e0b13ee0d1a6c2653f2a67884ca9c8d0606d1622b4b7481462a",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "cloud-feedback-1440.png": {
-      "sha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+      "sha256": "d648d1c17f667abb1ea1760baf39f3cbd2ebbaa0fca6ab7fe83db66e11c88d6c",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "cloud-feedback-768.png": {
-      "sha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+      "sha256": "abd2a8bd76f4e927c40f11621c614271b2e5f61709de801ea7cb41e6fdc34180",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-fields-1440.png": {
-      "sha256": "1b004cdede4d8653863f346d3e8bf190de4bd6cdfbce63ed017e9a21a18f2568",
+      "sha256": "950999a1d5f7e48294fec99cd113c94f499454e2ff546ca9219c6bc5df08702b",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-fields-768.png": {
-      "sha256": "f727c6d124b07fec2bd1bee0ad0b0e4fa899282f2064b5cb5f235410432c16e7",
+      "sha256": "e9cb19447d970550565487d3fbfe4e28e87baecf8332637bfb494b1c0838b486",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples"
     },
     "builder-actions-1440.png": {
-      "sha256": "56c76ecd212ee9769db91d00d921206ffc5f071d07c47d1ea6347e715c670109",
+      "sha256": "34bbeade384069918d37d72740046bfe79fd277762b13961bf5acf7c5518d5a1",
       "width": 1440,
       "height": 1224,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-actions-768.png": {
-      "sha256": "31e69e47f58dd5a9314a1a6224788f8770557aba654ff46c91f7a4cf0a9b5249",
+      "sha256": "51c266c5ef7b69ae0785db8b6aba377e383adad244c649203543d0bb1a9dbe77",
       "width": 768,
       "height": 1279,
       "state": "Processing action, disabled and destructive actions"
     },
     "builder-tables-1440.png": {
-      "sha256": "6d5011b294d0e9b389e27ed365578d746a6a23c74fda0b95fa77c1494c42bf38",
+      "sha256": "30c10a2f7dd5c47b3241a9250dd2c3ddc86e408b569cddf488d34dd7d5d39abc",
       "width": 1440,
       "height": 1228,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-tables-768.png": {
-      "sha256": "002677be8d879cb1bf3058fb061f3f11330440a19757d8a28fba3b61c2a54e8a",
+      "sha256": "91b9ba3231b5bea96a1b70c997f765126a798424e60f04b0a753974e2afab4cd",
       "width": 768,
       "height": 1284,
       "state": "First row hovered, second row neutral, empty result"
     },
     "builder-menus-1440.png": {
-      "sha256": "96d00d6377cff13db153e4d7555f970d7c5ed01dd5d38400eb8131f077d9231f",
+      "sha256": "793659dbdb598ee283e9dbbda7aabbd1b4897df7b4699b99f5b83d71488087dd",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-menus-768.png": {
-      "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+      "sha256": "b814a72bdf2fc9611ae952bf7f6181156fe1037f9617199df5db44156fe11787",
       "width": 768,
       "height": 959,
       "state": "Open picker, selected/disabled options and menu items"
     },
     "builder-dialogs-1440.png": {
-      "sha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+      "sha256": "cc1a91ac01484fc9d725fea86672eb68c7b94045e88fb07277a33edb52ab9d38",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-dialogs-768.png": {
-      "sha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+      "sha256": "b6c9564cf61205f4a9fa80c50d5af3a851687a8a051c4923127360b0194b418b",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer"
     },
     "builder-feedback-1440.png": {
-      "sha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+      "sha256": "f33fcad956e396746098ca8fdd1a64e89553a502fd285fe4aefe24bcd3a280f9",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     },
     "builder-feedback-768.png": {
-      "sha256": "32df81f4371ee14c6e71e151117262cee8cd8c45fe482c7280ca418ec666858e",
+      "sha256": "da4b04bb226e925510b3d21b4487f9fc978b6bf14fb88a1f59c23960f3dfbd54",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification"

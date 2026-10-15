@@ -24938,6 +24938,25 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
 
   // app/src/host/wordpress.ts
   var normalizeRestUrl = (value) => value.replace(/\/+$/, "");
+  var WORDPRESS_MEDIA_REFERENCES = /* @__PURE__ */ new Set(["managed_document", "native_content", "featured_image"]);
+  var completeWordPressMediaUsage = (value) => {
+    if (!value || typeof value !== "object") return false;
+    const usage = value;
+    return typeof usage.id === "string" && typeof usage.type === "string" && typeof usage.title === "string" && typeof usage.status === "string" && (usage.parentId === null || typeof usage.parentId === "string") && Array.isArray(usage.references) && usage.references.length > 0 && usage.references.every((reference) => typeof reference === "string" && WORDPRESS_MEDIA_REFERENCES.has(reference));
+  };
+  var normalizeWordPressMedia = (media) => {
+    const complete = media.usageKnown === true && Number.isInteger(media.usageCount) && Number(media.usageCount) >= 0 && typeof media.canDelete === "boolean" && Array.isArray(media.usedBy) && media.usedBy.every(completeWordPressMediaUsage);
+    const count = complete ? Number(media.usageCount) : null;
+    const usedBy = complete ? media.usedBy : [];
+    const known2 = complete && (count === 0 ? usedBy.length === 0 : usedBy.length > 0) && !(media.canDelete === true && count !== 0);
+    return {
+      ...media,
+      usageKnown: known2,
+      usageCount: known2 ? count : null,
+      canDelete: known2 && count === 0 && media.canDelete === true,
+      usedBy: known2 ? usedBy : []
+    };
+  };
   var WORDPRESS_HOST_FEATURES = Object.freeze({
     sites: false,
     account: false,
@@ -25006,6 +25025,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       capabilities.splice(0, capabilities.length, ...current.capabilities);
       return current;
     });
+    const sharedAssets = assetAdapter(transport, "/media");
+    const assets = {
+      ...sharedAssets,
+      async list() {
+        return (await sharedAssets.list()).map(normalizeWordPressMedia);
+      },
+      async upload(file, filename) {
+        return normalizeWordPressMedia(await sharedAssets.upload(file, filename));
+      }
+    };
     return {
       kind: "wordpress",
       features: WORDPRESS_HOST_FEATURES,
@@ -25014,7 +25043,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       pages: pageAdapter(transport, "/pages"),
       menus: menuAdapter(transport, "/menus"),
       revisions: revisionAdapter(transport, revisionsPath),
-      assets: assetAdapter(transport, "/media"),
+      assets,
       settings: settingsAdapter(transport, "/settings"),
       content: contentAdapter(transport, "/content"),
       setNonce(value) {
@@ -26669,6 +26698,10 @@ async function assetAddServer(file) {
   AS.mem.set(meta.id, {
     id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
     w: meta.width, h: meta.height, tags: meta.tags || [], metadataVersion: meta.metadataVersion || 0, createdAt: meta.createdAt || null,
+    usageKnown: meta.usageKnown === true && Number.isInteger(meta.usageCount),
+    usageCount: Number.isInteger(meta.usageCount) ? meta.usageCount : null,
+    canDelete: meta.usageKnown === true && Number.isInteger(meta.usageCount) && meta.canDelete === true,
+    usedBy: Array.isArray(meta.usedBy) ? meta.usedBy : [],
     /* served by the editor's own route, so it needs the session the page already has */
     url: meta.url || (SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`)
   });
@@ -26686,6 +26719,10 @@ async function assetsLoadServer() {
     const record = {
       id: m.id, name: m.name, type: m.mimeType, size: m.size || 0,
       w: m.width, h: m.height, tags: m.tags || [], metadataVersion: m.metadataVersion || 0, createdAt: m.createdAt || null,
+      usageKnown: m.usageKnown === true && Number.isInteger(m.usageCount),
+      usageCount: Number.isInteger(m.usageCount) ? m.usageCount : null,
+      canDelete: m.usageKnown === true && Number.isInteger(m.usageCount) && m.canDelete === true,
+      usedBy: Array.isArray(m.usedBy) ? m.usedBy : [],
       url: m.url
     };
     if (SRV.editorSessionToken) {
@@ -26713,12 +26750,21 @@ async function assetAdd(file) {
   return id;
 }
 const deletingAssets = new Set();
+const confirmingAssetDeletes = new Set();
 async function assetDel(id, button = null, silent = false) {
   if (deletingAssets.has(id)) return false;
   deletingAssets.add(id);
   const a = AS.mem.get(id);
   const action = silent ? null : feedback().begin(button, 'Deleting image…');
   try {
+    if (IS_WORDPRESS) {
+      const usage = assetUse(id);
+      if (!usage.canDelete) {
+        const message = assetDeleteBlockedMessage(usage);
+        if (action) action.error(message); else if (!silent) toast(message, {tone:'error'});
+        return false;
+      }
+    }
     if (SRV) await HOST.assets.remove(id);
     else if (AS.ok) await idbReq(idbStore('readwrite').delete(id));
     if (a && a.url && a.url.startsWith('blob:')) URL.revokeObjectURL(a.url);
@@ -26726,8 +26772,18 @@ async function assetDel(id, button = null, silent = false) {
     action?.success(SRV ? 'Image removed from the library. History copies are retained.' : 'Image deleted.');
     return true;
   } catch (error) {
-    const message = (error?.payload?.error || error?.message || 'The image could not be deleted.') + ' Try again.';
-    if (action) action.error(message); else toast(message, {tone:'error'});
+    const payload = error?.payload;
+    const inUse = IS_WORDPRESS && error?.status === 409 && payload?.code === 'pagecraft_media_in_use';
+    if (inUse && a) Object.assign(a, {
+      usageKnown: true,
+      usageCount: Number.isInteger(payload.usageCount) ? payload.usageCount : 0,
+      canDelete: false,
+      usedBy: Array.isArray(payload.usedBy) ? payload.usedBy : []
+    });
+    const message = inUse
+      ? (payload.error || 'This image is used by WordPress content and cannot be deleted.')
+      : (payload?.error || error?.message || 'The image could not be deleted.') + ' Try again.';
+    if (action) action.error(message); else if (!silent) toast(message, {tone:'error'});
     return false;
   } finally { deletingAssets.delete(id); }
 }
@@ -26741,8 +26797,100 @@ function assetUsage() {
   let m;
   A_RE.lastIndex = 0;
   while ((m = A_RE.exec(json))) hits[m[1]] = (hits[m[1]] || 0) + 1;
+  /* WordPress imports and custom markup can retain a canonical attachment URL instead of
+     an asset token. Count every literal occurrence in the unsaved document; a URL with a
+     query suffix still refers to the same attachment. The host scans saved content too. */
+  if (IS_WORDPRESS) for (const asset of AS.mem.values()) {
+    if (!asset.url) continue;
+    const exact = String(asset.url);
+    let at = 0;
+    while ((at = json.indexOf(exact, at)) >= 0) {
+      const after = json[at + exact.length];
+      if (!after || /[?#\s"'\\<>()},\]]/.test(after)) hits[asset.id] = (hits[asset.id] || 0) + 1;
+      at += exact.length;
+    }
+  }
   return hits;
 }
+
+/** One deletion decision joins current unsaved references with the WordPress host's
+    site-wide scan. Cloud and standalone retain their document-only rule. */
+function assetUse(id, localUsage = assetUsage()) {
+  const asset = AS.mem.get(id);
+  const localCount = Number(localUsage[id] || 0);
+  if (!IS_WORDPRESS) return {
+    known: true, localCount, serverCount: 0, usedBy: [], used: localCount > 0,
+    canDelete: localCount === 0
+  };
+  const completeUsage = Array.isArray(asset?.usedBy) && asset.usedBy.every(item => item
+    && typeof item.id === 'string' && typeof item.type === 'string'
+    && typeof item.title === 'string' && typeof item.status === 'string'
+    && (item.parentId === null || typeof item.parentId === 'string')
+    && Array.isArray(item.references) && item.references.length > 0
+    && item.references.every(reference => ['managed_document','native_content','featured_image'].includes(reference)));
+  const usedBy = completeUsage ? asset.usedBy : [];
+  const serverCount = asset?.usageKnown === true && Number.isInteger(asset.usageCount) && asset.usageCount >= 0
+    ? asset.usageCount : null;
+  const known = completeUsage && serverCount !== null
+    && (serverCount === 0 ? usedBy.length === 0 : usedBy.length > 0)
+    && !(asset?.canDelete === true && serverCount !== 0);
+  return {
+    known, localCount, serverCount,
+    usedBy: known ? usedBy : [],
+    used: localCount > 0 || (serverCount || 0) > 0,
+    canDelete: known && serverCount === 0 && usedBy.length === 0
+      && asset?.canDelete === true && localCount === 0
+  };
+}
+
+function assetDeleteBlockedMessage(usage) {
+  if (!IS_WORDPRESS) return 'This image is used on the site. Remove its references before deleting it.';
+  if (!usage.known) return 'WordPress usage could not be checked. Reload the media library before deleting this image.';
+  if (usage.localCount) return 'This image is used in the current draft. Remove its references before deleting it.';
+  return 'This image is used by WordPress content. Open Details to inspect its site-wide references.';
+}
+
+function assetUsageLabel(id, localUsage) {
+  const usage = assetUse(id, localUsage);
+  if (!IS_WORDPRESS) return usage.localCount ? `used ${usage.localCount}×` : 'unused';
+  if (!usage.known) return 'usage unavailable';
+  const labels = [];
+  if (usage.serverCount) labels.push(`WordPress ${usage.serverCount}×`);
+  if (usage.localCount) labels.push(`current draft ${usage.localCount}×`);
+  return labels.length ? labels.join(' · ') : usage.canDelete ? 'unused' : 'protected by WordPress';
+}
+
+async function confirmWordPressAssetDelete(ids, prune = false) {
+  const assets = ids.map(id => AS.mem.get(id)).filter(Boolean);
+  if (!assets.length) return false;
+  const key = prune ? 'prune' : assets[0].id;
+  if (confirmingAssetDeletes.has(key) || deletingAssets.has(assets[0].id)) return false;
+  confirmingAssetDeletes.add(key);
+  const message = prune
+    ? `Permanently delete ${assets.length} unused image${assets.length === 1 ? '' : 's'} from the WordPress media library? This cannot be undone.`
+    : `Permanently delete <b>${esc(assets[0].name)}</b> from the WordPress media library? This cannot be undone.`;
+  try {
+    return await askConfirm(prune ? 'Remove unused images?' : 'Delete this image?', message,
+      {ok: prune ? 'Delete unused images' : 'Delete image', danger:true});
+  } finally { confirmingAssetDeletes.delete(key); }
+}
+
+async function assetDeleteMany(ids) {
+  const result = {removed: 0, blocked: 0, failed: 0};
+  for (const id of [...new Set(ids)]) {
+    const before = assetUse(id);
+    if (!before.canDelete) {
+      if (before.known && before.used) result.blocked++; else result.failed++;
+      continue;
+    }
+    if (await assetDel(id, null, true)) { result.removed++; continue; }
+    const after = assetUse(id);
+    if (after.known && after.used) result.blocked++; else result.failed++;
+  }
+  return result;
+}
+
+const assetDeleteSummary = result => `${result.removed} removed · ${result.blocked} still used · ${result.failed} failed`;
 
 /* intrinsic pixel size of an image, used to emit width/height on export */
 const imgSize = url => new Promise(res => {
@@ -28562,8 +28710,11 @@ function wireMediaBrowser(root, use, attr, choose, remove, state, redraw = null)
     const all = [...AS.mem.values()];
     for (const id of state.selected) if (!AS.mem.has(id)) state.selected.delete(id);
     const query = (state.query || '').trim().toLocaleLowerCase();
-    const list = all.filter(a => [a.name, ...(a.tags || [])].join(' ').toLocaleLowerCase().includes(query)
-      && (state.usage === 'used' ? use[a.id] : state.usage === 'unused' ? !use[a.id] : true));
+    const list = all.filter(a => {
+      const usage = assetUse(a.id, use);
+      return [a.name, ...(a.tags || [])].join(' ').toLocaleLowerCase().includes(query)
+        && (state.usage === 'used' ? usage.used : state.usage === 'unused' ? usage.canDelete : true);
+    });
     list.sort((a, b) => (state.sort === 'size' ? (b.size || 0) - (a.size || 0) : state.sort === 'date' ? (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) : 0) || a.name.localeCompare(b.name));
     const results = $('.media-browser-results', root);
     results.innerHTML = list.length ? `<div class="mgrid">${mediaCards(list.slice(0, limit), use, attr, state)}</div>`
@@ -28597,20 +28748,25 @@ function wireMediaBrowser(root, use, attr, choose, remove, state, redraw = null)
     }, 'Tags saved.'); render();
   });
   $('[data-media-delete]', root).addEventListener('click', async () => {
-    const ids = [...state.selected], currentUsage = assetUsage(), protectedIds = ids.filter(id => currentUsage[id]);
-    if (protectedIds.length) {
-      toast(`${protectedIds.length} selected image${protectedIds.length === 1 ? ' is' : 's are'} used. Open Details to inspect their references; deselect them before deleting.`, {tone:'error'});
-      mediaDetails(root, protectedIds[0], render, $('[data-media-delete]', root)); return;
-    }
-    if (!await askConfirm('Delete selected images?', `Remove ${ids.length} unused image${ids.length === 1 ? '' : 's'} from the library?`, {ok:'Delete images', danger:true})) return;
-    await withAction($('[data-media-delete]', root), 'Deleting images…', async () => {
-      for (const id of ids) {
-        if (assetUsage()[id]) continue;
-        if (await assetDel(id, null, true)) state.selected.delete(id);
+    const ids = [...state.selected];
+    if (!IS_WORDPRESS) {
+      const currentUsage = assetUsage(), protectedIds = ids.filter(id => currentUsage[id]);
+      if (protectedIds.length) {
+        toast(`${protectedIds.length} selected image${protectedIds.length === 1 ? ' is' : 's are'} used. Open Details to inspect their references; deselect them before deleting.`, {tone:'error'});
+        mediaDetails(root, protectedIds[0], render, $('[data-media-delete]', root)); return;
       }
-      return true;
-    });
-    writeNow(); paint();
+    }
+    const prompt = IS_WORDPRESS
+      ? `Delete unused images from this ${ids.length}-image selection? Images still in use or whose WordPress usage cannot be checked will stay in the library.`
+      : `Remove ${ids.length} unused image${ids.length === 1 ? '' : 's'} from the library?`;
+    if (!await askConfirm('Delete selected images?', prompt, {ok:'Delete images', danger:true})) return;
+    const action = feedback().begin($('[data-media-delete]', root), 'Deleting images…');
+    if (!action) return;
+    const result = await assetDeleteMany(ids);
+    for (const id of ids) if (!AS.mem.has(id)) state.selected.delete(id);
+    const summary = assetDeleteSummary(result);
+    if (result.blocked || result.failed) action.error(summary); else action.success(summary);
+    if (result.removed) { writeNow(); paint(); }
     if (redraw) redraw(); else render();
   });
   search.addEventListener('input', () => { state.query = search.value; limit = 60; render(); });
@@ -28637,12 +28793,21 @@ function mediaDetails(root, id, refresh, origin) {
   const asset = AS.mem.get(id), panel = $('[data-media-details]', root);
   if (!asset || !panel) return;
   const references = mediaReferences(doc()).filter(reference => reference.assetId === id);
+  const usage = assetUse(id);
+  const namedReferences = {managed_document:'Pagecraft document',native_content:'WordPress content',featured_image:'Featured image'};
+  const wordpressUsage = usage.usedBy.length
+    ? `<ul>${usage.usedBy.map(item => `<li><strong>${esc(item.title || item.type + ' ' + item.id)}</strong> · ${esc(item.status || item.type)} · ${esc((item.references || []).map(reference => namedReferences[reference] || reference).join(', '))}</li>`).join('')}</ul>`
+    : '';
+  const usageSummary = IS_WORDPRESS
+    ? `<p class="note"><strong>Current draft:</strong> ${usage.localCount} reference${usage.localCount === 1 ? '' : 's'}${usage.localCount > references.length ? ` (${references.length} managed location${references.length === 1 ? '' : 's'} shown below; exact WordPress URLs are counted but cannot be opened here)` : ''}.</p>
+       <p class="note"><strong>Saved WordPress content:</strong> ${usage.known ? `${usage.serverCount} reference${usage.serverCount === 1 ? '' : 's'} across ${usage.usedBy.length} item${usage.usedBy.length === 1 ? '' : 's'}.` : 'Usage unavailable. Reload the media library before deleting.'}</p>${wordpressUsage}`
+    : `<p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>`;
   panel.hidden = false;
   panel.innerHTML = `<section class="media-asset-details" aria-label="Image details">
     <div class="media-browser-page"><strong>${esc(asset.name)}</strong><button type="button" class="btn" data-details-close>Close details</button></div>
     <p class="note">${kb(asset.size)} · ${asset.w && asset.h ? `${asset.w}×${asset.h}` : 'Dimensions unavailable'} · ${asset.createdAt ? esc(new Date(asset.createdAt).toLocaleDateString()) : 'Upload date unavailable'}</p>
     ${HOST?.assets?.tag ? `<form data-tags-form><label>Tags<input class="ctl" name="tags" value="${esc((asset.tags || []).join(', '))}" placeholder="Separate tags with commas"></label><button class="btn" type="submit">Save tags</button><p class="note" role="status" data-tags-status></p></form>` : ''}
-    <p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>
+    ${usageSummary}
     ${references.length && HOST?.assets?.retainsHistory && root.closest('#modal') ? '<button type="button" class="btn" data-media-replace>Replace everywhere</button>' : ''}
     ${references.length ? `<ul>${references.map(reference => `<li><button type="button" class="btn" data-media-reference="${references.indexOf(reference)}">${esc(reference.scope)} · ${esc(reference.label)}</button></li>`).join('')}</ul>` : ''}
   </section>`;
@@ -28704,16 +28869,20 @@ async function mediaReplace(id) {
   }});
 }
 function mediaCards(list, use, attr, selection = {}) {
-  return list.map(a => `<div class="mitem">
+  return list.map(a => {
+    const usage = assetUse(a.id, use);
+    const deleteDisabled = IS_WORDPRESS && !usage.canDelete;
+    return `<div class="mitem">
     <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}" ${selection.selecting ? `aria-pressed="${selection.selected.has(a.id)}"` : ''}>
       <span class="mthumb"><img src="${a.url}" alt="" loading="lazy"></span>
       <span class="mname">${selection.selecting ? (selection.selected.has(a.id) ? '✓ ' : '○ ') : ''}${esc(a.name)}</span>
-      <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}${use[a.id] ? ` · used ${use[a.id]}×` : ' · unused'}</span>
+      <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''} · ${assetUsageLabel(a.id, use)}</span>
     </button>
     <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
-    <button class="mdel" type="button" data-del="${a.id}" title="Delete from the library"
-      aria-label="Delete ${esc(a.name)} from the library">${svg('trash', 12)}</button>
-  </div>`).join('');
+    <button class="mdel" type="button" data-del="${a.id}" title="${deleteDisabled ? esc(assetDeleteBlockedMessage(usage)) : 'Delete from the library'}"
+      aria-label="Delete ${esc(a.name)} from the library"${deleteDisabled ? ' disabled' : ''}>${svg('trash', 12)}</button>
+  </div>`;
+  }).join('');
 }
 
 /* Takes a file into the library. Shared by every upload entry point. */
@@ -28868,7 +29037,7 @@ function mediaModal() {
   const draw = () => {
     const use = assetUsage();
     const list = [...AS.mem.values()];
-    const orphans = list.filter(a => !use[a.id]).length;
+    const orphans = list.filter(a => assetUse(a.id, use).canDelete).length;
     openModal('Media library', `<div class="media-library-drop" aria-label="Drop images to upload">
       <div class="media-library-items">${mediaBrowserMarkup()}</div>
       <div class="media-library-overlay" aria-hidden="true">${svg('image', 24)}<span>Drop images to upload</span></div>
@@ -28902,12 +29071,14 @@ function mediaModal() {
     }));
     const prune = $('#mmPrune');
     if (prune) prune.addEventListener('click', async () => {
+      const candidates = [...AS.mem.values()].filter(asset => assetUse(asset.id).canDelete).map(asset => asset.id);
+      if (IS_WORDPRESS && !await confirmWordPressAssetDelete(candidates, true)) return;
       const action = feedback().begin(prune, 'Removing unused images…');
       if (!action) return;
-      let removed = 0;
-      for (const a of [...AS.mem.values()]) if (!use[a.id] && await assetDel(a.id, null, true)) removed++;
-      action.success(`${removed} unused images removed.`);
-      if (removed) writeNow();
+      const result = await assetDeleteMany(candidates);
+      const summary = assetDeleteSummary(result);
+      if (result.blocked || result.failed) action.error(summary); else action.success(summary);
+      if (result.removed) writeNow();
       draw();
     });
     wireMediaBrowser($('#mBody'), use, 'data-use', id => {
@@ -28923,8 +29094,10 @@ function mediaModal() {
       toast(result === 'replaced' ? `${a.name} replaced ${target.label}`
         : result === 'inserted' ? `${a.name} placed — add alt text` : 'That does not fit there');
     }, async (id, b) => {
-      if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
-      if (!await assetDel(id, b)) return;
+      const usage = assetUse(id);
+      if (!usage.canDelete) { toast(assetDeleteBlockedMessage(usage), {tone:'error'}); mediaDetails($('#mBody'), id, draw, b); return; }
+      if (IS_WORDPRESS && !await confirmWordPressAssetDelete([id])) return;
+      if (!await assetDel(id, b)) { draw(); return; }
       writeNow(); paint(); draw();
     }, browserState, draw);
   };
@@ -29758,8 +29931,10 @@ function mediaPicker(options = {}) {
     if (options.uploadOnly) $('[data-media-view=library]', zone).hidden = true;
     upload.addEventListener('click', () => showView('upload'));
     wireMediaBrowser(zone, use, 'data-pick', id => askClose(id), async (id, button) => {
-      if (use[id]) { toast('This image is used on the site. Remove its references before deleting it.', {tone:'error'}); return; }
-      if (!await assetDel(id, button)) return;
+      const usage = assetUse(id);
+      if (!usage.canDelete) { toast(assetDeleteBlockedMessage(usage), {tone:'error'}); mediaDetails(zone, id, draw, button); return; }
+      if (IS_WORDPRESS && !await confirmWordPressAssetDelete([id])) return;
+      if (!await assetDel(id, button)) { draw(); return; }
       writeNow(); paint(); draw();
     }, browserState);
   };

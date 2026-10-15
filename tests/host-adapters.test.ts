@@ -53,10 +53,17 @@ function wordpressFetch(doc: Doc) {
     if (path === '/menus/primary' && method === 'GET') return json({ id: 'primary', name: 'Primary', items: [] });
     if (path === '/menus/primary' && method === 'PUT') return json({ id: 'primary', name: 'Primary', items: [] });
     if (path === '/media' && method === 'GET') return json([
-      { id: '51', name: 'hero.webp', mimeType: 'image/webp', url: 'https://wp.test/hero.webp', size: 123 }
+      { id: '51', name: 'hero.webp', mimeType: 'image/webp', url: 'https://wp.test/hero.webp', size: 123,
+        usageKnown: true, usageCount: 2, canDelete: false,
+        usedBy: [{ id: '42', type: 'page', title: 'Home', status: 'publish', parentId: null,
+          references: ['managed_document', 'featured_image'] }] },
+      { id: 'legacy', name: 'legacy.webp', mimeType: 'image/webp', url: 'https://wp.test/legacy.webp', size: 20 },
+      { id: 'unsafe', name: 'unsafe.webp', mimeType: 'image/webp', url: 'https://wp.test/unsafe.webp', size: 20,
+        usageKnown: true, usageCount: 2, canDelete: true, usedBy: [] }
     ]);
     if (path === '/media' && method === 'POST') return json({
-      id: '52', name: 'new.webp', mimeType: 'image/webp', url: 'https://wp.test/new.webp', size: 3
+      id: '52', name: 'new.webp', mimeType: 'image/webp', url: 'https://wp.test/new.webp', size: 3,
+      usageKnown: true, usageCount: 0, canDelete: true, usedBy: []
     }, 201);
     if (path === '/media/51' && method === 'GET') return new Response(new Blob(['img'], { type: 'image/webp' }));
     if (path === '/media/51' && method === 'DELETE') return json({ removed: '51' });
@@ -124,9 +131,23 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   const menu = await host.menus.get('primary');
   a.equal((await host.menus.save(menu)).id, 'primary');
 
-  a.equal((await host.assets.list())[0].mimeType, 'image/webp');
+  const media = await host.assets.list();
+  a.equal(media[0].mimeType, 'image/webp');
+  a.deepEqual({ known: media[0].usageKnown, count: media[0].usageCount, canDelete: media[0].canDelete,
+    references: media[0].usedBy?.[0].references }, {
+    known: true, count: 2, canDelete: false, references: ['managed_document', 'featured_image']
+  });
+  a.deepEqual({ known: media[1].usageKnown, count: media[1].usageCount, canDelete: media[1].canDelete,
+    usedBy: media[1].usedBy }, { known: false, count: null, canDelete: false, usedBy: [] },
+  'legacy WordPress rows fail closed when the host cannot prove usage');
+  a.deepEqual({ known: media[2].usageKnown, count: media[2].usageCount, canDelete: media[2].canDelete,
+    usedBy: media[2].usedBy }, { known: false, count: null, canDelete: false, usedBy: [] },
+  'internally inconsistent WordPress usage fails closed');
   a.equal((await host.assets.download('51')).size, 3);
-  a.equal((await host.assets.upload(new Blob(['new'], { type: 'image/webp' }), 'new.webp')).id, '52');
+  const uploaded = await host.assets.upload(new Blob(['new'], { type: 'image/webp' }), 'new.webp');
+  a.deepEqual({id: uploaded.id, known: uploaded.usageKnown, count: uploaded.usageCount,
+    canDelete: uploaded.canDelete, usedBy: uploaded.usedBy},
+  {id: '52', known: true, count: 0, canDelete: true, usedBy: []});
   await host.assets.remove('51');
 
   a.equal((await host.settings.read()).theme, 'pagecraft');
