@@ -189,6 +189,7 @@ test('importing copies the images first and lands as one undo step with links', 
   expect(C.state.meta.libraryLinks!.map(l => `${l.kind}:${l.localId}@${l.version}`).sort())
     .toEqual(['color:accent@1', 'component:card@1']);
   expect(C.hist.u.length).toBe(1);
+  expect(C.historyLabel('undo')).toBe('Import library items');
   expect(toasts().at(-1)).toMatch(/Imported 2 items from Brand kit/);
   // The row now says it is here, and is no longer offered.
   const row = r.$$('label.lib-item').find(l => l.querySelector('b')?.textContent === 'Card')!;
@@ -196,8 +197,12 @@ test('importing copies the images first and lands as one undo step with links', 
   expect((row.querySelector('input') as HTMLInputElement).disabled).toBe(true);
 
   C.undo();
+  expect(C.historyLabel('redo')).toBe('Import library items');
   expect(C.findComponent('card')).toBeFalsy();
   expect(C.state.meta.libraryLinks || []).toEqual([]);
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Import library items');
+  expect(C.findComponent('card')).toBeTruthy();
 });
 
 test('an import that meets a different item of the same id renames it', async () => {
@@ -292,10 +297,44 @@ test('an update asks about each conflict, then applies as one undo step', async 
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Version two');
   expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
   expect(C.hist.u.length).toBe(1);
+  expect(C.historyLabel('undo')).toBe('Update library');
   expect(toasts().at(-1)).toBe('Updated to version 2 of Brand kit');
   expect(r.$('.lib-banner')).toBeNull();
   C.undo();
+  expect(C.historyLabel('redo')).toBe('Update library');
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Update library');
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Version two');
+});
+
+test('keeping a local library item labels its metadata-only update for Undo and Redo', async () => {
+  const lib = await fake.adapter.create('Brand kit');
+  fake.publishFrom(lib.id, authorDoc([card('Version one')]), [{ kind: 'component', id: 'card' }]);
+  await openLibrary('Brand kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+  C.findComponent('card')!.node.children[0].props.text = 'Changed here';
+  fake.publishFrom(lib.id, authorDoc([card('Version two')]), [{ kind: 'component', id: 'card' }]);
+
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  const mine = r.$$('.lib-res label').find(l => /Keep mine/.test(l.textContent || ''))!.querySelector('input')!;
+  await act(async () => { mine.checked = true; mine.dispatchEvent(new window.Event('change', { bubbles: true })); });
+  C.hist.u.length = 0;
+  const apply = r.$$('button').find(b => b.textContent === 'Apply update') as HTMLButtonElement;
+  await click(apply);
+
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
+  expect(C.historyLabel('undo')).toBe('Update library');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Update library');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(1);
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Update library');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
 });
 
 const withEmbed = (title: string) => {

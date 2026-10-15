@@ -133,9 +133,9 @@ function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
 /* Applying a plan: the whole meta at once, in one edit(), computed from the document as it is at
    that moment rather than when the review was drawn. Then the full render cycle, because the
    canvas, the layers and every panel may now show something new. */
-function commit(doc: Doc) {
+function commit(doc: Doc, label: string) {
   const meta = doc.meta;
-  C.edit(() => { C.state.meta = meta; });
+  C.edit(() => { C.state.meta = meta; }, label);
   L.appRender();
 }
 
@@ -304,7 +304,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
       const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
       if (needed.length) await L.assetsReload();
       const plan = planLibraryImport(C.doc(), bundle, source, chosen, { assets, newId: C.uid });
-      commit(plan.doc);
+      commit(plan.doc, 'Import library items');
       setPicked(new Set());
       const added = plan.items.filter(i => i.how === 'added' || i.how === 'renamed').length;
       const renamed = plan.items.filter(i => i.how === 'renamed').length;
@@ -646,7 +646,7 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
         L.toast('Something here changed while the update was prepared. Review it again.', { tone: 'error' });
         return;
       }
-      commit(plan.doc);
+      commit(plan.doc, 'Update library');
       L.toast(`Updated to version ${summary.version} of ${library.name}`);
       open({ at: 'library', id });
     } catch (error) {

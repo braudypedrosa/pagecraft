@@ -16112,11 +16112,11 @@ var PC_UI = (() => {
     }, [...deps, nonce]);
     return { ...state2, reload: () => setNonce((n2) => n2 + 1) };
   }
-  function commit(doc) {
+  function commit(doc, label) {
     const meta = doc.meta;
     C2.edit(() => {
       C2.state.meta = meta;
-    });
+    }, label);
     L2.appRender();
   }
   function Libraries() {
@@ -16269,7 +16269,7 @@ var PC_UI = (() => {
         const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
         if (needed.length) await L2.assetsReload();
         const plan = planLibraryImport(C2.doc(), bundle, source, chosen, { assets, newId: C2.uid });
-        commit(plan.doc);
+        commit(plan.doc, "Import library items");
         setPicked(/* @__PURE__ */ new Set());
         const added = plan.items.filter((i3) => i3.how === "added" || i3.how === "renamed").length;
         const renamed = plan.items.filter((i3) => i3.how === "renamed").length;
@@ -16649,7 +16649,7 @@ var PC_UI = (() => {
           L2.toast("Something here changed while the update was prepared. Review it again.", { tone: "error" });
           return;
         }
-        commit(plan.doc);
+        commit(plan.doc, "Update library");
         L2.toast(`Updated to version ${summary.version} of ${library.name}`);
         open({ at: "library", id });
       } catch (error) {
