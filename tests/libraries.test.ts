@@ -188,6 +188,31 @@ test('an item changed on both sides is a conflict that must be resolved', () => 
   a.equal(theirs.meta.components!.find(c => c.id === 'card')!.name, 'Card (theirs)');
 });
 
+test('a locally authored anchor makes a library update conflict instead of being erased', () => {
+  const site = imported();
+  const card = site.meta.components!.find(c => c.id === 'card')!;
+  const link = site.meta.libraryLinks!.find(l => l.sourceId === 'card')!;
+  const without = itemHash('component', card);
+  card.node.adv = { ...(card.node.adv || {}), htmlId: '' };
+  a.equal(itemHash('component', card), without,
+    'blank ids keep the legacy imported hash, so unchanged existing links do not conflict');
+  card.node.adv.htmlId = 'local-card';
+  a.notEqual(itemHash('component', card), link.localHash, 'a nonblank authored id is content');
+
+  const next = version2(doc => { doc.meta.components!.find(c => c.id === 'card')!.name = 'Card v2'; });
+  const waiting = planLibraryUpdate(site, next, source(2), {}, { assets, newId });
+  const change = waiting.items.find(i => i.sourceId === 'card')!;
+  a.equal(change.action, 'conflict');
+  a.deepEqual(waiting.unresolved, ['component:card']);
+  a.equal(waiting.doc, null, 'the update fails closed until the owner chooses');
+
+  const mine = planLibraryUpdate(site, next, source(2), { 'component:card': 'mine' }, { assets, newId }).doc!;
+  a.equal(mine.meta.components!.find(c => c.id === 'card')!.node.adv!.htmlId, 'local-card');
+  const theirs = planLibraryUpdate(site, next, source(2), { 'component:card': 'theirs' }, { assets, newId }).doc!;
+  a.equal(theirs.meta.components!.find(c => c.id === 'card')!.node.adv!.htmlId || '', '',
+    'discarding the local anchor requires the explicit library-version choice');
+});
+
 test('removed items are unlinked, never deleted', () => {
   const site = imported();
   site.meta.tokens!.classes = site.meta.tokens!.classes.filter(c => c.id !== 'shadow'); // deleted here

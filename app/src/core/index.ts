@@ -2395,11 +2395,13 @@ function tokenVars() {
    use the normal text style < class < element cascade. */
 const buttonVariantProperty = (property: string) => property === 'background-color'
   || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
-const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null) => {
+const BUTTON_AUTHORED = '--pc-authored-button-';
+const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
     if (!buttonVariantProperty(property)) continue;
-    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value
+      && !forced.has(property)) continue;
     out[property] = value;
   }
   return out;
@@ -2611,6 +2613,16 @@ function classRemove(n: PcNode, id: string) {
 /* take this element's own styling and turn it into a class others can share */
 function classFrom(n: PcNode, name: string) {
   const id = classAdd(name, n.css);
+  const c = findClass(id);
+  /* Hover and focus are styling too. Leaving them on the source made a class created from a
+     finished element share only its resting look; every other user lost the interactive look.
+     Motion is stored separately on `anim` and deliberately stays with the element. */
+  if (c) {
+    (['d', 't', 'm'] as Bp[]).forEach(b => Object.keys(c.css[b]).forEach(prop => {
+      if (prop.startsWith(BUTTON_AUTHORED)) delete c.css[b][prop];
+    }));
+    if (n.st) { c.st = clone(n.st); delete n.st; }
+  }
   n.css = { d: {}, t: {}, m: {} };
   classApply(n, id);
   return id;
@@ -2625,16 +2637,96 @@ const classUsage = (id: string) => {
 function classDelete(id: string) {
   const c = findClass(id);
   if (!c) return false;
+  const ordered = classes();
+  const at = (o: { css?: Css; st?: States }, stateKey?: StateKey) =>
+    stateKey ? o.st && o.st[stateKey] : o.css;
+  const quad: Record<string, string[]> = {
+    padding: ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
+    margin: ['margin-top', 'margin-right', 'margin-bottom', 'margin-left'],
+    'border-width': ['border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'],
+    'border-style': ['border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style'],
+    'border-color': ['border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color']
+  };
+  const words = (value: string) => {
+    const out: string[] = [];
+    let part = '', depth = 0, quote = '';
+    for (const ch of value.trim()) {
+      if (quote) { part += ch; if (ch === quote) quote = ''; continue; }
+      if (ch === '"' || ch === "'") { quote = ch; part += ch; continue; }
+      if (ch === '(') depth++;
+      if (ch === ')') depth = Math.max(0, depth - 1);
+      if (/\s/.test(ch) && !depth) { if (part) { out.push(part); part = ''; } }
+      else part += ch;
+    }
+    if (part) out.push(part);
+    return out;
+  };
+  /* Compare box shorthands as the longhands the browser computes. Otherwise deleting
+     `padding:20px` and baking that shorthand locally would overwrite a later surviving
+     class's `padding-left:40px`, even though that class won before deletion. */
+  const cascade = (out: Decls, map: Decls, keep: (prop: string, value: string) => boolean) => {
+    for (const [prop, value] of Object.entries(map)) {
+      if (prop.startsWith(BUTTON_AUTHORED) || value === '' || !keep(prop, value)) continue;
+      const sides = quad[prop];
+      if (!sides) { out[prop] = value; continue; }
+      const v = words(value);
+      if (!v.length || v.length > 4) { out[prop] = value; continue; }
+      const expanded = v.length === 1 ? [v[0], v[0], v[0], v[0]]
+        : v.length === 2 ? [v[0], v[1], v[0], v[1]]
+          : v.length === 3 ? [v[0], v[1], v[2], v[1]] : v;
+      sides.forEach((side, i) => { out[side] = expanded[i]; });
+    }
+  };
+  /* The stylesheet is desktop first, followed by tablet and mobile overrides. Within each
+     bucket reusable classes follow list order and the element follows every class. Replaying
+     that exact cascade lets deletion localise only declarations whose visible value would
+     otherwise change. In particular, a lower class must not be baked over a higher class. */
+  const shown = (x: PcNode, b: Bp, stateKey?: StateKey, without = '') => {
+    const out: Decls = {};
+    const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (cls.id === without || !(x.cls || []).includes(cls.id)) continue;
+        cascade(out, (at(cls, stateKey) && at(cls, stateKey)![bp]) || {}, () => true);
+      }
+      cascade(out, (at(x, stateKey) && at(x, stateKey)![bp]) || {}, (prop, value) =>
+        /* Untouched Button defaults are present in the document but deliberately omitted from
+           the high-specificity element bridge. A class bridge beats them. Treating them as an
+           element winner here made deletion reveal the factory value instead of keeping the
+           class value that had actually rendered. Responsive and state rules are all emitted. */
+        !(x.type === 'button' && !stateKey && bp === 'd'
+          && buttonVariantProperty(prop) && BUTTON_VARIANT_DEFAULTS[prop] === value));
+    }
+    return out;
+  };
+  const preserve = (x: PcNode, stateKey?: StateKey) => {
+    for (const b of ['d', 't', 'm'] as Bp[]) {
+      const before = shown(x, b, stateKey);
+      const after = shown(x, b, stateKey, id);
+      const changed = Object.keys(before).filter(prop => before[prop] !== after[prop]);
+      if (!changed.length) continue;
+      let own: Css;
+      if (stateKey) {
+        x.st = x.st || {};
+        x.st[stateKey] = x.st[stateKey] || { d: {}, t: {}, m: {} };
+        own = x.st[stateKey]!;
+      } else own = x.css;
+      for (const prop of changed) {
+        own[b][prop] = before[prop];
+        /* A fresh Button stores its factory values, but the renderer normally omits them from
+           the high-specificity bridge so Outline/Link variants work. A deleted class may have
+           been the authored winner with that exact value; remember that distinction or the
+           retained value is mistaken for untouched factory state and loses to a lower class. */
+        if (!stateKey && x.type === 'button' && b === 'd' && BUTTON_VARIANT_DEFAULTS[prop] === before[prop]) {
+          own[b][BUTTON_AUTHORED + prop] = '1';
+        }
+      }
+    }
+  };
   allTrees().forEach(l => eachNode(l, x => {
     if (!(x.cls || []).includes(id)) return;
-    (['d', 't', 'm'] as Bp[]).forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
-    STATES.forEach(([k]) => {
-      const from = c.st && c.st[k];
-      if (!from) return;
-      const own = (x.st && x.st[k]) || EMPTY_CSS;
-      x.st = x.st || {};
-      x.st[k] = { d: { ...from.d, ...own.d }, t: { ...from.t, ...own.t }, m: { ...from.m, ...own.m } };
-    });
+    preserve(x);
+    STATES.forEach(([k]) => preserve(x, k));
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter(x => x.id !== id);
@@ -7050,6 +7142,12 @@ const IMAGE_CONTENT_STYLE = new Set(['height', 'object-fit', 'border-radius', 'o
 function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null,
   detachedComponentRoot = false) {
   const map = { ...(n.css[b] || {}) };
+  const authoredButton = new Set<string>();
+  Object.keys(map).forEach(prop => {
+    if (!prop.startsWith(BUTTON_AUTHORED)) return;
+    if (map[prop] === '1') authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
+    delete map[prop];
+  });
   if (n.type === 'column') {
     /* The marker is editor state, not page CSS. Resolve it at every breakpoint so a
        tablet row override reaches following columns even when the columns themselves
@@ -7096,7 +7194,7 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
        buckets contain overrides only and can all be bridged. The document model cannot tell
        an explicit desktop value equal to the factory default from the untouched default. */
     const defaults = b === 'd' ? BUTTON_VARIANT_DEFAULTS : null;
-    const variantBody = decl(buttonVariantDeclarations(map, defaults));
+    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton));
     if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
   }
   if (imageNode && decl(imageMap)) {

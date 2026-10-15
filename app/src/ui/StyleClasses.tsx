@@ -14,7 +14,7 @@ export function StyleClasses() {
       ok: 'Add class',
     });
     if (name === null) return;
-    C.edit(() => C.classAdd(name));
+    C.edit(() => C.classAdd(name), 'Add class style');
     repaint('classes');
     L.toast('Class style added');
   };
@@ -26,7 +26,7 @@ export function StyleClasses() {
     if (uses && !await L.askConfirm('Delete this class?',
       `<b>${esc(c.name)}</b> is used by ${uses} element${uses === 1 ? '' : 's'}. They keep `
       + 'their current look — they just stop sharing it.', { ok: 'Delete class' })) return;
-    C.edit(() => C.classDelete(id));
+    C.edit(() => C.classDelete(id), 'Delete class');
     repaint('classes');
     L.toast('Class deleted, looks kept');
   };
@@ -50,7 +50,7 @@ export function StyleClasses() {
                 }} onBlur={L.endTx} aria-label="Class name" />
             </span>
             <button class="iconbtn" title="Raise precedence — lower classes override higher classes; element styling wins" disabled={i === 0}
-              onClick={() => { C.edit(() => C.classMove(c.id, -1)); repaint('classes'); }}>
+              onClick={() => { C.edit(() => C.classMove(c.id, -1), 'Reorder class styles'); repaint('classes'); }}>
               <Icon name="caretUp" size={12} /></button>
             <button class="iconbtn" title="Delete — elements keep the look"
               onClick={() => remove(c.id)}><Icon name="trash" size={13} /></button>

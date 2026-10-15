@@ -4046,11 +4046,12 @@ function tokenVars() {
   return body ? `:root{${body}}` : "";
 }
 var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
-var buttonVariantDeclarations = (map, defaults = null) => {
+var BUTTON_AUTHORED = "--pc-authored-button-";
+var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
     if (!buttonVariantProperty(property)) continue;
-    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value && !forced.has(property)) continue;
     out[property] = value;
   }
   return out;
@@ -4227,6 +4228,16 @@ function classRemove(n, id) {
 }
 function classFrom(n, name) {
   const id = classAdd(name, n.css);
+  const c = findClass(id);
+  if (c) {
+    ["d", "t", "m"].forEach((b) => Object.keys(c.css[b]).forEach((prop) => {
+      if (prop.startsWith(BUTTON_AUTHORED)) delete c.css[b][prop];
+    }));
+    if (n.st) {
+      c.st = clone(n.st);
+      delete n.st;
+    }
+  }
   n.css = { d: {}, t: {}, m: {} };
   classApply(n, id);
   return id;
@@ -4241,18 +4252,102 @@ var classUsage = (id) => {
 function classDelete(id) {
   const c = findClass(id);
   if (!c) return false;
+  const ordered = classes();
+  const at = (o, stateKey) => stateKey ? o.st && o.st[stateKey] : o.css;
+  const quad = {
+    padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
+    margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
+    "border-width": ["border-top-width", "border-right-width", "border-bottom-width", "border-left-width"],
+    "border-style": ["border-top-style", "border-right-style", "border-bottom-style", "border-left-style"],
+    "border-color": ["border-top-color", "border-right-color", "border-bottom-color", "border-left-color"]
+  };
+  const words = (value) => {
+    const out = [];
+    let part = "", depth = 0, quote = "";
+    for (const ch of value.trim()) {
+      if (quote) {
+        part += ch;
+        if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        part += ch;
+        continue;
+      }
+      if (ch === "(") depth++;
+      if (ch === ")") depth = Math.max(0, depth - 1);
+      if (/\s/.test(ch) && !depth) {
+        if (part) {
+          out.push(part);
+          part = "";
+        }
+      } else part += ch;
+    }
+    if (part) out.push(part);
+    return out;
+  };
+  const cascade = (out, map, keep) => {
+    for (const [prop, value] of Object.entries(map)) {
+      if (prop.startsWith(BUTTON_AUTHORED) || value === "" || !keep(prop, value)) continue;
+      const sides = quad[prop];
+      if (!sides) {
+        out[prop] = value;
+        continue;
+      }
+      const v = words(value);
+      if (!v.length || v.length > 4) {
+        out[prop] = value;
+        continue;
+      }
+      const expanded = v.length === 1 ? [v[0], v[0], v[0], v[0]] : v.length === 2 ? [v[0], v[1], v[0], v[1]] : v.length === 3 ? [v[0], v[1], v[2], v[1]] : v;
+      sides.forEach((side, i) => {
+        out[side] = expanded[i];
+      });
+    }
+  };
+  const shown = (x, b, stateKey, without = "") => {
+    const out = {};
+    const chain = [...BP_CHAIN[b] || ["d"]].reverse();
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (cls.id === without || !(x.cls || []).includes(cls.id)) continue;
+        cascade(out, at(cls, stateKey) && at(cls, stateKey)[bp] || {}, () => true);
+      }
+      cascade(out, at(x, stateKey) && at(x, stateKey)[bp] || {}, (prop, value) => (
+        /* Untouched Button defaults are present in the document but deliberately omitted from
+           the high-specificity element bridge. A class bridge beats them. Treating them as an
+           element winner here made deletion reveal the factory value instead of keeping the
+           class value that had actually rendered. Responsive and state rules are all emitted. */
+        !(x.type === "button" && !stateKey && bp === "d" && buttonVariantProperty(prop) && BUTTON_VARIANT_DEFAULTS[prop] === value)
+      ));
+    }
+    return out;
+  };
+  const preserve = (x, stateKey) => {
+    for (const b of ["d", "t", "m"]) {
+      const before = shown(x, b, stateKey);
+      const after = shown(x, b, stateKey, id);
+      const changed = Object.keys(before).filter((prop) => before[prop] !== after[prop]);
+      if (!changed.length) continue;
+      let own;
+      if (stateKey) {
+        x.st = x.st || {};
+        x.st[stateKey] = x.st[stateKey] || { d: {}, t: {}, m: {} };
+        own = x.st[stateKey];
+      } else own = x.css;
+      for (const prop of changed) {
+        own[b][prop] = before[prop];
+        if (!stateKey && x.type === "button" && b === "d" && BUTTON_VARIANT_DEFAULTS[prop] === before[prop]) {
+          own[b][BUTTON_AUTHORED + prop] = "1";
+        }
+      }
+    }
+  };
   allTrees().forEach((l) => eachNode(l, (x) => {
     if (!(x.cls || []).includes(id)) return;
-    ["d", "t", "m"].forEach((b) => {
-      x.css[b] = { ...c.css && c.css[b] || {}, ...x.css[b] || {} };
-    });
-    STATES.forEach(([k]) => {
-      const from = c.st && c.st[k];
-      if (!from) return;
-      const own = x.st && x.st[k] || EMPTY_CSS;
-      x.st = x.st || {};
-      x.st[k] = { d: { ...from.d, ...own.d }, t: { ...from.t, ...own.t }, m: { ...from.m, ...own.m } };
-    });
+    preserve(x);
+    STATES.forEach(([k]) => preserve(x, k));
     classRemove(x, id);
   }));
   ensureTokens().classes = classes().filter((x) => x.id !== id);
@@ -8149,6 +8244,12 @@ var selOf = (n) => "." + nodeClass(n);
 var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
 function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
+  const authoredButton = /* @__PURE__ */ new Set();
+  Object.keys(map).forEach((prop) => {
+    if (!prop.startsWith(BUTTON_AUTHORED)) return;
+    if (map[prop] === "1") authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
+    delete map[prop];
+  });
   if (n.type === "column") {
     const own = cssAt(n, b, COLUMN_V_ALIGN);
     const def = n.use ? findComponent(n.use) : null;
@@ -8178,7 +8279,7 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
   if (body) rules.push(`${selOf(n)}{${body}}`);
   if (n.type === "button") {
     const defaults = b === "d" ? BUTTON_VARIANT_DEFAULTS : null;
-    const variantBody = decl(buttonVariantDeclarations(map, defaults));
+    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton));
     if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
   }
   if (imageNode && decl(imageMap)) {

@@ -3101,6 +3101,28 @@ test('saving a class from an element moves the styling off the element', () => {
   a.match(C.treeCss([C.state.pages[0].tree], false), /\.c-rounded\{[^}]*border-radius:12px/);
 });
 
+test('saving a class from an element moves hover and focus styling but leaves motion local', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  h.st = {
+    hover: { d: { color: '#123456' }, t: { transform: 'translateY(-2px)' }, m: {} },
+    focus: { d: { outline: '2px solid currentColor' }, t: {}, m: { 'outline-offset': '4px' } }
+  };
+  h.anim = { name: 'fade-up', delay: '0.2s' };
+  const id = C.classFrom(h, 'Interactive');
+  a.deepEqual(klass(id).st, {
+    hover: { d: { color: '#123456' }, t: { transform: 'translateY(-2px)' }, m: {} },
+    focus: { d: { outline: '2px solid currentColor' }, t: {}, m: { 'outline-offset': '4px' } }
+  });
+  a.equal(h.st, undefined, 'moved state rules do not remain as source-only overrides');
+  a.deepEqual(h.anim, { name: 'fade-up', delay: '0.2s' }, 'scroll motion is not a class style');
+  const other = insert('heading', null, 1);
+  C.classApply(other, id);
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  a.match(css, /\.c-interactive:hover\{[^}]*color:#123456/);
+  a.match(css, /\.c-interactive:focus-visible\{[^}]*outline:2px solid currentColor/);
+});
+
 test('deleting a class bakes it into its users so nothing moves', () => {
   blank();
   const h = insert('heading', null, 0);
@@ -3125,6 +3147,103 @@ test('deleting a class keeps its hover styles on the elements that used it', () 
   a.equal(h.st.hover!.d.transform, 'translateY(-2px)');
   a.equal(h.st.hover!.d.color, '#222222');
   a.match(C.treeCss([C.state.pages[0].tree], false), new RegExp('\\.' + C.nodeClass(h) + ':hover\\{[^}]*transform:translateY\\(-2px\\)'));
+});
+
+test('deleting a class preserves the effective multi-class cascade without overriding higher classes', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const low = C.classAdd('Low', { d: { color: '#111111' }, t: { color: '#444444' } });
+  const gone = C.classAdd('Gone', { d: { color: '#222222', padding: '8px' }, t: { color: '#555555' } });
+  const high = C.classAdd('High', { d: { color: '#333333' }, m: { color: '#666666' } });
+  klass(low).st = { hover: { d: { color: '#111111' }, t: {}, m: {} } };
+  klass(gone).st = { hover: { d: { color: '#222222' }, t: { color: '#555555' }, m: {} },
+    focus: { d: { outline: '2px solid #222222' }, t: {}, m: {} } };
+  klass(high).st = { hover: { d: { color: '#333333' }, t: {}, m: { color: '#666666' } },
+    focus: { d: { outline: '2px solid #333333' }, t: {}, m: {} } };
+  C.classApply(h, low); C.classApply(h, gone); C.classApply(h, high);
+
+  C.classDelete(gone);
+
+  a.equal(h.css.d.color, undefined, 'the higher desktop class remains the winner');
+  a.equal(h.css.t.color, '#555555', 'the deleted tablet winner is preserved');
+  a.equal(h.css.m.color, undefined, 'the higher mobile class remains the winner');
+  a.deepEqual(
+    [h.css.d['padding-top'], h.css.d['padding-right'], h.css.d['padding-bottom'], h.css.d['padding-left']],
+    ['8px', '8px', '8px', '8px'], 'a unique shorthand is retained as its computed sides');
+  a.equal(h.st!.hover!.d.color, undefined, 'higher hover styling is not shadowed locally');
+  a.equal(h.st!.hover!.t.color, '#555555', 'a deleted responsive hover winner is retained');
+  a.equal(h.st!.hover!.m.color, undefined, 'the remaining mobile hover wins');
+  a.equal(h.st!.focus, undefined, 'a higher focus rule needs no local override');
+  a.deepEqual(h.cls, [low, high]);
+});
+
+test('deleting a class preserves Button bridge values hidden by stored factory defaults', () => {
+  blank();
+  const button = insert('button', null, 0);
+  const id = C.classAdd('Large action', { d: {
+    'padding-left': '42px', 'border-width': '3px', 'background-color': '#224466'
+  } });
+  C.classApply(button, id);
+  const before = C.treeCss([C.state.pages[0].tree], false);
+  a.match(before, new RegExp(`\\.c-${id}\\.pagecraft-button\\{[^}]*padding-left:42px`));
+
+  C.classDelete(id);
+
+  const after = C.treeCss([C.state.pages[0].tree], false);
+  const bridge = new RegExp(`\\.${C.nodeClass(button)}\\.pagecraft-button\\{([^}]*)}`)
+    .exec(after)?.[1] || '';
+  a.match(bridge, /padding-left:42px/);
+  a.match(bridge, /border-top-width:3px/);
+  a.match(bridge, /border-right-width:3px/);
+  a.match(bridge, /border-bottom-width:3px/);
+  a.match(bridge, /border-left-width:3px/);
+  a.match(bridge, /background-color:#224466/);
+  a.ok(after.indexOf('.pagecraft-button[data-variant=') < after.indexOf(`.${C.nodeClass(button)}.pagecraft-button{`),
+    'the retained declaration keeps the same specificity bridge after built-in variants');
+});
+
+test('deleting a factory-equal Button winner still emits it over a lower class', () => {
+  blank();
+  const button = insert('button', null, 0);
+  const low = C.classAdd('Blue action', { d: {
+    'background-color': '#224466', 'padding-left': '42px'
+  } });
+  const gone = C.classAdd('Factory action', { d: {
+    'background-color': 'var(--c-brand)', 'padding-left': '26px'
+  } });
+  C.classApply(button, low); C.classApply(button, gone);
+
+  C.classDelete(gone);
+
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const bridge = new RegExp(`\\.${C.nodeClass(button)}\\.pagecraft-button\\{([^}]*)}`)
+    .exec(css)?.[1] || '';
+  a.match(bridge, /background-color:var\(--c-brand\)/,
+    'the authored brand value is not mistaken for the untouched factory default');
+  a.match(bridge, /padding-left:26px/);
+  a.ok(css.indexOf(`.c-${low}.pagecraft-button{`) < css.indexOf(`.${C.nodeClass(button)}.pagecraft-button{`),
+    'the retained factory-equal winner still follows and overrides the lower class bridge');
+});
+
+test('deleting a shorthand class does not override surviving longhand winners', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const gone = C.classAdd('Inset', { d: { padding: '10px 20px 30px 40px' } });
+  const high = C.classAdd('Left edge', { d: { 'padding-left': '64px' } });
+  C.classApply(h, gone); C.classApply(h, high);
+
+  C.classDelete(gone);
+
+  a.equal(h.css.d['padding-left'], undefined, 'the later class still owns the left edge');
+  a.equal(h.css.d['padding-top'], '10px');
+  a.equal(h.css.d['padding-right'], '20px');
+  a.equal(h.css.d['padding-bottom'], '30px');
+  const css = C.treeCss([C.state.pages[0].tree], false);
+  const local = new RegExp(`\\.${C.nodeClass(h)}\\{([^}]*)}`).exec(css)?.[1] || '';
+  a.doesNotMatch(local, /padding(?:-left)?:/,
+    'the local rule has no shorthand or left declaration that can outrank the surviving class');
+  a.match(local, /padding-top:10px/);
+  a.match(css, new RegExp(`\\.c-${high}\\{[^}]*padding-left:64px`));
 });
 
 test('removing a class from one element leaves the others alone', () => {

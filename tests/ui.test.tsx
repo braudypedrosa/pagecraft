@@ -1046,8 +1046,31 @@ test('style classes can be created from project settings', async () => {
 
   a.equal(C.classes().length, before + 1);
   a.equal(C.classes().at(-1)?.name, 'Stub name');
+  a.equal(C.historyLabel('undo'), 'Add class style');
   a.ok(r.names().includes('askText'));
   a.ok(r.names().includes('toast'));
+});
+
+test('style-class delete and reorder keep useful Undo and Redo labels', async () => {
+  const heading = C.insert('heading', null, 0)!;
+  const first = C.classAdd('First', { d: { color: '#111111' } });
+  const second = C.classAdd('Second', { d: { color: '#222222' } });
+  C.classApply(heading, first); C.classApply(heading, second);
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.draw(() => <StyleClasses />, 'classes');
+
+  r.click(r.$$('button[title^="Raise precedence"]')[1]);
+  a.equal(C.historyLabel('undo'), 'Reorder class styles');
+
+  const remove = r.$$('button[title^="Delete"]')[0];
+  r.click(remove);
+  await Promise.resolve();
+  await Promise.resolve();
+  a.equal(C.historyLabel('undo'), 'Delete class');
+  C.undo();
+  a.equal(C.historyLabel('redo'), 'Delete class');
+  C.redo();
+  a.equal(C.historyLabel('undo'), 'Delete class');
 });
 
 test('style-class rows omit implementation-detail declaration counts', () => {

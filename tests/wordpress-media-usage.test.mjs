@@ -150,32 +150,79 @@ test('bulk and prune helper reports removed, still-used and failed assets withou
   expect(toast).not.toHaveBeenCalled();
 });
 
-test('details distinguish current draft locations from site-wide WordPress usage',()=>{
+function detailsView({usedBy,document={},references=[]}){
   const dom=new JSDOM('<div id="root"><div data-media-details hidden></div></div>');
   windows.push(dom.window);
-  const document={one:'asset:photo',two:'https://wp.test/uploads/photo.jpg'};
   const {context}=harness({document});
-  const asset=media('photo',{usageCount:2,canDelete:false,usedBy:[{
-    id:'42',type:'page',title:'Published home',status:'publish',parentId:null,
-    references:['managed_document','featured_image'],
-  }]});
+  const asset=media('photo',{usageCount:usedBy.length,canDelete:usedBy.length===0,usedBy});
   context.AS.mem.set('photo',asset);
   Object.assign(context,{
     document:dom.window.document,
     $:(selector,root=dom.window.document)=>root.querySelector(selector),
     $$:(selector,root=dom.window.document)=>[...root.querySelectorAll(selector)],
-    mediaReferences:()=>[{assetId:'photo',scope:'page',label:'Current page'}],
+    mediaReferences:()=>references,
     esc:value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])),
     kb:value=>value+' B',HOST:{assets:{}},PC_UI:{installUiMotion:()=>null},
     mediaReplace:vi.fn(),mediaOpenReference:vi.fn(),Date,
   });
-  const start=source.indexOf('function mediaDetails(');
+  const start=source.indexOf('function wordPressMediaUsageDetails(');
   const end=source.indexOf('\n/* Pin the reviewed draft',start);
   vm.runInContext(source.slice(start,end),context);
   context.mediaDetails(dom.window.document.querySelector('#root'),'photo',vi.fn(),null);
-  const text=dom.window.document.querySelector('[data-media-details]').textContent;
+  const panel=dom.window.document.querySelector('[data-media-details]');
+  return {panel,text:panel.textContent};
+}
+
+test('details distinguish current draft locations and group saved revisions by owner',()=>{
+  const {text}=detailsView({
+    document:{one:'asset:photo',two:'https://wp.test/uploads/photo.jpg'},
+    references:[{assetId:'photo',scope:'page',label:'Current page'}],
+    usedBy:[
+      {id:'42',type:'page',title:'Home',status:'publish',parentId:null,references:['managed_document']},
+      {id:'420',type:'revision',title:'Home',status:'inherit',parentId:'42',references:['managed_document']},
+      {id:'421',type:'revision',title:'Home',status:'inherit',parentId:'42',references:['featured_image']},
+      {id:'422',type:'revision',title:'Home',status:'inherit',parentId:'42',references:['managed_document']},
+      {id:'43',type:'page',title:'Story',status:'draft',parentId:null,references:['native_content']},
+    ],
+  });
   expect(text).toContain('Current draft: 2 references');
   expect(text).toContain('1 managed location shown below');
-  expect(text).toContain('Saved WordPress content: 2 references across 1 item');
-  expect(text).toContain('Published home · publish · Pagecraft document, Featured image');
+  expect(text).toContain('Saved WordPress content: Used by 2 current WordPress items and 3 saved revisions.');
+  expect(text).toContain('Home · Published page · 3 saved revisions · Pagecraft document, Featured image');
+  expect(text).toContain('Story · Draft page · WordPress content');
+  expect(text.match(/Home ·/g)).toHaveLength(1);
+  expect(text).not.toContain('inherit');
+});
+
+test('details report revision-only usage without implying current content or occurrences',()=>{
+  const {text}=detailsView({usedBy:[
+    {id:'551',type:'revision',title:'Archived landing page',status:'inherit',parentId:'55',references:['managed_document']},
+    {id:'552',type:'revision',title:'Archived landing page',status:'inherit',parentId:'55',references:['featured_image']},
+  ]});
+  expect(text).toContain('Saved WordPress content: Used by 2 saved revisions.');
+  expect(text).toContain('Archived landing page · 2 saved revisions · Pagecraft document, Featured image');
+  expect(text).not.toContain('current WordPress item');
+  expect(text).not.toContain('2 references');
+});
+
+test('details do not infer a hidden revision title from its readable parent',()=>{
+  const {text}=detailsView({usedBy:[
+    {id:'42',type:'page',title:'Home',status:'publish',parentId:null,references:['managed_document']},
+    {id:'420',type:'revision',title:'',status:'inherit',parentId:'42',references:['featured_image']},
+  ]});
+  expect(text).toContain('Home · Published page · Pagecraft document');
+  expect(text).toContain('Private content · 1 saved revision · Featured image');
+  expect(text).not.toContain('Home · Published page · 1 saved revision');
+  expect(text).not.toContain('revision 420');
+  expect(text).not.toContain('42');
+});
+
+test('details escape authoritative media usage titles',()=>{
+  const title='<img src=x onerror="alert(1)">';
+  const {panel,text}=detailsView({usedBy:[
+    {id:'88',type:'page',title,status:'private',parentId:null,references:['native_content']},
+  ]});
+  expect(text).toContain(`${title} · Private page · WordPress content`);
+  expect(panel.querySelector('img')).toBeNull();
+  expect(panel.innerHTML).toContain('&lt;img');
 });

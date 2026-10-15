@@ -5355,18 +5355,71 @@ function mediaOpenReference(reference) {
   else { projectModal(); return; }
   if (reference.nodeId) { showPanel('layers'); select(reference.nodeId, {scroll:true}); }
 }
+function wordPressMediaUsageDetails(usedBy) {
+  const statusLabels = {publish:'Published',private:'Private',draft:'Draft',pending:'Pending',future:'Scheduled'};
+  const typeLabels = {page:'page',post:'post',pagecraft_global:'shared element'};
+  const current = [], currentById = new Map(), revisionGroups = new Map();
+  for (const item of Array.isArray(usedBy) ? usedBy : []) {
+    if (item.type !== 'revision') {
+      const row = {
+        title:item.title || 'Private content',
+        titleKnown:Boolean(item.title),
+        detail:[statusLabels[item.status] || '', typeLabels[item.type] || 'content'].filter(Boolean).join(' '),
+        references:new Set(item.references || []), revisions:0,
+      };
+      current.push(row);
+      currentById.set(String(item.id), row);
+      continue;
+    }
+    const key = item.parentId ? String(item.parentId) : `revision:${item.id}`;
+    const group = revisionGroups.get(key) || {parentId:item.parentId ? String(item.parentId) : '', title:'', titleHidden:false, references:new Set(), count:0};
+    group.count += 1;
+    if (item.title) group.title ||= item.title; else group.titleHidden = true;
+    for (const reference of item.references || []) group.references.add(reference);
+    revisionGroups.set(key, group);
+  }
+  const rows = [...current];
+  for (const group of revisionGroups.values()) {
+    const currentRow = currentById.get(group.parentId);
+    if (currentRow?.titleKnown && !group.titleHidden) {
+      currentRow.revisions += group.count;
+      for (const reference of group.references) currentRow.references.add(reference);
+    } else {
+      rows.push({
+        title:group.titleHidden ? 'Private content' : group.title || 'Private content',
+        detail:'', references:group.references, revisions:group.count,
+      });
+    }
+  }
+  return {
+    currentCount:current.length,
+    revisionCount:[...revisionGroups.values()].reduce((total, group) => total + group.count, 0),
+    rows:rows.map(row => ({...row,references:[...row.references]})),
+  };
+}
 function mediaDetails(root, id, refresh, origin) {
   const asset = AS.mem.get(id), panel = $('[data-media-details]', root);
   if (!asset || !panel) return;
   const references = mediaReferences(doc()).filter(reference => reference.assetId === id);
   const usage = assetUse(id);
   const namedReferences = {managed_document:'Pagecraft document',native_content:'WordPress content',featured_image:'Featured image'};
-  const wordpressUsage = usage.usedBy.length
-    ? `<ul>${usage.usedBy.map(item => `<li><strong>${esc(item.title || item.type + ' ' + item.id)}</strong> · ${esc(item.status || item.type)} · ${esc((item.references || []).map(reference => namedReferences[reference] || reference).join(', '))}</li>`).join('')}</ul>`
+  const savedUsage = wordPressMediaUsageDetails(usage.usedBy);
+  const savedUsageSummary = savedUsage.currentCount && savedUsage.revisionCount
+    ? `Used by ${savedUsage.currentCount} current WordPress item${savedUsage.currentCount === 1 ? '' : 's'} and ${savedUsage.revisionCount} saved revision${savedUsage.revisionCount === 1 ? '' : 's'}.`
+    : savedUsage.currentCount
+      ? `Used by ${savedUsage.currentCount} current WordPress item${savedUsage.currentCount === 1 ? '' : 's'}.`
+      : savedUsage.revisionCount
+        ? `Used by ${savedUsage.revisionCount} saved revision${savedUsage.revisionCount === 1 ? '' : 's'}.`
+        : 'Not used by saved WordPress content.';
+  const wordpressUsage = savedUsage.rows.length
+    ? `<ul>${savedUsage.rows.map(item => {
+      const details = [item.detail, item.revisions ? `${item.revisions} saved revision${item.revisions === 1 ? '' : 's'}` : '', item.references.map(reference => namedReferences[reference] || reference).join(', ')].filter(Boolean);
+      return `<li><strong>${esc(item.title)}</strong>${details.length ? ` · ${details.map(esc).join(' · ')}` : ''}</li>`;
+    }).join('')}</ul>`
     : '';
   const usageSummary = IS_WORDPRESS
     ? `<p class="note"><strong>Current draft:</strong> ${usage.localCount} reference${usage.localCount === 1 ? '' : 's'}${usage.localCount > references.length ? ` (${references.length} managed location${references.length === 1 ? '' : 's'} shown below; exact WordPress URLs are counted but cannot be opened here)` : ''}.</p>
-       <p class="note"><strong>Saved WordPress content:</strong> ${usage.known ? `${usage.serverCount} reference${usage.serverCount === 1 ? '' : 's'} across ${usage.usedBy.length} item${usage.usedBy.length === 1 ? '' : 's'}.` : 'Usage unavailable. Reload the media library before deleting.'}</p>${wordpressUsage}`
+       <p class="note"><strong>Saved WordPress content:</strong> ${usage.known ? savedUsageSummary : 'Usage unavailable. Reload the media library before deleting.'}</p>${wordpressUsage}`
     : `<p class="note">${SRV ? 'Removed images remain stored for history and still count toward storage. ' : ''}${references.length} managed reference${references.length === 1 ? '' : 's'}. Custom code and external URLs are outside managed replacement.</p>`;
   panel.hidden = false;
   panel.innerHTML = `<section class="media-asset-details" aria-label="Image details">

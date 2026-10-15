@@ -162,7 +162,10 @@ function normalised(kind: LibraryItemKind, item: unknown) {
   const root = (kind === 'component' || kind === 'block') ? copy.node as Node | undefined : undefined;
   if (root) eachNode(root, n => {
     delete (n as Partial<Node>).id;
-    if (n.adv && 'htmlId' in n.adv) delete (n.adv as { htmlId?: string }).htmlId;
+    /* Node ids are storage identity. A nonblank htmlId is authored content: ignoring it made a
+       local anchor invisible to conflict detection, then an upstream update silently erased it.
+       Keep normalising blank ids away so hashes stored for existing imports remain compatible. */
+    if (n.adv && !n.adv.htmlId && 'htmlId' in n.adv) delete (n.adv as { htmlId?: string }).htmlId;
   });
   return canonical({ kind, item: copy });
 }
