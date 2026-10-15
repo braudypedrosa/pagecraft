@@ -3181,7 +3181,14 @@ function lint() {
         });
       }
       const links: any[] = [];
-      if (hasItemHrefs(n)) ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
+      if (n.type === 'nav') ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
+      if (n.type === 'crumbs' && n.props.mode === 'manual') {
+        /* Rendering makes the last written crumb the current page and suppresses its href.
+           Review only the preceding anchors that are actually emitted. From-page mode
+           derives its trail from project pages and ignores any stale stored item rows. */
+        const items = (n.props.items as any[]) || [];
+        items.slice(0, -1).forEach((it: any) => links.push(it.href));
+      }
       if (n.props.link !== undefined) links.push(n.props.link);
       if (n.type === 'text') [...String(n.props.html || '').matchAll(/href="([^"]*)"/g)].forEach(m => links.push(m[1]));
       links.filter(h => h !== undefined && h !== null).forEach(href => {
@@ -6442,8 +6449,9 @@ const STICKY = { position: 'sticky', top: '0px', 'z-index': '50' };
    overrides this on its own column.
 
    And it only holds while the wide header is text. At narrower widths there is no stable
-   baseline to share: a tablet-collapsed burger sat about 6px below the wordmark, while baseline
-   alignment left the default mobile burger 4.3px low. `BURGER` therefore centres the row
+   baseline to share: in tablet proof, its Nav column sat 9px below the wordmark column and
+   the burger centre was about 6px low. Baseline alignment also left the default mobile
+   burger 4.3px low. `BURGER` therefore centres the row
    at both responsive breakpoints, whether the Nav collapses at Tablet or Mobile. */
 const BASELINE = { 'align-items': 'baseline' };
 const BURGER = { 'align-items': 'center' };

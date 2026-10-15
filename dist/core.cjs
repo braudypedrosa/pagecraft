@@ -4612,7 +4612,11 @@ function lint() {
         });
       }
       const links = [];
-      if (hasItemHrefs(n)) (n.props.items || []).forEach((it) => links.push(it.href));
+      if (n.type === "nav") (n.props.items || []).forEach((it) => links.push(it.href));
+      if (n.type === "crumbs" && n.props.mode === "manual") {
+        const items = n.props.items || [];
+        items.slice(0, -1).forEach((it) => links.push(it.href));
+      }
       if (n.props.link !== void 0) links.push(n.props.link);
       if (n.type === "text") [...String(n.props.html || "").matchAll(/href="([^"]*)"/g)].forEach((m) => links.push(m[1]));
       links.filter((h) => h !== void 0 && h !== null).forEach((href) => {

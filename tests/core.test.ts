@@ -5374,6 +5374,35 @@ test('a written trail is taken as written, and its last crumb is still current',
   a.equal(find(C.lint(), 'crumbs-empty').length, 1);
 });
 
+test('breadcrumb review checks only written links that render as anchors', () => {
+  blank();
+  const pg = C.state.pages[0];
+  const validPage = C.state.pages[1].slug + '.html';
+  const n = onPage(pg, 'crumbs');
+  n.props.mode = 'manual';
+  n.props.items = [
+    { label: 'Previous', href: validPage },
+    { label: 'Current', href: '#qa-current' }
+  ];
+
+  const html = C.renderNode(n, { edit: false, pg });
+  a.match(html, /<span aria-current="page">Current<\/span>/);
+  a.equal(html.includes('#qa-current'), false, 'the current crumb href is not emitted');
+  a.equal(find(C.lint(), 'dead-anchor').length, 0,
+    'review does not validate a suppressed current-crumb href');
+
+  n.props.items = [
+    { label: 'Broken previous crumb', href: '#qa-current' },
+    { label: 'Current', href: validPage }
+  ];
+  a.equal(find(C.lint(), 'dead-anchor').length, 1,
+    'the same missing fragment still fails when a preceding crumb emits it');
+
+  n.props.mode = 'auto';
+  a.equal(find(C.lint(), 'dead-anchor').length, 0,
+    'From the page ignores stale written rows, matching its derived renderer trail');
+});
+
 test('the separator is CSS, never a character in the trail', () => {
   blank();
   const pg = C.state.pages[1];
