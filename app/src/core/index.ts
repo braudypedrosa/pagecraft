@@ -4712,6 +4712,7 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
   type ImportContext = {
     fc: any; col: Collection; fields: Map<string, string>;
     items: Map<string, Item>; rows: { fi: any; item: Item }[]; unknown: Set<string>;
+    unresolved: Map<string, { name: string; count: number }>;
   };
   const contexts: ImportContext[] = [];
   const collectionMap = new Map<string, Collection>();
@@ -4739,7 +4740,10 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
     if (fid && collectionMap.has(fid)) {
       rep.notes.push(`Duplicate collection id “${fid}” is ambiguous; references keep the first imported match.`);
     } else if (fid) collectionMap.set(fid, col);
-    contexts.push({ fc, col, fields: new Map(), items: new Map(), rows: [], unknown: new Set() });
+    contexts.push({
+      fc, col, fields: new Map(), items: new Map(), rows: [], unknown: new Set(),
+      unresolved: new Map()
+    });
   }
 
   for (const context of contexts) {
@@ -4813,7 +4817,7 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
   }
 
   for (const context of contexts) {
-    const { col, fields: map, unknown } = context;
+    const { col, fields: map, unknown, unresolved } = context;
     for (const { fi, item: it } of context.rows) {
       const islug = String(fi.slug || '');
       const vals = (fi.values && typeof fi.values === 'object') ? fi.values : {};
@@ -4822,10 +4826,21 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
         if (!to) { unknown.add(k); continue; }
         let v = (vals as any)[k];
         const field = findField(col, to);
-        if (field?.type === 'ref' && v != null && field.ref) {
-          const target = contexts.find(candidate => candidate.col.id === field.ref);
-          const mapped = target?.items.get(String(v));
+        if (field?.type === 'ref' && v != null && String(v)) {
+          const sourceItemId = String(v);
+          const target = field.ref
+            ? contexts.find(candidate => candidate.col.id === field.ref)
+            : undefined;
+          const mapped = target?.items.get(sourceItemId);
+          const exact = field.ref ? findItem(findCollection(field.ref), sourceItemId) : null;
           if (mapped) v = mapped.id;
+          else if (exact) v = exact.id;
+          else {
+            const skipped = unresolved.get(field.id) || { name: field.name, count: 0 };
+            skipped.count++;
+            unresolved.set(field.id, skipped);
+            continue;
+          }
         }
         let value = v == null ? '' : String(v);
         /* A portable content export names an image by its generated assets/ path. The editor
@@ -4843,6 +4858,9 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
     }
     if (unknown.size) {
       rep.notes.push(`${col.name}: ${[...unknown].join(', ')} ${unknown.size === 1 ? 'is not a field' : 'are not fields'} in this collection, so ${unknown.size === 1 ? 'it was' : 'they were'} skipped.`);
+    }
+    for (const { name, count } of unresolved.values()) {
+      rep.notes.push(`${col.name}: “${name}” skipped ${count} unresolved reference ${count === 1 ? 'value' : 'values'}; destination values were left unchanged.`);
     }
   }
   return rep;

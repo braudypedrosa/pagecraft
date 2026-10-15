@@ -7704,7 +7704,15 @@ function contentImport(raw, options = {}) {
     if (fid && collectionMap.has(fid)) {
       rep.notes.push(`Duplicate collection id \u201C${fid}\u201D is ambiguous; references keep the first imported match.`);
     } else if (fid) collectionMap.set(fid, col);
-    contexts.push({ fc, col, fields: /* @__PURE__ */ new Map(), items: /* @__PURE__ */ new Map(), rows: [], unknown: /* @__PURE__ */ new Set() });
+    contexts.push({
+      fc,
+      col,
+      fields: /* @__PURE__ */ new Map(),
+      items: /* @__PURE__ */ new Map(),
+      rows: [],
+      unknown: /* @__PURE__ */ new Set(),
+      unresolved: /* @__PURE__ */ new Map()
+    });
   }
   for (const context of contexts) {
     const { fc, col, fields: map } = context;
@@ -7765,7 +7773,7 @@ function contentImport(raw, options = {}) {
     }
   }
   for (const context of contexts) {
-    const { col, fields: map, unknown } = context;
+    const { col, fields: map, unknown, unresolved } = context;
     for (const { fi, item: it } of context.rows) {
       const islug = String(fi.slug || "");
       const vals = fi.values && typeof fi.values === "object" ? fi.values : {};
@@ -7777,10 +7785,19 @@ function contentImport(raw, options = {}) {
         }
         let v = vals[k];
         const field = findField(col, to);
-        if (field?.type === "ref" && v != null && field.ref) {
-          const target = contexts.find((candidate) => candidate.col.id === field.ref);
-          const mapped = target?.items.get(String(v));
+        if (field?.type === "ref" && v != null && String(v)) {
+          const sourceItemId = String(v);
+          const target = field.ref ? contexts.find((candidate) => candidate.col.id === field.ref) : void 0;
+          const mapped = target?.items.get(sourceItemId);
+          const exact = field.ref ? findItem(findCollection(field.ref), sourceItemId) : null;
           if (mapped) v = mapped.id;
+          else if (exact) v = exact.id;
+          else {
+            const skipped = unresolved.get(field.id) || { name: field.name, count: 0 };
+            skipped.count++;
+            unresolved.set(field.id, skipped);
+            continue;
+          }
         }
         let value = v == null ? "" : String(v);
         if (field?.type === "image" && options.resolveImage) {
@@ -7792,6 +7809,9 @@ function contentImport(raw, options = {}) {
     }
     if (unknown.size) {
       rep.notes.push(`${col.name}: ${[...unknown].join(", ")} ${unknown.size === 1 ? "is not a field" : "are not fields"} in this collection, so ${unknown.size === 1 ? "it was" : "they were"} skipped.`);
+    }
+    for (const { name, count } of unresolved.values()) {
+      rep.notes.push(`${col.name}: \u201C${name}\u201D skipped ${count} unresolved reference ${count === 1 ? "value" : "values"}; destination values were left unchanged.`);
     }
   }
   return rep;
