@@ -1035,6 +1035,27 @@ test('page, token, class, and text-style typing closes one undo transaction on b
   a.ok(r.names().includes('endTx'));
 });
 
+test('an unsafe colour-token deletion reports the CSS problem without history or success', async () => {
+  const id = C.colorAdd('Unsafe accent', '#00ddaa');
+  C.state.meta.css = `.broken{color:var( --c-${id}, #fff}`;
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.calls.length = 0;
+  r.draw(<ColorTokens />);
+  const value = r.$('input[aria-label="Unsafe accent colour value"]')!;
+  const remove = value.closest('.arow')!.querySelector('button[title^="Delete"]');
+
+  await act(async () => { r.click(remove); await Promise.resolve(); });
+
+  a.ok(C.findColor(id), 'the token remains');
+  a.equal(C.hist.u.length, 0, 'the rejected action creates no Undo entry');
+  a.equal(r.names().includes('askConfirm'), false, 'unsafe CSS is rejected before confirmation');
+  const toasts = r.calls.filter(call => call[0] === 'toast');
+  a.equal(toasts.length, 1);
+  a.match(String(toasts[0][1]), /cannot safely rewrite/);
+  a.deepEqual(toasts[0][2], { tone: 'error' });
+  a.equal(toasts.some(call => String(call[1]).includes('Token deleted')), false);
+});
+
 test('style classes can be created from project settings', async () => {
   const before = C.classes().length;
   r.draw(() => <StyleClasses />, 'classes');

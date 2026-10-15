@@ -6261,12 +6261,148 @@ function eachDecls(fn) {
   styles().forEach(visit);
   classes().forEach(visit);
 }
-function colorDelete(id) {
-  if (RESERVED.includes(id)) return false;
-  const lit = resolveColor(cvar(id)) || "transparent";
-  const ref = cvar(id);
+function rewriteColorRefs(source, id, literal, depth = 0) {
+  const property = "--c-" + id;
+  if (!source.includes("v") && !source.includes("V")) return { value: source, count: 0, safe: true };
+  const exactPropertyIn = (value2) => {
+    let at = value2.indexOf(property);
+    while (at >= 0) {
+      const after = value2[at + property.length] || "";
+      if (!after || !/[A-Za-z0-9_-]/.test(after)) return true;
+      at = value2.indexOf(property, at + property.length);
+    }
+    return false;
+  };
+  if (depth > 32) return { value: source, count: 0, safe: !exactPropertyIn(source) };
+  const matchingClose = (value2, open) => {
+    let depth2 = 1, quote = "";
+    for (let i = open + 1; i < value2.length; i++) {
+      const ch = value2[i], next = value2[i + 1] || "";
+      if (quote) {
+        if (ch === "\\") i++;
+        else if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        const end = value2.indexOf("*/", i + 2);
+        if (end < 0) return -1;
+        i = end + 1;
+        continue;
+      }
+      if (ch === "(") depth2++;
+      else if (ch === ")" && --depth2 === 0) return i;
+    }
+    return -1;
+  };
+  const firstArgument = (body) => {
+    let depth2 = 0, quote = "";
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i], next = body[i + 1] || "";
+      if (quote) {
+        if (ch === "\\") i++;
+        else if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        const end = body.indexOf("*/", i + 2);
+        if (end < 0) return body;
+        i = end + 1;
+        continue;
+      }
+      if (ch === "(") depth2++;
+      else if (ch === ")") depth2--;
+      else if (ch === "," && depth2 === 0) return body.slice(0, i);
+    }
+    return body;
+  };
+  let value = "", count = 0, safe = true;
+  for (let i = 0; i < source.length; ) {
+    const ch = source[i], next = source[i + 1] || "";
+    if (ch === '"' || ch === "'") {
+      const quote = ch, start = i++;
+      while (i < source.length) {
+        if (source[i] === "\\") i += 2;
+        else if (source[i++] === quote) break;
+      }
+      value += source.slice(start, i);
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      const end = source.indexOf("*/", i + 2);
+      if (end < 0) {
+        value += source.slice(i);
+        break;
+      }
+      value += source.slice(i, end + 2);
+      i = end + 2;
+      continue;
+    }
+    const match = source.slice(i).match(/^var(?:\s|\/\*[\s\S]*?\*\/)*\(/i);
+    const before = source[i - 1] || "";
+    if (match && !/[A-Za-z0-9_-]/.test(before)) {
+      const open = i + match[0].lastIndexOf("("), close = matchingClose(source, open);
+      if (close < 0) {
+        const tail = source.slice(i);
+        if (exactPropertyIn(tail)) safe = false;
+        value += tail;
+        break;
+      }
+      const body = source.slice(open + 1, close);
+      const arg = firstArgument(body).replace(/\/\*[\s\S]*?\*\//g, "").trim();
+      if (arg === property) {
+        count++;
+        value += literal === void 0 ? source.slice(i, close + 1) : literal;
+      } else {
+        const nested = rewriteColorRefs(body, id, literal, depth + 1);
+        count += nested.count;
+        safe = safe && nested.safe;
+        value += source.slice(i, open + 1) + nested.value + ")";
+      }
+      i = close + 1;
+      continue;
+    }
+    value += ch;
+    i++;
+  }
+  return { value, count, safe };
+}
+function colorRefTargets() {
+  const targets = [];
   eachDecls((o) => {
-    for (const k in o) if (String(o[k]).includes(ref)) o[k] = String(o[k]).split(ref).join(lit);
+    for (const key in o) targets.push({ value: String(o[key]), set: (value) => {
+      o[key] = value;
+    } });
+  });
+  allTrees().forEach((list) => eachNode(list, (n) => {
+    if (n.adv && typeof n.adv.css === "string") targets.push({ value: n.adv.css, set: (value) => {
+      n.adv.css = value;
+    } });
+  }));
+  if (typeof state.meta.css === "string") targets.push({ value: state.meta.css, set: (value) => {
+    state.meta.css = value;
+  } });
+  return targets;
+}
+function colorDeleteCheck(id) {
+  if (RESERVED.includes(id)) return { ok: false, reason: "Built-in colour tokens cannot be deleted." };
+  const safe = colorRefTargets().every((target) => rewriteColorRefs(target.value, id).safe);
+  return safe ? { ok: true, reason: "" } : { ok: false, reason: "This colour is referenced by CSS that Pagecraft cannot safely rewrite. Fix that CSS and try again." };
+}
+function colorDelete(id) {
+  if (!colorDeleteCheck(id).ok) return false;
+  const lit = resolveColor(cvar(id)) || "transparent";
+  const changes = colorRefTargets().map((target) => ({ target, result: rewriteColorRefs(target.value, id, lit) }));
+  if (changes.some((change) => !change.result.safe)) return false;
+  changes.forEach(({ target, result }) => {
+    if (result.count) target.set(result.value);
   });
   ensureTokens().colors = colors().filter((c) => c.id !== id);
   return true;
@@ -6279,12 +6415,10 @@ function colorAdd(name, value) {
   return id;
 }
 var colorUsage = (id) => {
-  let k = 0;
-  const ref = cvar(id);
-  eachDecls((o) => {
-    for (const p in o) if (String(o[p]).includes(ref)) k++;
-  });
-  return k;
+  return colorRefTargets().reduce((count, target) => {
+    const result = rewriteColorRefs(target.value, id);
+    return count + (result.count > 0 || !result.safe ? 1 : 0);
+  }, 0);
 };
 var A_RE = /asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@(\d+))?/g;
 var assetFile = (a) => {
@@ -11870,6 +12004,7 @@ var __CORE = {
   collectionsReplace,
   colorAdd,
   colorDelete,
+  colorDeleteCheck,
   colorUsage,
   colors,
   cols,
@@ -21650,13 +21785,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       L2.save();
     };
     const remove = async () => {
+      let check = C2.colorDeleteCheck(id);
+      if (!check.ok) {
+        L2.toast(check.reason, { tone: "error" });
+        return;
+      }
       const used = C2.colorUsage(id);
       if (used && !await L2.askConfirm(
         "Delete this colour token?",
         `<b>${esc8(t3.name)}</b> is used ${used}\xD7. Those elements keep the colour, as a literal value \u2014 they just stop following the token.`,
         { ok: "Delete token" }
       )) return;
-      C2.edit(() => C2.colorDelete(id));
+      check = C2.colorDeleteCheck(id);
+      if (!check.ok) {
+        L2.toast(check.reason, { tone: "error" });
+        return;
+      }
+      C2.edit(() => C2.colorDelete(id), "Delete colour token");
       repaint("colors");
       L2.toast("Token deleted, colours kept");
     };

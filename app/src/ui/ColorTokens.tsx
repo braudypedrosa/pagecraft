@@ -33,11 +33,16 @@ function Row({ id }: { id: string }) {
   };
 
   const remove = async () => {
+    let check = C.colorDeleteCheck(id);
+    if (!check.ok) { L.toast(check.reason, { tone: 'error' }); return; }
     const used = C.colorUsage(id);
     if (used && !await L.askConfirm('Delete this colour token?',
       `<b>${esc(t.name)}</b> is used ${used}×. Those elements keep the colour, as a `
       + 'literal value — they just stop following the token.', { ok: 'Delete token' })) return;
-    C.edit(() => C.colorDelete(id));
+    /* Confirmation is asynchronous. Recheck the exact current CSS before opening history. */
+    check = C.colorDeleteCheck(id);
+    if (!check.ok) { L.toast(check.reason, { tone: 'error' }); return; }
+    C.edit(() => C.colorDelete(id), 'Delete colour token');
     repaint('colors');
     L.toast('Token deleted, colours kept');
   };

@@ -2517,6 +2517,59 @@ test('deleting a colour reaches hover styles, classes and composite values too',
   a.equal(C.colorUsage(id), 0);
 });
 
+test('deleting a colour safely rewrites node and project custom CSS', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = C.colorAdd('Custom CSS accent', '#00ddaa');
+  const property = '--c-' + id;
+  const longer = property + '-extended';
+  h.css.d['border-color'] = `var( ${property} , #000 )`;
+  h.adv.css = `&:hover{color:var(--other, var( /* keep */ ${property}, #fff));background:var(${longer})}`;
+  C.state.meta.css = `.project{box-shadow:0 0 0 2px var /* gap */ (${property})}.prefix{color:var(${longer})}.literal{content:"var(${property})"}`;
+
+  a.equal(C.colorUsage(id), 3, 'one declaration and both custom CSS sources are counted');
+  a.equal(C.colorDelete(id), true);
+  a.equal(h.css.d['border-color'], '#00ddaa');
+  a.equal(h.adv.css, `&:hover{color:var(--other, #00ddaa);background:var(${longer})}`,
+    'a nested fallback is rewritten without changing its outer variable');
+  a.equal(C.state.meta.css,
+    `.project{box-shadow:0 0 0 2px #00ddaa}.prefix{color:var(${longer})}.literal{content:"var(${property})"}`,
+    'the exact variable changes while a longer name and quoted text remain untouched');
+  a.equal(C.colorUsage(id), 0);
+});
+
+test('a malformed matching colour variable aborts deletion before any mutation', () => {
+  blank();
+  const h = insert('heading', null, 0);
+  const id = C.colorAdd('Protected accent', '#00ddaa');
+  const ref = C.cvar(id);
+  h.css.d.color = ref;
+  C.state.meta.css = `.broken{color:var( --c-${id}, #fff}`;
+
+  a.equal(C.colorUsage(id), 2, 'the malformed matching source is conservatively counted');
+  a.deepEqual(C.colorDeleteCheck(id), {
+    ok: false,
+    reason: 'This colour is referenced by CSS that Pagecraft cannot safely rewrite. Fix that CSS and try again.'
+  });
+  a.equal(C.colorDelete(id), false);
+  a.ok(C.findColor(id), 'the token remains');
+  a.equal(h.css.d.color, ref, 'even a valid earlier target was not partially rewritten');
+  a.equal(C.state.meta.css, `.broken{color:var( --c-${id}, #fff}`);
+});
+
+test('excessive nested colour fallbacks fail closed', () => {
+  blank();
+  const id = C.colorAdd('Deep accent', '#00ddaa');
+  const nested = 'var(--other,'.repeat(40) + C.cvar(id) + ')'.repeat(40);
+  C.state.meta.css = `.deep{color:${nested}}`;
+
+  a.equal(C.colorUsage(id), 1);
+  a.equal(C.colorDeleteCheck(id).ok, false);
+  a.equal(C.colorDelete(id), false);
+  a.ok(C.findColor(id));
+  a.equal(C.state.meta.css, `.deep{color:${nested}}`);
+});
+
 test('the three reserved colours cannot be deleted', () => {
   C.RESERVED.forEach(id => {
     a.equal(C.colorDelete(id), false, id + ' must survive');

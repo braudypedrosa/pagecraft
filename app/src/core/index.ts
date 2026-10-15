@@ -2975,13 +2975,141 @@ function eachDecls(fn: (o: Decls) => void) {
   styles().forEach(visit);
   classes().forEach(visit);
 }
+type ColorRefRewrite = { value: string; count: number; safe: boolean };
+
+/** Rewrite one colour custom-property read without touching strings, comments, similarly
+ * named properties, or the fallback of a different `var()`. The recursive fallback walk is
+ * what makes `var(--other, var(--c-accent))` safe. */
+function rewriteColorRefs(source: string, id: string, literal?: string, depth = 0): ColorRefRewrite {
+  const property = '--c-' + id;
+  if (!source.includes('v') && !source.includes('V')) return { value: source, count: 0, safe: true };
+  const exactPropertyIn = (value: string) => {
+    let at = value.indexOf(property);
+    while (at >= 0) {
+      const after = value[at + property.length] || '';
+      if (!after || !/[A-Za-z0-9_-]/.test(after)) return true;
+      at = value.indexOf(property, at + property.length);
+    }
+    return false;
+  };
+  if (depth > 32) return { value: source, count: 0, safe: !exactPropertyIn(source) };
+  const matchingClose = (value: string, open: number) => {
+    let depth = 1, quote = '';
+    for (let i = open + 1; i < value.length; i++) {
+      const ch = value[i], next = value[i + 1] || '';
+      if (quote) {
+        if (ch === '\\') i++;
+        else if (ch === quote) quote = '';
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if (ch === '/' && next === '*') {
+        const end = value.indexOf('*/', i + 2);
+        if (end < 0) return -1;
+        i = end + 1;
+        continue;
+      }
+      if (ch === '(') depth++;
+      else if (ch === ')' && --depth === 0) return i;
+    }
+    return -1;
+  };
+  const firstArgument = (body: string) => {
+    let depth = 0, quote = '';
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i], next = body[i + 1] || '';
+      if (quote) {
+        if (ch === '\\') i++;
+        else if (ch === quote) quote = '';
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if (ch === '/' && next === '*') {
+        const end = body.indexOf('*/', i + 2);
+        if (end < 0) return body;
+        i = end + 1;
+        continue;
+      }
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      else if (ch === ',' && depth === 0) return body.slice(0, i);
+    }
+    return body;
+  };
+  let value = '', count = 0, safe = true;
+  for (let i = 0; i < source.length;) {
+    const ch = source[i], next = source[i + 1] || '';
+    if (ch === '"' || ch === "'") {
+      const quote = ch, start = i++;
+      while (i < source.length) {
+        if (source[i] === '\\') i += 2;
+        else if (source[i++] === quote) break;
+      }
+      value += source.slice(start, i);
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end < 0) { value += source.slice(i); break; }
+      value += source.slice(i, end + 2); i = end + 2;
+      continue;
+    }
+    const match = source.slice(i).match(/^var(?:\s|\/\*[\s\S]*?\*\/)*\(/i);
+    const before = source[i - 1] || '';
+    if (match && !/[A-Za-z0-9_-]/.test(before)) {
+      const open = i + match[0].lastIndexOf('('), close = matchingClose(source, open);
+      if (close < 0) {
+        const tail = source.slice(i);
+        if (exactPropertyIn(tail)) safe = false;
+        value += tail;
+        break;
+      }
+      const body = source.slice(open + 1, close);
+      const arg = firstArgument(body).replace(/\/\*[\s\S]*?\*\//g, '').trim();
+      if (arg === property) {
+        count++;
+        value += literal === undefined ? source.slice(i, close + 1) : literal;
+      } else {
+        const nested = rewriteColorRefs(body, id, literal, depth + 1);
+        count += nested.count; safe = safe && nested.safe;
+        value += source.slice(i, open + 1) + nested.value + ')';
+      }
+      i = close + 1;
+      continue;
+    }
+    value += ch;
+    i++;
+  }
+  return { value, count, safe };
+}
+
+function colorRefTargets() {
+  const targets: { value: string; set: (value: string) => void }[] = [];
+  eachDecls(o => { for (const key in o) targets.push({ value: String(o[key]), set: value => { o[key] = value; } }); });
+  allTrees().forEach(list => eachNode(list, n => {
+    if (n.adv && typeof n.adv.css === 'string') targets.push({ value: n.adv.css, set: value => { n.adv.css = value; } });
+  }));
+  if (typeof state.meta.css === 'string') targets.push({ value: state.meta.css, set: value => { state.meta.css = value; } });
+  return targets;
+}
+
+function colorDeleteCheck(id: string) {
+  if (RESERVED.includes(id)) return { ok: false, reason: 'Built-in colour tokens cannot be deleted.' };
+  const safe = colorRefTargets().every(target => rewriteColorRefs(target.value, id).safe);
+  return safe
+    ? { ok: true, reason: '' }
+    : { ok: false, reason: 'This colour is referenced by CSS that Pagecraft cannot safely rewrite. Fix that CSS and try again.' };
+}
+
 /* deleting a colour inlines its literal everywhere, so nothing silently breaks — including
-   inside a composite value, `1px solid var(--c-line)`, which a whole-value match skipped */
+   declarations, node custom CSS and project CSS. Malformed matching var() syntax aborts the
+   whole deletion before mutation rather than risking a partial or corrupt rewrite. */
 function colorDelete(id: string) {
-  if (RESERVED.includes(id)) return false;
+  if (!colorDeleteCheck(id).ok) return false;
   const lit = resolveColor(cvar(id)) || 'transparent';
-  const ref = cvar(id);
-  eachDecls(o => { for (const k in o) if (String(o[k]).includes(ref)) o[k] = String(o[k]).split(ref).join(lit); });
+  const changes = colorRefTargets().map(target => ({ target, result: rewriteColorRefs(target.value, id, lit) }));
+  if (changes.some(change => !change.result.safe)) return false;
+  changes.forEach(({ target, result }) => { if (result.count) target.set(result.value); });
   ensureTokens().colors = colors().filter(c => c.id !== id);
   return true;
 }
@@ -2993,10 +3121,10 @@ function colorAdd(name: string, value: string) {
   return id;
 }
 const colorUsage = (id: string) => {
-  let k = 0;
-  const ref = cvar(id);
-  eachDecls(o => { for (const p in o) if (String(o[p]).includes(ref)) k++; });
-  return k;
+  return colorRefTargets().reduce((count, target) => {
+    const result = rewriteColorRefs(target.value, id);
+    return count + (result.count > 0 || !result.safe ? 1 : 0);
+  }, 0);
 };
 
 /* ================================================== export review (lint)
@@ -9351,7 +9479,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
