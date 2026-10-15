@@ -934,7 +934,7 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'select', c: '--f-layout', label: 'Field layout', r: 1, opts: [['flex', 'Wrapped fields'], ['grid', 'Grid']] },
-        { t: 'select', c: '--f-columns', label: 'Grid columns', r: 1, opts: [['1fr', 'One'], ['repeat(2,minmax(0,1fr))', 'Two'], ['repeat(3,minmax(0,1fr))', 'Three'], ['repeat(4,minmax(0,1fr))', 'Four']] },
+        { t: 'select', c: '--f-columns', label: 'Grid columns', r: 1, when: n => cssAt(n, dk(), '--f-layout') === 'grid', opts: [['1fr', 'One'], ['repeat(2,minmax(0,1fr))', 'Two'], ['repeat(3,minmax(0,1fr))', 'Three'], ['repeat(4,minmax(0,1fr))', 'Four']] },
         { t: 'select', c: '--f-button-align', label: 'Alignment', r: 1, opts: [['flex-start', 'Top'], ['end', 'Bottom']] },
         { t: 'unit', c: '--f-gap', label: 'Field spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },

@@ -1171,6 +1171,24 @@ test('Grid hides field Width at the active responsive breakpoint without clearin
   a.equal((r.$('select[aria-label="Field width"]') as HTMLSelectElement).value, '33');
 });
 
+test('Form Grid columns appears only where the effective responsive layout is Grid', () => {
+  const n = C.insert('form', null, 0)!;
+  C.selSet([n.id]);
+  C.state.ui.stab = 'style';
+  const draw = () => r.draw(() => <Inspector />, 'right');
+  const gridColumns = () => r.$('select[aria-label="Grid columns"]');
+
+  draw();
+  a.equal(gridColumns(), null, 'the default Wrapped fields layout has no Grid columns question');
+  n.css.d['--f-layout'] = 'grid';
+  draw();
+  a.ok(gridColumns(), 'Grid exposes its column count');
+  n.css.t['--f-layout'] = 'flex';
+  C.state.ui.dev = 'tablet';
+  draw();
+  a.equal(gridColumns(), null, 'a responsive Wrapped fields override hides the inherited Grid question');
+});
+
 test('adding and moving a repeater keeps the edited row open', async () => {
   const n = C.insert('form', null, 0)!;
   const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
