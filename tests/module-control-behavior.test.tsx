@@ -73,6 +73,14 @@ const conditionalSetup: Record<string, {
   'code:Keywords': { off: n => { n.props.lang = 'text'; }, on: n => { n.props.lang = 'js'; } },
   'code:Numbers': { off: n => { n.props.lang = 'text'; }, on: n => { n.props.lang = 'js'; } },
   'code:Names': { off: n => { n.props.lang = 'text'; }, on: n => { n.props.lang = 'js'; } },
+  'table:Header background': {
+    off: n => { n.props.head = 0; n.props.rowhead = 0; },
+    on: n => { n.props.head = 1; n.props.rowhead = 0; },
+  },
+  'table:Heading colour': {
+    off: n => { n.props.head = 0; n.props.rowhead = 0; },
+    on: n => { n.props.head = 0; n.props.rowhead = 1; },
+  },
   'table:Shading': { off: n => { n.props.zebra = 0; }, on: n => { n.props.zebra = 1; } },
   'table:Caption colour': { off: n => { n.props.caption = ''; }, on: n => { n.props.caption = 'Prices'; } },
   'shared:Size': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
@@ -80,7 +88,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 27 conditional declarations render only in their applicable state', () => {
+test('all 29 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -89,7 +97,7 @@ test('all 27 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(27);
+  expect(declarations).toHaveLength(29);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );

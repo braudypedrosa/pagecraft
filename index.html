@@ -3909,7 +3909,7 @@ var DEF = {
     level: 2,
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
-      props: { arrows: 1, aria: "Slides" },
+      props: { arrows: 1, controlsPosition: "sides", aria: "Slides" },
       css: {
         d: { "--sl-gap": "24px", "--sl-w": "calc((100% - 2 * var(--sl-gap,24px)) / 3)" },
         t: { "--sl-w": "calc((100% - var(--sl-gap,24px)) / 2)" },
@@ -4692,8 +4692,8 @@ var DEF = {
         { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
         { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
-        { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1 },
-        { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1 },
+        { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
+        { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
         { t: "color", c: "--tbl-zebra", label: "Shading", r: 1, layout: "inline", when: (n) => !!n.props.zebra },
         { t: "color", c: "--tbl-caption-color", label: "Caption colour", r: 1, when: (n) => !!String(n.props.caption || "").trim() }
       ]
@@ -6059,6 +6059,7 @@ var propVal = (n, k) => {
   }
   if (n.type === "nav" && k === "mobileMenu") return n.props.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown";
   const value = n.props[k];
+  if (value == null && n.type === "slider" && k === "controlsPosition") return "sides";
   if (value == null && n.type === "list" && Object.prototype.hasOwnProperty.call(LIST_PROP_DEFAULTS, k)) {
     return LIST_PROP_DEFAULTS[k];
   }
@@ -10784,8 +10785,10 @@ function renderNode(n, o) {
       const tiles = shown.map((it, k) => {
         const dim = it.w && it.h ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : "";
         const tsrc = esc(it.src || PH);
-        const img = `<img src="${tsrc}" alt="${esc(it.alt || "")}"${dim}${lz} class="pagecraft-gallery-img">`;
-        const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}"${it.alt ? ` aria-label="${esc(it.alt)}"` : ""}>${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
+        const authoredAlt = String(it.alt == null ? "" : it.alt);
+        const img = `<img src="${tsrc}" alt="${esc(authoredAlt)}"${dim}${lz} class="pagecraft-gallery-img">`;
+        const actionLabel = authoredAlt.trim() ? authoredAlt : String(it.caption == null ? "" : it.caption).trim() || `Open image ${k + 1}`;
+        const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ""}</figure>`;
       }).join("");
       return `<div ${at} ${cx("pagecraft-gallery" + (p.ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
@@ -22857,7 +22860,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       level: 2,
       caps: ["spacing", "decoration", "effects", "animation"],
       make: () => ({
-        props: { arrows: 1, aria: "Slides" },
+        props: { arrows: 1, controlsPosition: "sides", aria: "Slides" },
         css: {
           d: { "--sl-gap": "24px", "--sl-w": "calc((100% - 2 * var(--sl-gap,24px)) / 3)" },
           t: { "--sl-w": "calc((100% - var(--sl-gap,24px)) / 2)" },
@@ -23640,8 +23643,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
           { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
           { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
-          { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1 },
-          { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1 },
+          { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1, when: (n2) => !!(n2.props.head || n2.props.rowhead) },
+          { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1, when: (n2) => !!(n2.props.head || n2.props.rowhead) },
           { t: "color", c: "--tbl-zebra", label: "Shading", r: 1, layout: "inline", when: (n2) => !!n2.props.zebra },
           { t: "color", c: "--tbl-caption-color", label: "Caption colour", r: 1, when: (n2) => !!String(n2.props.caption || "").trim() }
         ]

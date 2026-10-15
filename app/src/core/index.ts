@@ -497,7 +497,7 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Slider', icon: 'slider', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
-      props: { arrows: 1, aria: 'Slides' },
+      props: { arrows: 1, controlsPosition: 'sides', aria: 'Slides' },
       css: {
         d: { '--sl-gap': '24px', '--sl-w': 'calc((100% - 2 * var(--sl-gap,24px)) / 3)' },
         t: { '--sl-w': 'calc((100% - var(--sl-gap,24px)) / 2)' },
@@ -1085,8 +1085,8 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'color', c: '--tbl-text', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--tbl-pad', label: 'Cell padding', layout: 'inline', r: 1, units: U.space },
         { t: 'color', c: '--tbl-line', label: 'Line colour', r: 1, layout: 'inline' },
-        { t: 'color', c: '--tbl-head-bg', label: 'Header background', r: 1 },
-        { t: 'color', c: '--tbl-head-text', label: 'Heading colour', r: 1 },
+        { t: 'color', c: '--tbl-head-bg', label: 'Header background', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },
+        { t: 'color', c: '--tbl-head-text', label: 'Heading colour', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },
         { t: 'color', c: '--tbl-zebra', label: 'Shading', r: 1, layout: 'inline', when: n => !!(n.props as PropBag).zebra },
         { t: 'color', c: '--tbl-caption-color', label: 'Caption colour', r: 1, when: n => !!String((n.props as PropBag).caption || '').trim() }
       ]
@@ -2751,6 +2751,9 @@ const propVal = (n: PcNode, k?: string) => {
   }
   if (n.type === 'nav' && k === 'mobileMenu') return n.props.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown';
   const value = (n.props as PropBag)[k];
+  /* Sliders made before Controls position existed render their arrows beside the slides.
+     Read that same default in the inspector without adding a property to saved documents. */
+  if (value == null && n.type === 'slider' && k === 'controlsPosition') return 'sides';
   /* Older Collection nodes can predate one or more explicit enum defaults. Their renderer
      already treats those absences as Grid, CMS order, ascending order, no filter and `is`;
      read the same values in the controls without rewriting saved or released documents. */
@@ -8249,12 +8252,15 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const tiles = shown.map((it, k) => {
         const dim = (it.w && it.h) ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : '';
         const tsrc = esc(it.src || PH);
-        const img = `<img src="${tsrc}" alt="${esc(it.alt || '')}"${dim}${lz} class="pagecraft-gallery-img">`;
+        const authoredAlt = String(it.alt == null ? '' : it.alt);
+        const img = `<img src="${tsrc}" alt="${esc(authoredAlt)}"${dim}${lz} class="pagecraft-gallery-img">`;
         /* With the lightbox on the tile is a real link to the full image, so the
            gallery still works with scripting off; the script only intercepts a
            click that was already going somewhere useful. */
+        const actionLabel = authoredAlt.trim()
+          ? authoredAlt : String(it.caption == null ? '' : it.caption).trim() || `Open image ${k + 1}`;
         const frame = p.lightbox
-          ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}"${it.alt ? ` aria-label="${esc(it.alt)}"` : ''}>${img}</a>`
+          ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>`
           : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}`
           + `${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ''}</figure>`;
