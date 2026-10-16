@@ -781,6 +781,63 @@ test('hosted snapshots route native inbox forms and preserve actionable form fin
   a.equal(failure.findings.find(finding => finding.code === 'unsafe-form-action')?.nodeId, external.id);
 });
 
+test('publication validation preserves structured CMS review targets in errors and stored warnings', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  Core.restore(structuredClone(r.site.doc));
+  const col = Core.collectionAdd('Places');
+  const photo = Core.fieldAdd(col.id, 'Photo URL', 'text')!;
+  const alt = Core.fieldAdd(col.id, 'Alt text', 'text')!;
+  const item = Core.itemAdd(col.id)!;
+  Core.itemSet(col.id, item.id, 'title', 'Courtyard');
+  Core.itemSet(col.id, item.id, photo.id, 'https://example.test/courtyard.webp');
+  Core.itemSet(col.id, item.id, alt.id, '');
+  const image = Core.N('image', { src: 'fallback.webp', alt: 'Fallback', w: '', h: '' });
+  Core.bindSet(image, 'src', Core.bindField(photo.id));
+  Core.bindSet(image, 'alt', Core.bindField(alt.id));
+  const list = Core.N('list', { per: '1' }, {}, [Core.N('column', {}, {}, [image])]);
+  Core.srcSet(list, col.id);
+  Core.state.pages[0].tree.push(Core.N('section', {}, {}, [list]));
+  const saved = await r.put(r.site.id, structuredClone(Core.doc()), 1, cookie);
+  a.equal(saved.status, 200, await saved.clone().text());
+
+  const rejected = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(rejected.status, 422);
+  const failure = await rejected.json() as { findings: { code: string; target?: unknown }[] };
+  a.deepEqual(failure.findings.find(finding => finding.code === 'no-alt')?.target, {
+    pageId: Core.state.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+    repeatPath: [{ collectionId: col.id, itemId: item.id }],
+    pagination: { listNodeId: list.id, itemId: item.id },
+  });
+
+  Core.itemSet(col.id, item.id, alt.id, 'A quiet courtyard');
+  a.equal((await r.put(r.site.id, structuredClone(Core.doc()), 2, cookie)).status, 200);
+  const prepared = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 3 })
+  }, cookie);
+  a.equal(prepared.status, 201, await prepared.clone().text());
+  const snapshot = await prepared.json() as {
+    snapshotId: string;
+    warnings: { code: string; target?: unknown }[];
+  };
+  const warningTarget = snapshot.warnings.find(finding => finding.code === 'no-dimensions')?.target;
+  a.deepEqual(warningTarget, {
+    pageId: Core.state.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+    repeatPath: [{ collectionId: col.id, itemId: item.id }],
+    pagination: { listNodeId: list.id, itemId: item.id },
+  });
+  const stored = await r.publications!.byId(r.site.id, snapshot.snapshotId);
+  a.ok(stored);
+  const source = await r.publications!.source(stored!);
+  a.deepEqual(source?.warnings?.find(finding => finding.code === 'no-dimensions')?.target, warningTarget);
+});
+
 test('content accounts cannot prepare publication snapshots', async () => {
   const r = await rig('content', true);
   const { cookie } = await r.signIn();

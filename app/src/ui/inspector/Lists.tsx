@@ -28,14 +28,23 @@ const list = (n: PcNode, c: Control): any[] => {
 
 /** A text input bound to one property of one row. Typing coalesces into a single undo
     step per field, which is what `tx` keyed on the control gives us. */
-function RowInput({ n, c, k, prop, ...rest }: P & { k: number; prop: string } & Record<string, any>) {
+function RowInput({ n, c, k, prop, onCommit, ...rest }: P & {
+  k: number; prop: string; onCommit?: () => void;
+} & Record<string, any>) {
   const key = n.id + '|' + (c.c || c.k || c.t);
+  const changed = useRef(false);
   return <input class="ctl" value={list(n, c)[k][prop] || ''} {...rest}
     onInput={e => {
+      changed.current = true;
       L.tx(key);
       rows(n, c)[k][prop] = (e.target as HTMLInputElement).value;
       L.repaint();
-    }} onBlur={L.endTx} />;
+    }} onBlur={() => {
+      L.endTx();
+      if (!changed.current) return;
+      changed.current = false;
+      onCommit?.();
+    }} />;
 }
 
 /** Move-up and remove, which every row has. */
@@ -58,6 +67,7 @@ function AddButton({ label, onClick, gap, small }: { label: string; onClick: () 
 export function ItemsCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(arr.length ? 0 : null);
+  const [, setLabelRevision] = useState(0);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const dragFrom = useRef<number | null>(null);
@@ -168,6 +178,7 @@ export function ItemsCtl({ n, c }: P) {
         <MotionPresence show={open === k} class="navitem-body" kind="panel">
           <label>Navigation label</label>
           <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label"
+            onCommit={() => setLabelRevision(revision => revision + 1)}
             aria-label={`Navigation label for ${itemContext}`} />
 
           <div class="pc-label-with-help"><label>Destination</label><HelpTip label="Destination"
@@ -296,6 +307,7 @@ export function FieldsCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(null);
   const [advanced, setAdvanced] = useState(false);
+  const [, setLabelRevision] = useState(0);
   const grid = C.cssAt(n, C.dk(), '--f-layout') === 'grid';
   return <Field n={n} c={c}>
     {arr.map((f, k) => (
@@ -314,7 +326,8 @@ export function FieldsCtl({ n, c }: P) {
               {FIELD_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
-          <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label" /></label>
+          <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label"
+            onCommit={() => setLabelRevision(revision => revision + 1)} /></label>
           {f.type !== 'checkbox' ? <label class="frow-control"><span>{f.type === 'select' ? 'Options' : 'Placeholder'}</span>
             {f.type === 'select'
               ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
@@ -346,6 +359,7 @@ export function FieldsCtl({ n, c }: P) {
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(null);
+  const [, setLabelRevision] = useState(0);
   const key = n.id + '|' + (c.c || c.k || c.t);
   const [kA, kB] = c.rowKeys || ['q', 'a'];
   const [phA, phB] = c.rowPhs || ['Question', 'Answer'];
@@ -353,6 +367,7 @@ export function QaCtl({ n, c }: P) {
     {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
       title={it[kA] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
       <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA}
+        onCommit={() => setLabelRevision(revision => revision + 1)}
         aria-label={`${phA} for ${it[kA] || 'untitled item'}, item ${k + 1}`} /></label>
       <label class="repeater-long"><span>{kB === 'a' ? 'Answer' : 'Content'}</span>
         <textarea class="ctl" rows={4} value={it[kB] || ''} placeholder={phB}

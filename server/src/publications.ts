@@ -10,6 +10,7 @@ import {
   unlink,
 } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import type { FindingTarget } from "../../app/src/core/types.ts";
 
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const HASH = /^[a-f0-9]{64}$/;
@@ -30,7 +31,7 @@ export interface PublicationFile {
 export interface PublicationSource {
   document: unknown;
   baselinePublicationId: string | null;
-  warnings?: { code: string; message: string; where?: { page?: string; slug?: string; region?: string; node?: string }; nodeId?: string }[];
+  warnings?: { code: string; message: string; where?: { page?: string; slug?: string; region?: string; node?: string }; nodeId?: string; target?: FindingTarget }[];
 }
 
 export interface PublicationSummary {

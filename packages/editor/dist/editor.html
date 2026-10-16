@@ -6624,7 +6624,7 @@ function crc32(u8) {
 }
 function lint() {
   const out = [];
-  const add = (level, code, msg, where, nodeId) => out.push({ level, code, msg, where, nodeId });
+  const add = (level, code, msg, where, nodeId, target) => out.push({ level, code, msg, where, nodeId, target });
   const idsBySlug = {};
   state.pages.forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
@@ -6892,15 +6892,36 @@ function lint() {
     visit(pg2.tree, [], "page");
     visit(state.footer, [], "global footer");
     const imageReviews = /* @__PURE__ */ new Map();
-    const queueImage = (level, code, msg, region, node, inst, col, item) => {
-      const nodeId = inst ? inst.id : node.id;
+    const queueImage = (level, code, msg, region, node, context) => {
+      const nodeId = context.inst ? context.inst.id : node.id;
       const key = [code, region, nodeId, node.id].join("|");
       let review = imageReviews.get(key);
       if (!review) {
-        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map() };
+        const target = {
+          pageId: pg2.id,
+          scope: context.scope,
+          nodeId,
+          ...context.previewItems.length ? { previewItems: context.previewItems.map((item) => ({ ...item })) } : {},
+          ...context.repeatPath.length ? { repeatPath: context.repeatPath.map((item) => ({ ...item })) } : {},
+          ...context.pagination ? { pagination: { ...context.pagination } } : {}
+        };
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map(), target };
         imageReviews.set(key, review);
       }
-      if (col && item) review.items.set(`${col.id}|${item.id}`, `\u201C${itemTitle(col, item)}\u201D`);
+      if (context.col && context.item) {
+        review.items.set(`${context.col.id}|${context.item.id}`, `\u201C${itemTitle(context.col, context.item)}\u201D`);
+      }
+    };
+    const withPreviewItem = (context, col, item) => {
+      if (!item) return context;
+      const previewItems = context.previewItems.filter((target2) => target2.collectionId !== col.id);
+      const target = { collectionId: col.id, itemId: item.id };
+      previewItems.push(target);
+      return {
+        ...context,
+        previewItems,
+        repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
+      };
     };
     const walkImages = (list, chain, region, context) => {
       list.forEach((n) => {
@@ -6920,11 +6941,10 @@ function lint() {
         const self = host || n;
         const source = self.src || n.src;
         const sc = source ? findCollection(source) : null;
-        const scoped = sc ? {
-          ...context,
-          col: sc,
-          item: sourceItem(sc, context.col, context.item, context.repeat)
-        } : context;
+        const sourceUsesRepeat = !!sc && context.repeat && context.col === sc;
+        const sourceItemValue = sc ? sourceItem(sc, context.col, context.item, context.repeat) : null;
+        const scopedBase = sc ? { ...context, col: sc, item: sourceItemValue } : context;
+        const scoped = sc && !sourceUsesRepeat ? withPreviewItem(scopedBase, sc, sourceItemValue) : scopedBase;
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
         if (n.type === "image") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
@@ -6934,9 +6954,7 @@ function lint() {
             `An image in the ${region} has no source and will export a placeholder.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           if (p.src && !p.decorative && !String(p.alt || "").trim()) queueImage(
             "error",
@@ -6944,9 +6962,7 @@ function lint() {
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim())
             queueImage(
@@ -6955,9 +6971,7 @@ function lint() {
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
               region,
               n,
-              context.inst,
-              scoped.col,
-              scoped.item
+              scoped
             );
           if (p.src && !(p.w && p.h)) queueImage(
             "warn",
@@ -6965,9 +6979,7 @@ function lint() {
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           const inFirstSection = region.startsWith("page") && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
           if (!scoped.hero.reviewed && inFirstSection && p.src) {
@@ -6978,20 +6990,22 @@ function lint() {
               `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
               region,
               n,
-              context.inst,
-              scoped.col,
-              scoped.item
+              scoped
             );
           }
         }
         if (n.type === "list") {
           const lc = n.src ? findCollection(n.src) : null;
-          if (lc) for (const item of listItems(n, lc)) {
+          const rows = lc ? listItems(n, lc) : [];
+          const drives = parseInt(String(n.props.per || ""), 10) > 0 && paginatorOf(pg2)?.node.id === n.id;
+          if (lc) for (const item of rows) {
             walkImages(n.children || [], chain.concat(n), region, {
               ...context,
               col: lc,
               item,
-              repeat: true
+              repeat: true,
+              repeatPath: [...context.repeatPath, { collectionId: lc.id, itemId: item.id }],
+              pagination: drives ? { listNodeId: n.id, itemId: item.id } : context.pagination
             });
           }
           return;
@@ -7013,17 +7027,21 @@ function lint() {
         inst: null,
         cdef: null,
         stack: [],
-        hero: { reviewed: false }
+        hero: { reviewed: false },
+        scope: "page",
+        previewItems: context.col && context.item ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
+        repeatPath: [],
+        pagination: null
       };
-      walkImages(state.header, [], "global header", imageContext);
+      walkImages(state.header, [], "global header", { ...imageContext, scope: "header" });
       walkImages(pg2.tree, [], "page", imageContext);
-      walkImages(state.footer, [], "global footer", imageContext);
+      walkImages(state.footer, [], "global footer", { ...imageContext, scope: "footer" });
     }
     for (const review of imageReviews.values()) {
       const labels = [...review.items.values()];
       const shown = labels.slice(0, 3).join(", ");
       const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
-      add(review.level, review.code, review.msg + affected, review.where, review.nodeId);
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
     }
     dupIds.forEach((id) => add("error", "duplicate-id", `The anchor id \u201C${id}\u201D is used more than once on \u201C${pg2.name}\u201D.`, scope));
     const h1s = headings.filter((h) => h.level === 1);
@@ -19151,8 +19169,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const v3 = valueOf(n2, c3);
     return Array.isArray(v3) ? v3 : [];
   };
-  function RowInput({ n: n2, c: c3, k: k3, prop, ...rest }) {
+  function RowInput({ n: n2, c: c3, k: k3, prop, onCommit, ...rest }) {
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
+    const changed = A2(false);
     return /* @__PURE__ */ u2(
       "input",
       {
@@ -19160,11 +19179,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         value: list(n2, c3)[k3][prop] || "",
         ...rest,
         onInput: (e3) => {
+          changed.current = true;
           L2.tx(key2);
           rows(n2, c3)[k3][prop] = e3.target.value;
           L2.repaint();
         },
-        onBlur: L2.endTx
+        onBlur: () => {
+          L2.endTx();
+          if (!changed.current) return;
+          changed.current = false;
+          onCommit?.();
+        }
       }
     );
   }
@@ -19192,6 +19217,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function ItemsCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
     const [open, setOpen] = d2(arr.length ? 0 : null);
+    const [, setLabelRevision] = d2(0);
     const [dragging, setDragging] = d2(null);
     const [dragOver, setDragOver] = d2(null);
     const dragFrom = A2(null);
@@ -19344,6 +19370,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     k: k3,
                     prop: "label",
                     placeholder: "Link label",
+                    onCommit: () => setLabelRevision((revision) => revision + 1),
                     "aria-label": `Navigation label for ${itemContext}`
                   }
                 ),
@@ -19571,6 +19598,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const arr = list(n2, c3);
     const [open, setOpen] = d2(null);
     const [advanced, setAdvanced] = d2(false);
+    const [, setLabelRevision] = d2(0);
     const grid = C2.cssAt(n2, C2.dk(), "--f-layout") === "grid";
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((f4, k3) => /* @__PURE__ */ u2(
@@ -19611,7 +19639,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ] }),
               /* @__PURE__ */ u2("label", { class: "frow-control", children: [
                 /* @__PURE__ */ u2("span", { children: "Label" }),
-                /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "label", placeholder: "Label" })
+                /* @__PURE__ */ u2(
+                  RowInput,
+                  {
+                    n: n2,
+                    c: c3,
+                    k: k3,
+                    prop: "label",
+                    placeholder: "Label",
+                    onCommit: () => setLabelRevision((revision) => revision + 1)
+                  }
+                )
               ] }),
               f4.type !== "checkbox" ? /* @__PURE__ */ u2("label", { class: "frow-control", children: [
                 /* @__PURE__ */ u2("span", { children: f4.type === "select" ? "Options" : "Placeholder" }),
@@ -19664,6 +19702,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function QaCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
     const [open, setOpen] = d2(null);
+    const [, setLabelRevision] = d2(0);
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const [kA, kB] = c3.rowKeys || ["q", "a"];
     const [phA, phB] = c3.rowPhs || ["Question", "Answer"];
@@ -19688,6 +19727,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   k: k3,
                   prop: kA,
                   placeholder: phA,
+                  onCommit: () => setLabelRevision((revision) => revision + 1),
                   "aria-label": `${phA} for ${it[kA] || "untitled item"}, item ${k3 + 1}`
                 }
               )
@@ -22939,6 +22979,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const [open, setOpen] = d2(defaultOpen || counts.error > 0);
     const clean = !findings.length;
     const goTo = (f4) => {
+      if (f4.target) {
+        L2.showReviewTarget(f4.target);
+        return;
+      }
       if (!f4.nodeId) return;
       const pi = C2.state.pages.findIndex((p3) => p3.slug === f4.where.slug);
       if (pi > -1) C2.state.cur = pi;
@@ -22971,7 +23015,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             f4.where.region ? " \xB7 " + f4.where.region : ""
           ] })
         ] }),
-        f4.nodeId ? /* @__PURE__ */ u2("button", { class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
+        f4.target || f4.nodeId ? /* @__PURE__ */ u2("button", { class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
       ] }, i3)) })
     ] });
   }
@@ -26838,7 +26882,8 @@ function renderPublicationPreviewFailure(host, failure) {
   };
   const canShow = finding => {
     const where = finding.where && typeof finding.where === 'object' ? finding.where : {};
-    return (typeof where.slug === 'string' && state.pages.some(page => page.slug === where.slug))
+    return (finding.target && typeof finding.target === 'object')
+      || (typeof where.slug === 'string' && state.pages.some(page => page.slug === where.slug))
       || (typeof finding.nodeId === 'string' && !!locate(finding.nodeId));
   };
   const problems = failure.findings.filter(finding => finding.level !== 'warn').length;
@@ -26862,6 +26907,10 @@ function renderPublicationPreviewFailure(host, failure) {
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
     const finding = failure.findings[+button.dataset.publicationFinding];
+    if (finding?.target && typeof finding.target === 'object') {
+      showReviewTarget(finding.target);
+      return;
+    }
     const where = finding?.where && typeof finding.where === 'object' ? finding.where : {};
     const page = typeof where.slug === 'string' ? state.pages.findIndex(candidate => candidate.slug === where.slug) : -1;
     if (page > -1) state.cur = page;
@@ -28781,6 +28830,109 @@ function selectedCanvasElement(id) {
     : contextualCanvasElement(id) || cdoc.getElementById(id);
 }
 
+/* Review findings are generated from rendered collection values, so a shared template id is
+   not enough to find the affected copy. Validate the structured identity against the live
+   document, repaint its current paginator/detail/static-source context, then require an exact
+   DOM ancestry match. A stale target must not silently become the first repeated card. */
+function showReviewTarget(target) {
+  const unavailable = message => { toast(message); return false; };
+  if (!target || typeof target !== 'object'
+    || typeof target.pageId !== 'string' || typeof target.nodeId !== 'string'
+    || !['page', 'header', 'footer'].includes(target.scope)) {
+    return unavailable('That review target is no longer available');
+  }
+  const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
+  if (pageIndex < 0) return unavailable('That page is no longer in the project');
+  const pg = state.pages[pageIndex];
+  const root = target.scope === 'header' ? state.header
+    : target.scope === 'footer' ? state.footer : pg.tree;
+  if (!locate(target.nodeId, root)) return unavailable('That element is no longer in the project');
+
+  const items = value => {
+    if (value === undefined) return [];
+    if (!Array.isArray(value)) return null;
+    const out = [];
+    for (const row of value) {
+      if (!row || typeof row !== 'object'
+        || typeof row.collectionId !== 'string' || typeof row.itemId !== 'string') return null;
+      const col = findCollection(row.collectionId);
+      const index = col ? col.items.findIndex(item => item.id === row.itemId) : -1;
+      if (!col || index < 0) return null;
+      out.push({ col, itemId: row.itemId, index });
+    }
+    return out;
+  };
+  const previewItems = items(target.previewItems);
+  const repeatItems = items(target.repeatPath);
+  if (!previewItems || !repeatItems) return unavailable('That affected item is no longer available');
+
+  let pageNo = 1;
+  if (target.pagination !== undefined) {
+    const pagination = target.pagination;
+    if (!pagination || typeof pagination !== 'object'
+      || typeof pagination.listNodeId !== 'string' || typeof pagination.itemId !== 'string') {
+      return unavailable('That affected item is no longer available');
+    }
+    const paginator = paginatorOf(pg);
+    const per = paginator && parseInt(String(paginator.node.props.per || ''), 10);
+    const rows = paginator && paginator.node.id === pagination.listNodeId
+      ? listItems(paginator.node, paginator.col) : [];
+    const rowIndex = rows.findIndex(item => item.id === pagination.itemId);
+    if (!paginator || !(per > 0) || rowIndex < 0) {
+      return unavailable('That affected item is no longer shown');
+    }
+    pageNo = Math.floor(rowIndex / per) + 1;
+  }
+
+  if (editing.on) exitEdit();
+  state.cur = pageIndex;
+  state.ui.mode = target.scope;
+  state.ui.pno = pageNo;
+  state.ui.item = state.ui.item || {};
+  [...previewItems, ...repeatItems].forEach(item => { state.ui.item[item.col.id] = item.index; });
+  canvasSelectionContext = null;
+  selSet([]);
+  closeReviewSurface();
+  render();
+
+  const pathOf = element => {
+    const nearest = [];
+    for (let at = element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      const collectionId = String(at.dataset?.cmsCol || '');
+      const itemId = String(at.dataset?.cmsItem || '');
+      if (!collectionId || !itemId) continue;
+      const previous = nearest[nearest.length - 1];
+      if (!previous || previous.collectionId !== collectionId || previous.itemId !== itemId) {
+        nearest.push({ collectionId, itemId });
+      }
+    }
+    return nearest.reverse();
+  };
+  const expectedPath = repeatItems.map(item => ({ collectionId: item.col.id, itemId: item.itemId }));
+  const matchesPath = element => {
+    const actual = pathOf(element);
+    return actual.length === expectedPath.length && actual.every((item, index) =>
+      item.collectionId === expectedPath[index].collectionId && item.itemId === expectedPath[index].itemId);
+  };
+  const candidates = Array.from(cdoc.querySelectorAll('[data-id]'))
+    .filter(element => element.dataset.id === target.nodeId);
+  const candidate = expectedPath.length
+    ? candidates.find(matchesPath)
+    : cdoc.getElementById(target.nodeId);
+  if (!candidate) {
+    canvasSelectionContext = null;
+    selSet([]);
+    paintSel(); renderRight(); renderLayers();
+    return unavailable('That affected item is no longer shown');
+  }
+  if (expectedPath.length && !rememberCanvasItem(candidate)) {
+    canvasSelectionContext = null;
+    return unavailable('That affected item is no longer shown');
+  }
+  select(target.nodeId, { keepCanvasContext: expectedPath.length > 0, scroll: true });
+  return true;
+}
+
 function canvasPointerHit(e) {
   const hit = e.target.closest && e.target.closest('[data-id]');
   if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
@@ -29635,7 +29787,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    closeModal, closeReviewSurface,
+    closeModal, closeReviewSurface, showReviewTarget,
     newPageModal, openPages, openPage, backToBuilder, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,

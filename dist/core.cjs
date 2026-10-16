@@ -4858,7 +4858,7 @@ function crc32(u8) {
 }
 function lint() {
   const out = [];
-  const add = (level, code, msg, where, nodeId) => out.push({ level, code, msg, where, nodeId });
+  const add = (level, code, msg, where, nodeId, target) => out.push({ level, code, msg, where, nodeId, target });
   const idsBySlug = {};
   state.pages.forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
@@ -5126,15 +5126,36 @@ function lint() {
     visit(pg2.tree, [], "page");
     visit(state.footer, [], "global footer");
     const imageReviews = /* @__PURE__ */ new Map();
-    const queueImage = (level, code, msg, region, node, inst, col, item) => {
-      const nodeId = inst ? inst.id : node.id;
+    const queueImage = (level, code, msg, region, node, context) => {
+      const nodeId = context.inst ? context.inst.id : node.id;
       const key = [code, region, nodeId, node.id].join("|");
       let review = imageReviews.get(key);
       if (!review) {
-        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map() };
+        const target = {
+          pageId: pg2.id,
+          scope: context.scope,
+          nodeId,
+          ...context.previewItems.length ? { previewItems: context.previewItems.map((item) => ({ ...item })) } : {},
+          ...context.repeatPath.length ? { repeatPath: context.repeatPath.map((item) => ({ ...item })) } : {},
+          ...context.pagination ? { pagination: { ...context.pagination } } : {}
+        };
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map(), target };
         imageReviews.set(key, review);
       }
-      if (col && item) review.items.set(`${col.id}|${item.id}`, `\u201C${itemTitle(col, item)}\u201D`);
+      if (context.col && context.item) {
+        review.items.set(`${context.col.id}|${context.item.id}`, `\u201C${itemTitle(context.col, context.item)}\u201D`);
+      }
+    };
+    const withPreviewItem = (context, col, item) => {
+      if (!item) return context;
+      const previewItems = context.previewItems.filter((target2) => target2.collectionId !== col.id);
+      const target = { collectionId: col.id, itemId: item.id };
+      previewItems.push(target);
+      return {
+        ...context,
+        previewItems,
+        repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
+      };
     };
     const walkImages = (list, chain, region, context) => {
       list.forEach((n) => {
@@ -5154,11 +5175,10 @@ function lint() {
         const self = host || n;
         const source = self.src || n.src;
         const sc = source ? findCollection(source) : null;
-        const scoped = sc ? {
-          ...context,
-          col: sc,
-          item: sourceItem(sc, context.col, context.item, context.repeat)
-        } : context;
+        const sourceUsesRepeat = !!sc && context.repeat && context.col === sc;
+        const sourceItemValue = sc ? sourceItem(sc, context.col, context.item, context.repeat) : null;
+        const scopedBase = sc ? { ...context, col: sc, item: sourceItemValue } : context;
+        const scoped = sc && !sourceUsesRepeat ? withPreviewItem(scopedBase, sc, sourceItemValue) : scopedBase;
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
         if (n.type === "image") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
@@ -5168,9 +5188,7 @@ function lint() {
             `An image in the ${region} has no source and will export a placeholder.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           if (p.src && !p.decorative && !String(p.alt || "").trim()) queueImage(
             "error",
@@ -5178,9 +5196,7 @@ function lint() {
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim())
             queueImage(
@@ -5189,9 +5205,7 @@ function lint() {
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
               region,
               n,
-              context.inst,
-              scoped.col,
-              scoped.item
+              scoped
             );
           if (p.src && !(p.w && p.h)) queueImage(
             "warn",
@@ -5199,9 +5213,7 @@ function lint() {
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
             region,
             n,
-            context.inst,
-            scoped.col,
-            scoped.item
+            scoped
           );
           const inFirstSection = region.startsWith("page") && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
           if (!scoped.hero.reviewed && inFirstSection && p.src) {
@@ -5212,20 +5224,22 @@ function lint() {
               `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
               region,
               n,
-              context.inst,
-              scoped.col,
-              scoped.item
+              scoped
             );
           }
         }
         if (n.type === "list") {
           const lc = n.src ? findCollection(n.src) : null;
-          if (lc) for (const item of listItems(n, lc)) {
+          const rows = lc ? listItems(n, lc) : [];
+          const drives = parseInt(String(n.props.per || ""), 10) > 0 && paginatorOf(pg2)?.node.id === n.id;
+          if (lc) for (const item of rows) {
             walkImages(n.children || [], chain.concat(n), region, {
               ...context,
               col: lc,
               item,
-              repeat: true
+              repeat: true,
+              repeatPath: [...context.repeatPath, { collectionId: lc.id, itemId: item.id }],
+              pagination: drives ? { listNodeId: n.id, itemId: item.id } : context.pagination
             });
           }
           return;
@@ -5247,17 +5261,21 @@ function lint() {
         inst: null,
         cdef: null,
         stack: [],
-        hero: { reviewed: false }
+        hero: { reviewed: false },
+        scope: "page",
+        previewItems: context.col && context.item ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
+        repeatPath: [],
+        pagination: null
       };
-      walkImages(state.header, [], "global header", imageContext);
+      walkImages(state.header, [], "global header", { ...imageContext, scope: "header" });
       walkImages(pg2.tree, [], "page", imageContext);
-      walkImages(state.footer, [], "global footer", imageContext);
+      walkImages(state.footer, [], "global footer", { ...imageContext, scope: "footer" });
     }
     for (const review of imageReviews.values()) {
       const labels = [...review.items.values()];
       const shown = labels.slice(0, 3).join(", ");
       const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
-      add(review.level, review.code, review.msg + affected, review.where, review.nodeId);
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
     }
     dupIds.forEach((id) => add("error", "duplicate-id", `The anchor id \u201C${id}\u201D is used more than once on \u201C${pg2.name}\u201D.`, scope));
     const h1s = headings.filter((h) => h.level === 1);

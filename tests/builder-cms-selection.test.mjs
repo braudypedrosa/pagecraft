@@ -53,7 +53,7 @@ function harness() {
   Object.assign(w, {
     cdoc: cd,
     cwin: frame.contentWindow,
-    state: { ui: { item: {}, sel: 'heading' }, pages: [{ tree: [card] }], meta: {} },
+    state: { ui: { item: {}, sel: 'heading' }, pages: [{ id: 'page-home', tree: [card] }], header: [], footer: [], cur: 0, meta: {} },
     findCollection: id => id === collection.id ? collection : null,
     $: selector => d.querySelector(selector),
     $$: (selector, root = d) => Array.from(root.querySelectorAll(selector)),
@@ -81,6 +81,23 @@ function harness() {
   w.eval(between('function bindCanvas()', '/* =============================================================== drag/drop */'));
   w.bindCanvas();
   return { w, d, cd, collection, courtyard, community, selected, node, card, locations };
+}
+
+function reviewHarness() {
+  const out = harness();
+  const { w } = out;
+  Object.assign(w, {
+    paginatorOf: () => null,
+    listItems: () => [],
+    selSet: ids => { w.state.ui.sel = ids[0] || null; },
+    closeReviewSurface: vi.fn(),
+    render: vi.fn(),
+    toast: vi.fn(),
+    paintSel: vi.fn(),
+    renderRight: vi.fn(),
+    renderLayers: vi.fn(),
+  });
+  return out;
 }
 
 test('canvas pointer selection keeps the clicked filtered and sorted CMS item as UI-only context', () => {
@@ -244,4 +261,102 @@ test('a nested repeated click validates and records every collection context in 
   locations['same-inner'] = { node: { id: 'same-inner', type: 'heading' }, parent: locations['same-outer'].node };
   sameHit.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true }));
   expect(w.state.ui.item[collection.id]).toBe(0, 'the nearest row wins when nested contexts share a collection');
+});
+
+test('a review target recomputes its paginator page and selects the exact filtered row without document history', () => {
+  const { w, collection, selected } = reviewHarness();
+  const list = { id: 'places-list', props: { per: '1' } };
+  w.paginatorOf = () => ({ node: list, col: collection, extra: 0 });
+  w.listItems = () => [collection.items[0], collection.items[2]];
+  const source = { pages: w.state.pages, meta: w.state.meta, collection, history: { undo: ['keep'], redo: [] } };
+  const before = JSON.stringify(source);
+
+  const shown = w.showReviewTarget({
+    pageId: 'page-home', scope: 'page', nodeId: 'heading',
+    repeatPath: [{ collectionId: 'places', itemId: 'courtyard' }],
+    pagination: { listNodeId: 'places-list', itemId: 'courtyard' },
+  });
+
+  expect(shown).toBe(true);
+  expect(w.state.ui.pno).toBe(2);
+  expect(w.state.ui.item.places).toBe(2, 'raw collection index, not visible position');
+  expect(selected.at(-1)).toEqual({
+    id: 'heading', options: { keepCanvasContext: true, scroll: true }, index: 2,
+  });
+  expect(w.closeReviewSurface).toHaveBeenCalledOnce();
+  expect(w.render).toHaveBeenCalledOnce();
+  expect(JSON.stringify(source)).toBe(before);
+});
+
+test('detail or static preview context can route a placed element in a global scope', () => {
+  const { w, cd, collection, locations, selected } = reviewHarness();
+  const image = { id: 'placed-image', type: 'image' };
+  locations[image.id] = { node: image, parent: null };
+  w.state.header = [image];
+  cd.querySelector('#s-root').innerHTML = '<img id="placed-image" data-id="placed-image" data-t="image">';
+
+  expect(w.showReviewTarget({
+    pageId: 'page-home', scope: 'header', nodeId: image.id,
+    previewItems: [{ collectionId: collection.id, itemId: 'courtyard' }],
+  })).toBe(true);
+  expect(w.state.ui.mode).toBe('header');
+  expect(w.state.ui.item.places).toBe(2);
+  expect(selected.at(-1)).toEqual({
+    id: image.id, options: { keepCanvasContext: false, scroll: true }, index: 2,
+  });
+});
+
+test('review navigation applies a nested repeat chain from outer row to inner row', () => {
+  const { w, cd, collection, locations, selected } = reviewHarness();
+  const outerItem = { id: 'outer-second', values: {} };
+  collection.items.push(outerItem);
+  const inner = { id: 'details', items: [{ id: 'inner-zero', values: {} }] };
+  w.findCollection = id => id === collection.id ? collection : id === inner.id ? inner : null;
+  const outerNode = { id: 'outer-card', type: 'column', children: [] };
+  const innerNode = { id: 'inner-heading', type: 'heading' };
+  outerNode.children.push(innerNode);
+  locations['outer-card'] = { node: outerNode, parent: null };
+  locations['inner-heading'] = { node: innerNode, parent: outerNode };
+
+  const outer = cd.createElement('div');
+  Object.assign(outer.dataset, { id: 'outer-card', t: 'column', cmsCol: collection.id, cmsItem: outerItem.id });
+  const hit = cd.createElement('h2');
+  Object.assign(hit.dataset, { id: 'inner-heading', t: 'heading', cmsCol: inner.id, cmsItem: inner.items[0].id });
+  outer.append(hit);
+  cd.querySelector('#s-root').append(outer);
+
+  expect(w.showReviewTarget({
+    pageId: 'page-home', scope: 'page', nodeId: 'inner-heading', repeatPath: [
+      { collectionId: collection.id, itemId: outerItem.id },
+      { collectionId: inner.id, itemId: inner.items[0].id },
+    ],
+  })).toBe(true);
+  expect(w.state.ui.item).toMatchObject({ places: 3, details: 0 });
+  expect(selected.at(-1)?.id).toBe('inner-heading');
+});
+
+test('a stale or filtered review target never falls back to the first repeated copy', () => {
+  const filtered = reviewHarness();
+  const sourceBefore = JSON.stringify({
+    pages: filtered.w.state.pages, meta: filtered.w.state.meta, collection: filtered.collection,
+  });
+  expect(filtered.w.showReviewTarget({
+    pageId: 'page-home', scope: 'page', nodeId: 'heading',
+    repeatPath: [{ collectionId: 'places', itemId: 'hidden' }],
+  })).toBe(false, 'a valid item excluded from the rendered list has no exact DOM copy');
+  expect(filtered.selected).toHaveLength(0);
+  expect(filtered.w.state.ui.sel).toBeNull();
+  expect(filtered.w.toast).toHaveBeenCalledWith('That affected item is no longer shown');
+  expect(JSON.stringify({
+    pages: filtered.w.state.pages, meta: filtered.w.state.meta, collection: filtered.collection,
+  })).toBe(sourceBefore);
+
+  const deleted = reviewHarness();
+  expect(deleted.w.showReviewTarget({
+    pageId: 'page-home', scope: 'page', nodeId: 'heading',
+    repeatPath: [{ collectionId: 'places', itemId: 'deleted' }],
+  })).toBe(false);
+  expect(deleted.selected).toHaveLength(0);
+  expect(deleted.w.closeReviewSurface).not.toHaveBeenCalled();
+  expect(deleted.w.render).not.toHaveBeenCalled();
 });

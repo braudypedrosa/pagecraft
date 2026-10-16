@@ -42,6 +42,7 @@ function fixture(prepare) {
     state: project,
     locate: id => id === 'form-1' ? { node: { id } } : null,
     closeModal: vi.fn(), render: vi.fn(), select: vi.fn(), showPanel: vi.fn(),
+    showReviewTarget: vi.fn(() => true),
     publishDraft: vi.fn(), openSchedulePanel: vi.fn(), toast: vi.fn()
   });
   w.eval(publicationSource);
@@ -168,6 +169,29 @@ describe('publication preview failure feedback', () => {
     expect(doc.querySelector('#releaseSchedule').disabled).toBe(false);
     expect(typeof doc.querySelector('#releasePublish').onclick).toBe('function');
     expect(typeof doc.querySelector('#releaseSchedule').onclick).toBe('function');
+    dom.window.close();
+  });
+
+  test('publication findings delegate structured CMS targets to validated navigation', async () => {
+    const target = {
+      pageId: 'page-contact', scope: 'page', nodeId: 'image-1',
+      repeatPath: [{ collectionId: 'places', itemId: 'courtyard' }],
+    };
+    const error = Object.assign(new Error('publication_validation_failed'), {
+      status: 422,
+      payload: { error: 'publication_validation_failed', findings: [{
+        code: 'no-alt', message: 'Describe the Courtyard image.', target,
+        where: { page: 'Contact', slug: 'contact', region: 'page', node: 'Image' },
+      }] },
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    doc.querySelector('[data-publication-finding]').click();
+
+    expect(w.showReviewTarget).toHaveBeenCalledExactlyOnceWith(target);
+    expect(w.closeModal).not.toHaveBeenCalled();
+    expect(w.select).not.toHaveBeenCalled();
     dom.window.close();
   });
 

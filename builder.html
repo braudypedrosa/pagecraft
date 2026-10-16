@@ -2540,7 +2540,8 @@ function renderPublicationPreviewFailure(host, failure) {
   };
   const canShow = finding => {
     const where = finding.where && typeof finding.where === 'object' ? finding.where : {};
-    return (typeof where.slug === 'string' && state.pages.some(page => page.slug === where.slug))
+    return (finding.target && typeof finding.target === 'object')
+      || (typeof where.slug === 'string' && state.pages.some(page => page.slug === where.slug))
       || (typeof finding.nodeId === 'string' && !!locate(finding.nodeId));
   };
   const problems = failure.findings.filter(finding => finding.level !== 'warn').length;
@@ -2564,6 +2565,10 @@ function renderPublicationPreviewFailure(host, failure) {
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
     const finding = failure.findings[+button.dataset.publicationFinding];
+    if (finding?.target && typeof finding.target === 'object') {
+      showReviewTarget(finding.target);
+      return;
+    }
     const where = finding?.where && typeof finding.where === 'object' ? finding.where : {};
     const page = typeof where.slug === 'string' ? state.pages.findIndex(candidate => candidate.slug === where.slug) : -1;
     if (page > -1) state.cur = page;
@@ -4483,6 +4488,109 @@ function selectedCanvasElement(id) {
     : contextualCanvasElement(id) || cdoc.getElementById(id);
 }
 
+/* Review findings are generated from rendered collection values, so a shared template id is
+   not enough to find the affected copy. Validate the structured identity against the live
+   document, repaint its current paginator/detail/static-source context, then require an exact
+   DOM ancestry match. A stale target must not silently become the first repeated card. */
+function showReviewTarget(target) {
+  const unavailable = message => { toast(message); return false; };
+  if (!target || typeof target !== 'object'
+    || typeof target.pageId !== 'string' || typeof target.nodeId !== 'string'
+    || !['page', 'header', 'footer'].includes(target.scope)) {
+    return unavailable('That review target is no longer available');
+  }
+  const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
+  if (pageIndex < 0) return unavailable('That page is no longer in the project');
+  const pg = state.pages[pageIndex];
+  const root = target.scope === 'header' ? state.header
+    : target.scope === 'footer' ? state.footer : pg.tree;
+  if (!locate(target.nodeId, root)) return unavailable('That element is no longer in the project');
+
+  const items = value => {
+    if (value === undefined) return [];
+    if (!Array.isArray(value)) return null;
+    const out = [];
+    for (const row of value) {
+      if (!row || typeof row !== 'object'
+        || typeof row.collectionId !== 'string' || typeof row.itemId !== 'string') return null;
+      const col = findCollection(row.collectionId);
+      const index = col ? col.items.findIndex(item => item.id === row.itemId) : -1;
+      if (!col || index < 0) return null;
+      out.push({ col, itemId: row.itemId, index });
+    }
+    return out;
+  };
+  const previewItems = items(target.previewItems);
+  const repeatItems = items(target.repeatPath);
+  if (!previewItems || !repeatItems) return unavailable('That affected item is no longer available');
+
+  let pageNo = 1;
+  if (target.pagination !== undefined) {
+    const pagination = target.pagination;
+    if (!pagination || typeof pagination !== 'object'
+      || typeof pagination.listNodeId !== 'string' || typeof pagination.itemId !== 'string') {
+      return unavailable('That affected item is no longer available');
+    }
+    const paginator = paginatorOf(pg);
+    const per = paginator && parseInt(String(paginator.node.props.per || ''), 10);
+    const rows = paginator && paginator.node.id === pagination.listNodeId
+      ? listItems(paginator.node, paginator.col) : [];
+    const rowIndex = rows.findIndex(item => item.id === pagination.itemId);
+    if (!paginator || !(per > 0) || rowIndex < 0) {
+      return unavailable('That affected item is no longer shown');
+    }
+    pageNo = Math.floor(rowIndex / per) + 1;
+  }
+
+  if (editing.on) exitEdit();
+  state.cur = pageIndex;
+  state.ui.mode = target.scope;
+  state.ui.pno = pageNo;
+  state.ui.item = state.ui.item || {};
+  [...previewItems, ...repeatItems].forEach(item => { state.ui.item[item.col.id] = item.index; });
+  canvasSelectionContext = null;
+  selSet([]);
+  closeReviewSurface();
+  render();
+
+  const pathOf = element => {
+    const nearest = [];
+    for (let at = element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      const collectionId = String(at.dataset?.cmsCol || '');
+      const itemId = String(at.dataset?.cmsItem || '');
+      if (!collectionId || !itemId) continue;
+      const previous = nearest[nearest.length - 1];
+      if (!previous || previous.collectionId !== collectionId || previous.itemId !== itemId) {
+        nearest.push({ collectionId, itemId });
+      }
+    }
+    return nearest.reverse();
+  };
+  const expectedPath = repeatItems.map(item => ({ collectionId: item.col.id, itemId: item.itemId }));
+  const matchesPath = element => {
+    const actual = pathOf(element);
+    return actual.length === expectedPath.length && actual.every((item, index) =>
+      item.collectionId === expectedPath[index].collectionId && item.itemId === expectedPath[index].itemId);
+  };
+  const candidates = Array.from(cdoc.querySelectorAll('[data-id]'))
+    .filter(element => element.dataset.id === target.nodeId);
+  const candidate = expectedPath.length
+    ? candidates.find(matchesPath)
+    : cdoc.getElementById(target.nodeId);
+  if (!candidate) {
+    canvasSelectionContext = null;
+    selSet([]);
+    paintSel(); renderRight(); renderLayers();
+    return unavailable('That affected item is no longer shown');
+  }
+  if (expectedPath.length && !rememberCanvasItem(candidate)) {
+    canvasSelectionContext = null;
+    return unavailable('That affected item is no longer shown');
+  }
+  select(target.nodeId, { keepCanvasContext: expectedPath.length > 0, scroll: true });
+  return true;
+}
+
 function canvasPointerHit(e) {
   const hit = e.target.closest && e.target.closest('[data-id]');
   if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
@@ -5337,7 +5445,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    closeModal, closeReviewSurface,
+    closeModal, closeReviewSurface, showReviewTarget,
     newPageModal, openPages, openPage, backToBuilder, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,

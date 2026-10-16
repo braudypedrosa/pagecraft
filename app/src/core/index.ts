@@ -18,7 +18,7 @@ import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
   StateKey, States, Anim, TabPanel, Capability, Binding, Condition, CondOp, ComponentDef, ComponentProp, PropKind,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
-  Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
+  Finding, FindingItemTarget, FindingTarget, RenderOpts, MenuItem, Slot, SlotHit, Control
 } from './types.ts';
 import { UI_TEXT_SIZES } from '../../../shared/ui-tokens.js';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
@@ -3403,7 +3403,8 @@ function crc32(u8: Uint8Array): number {
 
 function lint() {
   const out: Finding[] = [];
-  const add = (level: 'error' | 'warn', code: string, msg: string, where: any, nodeId?: string) => out.push({ level, code, msg, where, nodeId });
+  const add = (level: 'error' | 'warn', code: string, msg: string, where: any,
+    nodeId?: string, target?: FindingTarget) => out.push({ level, code, msg, where, nodeId, target });
 
   /* ids available on each page, so links can be resolved across the site */
   const idsBySlug: Record<string, Set<string>> = {};
@@ -3741,24 +3742,49 @@ function lint() {
        item, and component properties/slots resolve exactly where the instance renders them. */
     type ImageReview = {
       level: 'error' | 'warn'; code: string; msg: string; where: any; nodeId: string;
-      items: Map<string, string>;
+      items: Map<string, string>; target: FindingTarget;
     };
     const imageReviews = new Map<string, ImageReview>();
     const queueImage = (level: 'error' | 'warn', code: string, msg: string, region: string,
-      node: PcNode, inst: PcNode | null, col: Collection | null, item: Item | null) => {
-      const nodeId = inst ? inst.id : node.id;
+      node: PcNode, context: ImageContext) => {
+      const nodeId = context.inst ? context.inst.id : node.id;
       const key = [code, region, nodeId, node.id].join('|');
       let review = imageReviews.get(key);
       if (!review) {
-        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: new Map() };
+        const target: FindingTarget = {
+          pageId: pg.id, scope: context.scope, nodeId,
+          ...(context.previewItems.length ? { previewItems: context.previewItems.map(item => ({ ...item })) } : {}),
+          ...(context.repeatPath.length ? { repeatPath: context.repeatPath.map(item => ({ ...item })) } : {}),
+          ...(context.pagination ? { pagination: { ...context.pagination } } : {})
+        };
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: new Map(), target };
         imageReviews.set(key, review);
       }
-      if (col && item) review.items.set(`${col.id}|${item.id}`, `“${itemTitle(col, item)}”`);
+      if (context.col && context.item) {
+        review.items.set(`${context.col.id}|${context.item.id}`, `“${itemTitle(context.col, context.item)}”`);
+      }
     };
     type ImageContext = {
       col: Collection | null; item: Item | null; repeat: boolean;
       inst: PcNode | null; cdef: ComponentDef | null; stack: string[];
       hero: { reviewed: boolean };
+      scope: FindingTarget['scope'];
+      previewItems: FindingItemTarget[];
+      repeatPath: FindingItemTarget[];
+      pagination: FindingTarget['pagination'] | null;
+    };
+    const withPreviewItem = (context: ImageContext, col: Collection, item: Item | null): ImageContext => {
+      if (!item) return context;
+      const previewItems = context.previewItems.filter(target => target.collectionId !== col.id);
+      const target = { collectionId: col.id, itemId: item.id };
+      previewItems.push(target);
+      /* A static source inside a repeated branch still emits an editor CMS hook for its own
+         preview item. Carry that extra DOM level as well as the preview choice, or exact
+         navigation would reject a target the renderer can address. */
+      return {
+        ...context, previewItems,
+        repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
+      };
     };
     const walkImages = (list: PcNode[], chain: PcNode[], region: string, context: ImageContext): void => {
       list.forEach(n => {
@@ -3776,29 +3802,29 @@ function lint() {
         const self = host || n;
         const source = self.src || n.src;
         const sc = source ? findCollection(source) : null;
-        const scoped = sc ? {
-          ...context, col: sc,
-          item: sourceItem(sc, context.col, context.item, context.repeat)
-        } : context;
+        const sourceUsesRepeat = !!sc && context.repeat && context.col === sc;
+        const sourceItemValue = sc ? sourceItem(sc, context.col, context.item, context.repeat) : null;
+        const scopedBase = sc ? { ...context, col: sc, item: sourceItemValue } : context;
+        const scoped = sc && !sourceUsesRepeat ? withPreviewItem(scopedBase, sc, sourceItemValue) : scopedBase;
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
 
         if (n.type === 'image') {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
           if (!p.src) queueImage('warn', 'no-image',
             `An image in the ${region} has no source and will export a placeholder.`,
-            region, n, context.inst, scoped.col, scoped.item);
+            region, n, scoped);
           /* Demand alt text once there is an image to describe. Until a source is set the
              placeholder finding is the only action the author can take. */
           if (p.src && !p.decorative && !String(p.alt || '').trim()) queueImage('error', 'no-alt',
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
-            region, n, context.inst, scoped.col, scoped.item);
+            region, n, scoped);
           if (p.src && p.decorative && String(p.link || '').trim() && !String(p.label || '').trim())
             queueImage('error', 'image-link-no-label',
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
-              region, n, context.inst, scoped.col, scoped.item);
+              region, n, scoped);
           if (p.src && !(p.w && p.h)) queueImage('warn', 'no-dimensions',
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
-            region, n, context.inst, scoped.col, scoped.item);
+            region, n, scoped);
           /* As before, only the first sourced image in the opening body section is known to be
              above the fold. The flag belongs to one exported page context, not the project. */
           const inFirstSection = region.startsWith('page') && (n === pg.tree[0] || chain[0] === pg.tree[0]);
@@ -3806,7 +3832,7 @@ function lint() {
             scoped.hero.reviewed = true;
             if (p.lazy) queueImage('warn', 'hero-image-lazy',
               `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
-              region, n, context.inst, scoped.col, scoped.item);
+              region, n, scoped);
           }
         }
 
@@ -3815,9 +3841,14 @@ function lint() {
            returns every row, including those that only appear in later generated files. */
         if (n.type === 'list') {
           const lc = n.src ? findCollection(n.src) : null;
-          if (lc) for (const item of listItems(n, lc)) {
+          const rows = lc ? listItems(n, lc) : [];
+          const drives = parseInt(String(n.props.per || ''), 10) > 0
+            && paginatorOf(pg)?.node.id === n.id;
+          if (lc) for (const item of rows) {
             walkImages(n.children || [], chain.concat(n), region, {
-              ...context, col: lc, item, repeat: true
+              ...context, col: lc, item, repeat: true,
+              repeatPath: [...context.repeatPath, { collectionId: lc.id, itemId: item.id }],
+              pagination: drives ? { listNodeId: n.id, itemId: item.id } : context.pagination
             });
           }
           return;
@@ -3837,11 +3868,15 @@ function lint() {
     else contexts.push({ col: null, item: null });
     for (const context of contexts) {
       const imageContext: ImageContext = {
-        ...context, repeat: false, inst: null, cdef: null, stack: [], hero: { reviewed: false }
+        ...context, repeat: false, inst: null, cdef: null, stack: [], hero: { reviewed: false },
+        scope: 'page',
+        previewItems: context.col && context.item
+          ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
+        repeatPath: [], pagination: null
       };
-      walkImages(state.header, [], 'global header', imageContext);
+      walkImages(state.header, [], 'global header', { ...imageContext, scope: 'header' });
       walkImages(pg.tree, [], 'page', imageContext);
-      walkImages(state.footer, [], 'global footer', imageContext);
+      walkImages(state.footer, [], 'global footer', { ...imageContext, scope: 'footer' });
     }
     for (const review of imageReviews.values()) {
       const labels = [...review.items.values()];
@@ -3849,7 +3884,7 @@ function lint() {
       const affected = labels.length
         ? ` Affected item${labels.length === 1 ? '' : 's'}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}.`
         : '';
-      add(review.level, review.code, review.msg + affected, review.where, review.nodeId);
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
     }
 
     dupIds.forEach(id => add('error', 'duplicate-id', `The anchor id “${id}” is used more than once on “${pg.name}”.`, scope));

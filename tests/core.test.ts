@@ -2799,6 +2799,13 @@ test('image review resolves every filtered paginated CMS row and excludes drafts
   a.match(missingAlt[0].msg, /B missing alt/);
   a.match(missingAlt[0].msg, /C missing alt/);
   a.doesNotMatch(missingAlt[0].msg, /Filtered missing alt|Draft missing alt/);
+  a.deepEqual(missingAlt[0].target, {
+    pageId: C.state.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+    repeatPath: [{ collectionId: col.id, itemId: col.items[1].id }],
+    pagination: { listNodeId: list.id, itemId: col.items[1].id },
+  }, 'the first named affected row carries its exact later-page identity');
   const missingImage = find(review, 'no-image');
   a.equal(missingImage.length, 1, 'the bound empty source wins over the authored fallback');
   a.match(missingImage[0].msg, /D missing photo/);
@@ -2854,6 +2861,12 @@ test('image review resolves component properties for every published detail item
   const missingAlt = find(C.lint(), 'no-alt');
   a.equal(missingAlt.length, 1);
   a.equal(missingAlt[0].nodeId, instance.id, 'the finding selects the placed component');
+  a.deepEqual(missingAlt[0].target, {
+    pageId: pg.id,
+    scope: 'page',
+    nodeId: instance.id,
+    previewItems: [{ collectionId: col.id, itemId: missing.id }],
+  }, 'detail context selects the placed instance while retaining the affected item');
   a.match(String(missingAlt[0].where.region), /in “Detail card”/);
   a.match(missingAlt[0].msg, /Missing detail alt/);
   a.doesNotMatch(missingAlt[0].msg, /Complete detail|Draft detail alt/);
@@ -2893,6 +2906,62 @@ test('a static source scope reviews the exact selected item, including a later d
   a.equal(missingAlt.length, 1);
   a.match(missingAlt[0].msg, /Selected draft preview/);
   a.doesNotMatch(missingAlt[0].msg, /First published preview/);
+  a.deepEqual(missingAlt[0].target?.previewItems,
+    [{ collectionId: col.id, itemId: col.items[1].id }],
+    'the static source choice is retained even when it is a draft');
+});
+
+test('image review retains nested repeated item paths and an explicit global scope', () => {
+  blank();
+  const outer = collectionAdd('Neighbourhoods');
+  const outerItem = itemAdd(outer.id);
+  C.itemSet(outer.id, outerItem.id, 'title', 'Central');
+  const inner = collectionAdd('Places');
+  const photo = must(C.fieldAdd(inner.id, 'Photo', 'image'), 'photo field');
+  const alt = must(C.fieldAdd(inner.id, 'Alt text', 'text'), 'alt field');
+  const complete = itemAdd(inner.id);
+  C.itemSet(inner.id, complete.id, 'title', 'Community Garden');
+  C.itemSet(inner.id, complete.id, photo.id, 'garden.webp');
+  C.itemSet(inner.id, complete.id, alt.id, 'Garden beds');
+  const affected = itemAdd(inner.id);
+  C.itemSet(inner.id, affected.id, 'title', 'Courtyard');
+  C.itemSet(inner.id, affected.id, photo.id, 'courtyard.webp');
+  C.itemSet(inner.id, affected.id, alt.id, '');
+
+  const image = C.N('image', { src: 'fallback.webp', alt: 'Fallback', w: '800', h: '600' });
+  C.bindSet(image, 'src', C.bindField(photo.id));
+  C.bindSet(image, 'alt', C.bindField(alt.id));
+  const innerList = C.N('list', {}, {}, [C.N('column', {}, {}, [image])]);
+  C.srcSet(innerList, inner.id);
+  const staticImage = C.N('image', { src: 'fallback.webp', alt: 'Fallback', w: '800', h: '600' });
+  C.bindSet(staticImage, 'src', C.bindField(photo.id));
+  C.bindSet(staticImage, 'alt', C.bindField(alt.id));
+  const staticSource = C.N('box', {}, {}, [staticImage]);
+  C.srcSet(staticSource, inner.id);
+  const outerList = C.N('list', {}, {}, [C.N('column', {}, {}, [innerList, staticSource])]);
+  C.srcSet(outerList, outer.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [outerList])];
+  C.state.ui.item = { [inner.id]: 1 };
+
+  const findings = find(C.lint(), 'no-alt');
+  const nested = findings.find(row => row.nodeId === image.id)!;
+  a.deepEqual(nested.target?.repeatPath, [
+    { collectionId: outer.id, itemId: outerItem.id },
+    { collectionId: inner.id, itemId: affected.id },
+  ]);
+  const staticFinding = findings.find(row => row.nodeId === staticImage.id)!;
+  a.deepEqual(staticFinding.target?.previewItems,
+    [{ collectionId: inner.id, itemId: affected.id }]);
+  a.deepEqual(staticFinding.target?.repeatPath, [
+    { collectionId: outer.id, itemId: outerItem.id },
+    { collectionId: inner.id, itemId: affected.id },
+  ], 'a nested static source retains the extra CMS DOM ancestry it renders');
+
+  const globalImage = C.N('image', { src: 'brand.webp', alt: '', w: '800', h: '600' });
+  C.state.header = [globalImage];
+  const global = find(C.lint(), 'no-alt').find(row => row.nodeId === globalImage.id)!;
+  a.equal(global.target?.scope, 'header');
+  a.equal(global.target?.pageId, C.state.pages[0].id);
 });
 
 test('image review skips a hidden conditional ancestor for each collection row', () => {

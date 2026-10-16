@@ -36,6 +36,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     wordpressContent: () => opts.wordpressContent || [],
     nativePageSource: () => opts.nativePageSource || null,
     select: rec('select'),
+    showReviewTarget: target => { calls.push(['showReviewTarget', target]); return true; },
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
        panel that asks to change region before inserting can only be checked against
        where the node actually landed if the stub honours the request. */

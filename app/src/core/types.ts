@@ -825,12 +825,32 @@ export interface Target {
 
 export type Level_ = 'error' | 'warn';
 
+/** A collection item needed to reproduce the rendered copy a review finding describes. */
+export interface FindingItemTarget {
+  collectionId: string;
+  itemId: string;
+}
+
+/** A stable, non-display route from a review finding to one rendered canvas copy. */
+export interface FindingTarget {
+  pageId: string;
+  scope: 'page' | 'header' | 'footer';
+  nodeId: string;
+  /** Detail-template and static-source choices, which are canvas state rather than DOM hooks. */
+  previewItems?: FindingItemTarget[];
+  /** Repeated list rows, ordered from the outermost list to the innermost. */
+  repeatPath?: FindingItemTarget[];
+  /** The row of the page's one driving paginator. Its current page is recomputed on use. */
+  pagination?: { listNodeId: string; itemId: string };
+}
+
 export interface Finding {
   level: Level_;
   code: string;
   msg: string;
   where: { page?: string; slug?: string; region?: string; node?: string };
   nodeId?: string;
+  target?: FindingTarget;
 }
 
 /* ---- find and replace ------------------------------------------------- */

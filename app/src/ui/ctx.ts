@@ -77,6 +77,8 @@ export interface Legacy {
   nativePageSource(): NativePageSource | null;
   /** select an element on the canvas; `null` clears the selection */
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
+  /** Navigate a structured review target to its exact rendered CMS copy. */
+  showReviewTarget(target: import('../core/types').FindingTarget): boolean;
   /** switch the editing scope between the page and the global header/footer */
   setMode(mode: string): void;
   /** Open a component definition for editing, or close it. Both go through the app's own

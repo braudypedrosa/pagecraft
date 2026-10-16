@@ -25,6 +25,10 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
   /* Jumping to a finding may cross a page or a global region, so the scope moves first
      and the canvas is repainted before anything is selected. */
   const goTo = (f: Finding) => {
+    if (f.target) {
+      L.showReviewTarget(f.target);
+      return;
+    }
     if (!f.nodeId) return;
     const pi = C.state.pages.findIndex(p => p.slug === f.where.slug);
     if (pi > -1) C.state.cur = pi;
@@ -59,7 +63,7 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
               <span class="msg">{f.msg}
                 <em>{f.where.page || ''}{f.where.region ? ' · ' + f.where.region : ''}</em>
               </span>
-              {f.nodeId ? <button class="go" onClick={() => goTo(f)}>Show me</button> : null}
+              {f.target || f.nodeId ? <button class="go" onClick={() => goTo(f)}>Show me</button> : null}
             </li>
           ))}
       </MotionPresence>
