@@ -8302,14 +8302,6 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      page ship three elements with the same id, which is invalid markup and breaks every anchor
      pointing at one. */
   const ins = inner && o.inst ? '-' + String(o.inst.id).replace(/^n/, '') : '';
-  const domId = o.edit
-    ? esc(o.repIndex ? self.id + rep + ins : self.id + ins)
-    : esc(domIdOf(self) + rep + ins);
-  /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
-     on the nearest ancestor that has one — the instance — which is the element whose panel can
-     actually change anything. Its internals belong to the definition. */
-  const hooks = inner ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? ' data-sel' : ''}`;
-  const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
   const source = self.src || n.src;
@@ -8318,6 +8310,24 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     ...o, col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
+  const domId = o.edit
+    ? esc(o.repIndex ? self.id + rep + ins : self.id + ins)
+    : esc(domIdOf(self) + rep + ins);
+  /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
+     on the nearest ancestor that has one — the instance — which is the element whose panel can
+     actually change anything. Its internals belong to the definition.
+
+     Editor repeats also expose the item that produced this exact copy. The stored node id must
+     stay shared because edits apply to the card template; these two editor-only hooks preserve
+     the row context long enough for selection and the read-only bound controls to agree with
+     the words that were clicked. Resolve them from `o2`, after a nested source has chosen its
+     own item, and validate membership so stale objects never become authoring context. */
+  const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item
+    && findItem(o2.col, o2.item.id)
+    ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"`
+    : '';
+  const hooks = inner ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
      page's nodes, so they render outside the instance's scope: their bindings are the page's

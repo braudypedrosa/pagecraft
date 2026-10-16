@@ -21,6 +21,7 @@ import {
   advancedControlIsModified, clearOwnBreakpointChanges, commonControlsFirst,
   controlIsModified, hasOwnBreakpointChanges, scopeDeclarations
 } from './scope';
+import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
 
 /* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
    reason Add.tsx has this line. */
@@ -420,12 +421,17 @@ function ContentSource({ n }: { n: PcNode }) {
       <label>Collection <HelpTip label="Content source" text="Choose a collection, then bind its fields to elements inside this container." /></label>
       <select class="ctl" aria-label="Content source collection" value={n.src || ''}
         onChange={e => {
-          const v = (e.target as HTMLSelectElement).value;
-          C.edit(() => C.srcSet(n, v));
+          const select = e.currentTarget as HTMLSelectElement;
+          const original = n.src && C.findCollection(n.src) ? n.src : '';
+          const v = select.value;
+          const changed = changeContentSource(n, v);
+          if (changed.blocked) { select.value = original; L.toast(sourceChangeBlocked(changed)); return; }
+          if (!changed.changed) { select.value = original; return; }
           /* not "Bound to X" — that is what binding a *field* does, and reusing the
              word here is most of why setting a source reads as though it should have
              changed something on its own */
-          L.toast(v ? 'Content source: ' + C.findCollection(v)!.name : 'Content source cleared');
+          L.toast((v ? 'Content source: ' + C.findCollection(v)!.name : 'Content source cleared')
+            + sourceChangeSuffix(changed));
         }}>
         <option value="">— None —</option>
         {C.collections().map(c => (

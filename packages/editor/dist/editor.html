@@ -11027,9 +11027,6 @@ function renderNode(n, o) {
   const cx = (c) => `class="${c} ${esc(nodeClass(n))}${host ? " " + esc(nodeClass(host)) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
-  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
-  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? " data-sel" : ""}`;
-  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
   const o2 = sc ? {
@@ -11037,6 +11034,10 @@ function renderNode(n, o) {
     col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
+  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
+  const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item && findItem(o2.col, o2.item.id) ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"` : "";
+  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
@@ -19893,6 +19894,221 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
 
+  // app/src/ui/inspector/cms-source-change.ts
+  var semanticKey = (label, type) => {
+    const name = String(label || "").normalize("NFC").trim().replace(/\s+/gu, " ").toLowerCase();
+    return name ? `${name}\0${type}` : "";
+  };
+  function terminalField(collection, path) {
+    const parts = String(path || "").split(".");
+    const first = C2.findField(collection, parts[0]);
+    if (!first || parts.length === 1) return first;
+    if (parts.length !== 2 || first.type !== "ref" || !first.ref) return null;
+    return C2.findField(C2.findCollection(first.ref), parts[1]);
+  }
+  function pathMatches(before, after) {
+    const oldPaths = C2.fieldPaths(before).map((path) => ({ ...path, field: terminalField(before, path.path) }));
+    const newPaths = C2.fieldPaths(after).map((path) => ({ ...path, field: terminalField(after, path.path) }));
+    const oldCounts = /* @__PURE__ */ new Map();
+    const newByKey = /* @__PURE__ */ new Map();
+    for (const path of oldPaths) {
+      const key2 = semanticKey(path.label, path.type);
+      if (!key2) continue;
+      oldCounts.set(key2, (oldCounts.get(key2) || 0) + 1);
+    }
+    for (const path of newPaths) {
+      const key2 = semanticKey(path.label, path.type);
+      if (!key2) continue;
+      const matches = newByKey.get(key2) || [];
+      matches.push(path);
+      newByKey.set(key2, matches);
+    }
+    const out = /* @__PURE__ */ new Map();
+    for (const path of oldPaths) {
+      if (!path.field) continue;
+      const key2 = semanticKey(path.label, path.type);
+      if (!key2) continue;
+      const matches = newByKey.get(key2) || [];
+      if (oldCounts.get(key2) !== 1 || matches.length !== 1 || !matches[0].field) continue;
+      out.set(path.path, { nextPath: matches[0].path, before: path.field, after: matches[0].field });
+    }
+    return out;
+  }
+  function directMatches(before, after) {
+    const oldCounts = /* @__PURE__ */ new Map();
+    const newByKey = /* @__PURE__ */ new Map();
+    for (const field of before.fields || []) {
+      const key2 = semanticKey(field.name, field.type);
+      if (!key2) continue;
+      oldCounts.set(key2, (oldCounts.get(key2) || 0) + 1);
+    }
+    for (const field of after.fields || []) {
+      const key2 = semanticKey(field.name, field.type);
+      if (!key2) continue;
+      const matches = newByKey.get(key2) || [];
+      matches.push(field);
+      newByKey.set(key2, matches);
+    }
+    const out = /* @__PURE__ */ new Map();
+    for (const field of before.fields || []) {
+      const key2 = semanticKey(field.name, field.type);
+      if (!key2) continue;
+      const matches = newByKey.get(key2) || [];
+      if (oldCounts.get(key2) !== 1 || matches.length !== 1) continue;
+      out.set(field.id, { nextPath: matches[0].id, before: field, after: matches[0] });
+    }
+    return out;
+  }
+  function comparisonSurvives(match, value) {
+    const wanted = String(value == null ? "" : value).trim();
+    if (match.before.type === "option") return wanted !== "" && cmsChoices(match.after.opts).includes(wanted);
+    if (match.before.type === "ref") return (match.before.ref || "") === (match.after.ref || "");
+    return true;
+  }
+  function blockedDefinitions(nodes, before, after) {
+    if (!after) return void 0;
+    if (before?.id === after.id) return void 0;
+    const matches = before ? pathMatches(before, after) : /* @__PURE__ */ new Map();
+    const blocked = /* @__PURE__ */ new Map();
+    const safe = (path, value, comparesValue = false) => {
+      const match = matches.get(path) || null;
+      return !!match && match.nextPath === path && (!comparesValue || comparisonSurvives(match, value));
+    };
+    const scanDefinition = (componentId, stack) => {
+      if (stack.has(componentId)) return;
+      const definition = C2.findComponent(componentId);
+      if (!definition) return;
+      const nextStack = new Set(stack);
+      nextStack.add(componentId);
+      const scanNode = (node, isDefinitionRoot = false) => {
+        if (!isDefinitionRoot && (node.src || C2.findComponent(node.use)?.node.src)) return;
+        for (const binding of Object.values(node.bind || {})) {
+          if (binding.src === "field" && !safe(binding.path)) {
+            blocked.set(definition.id, definition.name);
+            break;
+          }
+        }
+        const condition = node.showIf;
+        if (condition?.bind.src === "field") {
+          const comparesValue = condition.op === "eq" || condition.op === "ne";
+          if (!safe(condition.bind.path, condition.value, comparesValue)) {
+            blocked.set(definition.id, definition.name);
+          }
+        }
+        if (node.use) scanDefinition(node.use, nextStack);
+        for (const child of node.children || []) scanNode(child);
+      };
+      scanNode(definition.node, true);
+    };
+    for (const node of nodes) if (node.use) scanDefinition(node.use, /* @__PURE__ */ new Set());
+    const entries = [...blocked.entries()];
+    return entries.length ? { component: entries[0][1], additional: entries.length - 1 } : void 0;
+  }
+  function scopedNodes(root) {
+    const out = [];
+    const visit = (node, isRoot = false) => {
+      const source = node.src || C2.findComponent(node.use)?.node.src;
+      if (!isRoot && source) return;
+      out.push(node);
+      (node.children || []).forEach((child) => visit(child));
+    };
+    visit(root, true);
+    return out;
+  }
+  function changeContentSource(root, requestedId) {
+    const definitionSource = C2.findComponent(root.use)?.node.src || "";
+    const currentExplicitId = root.src && C2.findCollection(root.src) ? root.src : "";
+    const nextExplicit = requestedId ? C2.findCollection(requestedId) : null;
+    const nextExplicitId = nextExplicit?.id || "";
+    if (currentExplicitId === nextExplicitId) return { changed: false, cleared: 0, remapped: 0 };
+    const before = C2.findCollection(currentExplicitId || definitionSource);
+    const after = C2.findCollection(nextExplicitId || definitionSource);
+    const nextId2 = nextExplicitId;
+    const sameEffectiveSource = !!before && before.id === after?.id;
+    const nodes = scopedNodes(root);
+    const blocked = blockedDefinitions(nodes, before, after);
+    if (blocked) return { changed: false, cleared: 0, remapped: 0, blocked };
+    const paths = before && after ? pathMatches(before, after) : /* @__PURE__ */ new Map();
+    const direct = before && after ? directMatches(before, after) : /* @__PURE__ */ new Map();
+    const bindingPlans = [];
+    const conditionPlans = [];
+    let cleared = 0;
+    let remapped = 0;
+    if (after && !sameEffectiveSource) for (const node of nodes) {
+      for (const [key2, binding] of Object.entries(node.bind || {})) {
+        if (binding.src !== "field") continue;
+        const match2 = paths.get(binding.path);
+        const nextPath = match2?.nextPath || "";
+        if (!nextPath) cleared++;
+        else if (nextPath !== binding.path) remapped++;
+        bindingPlans.push({ node, key: key2, nextPath });
+      }
+      const condition = node.showIf;
+      if (!condition || condition.bind.src !== "field") continue;
+      const match = paths.get(condition.bind.path);
+      const comparesValue = condition.op === "eq" || condition.op === "ne";
+      if (!match || comparesValue && !comparisonSurvives(match, condition.value)) {
+        conditionPlans.push({ node, condition: null });
+        cleared++;
+      } else {
+        if (match.nextPath !== condition.bind.path) remapped++;
+        conditionPlans.push({ node, condition: {
+          ...condition,
+          bind: { src: "field", path: match.nextPath }
+        } });
+      }
+    }
+    let nextSort = null;
+    let nextWhere = null;
+    let clearFilterValue = false;
+    if (root.type === "list") {
+      const sort = String(root.props.sort || "");
+      const where = String(root.props.where || "");
+      if (!after) {
+        nextSort = "";
+        if (sort) cleared++;
+      } else if (!sameEffectiveSource) {
+        const sortMatch = direct.get(sort);
+        nextSort = sort ? sortMatch?.nextPath || "" : "";
+        if (sort && !nextSort) cleared++;
+        else if (sort && nextSort !== sort) remapped++;
+        const whereMatch = direct.get(where);
+        const comparesValue = !["set", "unset"].includes(String(root.props.op || ""));
+        const comparisonSafe = !!whereMatch && comparisonSurvives(whereMatch, root.props.val);
+        const safeValue = !!whereMatch && (!comparesValue || comparisonSafe);
+        nextWhere = where && safeValue ? whereMatch.nextPath : "";
+        if (where && !nextWhere) cleared++;
+        else if (where && nextWhere !== where) remapped++;
+        if (nextWhere && !comparesValue && root.props.val && !comparisonSafe) {
+          clearFilterValue = true;
+          cleared++;
+        }
+      }
+    }
+    C2.edit(() => {
+      for (const plan of bindingPlans) C2.bindSet(plan.node, plan.key, C2.bindField(plan.nextPath));
+      for (const plan of conditionPlans) C2.condSet(plan.node, plan.condition);
+      if (nextSort !== null) root.props.sort = nextSort;
+      if (nextWhere !== null) {
+        root.props.where = nextWhere;
+        if (!nextWhere) {
+          root.props.op = "is";
+          delete root.props.val;
+        }
+      }
+      if (clearFilterValue) delete root.props.val;
+      C2.srcSet(root, nextId2);
+    }, "Change content source");
+    return { changed: true, cleared, remapped };
+  }
+  function sourceChangeSuffix(result) {
+    if (!result.cleared) return "";
+    return ` \xB7 ${result.cleared} incompatible ${result.cleared === 1 ? "connection or setting" : "connections or settings"} cleared`;
+  }
+  function sourceChangeBlocked(result) {
+    return result.blocked ? `Content source unchanged \xB7 \u201C${result.blocked.component}\u201D needs its CMS fields connected through component properties first.` : "";
+  }
+
   // app/src/ui/inspector/Controls.tsx
   var ADV = { _id: "htmlId", _cls: "cls", _css: "css" };
   var shown = (n2, c3) => {
@@ -20537,16 +20753,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function SourceCtl({ n: n2, c: c3 }) {
     c3 = { ...c3, note: "Choose a collection, then bind its fields to elements inside this list." };
     const cur = n2.src && C2.findCollection(n2.src) ? n2.src : "";
-    const set = (v3) => {
-      C2.edit(() => {
-        C2.srcSet(n2, v3);
-        if (!v3) n2.props.sort = "";
-      });
+    const set = (select) => {
+      const v3 = select.value;
+      const changed = changeContentSource(n2, v3);
+      if (changed.blocked) {
+        select.value = cur;
+        L2.toast(sourceChangeBlocked(changed));
+        return;
+      }
+      if (!changed.changed) {
+        select.value = cur;
+        return;
+      }
       const col = v3 ? C2.findCollection(v3) : null;
-      L2.toast(col ? `${col.name} \u2014 ${col.items.length} items` : "Collection cleared");
+      L2.toast((col ? `${col.name} \u2014 ${col.items.length} items` : "Collection cleared") + sourceChangeSuffix(changed));
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
-      /* @__PURE__ */ u2("select", { class: "ctl", value: cur, onChange: (e3) => set(e3.target.value), children: [
+      /* @__PURE__ */ u2("select", { class: "ctl", value: cur, onChange: (e3) => set(e3.currentTarget), children: [
         /* @__PURE__ */ u2("option", { value: "", children: "\u2014 Pick a collection \u2014" }),
         C2.collections().map((x2) => /* @__PURE__ */ u2("option", { value: x2.id, children: [
           x2.name,
@@ -21617,9 +21840,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "aria-label": "Content source collection",
           value: n2.src || "",
           onChange: (e3) => {
-            const v3 = e3.target.value;
-            C2.edit(() => C2.srcSet(n2, v3));
-            L2.toast(v3 ? "Content source: " + C2.findCollection(v3).name : "Content source cleared");
+            const select = e3.currentTarget;
+            const original = n2.src && C2.findCollection(n2.src) ? n2.src : "";
+            const v3 = select.value;
+            const changed = changeContentSource(n2, v3);
+            if (changed.blocked) {
+              select.value = original;
+              L2.toast(sourceChangeBlocked(changed));
+              return;
+            }
+            if (!changed.changed) {
+              select.value = original;
+              return;
+            }
+            L2.toast((v3 ? "Content source: " + C2.findCollection(v3).name : "Content source cleared") + sourceChangeSuffix(changed));
           },
           children: [
             /* @__PURE__ */ u2("option", { value: "", children: "\u2014 None \u2014" }),
@@ -28012,7 +28246,7 @@ function positionHud() {
   const hud = cdoc.getElementById('s-hud'); if (!hud) return;
   const s = state.ui.sel ? locate(state.ui.sel) : null;
   if (!s || document.body.classList.contains('preview') || editing.on) { hud.innerHTML = ''; return; }
-  const el = cdoc.getElementById(s.node.id);
+  const el = selectedCanvasElement(s.node.id);
   if (!el) { hud.innerHTML = ''; return; }
   const r = el.getBoundingClientRect();
   const top = r.top + cwin.scrollY, left = r.left + cwin.scrollX;
@@ -28102,7 +28336,7 @@ function gripsHtml(s) {
     : (s.node.type === 'column' && s.parent && s.parent.type === 'row') ? s.parent : null;
   if (!row || (row.children || []).length < 2) return '';
   const boxes = row.children.map(c => {
-    const e = cdoc.getElementById(c.id);
+    const e = selectedCanvasElement(c.id);
     return e ? e.getBoundingClientRect() : null;
   });
   if (boxes.some(b => !b)) return '';
@@ -28123,8 +28357,18 @@ function gripsHtml(s) {
 /* `add` toggles one member, `range` sweeps from the primary to `id` in document
    order, and a plain call replaces the set. Only a plain call clears the class
    target: while adding, the primary has not moved, so the target still holds. */
+function selectsCanvasAncestor(id) {
+  let at = state.ui.sel ? locate(state.ui.sel) : null;
+  while (at && at.parent) {
+    if (at.parent.id === id) return !!contextualCanvasElement(id);
+    at = locate(at.parent.id);
+  }
+  return false;
+}
+
 function select(id, opts = {}) {
   if (editing.on) exitEdit();
+  if (!opts.keepCanvasContext && !selectsCanvasAncestor(id)) canvasSelectionContext = null;
   if (opts.add) selToggle(id);
   else if (opts.range && state.ui.sel && id) selSet(selRange(state.ui.sel, id));
   else {
@@ -28151,7 +28395,7 @@ function select(id, opts = {}) {
 // Panel changes can reflow the canvas. Reveal only an offscreen selection;
 // ordinary edits must not snap a tall section back to its beginning.
 function revealSelection(force = false) {
-  const el = cdoc && state.ui.sel && cdoc.getElementById(state.ui.sel);
+  const el = cdoc && state.ui.sel && selectedCanvasElement(state.ui.sel);
   if (!el || document.body.classList.contains('preview')) return;
   const r = el.getBoundingClientRect();
   if (force || r.bottom <= 0 || r.top >= cwin.innerHeight || r.right <= 0 || r.left >= cwin.innerWidth)
@@ -28166,7 +28410,7 @@ function paintSel() {
   });
   /* Only the primary gets `data-sel`, matching the element shown in the inspector. */
   selIds().forEach((id, i) => {
-    const el = cdoc.getElementById(id);
+    const el = i ? cdoc.getElementById(id) : selectedCanvasElement(id);
     if (el && el.dataset.id) el.setAttribute(i ? 'data-sel2' : 'data-sel', '');
   });
   positionHud();
@@ -28340,6 +28584,88 @@ document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
 /* ========================================================= canvas events */
+let canvasSelectionContext = null;
+
+/* A repeated card is one editable template rendered with several CMS items. Keep the clicked
+   item's identity as UI context while leaving the shared node id — and therefore every edit —
+   on the template. Item ids are mapped back to the collection instead of trusting a rendered
+   position because filters and sorting can put raw item zero second on screen. */
+function rememberCanvasItem(hit) {
+  canvasSelectionContext = null;
+  const nodeId = hit && hit.dataset ? String(hit.dataset.id || '') : '';
+  if (!nodeId || !locate(nodeId)) return false;
+  const items = [];
+  for (let element = hit; element && element !== cdoc.documentElement; element = element.parentElement) {
+    const colId = String(element.dataset?.cmsCol || '');
+    const itemId = String(element.dataset?.cmsItem || '');
+    if (!colId && !itemId) continue;
+    const col = colId ? findCollection(colId) : null;
+    const index = col && itemId ? col.items.findIndex(item => item.id === itemId) : -1;
+    /* A half or stale pair is not context. Abort rather than combining an untrusted inner
+       identity with a valid outer row from the same DOM branch. */
+    if (!col || index < 0) return false;
+    if (!items.some(item => item.colId === col.id && item.itemId === itemId)) {
+      items.push({ colId: col.id, itemId });
+    }
+  }
+  if (!items.length) return false;
+  state.ui.item = state.ui.item || {};
+  items.slice().reverse().forEach(item => {
+    const col = findCollection(item.colId);
+    state.ui.item[col.id] = col.items.findIndex(row => row.id === item.itemId);
+  });
+  canvasSelectionContext = { items, nodeId, element: hit };
+  return true;
+}
+
+/* HUD, outline and reveal need the visible copy that supplied the inspector context. A deleted
+   item or repainted stale node falls back to the longstanding bare-id target without throwing. */
+function contextualCanvasElement(id) {
+  if (!cdoc || !canvasSelectionContext) return null;
+  const context = canvasSelectionContext;
+  state.ui.item = state.ui.item || {};
+  const resolved = [];
+  for (const item of context.items) {
+    const col = findCollection(item.colId);
+    const index = col ? col.items.findIndex(row => row.id === item.itemId) : -1;
+    if (!col || index < 0) { canvasSelectionContext = null; return null; }
+    resolved.push({ col, index });
+  }
+  /* The innermost item drives the selected control. Apply outer contexts first so a nested
+     list that deliberately reuses its parent's collection leaves the nearest row visible. */
+  resolved.reverse().forEach(({ col, index }) => { state.ui.item[col.id] = index; });
+
+  const score = element => {
+    const found = new Set();
+    for (let at = element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      const colId = String(at.dataset?.cmsCol || '');
+      const itemId = String(at.dataset?.cmsItem || '');
+      if (context.items.some(item => item.colId === colId && item.itemId === itemId)) {
+        found.add(colId + '\n' + itemId);
+      }
+    }
+    return found.size;
+  };
+  if (context.element && context.element.isConnected) {
+    for (let at = context.element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      if (at.dataset?.id === id && score(at)) { context.element = at; return at; }
+    }
+  }
+  let best = null, bestScore = 0;
+  Array.from(cdoc.querySelectorAll('[data-id]')).forEach(element => {
+    if (element.dataset.id !== id) return;
+    const candidateScore = score(element);
+    if (candidateScore > bestScore) { best = element; bestScore = candidateScore; }
+  });
+  if (best) context.element = best;
+  return best;
+}
+
+function selectedCanvasElement(id) {
+  if (!cdoc) return null;
+  return contextualCanvasElement(id) || cdoc.getElementById(id);
+}
+
 function canvasPointerHit(e) {
   const hit = e.target.closest && e.target.closest('[data-id]');
   if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
@@ -28430,7 +28756,8 @@ function bindCanvas() {
        browser also extends a native text selection across the canvas, so adding
        three cards leaves everything between them highlighted blue. */
     if (add) { e.preventDefault(); const g = cwin.getSelection(); if (g) g.removeAllRanges(); }
-    select(hit.dataset.id, { add });
+    const keepCanvasContext = rememberCanvasItem(hit);
+    select(hit.dataset.id, { add, keepCanvasContext });
   }, true);
 
   /* Native button activation from Enter, Space and assistive technology dispatches a click

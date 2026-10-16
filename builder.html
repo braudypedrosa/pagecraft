@@ -4041,7 +4041,7 @@ function positionHud() {
   const hud = cdoc.getElementById('s-hud'); if (!hud) return;
   const s = state.ui.sel ? locate(state.ui.sel) : null;
   if (!s || document.body.classList.contains('preview') || editing.on) { hud.innerHTML = ''; return; }
-  const el = cdoc.getElementById(s.node.id);
+  const el = selectedCanvasElement(s.node.id);
   if (!el) { hud.innerHTML = ''; return; }
   const r = el.getBoundingClientRect();
   const top = r.top + cwin.scrollY, left = r.left + cwin.scrollX;
@@ -4131,7 +4131,7 @@ function gripsHtml(s) {
     : (s.node.type === 'column' && s.parent && s.parent.type === 'row') ? s.parent : null;
   if (!row || (row.children || []).length < 2) return '';
   const boxes = row.children.map(c => {
-    const e = cdoc.getElementById(c.id);
+    const e = selectedCanvasElement(c.id);
     return e ? e.getBoundingClientRect() : null;
   });
   if (boxes.some(b => !b)) return '';
@@ -4152,8 +4152,18 @@ function gripsHtml(s) {
 /* `add` toggles one member, `range` sweeps from the primary to `id` in document
    order, and a plain call replaces the set. Only a plain call clears the class
    target: while adding, the primary has not moved, so the target still holds. */
+function selectsCanvasAncestor(id) {
+  let at = state.ui.sel ? locate(state.ui.sel) : null;
+  while (at && at.parent) {
+    if (at.parent.id === id) return !!contextualCanvasElement(id);
+    at = locate(at.parent.id);
+  }
+  return false;
+}
+
 function select(id, opts = {}) {
   if (editing.on) exitEdit();
+  if (!opts.keepCanvasContext && !selectsCanvasAncestor(id)) canvasSelectionContext = null;
   if (opts.add) selToggle(id);
   else if (opts.range && state.ui.sel && id) selSet(selRange(state.ui.sel, id));
   else {
@@ -4180,7 +4190,7 @@ function select(id, opts = {}) {
 // Panel changes can reflow the canvas. Reveal only an offscreen selection;
 // ordinary edits must not snap a tall section back to its beginning.
 function revealSelection(force = false) {
-  const el = cdoc && state.ui.sel && cdoc.getElementById(state.ui.sel);
+  const el = cdoc && state.ui.sel && selectedCanvasElement(state.ui.sel);
   if (!el || document.body.classList.contains('preview')) return;
   const r = el.getBoundingClientRect();
   if (force || r.bottom <= 0 || r.top >= cwin.innerHeight || r.right <= 0 || r.left >= cwin.innerWidth)
@@ -4195,7 +4205,7 @@ function paintSel() {
   });
   /* Only the primary gets `data-sel`, matching the element shown in the inspector. */
   selIds().forEach((id, i) => {
-    const el = cdoc.getElementById(id);
+    const el = i ? cdoc.getElementById(id) : selectedCanvasElement(id);
     if (el && el.dataset.id) el.setAttribute(i ? 'data-sel2' : 'data-sel', '');
   });
   positionHud();
@@ -4369,6 +4379,88 @@ document.addEventListener('keydown', escCtx, true);
 window.addEventListener('resize', closeCtx);
 
 /* ========================================================= canvas events */
+let canvasSelectionContext = null;
+
+/* A repeated card is one editable template rendered with several CMS items. Keep the clicked
+   item's identity as UI context while leaving the shared node id — and therefore every edit —
+   on the template. Item ids are mapped back to the collection instead of trusting a rendered
+   position because filters and sorting can put raw item zero second on screen. */
+function rememberCanvasItem(hit) {
+  canvasSelectionContext = null;
+  const nodeId = hit && hit.dataset ? String(hit.dataset.id || '') : '';
+  if (!nodeId || !locate(nodeId)) return false;
+  const items = [];
+  for (let element = hit; element && element !== cdoc.documentElement; element = element.parentElement) {
+    const colId = String(element.dataset?.cmsCol || '');
+    const itemId = String(element.dataset?.cmsItem || '');
+    if (!colId && !itemId) continue;
+    const col = colId ? findCollection(colId) : null;
+    const index = col && itemId ? col.items.findIndex(item => item.id === itemId) : -1;
+    /* A half or stale pair is not context. Abort rather than combining an untrusted inner
+       identity with a valid outer row from the same DOM branch. */
+    if (!col || index < 0) return false;
+    if (!items.some(item => item.colId === col.id && item.itemId === itemId)) {
+      items.push({ colId: col.id, itemId });
+    }
+  }
+  if (!items.length) return false;
+  state.ui.item = state.ui.item || {};
+  items.slice().reverse().forEach(item => {
+    const col = findCollection(item.colId);
+    state.ui.item[col.id] = col.items.findIndex(row => row.id === item.itemId);
+  });
+  canvasSelectionContext = { items, nodeId, element: hit };
+  return true;
+}
+
+/* HUD, outline and reveal need the visible copy that supplied the inspector context. A deleted
+   item or repainted stale node falls back to the longstanding bare-id target without throwing. */
+function contextualCanvasElement(id) {
+  if (!cdoc || !canvasSelectionContext) return null;
+  const context = canvasSelectionContext;
+  state.ui.item = state.ui.item || {};
+  const resolved = [];
+  for (const item of context.items) {
+    const col = findCollection(item.colId);
+    const index = col ? col.items.findIndex(row => row.id === item.itemId) : -1;
+    if (!col || index < 0) { canvasSelectionContext = null; return null; }
+    resolved.push({ col, index });
+  }
+  /* The innermost item drives the selected control. Apply outer contexts first so a nested
+     list that deliberately reuses its parent's collection leaves the nearest row visible. */
+  resolved.reverse().forEach(({ col, index }) => { state.ui.item[col.id] = index; });
+
+  const score = element => {
+    const found = new Set();
+    for (let at = element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      const colId = String(at.dataset?.cmsCol || '');
+      const itemId = String(at.dataset?.cmsItem || '');
+      if (context.items.some(item => item.colId === colId && item.itemId === itemId)) {
+        found.add(colId + '\n' + itemId);
+      }
+    }
+    return found.size;
+  };
+  if (context.element && context.element.isConnected) {
+    for (let at = context.element; at && at !== cdoc.documentElement; at = at.parentElement) {
+      if (at.dataset?.id === id && score(at)) { context.element = at; return at; }
+    }
+  }
+  let best = null, bestScore = 0;
+  Array.from(cdoc.querySelectorAll('[data-id]')).forEach(element => {
+    if (element.dataset.id !== id) return;
+    const candidateScore = score(element);
+    if (candidateScore > bestScore) { best = element; bestScore = candidateScore; }
+  });
+  if (best) context.element = best;
+  return best;
+}
+
+function selectedCanvasElement(id) {
+  if (!cdoc) return null;
+  return contextualCanvasElement(id) || cdoc.getElementById(id);
+}
+
 function canvasPointerHit(e) {
   const hit = e.target.closest && e.target.closest('[data-id]');
   if (!hit || !['section', 'row', 'column'].includes(hit.dataset.t)) return hit;
@@ -4459,7 +4551,8 @@ function bindCanvas() {
        browser also extends a native text selection across the canvas, so adding
        three cards leaves everything between them highlighted blue. */
     if (add) { e.preventDefault(); const g = cwin.getSelection(); if (g) g.removeAllRanges(); }
-    select(hit.dataset.id, { add });
+    const keepCanvasContext = rememberCanvasItem(hit);
+    select(hit.dataset.id, { add, keepCanvasContext });
   }, true);
 
   /* Native button activation from Enter, Space and assistive technology dispatches a click

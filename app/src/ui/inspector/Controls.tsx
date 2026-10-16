@@ -18,6 +18,7 @@ import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
 import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
+import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
 
 type P = { n: PcNode; c: Control };
 
@@ -556,13 +557,17 @@ export function Dropzone({ onChoose, onFiles, disabled = false }: {
 function SourceCtl({ n, c }: P) {
   c = { ...c, note: 'Choose a collection, then bind its fields to elements inside this list.' };
   const cur = n.src && C.findCollection(n.src) ? n.src : '';
-  const set = (v: string) => {
-    C.edit(() => { C.srcSet(n, v); if (!v) n.props.sort = ''; });
+  const set = (select: HTMLSelectElement) => {
+    const v = select.value;
+    const changed = changeContentSource(n, v);
+    if (changed.blocked) { select.value = cur; L.toast(sourceChangeBlocked(changed)); return; }
+    if (!changed.changed) { select.value = cur; return; }
     const col = v ? C.findCollection(v) : null;
-    L.toast(col ? `${col.name} — ${col.items.length} items` : 'Collection cleared');
+    L.toast((col ? `${col.name} — ${col.items.length} items` : 'Collection cleared')
+      + sourceChangeSuffix(changed));
   };
   return <Field n={n} c={c}>
-    <select class="ctl" value={cur} onChange={e => set((e.target as HTMLSelectElement).value)}>
+    <select class="ctl" value={cur} onChange={e => set(e.currentTarget as HTMLSelectElement)}>
       <option value="">— Pick a collection —</option>
       {C.collections().map(x => (
         <option key={x.id} value={x.id}>{x.name} · {x.items.length} item{x.items.length === 1 ? '' : 's'}</option>

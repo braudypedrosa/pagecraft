@@ -4938,6 +4938,50 @@ test('every repeat gets its own item, not the previewed one', () => {
   a.equal((html.match(/Harbour print/g) || []).length, 1, 'the preview index does not leak into a repeat');
 });
 
+test('editor repeats identify the actual filtered and sorted item without changing public markup', () => {
+  const { col, list, heading } = withList();
+  const category = C.fieldAdd(col.id, 'Category', 'text')!;
+  C.itemSet(col.id, col.items[0].id, category.id, 'Keep');
+  C.itemSet(col.id, col.items[1].id, category.id, 'Keep');
+  C.itemSet(col.id, col.items[2].id, category.id, 'Hide');
+  Object.assign(list.props, { where: category.id, op: 'is', val: 'Keep', sort: 'year', dir: 'asc' });
+
+  const editing = C.renderNode(C.state.pages[0].tree[0], { edit: true });
+  const contexts = [...editing.matchAll(new RegExp(
+    `data-id="${heading.id}" data-t="heading" data-cms-col="([^"]+)" data-cms-item="([^"]+)"`, 'g'
+  ))].map(match => ({ col: match[1], item: match[2] }));
+  a.deepEqual(contexts, [
+    { col: col.id, item: col.items[1].id },
+    { col: col.id, item: col.items[0].id },
+  ], 'rendered order carries item identity rather than a raw or global preview index');
+
+  const published = C.renderNode(C.state.pages[0].tree[0], { edit: false });
+  a.equal(/data-cms-(?:col|item)=/.test(published), false, 'authoring context does not ship');
+});
+
+test('a nested collection list exposes its own resolved item context', () => {
+  const { col: outer, card } = withList();
+  const inner = C.collectionAdd('Nested places')!;
+  const one = C.itemAdd(inner.id)!;
+  const two = C.itemAdd(inner.id)!;
+  C.itemSet(inner.id, one.id, C.titleField(inner)!.id, 'Studio');
+  C.itemSet(inner.id, two.id, C.titleField(inner)!.id, 'Garden');
+  const nested = C.N('list');
+  C.srcSet(nested, inner.id);
+  const nestedHeading = C.N('heading', { text: 'nested placeholder' });
+  C.bindSet(nestedHeading, 'text', C.bindField(C.titleField(inner)!.id));
+  nested.children.push(C.N('column', {}, {}, [nestedHeading]));
+  card.children.push(nested);
+
+  const editing = C.renderNode(C.state.pages[0].tree[0], { edit: true });
+  const contexts = [...editing.matchAll(new RegExp(
+    `data-id="${nestedHeading.id}" data-t="heading" data-cms-col="([^"]+)" data-cms-item="([^"]+)"`, 'g'
+  ))].map(match => ({ col: match[1], item: match[2] }));
+  a.equal(contexts.length, outer.items.length * inner.items.length);
+  a.ok(contexts.every(context => context.col === inner.id), 'the inner source wins over the outer repeat');
+  a.deepEqual(contexts.slice(0, 2).map(context => context.item), [one.id, two.id]);
+});
+
 test('sorting a number field compares numerically', () => {
   const { list, col } = withList();
   list.props.sort = 'year';

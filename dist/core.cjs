@@ -9261,9 +9261,6 @@ function renderNode(n, o) {
   const cx = (c) => `class="${c} ${esc(nodeClass(n))}${host ? " " + esc(nodeClass(host)) : ""}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? " " + esc(self.adv.cls) : ""}"`;
   const rep = o.repeat && o.item ? "-" + o.item.slug : "";
   const ins = inner && o.inst ? "-" + String(o.inst.id).replace(/^n/, "") : "";
-  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
-  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${state.ui.sel === self.id ? " data-sel" : ""}`;
-  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
   const o2 = sc ? {
@@ -9271,6 +9268,10 @@ function renderNode(n, o) {
     col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
+  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
+  const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item && findItem(o2.col, o2.item.id) ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"` : "";
+  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
   const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
