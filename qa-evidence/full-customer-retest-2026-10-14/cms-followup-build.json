@@ -1,0 +1,137 @@
+{
+  "format": "pagecraft.cms-followup-source-exports.v1",
+  "capturedAt": "2026-10-17",
+  "source": {
+    "repository": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft",
+    "branch": "development",
+    "commit": "c411d4db34d514e7d216ec8ff9948be7d0bb0b3f",
+    "sharedCheckoutPreserved": true,
+    "mainBuildOrTest": false
+  },
+  "isolatedExports": [
+    {
+      "name": "one",
+      "path": "/tmp/pagecraft-cms-followup-one-c411",
+      "origin": "git archive c411d4db34d514e7d216ec8ff9948be7d0bb0b3f plus authorized five-file overlay",
+      "npmCi": "passed",
+      "npmCiLog": "/tmp/pagecraft-cms-followup-one-c411/npm-ci.log",
+      "packageLockSha256": "821cbbc5008e3a211eef5b1d1b8534a64affb991558f22bbf708c69a120b9bd5"
+    },
+    {
+      "name": "two",
+      "path": "/tmp/pagecraft-cms-followup-two-c411",
+      "origin": "git archive c411d4db34d514e7d216ec8ff9948be7d0bb0b3f plus authorized five-file overlay",
+      "npmCi": "passed",
+      "npmCiLog": "/tmp/pagecraft-cms-followup-two-c411/npm-ci.log",
+      "packageLockSha256": "821cbbc5008e3a211eef5b1d1b8534a64affb991558f22bbf708c69a120b9bd5"
+    }
+  ],
+  "authorizedOverlay": {
+    "sameHashesInBothExports": true,
+    "files": {
+      "builder.html": "da0cd7719d80a634e8ddc8536e6be7afdf20115f2a85051b7dc2fb34ca52861f",
+      "tests/builder-cms-selection.test.mjs": "824ed0ff31cbb01bbe34d82619ac242736c60a3f67300c2a3f29a89428bc443c",
+      "app/src/core/index.ts": "7c12ee9284557301521c6e9dadb4262a26afff5d4f14618f998e1662bd374c3f",
+      "app/src/ui/inspector/Controls.tsx": "4e8cd5c62b121db44ce3e23ca6005223cb0e086ee01fbf49be73a0d5a4a019c1",
+      "tests/collection-filter-values.test.tsx": "c654a6390e1cf32a0b1a8efc4a85a6161619b8760a96cf2b2e736fd47fb2464c"
+    }
+  },
+  "verification": {
+    "exportOne": {
+      "fullNpmTest": {
+        "command": "npm test",
+        "log": "/tmp/pagecraft-cms-followup-one-c411/npm-test-post-review.log",
+        "status": "failed_reviewed_ui_baseline_gate",
+        "exitCode": 1,
+        "result": "201 test files passed, 2 skipped; 2311 tests passed, 5 skipped",
+        "failure": "tests/ui-baselines.test.mjs requires review after builder.html changed; this run evaluated the stale isolate manifest before the exact 25-file copy was corrected"
+      },
+      "demoBuild": {
+        "command": "npm run build",
+        "log": "/tmp/pagecraft-cms-followup-one-c411/demo-build.log",
+        "status": "passed"
+      },
+      "fullNpmTestPostReview": {
+        "command": "npm test",
+        "cwd": "/tmp/pagecraft-cms-followup-one-c411",
+        "log": "/tmp/pagecraft-cms-followup-one-c411/npm-test-post-review.log",
+        "manifestSha256BeforeLaunch": "308bd34e38e84caffaa6e56abc24b59005430b06680c5043723393b46e6d4f3c",
+        "exitCode": 1,
+        "status": "failed_unrelated_timeouts",
+        "result": "200 test files passed, 2 skipped, 2 failed; 2310 tests passed, 5 skipped",
+        "failures": [
+          "server/tests/connected-pg.test.ts timed out at 30000ms",
+          "server/tests/submissions.test.ts timed out at 30000ms"
+        ]
+      },
+      "postReviewFullNpmTest": {
+        "command": "npm test -- --maxWorkers=4",
+        "cwd": "/tmp/pagecraft-cms-followup-one-c411",
+        "log": "/tmp/pagecraft-cms-followup-one-c411/npm-test-post-review-bounded-workers.log",
+        "exitCode": 0,
+        "status": "passed",
+        "testFiles": {
+          "passed": 202,
+          "skipped": 2
+        },
+        "tests": {
+          "passed": 2312,
+          "skipped": 5
+        },
+        "note": "Default-concurrency final run had 15-second connected-pg and 30-second submissions timeouts; both files then passed 35 tests with one worker. Full suite passed with four workers, without timeout or source changes."
+      },
+      "focusedTimeoutRecheck": {
+        "command": "npx vitest run server/tests/connected-pg.test.ts server/tests/submissions.test.ts --maxWorkers=1",
+        "exitCode": 0,
+        "testsPassed": 35,
+        "log": "/tmp/pagecraft-cms-followup-one-c411/vitest-timeout-recheck.log"
+      }
+    },
+    "exportTwo": {
+      "packageBuild": {
+        "command": "npm run build:editor-package",
+        "log": "/tmp/pagecraft-cms-followup-two-c411/package-build.log",
+        "status": "passed"
+      },
+      "demoBuild": {
+        "command": "npm run build",
+        "log": "/tmp/pagecraft-cms-followup-two-c411/demo-build.log",
+        "status": "passed"
+      },
+      "baselineCheck": {
+        "command": "node tools/ui-baselines.mjs check",
+        "log": "/tmp/pagecraft-cms-followup-two-c411/ui-baselines-check-post-review-pass.log",
+        "status": "passed",
+        "exitCode": 0,
+        "result": "24 images, 28 source files",
+        "copyCorrection": "Exact 25-file manifest and PNG copy was explicitly re-applied before this passing check."
+      }
+    },
+    "stableGeneratedOutputHashesMatch": true,
+    "stableGeneratedOutputs": {
+      "index.html": "86ee04f970378fc6d030cd6389a999c995c7eed9c16e1eb7973db85ce24b2b2a",
+      "dist/core.cjs": "f2532c22e7c1f22e26a329af0967e4ccd96417442f583b1fb55ff6b4fd038604",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "fdd1dba7ff8b68fe23892f8aa2fd15dc7c4bc0ad1af3861d4e786427d1019fce",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "5aace8b4087f77eb7e286baae9b7d5a47f2adce9a4b32dfc637bdf230364824b"
+    },
+    "protected11MainBytesUnchanged": true,
+    "protected11Comparison": "Shared checkout hashes match generated-working-preservation-2026-10-17.json protectedBefore for all 11 protected generated paths; all 11 stable output hashes also match between isolates after the rerun."
+  },
+  "loopbackGalleryServer": {
+    "status": "running",
+    "url": "http://localhost:4949/internal/components?host=cloud",
+    "bind": "127.0.0.1:4949",
+    "ptySession": "9601",
+    "process": "node --experimental-strip-types /tmp/pagecraft-cms-followup-server.mts",
+    "editorHtml": "/tmp/pagecraft-cms-followup-one-c411/index.html",
+    "stores": "MemoryStore, MemoryAuthStore, MemoryAssetStore; fictional accountAuth; componentGallery enabled",
+    "healthCheck": "HTTP 200 with Host: localhost; loopback-only disposable fixture; no hosted DB, credentials, provider environment, or API authoring."
+  }
+}

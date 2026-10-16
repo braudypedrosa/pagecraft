@@ -4522,10 +4522,25 @@ function matches(col: Collection, item: Item, where?: string, op?: string, val?:
      being typed, so it passes until there is something to compare */
   if (want === '') return true;
   if (op === 'has') return raw.toLowerCase().includes(want.toLowerCase());
+  const boolValue = (value: string): boolean | null => {
+    const normalized = value.toLowerCase();
+    if (['1', 'true', 'yes'].includes(normalized)) return true;
+    if (['0', 'false', 'no'].includes(normalized)) return false;
+    return null;
+  };
   /* numbers numerically, so 9 does not sort or compare above 10 */
   const same = f.type === 'number'
     ? parseFloat(raw) === parseFloat(want)
-    : raw.toLowerCase() === want.toLowerCase();
+    : f.type === 'bool'
+      ? (() => {
+        const actual = boolValue(raw), expected = boolValue(want);
+        /* Only the six accepted aliases are booleans. Empty and malformed legacy values
+           stay distinct from No instead of inheriting JavaScript's falsy coercion. */
+        return actual !== null && expected !== null
+          ? actual === expected
+          : raw.toLowerCase() === want.toLowerCase();
+      })()
+      : raw.toLowerCase() === want.toLowerCase();
   return op === 'not' ? !same : same;
 }
 

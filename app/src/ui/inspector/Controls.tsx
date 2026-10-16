@@ -19,6 +19,7 @@ import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPre
 import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
 import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
+import { cmsChoices } from '../../core/cms-validation';
 
 type P = { n: PcNode; c: Control };
 
@@ -40,6 +41,82 @@ function TextCtl({ n, c }: P) {
     <input class="ctl" value={shown(n, c)} placeholder={c.ph || ''} disabled={inert(n, c)}
       onInput={e => w.live((e.target as HTMLInputElement).value)} onBlur={w.done} />
   </Field>;
+}
+
+const booleanFilterValue = (value: string): string => {
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes'].includes(normalized)) return '1';
+  if (['0', 'false', 'no'].includes(normalized)) return '0';
+  return value === '' ? '' : value;
+};
+
+/** A Collection List filter compares one CMS field. Use that field's real input shape so
+    No stores `0`, references store item ids, and an option cannot drift into free text. */
+function CollectionListValueCtl({ n, c }: P) {
+  const w = writer(n, c);
+  const value = String(shown(n, c));
+  const op = String(C.propVal(n, 'op') || 'is');
+  const scope = C.bindScope(n.id);
+  const field = scope ? C.findField(scope.col, String(C.propVal(n, 'where') || '')) : null;
+  const disabled = inert(n, c);
+  const unavailable = (options: string[][]) => value && !options.some(([candidate]) => candidate === value)
+    ? <option value={value}>Unavailable: {value}</option>
+    : null;
+
+  /* Contains is deliberately textual for every field type. Existing filters may search a
+     date year, a numeric fragment, an option substring, or a legacy Boolean spelling. */
+  if (op === 'has') return <TextCtl n={n} c={{ ...c, ph: 'Text to find' }} />;
+
+  if (field?.type === 'bool') {
+    const shownValue = booleanFilterValue(value);
+    const known = ['', '1', '0'].includes(shownValue);
+    return <Field n={n} c={c}>
+      <select class="ctl" value={shownValue} disabled={disabled}
+        onChange={e => w.hard((e.currentTarget as HTMLSelectElement).value)}>
+        <option value="">Choose</option>
+        {!known ? <option value={shownValue}>Saved value: {value}</option> : null}
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+    </Field>;
+  }
+
+  if (field?.type === 'option' || field?.type === 'ref') {
+    const reference = field.type === 'ref' ? C.findCollection(field.ref || '') : null;
+    const options: string[][] = field.type === 'option'
+      ? [...new Set(cmsChoices(field.opts))].map(choice => [choice, choice])
+      : (reference?.items || []).map(item => [
+        item.id,
+        C.itemTitle(reference!, item) + (item.draft ? ' (draft)' : '')
+      ]);
+    return <Field n={n} c={c}>
+      <select class="ctl" value={value} disabled={disabled}
+        onChange={e => w.hard((e.currentTarget as HTMLSelectElement).value)}>
+        <option value="">Choose</option>
+        {unavailable(options)}
+        {options.map(([optionValue, label]) => <option key={optionValue} value={optionValue}>{label}</option>)}
+      </select>
+    </Field>;
+  }
+
+  if (field?.type === 'number' || field?.type === 'date') {
+    const probe = document.createElement('input');
+    probe.type = field.type;
+    probe.value = value;
+    /* Native Number and Date inputs erase malformed assigned values. Keep a legacy value
+       visible in a text input until the author replaces it, then return to the native shape
+       after the existing blur transaction repaints the inspector. */
+    if (value && probe.value !== value) {
+      return <TextCtl n={n} c={{ ...c, ph: field.type === 'number' ? 'Enter a number' : 'YYYY-MM-DD' }} />;
+    }
+    return <Field n={n} c={c}>
+      <input class="ctl" type={field.type} step={field.type === 'number' ? 'any' : undefined}
+        value={value} disabled={disabled}
+        onInput={e => w.live((e.currentTarget as HTMLInputElement).value)} onBlur={w.done} />
+    </Field>;
+  }
+
+  return <TextCtl n={n} c={c} />;
 }
 
 function AreaCtl({ n, c }: P) {
@@ -929,6 +1006,7 @@ const KINDS: Record<string, (p: P) => any> = {
 export const CONTROL_KINDS = Object.keys(KINDS);
 
 export function Ctl({ n, c }: P) {
+  if (n.type === 'list' && c.k === 'val') return <CollectionListValueCtl n={n} c={c} />;
   const Cmp = KINDS[c.t];
   if (!Cmp) return null;
   if (c.k?.startsWith(C.VAL) && bound(n, c).fid) {

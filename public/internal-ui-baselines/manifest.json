@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-16T21:19:36.098Z",
+  "capturedAt": "2026-10-16T22:09:29.597Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -34,21 +34,21 @@
       "devicePixelRatio": 1,
       "visualViewportScale": 1,
       "screen": {
-        "width": 1512,
-        "height": 982,
-        "availWidth": 1512,
-        "availHeight": 982,
-        "colorDepth": 30,
-        "pixelDepth": 30
+        "width": 2560,
+        "height": 1440,
+        "availWidth": 2560,
+        "availHeight": 1440,
+        "colorDepth": 24,
+        "pixelDepth": 24
       },
       "colorGamut": {
         "srgb": true,
-        "p3": true,
+        "p3": false,
         "rec2020": false
       },
       "dynamicRange": {
         "standard": true,
-        "high": true
+        "high": false
       },
       "colorScheme": {
         "light": true,
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "ad363e9c28f995305413785bd7b2ee0610e083b18a688246b175c91888a68615",
+    "builder.html": "da0cd7719d80a634e8ddc8536e6be7afdf20115f2a85051b7dc2fb34ca52861f",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -250,7 +250,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 258.5,
+            "scrollAfter": 258,
             "scrollBefore": 0,
             "width": 1440
           },
@@ -267,7 +267,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 558.5,
+            "scrollAfter": 558,
             "scrollBefore": 0,
             "width": 768
           },
@@ -284,7 +284,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 258.5,
+            "scrollAfter": 258,
             "scrollBefore": 0,
             "width": 768
           }
@@ -305,7 +305,7 @@
           "disabled": true,
           "label": "Processing preview…",
           "x": 296.0546875,
-          "y": 433.0625
+          "y": 433.03125
         },
         "still": {
           "disabled": true,
@@ -512,7 +512,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 334.5,
+            "scrollAfter": 334,
             "scrollBefore": 0,
             "width": 1440
           },
@@ -529,7 +529,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 634.5,
+            "scrollAfter": 634,
             "scrollBefore": 0,
             "width": 768
           },
@@ -546,7 +546,7 @@
             ],
             "modal": true,
             "open": true,
-            "scrollAfter": 334.5,
+            "scrollAfter": 334,
             "scrollBefore": 0,
             "width": 768
           }
@@ -567,7 +567,7 @@
           "disabled": true,
           "label": "Processing preview…",
           "x": 296.0546875,
-          "y": 427.0625
+          "y": 427.03125
         },
         "still": {
           "disabled": true,
@@ -652,7 +652,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "1d419881b216664a635622caf330f0a5a0c22b25c4f5bb2ab080513a66288250",
+      "sha256": "d29bd5af11bf033c932f042ef575744fba02a23897208a5b2648d2f765915d65",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -689,7 +689,7 @@
       }
     },
     "cloud-fields-768.png": {
-      "sha256": "0ccff0dd5682665695d92ced72a8236fe363cd3d12abfe07fd730cab30574e55",
+      "sha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -726,7 +726,7 @@
       }
     },
     "cloud-actions-1440.png": {
-      "sha256": "dcd32161b01ce4e8fc8912d931a140a4d77d0824474c185222e92fd78aa64ac0",
+      "sha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
       "width": 1440,
       "height": 959,
       "state": "Processing action, disabled and destructive actions",
@@ -763,7 +763,7 @@
       }
     },
     "cloud-actions-768.png": {
-      "sha256": "0cf07b5a15dbc58822772aa9b0717445881b4c44206fb7993def2303e16955dc",
+      "sha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions",
@@ -800,7 +800,7 @@
       }
     },
     "cloud-tables-1440.png": {
-      "sha256": "babdbf7add46af0a49a721d1b92bee8faeb7b4b2c221256dc068a14a567a4bec",
+      "sha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
       "width": 1440,
       "height": 1106,
       "state": "First row hovered, second row neutral, empty result",
@@ -837,7 +837,7 @@
       }
     },
     "cloud-tables-768.png": {
-      "sha256": "e515e680f201f432985ffacdd3453ce9b154f2884a8082cf3f20e4d746c70cac",
+      "sha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
       "width": 768,
       "height": 1172,
       "state": "First row hovered, second row neutral, empty result",
@@ -874,7 +874,7 @@
       }
     },
     "cloud-menus-1440.png": {
-      "sha256": "2a7687609d7443755a0b954714aadb2433844172fd6c557af9ce12c28aaa0f60",
+      "sha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -911,14 +911,14 @@
       }
     },
     "cloud-menus-768.png": {
-      "sha256": "53ba6e0cd7172153ec3e4494708850b80b723da823514f89cf9baf00d1ed207f",
+      "sha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
       "width": 768,
-      "height": 1007,
+      "height": 1008,
       "state": "Open picker, selected/disabled options and menu items",
       "captureParameters": {
         "metricsOverride": {
           "width": 768,
-          "height": 1007,
+          "height": 1008,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -932,7 +932,7 @@
             "x": 0,
             "y": 0,
             "width": 768,
-            "height": 1007,
+            "height": 1008,
             "scale": 1
           }
         }
@@ -948,7 +948,7 @@
       }
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "5e77964e3b45f407001c7eeebca3f91f6e28ab4d55ba26b00614cefa7ee0b554",
+      "sha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -985,7 +985,7 @@
       }
     },
     "cloud-dialogs-768.png": {
-      "sha256": "4669bac9e168e153e840f1b429db988481a7843db46dc545d6530881089cfe07",
+      "sha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1022,7 +1022,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "10329705ed6d87cbea79ef5647fff08794c2b33ecbbfbdf6baaeb87ee2e4302e",
+      "sha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1059,7 +1059,7 @@
       }
     },
     "cloud-feedback-768.png": {
-      "sha256": "4645bf2fe34e2360f01995c37f4001d77793d2be3b521edcb43e560e67160a38",
+      "sha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1096,7 +1096,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "0f138afc978b6810fce8ba21c264a0c7e02fb12147769c4c7334abe7728b23a7",
+      "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1133,7 +1133,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "71d0d6e38c5d3497c4fa1fab2a400f3aec21f560171752032908f1b573ca6efd",
+      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1170,7 +1170,7 @@
       }
     },
     "builder-actions-1440.png": {
-      "sha256": "bd2053262ab21d52386b18dde4814cf2d413ba15ec1bbb4818c8af8504746bd1",
+      "sha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
       "width": 1440,
       "height": 1224,
       "state": "Processing action, disabled and destructive actions",
@@ -1207,7 +1207,7 @@
       }
     },
     "builder-actions-768.png": {
-      "sha256": "8fd4732e6a4695900dd73b1a92d0586faeb9c3763f5a9d1811bc5f2025ca7b66",
+      "sha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
       "width": 768,
       "height": 1279,
       "state": "Processing action, disabled and destructive actions",
@@ -1244,7 +1244,7 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "2ececcaccc4ca7d3909d0290200057b470af1a363efbb320455a2f253f6612af",
+      "sha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
       "width": 1440,
       "height": 1228,
       "state": "First row hovered, second row neutral, empty result",
@@ -1281,7 +1281,7 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "b8cdb9b67f058050b3724a31ecb51e9cd45fe1b09b5009cfc36399a2667acd1a",
+      "sha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
       "width": 768,
       "height": 1284,
       "state": "First row hovered, second row neutral, empty result",
@@ -1318,7 +1318,7 @@
       }
     },
     "builder-menus-1440.png": {
-      "sha256": "a5b4661314087c6b6d529766750bf7c831c2489b63eb8afb58fe678e2e8f3ac7",
+      "sha256": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -1355,14 +1355,14 @@
       }
     },
     "builder-menus-768.png": {
-      "sha256": "6e7157c692c10ce4cf9e1b56e8dd113c2ae086c47470ad3239cdd81a2c1f330c",
+      "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
       "width": 768,
-      "height": 958,
+      "height": 959,
       "state": "Open picker, selected/disabled options and menu items",
       "captureParameters": {
         "metricsOverride": {
           "width": 768,
-          "height": 958,
+          "height": 959,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -1376,7 +1376,7 @@
             "x": 0,
             "y": 0,
             "width": 768,
-            "height": 958,
+            "height": 959,
             "scale": 1
           }
         }
@@ -1392,7 +1392,7 @@
       }
     },
     "builder-dialogs-1440.png": {
-      "sha256": "fe2b2c85f49a504152186ec71a08b4c09a4708a4a0f9219df3965b800b2a2d36",
+      "sha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1429,7 +1429,7 @@
       }
     },
     "builder-dialogs-768.png": {
-      "sha256": "66318bc2a0cd9a63a6fef01d93d6dcbcf5883b6cb167274d6785da32b56ca53a",
+      "sha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1466,7 +1466,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "30adfa4679b04fef46c6471185b72170b77d263d5cdca1cccab337bfc769c834",
+      "sha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1503,7 +1503,7 @@
       }
     },
     "builder-feedback-768.png": {
-      "sha256": "08b0baac98dbe3965be8cc67d488ec780a78a1e7d52d8d3902de2c392a1f3aeb",
+      "sha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

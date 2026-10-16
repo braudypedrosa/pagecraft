@@ -7606,7 +7606,16 @@ function matches(col, item, where, op, val) {
   if (op === "unset") return raw === "";
   if (want === "") return true;
   if (op === "has") return raw.toLowerCase().includes(want.toLowerCase());
-  const same2 = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
+  const boolValue = (value) => {
+    const normalized = value.toLowerCase();
+    if (["1", "true", "yes"].includes(normalized)) return true;
+    if (["0", "false", "no"].includes(normalized)) return false;
+    return null;
+  };
+  const same2 = f.type === "number" ? parseFloat(raw) === parseFloat(want) : f.type === "bool" ? (() => {
+    const actual = boolValue(raw), expected = boolValue(want);
+    return actual !== null && expected !== null ? actual === expected : raw.toLowerCase() === want.toLowerCase();
+  })() : raw.toLowerCase() === want.toLowerCase();
   return op === "not" ? !same2 : same2;
 }
 function listItems(n, col) {
@@ -20132,6 +20141,89 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     ) });
   }
+  var booleanFilterValue = (value) => {
+    const normalized2 = value.trim().toLowerCase();
+    if (["1", "true", "yes"].includes(normalized2)) return "1";
+    if (["0", "false", "no"].includes(normalized2)) return "0";
+    return value === "" ? "" : value;
+  };
+  function CollectionListValueCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const value = String(shown(n2, c3));
+    const op = String(C2.propVal(n2, "op") || "is");
+    const scope = C2.bindScope(n2.id);
+    const field = scope ? C2.findField(scope.col, String(C2.propVal(n2, "where") || "")) : null;
+    const disabled = inert(n2, c3);
+    const unavailable = (options) => value && !options.some(([candidate]) => candidate === value) ? /* @__PURE__ */ u2("option", { value, children: [
+      "Unavailable: ",
+      value
+    ] }) : null;
+    if (op === "has") return /* @__PURE__ */ u2(TextCtl, { n: n2, c: { ...c3, ph: "Text to find" } });
+    if (field?.type === "bool") {
+      const shownValue = booleanFilterValue(value);
+      const known2 = ["", "1", "0"].includes(shownValue);
+      return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value: shownValue,
+          disabled,
+          onChange: (e3) => w3.hard(e3.currentTarget.value),
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+            !known2 ? /* @__PURE__ */ u2("option", { value: shownValue, children: [
+              "Saved value: ",
+              value
+            ] }) : null,
+            /* @__PURE__ */ u2("option", { value: "1", children: "Yes" }),
+            /* @__PURE__ */ u2("option", { value: "0", children: "No" })
+          ]
+        }
+      ) });
+    }
+    if (field?.type === "option" || field?.type === "ref") {
+      const reference = field.type === "ref" ? C2.findCollection(field.ref || "") : null;
+      const options = field.type === "option" ? [...new Set(cmsChoices(field.opts))].map((choice) => [choice, choice]) : (reference?.items || []).map((item) => [
+        item.id,
+        C2.itemTitle(reference, item) + (item.draft ? " (draft)" : "")
+      ]);
+      return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+        "select",
+        {
+          class: "ctl",
+          value,
+          disabled,
+          onChange: (e3) => w3.hard(e3.currentTarget.value),
+          children: [
+            /* @__PURE__ */ u2("option", { value: "", children: "Choose" }),
+            unavailable(options),
+            options.map(([optionValue, label]) => /* @__PURE__ */ u2("option", { value: optionValue, children: label }, optionValue))
+          ]
+        }
+      ) });
+    }
+    if (field?.type === "number" || field?.type === "date") {
+      const probe = document.createElement("input");
+      probe.type = field.type;
+      probe.value = value;
+      if (value && probe.value !== value) {
+        return /* @__PURE__ */ u2(TextCtl, { n: n2, c: { ...c3, ph: field.type === "number" ? "Enter a number" : "YYYY-MM-DD" } });
+      }
+      return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: field.type,
+          step: field.type === "number" ? "any" : void 0,
+          value,
+          disabled,
+          onInput: (e3) => w3.live(e3.currentTarget.value),
+          onBlur: w3.done
+        }
+      ) });
+    }
+    return /* @__PURE__ */ u2(TextCtl, { n: n2, c: c3 });
+  }
   function AreaCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2(
@@ -21279,6 +21371,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   };
   var CONTROL_KINDS = Object.keys(KINDS);
   function Ctl({ n: n2, c: c3 }) {
+    if (n2.type === "list" && c3.k === "val") return /* @__PURE__ */ u2(CollectionListValueCtl, { n: n2, c: c3 });
     const Cmp = KINDS[c3.t];
     if (!Cmp) return null;
     if (c3.k?.startsWith(C2.VAL) && bound(n2, c3).fid) {
@@ -28214,6 +28307,10 @@ function paint() {
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
   watchCanvasPreview(html + css);
+  /* The inspector renders after paint(). Reconcile against this new DOM first so a history or
+     source change cannot leave it reading an old collection index while the outline falls back
+     to a different visible copy. Preview markup deliberately has no authoring context hooks. */
+  if (editing) reconcileCanvasSelectionContext();
   positionHud();
 }
 
@@ -28667,9 +28764,27 @@ function contextualCanvasElement(id) {
   return best;
 }
 
+/* A repaint can replace one repeated branch with another while keeping the selected template
+   node. Undoing a Collection source change is the important case: the old item identity can
+   still exist in its collection, but no longer describes any rendered copy of the selected
+   node. Resolve valid context first; otherwise adopt the first visible fallback and its
+   validated ancestor chain so the outline and bound inspector read the same row. This changes
+   UI context only — never the document or history. */
+function reconcileCanvasSelectionContext(id = state.ui.sel) {
+  if (!cdoc || !id) return null;
+  const contextual = contextualCanvasElement(id);
+  if (contextual) return contextual;
+  const fallback = cdoc.getElementById(id);
+  if (!fallback) { canvasSelectionContext = null; return null; }
+  rememberCanvasItem(fallback);
+  return fallback;
+}
+
 function selectedCanvasElement(id) {
   if (!cdoc) return null;
-  return contextualCanvasElement(id) || cdoc.getElementById(id);
+  return id === state.ui.sel
+    ? reconcileCanvasSelectionContext(id)
+    : contextualCanvasElement(id) || cdoc.getElementById(id);
 }
 
 function canvasPointerHit(e) {

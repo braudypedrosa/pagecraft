@@ -133,6 +133,66 @@ test('outline, HUD and reveal stay on the clicked copy and stale items fall back
   collection.items = collection.items.filter(item => item.id !== 'community');
   expect(() => w.selectedCanvasElement('card')).not.toThrow();
   expect(w.selectedCanvasElement('card')).toBe(courtyard.parentElement);
+  expect(w.state.ui.item.places).toBe(collection.items.indexOf(collection.items.find(item => item.id === 'courtyard')));
+});
+
+test('source change Undo and Redo reconcile stale item context to the selected visible copy', () => {
+  const { w, cd, collection, courtyard, node } = harness();
+  const scalar = {
+    id: 'scalar',
+    items: [
+      { id: 'first-scalar', values: { photo: 'Fallback image' } },
+      { id: 'second-scalar', values: { photo: 'Second image' } },
+    ],
+  };
+  w.findCollection = id => id === collection.id ? collection : id === scalar.id ? scalar : null;
+  w.state.ui.item.scalar = 1;
+  node.props = { source: collection.id, image: 'photo' };
+  const history = { undo: ['before source change'], redo: [] };
+
+  const rows = (col, ids) => {
+    cd.querySelector('#s-root').innerHTML = ids.map((itemId, index) =>
+      `<div id="card${index ? '-' + index : ''}" data-id="card" data-t="column" data-cms-col="${col.id}" data-cms-item="${itemId}">`
+      + `<h2 id="heading${index ? '-' + index : ''}" data-id="heading" data-t="heading" data-cms-col="${col.id}" data-cms-item="${itemId}">${itemId}</h2></div>`
+    ).join('');
+  };
+  const unchangedByReconcile = () => JSON.stringify({
+    pages: w.state.pages,
+    meta: w.state.meta,
+    collections: [collection, scalar],
+    history,
+    props: node.props,
+  });
+
+  courtyard.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true }));
+  expect(w.state.ui.item.places).toBe(2);
+
+  // Source change and click on its first fallback establish a valid context in another
+  // collection while retaining the previous collection's old preview index.
+  node.props = { source: scalar.id, image: 'photo' };
+  rows(scalar, ['first-scalar', 'second-scalar']);
+  cd.querySelector('[data-id="heading"]').dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true }));
+  expect(w.state.ui.item).toMatchObject({ places: 2, scalar: 0 });
+
+  // Undo restores the original source/bindings. The scalar identity still exists, but it no
+  // longer applies to this branch; reconciliation must adopt the first visible Places copy.
+  node.props = { source: collection.id, image: 'photo' };
+  rows(collection, ['community', 'courtyard']);
+  const beforeUndoReconcile = unchangedByReconcile();
+  const undoVisible = w.reconcileCanvasSelectionContext('heading');
+  expect(undoVisible.dataset.cmsItem).toBe('community');
+  expect(w.state.ui.item.places).toBe(0);
+  expect(unchangedByReconcile()).toBe(beforeUndoReconcile);
+
+  // Redo paints Scalar again. Its former context was replaced during Undo, so the same rule
+  // chooses a visible Scalar copy and updates its bound-control index without adding history.
+  node.props = { source: scalar.id, image: 'photo' };
+  rows(scalar, ['first-scalar', 'second-scalar']);
+  const beforeRedoReconcile = unchangedByReconcile();
+  const redoVisible = w.reconcileCanvasSelectionContext('heading');
+  expect(redoVisible.dataset.cmsItem).toBe('first-scalar');
+  expect(w.state.ui.item.scalar).toBe(0);
+  expect(unchangedByReconcile()).toBe(beforeRedoReconcile);
 });
 
 test('a nested repeated click validates and records every collection context in its ancestor chain', () => {

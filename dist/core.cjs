@@ -5840,7 +5840,16 @@ function matches(col, item, where, op, val) {
   if (op === "unset") return raw === "";
   if (want === "") return true;
   if (op === "has") return raw.toLowerCase().includes(want.toLowerCase());
-  const same2 = f.type === "number" ? parseFloat(raw) === parseFloat(want) : raw.toLowerCase() === want.toLowerCase();
+  const boolValue = (value) => {
+    const normalized = value.toLowerCase();
+    if (["1", "true", "yes"].includes(normalized)) return true;
+    if (["0", "false", "no"].includes(normalized)) return false;
+    return null;
+  };
+  const same2 = f.type === "number" ? parseFloat(raw) === parseFloat(want) : f.type === "bool" ? (() => {
+    const actual = boolValue(raw), expected = boolValue(want);
+    return actual !== null && expected !== null ? actual === expected : raw.toLowerCase() === want.toLowerCase();
+  })() : raw.toLowerCase() === want.toLowerCase();
   return op === "not" ? !same2 : same2;
 }
 function listItems(n, col) {

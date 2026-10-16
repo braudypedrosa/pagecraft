@@ -4003,6 +4003,10 @@ function paint() {
   $$('[data-slides]', cdoc).forEach(el => { if (slideOffsets.has(el.id)) el.scrollLeft = slideOffsets.get(el.id); });
   runPreviewRuntime(html, editing);
   watchCanvasPreview(html + css);
+  /* The inspector renders after paint(). Reconcile against this new DOM first so a history or
+     source change cannot leave it reading an old collection index while the outline falls back
+     to a different visible copy. Preview markup deliberately has no authoring context hooks. */
+  if (editing) reconcileCanvasSelectionContext();
   positionHud();
 }
 
@@ -4456,9 +4460,27 @@ function contextualCanvasElement(id) {
   return best;
 }
 
+/* A repaint can replace one repeated branch with another while keeping the selected template
+   node. Undoing a Collection source change is the important case: the old item identity can
+   still exist in its collection, but no longer describes any rendered copy of the selected
+   node. Resolve valid context first; otherwise adopt the first visible fallback and its
+   validated ancestor chain so the outline and bound inspector read the same row. This changes
+   UI context only — never the document or history. */
+function reconcileCanvasSelectionContext(id = state.ui.sel) {
+  if (!cdoc || !id) return null;
+  const contextual = contextualCanvasElement(id);
+  if (contextual) return contextual;
+  const fallback = cdoc.getElementById(id);
+  if (!fallback) { canvasSelectionContext = null; return null; }
+  rememberCanvasItem(fallback);
+  return fallback;
+}
+
 function selectedCanvasElement(id) {
   if (!cdoc) return null;
-  return contextualCanvasElement(id) || cdoc.getElementById(id);
+  return id === state.ui.sel
+    ? reconcileCanvasSelectionContext(id)
+    : contextualCanvasElement(id) || cdoc.getElementById(id);
 }
 
 function canvasPointerHit(e) {
