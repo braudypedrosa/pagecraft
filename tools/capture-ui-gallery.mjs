@@ -12,7 +12,7 @@ const states={fields:'Focused field, readonly, disabled and validation samples',
 const safeSwitches=new Set(['disable-gpu','disable-gpu-compositing','disable-software-rasterizer','enable-features','disable-features','force-color-profile','force-device-scale-factor','headless','ozone-platform','use-angle','use-gl']);
 const captureCodeFiles=['tools/capture-ui-gallery.mjs','tools/png-color-metadata.mjs'];
 const metricsFor=(width,height)=>({width,height,deviceScaleFactor:1,mobile:false,scale:1});
-const screenshotFor=(width,height)=>({format:'png',fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false,clip:{x:0,y:0,width,height,scale:1}});
+const screenshotFor=(width,height,captureBeyondViewport)=>({format:'png',fromSurface:true,captureBeyondViewport,optimizeForSpeed:false,clip:{x:0,y:0,width,height,scale:1}});
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const captureCodeHashes=async()=>Object.fromEntries(await Promise.all(captureCodeFiles.map(async file=>[file,hash(await readFile(resolve(root,file)))])));
 
@@ -104,8 +104,9 @@ async function runtimeCharacteristics(cdp){
  try{return JSON.parse(result.value);}catch{throw new Error('Capture environment returned invalid JSON.');}
 }
 
-export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion}={}){
+export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion,captureBeyondViewport=false}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
+ if(typeof captureBeyondViewport!=='boolean')throw new TypeError('captureBeyondViewport must be a boolean.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
  let failed=false;
  try{
@@ -122,7 +123,7 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
   };
   const captureRecipe={
    metrics:{deviceScaleFactor:1,mobile:false,scale:1},
-   screenshot:{format:'png',fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false,clipScale:1},
+   screenshot:{format:'png',fromSurface:true,captureBeyondViewport,optimizeForSpeed:false,clipScale:1},
    settling:{fontsReady:true,animationFrames:2,heightRemeasure:true,maxHeightAttempts:3},
    provenanceViewport:{width:1440,height:900,deviceScaleFactor:1},
   };
@@ -149,7 +150,7 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    await new Promise(resolve=>setTimeout(resolve,500));
    const measurement=await stabilizeHeight(tab,cdp,width);
    if(measurement.overflow||measurement.fonts!=='loaded')throw new Error(`Gallery not ready: ${host}/${section}/${width}`);
-   const metrics=metricsFor(width,measurement.height),screenshotParams=screenshotFor(width,measurement.height);
+   const metrics=metricsFor(width,measurement.height),screenshotParams=screenshotFor(width,measurement.height,captureBeyondViewport);
    const {result,provenance}=await captureScreenshotWithProvenance(tab,cdp,screenshotParams),bytes=Buffer.from(result.data,'base64');
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),bytes);
    evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},screenshotProvenance:provenance,pngColorMetadata:pngColorMetadata(bytes)};

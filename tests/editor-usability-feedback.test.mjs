@@ -7,6 +7,17 @@ const windows = [];
 const builder = readFileSync('builder.html', 'utf8');
 // JSDOM does not load iframe srcdoc. These chrome tests bypass only canvas mounting.
 const built = readFileSync('index.html', 'utf8').replace('await mountCanvas();', '/* Canvas mounting is browser-verified separately. */');
+const builtWithMoreTools = (() => {
+  if (built.includes('id="moreToolsBtn"')) return built;
+  const markup = builder.slice(builder.indexOf('    <button class="iconbtn moreToolsToggle"'), builder.indexOf('    <button class="btn primary" id="exportBtn"'));
+  const script = builder.slice(builder.indexOf('function wireMoreTools()'), builder.indexOf('\n/* ============================================================= keyboard */'));
+  if (!markup || !script) throw new Error('More tools source blocks are missing');
+  return built
+    .replace('    <button class="btn primary" id="exportBtn"', () => markup + '    <button class="btn primary" id="exportBtn"')
+    // A replacement function preserves the source's `$$` query helper verbatim.
+    .replace('/* ============================================================= keyboard */', () => script + '\n\n/* ============================================================= keyboard */')
+    .replace("  $('#helpBtn').addEventListener('click', helpModal);", "  $('#helpBtn').addEventListener('click', helpModal);\n  wireMoreTools();");
+})();
 afterEach(() => { for (const dom of windows.splice(0)) dom.window.close(); vi.useRealTimers(); });
 
 function readinessHarness() {
@@ -57,15 +68,24 @@ test('preview timeout exposes retry; retry rejects stale completion and reports 
   expect(retry().hidden).toBe(false);
 });
 
-async function editor(config = null, wordpress = false) {
+async function editor(config = null, wordpress = false, options = {}) {
   C.blankProject('Editor usability fixture');
   const values = config ? { siteId: 'qa', name: 'QA', role: 'owner', version: 1, doc: JSON.parse(JSON.stringify(C.doc())), ...config } : null;
   const marker = '<script>\n/* =====================================================================';
-  const html = values ? built.replace(marker, `<script>window.${wordpress ? 'PC_WORDPRESS' : 'PC_SERVER'}=${JSON.stringify(values)}</script>\n${marker}`) : built;
+  const source = options.html || built;
+  const html = values ? source.replace(marker, `<script>window.${wordpress ? 'PC_WORDPRESS' : 'PC_SERVER'}=${JSON.stringify(values)}</script>\n${marker}`) : source;
   const errors = [], calls = [];
   const vc = new VirtualConsole(); vc.on('jsdomError', error => errors.push(error.message));
   const dom = new JSDOM(html, { url: 'https://example.test/edit/qa', runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
+      if (options.width) {
+        Object.defineProperty(w, 'innerWidth', { configurable: true, writable: true, value: options.width });
+        w.matchMedia = query => {
+          const max = /max-width:\s*(\d+)px/.exec(query), min = /min-width:\s*(\d+)px/.exec(query);
+          const matches = (!max || w.innerWidth <= Number(max[1])) && (!min || w.innerWidth >= Number(min[1]));
+          return { matches, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; } };
+        };
+      }
       w.CSS = { ...w.CSS, escape: value => String(value).replace(/[^a-zA-Z0-9_-]/g, char => `\\${char}`) };
       w.fetch = async (url, options = {}) => { calls.push([String(url), options.method || 'GET']); return { ok: true, status: 200, json: async () => /assets|media$/.test(String(url)) ? [] : { version: 1 } }; };
     }
@@ -143,6 +163,114 @@ test('WordPress owners cannot open the Cloud client review workflow', async () =
 const wordpressConfig = { restUrl: 'https://example.test/wp-json/pagecraft/v1', nonce: 'fixture',
   page: { id: 42, title: 'WP page', slug: 'wp-page' }, capabilities: ['edit_document', 'edit_structure'],
   previewUrl: 'https://example.test/wp-page/' };
+
+test.each([
+  { label: 'standalone', config: null, wordpress: false, available: ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'reviewBtn', 'helpBtn'] },
+  { label: 'Cloud owner', config: { url: 'https://example.test/live' }, wordpress: false, available: ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'reviewBtn', 'historyBtn', 'clientReviewBtn', 'shareBtn', 'helpBtn'] },
+  { label: 'Cloud content account', config: { role: 'content', url: 'https://example.test/live' }, wordpress: false, available: ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'reviewBtn', 'shareBtn', 'helpBtn'] }
+])('mobile More tools reflects $label capabilities', async ({ config, wordpress, available }) => {
+  const { d, errors } = await editor(config, wordpress, { html: builtWithMoreTools, width: 600 });
+  const trigger = d.querySelector('#moreToolsBtn'), menu = d.querySelector('#moreToolsPop');
+  trigger.click();
+  const item = target => menu.querySelector(`[data-more-target="${target}"]`);
+  expect(menu.hidden).toBe(false);
+  for (const target of ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'reviewBtn', 'historyBtn', 'clientReviewBtn', 'shareBtn', 'helpBtn']) {
+    expect(item(target).hidden, target).toBe(!available.includes(target));
+    if (!available.includes(target)) continue;
+    const source = d.getElementById(target);
+    expect(item(target).disabled, target).toBe(source.disabled);
+    expect(item(target).textContent, target).toBe(source.getAttribute('aria-label') || source.title);
+  }
+  expect(errors).toEqual([]);
+});
+
+test.each([601, 390, 320])('More tools remains operable at a %i px Cloud toolbar', async width => {
+  const { d, errors } = await editor({ url: 'https://example.test/live' }, false, { html: builtWithMoreTools, width });
+  d.querySelector('#moreToolsBtn').click();
+  expect(d.querySelector('#moreToolsPop').hidden).toBe(false);
+  expect(d.querySelector('[data-more-target="reviewBtn"]').hidden).toBe(false);
+  expect(d.querySelector('#previewBtn')).not.toBeNull();
+  expect(d.querySelectorAll('#devSeg button')).toHaveLength(3);
+  expect(d.querySelector('#exportBtn').hidden).toBe(false);
+  expect(d.querySelector('#publishLabel').textContent).toBe('Publish');
+  expect(errors).toEqual([]);
+});
+
+test('mobile More tools opens real recovery surfaces with keyboard focus and no save or undo mutation', async () => {
+  const { w, d, core, errors } = await editor(wordpressConfig, true, { html: builtWithMoreTools, width: 768 });
+  const trigger = d.querySelector('#moreToolsBtn'), menu = d.querySelector('#moreToolsPop');
+  const state = () => JSON.stringify({ document: core.doc(), undo: core.hist.u.length, redo: core.hist.r.length, save: w.eval('saveState') });
+  const before = state();
+  expect(trigger.title).toBe('More tools');
+  expect(trigger.getAttribute('aria-label')).toBe('More tools');
+  expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
+
+  trigger.click();
+  expect(menu.hidden).toBe(true);
+  expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  w.innerWidth = 767;
+  w.dispatchEvent(new w.Event('resize'));
+  trigger.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  const items = Array.from(menu.querySelectorAll('[role="menuitem"]')).filter(item => !item.hidden);
+  expect(items.map(item => item.dataset.moreTarget)).toEqual(['undoBtn', 'redoBtn', 'canvasFocusBtn', 'reviewBtn', 'historyBtn', 'helpBtn']);
+  const enabledItems = items.filter(item => !item.disabled);
+  expect(items.map(item => item.disabled)).toEqual(items.map(item => d.getElementById(item.dataset.moreTarget).disabled));
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  expect(d.activeElement).toBe(enabledItems[0]);
+  enabledItems[0].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  expect(d.activeElement).toBe(enabledItems[1]);
+  enabledItems[1].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  expect(menu.hidden).toBe(true);
+  expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  expect(d.activeElement).toBe(trigger);
+
+  trigger.click();
+  items.at(-1).focus();
+  d.querySelector('#exportBtn').focus();
+  expect(menu.hidden).toBe(true);
+  expect(d.activeElement).toBe(d.querySelector('#exportBtn'));
+
+  const openItem = target => {
+    trigger.click();
+    const item = menu.querySelector(`[data-more-target="${target}"]`);
+    expect(item.hidden).toBe(false);
+    item.click();
+  };
+  openItem('canvasFocusBtn');
+  expect(d.body.classList.contains('canvas-focus')).toBe(true);
+  trigger.click();
+  expect(menu.querySelector('[data-more-target="canvasFocusBtn"]').textContent).toBe('Show side panels');
+  menu.querySelector('[data-more-target="canvasFocusBtn"]').click();
+  expect(d.body.classList.contains('canvas-focus')).toBe(false);
+
+  openItem('reviewBtn');
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(d.querySelector('#rightAux .tt b').textContent).toBe('Site checks');
+  d.querySelector('#rightSurfaceClose').click();
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(d.activeElement).toBe(trigger);
+
+  openItem('historyBtn');
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(d.querySelector('#rightAux .tt b').textContent).toBe('Version history');
+  d.querySelector('#rightSurfaceClose').click();
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(d.activeElement).toBe(trigger);
+
+  openItem('helpBtn');
+  expect(d.querySelector('#mTitle').textContent).toBe('Help & keyboard shortcuts');
+  d.querySelector('#mClose').click();
+  await vi.waitFor(() => expect(d.querySelector('#modal').hidden).toBe(true));
+  expect(d.activeElement).toBe(trigger);
+
+  trigger.click();
+  expect(menu.hidden).toBe(false);
+  d.querySelector('#stage').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  expect(menu.hidden).toBe(true);
+  expect(d.activeElement).toBe(trigger);
+  expect(state()).toBe(before);
+  expect(errors).toEqual([]);
+});
 
 function rightSurfaceHarness() {
   const dom = new JSDOM(`<body>

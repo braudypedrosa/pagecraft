@@ -297,6 +297,20 @@ input,select,textarea{font:inherit;color:inherit}
 .rail .railAccount strong{width:29px;height:29px;border:1px solid rgba(246,244,236,.28);border-radius:50%;display:grid;place-items:center;color:var(--rail-text);font-family:var(--label);font-size:var(--fs-1);font-weight:600}
 .accountPop{position:fixed;left:70px;bottom:10px;width:224px;padding:10px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 30px rgba(10,12,11,.22);z-index:80}
 .accountPop[hidden]{display:none}.accountPop p{margin:0 0 8px;padding:4px 6px 9px;border-bottom:1px solid var(--line);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountPop a,.accountPop button{width:100%;min-height:34px;padding:0 8px;display:flex;align-items:center;border-radius:var(--r-sm);color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-decoration:none}.accountPop a:hover,.accountPop button:hover{background:var(--pc-hover-bg)}.accountPop form{margin:0}
+.moreToolsToggle{display:none}
+.moreToolsPop{
+  position:fixed;top:56px;right:8px;width:min(224px,calc(100vw - 16px));padding:6px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--shadow-lg);color:var(--text);z-index:80;max-height:calc(100vh - 64px);overflow-y:auto
+}
+.moreToolsPop[hidden]{display:none}
+.moreToolsPop .pc-menu-item{
+  width:100%;min-height:40px;padding:0 10px;display:flex;align-items:center;border-radius:var(--r-sm);
+  color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-align:left
+}
+.moreToolsPop .pc-menu-item:hover,.moreToolsPop .pc-menu-item:focus-visible{background:var(--pc-hover-bg)}
+.moreToolsPop .pc-menu-item:disabled{opacity:var(--dim);cursor:default}
+.moreToolsPop .pc-menu-item[hidden]{display:none}
 body.preview .rail{display:none}
 
 .left,.right{background:var(--panel);display:flex;flex-direction:column;min-height:0;z-index:20}
@@ -1479,10 +1493,11 @@ body.canvas-focus #canvasFocusBtn{color:var(--green)}
 body.preview #canvasFocusBtn{display:none}
 /* At narrow layout widths, including enlarged desktop views, use drawers over the
    canvas. The rail closes the library; the inspector has an explicit close control. */
-@media(max-width:600px){
+@media(max-width:767px){
   .topbar{gap:var(--sp-2);padding-right:6px}
   .brand{padding-inline:8px}
-  .docname,.topUtility,#helpBtn{display:none}
+  .docname,.topUtility,.topTools,#clientReviewBtn,#shareBtn{display:none}
+  .moreToolsToggle{display:grid}
   #devSeg{padding:2px}
   #devSeg button{width:30px;height:28px}
   .topTools,.topActions{gap:0}
@@ -1717,6 +1732,20 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6.6 9.4a3 3 0 004.2 0l2.1-2.1a3 3 0 10-4.2-4.2l-.6.6"/><path d="M9.4 6.6a3 3 0 00-4.2 0L3.1 8.7a3 3 0 104.2 4.2l.6-.6"/></svg>
       <span class="collapseLabel">Live link</span>
     </button>
+    <button class="iconbtn moreToolsToggle" id="moreToolsBtn" type="button" title="More tools" aria-label="More tools" aria-haspopup="menu" aria-controls="moreToolsPop" aria-expanded="false">
+      <!-- Iconify lucide:ellipsis, https://api.iconify.design/lucide/ellipsis.svg, retrieved 2026-10-16. -->
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </button>
+    <div class="moreToolsPop pc-menu" id="moreToolsPop" role="menu" aria-label="More tools" hidden>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="undoBtn">Undo</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="redoBtn">Redo</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="canvasFocusBtn">Hide side panels</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="reviewBtn">Site checks</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="historyBtn">Version history</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="clientReviewBtn">Client review</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="shareBtn">Copy live link</button>
+      <button type="button" class="pc-menu-item" role="menuitem" data-more-target="helpBtn">Help &amp; keyboard shortcuts</button>
+    </div>
     <button class="btn primary" id="exportBtn" title="Publish this draft">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 10.5V2"/><path d="M4.8 5.2L8 2l3.2 3.2"/><path d="M2 10.5v2A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5v-2"/></svg>
       <span id="publishLabel">Publish</span>
@@ -7472,6 +7501,82 @@ function helpModal() {
   $('#hOk').addEventListener('click', closeModal);
 }
 
+/* Narrow workspaces hide the utility group to protect Save, Preview and device controls.
+   Keep its recovery paths available through one compact menu, while the original buttons
+   remain the capability and action source of truth. */
+function wireMoreTools() {
+  const button = $('#moreToolsBtn'), menu = $('#moreToolsPop');
+  if (!button || !menu || button.dataset.wired) return;
+  button.dataset.wired = '1';
+  const narrow = () => matchMedia('(max-width:767px)').matches;
+  const availableItems = () => $$('[data-more-target]', menu).filter(item => {
+    const target = document.getElementById(item.dataset.moreTarget);
+    const available = !!target && !target.hidden;
+    item.hidden = !available;
+    item.disabled = !!target?.disabled;
+    item.setAttribute('aria-disabled', String(!!target?.disabled));
+    if (available) item.textContent = target.getAttribute('aria-label') || target.title || item.textContent;
+    return available && !target.disabled;
+  });
+  const openNow = () => !menu.hidden && !menu.hasAttribute('data-pc-motion-closing');
+  const close = (focus = true, immediate = false) => {
+    if (!openNow() && !menu.hasAttribute('data-pc-motion-closing')) return;
+    button.setAttribute('aria-expanded', 'false');
+    if (focus) button.focus({preventScroll:true});
+    const fx = PC_UI.installUiMotion();
+    if (immediate || !fx || fx.reduced()) { fx?.cancel(menu); menu.hidden = true; return; }
+    fx.exit(menu, {kind:'popover'});
+  };
+  const open = (last = false) => {
+    if (!narrow()) return;
+    const items = availableItems();
+    if (!items.length) return;
+    const fx = PC_UI.installUiMotion();
+    if (fx) fx.enter(menu, {kind:'popover'}); else menu.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
+    const rect = button.getBoundingClientRect();
+    menu.style.top = Math.max(4, rect.bottom + 4) + 'px';
+    menu.style.right = Math.max(6, innerWidth - rect.right) + 'px';
+    items[last ? items.length - 1 : 0].focus({preventScroll:true});
+  };
+  button.addEventListener('click', () => openNow() ? close(true) : open());
+  button.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    open(event.key === 'ArrowUp');
+  });
+  menu.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault(); event.stopPropagation(); close(true, true); return;
+    }
+    const items = availableItems();
+    const at = items.indexOf(document.activeElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+      : event.key === 'ArrowDown' ? (at + 1) % items.length
+        : event.key === 'ArrowUp' ? (at - 1 + items.length) % items.length : -1;
+    if (next < 0) return;
+    event.preventDefault(); items[next].focus({preventScroll:true});
+  });
+  menu.addEventListener('click', event => {
+    const item = event.target.closest('[data-more-target]');
+    const target = item && document.getElementById(item.dataset.moreTarget);
+    if (!target || target.hidden || target.disabled) return;
+    close(true, true);
+    target.click();
+    /* WordPress checks and history open a right surface whose original toolbar trigger is
+       hidden at this width. Return to the visible menu button when that surface closes. */
+    if (IS_WORDPRESS && !$('#rightAux')?.hidden) rightSurfaceTrigger = button;
+  });
+  document.addEventListener('click', event => {
+    if (openNow() && !menu.contains(event.target) && event.target !== button) close(true, true);
+  }, true);
+  document.addEventListener('focusin', event => {
+    if (openNow() && !menu.contains(event.target) && event.target !== button) close(false, true);
+  });
+  document.addEventListener('pagecraft:outside-pointer', () => close(true, true));
+  window.addEventListener('resize', () => { if (!narrow()) close(true, true); });
+}
+
 /* ============================================================= keyboard */
 function hotkey(e) {
   /* the ask layer owns the keyboard while it is up — its own handler takes Enter
@@ -7701,6 +7806,7 @@ function bindTop() {
   wireShare();
   wireHistory();
   $('#helpBtn').addEventListener('click', helpModal);
+  wireMoreTools();
   /* Extracted so anything can open a panel, not only a click on the rail — starting
      an empty site sends you to Add, which is the only thing left to do. */
   let submissionsFrame = null;

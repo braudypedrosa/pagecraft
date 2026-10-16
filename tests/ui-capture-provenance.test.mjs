@@ -1,5 +1,5 @@
-import {test,expect} from 'vitest';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {test,expect,vi} from 'vitest';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import sharp from 'sharp';
@@ -10,7 +10,7 @@ import {pngColorMetadata} from '../tools/png-color-metadata.mjs';
 const behaviorChecks=[{host:'cloud',check:'gallery ready',passed:true}];
 const captures=Object.fromEntries(names.map(name=>{
  const width=Number(name.match(/-(\d+)\.png$/)[1]),height=900;
- const screenshot={format:'png',fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false,clip:{x:0,y:0,width,height,scale:1}};
+ const screenshot={format:'png',fromSurface:true,captureBeyondViewport:false,optimizeForSpeed:false,clip:{x:0,y:0,width,height,scale:1}};
  return [name,{state:'reviewed',width,height,overflow:false,fonts:'loaded',captureParameters:{metricsOverride:{width,height,deviceScaleFactor:1,mobile:false,scale:1},screenshot},pngColorMetadata:{signature:'a'.repeat(64)}}];
 }));
 const currentEvidence=()=>({
@@ -23,7 +23,7 @@ const currentEvidence=()=>({
   browserCommandLine:{supported:false},
   systemInfo:{supported:false},
  },
- captureRecipe:{metrics:{deviceScaleFactor:1,mobile:false,scale:1},screenshot:{format:'png',fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false,clipScale:1},settling:{fontsReady:true,animationFrames:2,heightRemeasure:true,maxHeightAttempts:3},provenanceViewport:{width:1440,height:900,deviceScaleFactor:1}},
+ captureRecipe:{metrics:{deviceScaleFactor:1,mobile:false,scale:1},screenshot:{format:'png',fromSurface:true,captureBeyondViewport:false,optimizeForSpeed:false,clipScale:1},settling:{fontsReady:true,animationFrames:2,heightRemeasure:true,maxHeightAttempts:3},provenanceViewport:{width:1440,height:900,deviceScaleFactor:1}},
  deviceScaleFactor:1,
  viewportHeight:900,
  reducedMotion:true,
@@ -136,4 +136,78 @@ test('capture failure still clears device metrics and emulated media',async()=>{
   expect(calls.slice(-2).map(([method])=>method)).toEqual(['Emulation.clearDeviceMetricsOverride','Emulation.setEmulatedMedia']);
   expect(calls.at(-1)[1]).toEqual({features:[]});
  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
+const runTimedCapture=async pending=>{
+ let settled=false;pending.then(()=>{settled=true;},()=>{settled=true;});
+ for(let step=0;!settled&&step<1000;step++){
+  await new Promise(resolve=>setImmediate(resolve));
+  if(vi.getTimerCount())await vi.runOnlyPendingTimersAsync();
+ }
+ if(!settled)throw new Error('Timed gallery capture did not settle.');
+ return pending;
+};
+
+const galleryHarness=png=>{
+ const screenshotCalls=[];
+ let host='cloud';
+ const runtime={userAgent:'Chrome',platform:'MacIntel',userAgentData:{supported:false},devicePixelRatio:1,visualViewportScale:1,screen:{width:1440,height:900,availWidth:1440,availHeight:900,colorDepth:24,pixelDepth:24},colorGamut:{srgb:true,p3:false,rec2020:false},dynamicRange:{standard:true,high:false},colorScheme:{light:true,dark:false}};
+ const cdp={send:async(method,params)=>{
+  if(method==='Runtime.evaluate')return params.expression.startsWith('JSON.stringify')?{result:{value:JSON.stringify(runtime)}}:{result:{value:'loaded'}};
+  if(method==='Page.getLayoutMetrics')return {cssContentSize:{height:900}};
+  if(method==='Page.captureScreenshot'){screenshotCalls.push(structuredClone(params));return {data:png.toString('base64')};}
+  if(method==='Browser.getVersion'||method==='Browser.getBrowserCommandLine'||method==='SystemInfo.getInfo')throw new Error('unsupported');
+  return {};
+ }};
+ const tab={
+  capabilities:{get:async()=>cdp},
+  playwright:{
+   evaluate:async(fn,arg)=>{
+    if(arg)return {x:0,y:0,width:100,height:30};
+    const source=String(fn);
+    if(source.includes('galleryHost'))return host;
+    if(source.includes('galleryReady'))return 'true';
+    return {width:1440,innerHeight:900,scrollHeight:900,scrollWidth:1440,fonts:'loaded'};
+   },
+   getByRole:(_role,{name})=>({click:async()=>{if(name==='Cloud')host='cloud';if(name==='Builder')host='builder';}}),
+   locator:()=>({waitFor:async()=>{},press:async()=>{},click:async()=>{}}),
+  },
+  pressKey:async()=>{},
+ };
+ return {screenshotCalls,tab};
+};
+
+test('default viewport-only and explicit whole-document recipes reach CDP and evidence unchanged',async()=>{
+ const defaultDirectory=await mkdtemp(join(tmpdir(),'pagecraft-capture-default-'));
+ const explicitDirectory=await mkdtemp(join(tmpdir(),'pagecraft-capture-explicit-'));
+ const png=await sharp({create:{width:2,height:2,channels:3,background:'#fff'}}).png().toBuffer();
+ vi.useFakeTimers({toFake:['setTimeout']});
+ try{
+  const defaultHarness=galleryHarness(png);
+  const defaultResult=await runTimedCapture(captureGallery(defaultHarness.tab,defaultDirectory,behaviorChecks));
+  expect(defaultResult.screenshots).toBe(names.length);
+  expect(defaultHarness.screenshotCalls).toHaveLength(names.length);
+  expect(defaultHarness.screenshotCalls.every(params=>params.captureBeyondViewport===false)).toBe(true);
+  expect(defaultHarness.screenshotCalls.every(params=>params.fromSurface===true&&params.optimizeForSpeed===false)).toBe(true);
+  const defaultEvidence=JSON.parse(await readFile(join(defaultDirectory,'capture.json'),'utf8'));
+  expect(defaultEvidence.captureRecipe.screenshot).toMatchObject({fromSurface:true,captureBeyondViewport:false,optimizeForSpeed:false});
+  expect(Object.values(defaultEvidence.captures).every(capture=>capture.captureParameters.screenshot.captureBeyondViewport===false)).toBe(true);
+
+  const explicitHarness=galleryHarness(png);
+  const explicitResult=await runTimedCapture(captureGallery(explicitHarness.tab,explicitDirectory,behaviorChecks,{captureBeyondViewport:true}));
+  expect(explicitResult.screenshots).toBe(names.length);
+  expect(explicitHarness.screenshotCalls).toHaveLength(names.length);
+  expect(explicitHarness.screenshotCalls.every(params=>params.captureBeyondViewport===true)).toBe(true);
+  expect(explicitHarness.screenshotCalls.every(params=>params.fromSurface===true&&params.optimizeForSpeed===false)).toBe(true);
+  const explicitEvidence=JSON.parse(await readFile(join(explicitDirectory,'capture.json'),'utf8'));
+  expect(explicitEvidence.captureRecipe.screenshot).toMatchObject({fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false});
+  expect(Object.values(explicitEvidence.captures).every(capture=>capture.captureParameters.screenshot.captureBeyondViewport===true)).toBe(true);
+ }finally{
+  vi.useRealTimers();
+  await Promise.all([rm(defaultDirectory,{recursive:true,force:true}),rm(explicitDirectory,{recursive:true,force:true})]);
+ }
+});
+
+test('captureGallery rejects a non-boolean captureBeyondViewport option',async()=>{
+ await expect(captureGallery({},'unused',behaviorChecks,{captureBeyondViewport:'false'})).rejects.toThrow(TypeError);
 });
