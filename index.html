@@ -31393,6 +31393,10 @@ function wireMoreTools() {
     if (!target || target.hidden || target.disabled) return;
     close(true, true);
     target.click();
+    /* A compact-menu item can launch a modal through a toolbar button that is hidden at
+       this width. Browsers may leave that source button active during its synthetic click,
+       so make the visible menu trigger the explicit recovery target for every modal exit. */
+    if (!$('#modal')?.hidden) modalReturnFocus = button;
     /* WordPress checks and history open a right surface whose original toolbar trigger is
        hidden at this width. Return to the visible menu button when that surface closes. */
     if (IS_WORDPRESS && !$('#rightAux')?.hidden) rightSurfaceTrigger = button;

@@ -8,10 +8,15 @@ const builder = readFileSync('builder.html', 'utf8');
 // JSDOM does not load iframe srcdoc. These chrome tests bypass only canvas mounting.
 const built = readFileSync('index.html', 'utf8').replace('await mountCanvas();', '/* Canvas mounting is browser-verified separately. */');
 const builtWithMoreTools = (() => {
-  if (built.includes('id="moreToolsBtn"')) return built;
   const markup = builder.slice(builder.indexOf('    <button class="iconbtn moreToolsToggle"'), builder.indexOf('    <button class="btn primary" id="exportBtn"'));
   const script = builder.slice(builder.indexOf('function wireMoreTools()'), builder.indexOf('\n/* ============================================================= keyboard */'));
   if (!markup || !script) throw new Error('More tools source blocks are missing');
+  if (built.includes('id="moreToolsBtn"')) {
+    const start = built.indexOf('function wireMoreTools()');
+    const end = built.indexOf('\n/* ============================================================= keyboard */', start);
+    if (start < 0 || end < 0) throw new Error('Built More tools script boundary is missing');
+    return built.slice(0, start) + script + built.slice(end);
+  }
   return built
     .replace('    <button class="btn primary" id="exportBtn"', () => markup + '    <button class="btn primary" id="exportBtn"')
     // A replacement function preserves the source's `$$` query helper verbatim.
@@ -262,6 +267,23 @@ test('mobile More tools opens real recovery surfaces with keyboard focus and no 
   d.querySelector('#mClose').click();
   await vi.waitFor(() => expect(d.querySelector('#modal').hidden).toBe(true));
   expect(d.activeElement).toBe(trigger);
+
+  // Native compact-toolbar activation can focus the hidden source button before its
+  // handler opens the dialog. Every Help exit must still recover to the visible trigger.
+  d.querySelector('#helpBtn').addEventListener('click', event => event.currentTarget.focus(), true);
+  for (const close of ['Escape', 'Got it', 'Close']) {
+    openItem('helpBtn');
+    expect(d.activeElement).toBe(d.querySelector('#mClose'));
+    if (close === 'Escape') {
+      d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    } else if (close === 'Got it') {
+      d.querySelector('#hOk').click();
+    } else {
+      d.querySelector('#mClose').click();
+    }
+    await vi.waitFor(() => expect(d.querySelector('#modal').hidden).toBe(true));
+    expect(d.activeElement, close).toBe(trigger);
+  }
 
   trigger.click();
   expect(menu.hidden).toBe(false);
