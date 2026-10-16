@@ -13,6 +13,7 @@
 
    `Core` is derived from the module rather than hand-written, so it cannot drift. */
 import type * as CoreNs from '../core/index';
+import type { HostPage } from '../host/types';
 
 /**
  * The whole core module.
@@ -50,6 +51,13 @@ export interface WordPressContentTarget {
   readonly items: readonly WordPressContentItem[];
 }
 
+/** Read-only access to the native WordPress page catalogue for the document being
+    edited. Link controls may choose a public destination, but cannot change pages. */
+export interface NativePageSource {
+  readonly currentPageId: string;
+  list(): Promise<readonly HostPage[]>;
+}
+
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
   /** May this session change the shape of the site, or only its words? False for a
@@ -65,6 +73,8 @@ export interface Legacy {
   /** Native WordPress pages/posts available as link destinations. Empty in the
       standalone build. Returning a snapshot keeps the UI read-only by construction. */
   wordpressContent(): readonly WordPressContentTarget[];
+  /** Native page destinations exist only in the WordPress workbench. */
+  nativePageSource(): NativePageSource | null;
   /** select an element on the canvas; `null` clears the selection */
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
   /** switch the editing scope between the page and the global header/footer */

@@ -1958,6 +1958,13 @@ const HOST_FEATURES = HOST ? HOST.features : Object.freeze({
   managedForms: false
 });
 
+/* A WordPress document contains one portable page; link destinations belong to the
+   site's native page provider instead of that document's original import slug. */
+const NATIVE_PAGE_SOURCE = IS_WORDPRESS && HOST_FEATURES.pages === 'wordpress'
+  ? Object.freeze({ currentPageId: String(WP.page.id), list: () => HOST.pages.list() })
+  : null;
+const nativePageSource = () => NATIVE_PAGE_SOURCE;
+
 /* WordPress owns sitewide design settings independently from any one Pagecraft document.
    Only visual-system fields cross this boundary; WordPress continues to own the site title,
    language, URL, Site Icon, publishing, users and all other administration. */
@@ -5177,7 +5184,7 @@ const ui = () => UI || (UI = PC_UI.mount(
      cannot drift from what the core actually exports. See the note there. */
   __CORE,
   { canStructure, dynamicContentProvider: () => HOST_FEATURES.dynamicContent,
-    managedForms: () => HOST_FEATURES.managedForms === true, wordpressContent,
+    managedForms: () => HOST_FEATURES.managedForms === true, wordpressContent, nativePageSource,
     select, setMode, editComponent, runAct, openCtx, startLayerDrag, regions, scopeOf, modeFor,
     askText, askConfirm, cmsModal, cmsCommit, saveBlockFlow, toast, startDrag, appendSmart, insertionHint, previewInsertion,
     guideSavedDocument: () => { try { return lastCloudDocument ? JSON.parse(lastCloudDocument) : null; } catch { return null; } },

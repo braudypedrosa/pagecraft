@@ -16,6 +16,7 @@ type StubOptions = {
   dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
   managedForms?: boolean;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
+  nativePageSource?: ReturnType<Legacy['nativePageSource']>;
   asset?: Legacy['asset'];
   libraries?: ReturnType<Legacy['libraries']>;
   siteDraft?: () => ReturnType<Legacy['siteDraft']>;
@@ -33,6 +34,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     dynamicContentProvider: () => opts.dynamicContentProvider || 'pagecraft',
     managedForms: () => opts.managedForms === true,
     wordpressContent: () => opts.wordpressContent || [],
+    nativePageSource: () => opts.nativePageSource || null,
     select: rec('select'),
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
        panel that asks to change region before inserting can only be checked against

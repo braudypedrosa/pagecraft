@@ -16,6 +16,7 @@ import { ColorPop } from './ColorPop';
 import { HelpTip } from '../HelpTip';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
+import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
 import type { Control, Node as PcNode, PropBag } from '../../core/types';
 
 type P = { n: PcNode; c: Control };
@@ -680,19 +681,37 @@ function OptCtl({ n, c }: P) {
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
   const link = C.linkOf(n, c.k!, here) as any;
+  const key = n.id + '|' + (c.c || c.k || c.t);
+  const rawLink = String(C.propVal(n, c.k) || '').trim();
+  const storedLink = C.parseLink(rawLink, here) as any;
+  const nativeSource = L.nativePageSource();
+  const nativePages = useNativePages(nativeSource);
+  const [nativePendingKey, setNativePendingKey] = useState<string | null>(null);
+  const nativeMatch = link.mode === 'url'
+    ? nativePageForValue(nativePages.pages, link.value, window.location.origin)
+    : null;
+  /* A project slug that no longer exists in the one-page WordPress document falls
+     through core parsing as a URL. Keep recognizing that legacy portable shape so
+     the UI describes it honestly instead of calling it an external address. */
+  const savedProjectMatch = nativeSource
+    ? rawLink.match(/^([\w-]+)\.html(?:#([\w-]+))?$/)
+    : null;
+  const savedProjectLink = !!nativeSource && (storedLink.mode === 'page' || !!savedProjectMatch);
+  const nativePageMode = !!nativeSource
+    && (nativePendingKey === key || savedProjectLink || !!nativeMatch);
+  const shownMode = nativePageMode ? 'page' : link.mode;
   const wordpress = link.mode === 'url' ? wordpressDestinationForValue(link.value) : null;
   const tkey = c.tk || 'target';
-  const anchors = link.mode === 'page' ? C.anchorsOf(link.page || here) : [];
+  const anchors = link.mode === 'page' && !nativeSource ? C.anchorsOf(link.page || here) : [];
   const scope = C.bindScope(n.id);
   /* "This item's own page" is only offered where there is an item to mean — inside a
      Collection list, or on a detail template — and only once some page templates the
      collection, or the link resolves to nothing. */
   const hasDetail = !!scope && C.state.pages.some(p => p.collection === scope.col.id);
-  const MODES: string[][] = [['none', 'No link'], ['page', 'A page in this project'],
+  const MODES: string[][] = [['none', 'No link'], ['page', nativeSource ? 'A WordPress page' : 'A page in this project'],
     ...(hasDetail ? [['item', 'This item’s own page']] : []),
     ['url', 'External URL'], ['email', 'Email address'], ['phone', 'Phone number']];
 
-  const key = n.id + '|' + (c.c || c.k || c.t);
   const commit = (o: any) => {
     L.tx(key); C.applyC(n, c, C.buildLink(o));
     L.endTx(); L.paint(); L.save(); repaint('right');
@@ -703,11 +722,29 @@ function LinkCtl({ n, c }: P) {
     C.state.ui.lmode = url ? null : { key: n.id + '|' + c.k, mode: 'url' };
     commit({ mode: 'url', value: url });
   };
+  const chooseNativePage = (url: string) => {
+    setNativePendingKey(null);
+    C.state.ui.lmode = null;
+    commit({ mode: 'url', value: url });
+  };
+  const savedProjectPath = savedProjectLink
+    ? '/' + ((savedProjectMatch?.[1] || storedLink.page) === 'index' ? '' : savedProjectMatch?.[1] || storedLink.page || here)
+      + ((savedProjectMatch?.[2] || storedLink.frag) ? '#' + (savedProjectMatch?.[2] || storedLink.frag) : '')
+    : undefined;
 
   return <Field n={n} c={c}>
-    <select data-field-part="type" class="ctl" value={link.mode}
+    <select data-field-part="type" class="ctl" value={shownMode}
       onChange={e => {
         const mode = (e.target as HTMLSelectElement).value;
+        if (nativeSource && mode === 'page') {
+          /* Opening the catalogue is not a document edit. Keep the saved destination
+             intact through loading, failure and cancellation; only a page choice writes. */
+          setNativePendingKey(key);
+          C.state.ui.lmode = { key: n.id + '|' + c.k, mode };
+          repaint('right');
+          return;
+        }
+        setNativePendingKey(null);
         if (mode === 'none') (n.props as PropBag)[tkey] = '';
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
@@ -718,7 +755,7 @@ function LinkCtl({ n, c }: P) {
       {MODES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
     </select>
 
-    {link.mode === 'page' ? <>
+    {shownMode === 'page' && !nativeSource ? <>
       <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
         onChange={e => commit({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' })}>
         {C.state.pages.map(p => (
@@ -737,7 +774,14 @@ function LinkCtl({ n, c }: P) {
       )}
     </> : null}
 
-    {['url', 'email', 'phone'].includes(link.mode) ? <>
+    {shownMode === 'page' && nativeSource ? <NativePagePicker
+      state={nativePages}
+      value={C.propVal(n, c.k)}
+      savedProjectPath={savedProjectPath}
+      onChange={chooseNativePage}
+    /> : null}
+
+    {['url', 'email', 'phone'].includes(shownMode) ? <>
       {link.mode === 'url'
         ? <WordPressContentPicker value={link.value || ''} onChange={chooseWordPress} />
         : null}
@@ -763,7 +807,7 @@ function LinkCtl({ n, c }: P) {
       <div class="note">/{scope.col.slug}/&lt;slug&gt;</div>
     ) : null}
 
-    {link.mode !== 'none' ? (
+    {shownMode !== 'none' ? (
       <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
         <span>Open in a new tab</span>
         <button type="button" role="switch"
