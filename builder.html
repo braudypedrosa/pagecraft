@@ -2078,11 +2078,32 @@ const historyDate = value => {
 };
 
 let rightSurfaceTrigger = null;
+let rightSurfaceWorkspaceFocus = null;
+function setRightSurfaceCanvasFocus(active) {
+  if (document.body.classList.contains('canvas-focus') === active) return;
+  const button = $('#canvasFocusBtn');
+  /* Canvas focus owns its button state and layout callback. Going through that control
+     keeps the workspace preference and its accessible label in sync. */
+  if (button?.dataset.wired) button.click();
+  else document.body.classList.toggle('canvas-focus', active);
+}
+function rightSurfaceKeydown(event) {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeRightSurface();
+}
 function openRightSurface(title, description, content, trigger) {
   if (!IS_WORDPRESS) return null;
   const inspector = $('#right'), panel = $('#rightAux');
   if (!inspector || !panel) return null;
+  if (panel.hidden) rightSurfaceWorkspaceFocus = {
+    library: document.body.classList.contains('library-focus'),
+    canvas: document.body.classList.contains('canvas-focus')
+  };
   rightSurfaceTrigger = trigger || null;
+  document.body.classList.remove('library-focus');
+  setRightSurfaceCanvasFocus(false);
   inspector.hidden = true;
   panel.hidden = false;
   panel.innerHTML = `<div class="sHead">
@@ -2097,6 +2118,7 @@ function openRightSurface(title, description, content, trigger) {
     button.setAttribute('aria-pressed', String(active));
   }
   $('#rightSurfaceClose').addEventListener('click', closeRightSurface);
+  panel.addEventListener('keydown', rightSurfaceKeydown);
   layoutCanvas();
   requestAnimationFrame(() => $('#rightSurfaceClose')?.focus());
   return panel;
@@ -2106,6 +2128,7 @@ function closeRightSurface() {
   const panel = $('#rightAux');
   if (!panel || panel.hidden) return;
   panel.hidden = true;
+  panel.removeEventListener('keydown', rightSurfaceKeydown);
   panel.replaceChildren();
   for (const button of [$('#reviewBtn'), $('#historyBtn')]) {
     if (!button) continue;
@@ -2114,6 +2137,10 @@ function closeRightSurface() {
   }
   const trigger = rightSurfaceTrigger;
   rightSurfaceTrigger = null;
+  const workspaceFocus = rightSurfaceWorkspaceFocus;
+  rightSurfaceWorkspaceFocus = null;
+  document.body.classList.toggle('library-focus', !!workspaceFocus?.library);
+  setRightSurfaceCanvasFocus(!!workspaceFocus?.canvas);
   renderRight();
   layoutCanvas();
   if (trigger && document.contains(trigger)) trigger.focus();

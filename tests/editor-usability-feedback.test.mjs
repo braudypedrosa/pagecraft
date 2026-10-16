@@ -134,10 +134,96 @@ test.each([{ role: 'content' }, { editorSessionToken: 'scoped-session' }])('clie
 });
 
 test('WordPress owners cannot open the Cloud client review workflow', async () => {
-  const { w, d } = await editor({ restUrl: 'https://example.test/wp-json/pagecraft/v1', nonce: 'fixture', page: { id: 42, title: 'WP page', slug: 'wp-page' }, capabilities: ['edit_document', 'edit_structure'], previewUrl: 'https://example.test/wp-page/' }, true);
+  const { w, d } = await editor(wordpressConfig, true);
   expect(d.querySelector('#clientReviewBtn').hidden).toBe(true);
   w.clientReviewModal();
   expect(d.querySelector('#modal').hidden).toBe(true);
+});
+
+const wordpressConfig = { restUrl: 'https://example.test/wp-json/pagecraft/v1', nonce: 'fixture',
+  page: { id: 42, title: 'WP page', slug: 'wp-page' }, capabilities: ['edit_document', 'edit_structure'],
+  previewUrl: 'https://example.test/wp-page/' };
+
+function rightSurfaceHarness() {
+  const dom = new JSDOM(`<body>
+    <button id="canvasFocusBtn" data-wired="1" aria-label="Hide side panels" aria-pressed="false"></button>
+    <button id="reviewBtn" aria-pressed="false"></button><button id="historyBtn" aria-pressed="false"></button>
+    <aside id="right"></aside><aside id="rightAux" hidden></aside>
+  </body>`, { runScripts: 'outside-only', pretendToBeVisual: true });
+  windows.push(dom);
+  const w = dom.window, d = w.document, canvasFocus = d.querySelector('#canvasFocusBtn');
+  canvasFocus.addEventListener('click', () => {
+    const active = !d.body.classList.contains('canvas-focus');
+    d.body.classList.toggle('canvas-focus', active);
+    canvasFocus.setAttribute('aria-label', active ? 'Show side panels' : 'Hide side panels');
+    canvasFocus.setAttribute('aria-pressed', String(active));
+  });
+  w.eval(`
+    const IS_WORDPRESS = true;
+    const $ = selector => document.querySelector(selector);
+    const svg = () => '';
+    const esc = value => value;
+    const layoutCanvas = () => {};
+    const renderRight = () => {};
+    const state = { pages: [{ id: 'page', title: 'Unchanged' }] };
+    const hist = { u: [{ label: 'Earlier edit' }], r: [] };
+    let saveState = 'ok';
+    window.rightSurfaceDocumentState = () => JSON.stringify({ state, hist, saveState });
+    ${builder.slice(builder.indexOf('let rightSurfaceTrigger = null;'), builder.indexOf('\nfunction closeReviewSurface()'))}
+  `);
+  return { w, d, canvasFocus };
+}
+
+test.each([
+  { width: 1440, close: 'button' },
+  { width: 1360, close: 'escape' },
+  { width: 768, close: 'button' },
+  { width: 600, close: 'escape' }
+])('WordPress right surfaces replace library focus at $width px and restore it on $close', async ({ width, close }) => {
+  const { w, d } = rightSurfaceHarness();
+  Object.defineProperty(w, 'innerWidth', { configurable: true, value: width });
+  const trigger = d.querySelector('#historyBtn');
+  trigger.focus();
+  d.body.classList.add('library-focus');
+  const documentBefore = w.rightSurfaceDocumentState();
+
+  const panel = w.openRightSurface('Version history', 'WordPress revisions', '<p>Saved version</p>', trigger);
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(panel.hidden).toBe(false);
+  expect(d.body.classList.contains('library-focus')).toBe(false);
+  expect(d.body.classList.contains('canvas-focus')).toBe(false);
+  expect(d.activeElement).toBe(d.querySelector('#rightSurfaceClose'));
+
+  if (close === 'escape') d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  else d.querySelector('#rightSurfaceClose').click();
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(panel.hidden).toBe(true);
+  expect(d.body.classList.contains('library-focus')).toBe(true);
+  expect(d.activeElement).toBe(trigger);
+  expect(w.rightSurfaceDocumentState()).toBe(documentBefore);
+});
+
+test('WordPress right surfaces temporarily leave canvas focus and restore its control state', async () => {
+  const { w, d, canvasFocus } = rightSurfaceHarness();
+  canvasFocus.click();
+  expect(d.body.classList.contains('canvas-focus')).toBe(true);
+  expect(canvasFocus.getAttribute('aria-pressed')).toBe('true');
+  const documentBefore = w.rightSurfaceDocumentState();
+  const trigger = d.querySelector('#reviewBtn');
+
+  w.openRightSurface('Site checks', 'Checks for this WordPress page', '<p>No issues</p>', trigger);
+  expect(d.body.classList.contains('canvas-focus')).toBe(false);
+  expect(canvasFocus.getAttribute('aria-pressed')).toBe('false');
+  expect(canvasFocus.getAttribute('aria-label')).toBe('Hide side panels');
+  const nextTrigger = d.querySelector('#historyBtn');
+  w.openRightSurface('Version history', 'WordPress revisions', '<p>Saved version</p>', nextTrigger);
+  w.closeRightSurface();
+  await new Promise(resolve => w.requestAnimationFrame(resolve));
+  expect(d.body.classList.contains('canvas-focus')).toBe(true);
+  expect(canvasFocus.getAttribute('aria-pressed')).toBe('true');
+  expect(canvasFocus.getAttribute('aria-label')).toBe('Show side panels');
+  expect(d.activeElement).toBe(nextTrigger);
+  expect(w.rightSurfaceDocumentState()).toBe(documentBefore);
 });
 
 test('replacing and closing a modal detach pending preview listeners', async () => {
