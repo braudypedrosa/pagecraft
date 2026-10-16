@@ -1,6 +1,10 @@
 import {test,expect} from 'vitest';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import sharp from 'sharp';
 import {captureCodeHashes,names,validateCaptureEvidence} from '../tools/ui-baselines.mjs';
+import {captureGallery,captureScreenshotWithProvenance} from '../tools/capture-ui-gallery.mjs';
 import {pngColorMetadata} from '../tools/png-color-metadata.mjs';
 
 const behaviorChecks=[{host:'cloud',check:'gallery ready',passed:true}];
@@ -59,4 +63,77 @@ test('capture code hashes cover the dependency-light built-in capture path',asyn
  const hashes=await captureCodeHashes();
  expect(Object.keys(hashes).sort()).toEqual(['tools/capture-ui-gallery.mjs','tools/png-color-metadata.mjs']);
  expect(Object.values(hashes).every(value=>/^[a-f0-9]{64}$/.test(value))).toBe(true);
+});
+
+const screenshotParams={format:'png',fromSurface:true,captureBeyondViewport:true,optimizeForSpeed:false,clip:{x:0,y:0,width:1440,height:900,scale:1}};
+
+test('screenshot provenance records a direct success without touching accessibility state',async()=>{
+ const calls=[],cdp={send:async(method,params)=>{calls.push([method,params]);return {data:'direct'};}},tab={getAXState:async()=>{throw new Error('must not run');}};
+ const captured=await captureScreenshotWithProvenance(tab,cdp,screenshotParams);
+ expect(captured).toEqual({result:{data:'direct'},provenance:{path:'direct',directAttempt:{outcome:'success'},axFallback:{used:false}}});
+ expect(calls).toEqual([['Page.captureScreenshot',screenshotParams]]);
+});
+
+test('screenshot provenance records the actual error, AX fallback and successful retry without secrets',async()=>{
+ const calls=[],ax=[],responses=[new Error('Denied https://user:pass@private.example.test/path?token=raw token=also-raw'),{data:'retry'}];
+ const cdp={send:async(method,params)=>{calls.push([method,params]);const response=responses.shift();if(response instanceof Error)throw response;return response;}};
+ const tab={getAXState:async options=>{ax.push(options);}};
+ const captured=await captureScreenshotWithProvenance(tab,cdp,screenshotParams);
+ expect(captured.result).toEqual({data:'retry'});
+ expect(captured.provenance).toMatchObject({path:'getAXState-retry',directAttempt:{outcome:'error'},axFallback:{used:true,outcome:'success'},retryAttempt:{outcome:'success'}});
+ const recorded=JSON.stringify(captured.provenance);
+ expect(recorded).not.toContain('private.example.test');
+ expect(recorded).not.toContain('also-raw');
+ expect(captured.provenance.directAttempt.error.reason.length).toBeLessThanOrEqual(160);
+ expect(ax).toEqual([{emit:false}]);
+ expect(calls).toEqual([['Page.captureScreenshot',screenshotParams],['Page.captureScreenshot',screenshotParams]]);
+});
+
+test('a direct failure without AX support exposes only bounded sanitized provenance',async()=>{
+ const cdp={send:async()=>{throw new Error('CDP failed at https://private.example.test/?secret=raw for owner@private.example.test via internal.example.test');}};
+ await expect(captureScreenshotWithProvenance({},cdp,screenshotParams)).rejects.toMatchObject({
+  captureProvenance:{path:'failed',directAttempt:{outcome:'error'},axFallback:{used:false}},
+ });
+ try{await captureScreenshotWithProvenance({},cdp,screenshotParams);}catch(error){
+  expect(error.message).not.toContain('private.example.test');
+  expect(error.message).not.toContain('internal.example.test');
+  expect(error.message).not.toContain('owner@');
+  expect(error.captureProvenance.directAttempt.error.reason.length).toBeLessThanOrEqual(160);
+ }
+});
+
+test('a failed retry identifies both attempts and reuses the unchanged screenshot parameters',async()=>{
+ const calls=[],errors=[new Error('direct https://one.example.test/?token=raw'),new Error('retry https://two.example.test/?password=raw')];
+ const cdp={send:async(method,params)=>{calls.push([method,params]);throw errors.shift();}},tab={getAXState:async()=>{}};
+ try{await captureScreenshotWithProvenance(tab,cdp,screenshotParams);throw new Error('expected capture failure');}catch(error){
+  expect(error.captureProvenance).toMatchObject({path:'failed',directAttempt:{outcome:'error'},axFallback:{used:true,outcome:'success'},retryAttempt:{outcome:'error'}});
+  expect(JSON.stringify(error.captureProvenance)).not.toMatch(/one\.example|two\.example|token=raw|password=raw/);
+ }
+ expect(calls).toEqual([['Page.captureScreenshot',screenshotParams],['Page.captureScreenshot',screenshotParams]]);
+});
+
+test('capture failure still clears device metrics and emulated media',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'pagecraft-capture-cleanup-')),calls=[];
+ const runtime={userAgent:'Chrome',platform:'MacIntel',userAgentData:{supported:false},devicePixelRatio:1,visualViewportScale:1,screen:{width:1440,height:900,availWidth:1440,availHeight:900,colorDepth:24,pixelDepth:24},colorGamut:{srgb:true,p3:false,rec2020:false},dynamicRange:{standard:true,high:false},colorScheme:{light:true,dark:false}};
+ const cdp={send:async(method,params)=>{
+  calls.push([method,params]);
+  if(method==='Runtime.evaluate')return params.expression.startsWith('JSON.stringify')?{result:{value:JSON.stringify(runtime)}}:{result:{value:'loaded'}};
+  if(method==='Page.getLayoutMetrics')return {cssContentSize:{height:900}};
+  if(method==='Browser.getVersion'||method==='Browser.getBrowserCommandLine'||method==='SystemInfo.getInfo')throw new Error('unsupported');
+  if(method==='Page.captureScreenshot')throw new Error('capture unavailable');
+  return {};
+ }};
+ const tab={
+  capabilities:{get:async()=>cdp},
+  playwright:{
+   evaluate:async(_fn,arg)=>arg?{x:0,y:0,width:100,height:30}:{width:1440,innerHeight:900,scrollHeight:900,scrollWidth:1440,fonts:'loaded'},
+   getByRole:()=>({click:async()=>{}}),
+   locator:()=>({waitFor:async()=>{},press:async()=>{},click:async()=>{}}),
+  },
+ };
+ try{
+  await expect(captureGallery(tab,directory,behaviorChecks)).rejects.toThrow('capture unavailable');
+  expect(calls.slice(-2).map(([method])=>method)).toEqual(['Emulation.clearDeviceMetricsOverride','Emulation.setEmulatedMedia']);
+  expect(calls.at(-1)[1]).toEqual({features:[]});
+ }finally{await rm(directory,{recursive:true,force:true});}
 });

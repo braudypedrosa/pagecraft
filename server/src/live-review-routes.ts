@@ -89,7 +89,9 @@ export function liveReviewRoutes(app: Hono, o: {
   });
   app.get('/review/:token/state', async c => {
     const a = await access(c); if (!a?.person) return c.json({ error: 'Your access has expired. Reload and sign in again.' }, 403);
-    return c.json({ pins: await o.reviews.pins(a.link.siteId), version: (await o.store.byId(a.link.siteId))?.version });
+    const allPins = await o.reviews.pins(a.link.siteId);
+    const numbered = allPins.map((pin, index) => ({ ...pin, number: Number.isSafeInteger(pin.number) && Number(pin.number) > 0 ? Number(pin.number) : index + 1 }));
+    return c.json({ pins: a.owner ? numbered : numbered.filter(pin => !pin.removedAt), version: (await o.store.byId(a.link.siteId))?.version });
   });
   app.get('/review/:token/preview', async c => {
     const a = await access(c); if (!a?.person) return c.json({ error: 'Sign in or enter your name first.' }, 403);
@@ -112,12 +114,26 @@ export function liveReviewRoutes(app: Hono, o: {
     const a = await access(c); if (!a?.person) return c.json({ error: 'Review access required.' }, 403);
     const b = await c.req.json().catch(() => null);
     if (!b || typeof b.body !== 'string' || !b.body.trim() || b.body.length > 4000) return c.json({ error: 'Enter a reply of up to 4,000 characters.' }, 400);
-    try { return c.json(await o.reviews.reply(a.link.siteId, b.pinId, a.person, b.body.trim())); } catch { return c.json({ error: 'Comment not found.' }, 404); }
+    try { return c.json(await o.reviews.reply(a.link.siteId, b.pinId, a.person, b.body.trim())); }
+    catch (error) { return error instanceof Error && error.message === 'removed_pin' ? c.json({ error: 'Removed comments cannot receive replies.' }, 409) : c.json({ error: 'Comment not found.' }, 404); }
   });
   app.post('/review/:token/resolve', async c => {
     const a = await access(c); if (!a?.person || !a.canResolve) return c.json({ error: 'Only the owner or an invited developer can resolve comments.' }, 403);
     const b = await c.req.json().catch(() => null); if (typeof b?.done !== 'boolean') return c.json({ error: 'Choose done or open.' }, 400);
-    try { return c.json(await o.reviews.resolve(a.link.siteId, b.pinId, a.person, b.done)); } catch { return c.json({ error: 'Comment not found.' }, 404); }
+    try { return c.json(await o.reviews.resolve(a.link.siteId, b.pinId, a.person, b.done)); }
+    catch (error) { return error instanceof Error && error.message === 'removed_pin' ? c.json({ error: 'Restore this comment before changing its status.' }, 409) : c.json({ error: 'Comment not found.' }, 404); }
+  });
+  app.post('/review/:token/remove', async c => {
+    const a = await access(c); if (!a?.person || !a.owner) return c.json({ error: 'Only the site owner can remove comments.' }, 403);
+    const b = await c.req.json().catch(() => null);
+    try { return c.json(await o.reviews.setRemoved(a.link.siteId, b?.pinId, a.person, true)); }
+    catch { return c.json({ error: 'Comment not found.' }, 404); }
+  });
+  app.post('/review/:token/restore', async c => {
+    const a = await access(c); if (!a?.person || !a.owner) return c.json({ error: 'Only the site owner can restore comments.' }, 403);
+    const b = await c.req.json().catch(() => null);
+    try { return c.json(await o.reviews.setRemoved(a.link.siteId, b?.pinId, a.person, false)); }
+    catch { return c.json({ error: 'Comment not found.' }, 404); }
   });
   app.post('/review/:token/invite', async c => {
     const a = await access(c); if (!a?.owner || !a.user) return c.text('Owner access required', 403);

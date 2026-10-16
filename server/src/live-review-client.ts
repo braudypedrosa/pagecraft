@@ -6,8 +6,20 @@ export function reviewClient() {
   const frame = $('site-frame');
   let device = 'desktop', page = config.pages[0]?.path || 'index.html', pins = [], channel = '', pending = null, selected = null, mode = 'comment', version = null, loading = false;
   const replyDrafts = new Map();
+  const pinMutations = new Map();
   let targetMode = 'element', feedbackTimer, structure = [], anchors = new Map(), activeSection = null;
   const uiIcon = () => document.querySelector('[data-mode="comment"] svg')?.cloneNode(true);
+  // Iconify Lucide `check` and `x` from https://raw.githubusercontent.com/iconify/icon-sets/master/json/lucide.json
+  // Paths: `M20 6L9 17l-5-5` and `M18 6L6 18M6 6l12 12` (24px viewBox).
+  const actionIcon = pathData => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('width', '14'); svg.setAttribute('height', '14'); svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'currentColor'); path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round'); path.setAttribute('stroke-width', '2'); path.setAttribute('d', pathData);
+    svg.append(path); return svg;
+  };
+  const checkIcon = () => actionIcon('M20 6L9 17l-5-5');
+  const removeIcon = () => actionIcon('M18 6L6 18M6 6l12 12');
   const widths = { desktop: 1440, tablet: 768, mobile: 390 };
   const error = message => { clearTimeout(feedbackTimer); $('feedback').textContent = message; if (message && !message.includes('Loading')) feedbackTimer = setTimeout(() => { $('feedback').textContent = ''; }, 6000); };
   const api = async (path, body) => {
@@ -37,7 +49,28 @@ export function reviewClient() {
   addEventListener('resize', fit);
   $('open-share')?.addEventListener('click', () => $('share-dialog').showModal());
   $('close-share')?.addEventListener('click', () => $('share-dialog').close());
-  const visible = () => pins.filter(p => p.page === page && p.device === device && ($('status-filter').value === 'all' || p.done === ($('status-filter').value === 'done')));
+  const visible = () => {
+    const status = $('status-filter').value;
+    return pins.filter(p => p.page === page && p.device === device && (status === 'removed' ? !!p.removedAt : !p.removedAt && (status === 'all' || p.done === (status === 'done'))));
+  };
+  const pinNumber = pin => Number.isInteger(pin.number) ? pin.number : pins.findIndex(p => p.id === pin.id) + 1;
+  const statusFocus = () => document.querySelector('[data-status="' + $('status-filter').value + '"]')?.focus({preventScroll:true});
+  const runPinMutation = async (pin, kind, path, body, focusId) => {
+    if (pinMutations.has(pin.id)) return;
+    pinMutations.set(pin.id, kind);
+    const article = $('thread-' + pin.id);
+    article?.querySelectorAll('.thread-action').forEach(action => { action.disabled = true; action.setAttribute('aria-busy', String(action.id === focusId)); });
+    try { await api(path, body); await refresh(); }
+    catch (e) { error(e.message); }
+    finally {
+      pinMutations.delete(pin.id);
+      const current = $(focusId);
+      if (current) {
+        current.closest('.thread-actions')?.querySelectorAll('.thread-action').forEach(action => { action.disabled = false; action.setAttribute('aria-busy', 'false'); });
+        current.focus({preventScroll:true});
+      } else statusFocus();
+    }
+  };
   const avatar = name => { const el = document.createElement('span'); el.className = 'avatar'; el.setAttribute('aria-hidden','true'); el.textContent = name.trim().split(/\s+/).slice(0,2).map(part => part[0]).join('').toUpperCase(); return el; };
   const timestamp = value => { const el = document.createElement('time'); el.dateTime = value; el.textContent = new Date(value).toLocaleString(undefined, {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); return el; };
   const pageName = () => config.pages.find(p => p.path === page)?.name || page;
@@ -54,7 +87,7 @@ export function reviewClient() {
       nav.append(hint);
     }
     rows.forEach(pin => {
-      const number = pins.findIndex(v => v.id === pin.id) + 1;
+      const number = pinNumber(pin);
       const item = button('', () => selectPin(pin.id)); item.className = 'outline-feedback';
       item.setAttribute('aria-pressed', String(selected === pin.id));
       item.setAttribute('aria-label', 'Open comment ' + number);
@@ -84,21 +117,47 @@ export function reviewClient() {
     if (!rows.length && !pending) {
       const empty = document.createElement('div'); empty.className = 'empty';
       const glyph = uiIcon(); if (glyph) empty.append(glyph);
-      const title = document.createElement('strong'); title.textContent = $('status-filter').value === 'done' ? 'No resolved comments yet' : 'A fresh perspective starts here';
-      const text = document.createElement('p'); text.textContent = $('status-filter').value === 'done' ? 'Completed feedback will appear here.' : 'Choose Comment, then select an element or section on the site to leave your feedback.';
+      const status = $('status-filter').value;
+      const title = document.createElement('strong'); title.textContent = status === 'done' ? 'No resolved comments yet' : status === 'removed' ? 'No removed comments' : 'A fresh perspective starts here';
+      const text = document.createElement('p'); text.textContent = status === 'done' ? 'Completed feedback will appear here.' : status === 'removed' ? 'Removed feedback stays here until you restore it.' : 'Choose Comment, then select an element or section on the site to leave your feedback.';
       empty.append(title, text); list.append(empty);
     }
     rows.forEach(pin => {
       const article = document.createElement('article'); article.id = 'thread-' + pin.id; article.className = 'thread' + (selected === pin.id ? ' selected' : '');
-      const heading = button('#' + (pins.findIndex(p => p.id === pin.id) + 1) + ' · ' + pin.author.name + (pin.done ? ' · Done' : ''), () => { selected = selected === pin.id ? null : pin.id; if (selected) send({ focus: pin.id }); render(); });
-      heading.className = 'thread-heading'; heading.setAttribute('aria-expanded', String(selected === pin.id));
+      const heading = document.createElement('div'); heading.className = 'thread-heading';
+      const summary = button('#' + pinNumber(pin) + ' · ' + pin.author.name + (pin.removedAt ? ' · Removed' : pin.done ? ' · Done' : ''), () => { selected = selected === pin.id ? null : pin.id; if (selected) send({ focus: pin.id }); render(); });
+      summary.className = 'thread-heading-main'; summary.setAttribute('aria-expanded', String(selected === pin.id));
       const author = document.createElement('span'); author.textContent = pin.author.name;
-      const number = document.createElement('span'); number.className = 'pin-number'; number.textContent = '#' + (pins.findIndex(p => p.id === pin.id) + 1);
+      const number = document.createElement('span'); number.className = 'pin-number'; number.textContent = '#' + pinNumber(pin);
       const authorDetails = document.createElement('span'); authorDetails.className = 'author-details'; authorDetails.append(author, timestamp(pin.createdAt));
-      heading.setAttribute('aria-label', pin.author.name + ' ' + number.textContent);
-      heading.replaceChildren(avatar(pin.author.name), authorDetails, number); article.append(heading);
+      summary.setAttribute('aria-label', pin.author.name + ' ' + number.textContent);
+      summary.replaceChildren(avatar(pin.author.name), authorDetails, number); heading.append(summary);
+      if (selected === pin.id && (config.canResolve || config.owner)) {
+        const actions = document.createElement('div'); actions.className = 'thread-actions'; actions.setAttribute('role', 'group'); actions.setAttribute('aria-label', 'Comment actions');
+        const mutation = pinMutations.get(pin.id);
+        if (pin.removedAt) {
+          if (config.owner) {
+            const restore = button('Restore', () => runPinMutation(pin, 'restore', '/restore', { pinId: pin.id }, 'restore-' + pin.id));
+            restore.id = 'restore-' + pin.id; restore.className = 'thread-action thread-restore'; restore.title = 'Restore note'; restore.setAttribute('aria-label', 'Restore note'); restore.disabled = !!mutation; restore.setAttribute('aria-busy', String(mutation === 'restore')); actions.append(restore);
+          }
+        } else {
+          if (config.canResolve) {
+            const action = pin.done ? 'Reopen note' : 'Mark resolved';
+            const resolve = button('', () => runPinMutation(pin, 'resolve', '/resolve', { pinId: pin.id, done: !pin.done }, 'resolve-' + pin.id));
+            resolve.id = 'resolve-' + pin.id; resolve.className = 'thread-action thread-resolve'; resolve.title = action; resolve.setAttribute('aria-label', action); resolve.setAttribute('aria-pressed', String(pin.done));
+            resolve.disabled = !!mutation; resolve.setAttribute('aria-busy', String(mutation === 'resolve')); resolve.append(checkIcon()); actions.append(resolve);
+          }
+          if (config.owner) {
+            const remove = button('', () => runPinMutation(pin, 'remove', '/remove', { pinId: pin.id }, 'remove-' + pin.id));
+            remove.id = 'remove-' + pin.id; remove.className = 'thread-action thread-remove'; remove.title = 'Remove note'; remove.setAttribute('aria-label', 'Remove note');
+            remove.disabled = !!mutation; remove.setAttribute('aria-busy', String(mutation === 'remove')); remove.append(removeIcon()); actions.append(remove);
+          }
+        }
+        if (actions.childElementCount) heading.append(actions);
+      }
+      article.append(heading);
       const body = document.createElement('p'); body.textContent = pin.body; body.className = 'thread-body'; article.append(body);
-      const meta = document.createElement('div'); meta.className = 'thread-meta'; const glyph = uiIcon(); if (glyph) meta.append(glyph); meta.append(document.createTextNode(pin.replies.length + (pin.replies.length === 1 ? ' reply' : ' replies') + (pin.done ? ' · Resolved' : ' · Open'))); article.append(meta);
+      const meta = document.createElement('div'); meta.className = 'thread-meta'; const glyph = uiIcon(); if (glyph) meta.append(glyph); meta.append(document.createTextNode(pin.replies.length + (pin.replies.length === 1 ? ' reply' : ' replies') + (pin.removedAt ? ' · Removed' : pin.done ? ' · Resolved' : ' · Open'))); article.append(meta);
       if (selected === pin.id) {
         if (pin.replies.length) {
           const replies = document.createElement('ol'); replies.className = 'reply-list'; replies.setAttribute('aria-label','Replies');
@@ -111,14 +170,15 @@ export function reviewClient() {
           });
           article.append(replies);
         }
-        const form = document.createElement('form'), input = document.createElement('textarea'); input.required = true; input.maxLength = 4000; input.placeholder = 'Reply to this comment'; input.setAttribute('aria-label', 'Reply to comment'); input.value = replyDrafts.get(pin.id) || ''; input.oninput = () => replyDrafts.set(pin.id, input.value);
-        const submit = document.createElement('button'); submit.textContent = 'Reply'; form.append(input, submit);
-        form.onsubmit = async e => { e.preventDefault(); submit.disabled = true; try { await api('/reply', { pinId: pin.id, body: input.value }); replyDrafts.delete(pin.id); await refresh(); } catch (e) { error(e.message); submit.disabled = false; } }; article.append(form);
-        if (config.canResolve) { const resolve = button(pin.done ? 'Reopen' : 'Mark fixed', async () => { try { await api('/resolve', { pinId: pin.id, done: !pin.done }); await refresh(); } catch (e) { error(e.message); } }); resolve.className = 'resolve' + (pin.done ? '' : ' primary'); article.append(resolve); }
+        if (!pin.removedAt) {
+          const form = document.createElement('form'), input = document.createElement('textarea'); input.required = true; input.maxLength = 4000; input.placeholder = 'Reply to this comment'; input.setAttribute('aria-label', 'Reply to comment'); input.value = replyDrafts.get(pin.id) || ''; input.oninput = () => replyDrafts.set(pin.id, input.value);
+          const submit = document.createElement('button'); submit.textContent = 'Reply'; form.append(input, submit);
+          form.onsubmit = async e => { e.preventDefault(); submit.disabled = true; try { await api('/reply', { pinId: pin.id, body: input.value }); replyDrafts.delete(pin.id); await refresh(); } catch (e) { error(e.message); submit.disabled = false; } }; article.append(form);
+        }
       }
       list.append(article);
     });
-    send({ pins: visible().map(p => ({ ...p, number: pins.findIndex(v => v.id === p.id) + 1 })), mode, targetMode, selected, pending });
+    send({ pins: visible().map(p => ({ ...p, number: pinNumber(p) })), mode, targetMode, selected, pending });
   };
   const refresh = async (preserveDraft = false) => { const data = await api('/state'); pins = data.pins; if (!preserveDraft || !pending && document.activeElement?.tagName !== 'TEXTAREA') render(); if (version !== null && data.version !== version) { $('update-site').hidden = false; $('update-site').textContent = 'Site updated — load latest'; if (!pending && ![...replyDrafts.values()].some(value => value.trim()) && document.activeElement?.tagName !== 'TEXTAREA') await load(); } };
   const load = async () => {

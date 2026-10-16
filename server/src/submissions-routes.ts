@@ -139,7 +139,7 @@ export function submissionRoutes(app: Hono, o: {
       const created = await o.submissions.add(id, { id: /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(request) ? request : randomUUID(), formId, formName: form.name, values, status: 'success', createdAt: new Date().toISOString() });
       if (created && o.analytics && await o.analytics.enabled(id).catch(() => false)) o.analytics.form(id, formId);
       return c.redirect('/forms/thanks', 303);
-    } catch { return c.text('Your submission was not saved. Please try again shortly.', 503); }
+    } catch { return c.text('We could not confirm your submission. Please try again shortly.', 503); }
   });
   app.get('/forms/thanks', c => { c.header('Cache-Control', 'no-store'); return c.html('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Submission received</title><body style="font:16px system-ui;background:#f5f7f8;color:#141914;margin:0"><main style="max-width:520px;margin:15vh auto;padding:32px"><h1>Thank you</h1><p>Your submission has been received.</p><button onclick="history.back()" style="padding:12px 20px;background:#b7f34a;border:0;border-radius:6px">Back to site</button></main></body></html>'); });
 }

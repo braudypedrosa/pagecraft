@@ -16,6 +16,40 @@ const screenshotFor=(width,height)=>({format:'png',fromSurface:true,captureBeyon
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const captureCodeHashes=async()=>Object.fromEntries(await Promise.all(captureCodeFiles.map(async file=>[file,hash(await readFile(resolve(root,file)))])));
 
+const captureErrorReason=error=>{
+ const message=typeof error?.message==='string'?error.message:typeof error==='string'?error:'Capture command failed.';
+ return (message
+  .replace(/\b(?:https?|wss?):\/\/[^\s"'<>]+/gi,'[url redacted]')
+  .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[email redacted]')
+  .replace(/\b(?:[A-Z0-9-]+\.)+[A-Z]{2,}(?::\d+)?\b/gi,'[host redacted]')
+  .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b/g,'[ip redacted]')
+  .replace(/\b(authorization|cookie|token|secret|password)\s*[:=]\s*[^\s,;]+/gi,'$1=[redacted]')
+  .replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0,160)||'Capture command failed.');
+};
+const captureError=error=>({name:typeof error?.name==='string'&&/^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(error.name)?error.name:'Error',reason:captureErrorReason(error)});
+const failedCapture=(error,provenance)=>{
+ const failure=new Error(provenance.retryAttempt?.error?.reason||provenance.axFallback?.error?.reason||provenance.directAttempt.error?.reason||'Gallery screenshot capture failed.');
+ failure.name=captureError(error).name;failure.captureProvenance=provenance;return failure;
+};
+
+export async function captureScreenshotWithProvenance(tab,cdp,params){
+ try{
+  const result=await cdp.send('Page.captureScreenshot',params);
+  return {result,provenance:{path:'direct',directAttempt:{outcome:'success'},axFallback:{used:false}}};
+ }catch(error){
+  const directAttempt={outcome:'error',error:captureError(error)};
+  if(typeof tab.getAXState!=='function')throw failedCapture(error,{path:'failed',directAttempt,axFallback:{used:false}});
+  try{await tab.getAXState({emit:false});}
+  catch(axError){throw failedCapture(axError,{path:'failed',directAttempt,axFallback:{used:true,outcome:'error',error:captureError(axError)}});}
+  try{
+   const result=await cdp.send('Page.captureScreenshot',params);
+   return {result,provenance:{path:'getAXState-retry',directAttempt,axFallback:{used:true,outcome:'success'},retryAttempt:{outcome:'success'}}};
+  }catch(retryError){
+   throw failedCapture(retryError,{path:'failed',directAttempt,axFallback:{used:true,outcome:'success'},retryAttempt:{outcome:'error',error:captureError(retryError)}});
+  }
+ }
+}
+
 function sanitizeSwitches(values=[]){
  return values.filter(value=>typeof value==='string'&&value.startsWith('--')).filter(value=>safeSwitches.has(value.slice(2).split('=',1)[0]));
 }
@@ -73,14 +107,6 @@ async function runtimeCharacteristics(cdp){
 export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
- const screenshot=async params=>{
-  try{return await cdp.send('Page.captureScreenshot',params);}
-  catch(error){
-   if(!tab.getAXState)throw error;
-   await tab.getAXState({emit:false});
-   return cdp.send('Page.captureScreenshot',params);
-  }
- };
  let failed=false;
  try{
   await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
@@ -124,9 +150,9 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    const measurement=await stabilizeHeight(tab,cdp,width);
    if(measurement.overflow||measurement.fonts!=='loaded')throw new Error(`Gallery not ready: ${host}/${section}/${width}`);
    const metrics=metricsFor(width,measurement.height),screenshotParams=screenshotFor(width,measurement.height);
-   const result=await screenshot(screenshotParams),bytes=Buffer.from(result.data,'base64');
+   const {result,provenance}=await captureScreenshotWithProvenance(tab,cdp,screenshotParams),bytes=Buffer.from(result.data,'base64');
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),bytes);
-   evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},pngColorMetadata:pngColorMetadata(bytes)};
+   evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},screenshotProvenance:provenance,pngColorMetadata:pngColorMetadata(bytes)};
    if(section==='menus'||section==='dialogs')await tab.pressKey('Escape');
   }
   if(names.some(name=>!evidence.captures[name]))throw new Error('Incomplete capture inventory');

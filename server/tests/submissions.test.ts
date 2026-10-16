@@ -89,6 +89,24 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+test('receiver does not claim a submission was unsaved when the store acknowledgement is lost', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-submission-ack-'));
+  try {
+    const store = new MemoryStore(), submissions = new FileSubmissionStore(join(root, 'entries'));
+    const publications = new FileHostedPublicationStore(join(root, 'published'));
+    const site = await store.create({ host: 'ack.invalid', name: 'Acknowledgement QA', doc: source() });
+    const publication = await publications.create({ siteId: site.id, slug: site.slug, host: site.host, sourceVersion: site.version, files: [{ path:'index.html', mediaType:'text/html', bytes:new TextEncoder().encode('<h1>QA</h1>') }] });
+    await publications.promote(publication);
+    const add = submissions.add.bind(submissions);
+    submissions.add = async (...args: Parameters<FileSubmissionStore['add']>) => { await add(...args); throw new Error('acknowledgement lost'); };
+    const app = new Hono();
+    submissionRoutes(app, { store, submissions, publications, editorOrigin:'https://editor.test', requestSource:()=> 'qa', allowed:async()=>({ok:false,status:403}) });
+    const response = await app.request(`https://editor.test/forms/${site.id}/qa-form`, { method:'POST', headers:{'content-type':'application/x-www-form-urlencoded',origin:'https://editor.test'}, body:'_pc_request=12345678-1234-4123-8123-123456789abc&email=qa@example.test' });
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe('We could not confirm your submission. Please try again shortly.');
+    expect(await submissions.list(site.id)).toHaveLength(1);
+  } finally { await rm(root, { recursive:true, force:true }); }
+});
 test('native CSV downloads preserve endpoint authorization and failure statuses', async () => {
   const app = new Hono();
   submissionRoutes(app, {

@@ -25,7 +25,9 @@ test('legacy blank POST forms retain the Cloud receiver and submission safeguard
   const html = rendered.files.get('index.html')!;
   expect(html).toContain('action="https://cloud.test/forms/site/destination-form" method="post"');
   expect(html).toContain('name="_pc_trap" tabindex="-1" autocomplete="off"');
-  expect(html).toContain("i.name='_pc_request';i.value=crypto.randomUUID()");
+  expect(html).toContain("i.name='_pc_request';i.value=token");
+  expect(html).toContain("history.replaceState(next,'')");
+  expect(html).toContain("f.addEventListener('input'");
   expect(html).toContain("f.addEventListener('submit'");
   expect(html).not.toContain('data-disabled');
   expect(rendered.findings.map(f => f.code)).not.toContain('form-no-action');
