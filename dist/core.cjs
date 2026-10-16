@@ -3577,6 +3577,19 @@ function eachNode(list, fn, parent = null, depth = 0) {
     eachNode(n.children || [], fn, n, depth + 1);
   });
 }
+var RICH_TEXT_NAME_ENTITIES = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " "
+};
+var richTextName = (html) => String(html || "").replace(/<[^>]*>/g, " ").replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (whole, dec, hex, name) => {
+  if (name) return RICH_TEXT_NAME_ENTITIES[name.toLowerCase()] ?? whole;
+  const cp = Number.parseInt(dec || hex, dec ? 10 : 16);
+  return cp > 0 && cp <= 1114111 && !(cp >= 55296 && cp <= 57343) ? String.fromCodePoint(cp) : "\uFFFD";
+}).replace(/\s+/g, " ").trim();
 var nameOf = (n) => {
   if (n.use) {
     const cd = findComponent(n.use);
@@ -3589,7 +3602,7 @@ var nameOf = (n) => {
   }
   if (n.type === "heading") return (n.props.text || "").slice(0, 26) || d.label;
   if (n.type === "button") return n.props.text || d.label;
-  if (n.type === "text") return (n.props.html || "").replace(/<[^>]*>/g, " ").trim().slice(0, 24) || d.label;
+  if (n.type === "text") return richTextName(n.props.html).slice(0, 24) || d.label;
   if (n.type === "quote") return (n.props.text || "").trim().slice(0, 24) || d.label;
   if (n.type === "row") return `Row \xB7 ${n.children.length} col`;
   if (n.type === "slider") return `Slider \xB7 ${n.children.length} slide${n.children.length === 1 ? "" : "s"}`;

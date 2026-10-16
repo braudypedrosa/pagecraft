@@ -1006,6 +1006,44 @@ test('inline editing cannot overwrite a CMS-bound component value', async () => 
   }
 });
 
+test('inline editing creates one undo step on first input and none for entry or exit alone', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  const frame=doc.querySelector('#canvas');
+  if (!frame.contentDocument.querySelector('#s-root')) {
+    const initial=frame.srcdoc;
+    frame.contentDocument.open();frame.contentDocument.write(initial);frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));await new Promise(r=>setTimeout(r,20));
+  }
+  const pg=C.state.pages[C.state.cur], original='<p>Garden &#38; rooms</p>   ';
+  const node=C.N('text',{html:original});
+  const priorUndo=C.hist.u.splice(0),priorRedo=C.hist.r.splice(0);
+  pg.tree.push(node);C.state.ui.mode='page';C.selSet([node.id]);w.render();w.paintHistory();
+  try {
+    w.enterEdit(node.id);
+    a.equal(C.hist.u.length,0,'view-only entry creates no history');
+    a.equal(doc.querySelector('#undoBtn').disabled,true);
+    a.equal(node.props.html,original,'browser normalization does not rewrite the stored value');
+    w.exitEdit();
+    a.equal(C.hist.u.length,0,'view-only exit creates no history');
+    a.equal(node.props.html,original);
+
+    w.enterEdit(node.id);
+    const host=frame.contentDocument.getElementById(node.id);
+    host.querySelector('p').append('!');host.dispatchEvent(new w.Event('input',{bubbles:true}));
+    a.equal(C.hist.u.length,1);a.match(doc.querySelector('#undoBtn').getAttribute('aria-label'),/Undo: Change rich text text/);
+    host.querySelector('p').append('?');host.dispatchEvent(new w.Event('input',{bubbles:true}));
+    a.equal(C.hist.u.length,1,'one editing session keeps one pre-mutation checkpoint');
+    w.exitEdit();doc.querySelector('#undoBtn').click();
+    a.equal(C.locate(node.id).node.props.html,original,'Undo restores the original stored bytes');
+  } finally {
+    w.exitEdit();
+    const current=C.state.pages.find(page=>page.id===pg.id)||C.state.pages[C.state.cur];
+    current.tree=current.tree.filter(item=>item.id!==node.id);
+    C.hist.u.splice(0,C.hist.u.length,...priorUndo);C.hist.r.splice(0,C.hist.r.length,...priorRedo);
+    C.selSet([]);w.render();w.paintHistory();
+  }
+});
+
 test('focused native controls keep their activation keys out of canvas shortcuts', async () => {
   const {window:w,doc}=await boot();
   const C=w.__CORE, pg=C.state.pages[C.state.cur], node=C.N('heading');
@@ -1151,6 +1189,7 @@ test('inline editing an instance writes its property, and refuses text the defin
   Object.defineProperty(frame.contentWindow.HTMLElement.prototype,'innerText',{configurable:true,
     get(){return this.textContent;},set(v){this.textContent=v;}});
   const original=C.state.meta.components, pg=C.state.pages[C.state.cur];
+  const history=C.hist.u.length,priorRedo=[...C.hist.r];
   const bound=C.N('heading'); bound.use='qa-inline-prop';
   const fixed=C.N('heading'); fixed.use='qa-inline-fixed';
   C.state.meta.components=[...(original||[]),
@@ -1161,18 +1200,29 @@ test('inline editing an instance writes its property, and refuses text the defin
   try {
     C.state.ui.mode='page'; w.render();
     w.enterEdit(bound.id);
-    const host=frame.contentDocument.getElementById(bound.id);
+    let host=frame.contentDocument.getElementById(bound.id);
     a.ok(host,'the instance is on the canvas');
+    w.exitEdit();
+    a.equal(C.hist.u.length,history,'viewing inherited component text creates no undo step');
+    a.equal(bound.vals,undefined,'viewing inherited component text creates no own value');
+
+    w.enterEdit(bound.id);host=frame.contentDocument.getElementById(bound.id);
     host.textContent='Typed on the canvas';
     w.exitEdit();
+    a.equal(C.hist.u.length,history+1,'the first real property mutation creates one undo step');
     a.equal(bound.vals?.title,'Typed on the canvas','the words land in the property the root reads');
     a.match(C.buildPage(pg),/>Typed on the canvas</,'so they are what renders, not what snaps back');
+    let before=null;
+    for(const page of C.hist.u.at(-1).pages) C.eachNode(page.tree,node=>{if(node.id===bound.id)before=node;});
+    a.equal(before?.vals,undefined,'the Undo snapshot retains the inherited property shape');
 
-    const history=C.hist.u.length;
+    const fixedHistory=C.hist.u.length;
     w.enterEdit(fixed.id);
     a.match(doc.querySelector('#toast').textContent,/belongs to the component/);
-    a.equal(C.hist.u.length,history,'no inline-edit transaction is opened');
+    a.equal(C.hist.u.length,fixedHistory,'no inline-edit transaction is opened');
   } finally {
-    pg.tree.splice(pg.tree.indexOf(bound),2);C.state.meta.components=original;C.selSet([]);w.render();
+    pg.tree.splice(pg.tree.indexOf(bound),2);C.state.meta.components=original;
+    C.hist.u.splice(history);C.hist.r.splice(0,C.hist.r.length,...priorRedo);
+    C.selSet([]);w.render();w.paintHistory();
   }
 });

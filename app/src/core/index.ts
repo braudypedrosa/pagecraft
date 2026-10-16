@@ -1748,6 +1748,20 @@ function locateAny(id: string): any {
 function eachNode(list: PcNode[], fn: (n: PcNode, parent: PcNode | null, i: number, depth: number) => void, parent: PcNode | null = null, depth = 0) {
   list.forEach((n, i) => { fn(n, parent, i, depth); eachNode(n.children || [], fn, n, depth + 1); });
 }
+const RICH_TEXT_NAME_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+};
+const richTextName = (html: unknown) => String(html || '')
+  /* Strip markup before decoding so an author-written `&lt;sample&gt;` stays visible text. */
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (whole, dec, hex, name) => {
+    if (name) return RICH_TEXT_NAME_ENTITIES[name.toLowerCase()] ?? whole;
+    const cp = Number.parseInt(dec || hex, dec ? 10 : 16);
+    return cp > 0 && cp <= 0x10ffff && !(cp >= 0xd800 && cp <= 0xdfff)
+      ? String.fromCodePoint(cp) : '�';
+  })
+  .replace(/\s+/g, ' ')
+  .trim();
 const nameOf = (n: PcNode) => {
   /* An instance is called by what it is an instance of. Reading "Section" in the layer tree for
      something the author named "Pricing card" is the panel disagreeing with the page. */
@@ -1764,7 +1778,7 @@ const nameOf = (n: PcNode) => {
   }
   if (n.type === 'heading') return (n.props.text || '').slice(0, 26) || d.label;
   if (n.type === 'button') return n.props.text || d.label;
-  if (n.type === 'text') return (n.props.html || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 24) || d.label;
+  if (n.type === 'text') return richTextName(n.props.html).slice(0, 24) || d.label;
   if (n.type === 'quote') return (n.props.text || '').trim().slice(0, 24) || d.label;
   if (n.type === 'row') return `Row · ${n.children.length} col`;
   if (n.type === 'slider') return `Slider · ${n.children.length} slide${n.children.length === 1 ? '' : 's'}`;

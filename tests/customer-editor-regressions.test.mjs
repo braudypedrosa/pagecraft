@@ -77,13 +77,42 @@ test('collapsed root and empty-host carets create or convert one valid block',()
  expect(first.host.innerHTML).toBe('<p>First</p><h2>Second</h2>');expect(first.w.getSelection().isCollapsed).toBe(true);expect(first.w.getSelection().anchorNode.parentElement.nodeName).toBe('H2');expect(first.w.getSelection().anchorOffset).toBe(0);
  const empty=richBlockHarness('');empty.w.formatRichBlock('p');expect(empty.host.innerHTML).toBe('<p><br></p>');expect(empty.w.getSelection().isCollapsed).toBe(true);
 });
-test('entering inline edit enables history controls without repainting the editable canvas',()=>{
- const start=source.indexOf('function checkpointInlineEdit(label) {'),end=source.indexOf('\n\nfunction enterEdit(id)',start);expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
- const calls=[];const checkpoint=vi.fn(label=>calls.push(['checkpoint',label])),paintHistory=vi.fn(()=>calls.push(['history']));
- const checkpointInlineEdit=new Function('checkpoint','paintHistory',`${source.slice(start,end)}; return checkpointInlineEdit;`)(checkpoint,paintHistory);
- checkpointInlineEdit('Change rich text text');
- expect(calls).toEqual([['checkpoint','Change rich text text'],['history']]);expect(source.slice(start,end)).not.toMatch(/\bpaint\s*\(/);
- expect(source.slice(source.indexOf('function enterEdit(id)'),source.indexOf('\nfunction syncEdit()',source.indexOf('function enterEdit(id)')))).toContain("checkpointInlineEdit('Change ' + kindOf(n).toLowerCase() + ' text')");
+function inlineSyncHarness(node, html, prop = null) {
+ const w=browser(),host=w.document.querySelector('#editable');host.innerHTML=html;
+ Object.defineProperty(w.HTMLElement.prototype,'innerText',{configurable:true,get(){return this.textContent;},set(v){this.textContent=v;}});
+ const calls=[],editing={on:true,id:node.id,el:host,kind:node.type==='text'?'rich':'text',prop,off:[],prompt:false,changed:false,label:'Change rich text text',value:null};
+ const locate=()=>({node}),checkpoint=vi.fn(label=>calls.push(['checkpoint',label,structuredClone(node)]));
+ const paintHistory=vi.fn(()=>calls.push(['history'])),save=vi.fn(()=>calls.push(['save'])),renderLayers=vi.fn(()=>calls.push(['layers']));
+ const instSet=(n,key,value)=>{n.vals ||= {};n.vals[key]=value;};
+ const start=source.indexOf('const EDIT_IN ='),end=source.indexOf('\nfunction exitEdit()',start);
+ expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
+ const api=new Function('editing','locate','checkpoint','paintHistory','instSet','$','save','renderLayers',
+   `${source.slice(start,end)}; return {inlineEditValue,syncEdit};`
+ )(editing,locate,checkpoint,paintHistory,instSet,()=>null,save,renderLayers);
+ editing.value=api.inlineEditValue(node,host);
+ return {w,host,node,editing,calls,checkpoint,paintHistory,save,renderLayers,syncEdit:api.syncEdit};
+}
+test('inline edit checkpoints and saves only after the first real DOM mutation',()=>{
+ const original='<p>Garden &#38; rooms</p>   ',node={id:'rich',type:'text',props:{html:original}};
+ const h=inlineSyncHarness(node,original);
+ expect(h.host.innerHTML.trim()).toBe('<p>Garden &amp; rooms</p>');
+ expect(h.syncEdit()).toBe(false);
+ expect(node.props.html).toBe(original);expect(h.calls).toEqual([]);
+
+ h.host.querySelector('p').append('!');
+ expect(h.syncEdit()).toBe(true);
+ expect(h.calls.map(call=>call[0])).toEqual(['checkpoint','history','save','layers']);
+ expect(h.calls[0][1]).toBe('Change rich text text');
+ expect(h.calls[0][2].props.html).toBe(original,'Undo keeps the original stored bytes');
+ expect(node.props.html).toBe('<p>Garden &amp; rooms!</p>');
+ expect(h.syncEdit()).toBe(false);expect(h.checkpoint).toHaveBeenCalledTimes(1);expect(h.save).toHaveBeenCalledTimes(1);
+});
+test('viewing inherited component text does not materialize an own property',()=>{
+ const node={id:'instance',type:'heading',use:'component',props:{text:'Definition'}};
+ const h=inlineSyncHarness(node,'Inherited title','title');
+ expect(h.syncEdit()).toBe(false);expect(node.vals).toBeUndefined();expect(h.calls).toEqual([]);
+ h.host.textContent='Changed title';expect(h.syncEdit()).toBe(true);
+ expect(h.calls[0][2].vals).toBeUndefined();expect(node.vals).toEqual({title:'Changed title'});
 });
 test('current page survives reload by stable id, stays site scoped and falls back when removed', () => {
   const w = browser();

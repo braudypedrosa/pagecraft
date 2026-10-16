@@ -8591,6 +8591,22 @@ test('a box is named by what it does, not by its type', () => {
   a.equal(C.kindOf(heading), 'Heading', 'UI chrome names the kind rather than repeating content');
 });
 
+test('rich text names show decoded text without treating escaped angle brackets as markup', () => {
+  blank();
+  const rich = insert('text', null, 0);
+  rich.props.html = '<p>Shared rooms &amp; gardens &lt;sample&gt;.</p>';
+  a.equal(C.nameOf(rich), 'Shared rooms & gardens <');
+
+  rich.props.html = '<p>Garden &amp; &lt;sample&gt;</p>';
+  a.equal(C.nameOf(rich), 'Garden & <sample>');
+  a.match(C.renderNode(rich, { edit: false }), /Garden &amp; &lt;sample&gt;/,
+    'the published rich text remains encoded safely');
+
+  rich.props.html = '<p>&#X1F642; &#128578; &#x110000; &#55296; &unknown;</p>';
+  a.equal(C.nameOf(rich), '🙂 🙂 � � &unknown;',
+    'valid numeric references decode while invalid and unknown references fail soft');
+});
+
 test('a box declares its capabilities like everything else', () => {
   blank();
   const n = insert('grid', null, 0);

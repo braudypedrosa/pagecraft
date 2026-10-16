@@ -4811,7 +4811,7 @@ function onDrop(e, fromFrame) {
 }
 
 /* ========================================================= inline editing */
-const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [], prompt: false };
+const editing = { on: false, id: null, el: null, kind: null, prop: null, off: [], prompt: false, changed: false, label: '', value: null };
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 #rt{
@@ -5013,9 +5013,13 @@ $('#rt').addEventListener('mousedown', async e => {
    paragraph is its own child. */
 const EDIT_IN = { button: 'span', quote: 'p' };
 const editTarget = (n, host) => (EDIT_IN[n.type] && host.querySelector(EDIT_IN[n.type])) || host;
+const inlineEditValue = (n, host) => n.type === 'text' ? host.innerHTML.trim()
+  : n.type === 'button' ? editTarget(n, host).innerText.replace(/\n+/g, ' ').trim()
+    : editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
 
-/* Entering inline edit creates the undo snapshot before the first input event. Update only
-   history controls here: a full paint would replace the contenteditable node and steal focus. */
+/* The first real inline mutation creates the undo snapshot while the document still holds the
+   pre-edit value. Update only history controls here: a full paint would replace the
+   contenteditable node and steal focus. */
 function checkpointInlineEdit(label) {
   checkpoint(label);
   paintHistory();
@@ -5044,9 +5048,13 @@ function enterEdit(id) {
   const host = cdoc.getElementById(id); if (!host) return;
   const target = editTarget(n, host);
 
-  checkpointInlineEdit('Change ' + kindOf(n).toLowerCase() + ' text');
   editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
   editing.prop = n.use ? property.path : null;
+  editing.changed = false; editing.label = 'Change ' + kindOf(n).toLowerCase() + ' text';
+  /* The browser may normalize equivalent rich markup while painting it. Comparing later edits
+     with this rendered value keeps entry/exit read-only while the deferred checkpoint still
+     preserves the original stored bytes. */
+  editing.value = inlineEditValue(n, host);
   target.contentEditable = 'true';
   host.setAttribute('data-editing', '');
   if (d.edit === 'rich') target.style.outline = 'none';
@@ -5084,18 +5092,23 @@ function syncEdit() {
   if (!editing.on) return;
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
-  /* an instance renders its definition, so its words are the property the root is bound to */
-  const out = editing.prop ? {} : n.props;
-  if (n.type === 'text') out.html = host.innerHTML.trim();
-  else if (n.type === 'button') out.text = editTarget(n, host).innerText.replace(/\n+/g, ' ').trim();
-  else out.text = editTarget(n, host).innerText.replace(/ /g, ' ').replace(/\n+$/, '');
-  if (editing.prop) instSet(n, editing.prop, n.type === 'text' ? out.html : out.text);
+  const key = n.type === 'text' ? 'html' : 'text';
+  const value = inlineEditValue(n, host);
+  if (value === editing.value) return false;
+  if (!editing.changed) {
+    checkpointInlineEdit(editing.label);
+    editing.changed = true;
+  }
+  if (editing.prop) instSet(n, editing.prop, value);
+  else n.props[key] = value;
+  editing.value = value;
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');
-  if (field && n.type !== 'text' && field.value !== out.text) field.value = out.text;
+  if (field && n.type !== 'text' && field.value !== value) field.value = value;
   save();
   renderLayers();
+  return true;
 }
 
 function exitEdit() {
@@ -5104,6 +5117,7 @@ function exitEdit() {
   editing.off.forEach(f => f());
   if (editing.el) editing.el.removeAttribute('data-editing');
   editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.prop = null; editing.off = [];
+  editing.changed = false; editing.label = ''; editing.value = null;
   $('#rt').classList.remove('show');
   paint(); renderRight();
 }
