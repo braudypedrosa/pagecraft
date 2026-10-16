@@ -11168,7 +11168,7 @@ function renderNode(n, o) {
         return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = handling.kind === "wordpress" ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
+      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
@@ -25908,11 +25908,32 @@ const historyDate = value => {
 };
 
 let rightSurfaceTrigger = null;
+let rightSurfaceWorkspaceFocus = null;
+function setRightSurfaceCanvasFocus(active) {
+  if (document.body.classList.contains('canvas-focus') === active) return;
+  const button = $('#canvasFocusBtn');
+  /* Canvas focus owns its button state and layout callback. Going through that control
+     keeps the workspace preference and its accessible label in sync. */
+  if (button?.dataset.wired) button.click();
+  else document.body.classList.toggle('canvas-focus', active);
+}
+function rightSurfaceKeydown(event) {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  event.stopPropagation();
+  closeRightSurface();
+}
 function openRightSurface(title, description, content, trigger) {
   if (!IS_WORDPRESS) return null;
   const inspector = $('#right'), panel = $('#rightAux');
   if (!inspector || !panel) return null;
+  if (panel.hidden) rightSurfaceWorkspaceFocus = {
+    library: document.body.classList.contains('library-focus'),
+    canvas: document.body.classList.contains('canvas-focus')
+  };
   rightSurfaceTrigger = trigger || null;
+  document.body.classList.remove('library-focus');
+  setRightSurfaceCanvasFocus(false);
   inspector.hidden = true;
   panel.hidden = false;
   panel.innerHTML = `<div class="sHead">
@@ -25927,6 +25948,7 @@ function openRightSurface(title, description, content, trigger) {
     button.setAttribute('aria-pressed', String(active));
   }
   $('#rightSurfaceClose').addEventListener('click', closeRightSurface);
+  panel.addEventListener('keydown', rightSurfaceKeydown);
   layoutCanvas();
   requestAnimationFrame(() => $('#rightSurfaceClose')?.focus());
   return panel;
@@ -25936,6 +25958,7 @@ function closeRightSurface() {
   const panel = $('#rightAux');
   if (!panel || panel.hidden) return;
   panel.hidden = true;
+  panel.removeEventListener('keydown', rightSurfaceKeydown);
   panel.replaceChildren();
   for (const button of [$('#reviewBtn'), $('#historyBtn')]) {
     if (!button) continue;
@@ -25944,6 +25967,10 @@ function closeRightSurface() {
   }
   const trigger = rightSurfaceTrigger;
   rightSurfaceTrigger = null;
+  const workspaceFocus = rightSurfaceWorkspaceFocus;
+  rightSurfaceWorkspaceFocus = null;
+  document.body.classList.toggle('library-focus', !!workspaceFocus?.library);
+  setRightSurfaceCanvasFocus(!!workspaceFocus?.canvas);
   renderRight();
   layoutCanvas();
   if (trigger && document.contains(trigger)) trigger.focus();
