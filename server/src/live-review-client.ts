@@ -245,6 +245,17 @@ export function reviewBridge(channel) {
   const send = data => parent.postMessage({ reviewChannel: channel, ...data }, '*');
   const target = id => id ? document.getElementById(id) : null;
   const describe = el => ({H1:'Heading',H2:'Heading',H3:'Heading',P:'Text',A:'Link',IMG:'Image',BUTTON:'Button',SECTION:'Section',HEADER:'Header',FOOTER:'Footer',NAV:'Navigation',MAIN:'Page'}[el?.tagName] || (targetMode === 'section' ? 'Section' : 'Element'));
+  const visibleText = (el, limit) => {
+    if (!el) return '';
+    let text;
+    if (typeof el.innerText === 'string') text = el.innerText;
+    else {
+      const copy = el.cloneNode(true);
+      copy.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode(' ')));
+      text = copy.textContent || '';
+    }
+    return text.replace(/\s+/g,' ').trim().slice(0,limit);
+  };
   const pick = el => targetMode === 'section' ? el.closest('section,header,footer,main,article') || el.closest('[id]') : el.closest('a,button,img,input,textarea,select,video,svg,h1,h2,h3,h4,p,li,[id]');
   const highlight = () => {
     const active = pending ? target(pending.nodeId) : hovered || target(pins.find(p => p.id === selected)?.nodeId);
@@ -256,11 +267,11 @@ export function reviewBridge(channel) {
   };
   const outlineData = () => {
     const sections = Array.from(document.querySelectorAll('section,header,footer,main>article')).filter(el=>!layer.contains(el)&&!outline.contains(el));
-    const sectionLabel = el => el.tagName==='HEADER'?'Header':el.tagName==='FOOTER'?'Footer':el.querySelector('h1,h2,h3')?.textContent?.trim().slice(0,80)||el.getAttribute('aria-label')||'Section '+(sections.indexOf(el)+1);
+    const sectionLabel = el => el.tagName==='HEADER'?'Header':el.tagName==='FOOTER'?'Footer':visibleText(el.querySelector('h1,h2,h3'),80)||el.getAttribute('aria-label')||'Section '+(sections.indexOf(el)+1);
     const outlineRows = sections.map(el=>({id:el.id,label:sectionLabel(el)}));
     const anchorRows = Array.from(document.querySelectorAll('body [id]')).filter(el=>!layer.contains(el)&&el!==layer&&el!==outline&&!outline.contains(el)).map(el=>{
       const section = el.closest('section,header,footer,main>article');
-      const label = describe(el); const text = /^(H[1-6]|A|BUTTON)$/.test(el.tagName) ? el.textContent?.trim().slice(0,60) : '';
+      const label = describe(el); const text = /^(H[1-6]|A|BUTTON)$/.test(el.tagName) ? visibleText(el,60) : '';
       return {id:el.id,sectionId:section?.id||'unplaced',label:label+(text?' · '+text:'')};
     });
     send({outline:outlineRows,anchors:anchorRows});

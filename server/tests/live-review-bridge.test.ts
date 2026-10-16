@@ -3,8 +3,8 @@ import { test, expect, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 import { reviewBridge } from '../src/live-review-client.ts';
 
-function fixture() {
-  const dom = new JSDOM('<body><section id="hero"><h1 id="title"><span>Our work</span></h1><a href="pricing.html">Pricing</a></section></body>', {runScripts:'outside-only'});
+function fixture(html = '<body><section id="hero"><h1 id="title"><span>Our work</span></h1><a href="pricing.html">Pricing</a></section></body>') {
+  const dom = new JSDOM(html, {runScripts:'outside-only'});
   const w = dom.window;
   w.ResizeObserver = class {observe(){} disconnect(){}} as any;
   const sent = vi.fn(); w.postMessage = sent;
@@ -54,5 +54,14 @@ test('site outline maps elements to their containing section', () => {
   const data = sent.mock.lastCall?.[0];
   expect(data.outline).toEqual([{id:'hero',label:'Our work'}]);
   expect(data.anchors).toContainEqual({id:'title',sectionId:'hero',label:'Heading · Our work'});
+  dom.window.close();
+});
+
+test('site outline preserves visible spacing and literal text in multiline labels', () => {
+  const {dom,sent,message} = fixture('<body><section id="hero"><h2 id="title">Places   shaped<br>around people. &amp; &lt;sample&gt;</h2></section></body>');
+  message({requestOutline:true});
+  const data = sent.mock.lastCall?.[0];
+  expect(data.outline).toEqual([{id:'hero',label:'Places shaped around people. & <sample>'}]);
+  expect(data.anchors).toContainEqual({id:'title',sectionId:'hero',label:'Heading · Places shaped around people. & <sample>'});
   dom.window.close();
 });
