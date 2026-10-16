@@ -4790,7 +4790,9 @@ function contentImport(raw: unknown, options: ContentImportOptions = {}): Import
         else {
           const target = collectionMap.get(sourceRef);
           if (target) made.ref = target.id;
-          else rep.notes.push(`“${made.name}” could not restore its referenced collection.`);
+          else if (!made.ref || !findCollection(made.ref)) {
+            rep.notes.push(`“${made.name}” could not restore its referenced collection.`);
+          }
         }
       }
     }

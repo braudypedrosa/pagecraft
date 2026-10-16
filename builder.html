@@ -6613,7 +6613,7 @@ function exportModal() {
       <div class="xrow">
         <button class="btn" id="exAll">Download all ${targets.length} page${targets.length === 1 ? '' : 's'}</button>
         <button class="btn" id="exSeo"${state.meta.baseUrl ? '' : ' disabled title="Needs a Site URL in Project settings — a sitemap has to know its own domain"'}>sitemap.xml + robots.txt</button>
-        ${collections().length ? `<button class="btn" id="exContent" title="Every collection and item as data">content.json</button>` : ''}
+        ${collections().length ? `<button class="btn" id="exContent" title="Published collection items as data. Export project JSON to include drafts.">content.json</button>` : ''}
         ${collections().length ? `<button class="btn" id="exContentIn" title="Read a content.json back into this project">Import content.json…</button>` : ''}
         <button class="btn" id="exCopy">Copy this page's HTML</button>
       </div>
@@ -6830,7 +6830,7 @@ function exportModal() {
            items should come back out in one press, not forty */
         try {
           const resolveImage = contentImageResolver();
-          edit(() => { rep = contentImport(JSON.parse(rd.result), {resolveImage}); });
+          edit(() => { rep = contentImport(JSON.parse(rd.result), {resolveImage}); }, 'Import content');
         } catch (e) { rep = null; }
         if (!rep) { action.error('That file has no collections in it — expected a content.json'); return; }
         render();

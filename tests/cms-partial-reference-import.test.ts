@@ -57,6 +57,7 @@ describe('partial CMS reference imports', () => {
     const created = posts.items.find((item: Item) => item.slug === 'new-post')!;
     expect(Object.prototype.hasOwnProperty.call(created.values, author.id)).toBe(false);
     expect(report.notes.some(note => /Author.*skipped 2 unresolved reference values/i.test(note))).toBe(true);
+    expect(report.notes.some(note => /could not restore its referenced collection/i.test(note))).toBe(false);
   });
 
   test('external reference fields accept exact existing ids and skip only unresolved values', () => {

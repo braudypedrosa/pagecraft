@@ -6010,7 +6010,9 @@ function contentImport(raw, options = {}) {
         else {
           const target = collectionMap.get(sourceRef);
           if (target) made.ref = target.id;
-          else rep.notes.push(`\u201C${made.name}\u201D could not restore its referenced collection.`);
+          else if (!made.ref || !findCollection(made.ref)) {
+            rep.notes.push(`\u201C${made.name}\u201D could not restore its referenced collection.`);
+          }
         }
       }
     }

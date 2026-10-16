@@ -6,7 +6,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "425ff12c44c331d903525ae0867db0c1fcb8409886f8f742a06fd7f7ff6c2163",
+    "builder.html": "274ea2a218b7d9d9614984ccb15de2701062be16b0c94ff86ecf3db197ec9a15",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -706,5 +706,36 @@
       "height": 900,
       "state": "Recoverable inline failure and alert notification"
     }
+  },
+  "sourceOnlyReview": {
+    "reviewedAt": "2026-10-16T07:07:10.572Z",
+    "decision": "Source-only reapproval; retained historical PNG bytes and manifest timestamp are not a new unified capture",
+    "files": {
+      "builder.html": {
+        "before": "425ff12c44c331d903525ae0867db0c1fcb8409886f8f742a06fd7f7ff6c2163",
+        "after": "274ea2a218b7d9d9614984ccb15de2701062be16b0c94ff86ecf3db197ec9a15",
+        "changes": [
+          "Published-content tooltip clarification",
+          "Explicit Import content history label"
+        ]
+      }
+    },
+    "basis": [
+      "No shared gallery CSS/JS/font or gallery template changes",
+      "24 fresh built-in browser captures reviewed independently: no visible product layout defect",
+      "30 of 30 fresh behavior checks passed"
+    ],
+    "pixelComparison": {
+      "passed": 0,
+      "total": 24,
+      "status": "Unresolved capture-pipeline drift; not accepted as matching pixels",
+      "dimensionsExact": 22,
+      "blankBottomRowDifferences": 2,
+      "notes": "Profile and antialiasing differences strongly suggest capture drift; causal proof remains open."
+    },
+    "evidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-reference-final/review.json",
+    "fullQaComplete": false,
+    "baselineProvenanceLimit": "22 images last changed in f8a5d05 and 2 Builder menu images in ea80f89; later manifest-only reviews do not establish one fresh image capture/source set.",
+    "captureDriftReview": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-reference-final/capture-drift-review.md"
   }
 }
