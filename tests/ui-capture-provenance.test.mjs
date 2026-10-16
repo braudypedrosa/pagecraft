@@ -2,6 +2,7 @@ import {test,expect,vi} from 'vitest';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {setTimeout as yieldToIo} from 'node:timers/promises';
 import sharp from 'sharp';
 import {captureCodeHashes,names,validateCaptureEvidence} from '../tools/ui-baselines.mjs';
 import {captureGallery,captureScreenshotWithProvenance} from '../tools/capture-ui-gallery.mjs';
@@ -140,13 +141,26 @@ test('capture failure still clears device metrics and emulated media',async()=>{
 
 const runTimedCapture=async pending=>{
  let settled=false;pending.then(()=>{settled=true;},()=>{settled=true;});
- for(let step=0;!settled&&step<1000;step++){
-  await new Promise(resolve=>setImmediate(resolve));
+ const deadline=Date.now()+15000;
+ while(!settled&&Date.now()<deadline){
+  // Filesystem work uses real time even while the gallery delays use fake timers.
+  await yieldToIo(1);
   if(vi.getTimerCount())await vi.runOnlyPendingTimersAsync();
  }
  if(!settled)throw new Error('Timed gallery capture did not settle.');
  return pending;
 };
+
+test('capture timer pumping waits for real I/O beyond a fixed event-loop count',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout']});
+ try{
+  const pending=(async()=>{
+   for(let step=0;step<1500;step++)await new Promise(resolve=>setImmediate(resolve));
+   return 'I/O settled';
+  })();
+  await expect(runTimedCapture(pending)).resolves.toBe('I/O settled');
+ }finally{vi.useRealTimers();}
+});
 
 const galleryHarness=png=>{
  const screenshotCalls=[];
@@ -206,7 +220,7 @@ test('default viewport-only and explicit whole-document recipes reach CDP and ev
   vi.useRealTimers();
   await Promise.all([rm(defaultDirectory,{recursive:true,force:true}),rm(explicitDirectory,{recursive:true,force:true})]);
  }
-});
+},45000);
 
 test('captureGallery rejects a non-boolean captureBeyondViewport option',async()=>{
  await expect(captureGallery({},'unused',behaviorChecks,{captureBeyondViewport:'false'})).rejects.toThrow(TypeError);
