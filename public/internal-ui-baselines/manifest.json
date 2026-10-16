@@ -1,7 +1,96 @@
 {
-  "version": 1,
-  "capturedAt": "2026-10-15T21:24:32.449Z",
+  "version": 2,
+  "capturedAt": "2026-10-16T09:02:56.427Z",
   "browser": "Codex In-app Browser",
+  "captureSchemaVersion": 2,
+  "browserVersion": {
+    "supported": false
+  },
+  "captureEnvironment": {
+    "runtime": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "platform": "MacIntel",
+      "userAgentData": {
+        "supported": true,
+        "value": {
+          "brands": [
+            {
+              "brand": "Google Chrome",
+              "version": "155"
+            },
+            {
+              "brand": "Chromium",
+              "version": "155"
+            },
+            {
+              "brand": "Not(A:Brand",
+              "version": "24"
+            }
+          ],
+          "mobile": false,
+          "platform": "macOS"
+        }
+      },
+      "devicePixelRatio": 1,
+      "visualViewportScale": 1,
+      "screen": {
+        "width": 1512,
+        "height": 982,
+        "availWidth": 1512,
+        "availHeight": 982,
+        "colorDepth": 30,
+        "pixelDepth": 30
+      },
+      "colorGamut": {
+        "srgb": true,
+        "p3": true,
+        "rec2020": false
+      },
+      "dynamicRange": {
+        "standard": true,
+        "high": true
+      },
+      "colorScheme": {
+        "light": true,
+        "dark": false
+      }
+    },
+    "browserCommandLine": {
+      "supported": false
+    },
+    "systemInfo": {
+      "supported": false
+    }
+  },
+  "captureRecipe": {
+    "metrics": {
+      "deviceScaleFactor": 1,
+      "mobile": false,
+      "scale": 1
+    },
+    "screenshot": {
+      "format": "png",
+      "fromSurface": true,
+      "captureBeyondViewport": true,
+      "optimizeForSpeed": false,
+      "clipScale": 1
+    },
+    "settling": {
+      "fontsReady": true,
+      "animationFrames": 2,
+      "heightRemeasure": true,
+      "maxHeightAttempts": 3
+    },
+    "provenanceViewport": {
+      "width": 1440,
+      "height": 900,
+      "deviceScaleFactor": 1
+    }
+  },
+  "captureCode": {
+    "tools/capture-ui-gallery.mjs": "7df58770f80a15a991944b3cc04a147e113267d734e9c6bd306213421ede44c8",
+    "tools/png-color-metadata.mjs": "c2593bd0317a1e0ef6e5222b56c9b2bc853341c359ea3172fa2f136d280e6d0f"
+  },
   "viewportHeight": 900,
   "deviceScaleFactor": 1,
   "reducedMotion": true,
@@ -39,703 +128,1042 @@
     {
       "host": "cloud",
       "check": "Select Escape preserves Home, closes picker and returns focus",
-      "passed": true,
-      "detail": {
-        "before": "Home",
-        "opened": {
-          "expanded": "true",
-          "popovers": 1
-        },
-        "after": {
-          "expanded": "false",
-          "popovers": 0,
-          "role": "combobox",
-          "value": "Home"
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
-      "passed": true,
-      "detail": {
-        "before": {
-          "modal": true,
-          "receivesPointer": true,
-          "topLayer": true,
-          "withinViewport": true
-        },
-        "resized": {
-          "anchored": true,
-          "menuVisible": true,
-          "overflow": false,
-          "value": "public"
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
-      "passed": true,
-      "detail": {
-        "escaped": {
-          "expanded": "false",
-          "focus": "Sample access",
-          "menus": 0,
-          "open": true,
-          "value": "private"
-        },
-        "tabbed": {
-          "focusInDialog": true,
-          "menus": 0,
-          "open": true
-        },
-        "backwards": "dialog-name",
-        "parentClosed": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
-      "passed": true,
-      "detail": {
-        "reopened": {
-          "expanded": "true",
-          "visible": true
-        },
-        "closed": {
-          "menus": 0,
-          "open": false,
-          "topLayer": 0
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Unsaved dialog value survives resize from 1440px to 768px",
-      "passed": true,
-      "detail": {
-        "open": true,
-        "overflow": false,
-        "value": "Sample page (unsaved QA edit)"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Dialog Escape closes and returns focus to opener after exit animation",
-      "passed": true,
-      "detail": {
-        "opened": true,
-        "focus": "Open dialog",
-        "open": false
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Empty dialog footer has no displayed box",
-      "passed": true,
-      "detail": {
-        "border": "1px",
-        "children": 0,
-        "display": "none",
-        "height": 0,
-        "open": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Long native form keeps fixed dialog edges and a scrolling body",
-      "passed": true,
-      "detail": {
-        "measurements": [
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 258,
-            "scrollBefore": 0,
-            "width": 1440
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 600,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 558,
-            "scrollBefore": 0,
-            "width": 768
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 258,
-            "scrollBefore": 0,
-            "width": 768
-          }
-        ],
-        "closed": {
-          "focus": "Open long form dialog",
-          "open": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Processing prevents duplicate activation",
-      "passed": true,
-      "detail": {
-        "busy": {
-          "busy": "true",
-          "disabled": true,
-          "label": "Processing preview\u2026",
-          "x": 296.0546875,
-          "y": 433.03125
-        },
-        "still": {
-          "disabled": true,
-          "finishEnabled": true
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Success restores action",
-      "passed": true,
-      "detail": {
-        "busy": null,
-        "disabled": false,
-        "finishDisabled": true,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Failure restores action with recoverable error",
-      "passed": true,
-      "detail": {
-        "alert": "Preview failed. Try Start processing again.",
-        "busy": null,
-        "disabled": false,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Disclosure remains mounted during exit and survives rapid reopening",
-      "passed": true,
-      "detail": {
-        "open": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "exiting": {
-          "expanded": "false",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "reopened": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Reduced-motion disclosure exit completes",
-      "passed": true,
-      "detail": {
-        "expanded": "false",
-        "hidden": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Refresh failure retains previous result and offers retry",
-      "passed": true,
-      "detail": {
-        "errorShown": true,
-        "previous": "Sample inbox \u00b7 3 entries",
-        "retryEnabled": true,
-        "role": "alert"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Refresh recovery clears error silently and retains result",
-      "passed": true,
-      "detail": {
-        "errorHidden": true,
-        "previous": "Sample inbox \u00b7 3 entries",
-        "noticesAdded": 0
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Select Escape preserves Home, closes picker and returns focus",
-      "passed": true,
-      "detail": {
-        "before": "Home",
-        "opened": {
-          "expanded": "true",
-          "popovers": 1
-        },
-        "after": {
-          "expanded": "false",
-          "popovers": 0,
-          "role": "combobox",
-          "value": "Home"
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
-      "passed": true,
-      "detail": {
-        "before": {
-          "modal": true,
-          "receivesPointer": true,
-          "topLayer": true,
-          "withinViewport": true
-        },
-        "resized": {
-          "anchored": true,
-          "menuVisible": true,
-          "overflow": false,
-          "value": "public"
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
-      "passed": true,
-      "detail": {
-        "escaped": {
-          "expanded": "false",
-          "focus": "Sample access",
-          "menus": 0,
-          "open": true,
-          "value": "private"
-        },
-        "tabbed": {
-          "focusInDialog": true,
-          "menus": 0,
-          "open": true
-        },
-        "backwards": "dialog-name",
-        "parentClosed": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
-      "passed": true,
-      "detail": {
-        "reopened": {
-          "expanded": "true",
-          "visible": true
-        },
-        "closed": {
-          "menus": 0,
-          "open": false,
-          "topLayer": 0
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Unsaved dialog value survives resize from 1440px to 768px",
-      "passed": true,
-      "detail": {
-        "open": true,
-        "overflow": false,
-        "value": "Sample page (unsaved QA edit)"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Dialog Escape closes and returns focus to opener after exit animation",
-      "passed": true,
-      "detail": {
-        "opened": true,
-        "focus": "Open dialog",
-        "open": false
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Empty dialog footer has no displayed box",
-      "passed": true,
-      "detail": {
-        "border": "1px",
-        "children": 0,
-        "display": "none",
-        "height": 0,
-        "open": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Long native form keeps fixed dialog edges and a scrolling body",
-      "passed": true,
-      "detail": {
-        "measurements": [
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 334,
-            "scrollBefore": 0,
-            "width": 1440
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 600,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 634,
-            "scrollBefore": 0,
-            "width": 768
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 334,
-            "scrollBefore": 0,
-            "width": 768
-          }
-        ],
-        "closed": {
-          "focus": "Open long form dialog",
-          "open": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Processing prevents duplicate activation",
-      "passed": true,
-      "detail": {
-        "busy": {
-          "busy": "true",
-          "disabled": true,
-          "label": "Processing preview\u2026",
-          "x": 296.0546875,
-          "y": 427.03125
-        },
-        "still": {
-          "disabled": true,
-          "finishEnabled": true
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Success restores action",
-      "passed": true,
-      "detail": {
-        "busy": null,
-        "disabled": false,
-        "finishDisabled": true,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Failure restores action with recoverable error",
-      "passed": true,
-      "detail": {
-        "alert": "Preview failed. Try Start processing again.",
-        "busy": null,
-        "disabled": false,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Disclosure remains mounted during exit and survives rapid reopening",
-      "passed": true,
-      "detail": {
-        "open": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "exiting": {
-          "expanded": "false",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "reopened": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Reduced-motion disclosure exit completes",
-      "passed": true,
-      "detail": {
-        "expanded": "false",
-        "hidden": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Refresh failure retains previous result and offers retry",
-      "passed": true,
-      "detail": {
-        "errorShown": true,
-        "previous": "Sample inbox \u00b7 3 entries",
-        "retryEnabled": true,
-        "role": "alert"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Refresh recovery clears error silently and retains result",
-      "passed": true,
-      "detail": {
-        "errorHidden": true,
-        "previous": "Sample inbox \u00b7 3 entries",
-        "noticesAdded": 0
-      }
+      "passed": true
     }
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "719dcd0ed8877efdb108a3c227e912e0674eb1d134a1e8753716ef49cf81fd3e",
+      "sha256": "1d419881b216664a635622caf330f0a5a0c22b25c4f5bb2ab080513a66288250",
       "width": 1440,
       "height": 1098,
-      "state": "Focused field, readonly, disabled and validation samples"
-    },
-    "cloud-fields-768.png": {
-      "sha256": "b5167eee89ca3beddfa1ce584eab5fd1be2b305e78472f1190189ca2d76b14c5",
-      "width": 768,
-      "height": 1587,
-      "state": "Focused field, readonly, disabled and validation samples"
-    },
-    "cloud-actions-1440.png": {
-      "sha256": "7b15249f59c828aec41d043b7e601b286d5d315214f10b962dd2bdc56a7feb04",
-      "width": 1440,
-      "height": 959,
-      "state": "Processing action, disabled and destructive actions"
-    },
-    "cloud-actions-768.png": {
-      "sha256": "7222baed39b52f79eead5cfc3b1ba5a614f36e0eeff68d0c2e07d68a66263c75",
-      "width": 768,
-      "height": 1015,
-      "state": "Processing action, disabled and destructive actions"
-    },
-    "cloud-tables-1440.png": {
-      "sha256": "55d1c28792a4fa19fa3212ba14bd3e4bd81c1d79ef8ddf239fe7133e484db41f",
-      "width": 1440,
-      "height": 1106,
-      "state": "First row hovered, second row neutral, empty result"
-    },
-    "cloud-tables-768.png": {
-      "sha256": "35e0cd8579c584fbf224ef8001767235f225bd8b1d77e1922148969329e1ca3f",
-      "width": 768,
-      "height": 1172,
-      "state": "First row hovered, second row neutral, empty result"
-    },
-    "cloud-menus-1440.png": {
-      "sha256": "b19074659ba146fc001215923b623cf8251c95ca39dd425c6011b10f27569bbf",
-      "width": 1440,
-      "height": 900,
-      "state": "Open picker, selected/disabled options and menu items"
-    },
-    "cloud-menus-768.png": {
-      "sha256": "1e8c739cf675fff8aa42e58ae63985ddf1f9d68b0ffb8b6c34d4845375bb8958",
-      "width": 768,
-      "height": 1008,
-      "state": "Open picker, selected/disabled options and menu items"
-    },
-    "cloud-dialogs-1440.png": {
-      "sha256": "306c9f49d04de16c56c71619a65a84d7ba2c4c1bf784f83386b5157d979fd2b0",
-      "width": 1440,
-      "height": 900,
-      "state": "Open dialog with header, body and footer"
-    },
-    "cloud-dialogs-768.png": {
-      "sha256": "1d74bf8eb8499e0b13ee0d1a6c2653f2a67884ca9c8d0606d1622b4b7481462a",
-      "width": 768,
-      "height": 900,
-      "state": "Open dialog with header, body and footer"
-    },
-    "cloud-feedback-1440.png": {
-      "sha256": "d648d1c17f667abb1ea1760baf39f3cbd2ebbaa0fca6ab7fe83db66e11c88d6c",
-      "width": 1440,
-      "height": 900,
-      "state": "Recoverable inline failure and alert notification"
-    },
-    "cloud-feedback-768.png": {
-      "sha256": "abd2a8bd76f4e927c40f11621c614271b2e5f61709de801ea7cb41e6fdc34180",
-      "width": 768,
-      "height": 900,
-      "state": "Recoverable inline failure and alert notification"
-    },
-    "builder-fields-1440.png": {
-      "sha256": "950999a1d5f7e48294fec99cd113c94f499454e2ff546ca9219c6bc5df08702b",
-      "width": 1440,
-      "height": 1166,
-      "state": "Focused field, readonly, disabled and validation samples"
-    },
-    "builder-fields-768.png": {
-      "sha256": "e9cb19447d970550565487d3fbfe4e28e87baecf8332637bfb494b1c0838b486",
-      "width": 768,
-      "height": 1883,
-      "state": "Focused field, readonly, disabled and validation samples"
-    },
-    "builder-actions-1440.png": {
-      "sha256": "34bbeade384069918d37d72740046bfe79fd277762b13961bf5acf7c5518d5a1",
-      "width": 1440,
-      "height": 1224,
-      "state": "Processing action, disabled and destructive actions"
-    },
-    "builder-actions-768.png": {
-      "sha256": "51c266c5ef7b69ae0785db8b6aba377e383adad244c649203543d0bb1a9dbe77",
-      "width": 768,
-      "height": 1279,
-      "state": "Processing action, disabled and destructive actions"
-    },
-    "builder-tables-1440.png": {
-      "sha256": "30c10a2f7dd5c47b3241a9250dd2c3ddc86e408b569cddf488d34dd7d5d39abc",
-      "width": 1440,
-      "height": 1228,
-      "state": "First row hovered, second row neutral, empty result"
-    },
-    "builder-tables-768.png": {
-      "sha256": "91b9ba3231b5bea96a1b70c997f765126a798424e60f04b0a753974e2afab4cd",
-      "width": 768,
-      "height": 1284,
-      "state": "First row hovered, second row neutral, empty result"
-    },
-    "builder-menus-1440.png": {
-      "sha256": "96d00d6377cff13db153e4d7555f970d7c5ed01dd5d38400eb8131f077d9231f",
-      "width": 1440,
-      "height": 900,
-      "state": "Open picker, selected/disabled options and menu items"
-    },
-    "builder-menus-768.png": {
-      "sha256": "246b0b16c0ccd4df2345028c2a0f95116e89822e3b0a598609247e3e80d8e676",
-      "width": 768,
-      "height": 959,
-      "state": "Open picker, selected/disabled options and menu items"
-    },
-    "builder-dialogs-1440.png": {
-      "sha256": "cc1a91ac01484fc9d725fea86672eb68c7b94045e88fb07277a33edb52ab9d38",
-      "width": 1440,
-      "height": 900,
-      "state": "Open dialog with header, body and footer"
-    },
-    "builder-dialogs-768.png": {
-      "sha256": "b6c9564cf61205f4a9fa80c50d5af3a851687a8a051c4923127360b0194b418b",
-      "width": 768,
-      "height": 900,
-      "state": "Open dialog with header, body and footer"
-    },
-    "builder-feedback-1440.png": {
-      "sha256": "f33fcad956e396746098ca8fdd1a64e89553a502fd285fe4aefe24bcd3a280f9",
-      "width": 1440,
-      "height": 900,
-      "state": "Recoverable inline failure and alert notification"
-    },
-    "builder-feedback-768.png": {
-      "sha256": "da4b04bb226e925510b3d21b4487f9fc978b6bf14fb88a1f59c23960f3dfbd54",
-      "width": 768,
-      "height": 900,
-      "state": "Recoverable inline failure and alert notification"
-    }
-  },
-  "sourceOnlyReview": {
-    "reviewedAt": "2026-10-16T07:07:10.572Z",
-    "decision": "Source-only reapproval; retained historical PNG bytes and manifest timestamp are not a new unified capture",
-    "files": {
-      "builder.html": {
-        "before": "425ff12c44c331d903525ae0867db0c1fcb8409886f8f742a06fd7f7ff6c2163",
-        "after": "274ea2a218b7d9d9614984ccb15de2701062be16b0c94ff86ecf3db197ec9a15",
-        "changes": [
-          "Published-content tooltip clarification",
-          "Explicit Import content history label"
-        ]
+      "state": "Focused field, readonly, disabled and validation samples",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 1098,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 1098,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
       }
     },
-    "basis": [
-      "No shared gallery CSS/JS/font or gallery template changes",
-      "24 fresh built-in browser captures reviewed independently: no visible product layout defect",
-      "30 of 30 fresh behavior checks passed"
-    ],
-    "pixelComparison": {
-      "passed": 0,
-      "total": 24,
-      "status": "Unresolved capture-pipeline drift; not accepted as matching pixels",
-      "dimensionsExact": 22,
-      "blankBottomRowDifferences": 2,
-      "notes": "Profile and antialiasing differences strongly suggest capture drift; causal proof remains open."
+    "cloud-fields-768.png": {
+      "sha256": "8f46ff9c9ad19234e45d4f80339660311240b60963e5d48fed7a1fe07e3f1bbb",
+      "width": 768,
+      "height": 1587,
+      "state": "Focused field, readonly, disabled and validation samples",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1587,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1587,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
     },
-    "evidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-reference-final/review.json",
-    "fullQaComplete": false,
-    "baselineProvenanceLimit": "22 images last changed in f8a5d05 and 2 Builder menu images in ea80f89; later manifest-only reviews do not establish one fresh image capture/source set.",
-    "captureDriftReview": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-reference-final/capture-drift-review.md"
+    "cloud-actions-1440.png": {
+      "sha256": "dcd32161b01ce4e8fc8912d931a140a4d77d0824474c185222e92fd78aa64ac0",
+      "width": 1440,
+      "height": 959,
+      "state": "Processing action, disabled and destructive actions",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 959,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 959,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-actions-768.png": {
+      "sha256": "0cf07b5a15dbc58822772aa9b0717445881b4c44206fb7993def2303e16955dc",
+      "width": 768,
+      "height": 1015,
+      "state": "Processing action, disabled and destructive actions",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1015,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1015,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-tables-1440.png": {
+      "sha256": "babdbf7add46af0a49a721d1b92bee8faeb7b4b2c221256dc068a14a567a4bec",
+      "width": 1440,
+      "height": 1106,
+      "state": "First row hovered, second row neutral, empty result",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 1106,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 1106,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-tables-768.png": {
+      "sha256": "e515e680f201f432985ffacdd3453ce9b154f2884a8082cf3f20e4d746c70cac",
+      "width": 768,
+      "height": 1172,
+      "state": "First row hovered, second row neutral, empty result",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1172,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1172,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-menus-1440.png": {
+      "sha256": "2a7687609d7443755a0b954714aadb2433844172fd6c557af9ce12c28aaa0f60",
+      "width": 1440,
+      "height": 900,
+      "state": "Open picker, selected/disabled options and menu items",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-menus-768.png": {
+      "sha256": "75ba01770281a69bf628d0fe3dcb88376ad5acc99759192b958bdc34490afaed",
+      "width": 768,
+      "height": 1007,
+      "state": "Open picker, selected/disabled options and menu items",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1007,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1007,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-dialogs-1440.png": {
+      "sha256": "5e77964e3b45f407001c7eeebca3f91f6e28ab4d55ba26b00614cefa7ee0b554",
+      "width": 1440,
+      "height": 900,
+      "state": "Open dialog with header, body and footer",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-dialogs-768.png": {
+      "sha256": "4669bac9e168e153e840f1b429db988481a7843db46dc545d6530881089cfe07",
+      "width": 768,
+      "height": 900,
+      "state": "Open dialog with header, body and footer",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-feedback-1440.png": {
+      "sha256": "10329705ed6d87cbea79ef5647fff08794c2b33ecbbfbdf6baaeb87ee2e4302e",
+      "width": 1440,
+      "height": 900,
+      "state": "Recoverable inline failure and alert notification",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "cloud-feedback-768.png": {
+      "sha256": "4645bf2fe34e2360f01995c37f4001d77793d2be3b521edcb43e560e67160a38",
+      "width": 768,
+      "height": 900,
+      "state": "Recoverable inline failure and alert notification",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-fields-1440.png": {
+      "sha256": "87380ddaf6ebee08dac542ff0ffb5f4b5db8c058aefa1a2a631e4b9c6bc0ce13",
+      "width": 1440,
+      "height": 1166,
+      "state": "Focused field, readonly, disabled and validation samples",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 1166,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 1166,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-fields-768.png": {
+      "sha256": "71d0d6e38c5d3497c4fa1fab2a400f3aec21f560171752032908f1b573ca6efd",
+      "width": 768,
+      "height": 1883,
+      "state": "Focused field, readonly, disabled and validation samples",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1883,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1883,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-actions-1440.png": {
+      "sha256": "bd2053262ab21d52386b18dde4814cf2d413ba15ec1bbb4818c8af8504746bd1",
+      "width": 1440,
+      "height": 1224,
+      "state": "Processing action, disabled and destructive actions",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 1224,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 1224,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-actions-768.png": {
+      "sha256": "9dd1b7361fef88829977692856584626fe0998b7f8cfcdf06bba673b750d0756",
+      "width": 768,
+      "height": 1279,
+      "state": "Processing action, disabled and destructive actions",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1279,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1279,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-tables-1440.png": {
+      "sha256": "f54733dea8bd83f7bd95f005cff59ff463b6ba5b3b301e9087daf6db97773307",
+      "width": 1440,
+      "height": 1228,
+      "state": "First row hovered, second row neutral, empty result",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 1228,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 1228,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-tables-768.png": {
+      "sha256": "b8cdb9b67f058050b3724a31ecb51e9cd45fe1b09b5009cfc36399a2667acd1a",
+      "width": 768,
+      "height": 1284,
+      "state": "First row hovered, second row neutral, empty result",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 1284,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 1284,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-menus-1440.png": {
+      "sha256": "8ccc8aee88171669ab164049cd6f7ae8449f60766caec31182bda102563fbda9",
+      "width": 1440,
+      "height": 900,
+      "state": "Open picker, selected/disabled options and menu items",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-menus-768.png": {
+      "sha256": "f8e085dc03d23e50e7419b48421c3fcedd932d8ea732b28011fc4035bccf1925",
+      "width": 768,
+      "height": 958,
+      "state": "Open picker, selected/disabled options and menu items",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 958,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 958,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-dialogs-1440.png": {
+      "sha256": "fe2b2c85f49a504152186ec71a08b4c09a4708a4a0f9219df3965b800b2a2d36",
+      "width": 1440,
+      "height": 900,
+      "state": "Open dialog with header, body and footer",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-dialogs-768.png": {
+      "sha256": "66318bc2a0cd9a63a6fef01d93d6dcbcf5883b6cb167274d6785da32b56ca53a",
+      "width": 768,
+      "height": 900,
+      "state": "Open dialog with header, body and footer",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-feedback-1440.png": {
+      "sha256": "30adfa4679b04fef46c6471185b72170b77d263d5cdca1cccab337bfc769c834",
+      "width": 1440,
+      "height": 900,
+      "state": "Recoverable inline failure and alert notification",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 1440,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    },
+    "builder-feedback-768.png": {
+      "sha256": "08b0baac98dbe3965be8cc67d488ec780a78a1e7d52d8d3902de2c392a1f3aeb",
+      "width": 768,
+      "height": 900,
+      "state": "Recoverable inline failure and alert notification",
+      "captureParameters": {
+        "metricsOverride": {
+          "width": 768,
+          "height": 900,
+          "deviceScaleFactor": 1,
+          "mobile": false,
+          "scale": 1
+        },
+        "screenshot": {
+          "format": "png",
+          "fromSurface": true,
+          "captureBeyondViewport": true,
+          "optimizeForSpeed": false,
+          "clip": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 900,
+            "scale": 1
+          }
+        }
+      },
+      "pngColorMetadata": {
+        "chunks": {
+          "iCCP": [],
+          "sRGB": [],
+          "gAMA": [],
+          "cHRM": []
+        },
+        "signature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+      }
+    }
   }
 }
