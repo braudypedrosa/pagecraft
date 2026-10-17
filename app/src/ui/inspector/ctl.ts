@@ -56,11 +56,16 @@ export function writer(n: PcNode, c: Control): Writer {
       L.endTx();
       const next = (event as FocusEvent | undefined)?.relatedTarget;
       if (next instanceof HTMLElement && next.matches('.pc-custom-select-trigger')) {
+        if (!next.hasAttribute('data-pc-pointer-activating')) {
+          /* Tab focus arrives after this blur. Let the browser finish that transfer, then
+             refresh conditional controls without waiting for another key or another blur. */
+          requestAnimationFrame(() => repaint('right'));
+          return;
+        }
         /* The first instance-property override inserts reset/status controls above the
            neighboring select. Repainting during the input's blur moves that trigger between
-           pointerdown and click, so the click lands on empty space. Let the activation finish,
-           then refresh the structural controls. Keyboard focus follows the same path; repaint
-           on its first activation or when it leaves without opening. */
+           pointerdown and click, so the click lands on empty space. A marker from the shared
+           select enhancer identifies that live gesture; let it finish, then refresh. */
         let pending = true;
         const finish = () => {
           if (!pending) return;

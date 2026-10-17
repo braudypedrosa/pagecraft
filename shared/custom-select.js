@@ -42,6 +42,12 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   let typeaheadTimer = 0;
   let scheduled = false;
   let nextId = 0;
+  let pointerTrigger = null;
+
+  const clearPointerActivation = () => {
+    if (pointerTrigger) pointerTrigger.removeAttribute('data-pc-pointer-activating');
+    pointerTrigger = null;
+  };
 
   const selectedOption = select => select.options[select.selectedIndex] || null;
   const labelOf = select => {
@@ -416,7 +422,10 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (typeof document === 'undefined') return;
     document.querySelectorAll('select:not([multiple])').forEach(enhance);
     for (const [select, record] of records) {
-      if (!select.isConnected) { close(record); record.unbindNative(); record.trigger.remove(); record.menu.remove(); records.delete(select); }
+      if (!select.isConnected) {
+        if (pointerTrigger === record.trigger) clearPointerActivation();
+        close(record); record.unbindNative(); record.trigger.remove(); record.menu.remove(); records.delete(select);
+      }
       else sync(record);
     }
   };
@@ -427,8 +436,16 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
 
   document.addEventListener('pointerdown', event => {
+    clearPointerActivation();
+    const trigger = event.target instanceof Element ? event.target.closest('.pc-custom-select-trigger') : null;
+    if (trigger instanceof HTMLElement) {
+      pointerTrigger = trigger;
+      trigger.setAttribute('data-pc-pointer-activating', '');
+    }
     if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
   }, true);
+  document.addEventListener('pointerup', clearPointerActivation, true);
+  document.addEventListener('pointercancel', clearPointerActivation, true);
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape' || !openRecord) return;
     event.preventDefault();
@@ -439,7 +456,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (openRecord?.modal === event.target) close(openRecord);
   }, true);
   document.addEventListener('pagecraft:outside-pointer', () => openRecord && close(openRecord));
-  window.addEventListener('blur', () => openRecord && close(openRecord));
+  window.addEventListener('blur', () => { clearPointerActivation(); if (openRecord) close(openRecord); });
   document.addEventListener('submit', event => {
     const invalid = event.target.querySelector?.('select.pc-custom-select-native:invalid');
     if (invalid) records.get(invalid)?.trigger.focus();

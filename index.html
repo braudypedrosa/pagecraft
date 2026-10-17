@@ -18542,6 +18542,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         L2.endTx();
         const next = event?.relatedTarget;
         if (next instanceof HTMLElement && next.matches(".pc-custom-select-trigger")) {
+          if (!next.hasAttribute("data-pc-pointer-activating")) {
+            requestAnimationFrame(() => repaint("right"));
+            return;
+          }
           let pending2 = true;
           const finish = () => {
             if (!pending2) return;
@@ -23094,6 +23098,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     let typeaheadTimer = 0;
     let scheduled = false;
     let nextId2 = 0;
+    let pointerTrigger = null;
+    const clearPointerActivation = () => {
+      if (pointerTrigger) pointerTrigger.removeAttribute("data-pc-pointer-activating");
+      pointerTrigger = null;
+    };
     const selectedOption = (select) => select.options[select.selectedIndex] || null;
     const labelOf = (select) => {
       const owner = select.labels?.[0];
@@ -23476,6 +23485,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       document.querySelectorAll("select:not([multiple])").forEach(enhance);
       for (const [select, record] of records) {
         if (!select.isConnected) {
+          if (pointerTrigger === record.trigger) clearPointerActivation();
           close(record);
           record.unbindNative();
           record.trigger.remove();
@@ -23490,8 +23500,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       queueMicrotask(scan);
     };
     document.addEventListener("pointerdown", (event) => {
+      clearPointerActivation();
+      const trigger = event.target instanceof Element ? event.target.closest(".pc-custom-select-trigger") : null;
+      if (trigger instanceof HTMLElement) {
+        pointerTrigger = trigger;
+        trigger.setAttribute("data-pc-pointer-activating", "");
+      }
       if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
     }, true);
+    document.addEventListener("pointerup", clearPointerActivation, true);
+    document.addEventListener("pointercancel", clearPointerActivation, true);
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape" || !openRecord) return;
       event.preventDefault();
@@ -23502,7 +23520,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (openRecord?.modal === event.target) close(openRecord);
     }, true);
     document.addEventListener("pagecraft:outside-pointer", () => openRecord && close(openRecord));
-    window.addEventListener("blur", () => openRecord && close(openRecord));
+    window.addEventListener("blur", () => {
+      clearPointerActivation();
+      if (openRecord) close(openRecord);
+    });
     document.addEventListener("submit", (event) => {
       const invalid = event.target.querySelector?.("select.pc-custom-select-native:invalid");
       if (invalid) records.get(invalid)?.trigger.focus();
