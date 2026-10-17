@@ -824,6 +824,34 @@ test('hosted snapshots route native inbox forms and preserve actionable form fin
   a.equal(failure.findings.find(finding => finding.code === 'unsafe-form-action')?.nodeId, external.id);
 });
 
+test('publication findings reject invalid drafts before attempting hosted font fetch', async () => {
+  let calls = 0;
+  const fontFetch = (async () => {
+    calls++;
+    throw new Error('font fetch must not run for an invalid draft');
+  }) as typeof fetch;
+  const r = await rig('owner', true, undefined, false, fontFetch);
+  const { cookie } = await r.signIn();
+  const document = structuredClone(r.site.doc) as Doc;
+  document.meta.font = "'Inter',system-ui,sans-serif";
+  const image = Core.N('image', { src: 'fallback.webp', alt: '', w: '640', h: '480' });
+  document.pages[0].tree.push(image);
+  a.equal((await r.put(r.site.id, document, 1, cookie)).status, 200);
+
+  const response = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(response.status, 422, await response.clone().text());
+  const failure = await response.json() as { findings: { code: string; target?: unknown }[] };
+  a.deepEqual(failure.findings.find(finding => finding.code === 'no-alt')?.target, {
+    pageId: document.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+  });
+  a.equal(calls, 0, 'invalid findings must preempt external font access');
+  a.deepEqual(await r.publications!.listBySite(r.site.id), [], 'invalid drafts create no publication snapshot');
+});
+
 test('publication validation preserves structured CMS review targets in errors and stored warnings', async () => {
   const r = await rig('owner', true);
   const { cookie } = await r.signIn();

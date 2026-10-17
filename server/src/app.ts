@@ -3729,6 +3729,31 @@ export function createApp(o: Options) {
     let rendered: ReturnType<typeof render>;
     try {
       rendered = render(addressed, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '', { foundation: true });
+    } catch (error) {
+      return c.json({
+        error: "publication_compile_failed",
+        detail: String((error as Error).message),
+      }, 422);
+    }
+    const errors = rendered.findings.filter((finding) =>
+      finding.level === "error"
+    );
+    const warnings = rendered.findings.filter((finding) =>
+      finding.level === "warn"
+    );
+    if (errors.length) {
+      return c.json({
+        error: "publication_validation_failed",
+        findings: errors.map((finding) => ({
+          code: finding.code,
+          message: finding.msg,
+          where: finding.where,
+          nodeId: finding.nodeId,
+          target: finding.target,
+        })),
+      }, 422);
+    }
+    try {
       if (releaseStylesheetLinks(rendered.files).length) {
         rendered.files = await freezeGoogleFontStylesheets(
           rendered.files,
@@ -3752,24 +3777,6 @@ export function createApp(o: Options) {
         error: "publication_validation_failed",
         errorCodes: ["unfrozen-stylesheet"],
         stylesheets: remainingStylesheets,
-      }, 422);
-    }
-    const errors = rendered.findings.filter((finding) =>
-      finding.level === "error"
-    );
-    const warnings = rendered.findings.filter((finding) =>
-      finding.level === "warn"
-    );
-    if (errors.length) {
-      return c.json({
-        error: "publication_validation_failed",
-        findings: errors.map((finding) => ({
-          code: finding.code,
-          message: finding.msg,
-          where: finding.where,
-          nodeId: finding.nodeId,
-          target: finding.target,
-        })),
       }, 422);
     }
     if (!prepareSnapshot && warnings.length && body?.acknowledgeWarnings !== true) {
