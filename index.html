@@ -29443,6 +29443,13 @@ function showDrop(d) {
   placeLabel();
 }
 
+/* These palette keys either create useful children immediately or persist as a shared base
+   type, so document-diff inference cannot recover the element name the author chose. */
+function semanticAddHistoryLabel(key) {
+  return ['columns', 'flex', 'grid', 'linkbox', 'slider', 'list'].includes(key)
+    ? 'Add ' + labelOf(key) : undefined;
+}
+
 function onDrop(e, fromFrame) {
   document.body.classList.remove('dragging');
   $('#ghost').style.display = 'none';
@@ -29466,7 +29473,7 @@ function onDrop(e, fromFrame) {
     toast(made ? (cd ? cd.name : 'Component') + ' placed' : 'That component does not fit there');
   } else if (d.kind === 'new') {
     let leaf = null;
-    edit(() => { leaf = insert(d.type, container, index); if (leaf) selSet([leaf.id]); });
+    edit(() => { leaf = insert(d.type, container, index); if (leaf) selSet([leaf.id]); }, semanticAddHistoryLabel(d.type));
     if (leaf) PC_UI.recordElementUse(d.type);
     toast(leaf ? labelOf(d.type) + ' added' : 'That does not fit there');
   } else {
@@ -29855,7 +29862,7 @@ function appendSmart(key) {
   const [container, index] = smartTarget(key);
   if (!container && state.ui.mode === 'component') { toast('Choose a container inside this component first.'); return; }
   let leaf = null;
-  edit(() => { leaf = insert(key, container, index); });
+  edit(() => { leaf = insert(key, container, index); }, semanticAddHistoryLabel(key));
   if (!leaf) { toast('That does not fit there'); return; }
   PC_UI.recordElementUse(key);
   /* Use the same selection transition as a canvas click so the tablet inspector

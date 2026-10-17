@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-label-c670
+
+ ❯ tests/editor-usability-feedback.test.mjs (23 tests | 1 failed) 16734ms
+   × palette insertion history keeps semantic aliases and atomic Slider children 1037ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > palette insertion history keeps semantic aliases and atomic Slider children
+AssertionError: expected 'Add column' to be 'Add Slider' // Object.is equality
+
+Expected: "Add Slider"
+Received: "Add column"
+
+ ❯ tests/editor-usability-feedback.test.mjs:156:39
+    154|     w.appendSmart(key);
+    155|     const id = core.state.ui.sel;
+    156|     expect(core.historyLabel('undo')).toBe(label);
+       |                                       ^
+    157|     if (key === 'slider') expect(core.locate(id).node.children).toHave…
+    158|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 45 passed (46)
+   Start at  13:26:43
+   Duration  17.30s (transform 224ms, setup 0ms, import 1.10s, tests 16.90s, environment 0ms)
+

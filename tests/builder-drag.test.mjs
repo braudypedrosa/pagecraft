@@ -13,17 +13,18 @@ function harness(payload = {kind:'new',type:'heading',label:'Heading'}) {
   frame.getBoundingClientRect = () => rect;
   cd.getElementById('h').getBoundingClientRect = () => ({ ...rect, top: 20, bottom: 60, height: 40 });
   cd.elementFromPoint = () => cd.getElementById('h');
-  const node = { id: 'h', type: 'heading' }, added = [], moved = [];
+  const node = { id: 'h', type: 'heading' }, added = [], moved = [], labels = [];
+  const semanticLabels = { columns: 'Columns', flex: 'Flex', grid: 'Grid', linkbox: 'Link block', slider: 'Slider', list: 'Collection list' };
   let parentSelections = 0;
   d.addEventListener('keydown', e => { if(e.key === 'Escape') parentSelections++; });
   Object.assign(w, { cdoc: cd, cwin: frame.contentWindow, zoomK: 1, state: { ui: { mode: 'page' } },
-    $: selector => d.querySelector(selector), svg: () => '', esc: String, kindOf: () => 'Heading', labelOf: () => 'Heading',
+    $: selector => d.querySelector(selector), svg: () => '', esc: String, kindOf: () => 'Heading', labelOf: key => semanticLabels[key] || 'Heading',
     locate: () => ({ node }), tree: () => [node], holds: () => false,
-    edit: fn => fn(), insert: (...args) => { added.push(args); return { id: 'new' }; }, selSet: () => {},
+    edit: (fn, label) => { labels.push(label); fn(); }, insert: (...args) => { added.push(args); return { id: 'new' }; }, selSet: () => {},
     moveMany: (...args) => moved.push(args), toast: () => {}, PC_UI: { recordElementUse: () => {} }, revealSelection: () => {} });
   w.eval(source.slice(source.indexOf('let drag = null, dragDidMove = false;'), source.indexOf('/* ========================================================= inline editing */')) + '\nwindow.dragMoved = () => dragDidMove;');
   w.startDrag({ preventDefault() {}, target: d.querySelector('#card'), pointerId: 1, clientX: 0, clientY: 0 }, payload, false);
-  return { w, d, cd, added, moved, parentSelections:()=>parentSelections, event: (name, x = 25, y = 25) => d.dispatchEvent(new w.MouseEvent(name, { bubbles: true, clientX:x, clientY:y })) };
+  return { w, d, cd, added, moved, labels, parentSelections:()=>parentSelections, event: (name, x = 25, y = 25) => d.dispatchEvent(new w.MouseEvent(name, { bubbles: true, clientX:x, clientY:y })) };
 }
 test.each(['pointercancel', 'Escape'])('a %s cancels an active valid drop without changing the page', action => {
   const { w,d,cd,added,event,parentSelections } = harness();
@@ -48,6 +49,19 @@ test('a completed drag inserts once at the visible destination', () => {
   const { added,event } = harness();
   event('pointermove'); event('pointerup');
   expect(added).toEqual([['heading', null, 0]]);
+});
+
+test.each([
+  ['slider', 'Slider'],
+  ['columns', 'Columns'],
+  ['flex', 'Flex'],
+  ['grid', 'Grid'],
+  ['linkbox', 'Link block'],
+  ['list', 'Collection list'],
+])('a completed %s drag records its semantic Add label', (type, label) => {
+  const { labels, event } = harness({ kind: 'new', type, label });
+  event('pointermove'); event('pointerup');
+  expect(labels).toEqual([`Add ${label}`]);
 });
 
 test('single-node drops use the same index correction as group moves', () => {

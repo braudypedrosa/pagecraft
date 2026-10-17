@@ -1,0 +1,163 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-label-red-harness-c670-20261017
+
+ ❯ tests/builder-drag.test.mjs (11 tests | 6 failed) 154ms
+   × a completed slider drag records its semantic Add label 13ms
+   × a completed columns drag records its semantic Add label 8ms
+   × a completed flex drag records its semantic Add label 11ms
+   × a completed grid drag records its semantic Add label 10ms
+   × a completed linkbox drag records its semantic Add label 9ms
+   × a completed list drag records its semantic Add label 8ms
+ ❯ tests/editor-usability-feedback.test.mjs (23 tests | 1 failed) 16651ms
+   × palette insertion history keeps semantic aliases and atomic Slider children 1032ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed slider drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Slider' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Slider",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed columns drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Columns' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Columns",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed flex drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Flex' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Flex",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed grid drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Grid' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Grid",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed linkbox drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Link block' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Link block",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/builder-drag.test.mjs > a completed list drag records its semantic Add label
+AssertionError: expected [ undefined ] to deeply equal [ 'Add Collection list' ]
+
+- Expected
++ Received
+
+  [
+-   "Add Collection list",
++   undefined,
+  ]
+
+ ❯ tests/builder-drag.test.mjs:64:18
+     62|   const { labels, event } = harness({ kind: 'new', type, label });
+     63|   event('pointermove'); event('pointerup');
+     64|   expect(labels).toEqual([`Add ${label}`]);
+       |                  ^
+     65| });
+     66|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > palette insertion history keeps semantic aliases and atomic Slider children
+AssertionError: expected 'Add column' to be 'Add Slider' // Object.is equality
+
+Expected: "Add Slider"
+Received: "Add column"
+
+ ❯ tests/editor-usability-feedback.test.mjs:176:39
+    174|     w.appendSmart(key);
+    175|     const id = core.state.ui.sel;
+    176|     expect(core.historyLabel('undo')).toBe(label);
+       |                                       ^
+    177|     if (key === 'slider') expect(core.locate(id).node.children).toHave…
+    178|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  7 failed | 39 passed (46)
+   Start at  13:30:32
+   Duration  17.31s (transform 253ms, setup 0ms, import 1.31s, tests 16.82s, environment 0ms)
+

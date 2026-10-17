@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-label-c670
+
+
+ Test Files  3 passed (3)
+      Tests  46 passed (46)
+   Start at  13:27:59
+   Duration  17.34s (transform 215ms, setup 0ms, import 1.09s, tests 16.96s, environment 0ms)
+

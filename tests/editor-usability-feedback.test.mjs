@@ -23,6 +23,26 @@ const builtWithMoreTools = (() => {
     .replace('/* ============================================================= keyboard */', () => script + '\n\n/* ============================================================= keyboard */')
     .replace("  $('#helpBtn').addEventListener('click', helpModal);", "  $('#helpBtn').addEventListener('click', helpModal);\n  wireMoreTools();");
 })();
+const builtWithSemanticAddHistory = (() => {
+  const semanticDragStart = source => {
+    const helperStart = source.indexOf('function semanticAddHistoryLabel');
+    return helperStart >= 0 ? helperStart : source.indexOf('function onDrop');
+  };
+  const dragStart = semanticDragStart(builder);
+  const dragEnd = builder.indexOf('/* ========================================================= inline editing */', dragStart);
+  const appendStart = builder.indexOf('function appendSmart');
+  const appendEnd = builder.indexOf('/* =============================================================== layers */', appendStart);
+  if (dragStart < 0 || dragEnd < 0 || appendStart < 0 || appendEnd < 0) throw new Error('Add history source blocks are missing');
+  let html = built;
+  const builtDragStart = semanticDragStart(html);
+  const builtDragEnd = html.indexOf('/* ========================================================= inline editing */', builtDragStart);
+  if (builtDragStart < 0 || builtDragEnd < 0) throw new Error('Built Add drag source block is missing');
+  html = html.slice(0, builtDragStart) + builder.slice(dragStart, dragEnd) + html.slice(builtDragEnd);
+  const builtAppendStart = html.indexOf('function appendSmart');
+  const builtAppendEnd = html.indexOf('/* =============================================================== layers */', builtAppendStart);
+  if (builtAppendStart < 0 || builtAppendEnd < 0) throw new Error('Built Add click source block is missing');
+  return html.slice(0, builtAppendStart) + builder.slice(appendStart, appendEnd) + html.slice(builtAppendEnd);
+})();
 afterEach(() => { for (const dom of windows.splice(0)) dom.window.close(); vi.useRealTimers(); });
 
 function readinessHarness() {
@@ -135,6 +155,41 @@ test('insertion hints match actual sibling and container placement', async () =>
   expect(parent.children.map(node => node.type)).toEqual(['heading', 'button', 'heading']);
   core.selSet([parent.id]);
   expect(w.insertionHint('image')).toContain('at the end of ' + core.nameOf(parent));
+});
+
+test('palette insertion history keeps semantic aliases and atomic Slider children', async () => {
+  const { w, core } = await editor(null, false, { html: builtWithSemanticAddHistory });
+  core.edit(() => { core.tree().splice(0); core.selSet([]); });
+  core.hist.u.length = 0;
+  core.hist.r.length = 0;
+
+  for (const [key, label] of [
+    ['slider', 'Add Slider'],
+    ['columns', 'Add Columns'],
+    ['flex', 'Add Flex'],
+    ['grid', 'Add Grid'],
+    ['linkbox', 'Add Link block'],
+    ['list', 'Add Collection list'],
+  ]) {
+    w.appendSmart(key);
+    const id = core.state.ui.sel;
+    expect(core.historyLabel('undo')).toBe(label);
+    if (key === 'slider') expect(core.locate(id).node.children).toHaveLength(3);
+
+    core.undo();
+    expect(core.locate(id)).toBeNull();
+    expect(core.historyLabel('redo')).toBe(label);
+    core.redo();
+    if (key === 'slider') expect(core.locate(id).node.children).toHaveLength(3);
+
+    core.undo();
+    core.hist.u.length = 0;
+    core.hist.r.length = 0;
+    core.selSet([]);
+  }
+
+  w.appendSmart('heading');
+  expect(core.historyLabel('undo')).toBe('Add heading');
 });
 
 test('client review opens owner workflow without outbound mutations and explains unsaved changes', async () => {
