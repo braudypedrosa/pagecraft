@@ -151,7 +151,11 @@ import {
   signReleaseManifest,
   utf8ByteCompare,
 } from "./releases.ts";
-import { freezeGoogleFontStylesheets, shareHostedStyles } from "./font-freeze.ts";
+import {
+  FontFetchUnavailableError,
+  freezeGoogleFontStylesheets,
+  shareHostedStyles,
+} from "./font-freeze.ts";
 import type { PackageRegistry } from "./packages.ts";
 import type {
   HostedPublicationStore,
@@ -926,6 +930,25 @@ export function createApp(o: Options) {
     ) return error.message;
     console.error(`${fallback}:`, error);
     return fallback;
+  };
+
+  const fontDependencyFailure = (error: unknown) => {
+    if (!(error instanceof FontFetchUnavailableError)) return null;
+    // The nested transport error may contain an address or runtime detail. Log only the
+    // allowlisted stage and bounded category, and return the same safe fields to the client.
+    console.warn("publication font dependency unavailable", {
+      stage: error.stage,
+      code: error.category,
+    });
+    return {
+      error: "publication_dependency_unavailable",
+      dependency: "google_fonts",
+      retryable: true,
+      stage: error.stage,
+      causeCategory: error.category,
+      detail:
+        "Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.",
+    } as const;
   };
 
   const bearerConnection = async (c: Context) => {
@@ -3713,6 +3736,11 @@ export function createApp(o: Options) {
         );
       }
     } catch (error) {
+      const dependencyFailure = fontDependencyFailure(error);
+      if (dependencyFailure) {
+        c.header("retry-after", "5");
+        return c.json(dependencyFailure, 503);
+      }
       return c.json({
         error: "publication_compile_failed",
         detail: String((error as Error).message),

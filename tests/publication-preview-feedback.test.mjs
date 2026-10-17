@@ -210,6 +210,27 @@ describe('publication preview failure feedback', () => {
     dom.window.close();
   });
 
+  test('temporary font dependency failure keeps the saved draft and gives an exact retry action', async () => {
+    const error = Object.assign(new Error('publication_dependency_unavailable'), {
+      status: 503,
+      payload: {
+        error: 'publication_dependency_unavailable', dependency: 'google_fonts', retryable: true,
+        stage: 'stylesheet', causeCategory: 'dns', detail: '<b>untrusted transport detail</b>'
+      }
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    const text = doc.querySelector('#publicationChanges').textContent;
+    expect(text).toContain('Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.');
+    expect(text).not.toContain('untrusted transport detail');
+    expect(text).not.toContain('dns');
+    expect(doc.querySelector('#releasePublish').disabled).toBe(true);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(true);
+    dom.window.close();
+  });
+
   test('a validation failure without structured findings directs the user to Site checks', async () => {
     const error = Object.assign(new Error('publication_validation_failed'), {
       status: 422, payload: { error: 'publication_validation_failed', detail: 'schema internals' }

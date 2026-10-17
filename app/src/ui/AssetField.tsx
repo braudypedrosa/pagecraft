@@ -47,7 +47,7 @@ export function AssetField({ value, note, onChange, disabled = false }: {
             <b>{a ? a.name : 'Template image'}</b>
             {a ? <small>{C.kb(a.size)}{a.w ? ` · ${a.w} × ${a.h}` : ''}</small> : null}
           </span>
-          <button type="button" class="x" disabled={disabled || busy} title="Remove" onClick={() => { commit(''); L.toast('Image removed from this field.'); }}>
+          <button type="button" class="x" disabled={disabled || busy} title="Remove" onClick={e => { e.stopPropagation(); commit(''); L.toast('Image removed from this field.'); }}>
             <Icon name="trash" size={12} />
           </button>
         </div>

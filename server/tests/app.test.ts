@@ -29,7 +29,10 @@ const demo = (): Doc => {
 
 /* A rig that signs in the way a person does: ask for a link, follow it, keep the cookie.
    Fabricating a session would leave the login flow untested by everything that uses it. */
-const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>, nativeForms = false) => {
+const rig = async (
+  role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>,
+  nativeForms = false, fontFetch?: typeof fetch
+) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
   const publications = hostedPublications ? new MemoryHostedPublicationStore() : undefined;
@@ -40,7 +43,8 @@ const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?
     submissions: nativeForms ? new FileSubmissionStore(join(tmpdir(), `pagecraft-app-test-${randomUUID()}`)) : undefined,
     optimizeAsset: hostedPublications
       ? async bytes => { await onOptimize?.(); return { bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' }; }
-      : undefined
+      : undefined,
+    fontFetch,
   });
   const fixture = demo();
   if (hostedPublications) {
@@ -706,6 +710,45 @@ test('preparing a publication snapshot pins private source and leaves the public
   a.equal(stalePublish.status, 409);
   a.equal(await r.publications!.currentBySlug(r.site.slug), null);
   a.ok(await r.publications!.source(stored), 'failed publication keeps the review snapshot intact');
+});
+
+test('temporary font dependency failure is retryable and stores no publication snapshot', async () => {
+  let calls = 0;
+  const fontFetch = (async () => {
+    calls++;
+    throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'EAI_AGAIN' } });
+  }) as typeof fetch;
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const r = await rig('owner', true, undefined, false, fontFetch);
+    const { cookie } = await r.signIn();
+    const document = structuredClone(r.site.doc) as Doc;
+    document.meta.font = "'Inter',system-ui,sans-serif";
+    a.equal((await r.put(r.site.id, document, 1, cookie)).status, 200);
+
+    const response = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+      method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+    }, cookie);
+    a.equal(response.status, 503, await response.clone().text());
+    a.equal(response.headers.get('retry-after'), '5');
+    a.deepEqual(await response.json(), {
+      error: 'publication_dependency_unavailable',
+      dependency: 'google_fonts',
+      retryable: true,
+      stage: 'stylesheet',
+      causeCategory: 'dns',
+      detail: 'Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.',
+    });
+    a.equal(calls, 2, 'one transient retry is allowed');
+    a.deepEqual(await r.publications!.listBySite(r.site.id), [], 'failed freezing stores no snapshot or font artifact');
+    a.equal((await r.store.byId(r.site.id))?.version, 2, 'the saved draft is retained');
+    a.deepEqual(warning.mock.calls, [[
+      'publication font dependency unavailable',
+      { stage: 'stylesheet', code: 'dns' },
+    ]], 'diagnostics contain only the bounded stage and category');
+  } finally {
+    warning.mockRestore();
+  }
 });
 
 test('reviewed snapshot serves authenticated frozen files and publishes the same materialization', async () => {

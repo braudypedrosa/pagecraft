@@ -9,12 +9,73 @@ const MAX_CSS_BYTES = 512 * 1024;
 const MAX_FONT_FILES = 128;
 const MAX_FONT_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_FONT_BYTES = 32 * 1024 * 1024;
+const FETCH_TIMEOUT_MS = 10_000;
 /* Google Fonts selects the font format from the user agent. A product-specific agent gets
  * legacy TTF responses, while the release format intentionally accepts only WOFF2. */
 const WOFF2_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
   + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+
+export type FontFetchStage = 'stylesheet' | 'font';
+export type FontFetchCause = 'timeout' | 'dns' | 'tls' | 'connection' | 'transport'
+  | 'http_408' | 'http_429' | 'http_5xx';
+
+/** A temporary failure of the allowlisted Google Fonts dependency. The public route exposes
+ * only these bounded fields; the original error remains available for server-side diagnostics. */
+export class FontFetchUnavailableError extends Error {
+  readonly name = 'FontFetchUnavailableError';
+  readonly stage: FontFetchStage;
+  readonly category: FontFetchCause;
+  constructor(
+    stage: FontFetchStage,
+    category: FontFetchCause,
+    cause?: unknown,
+  ) {
+    super(`Google Fonts ${stage} is temporarily unavailable`);
+    this.stage = stage;
+    this.category = category;
+    if (cause !== undefined) (this as Error & { cause?: unknown }).cause = cause;
+  }
+}
+
+class RetryableHttpError extends Error {
+  readonly category: FontFetchCause;
+  constructor(category: FontFetchCause) {
+    super(category);
+    this.category = category;
+  }
+}
+
+function nestedCode(value: unknown) {
+  let current = value;
+  for (let depth = 0; depth < 4 && current && typeof current === 'object'; depth++) {
+    const code = String((current as { code?: unknown }).code || '').toUpperCase();
+    if (code) return code;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return '';
+}
+
+function transportCause(error: unknown): FontFetchCause | null {
+  if (error instanceof RetryableHttpError) return error.category;
+  const name = error && typeof error === 'object'
+    ? String((error as { name?: unknown }).name || '') : '';
+  if (name === 'AbortError' || name === 'TimeoutError') return 'timeout';
+  const code = nestedCode(error);
+  if (/^(?:ENOTFOUND|EAI_AGAIN|EAI_FAIL)$/.test(code)) return 'dns';
+  if (/^(?:CERT_|ERR_TLS_|DEPTH_ZERO_SELF_SIGNED_CERT|SELF_SIGNED_CERT_IN_CHAIN|UNABLE_TO_VERIFY_LEAF_SIGNATURE)/.test(code)) return 'tls';
+  if (/^(?:ECONNREFUSED|ECONNRESET|EPIPE|ENETUNREACH|EHOSTUNREACH|ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|UND_ERR_HEADERS_TIMEOUT|UND_ERR_BODY_TIMEOUT|UND_ERR_SOCKET)$/.test(code)) {
+    return code.includes('TIMEOUT') || code === 'ETIMEDOUT' ? 'timeout' : 'connection';
+  }
+  return error instanceof TypeError ? 'transport' : null;
+}
+
+function retryableStatus(status: number): FontFetchCause | null {
+  if (status === 408) return 'http_408';
+  if (status === 429) return 'http_429';
+  return status >= 500 && status <= 599 ? 'http_5xx' : null;
+}
 function attribute(tag: string, name: string) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quoted = tag.match(new RegExp(`\\s${escaped}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
@@ -80,13 +141,37 @@ async function strictFetch(
 ) {
   let url = initial;
   for (let redirects = 0; ; redirects++) {
-    const response = await fetcher(url, {
-      redirect: 'manual',
-      headers: {
-        accept: label === 'font stylesheet' ? 'text/css' : 'font/woff2',
-        'user-agent': WOFF2_USER_AGENT
+    const stage: FontFetchStage = label === 'font stylesheet' ? 'stylesheet' : 'font';
+    let response!: Response;
+    let bytes: Uint8Array | undefined;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await fetcher(url, {
+          redirect: 'manual',
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          headers: {
+            accept: stage === 'stylesheet' ? 'text/css' : 'font/woff2',
+            'user-agent': WOFF2_USER_AGENT
+          }
+        });
+        const retry = retryableStatus(response.status);
+        if (retry) {
+          await response.body?.cancel().catch(() => undefined);
+          throw new RetryableHttpError(retry);
+        }
+        if (response.status >= 300 && response.status < 400) break;
+        if (!response.ok) throw new Error(`${label} fetch failed with HTTP ${response.status}`);
+        const mediaType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+        if (!mediaTypes.has(mediaType)) throw new Error(`${label} has an unsupported content type`);
+        bytes = await boundedBytes(response, maximum, label);
+        break;
+      } catch (error) {
+        const category = transportCause(error);
+        if (!category) throw error;
+        if (attempt === 0) continue;
+        throw new FontFetchUnavailableError(stage, category, error);
       }
-    });
+    }
     if (response.status >= 300 && response.status < 400) {
       if (redirects >= MAX_REDIRECTS) throw new Error(`${label} exceeded its redirect limit`);
       const location = response.headers.get('location');
@@ -94,10 +179,7 @@ async function strictFetch(
       url = validate(new URL(location, url).href);
       continue;
     }
-    if (!response.ok) throw new Error(`${label} fetch failed with HTTP ${response.status}`);
-    const mediaType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    if (!mediaTypes.has(mediaType)) throw new Error(`${label} has an unsupported content type`);
-    return boundedBytes(response, maximum, label);
+    return bytes!;
   }
 }
 

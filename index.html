@@ -14068,7 +14068,8 @@ var PC_UI = (() => {
             a3.w ? ` \xB7 ${a3.w} \xD7 ${a3.h}` : ""
           ] }) : null
         ] }),
-        /* @__PURE__ */ u2("button", { type: "button", class: "x", disabled: disabled || busy, title: "Remove", onClick: () => {
+        /* @__PURE__ */ u2("button", { type: "button", class: "x", disabled: disabled || busy, title: "Remove", onClick: (e3) => {
+          e3.stopPropagation();
           commit2("");
           L2.toast("Image removed from this field.");
         }, children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 12 }) })
@@ -26881,6 +26882,9 @@ function publicationPreviewFailure(error) {
     ? code : '';
   let message;
   if (trustedLocalMessage) message = trustedLocalMessage;
+  else if (code === 'publication_dependency_unavailable' && payload.dependency === 'google_fonts') {
+    message = 'Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.';
+  }
   else if (validation && problems) message = 'This draft did not pass publication checks. Fix the problems below, then create a new preview.';
   else if (validation && findings.length) message = 'This draft needs publication suggestions reviewed. Review them below, then create a new preview.';
   else if (validation) message = 'This draft did not pass publication checks. Review Site checks, then create a new preview.';

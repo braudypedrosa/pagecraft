@@ -2523,6 +2523,9 @@ function publicationPreviewFailure(error) {
     ? code : '';
   let message;
   if (trustedLocalMessage) message = trustedLocalMessage;
+  else if (code === 'publication_dependency_unavailable' && payload.dependency === 'google_fonts') {
+    message = 'Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.';
+  }
   else if (validation && problems) message = 'This draft did not pass publication checks. Fix the problems below, then create a new preview.';
   else if (validation && findings.length) message = 'This draft needs publication suggestions reviewed. Review them below, then create a new preview.';
   else if (validation) message = 'This draft did not pass publication checks. Review Site checks, then create a new preview.';
