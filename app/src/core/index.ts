@@ -7409,6 +7409,14 @@ const PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`);
 
 const MQ = { t: '@media (max-width:1024px)', m: '@media (max-width:767px)' };
+/* Style overrides inherit into narrower breakpoints; visibility flags are independent. Exact
+   bands avoid inventing a display reset that would break Block, Flex, Grid or widget defaults. */
+const VISIBILITY_MQ = {
+  d: '@media (min-width:1025px)',
+  t: '@media (min-width:768px) and (max-width:1024px)'
+};
+type RuleBuckets = { d: string; t: string; m: string; vd?: string; vt?: string; vm?: string };
+const ruleBuckets = (): RuleBuckets => ({ d: '', t: '', m: '', vd: '', vt: '', vm: '' });
 function decl(map: Decls) {
   let out = '';
   /* CSS preserves declaration order. Broad border declarations must precede their
@@ -7443,7 +7451,7 @@ const selOf = (n: PcNode) => '.' + nodeClass(n);
 const IMAGE_CONTENT_STYLE = new Set(['height', 'object-fit', 'border-radius', 'opacity', 'filter']);
 
 /* per-node CSS for one breakpoint bucket */
-function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null,
+function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = null,
   detachedComponentRoot = false) {
   const map = { ...(n.css[b] || {}) };
   const authoredButton = new Set<string>();
@@ -7472,8 +7480,6 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
       map['justify-content'] = mode === 'follow' ? rowVerticalValue(parent, b) : mode;
     }
   }
-  let extra = '';
-  if (n.hide && n.hide[b]) extra = editing ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;' : 'display:none !important;';
   /* A caption or link adds semantic wrappers. Layout and spacing stay on that wrapper while
      the pixels-only image controls land on the image itself. This keeps captions in flow and
      prevents an authored image height from clipping or stretching the figure. */
@@ -7488,7 +7494,7 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
     }
     if (map.width) imageMap.width = '100%';
   }
-  const body = decl(map) + extra;
+  const body = decl(map);
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
   if (n.type === 'button') {
@@ -7583,7 +7589,7 @@ function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
 const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
   + `${selOf(n)} .pagecraft-nav-list{display:none}`;
 
-function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
+function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
   parent: PcNode | null = null, detachedComponentRoot = false) {
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
   /* Restore default deletes the stored height. A zero-specificity per-node fallback restores
@@ -7613,8 +7619,19 @@ function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: st
   acc.m += bucket(n, 'm', editing, parent, detachedComponentRoot);
   acc.m += inheritedElementPriority(n, 'm');
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
+  const visibility = editing
+    ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;'
+    : 'display:none !important;';
+  if (n.hide?.d) acc.vd = (acc.vd || '') + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.t) acc.vt = (acc.vt || '') + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.m) acc.vm = (acc.vm || '') + `${selOf(n)}{${visibility}}`;
   (n.children || []).forEach(c => nodeCss(c, editing, acc, n));
   return acc;
+}
+
+function exactVisibilityCss(acc: RuleBuckets) {
+  return (acc.vd ? `${VISIBILITY_MQ.d}{${acc.vd}}` : '')
+    + (acc.vt ? `${VISIBILITY_MQ.t}{${acc.vt}}` : '');
 }
 /* Which definitions these trees actually render, following instances inside definitions. A
    page ships the rules for the components it uses and not for the ones it does not — the same
@@ -7639,7 +7656,7 @@ function usedComponents(lists: PcNode[][]): ComponentDef[] {
    boundary explicit lets the WordPress package put the stable foundation/global regions in
    one content-addressed file and the current page in another without parsing generated CSS. */
 function treeRuleCss(lists: PcNode[][], editing: boolean) {
-  const acc = { d: '', t: '', m: '' };
+  const acc = ruleBuckets();
   /* Definitions first, and only once each however many instances there are: an instance reads
      its definition rather than copying it, so one set of rules dresses all of them. First
      because an instance's own rules have to win, and two single-class selectors are decided by
@@ -7648,7 +7665,8 @@ function treeRuleCss(lists: PcNode[][], editing: boolean) {
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   return acc.d
     + (acc.t ? `${MQ.t}{${acc.t}}` : '')
-    + (acc.m ? `${MQ.m}{${acc.m}}` : '');
+    + (acc.m || acc.vm ? `${MQ.m}{${acc.m}${acc.vm}}` : '')
+    + exactVisibilityCss(acc);
 }
 
 function foundationCss(editing: boolean) {
@@ -7658,15 +7676,16 @@ function foundationCss(editing: boolean) {
     + (tk.m ? `${MQ.m}{${tk.m}}` : '');
 }
 
-/* one stylesheet for a set of trees: base + all desktop rules + two media blocks */
+/* One stylesheet for a set of trees: cascading style buckets plus exact visibility bands. */
 function treeCss(lists: PcNode[][], editing: boolean) {
-  const acc = { d: '', t: '', m: '' };
+  const acc = ruleBuckets();
   usedComponents(lists).forEach(cd => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d
     + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : '')
-    + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : '');
+    + (tk.m || acc.m || acc.vm ? `${MQ.m}{${tk.m}${acc.m}${acc.vm}}` : '')
+    + exactVisibilityCss(acc);
 }
 
 /** WordPress stores project/global and page rules independently. The shared file always owns

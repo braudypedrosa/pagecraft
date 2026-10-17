@@ -443,10 +443,16 @@ test('hidden elements are removed on export but only ghosted while editing', () 
   blank();
   const h = insert('heading', null, 0);
   h.hide = { m: true };
-  a.match(C.treeCss([C.state.pages[0].tree], false), /display:none !important/);
-  const editing = C.treeCss([C.state.pages[0].tree], true);
-  a.equal(/display:none !important/.test(editing), false);
-  a.match(editing, /opacity:\.32/);
+  const exported = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const selector = new RegExp('\\.' + C.nodeClass(h) + '\\{[^}]*display:none !important');
+  a.equal(selector.test(exported.base), false, 'mobile visibility does not hide desktop');
+  a.equal(selector.test(exported.tablet), false, 'mobile visibility does not hide tablet');
+  a.match(exported.mobile, selector);
+  const editing = blocks(C.treeCss([C.state.pages[0].tree], true));
+  a.equal(/display:none !important/.test(editing.mobile), false);
+  a.equal(/opacity:\.32/.test(editing.base), false, 'mobile ghosting does not dim desktop');
+  a.equal(/opacity:\.32/.test(editing.tablet), false, 'mobile ghosting does not dim tablet');
+  a.match(editing.mobile, /opacity:\.32/);
 });
 
 test('custom CSS substitutes & for the element selector', () => {

@@ -8492,6 +8492,11 @@ var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`
 );
 var MQ = { t: "@media (max-width:1024px)", m: "@media (max-width:767px)" };
+var VISIBILITY_MQ = {
+  d: "@media (min-width:1025px)",
+  t: "@media (min-width:768px) and (max-width:1024px)"
+};
+var ruleBuckets = () => ({ d: "", t: "", m: "", vd: "", vt: "", vm: "" });
 function decl(map) {
   let out = "";
   const borderRank = (k) => {
@@ -8516,7 +8521,7 @@ var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, ""
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
 var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
-function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
+function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
   const authoredButton = /* @__PURE__ */ new Set();
   Object.keys(map).forEach((prop) => {
@@ -8535,8 +8540,6 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
       map["justify-content"] = mode === "follow" ? rowVerticalValue(parent, b) : mode;
     }
   }
-  let extra = "";
-  if (n.hide && n.hide[b]) extra = editing ? "opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;" : "display:none !important;";
   const imageNode = n.type === "image";
   const wrappedImage = imageNode && !!(n.props.caption || n.props.link);
   const imageMap = {};
@@ -8548,7 +8551,7 @@ function bucket(n, b, editing, parent = null, detachedComponentRoot = false) {
     }
     if (map.width) imageMap.width = "100%";
   }
-  const body = decl(map) + extra;
+  const body = decl(map);
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
   if (n.type === "button") {
@@ -8645,8 +8648,15 @@ function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) 
   acc.m += bucket(n, "m", editing, parent, detachedComponentRoot);
   acc.m += inheritedElementPriority(n, "m");
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
+  const visibility = editing ? "opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;" : "display:none !important;";
+  if (n.hide?.d) acc.vd = (acc.vd || "") + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.t) acc.vt = (acc.vt || "") + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.m) acc.vm = (acc.vm || "") + `${selOf(n)}{${visibility}}`;
   (n.children || []).forEach((c) => nodeCss(c, editing, acc, n));
   return acc;
+}
+function exactVisibilityCss(acc) {
+  return (acc.vd ? `${VISIBILITY_MQ.d}{${acc.vd}}` : "") + (acc.vt ? `${VISIBILITY_MQ.t}{${acc.vt}}` : "");
 }
 function usedComponents(lists) {
   const seen = /* @__PURE__ */ new Set();
@@ -8665,21 +8675,21 @@ function usedComponents(lists) {
   return out;
 }
 function treeRuleCss(lists, editing) {
-  const acc = { d: "", t: "", m: "" };
+  const acc = ruleBuckets();
   usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
-  return acc.d + (acc.t ? `${MQ.t}{${acc.t}}` : "") + (acc.m ? `${MQ.m}{${acc.m}}` : "");
+  return acc.d + (acc.t ? `${MQ.t}{${acc.t}}` : "") + (acc.m || acc.vm ? `${MQ.m}{${acc.m}${acc.vm}}` : "") + exactVisibilityCss(acc);
 }
 function foundationCss(editing) {
   const tk = tokenCss();
   return baseCss(editing) + tk.d + (tk.t ? `${MQ.t}{${tk.t}}` : "") + (tk.m ? `${MQ.m}{${tk.m}}` : "");
 }
 function treeCss(lists, editing) {
-  const acc = { d: "", t: "", m: "" };
+  const acc = ruleBuckets();
   usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach((l) => l.forEach((n) => nodeCss(n, editing, acc)));
   const tk = tokenCss();
-  return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : "");
+  return baseCss(editing) + tk.d + acc.d + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : "") + (tk.m || acc.m || acc.vm ? `${MQ.m}{${tk.m}${acc.m}${acc.vm}}` : "") + exactVisibilityCss(acc);
 }
 function wordpressStyles(pg2) {
   const globalTrees = [state.header, state.footer];
