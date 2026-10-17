@@ -56,6 +56,23 @@ test.each([['h2','H2'],['h3','H3'],['blockquote','BLOCKQUOTE']])('%s formatting 
  expect([...host.children].map(node=>node.nodeName)).toEqual([nodeName,nodeName,nodeName]);
  expect(host.querySelector(`${tag} ol,${tag} ul`)).toBeNull();expect(host.textContent).toBe('A boldBTail');
 });
+test('paragraph formatting preserves text and selection after sequential quote formatting',()=>{
+ const text='QA quote retains café & courtyard <sample>.';
+ const {w,host}=richBlockHarness('<p>QA quote retains café &amp; courtyard &lt;sample&gt;.</p>');
+ expect(w.formatRichBlock('blockquote')).toBe(true);
+ expect(host.innerHTML).toBe('<blockquote>QA quote retains café &amp; courtyard &lt;sample&gt;.</blockquote>');
+ expect(w.getSelection().toString()).toBe(text);
+ expect(w.formatRichBlock('p')).toBe(true);
+ expect(host.innerHTML).toBe('<p>QA quote retains café &amp; courtyard &lt;sample&gt;.</p>');
+ expect(w.getSelection().toString()).toBe(text);
+});
+test.each([['h2','H2'],['h3','H3']])('sequential quote then %s formatting preserves direct inline content',(tag,nodeName)=>{
+ const {w,host}=richBlockHarness('<p>Lead <strong>bold</strong> tail</p>');
+ w.formatRichBlock('blockquote');w.formatRichBlock(tag);
+ expect(host.innerHTML).toBe(`<${tag}>Lead <strong>bold</strong> tail</${tag}>`);
+ expect(host.firstElementChild.nodeName).toBe(nodeName);
+ expect(w.getSelection().toString()).toBe('Lead bold tail');
+});
 test('partial selection splits each affected list and preserves unselected list items',()=>{
  const {w,host}=richBlockHarness('<ol><li>Keep A</li><li id="first">Change A</li><li>Keep B</li></ol><ul><li id="second">Change B</li><li>Keep C</li></ul>','#first');
  const range=w.document.createRange();range.setStartBefore(host.querySelector('#first'));range.setEndAfter(host.querySelector('#second'));w.getSelection().removeAllRanges();w.getSelection().addRange(range);w.formatRichBlock('h2');

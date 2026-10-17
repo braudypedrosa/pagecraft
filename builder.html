@@ -5163,16 +5163,26 @@ function formatRichBlock(tag) {
   };
   const splitContainer = (container, childTag) => {
     const out = cdoc.createDocumentFragment();
-    let retained = null;
-    [...container.children].forEach(child => {
-      if ((childTag && child.tagName !== childTag) || !selected(child)) {
+    let retained = null, converted = null;
+    const flushRetained = () => { if (retained) { out.appendChild(retained); retained = null; } };
+    const flushConverted = () => { if (converted) { out.appendChild(converted); converted = null; } };
+    [...container.childNodes].forEach(child => {
+      const element = child.nodeType === 1;
+      if ((childTag && (!element || child.tagName !== childTag)) || !selected(child)) {
+        flushConverted();
         if (!retained) retained = container.cloneNode(false);
         retained.appendChild(child); return;
       }
-      if (retained) { out.appendChild(retained); retained = null; }
-      out.appendChild(child.matches('ol,ul') ? child : replacement(child));
+      flushRetained();
+      if (childTag) { flushConverted(); out.appendChild(replacement(child)); return; }
+      if (element && child.matches('ol,ul')) { flushConverted(); out.appendChild(child); return; }
+      if (element && child.matches('p,h1,h2,h3,h4,h5,h6,blockquote')) {
+        flushConverted(); out.appendChild(replacement(child)); return;
+      }
+      if (!converted) converted = cdoc.createElement(tag);
+      converted.appendChild(child);
     });
-    if (retained) out.appendChild(retained);
+    flushConverted(); flushRetained();
     container.replaceWith(out);
   };
 
