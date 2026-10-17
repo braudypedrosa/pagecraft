@@ -1,0 +1,6 @@
+
+> pagecraft@0.2.0 build:editor-package
+> node packages/editor/build.mjs
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (451 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-animation-two-23939/packages/editor/dist

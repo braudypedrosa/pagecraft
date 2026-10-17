@@ -678,14 +678,14 @@ var ANIM_JS = `/**
             return null;
         }
         
-        // Get duration (default: 0.6s if attribute exists but is empty)
-        const duration = hasDuration ? (element.getAttribute('bp-duration') || '0.6s') : '0.6s';
-        
-        // Get delay (default: 0s if attribute exists but is empty)
-        const delay = hasDelay ? (element.getAttribute('bp-delay') || '0s') : '0s';
-        
-        // Get easing (default: ease-in-out if attribute exists but is empty)
-        const easing = hasEasing ? (element.getAttribute('bp-easing') || 'ease-in-out') : 'ease-in-out';
+        // Keep absent or empty values unset so the chosen preset retains its own defaults.
+        const duration = hasDuration ? (element.getAttribute('bp-duration') || '').trim() : '';
+        const delay = hasDelay ? (element.getAttribute('bp-delay') || '').trim() : '';
+        const easing = hasEasing ? (element.getAttribute('bp-easing') || '').trim() : '';
+
+        if (!duration && !delay && !easing) {
+            return null;
+        }
         
         return {
             duration: duration,
@@ -750,8 +750,8 @@ var ANIM_JS = `/**
     /**
      * Apply animation styles to element
      * 
-     * Applies custom duration, delay, and easing to the element
-     * by setting the animation property directly via inline styles.
+     * Applies only the supplied duration, delay, and easing longhands. The animation name,
+     * fill mode, and any timing value the author left empty stay owned by the CSS preset.
      * 
      * @param {HTMLElement} element - The element to apply styles to
      * @param {Object} attributes - Animation attributes object
@@ -762,10 +762,12 @@ var ANIM_JS = `/**
         const keyframeName = getKeyframeName(element);
         
         if (keyframeName) {
-            // Build the animation property: name duration easing delay fill-mode
-            // Using 'forwards' to keep the final state after animation completes
-            const animationValue = \`\${keyframeName} \${attributes.duration} \${attributes.easing} \${attributes.delay} forwards\`;
-            element.style.animation = animationValue;
+            element.style.animationDuration = '';
+            element.style.animationDelay = '';
+            element.style.animationTimingFunction = '';
+            if (attributes.duration) element.style.animationDuration = attributes.duration;
+            if (attributes.delay) element.style.animationDelay = attributes.delay;
+            if (attributes.easing) element.style.animationTimingFunction = attributes.easing;
         }
     }
 
@@ -1023,6 +1025,9 @@ var ANIM_JS = `/**
                     // Clear inline animation style when element leaves view
                     // This allows CSS defaults to work if element re-enters without custom attributes
                     element.style.animation = '';
+                    element.style.animationDuration = '';
+                    element.style.animationDelay = '';
+                    element.style.animationTimingFunction = '';
                 }
             });
         }

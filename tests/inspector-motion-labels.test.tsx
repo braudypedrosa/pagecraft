@@ -16,7 +16,7 @@ test('motion choices and timing fields have names matching their visible labels'
     r.draw(() => <Inspector />, 'right');
     const choice = r.$('select[aria-label="Animation"]') as HTMLSelectElement;
     assert.ok(choice);
-    assert.equal(choice.options.length, C.ANIM_NAMES.length + 1);
+    assert.equal(choice.options.length, C.ANIM_NAMES.filter(name => name !== 'fade-out').length + 1);
     act(() => {
       choice.value = 'fade-up';
       choice.dispatchEvent(new Event('change', { bubbles: true }));

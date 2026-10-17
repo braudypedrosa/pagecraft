@@ -1,0 +1,65 @@
+{
+  "at": "2026-10-17T05:59:31.247Z",
+  "environment": "staging",
+  "source": "23939c587921a3d709053017b061122ef951df11",
+  "node": "nfzf4v1jd",
+  "cases": [],
+  "fullMotionCoverage": false,
+  "combined": {
+    "expected": {
+      "animationName": "bpFadeIn",
+      "duration": "0.8s",
+      "delay": "0.12s",
+      "easing": "ease-in-out"
+    },
+    "immediate": {
+      "animation": "0.8s ease-in-out 0.12s forwards bpFadeIn",
+      "attrs": [
+        [
+          "data-lightbox",
+          ""
+        ],
+        [
+          "data-bp-watched",
+          "true"
+        ]
+      ],
+      "opacity": "1",
+      "transform": "none",
+      "transition": "all"
+    }
+  },
+  "bounceNoOverrides": {
+    "animation": "1s ease-in-out forwards bpBounce",
+    "className": "pagecraft-gallery pagecraft-gallery-fixed pagecraft-fzf4v1jd bp-animate pc-bounce bp-is-visible bp-is-animating",
+    "duration": "1s"
+  },
+  "bounceDelayOnly": {
+    "animation": "0.6s ease-in-out 0.2s forwards bpBounce",
+    "attrs": [
+      [
+        "bp-delay",
+        "0.2s"
+      ],
+      [
+        "bp-animation-once",
+        "true"
+      ]
+    ],
+    "delay": "0.2s",
+    "duration": "0.6s"
+  },
+  "partialTimingBug": true,
+  "fadeOutOnce": {
+    "animation": "0.6s ease-in-out forwards bpFadeOut",
+    "className": "pagecraft-gallery pagecraft-gallery-fixed pagecraft-fzf4v1jd bp-animate pc-fade-out bp-is-visible bp-is-animating bp-is-done-animating",
+    "once": "true",
+    "opacity": "0"
+  },
+  "harnessNote": "Early pointer attempts to reset the long Animation menu targeted an option above the scrolled popup viewport. Scrolling the popup to its top, then selecting — none —, reset correctly; keyboard Home/Enter also passed. No reset defect established.",
+  "restoredAnimationNone": true,
+  "legacyBeforeUpgrade": {
+    "name": "Fade out",
+    "purpose": "Native legacy-value compatibility check after the entrance selector upgrade; restore to none after acceptance."
+  }
+}

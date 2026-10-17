@@ -1,0 +1,10 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (451 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-animation-one-23939/packages/editor/dist
+tests/animation-runtime.test.ts(3,23): error TS7016: Could not find a declaration file for module 'jsdom'. '/private/tmp/pagecraft-animation-one-23939/node_modules/jsdom/lib/api.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/jsdom` if it exists or add a new declaration (.d.ts) file containing `declare module 'jsdom';`
+tests/entrance-animation-options.test.tsx(9,56): error TS2694: Namespace '"/private/tmp/pagecraft-animation-one-23939/app/src/core/index"' has no exported member 'Node'.
+tests/entrance-animation-options.test.tsx(76,11): error TS6133: 'choice' is declared but its value is never read.

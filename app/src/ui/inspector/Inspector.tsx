@@ -339,6 +339,11 @@ const transitionCtl = (): Control => ({
   note: 'Animates a hover, a focus, or a class change.'
 });
 
+const entranceAnimations = (current = '') => {
+  const choices = C.ANIM_NAMES.filter(name => name !== 'fade-out');
+  return current === 'fade-out' ? [...choices, 'fade-out'] : choices;
+};
+
 function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode; showTransition?: boolean; showAnimation?: boolean }) {
   const a = n.anim || {};
   const apply = (patch: Record<string, unknown>) => {
@@ -377,14 +382,16 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
         <select class="ctl" aria-label="Animation" value={a.name || ''}
           onChange={e => hard({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>
-          {C.ANIM_NAMES.map(x => (
-            <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
+          {entranceAnimations(a.name).map(x => (
+            <option key={x} value={x}>{x === 'fade-out'
+              ? 'Fade out (existing)'
+              : x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
           ))}
         </select>
       </div>
       {a.name ? (
         <>
-          {time('dur', 'Duration', '0.6s')}
+          {time('dur', 'Duration', 'Preset default')}
           {time('delay', 'Delay', '0s')}
           <div class="f"><label>Easing</label>
             <input class="ctl" aria-label="Easing" value={a.ease || ''} placeholder="ease-in-out"

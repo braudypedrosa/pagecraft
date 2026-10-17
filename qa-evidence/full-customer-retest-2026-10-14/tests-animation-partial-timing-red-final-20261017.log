@@ -1,0 +1,119 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-animation-red-23939
+
+ ❯ tests/animation-runtime.test.ts (6 tests | 6 failed) 104ms
+     × delay-only Bounce keeps its 1s preset duration and honours Once 56ms
+     × easing-only Spin keeps its 0.8s preset duration 11ms
+     × duration-only keeps the preset easing and delay 10ms
+     × a full timing override applies each supplied value without replacing the preset name 9ms
+     × empty timing attributes use the complete CSS preset unchanged 11ms
+     × leaving clears timing overrides and re-entry applies them again 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > delay-only Bounce keeps its 1s preset duration and honours Once
+AssertionError: expected 'bpBounce 0.6s ease-in-out 0.2s forwar…' to contain 'bpBounce 1s ease-in-out'
+
+Expected: "bpBounce 1s ease-in-out"
+Received: "bpBounce 0.6s ease-in-out 0.2s forwards"
+
+ ❯ tests/animation-runtime.test.ts:47:60
+     45|     observer.enter(element);
+     46|
+     47|     expect(dom.window.getComputedStyle(element).animation).toContain('…
+       |                                                            ^
+     48|     expect(element.style.animation).toBe('');
+     49|     expect(element.style.animationDuration).toBe('');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > easing-only Spin keeps its 0.8s preset duration
+AssertionError: expected 'bpSpin 0.6s linear 0s forwards' to contain 'bpSpin .8s ease-in-out'
+
+Expected: "bpSpin .8s ease-in-out"
+Received: "bpSpin 0.6s linear 0s forwards"
+
+ ❯ tests/animation-runtime.test.ts:59:60
+     57|     observer.enter(element);
+     58|
+     59|     expect(dom.window.getComputedStyle(element).animation).toContain('…
+       |                                                            ^
+     60|     expect(element.style.animation).toBe('');
+     61|     expect(element.style.animationDuration).toBe('');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > duration-only keeps the preset easing and delay
+AssertionError: expected 'bpRotateIn 1.4s ease-in-out 0s forwar…' to contain 'bpRotateIn .8s ease-in-out'
+
+Expected: "bpRotateIn .8s ease-in-out"
+Received: "bpRotateIn 1.4s ease-in-out 0s forwards"
+
+ ❯ tests/animation-runtime.test.ts:70:60
+     68|     observer.enter(element);
+     69|
+     70|     expect(dom.window.getComputedStyle(element).animation).toContain('…
+       |                                                            ^
+     71|     expect(element.style.animation).toBe('');
+     72|     expect(element.style.animationDuration).toBe('1.4s');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > a full timing override applies each supplied value without replacing the preset name
+AssertionError: expected 'bpFadeUp 1.2s ease-out 0.3s forwards' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ bpFadeUp 1.2s ease-out 0.3s forwards
+
+ ❯ tests/animation-runtime.test.ts:83:37
+     81|     observer.enter(element);
+     82|
+     83|     expect(element.style.animation).toBe('');
+       |                                     ^
+     84|     expect(element.style.animationDuration).toBe('1.2s');
+     85|     expect(element.style.animationDelay).toBe('0.3s');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > empty timing attributes use the complete CSS preset unchanged
+AssertionError: expected 'bpBounce 0.6s ease-in-out 0s forwards' to contain 'bpBounce 1s ease-in-out'
+
+Expected: "bpBounce 1s ease-in-out"
+Received: "bpBounce 0.6s ease-in-out 0s forwards"
+
+ ❯ tests/animation-runtime.test.ts:95:60
+     93|     observer.enter(element);
+     94|
+     95|     expect(dom.window.getComputedStyle(element).animation).toContain('…
+       |                                                            ^
+     96|     expect(element.getAttribute('style')).toBeNull();
+     97|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/animation-runtime.test.ts > exported animation runtime timing overrides > leaving clears timing overrides and re-entry applies them again
+AssertionError: expected '' to be '1.3s' // Object.is equality
+
+- Expected
++ Received
+
+- 1.3s
+
+ ❯ tests/animation-runtime.test.ts:114:45
+    112|     observer.enter(element);
+    113|     expect(element.classList.contains('bp-is-animating')).toBe(true);
+    114|     expect(element.style.animationDuration).toBe('1.3s');
+       |                                             ^
+    115|     expect(element.style.animationDelay).toBe('0.2s');
+    116|     expect(element.style.animationTimingFunction).toBe('linear');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  14:04:58
+   Duration  654ms (transform 25ms, setup 0ms, import 33ms, tests 104ms, environment 405ms)
+
