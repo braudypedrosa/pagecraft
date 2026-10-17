@@ -277,16 +277,19 @@ function VariantPick({ n }: { n: PcNode }) {
   );
 }
 
-function StatePick() {
+const focusStateAvailable = (n: PcNode) => n.type !== 'gallery' || !!n.props.lightbox;
+
+function StatePick({ n }: { n: PcNode }) {
   const cur = C.state.ui.st || '';
   const set = (k: string) => { C.state.ui.st = k as '' | 'hover' | 'focus'; repaint('right'); };
+  const states = C.STATES.filter(([k]) => k !== 'focus' || focusStateAvailable(n));
   return (
     <div class={'f statepick' + (cur ? ' on' : '')}>
       <label>State</label>
       <div class="pick">
         <button type="button" aria-pressed={cur ? 'false' : 'true'}
           class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
-        {C.STATES.map(([k, label]) => (
+        {states.map(([k, label]) => (
           <button type="button" key={k} aria-pressed={cur === k ? 'true' : 'false'}
             class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
         ))}
@@ -635,6 +638,10 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
   if (!h) return null;
 
   const n = h.node, d = C.DEF[n.type];
+  /* A Gallery without lightbox links has no keyboard-focusable frame. Leave authored Focus
+     declarations stored for later re-enabling, but never leave the inspector writing through
+     a state the current Gallery cannot enter. */
+  if (C.state.ui.st === 'focus' && !focusStateAvailable(n)) C.state.ui.st = '';
   /* Forced, not merely defaulted: `stab` persists, so a session that was on Style before the
      role was known would otherwise render a Style pane with no tab row to leave it by. */
   const tab = L.canStructure() ? C.state.ui.stab : 'content';
@@ -704,7 +711,7 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
       ) : null}
       <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
-        {tab === 'content' || many ? null : <StatePick />}
+        {tab === 'content' || many ? null : <StatePick n={n} />}
         {tab === 'style' || tab === 'advanced' ? (
           <div class="inspector-scope-actions">
             <ModifiedFilter active={modifiedOnly} onChange={setModifiedOnly} />

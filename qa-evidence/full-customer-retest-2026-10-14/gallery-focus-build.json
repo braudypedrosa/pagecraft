@@ -1,0 +1,108 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Gallery keyboard Focus state selector and inspector-capability verification for the next combined spacing/focus batch.",
+  "parentCommit": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "status": "source-review ready; focused red/green complete; full isolated build, full suite, golden/baseline review, and native verification pending root batching",
+  "exports": {
+    "red": "/tmp/pagecraft-gallery-focus-red-c336-final",
+    "green": "/tmp/pagecraft-gallery-focus-green-c336-final"
+  },
+  "sourceScope": {
+    "overlayCount": 3,
+    "files": {
+      "app/src/core/index.ts": {
+        "parentSha256": "5521c96a98b570ad10156ecbc0d4231c5ee6e527f2ab3219cde93f3fac661b2d",
+        "overlaySha256": "17fbe9eecd6b343ba3cbd7348b960ea2719921639ebce674b41f9a8b674381c6",
+        "greenEqualsMain": true
+      },
+      "app/src/ui/inspector/Inspector.tsx": {
+        "parentSha256": "8f8b39d1e28148d7c879aa87e1e222ae1e4c3be4f1b980ead4783973f3e517f0",
+        "overlaySha256": "4e9c9b9da1e5c4c69b15ec03b3288a5e1bc89d3ea7d4eee021f5cb308627e0d0",
+        "greenEqualsMain": true
+      },
+      "tests/gallery-focus-state.test.tsx": {
+        "overlaySha256": "8b1d158e20057a4612b3b5e83bc336971022edc794dbcb639638379c2b6e0d98",
+        "exactInMainRedGreen": true
+      }
+    },
+    "spacingFilesChangedByThisAgent": false
+  },
+  "implementation": {
+    "nodeFocusSelector": ".pagecraft-node:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)",
+    "reusableClassFocusSelector": ".c-class:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)",
+    "galleryCompanionSpecificity": "0,2, matching existing reusable state selectors so later per-node Hover or Focus rules retain precedence",
+    "genericReusableClassFocusSelectorPreserved": true,
+    "focusWithinUsed": false,
+    "extraTabStopAdded": false,
+    "inspector": "Focus is omitted when Gallery lightbox is off; an unavailable current Focus UI state returns to Resting while authored node and reusable-class Focus declarations remain stored."
+  },
+  "verification": {
+    "red": {
+      "command": "npx vitest run tests/gallery-focus-state.test.tsx",
+      "cwd": "/tmp/pagecraft-gallery-focus-red-c336-final",
+      "composition": "committed parent plus exact final test only",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-red-c336-20261017.log",
+      "exitCode": 1,
+      "testFilesFailed": 1,
+      "testsFailed": 3,
+      "duration": "959ms",
+      "failures": [
+        "Gallery node Focus CSS remained on the unfocusable root :focus-visible selector.",
+        "Reusable class Focus CSS lacked the Gallery focused-frame selector.",
+        "Lightbox-off Gallery Inspector retained the unavailable Focus UI state."
+      ]
+    },
+    "green": {
+      "command": "npx vitest run tests/gallery-focus-state.test.tsx",
+      "cwd": "/tmp/pagecraft-gallery-focus-green-c336-final",
+      "composition": "committed parent plus exact final three overlays",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-green-c336-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 1,
+      "testsPassed": 3,
+      "duration": "934ms",
+      "coverage": [
+        "node and reusable-class Gallery Focus selectors across responsive buckets",
+        "generic reusable focus selector remains unchanged and the Gallery companion stays at specificity 0,2",
+        "a later per-node Hover rule remains after the reusable Gallery Focus companion in the emitted cascade",
+        "no focus-within pointer activation and no Gallery root tab stop",
+        "lightbox-off Focus omission and UI-state reset",
+        "authored node and reusable-class Focus declarations survive disabling and re-enabling lightbox",
+        "non-Gallery Focus remains available"
+      ]
+    },
+    "protectedMain": {
+      "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+      "fileCount": 11,
+      "exact": true
+    },
+    "diffCheck": {
+      "command": "git diff --check -- app/src/core/index.ts app/src/ui/inspector/Inspector.tsx tests/gallery-focus-state.test.tsx",
+      "exitCode": 0
+    },
+    "preservedHistory": {
+      "startupFailureLog": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-red-c336-startup-failure-20261017.log",
+      "startupFailure": "The first invocation stopped before test collection because dependencies had not been installed in the red archive.",
+      "preFinalRedLog": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-red-c336-pre-final-20261017.log",
+      "preFinalGreenLog": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-green-c336-pre-final-20261017.log",
+      "preSpecificityRedLog": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-red-c336-pre-specificity-20261017.log",
+      "preSpecificityGreenLog": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-focus-green-c336-pre-specificity-20261017.log"
+    }
+  },
+  "boundaries": {
+    "mainBuildsRun": false,
+    "mainTestsRunByThisAgent": false,
+    "mainGeneratedFilesWritten": false,
+    "mainNpmCiRunAccidentally": true,
+    "mainNpmCiEffect": "node_modules was refreshed; package and source files were not changed, and the protected generated 11 remain exact",
+    "fullBuildRun": false,
+    "fullSuiteRun": false,
+    "browserOrNativeWorkRun": false,
+    "commitOrPushRun": false
+  },
+  "risksAndPendingReview": [
+    "The selector uses :has(), matching Pagecraft's current modern-browser runtime; root native verification will cover keyboard versus pointer behavior at desktop, tablet, and mobile widths.",
+    "Core CSS output changes require the later combined clean-build determinism, golden review, and baseline guard owned by root.",
+    "Reusable Focus classes emit one Gallery-specific companion rule per breakpoint even when no current Gallery uses the class; the selector is inert outside Gallery containers."
+  ]
+}

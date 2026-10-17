@@ -1,0 +1,95 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Bounded red/green verification of reviewed box-spacing validation without building or testing main.",
+  "parentCommit": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "status": "focused red/green complete; full build, full suite, and native review intentionally pending root batching",
+  "exports": {
+    "red": "/tmp/pagecraft-box-spacing-red-c336-final",
+    "green": "/tmp/pagecraft-box-spacing-green-c336-final"
+  },
+  "sourceScope": {
+    "overlayCount": 2,
+    "files": [
+      "app/src/ui/inspector/Controls.tsx",
+      "tests/box-spacing-validation.test.tsx"
+    ],
+    "controlsSha256": "2d0d59b6d06dc97d35ad90769d84fb6b206b72b04e6d26e6f9fd99edb2f334b3",
+    "testSha256": "fb213fc80952529e3ed3590354e316023b47bb23f441aaf029b68b1e75a65e72",
+    "greenControlsEqualsMain": true,
+    "redControlsEqualsParent": true,
+    "testExactInMainRedGreen": true,
+    "integrityEvidence": "qa-evidence/full-customer-retest-2026-10-14/box-spacing-integrity-check.json"
+  },
+  "verification": {
+    "npmCi": {
+      "command": "npm ci --ignore-scripts",
+      "red": {
+        "log": "qa-evidence/full-customer-retest-2026-10-14/box-spacing-red-npm-ci.log",
+        "exitCode": 0
+      },
+      "green": {
+        "log": "qa-evidence/full-customer-retest-2026-10-14/box-spacing-green-npm-ci.log",
+        "exitCode": 0
+      },
+      "existingHighSeverityAuditFindings": 3,
+      "dependencyChangesMade": false
+    },
+    "red": {
+      "command": "npx vitest run tests/box-spacing-validation.test.tsx",
+      "cwd": "/tmp/pagecraft-box-spacing-red-c336-final",
+      "composition": "committed parent plus new test only",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-box-spacing-red-c336-20261017.log",
+      "exitCode": 1,
+      "testFilesFailed": 1,
+      "testsFailed": 1,
+      "testsPassed": 2,
+      "failure": "Expected padding-top 0rem; parent emitted -1.25rem. The failure occurred before the input min assertion.",
+      "duration": "696ms"
+    },
+    "green": {
+      "command": "npx vitest run tests/box-spacing-validation.test.tsx",
+      "cwd": "/tmp/pagecraft-box-spacing-green-c336-final",
+      "composition": "committed parent plus exact reviewed Controls.tsx and test overlays",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-box-spacing-green-c336-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 1,
+      "testsPassed": 3,
+      "duration": "685ms",
+      "coverage": [
+        "negative padding clamps to 0 and emits 0rem before checking min metadata",
+        "negative decimal margins remain valid and empty input unsets the side",
+        "px, rem, percent, and em plus responsive, state, and class destinations remain valid"
+      ]
+    },
+    "diffCheck": {
+      "command": "git diff --check -- app/src/ui/inspector/Controls.tsx tests/box-spacing-validation.test.tsx",
+      "exitCode": 0
+    },
+    "protectedMain": {
+      "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+      "fileCount": 11,
+      "exact": true
+    },
+    "attemptHistory": {
+      "newFocusedAttempts": 2,
+      "redAttempts": 1,
+      "greenAttempts": 1,
+      "retries": 0,
+      "skippedFailures": 0,
+      "previousWorkerTemporaryLogsPreserved": true
+    }
+  },
+  "boundaries": {
+    "mainBuildsRun": false,
+    "mainTestsRunByThisAgent": false,
+    "mainGeneratedFilesWritten": false,
+    "fullBuildRun": false,
+    "fullSuiteRun": false,
+    "browserOrNativeWorkRun": false,
+    "commitOrPushRun": false
+  },
+  "remaining": [
+    "Root is batching full isolated builds and the full suite after the Gallery focus-state investigation.",
+    "Root owns native and gallery review."
+  ]
+}

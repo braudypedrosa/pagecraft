@@ -1,0 +1,12 @@
+{
+  "worktree": "/private/tmp/pagecraft-spacing-red-1792219745",
+  "head": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "scope": "Task-created unmanaged red-only worktree; only untracked test was preserved before clean removal. Other worktrees untouched.",
+  "testSha256": "70e51cd9139d94547740e412ec507122ccfb551f4de44dc3f7b0a0c86e2fc0fb",
+  "logs": [
+    "pagecraft-spacing-red-rerun.log",
+    "pagecraft-spacing-green.log"
+  ],
+  "mainFocusedTestException": "Previous worker ran focused green test in main contrary to scope; root independently verified all11protectedoutputs exact and reran meaningful red/green in clean archives.",
+  "removed": true
+}

@@ -5849,6 +5849,7 @@ function tokenVars() {
 }
 var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 var BUTTON_AUTHORED = "--pc-authored-button-";
+var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
@@ -5872,7 +5873,10 @@ function tokenCss() {
     if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     STATES.forEach(([k, , sel]) => {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
-      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+      if (d) {
+        acc[b] += `.c-${c.id}${sel}{${d}}`;
+        if (k === "focus") acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+      }
     });
   }));
   return acc;
@@ -10367,7 +10371,8 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const stateSelector = n.type === "gallery" && k === "focus" ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {
       const reset = {};
@@ -20704,7 +20709,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const unit = root.querySelector("select").value;
       delete C2.stWrite(C2.tgtObj(n2))[C2.dk()][c3.c];
       root.querySelectorAll("input").forEach((inp, i3) => {
-        const v3 = String(inp.value).trim();
+        const input = inp;
+        const raw = input.value.trim();
+        const parsed = Number(raw);
+        const v3 = !c3.neg && raw !== "" && Number.isFinite(parsed) && parsed < 0 ? "0" : raw;
+        if (v3 !== raw) input.value = v3;
         C2.setCss(C2.tgtObj(n2), c3.c + "-" + SIDES[i3], v3 === "" ? "" : v3 + unit, !!c3.r);
       });
       L2.repaintCss();
@@ -20721,6 +20730,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "data-field-part": s3,
             class: "ctl",
             type: "number",
+            min: c3.neg ? void 0 : 0,
             value: vals[k3].n,
             placeholder: "0",
             title: s3,
@@ -21836,12 +21846,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] }) : null
     ] });
   }
-  function StatePick() {
+  var focusStateAvailable = (n2) => n2.type !== "gallery" || !!n2.props.lightbox;
+  function StatePick({ n: n2 }) {
     const cur = C2.state.ui.st || "";
     const set = (k3) => {
       C2.state.ui.st = k3;
       repaint("right");
     };
+    const states = C2.STATES.filter(([k3]) => k3 !== "focus" || focusStateAvailable(n2));
     return /* @__PURE__ */ u2("div", { class: "f statepick" + (cur ? " on" : ""), children: [
       /* @__PURE__ */ u2("label", { children: "State" }),
       /* @__PURE__ */ u2("div", { class: "pick", children: [
@@ -21855,7 +21867,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             children: "Resting"
           }
         ),
-        C2.STATES.map(([k3, label]) => /* @__PURE__ */ u2(
+        states.map(([k3, label]) => /* @__PURE__ */ u2(
           "button",
           {
             type: "button",
@@ -22262,6 +22274,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     });
     if (!h3) return null;
     const n2 = h3.node, d3 = C2.DEF[n2.type];
+    if (C2.state.ui.st === "focus" && !focusStateAvailable(n2)) C2.state.ui.st = "";
     const tab2 = L2.canStructure() ? C2.state.ui.stab : "content";
     const style = commonControlsFirst(d3.controls.style || []);
     const moduleStyleKeys = new Set(style.flatMap((c3) => c3.c ? ["css:" + c3.c] : c3.k ? ["prop:" + c3.k] : []));
@@ -22330,7 +22343,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           role: L2.canStructure() ? "tabpanel" : void 0,
           "aria-labelledby": L2.canStructure() ? "inspector-tab-" + tab2 : void 0,
           children: [
-            tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, {}),
+            tab2 === "content" || many ? null : /* @__PURE__ */ u2(StatePick, { n: n2 }),
             tab2 === "style" || tab2 === "advanced" ? /* @__PURE__ */ u2("div", { class: "inspector-scope-actions", children: [
               /* @__PURE__ */ u2(ModifiedFilter, { active: modifiedOnly, onChange: setModifiedOnly }),
               many ? null : /* @__PURE__ */ u2(BreakpointReset, { n: n2 })

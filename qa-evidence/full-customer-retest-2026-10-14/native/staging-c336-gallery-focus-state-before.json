@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-17T06:56:58.909Z",
+  "environment": "staging",
+  "source": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "node": "nfzf4v1jd",
+  "expectedColour": "rgb(187, 204, 221)",
+  "editor": {
+    "background": "rgba(0, 0, 0, 0)"
+  },
+  "preview": {
+    "background": "rgba(0, 0, 0, 0)",
+    "childFocused": true,
+    "focusWithin": true,
+    "rootFocusVisible": false,
+    "rootFocusable": null
+  },
+  "emittedRules": [
+    ".pagecraft-fzf4v1jd:focus-visible{background-color:#bbccdd;}"
+  ],
+  "reproduced": true,
+  "predicateNote": "The original harness also assumed the editor forces a Focus preview. That assumption was removed. The defect is proven by the saved emitted Focus rule plus an actually keyboard-focused Gallery image whose parent never matches :focus-visible.",
+  "restored": true
+}

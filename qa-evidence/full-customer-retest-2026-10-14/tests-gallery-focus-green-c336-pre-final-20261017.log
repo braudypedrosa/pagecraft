@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-gallery-focus-green-c336-final
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  15:01:42
+   Duration  700ms (transform 243ms, setup 0ms, import 288ms, tests 61ms, environment 253ms)
+

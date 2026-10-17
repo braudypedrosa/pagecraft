@@ -1,0 +1,132 @@
+{
+  "at": "2026-10-17T06:31:16.437Z",
+  "source": "23939c587921a3d709053017b061122ef951df11",
+  "environment": "staging",
+  "node": "nfzf4v1jd",
+  "cases": [
+    {
+      "unit": "rem",
+      "rendered": {
+        "fontSize": "18px",
+        "margin": [
+          "-16px",
+          "32px",
+          "-48px",
+          "64px"
+        ],
+        "padding": [
+          "16px",
+          "32px",
+          "48px",
+          "64px"
+        ],
+        "parentWidth": "1200px",
+        "rootFontSize": "16px"
+      },
+      "pass": true
+    },
+    {
+      "unit": "em",
+      "rendered": {
+        "fontSize": "18px",
+        "margin": [
+          "-18px",
+          "36px",
+          "-54px",
+          "72px"
+        ],
+        "padding": [
+          "18px",
+          "36px",
+          "54px",
+          "72px"
+        ],
+        "parentWidth": "1200px",
+        "rootFontSize": "16px"
+      },
+      "pass": true
+    },
+    {
+      "unit": "%",
+      "rendered": {
+        "fontSize": "18px",
+        "margin": [
+          "-12px",
+          "24px",
+          "-36px",
+          "48px"
+        ],
+        "padding": [
+          "12px",
+          "24px",
+          "36px",
+          "48px"
+        ],
+        "parentWidth": "1200px",
+        "rootFontSize": "16px"
+      },
+      "pass": true
+    }
+  ],
+  "fullSpacingCoverage": false,
+  "original": {
+    "fontSize": "18px",
+    "margin": [
+      "0px",
+      "0px",
+      "0px",
+      "0px"
+    ],
+    "padding": [
+      "0px",
+      "0px",
+      "0px",
+      "0px"
+    ],
+    "parentWidth": "1200px",
+    "rootFontSize": "16px"
+  },
+  "negativePadding": {
+    "input": {
+      "min": null,
+      "valid": true,
+      "value": "-1"
+    },
+    "rendered": {
+      "fontSize": "18px",
+      "margin": [
+        "-12px",
+        "24px",
+        "-36px",
+        "48px"
+      ],
+      "padding": [
+        "0px",
+        "24px",
+        "36px",
+        "48px"
+      ],
+      "parentWidth": "1200px",
+      "rootFontSize": "16px"
+    }
+  },
+  "restored": {
+    "fontSize": "18px",
+    "margin": [
+      "0px",
+      "0px",
+      "0px",
+      "0px"
+    ],
+    "padding": [
+      "0px",
+      "0px",
+      "0px",
+      "0px"
+    ],
+    "parentWidth": "1200px",
+    "rootFontSize": "16px"
+  },
+  "restoredExact": true,
+  "restoredPersistedExact": true
+}

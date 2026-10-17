@@ -446,7 +446,11 @@ function BoxCtl({ n, c }: P) {
        breakpoint. The inspector and the generated CSS now have one unambiguous source. */
     delete C.stWrite(C.tgtObj(n))[C.dk()][c.c!];
     root.querySelectorAll('input').forEach((inp, i) => {
-      const v = String((inp as HTMLInputElement).value).trim();
+      const input = inp as HTMLInputElement;
+      const raw = input.value.trim();
+      const parsed = Number(raw);
+      const v = !c.neg && raw !== '' && Number.isFinite(parsed) && parsed < 0 ? '0' : raw;
+      if (v !== raw) input.value = v;
       C.setCss(C.tgtObj(n), c.c + '-' + SIDES[i], v === '' ? '' : v + unit, !!c.r);
     });
     L.repaintCss();
@@ -462,7 +466,7 @@ function BoxCtl({ n, c }: P) {
     </div>
     <div class="row4">
       {SIDES.map((s, k) => (
-        <input data-field-part={s} class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
+        <input data-field-part={s} class="ctl" key={s} type="number" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
       ))}
       <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}

@@ -2416,6 +2416,13 @@ function tokenVars() {
 const buttonVariantProperty = (property: string) => property === 'background-color'
   || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 const BUTTON_AUTHORED = '--pc-authored-button-';
+/* A Gallery's focusable surface is each lightbox frame, not the grid container. Keep the
+   authored state on the container so background, border and layout effects still dress the
+   whole Gallery, but let keyboard focus on a frame activate it. `:where` keeps the Gallery
+   and frame guards at zero specificity: the base class plus :focus-visible remain the same
+   0,2 as every reusable state, so a later per-node state still wins the established cascade. */
+const galleryFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
@@ -2444,7 +2451,12 @@ function tokenCss() {
        still loses to an element's own hover, which has the same specificity and comes later. */
     STATES.forEach(([k, , sel]) => {
       const d = decl((c.st && c.st[k] && c.st[k]![b]) || {});
-      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+      if (d) {
+        acc[b] += `.c-${c.id}${sel}{${d}}`;
+        /* Keep the ordinary class selector for generic focusables and add the Gallery's
+           focused-frame path once, beside the class rule whose cascade order it shares. */
+        if (k === 'focus') acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+      }
     });
   }));
   return acc;
@@ -7540,7 +7552,9 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const stateSelector = n.type === 'gallery' && k === 'focus'
+      ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {
       const reset: Decls = {};

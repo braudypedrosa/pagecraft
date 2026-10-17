@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-box-spacing-red-c336-final
+
+ ❯ tests/box-spacing-validation.test.tsx (3 tests | 1 failed) 29ms
+   × padding clamps negative finite input and advertises a nonnegative minimum 16ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/box-spacing-validation.test.tsx > padding clamps negative finite input and advertises a nonnegative minimum
+AssertionError: Expected values to be strictly equal:
+
+'-1.25rem' !== '0rem'
+
+
+Expected: "0rem"
+Received: "-1.25rem"
+
+ ❯ tests/box-spacing-validation.test.tsx:29:10
+     27|   act(() => r.type(input, '-1.25'));
+     28|
+     29|   assert.equal(n.css.d['padding-top'], '0rem');
+       |          ^
+     30|   assert.equal(input.value, '0');
+     31|   assert.equal(input.min, '0');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  14:51:45
+   Duration  696ms (transform 226ms, setup 0ms, import 268ms, tests 29ms, environment 291ms)
+

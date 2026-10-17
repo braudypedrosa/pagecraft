@@ -4083,6 +4083,7 @@ function tokenVars() {
 }
 var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 var BUTTON_AUTHORED = "--pc-authored-button-";
+var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
@@ -4106,7 +4107,10 @@ function tokenCss() {
     if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     STATES.forEach(([k, , sel]) => {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
-      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+      if (d) {
+        acc[b] += `.c-${c.id}${sel}{${d}}`;
+        if (k === "focus") acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+      }
     });
   }));
   return acc;
@@ -8601,7 +8605,8 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const stateSelector = n.type === "gallery" && k === "focus" ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {
       const reset = {};

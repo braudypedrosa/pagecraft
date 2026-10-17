@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-17",
+  "parentCommit": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "parentSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "candidateOneSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "candidateTwoSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "mainSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "candidatesByteExact": true,
+  "candidateEqualsParent": true,
+  "candidateEqualsMain": true,
+  "recursiveChangedLeafCount": 0,
+  "changedPaths": [],
+  "summary": "The approved five overlays do not alter the shared WordPress golden vector; no fixture review or copy is required."
+}
