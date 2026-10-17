@@ -1,0 +1,21 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (452 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-nav-units-one-75ed/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-nav-units-one-75ed
+
+(node:43409) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:43439) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:43560) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  215 passed | 2 skipped (217)
+      Tests  2399 passed | 5 skipped (2404)
+   Start at  16:34:45
+   Duration  26.41s (transform 9.56s, setup 0ms, import 58.97s, tests 196.24s, environment 26.90s)
+

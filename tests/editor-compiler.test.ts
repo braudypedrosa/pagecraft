@@ -153,6 +153,111 @@ describe('sealed editor compiler', () => {
     expect(JSON.stringify(Core.doc())).toBe(activeBefore);
   });
 
+  it('binds current WordPress menus through reachable component definitions and slots once', async () => {
+    Core.blankProject('Component menu compiler input');
+    const page = Core.state.pages[0];
+    page.id = 'component-menu-page';
+
+    const primaryNav = Core.N('nav', {
+      aria: 'Shared primary', collapse: 'tablet', mobileMenu: 'fullscreen',
+      items: [{ id: 'old-primary', label: 'Stale primary', href: 'https://old.example/primary' }],
+    }, { d: { '--nav-gap': '31px' }, t: { 'font-size': '14px' }, m: { 'font-size': '12px' } });
+    primaryNav.id = 'component-primary-nav';
+    const primary = { id: 'primary-component', name: 'Primary component', node: primaryNav, props: [] };
+
+    const slotTarget = Core.N('box', { layout: 'flex' });
+    slotTarget.id = 'component-slot-target';
+    slotTarget.slot = 'menu';
+    const slotRoot = Core.N('section', {}, {}, [slotTarget]);
+    slotRoot.id = 'component-slot-root';
+    const slot = { id: 'slot-component', name: 'Slot component', node: slotRoot, props: [] };
+    const slotNav = Core.N('nav', {
+      aria: 'Shared utility', collapse: 'mobile', mobileMenu: 'dropdown',
+      items: [{ id: 'old-utility', label: 'Stale utility', href: 'https://old.example/utility' }],
+    });
+    slotNav.id = 'component-slot-nav';
+    slotNav.slot = 'menu';
+
+    const footerNav = Core.N('nav', {
+      aria: 'Shared footer', collapse: 'never', mobileMenu: 'dropdown',
+      items: [{ id: 'old-footer', label: 'Stale footer', href: 'https://old.example/footer' }],
+    });
+    footerNav.id = 'component-footer-nav';
+    const footerRoot = Core.N('section', {}, {}, [Core.N('box', {}, {}, [footerNav])]);
+    footerRoot.id = 'component-footer-root';
+    const footer = { id: 'footer-component', name: 'Footer component', node: footerRoot, props: [] };
+
+    const cycleA = Core.N('section');
+    cycleA.id = 'component-cycle-a-root';
+    const cycleB = Core.N('section');
+    cycleB.id = 'component-cycle-b-root';
+    const cycleBInstance = Core.clone(cycleB);
+    cycleBInstance.id = 'component-cycle-b-instance';
+    cycleBInstance.use = 'cycle-b';
+    const cycleAInstance = Core.clone(cycleA);
+    cycleAInstance.id = 'component-cycle-a-instance';
+    cycleAInstance.use = 'cycle-a';
+    cycleA.children = [cycleBInstance];
+    cycleB.children = [cycleAInstance];
+    const cycleAComponent = { id: 'cycle-a', name: 'Cycle A', node: cycleA, props: [] };
+    const cycleBComponent = { id: 'cycle-b', name: 'Cycle B', node: cycleB, props: [] };
+
+    const orphanNav = Core.N('nav', {
+      items: [{ id: 'orphan', label: 'Orphan component item', href: 'https://orphan.example/' }],
+    });
+    orphanNav.id = 'component-orphan-nav';
+    const orphan = { id: 'orphan-component', name: 'Orphan component', node: orphanNav, props: [] };
+    /* Put the orphan first so a blanket definition scan would steal Primary from the first
+       component that the header actually renders. */
+    Core.state.meta.components = [orphan, primary, slot, footer, cycleAComponent, cycleBComponent];
+
+    const instance = (definition: typeof primary, id: string, children = [] as typeof primaryNav.children) => {
+      const node = Core.clone(definition.node);
+      node.id = id;
+      node.use = definition.id;
+      node.children = children;
+      node.css = { d: {}, t: {}, m: {} };
+      return node;
+    };
+    Core.state.header = [
+      instance(primary, 'primary-instance-a'),
+      instance(primary, 'primary-instance-b'),
+      instance(slot, 'slot-instance', [slotNav]),
+      instance(cycleAComponent, 'cycle-instance'),
+    ];
+    Core.state.footer = [instance(footer, 'footer-instance')];
+    const input = Core.clone(Core.doc());
+    const inputBefore = JSON.stringify(input);
+
+    const result = await compileDocument(input, {
+      pageId: page.id,
+      assets: {},
+      wordpressMenus: [
+        { id: '10', location: 'primary', items: [{ id: 'p1', label: 'Current primary', url: 'https://example.test/' }] },
+        { id: '11', location: 'utility', items: [{ id: 'u1', label: 'Current utility', url: 'https://example.test/utility/' }] },
+        { id: '12', location: 'footer', items: [{ id: 'f1', label: 'Current footer', url: 'https://example.test/footer/' }] },
+      ],
+    }, dependencies());
+
+    expect(result.html.match(/data-pagecraft-menu-location="primary"/g)).toHaveLength(2);
+    expect(result.html.match(/data-pagecraft-menu-location="utility"/g)).toHaveLength(1);
+    expect(result.html.match(/data-pagecraft-menu-location="footer"/g)).toHaveLength(1);
+    expect(result.html.match(/Current primary/g)).toHaveLength(2);
+    expect(result.html).toContain('Current utility');
+    expect(result.html).toContain('Current footer');
+    expect(result.html).not.toContain('Stale primary');
+    expect(result.html).not.toContain('Stale utility');
+    expect(result.html).not.toContain('Stale footer');
+    expect(result.html).not.toContain('Orphan component item');
+    expect(result.html.match(/data-mobile-menu="fullscreen"/g)).toHaveLength(2);
+    expect(result.globalCss).toContain('--nav-gap:31px');
+    expect(result.globalCss).toContain('font-size:14px');
+    expect(result.globalCss).toContain('font-size:12px');
+    expect(result.globalCss).toContain(`.${Core.nodeClass(primaryNav)} .pagecraft-nav-toggle{display:flex}`);
+    expect(result.globalCss).not.toContain(`.${Core.nodeClass(footerNav)} .pagecraft-nav-toggle{display:flex}`);
+    expect(JSON.stringify(input)).toBe(inputBefore);
+  });
+
   it('fails closed for unresolved assets and restores Core after failure', async () => {
     const input = compilerDocument();
     Core.blankProject('Active failure guard');

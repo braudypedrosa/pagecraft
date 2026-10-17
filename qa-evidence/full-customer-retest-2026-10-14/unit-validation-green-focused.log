@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-unit-validation-green.Tkvo6D
+
+
+ Test Files  4 passed (4)
+      Tests  13 passed (13)
+   Start at  16:22:28
+   Duration  976ms (transform 1.09s, setup 0ms, import 1.37s, tests 149ms, environment 1.82s)
+

@@ -1,0 +1,386 @@
+## Current reconciliation — 2026-10-17 Preview51 bounded state
+
+This section is authoritative for the current record. Older checkpoints remain preserved below as explicitly superseded historical evidence. Main/staging exact `75ed8acb11bb3297d4889f3edade56d6af31807e`; CI `39013646681` green and deployment endpoint exact. Production remains `cc026`. `overallPass=false`, `fullCustomerRetestComplete=false`, and all fifteen broad areas remain open.
+
+| Surface | Current status | Evidence and remaining boundary |
+|---|---|---|
+| Gallery motion | **Bounded native acceptance** | `native/staging-c336-gallery-motion-acceptance.json` accepts five timing/Once cases and all 26 offered entry presets, including the explicit 1ms finite smoke; zero-area origins use normal scroll; reduced-motion Desktop/Tablet/Mobile remains visible with no overflow; reset to None and fresh reload restore exact structure. Legacy selected Fadeout is retained; new choices do not offer Fadeout. Full Gallery motion breadth remains open. |
+| Gallery spacing | **Bounded native acceptance; broader verification open** | `native/staging-23939-gallery-spacing-acceptance.json` records rem/em/% spacing, negative margins, reset, and fresh persistence. Negative Padding `-1%` is accepted by the UI but renders as `0px`; the Controls fix and three focused tests have meaningful red/green clean-archive evidence and remain pending full/native integration verification. |
+| Gallery Focus state | **Bounded native acceptance** | The earlier c336 parent-state mismatch is superseded in bounded scope by `native/staging-75ed-focus-spacing-acceptance.json`: ten keyboard/pointer/class-cascade D/T/M cases pass, with lightbox-off preservation, re-enable, and original IDs restored fresh. Broader Focus applicability remains open. |
+| Focus / spacing fix | **Bounded native acceptance** | `native/staging-75ed-focus-spacing-acceptance.json` passes six negative-padding D/T/M cases across four units, valid negative Margin, Undo/Redo, and ten Focus keyboard/pointer/class-cascade D/T/M cases; lightbox-off preservation, re-enable, and original IDs restore fresh. |
+| Cloud motion persistence | **Bounded native acceptance** | `native/staging-c336-gallery-motion-persistence.json` restores None/Transition fresh and retains the hover Transition record; broader motion/module coverage remains open. |
+| Cross-surface verification | **Bounded deterministic checks** | Combined suite records 2,393 passed / 5 skipped, 30 behavior checks and 24 images with zero reviewed pixel differences; dual 11-run determinism and protected 11 exact are retained as bounded evidence. These do not close full QA. |
+| Semantic Add / builder | **Bounded native acceptance** | `native/staging-23939-semantic-add-acceptance.json` accepts six click/drag/Redo cases with atomic originals restored. |
+| Semantic Add / WordPress | **Bounded native acceptance** | `native/wordpress-preview49-semantic-add-acceptance.json` accepts five host-supported click/drag/Redo cases; Save is disabled and original IDs are exact. |
+| Gallery common Style | **Bounded native acceptance** | `native/staging-23939-gallery-common-style-acceptance.json` records 12 finite cases, combined Style persistence/reset through fresh reload, and exact original full structure restoration. Broader Gallery Style/Advanced/background/border/motion/visibility breadth remains open. |
+| Gallery background / border | **Bounded native acceptance** | `native/staging-23939-gallery-background-acceptance.json` records 10 finite cases with exact asset identity, reset, and D/T/M restoration; `native/staging-23939-gallery-border-edges-acceptance.json` records four exact edge persistence/reset cases. Broader Gallery breadth remains open. |
+| Video | **Bounded native acceptance** | `native/staging-09-video-acceptance.json` records 11 cases, three persisted D/T/M style matrices, and restored responsive behavior; `native/staging-1c-focus-refresh-acceptance.json` records two native focus cases. Broader Video/module coverage remains open. |
+| Slider | **Bounded partial acceptance** | Six D/T/M Home/End cases remain accepted; wrong Undo Add-column remains a P2 boundary with atomic Undo/Redo passing. |
+| Navigator | **Bounded native acceptance** | `native/staging-c670-navigator-acceptance.json` accepts physical fresh label click plus Hide/Undo with harness limits recorded. |
+| WordPress Preview50 / Preview51 | **Bounded KSES fix accepted** | Preview50 exposed KSES stripping; Preview51 closes that bounded defect across save/editor/fresh/public D/T/M and reduced-motion attributes. Broader WordPress animation coverage remains open. |
+| WordPress Preview51 | **Bounded native acceptance; strict guard exact** | Source `75ed`, package `1b8f23d...`, evidence `23934e10dee5c6f10e119504fa1c24e22b0942b0`, CI `39015364932` green. Seven motion cases plus Padding and Focus D/M pass; KSES fix is accepted across save/editor/fresh/public D/T/M and reduced-motion attributes. Protected15, legacy14, and broad guard hashes are exact; Theme unchanged. |
+| WordPress Navigation | **Concrete bounded finding; fix pending** | PHP component definitions are stale; root has a reviewed uncommitted fix in two WP files. Broader Navigation is not accepted. A custom generated mobile-menu snapshot divergence is under design ownership review and is not generalized into a collapse defect. |
+| RichText | **Bounded native acceptance** | `native/staging-75ed-richtext-alignment-link-acceptance.json` passes 12 finite alignment choices across D/T/M, three save/reload alignment matrices, toolbar link add/remove/query and entity escaping with existing bold exact, three D/T/M custom link-colour save/reload/preview cases, and fresh restoration of original font/size/line-height/alignment/HTML/Terracotta token. Readable mobile proof is `native/staging-75ed-richtext-link-mobile.jpg`; broader Advanced/common Style/shared-text coverage remains open. |
+| WordPress runtime | **Bounded accepted resolution** | Theme runtime resolution remains accepted for the recorded bounded cases and protected mobile navigation. Existing Gutenberg blank iframe remains a host limitation. |
+| Overall status | **Open** | Full QA remains false; fifteen broad areas remain open. |
+
+## Historical evidence — superseded point-in-time records
+
+Everything from the next historical heading onward is retained point-in-time evidence. Its “current”, “authoritative”, “pending”, and status wording applies only to the named checkpoint and does not override this current reconciliation.
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older checkpoints. Its status wording applies only to the named checkpoint and does not override this current reconciliation.
+
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older checkpoints. Its status wording applies only to the named checkpoint and does not override this current reconciliation.
+
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older checkpoints. Its status wording applies only to the named checkpoint and does not override this current reconciliation.
+
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older checkpoints. Its status wording applies only to the named checkpoint and does not override this current reconciliation.
+
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older checkpoints. Its status wording applies only to the named checkpoint and does not override this current reconciliation.
+
+## Historical checkpoints — superseded point-in-time evidence
+
+Everything from the next historical heading onward is retained evidence from older source, deployment, and native checkpoints. Its “current”, “authoritative”, “pending”, and status wording applies only to the named checkpoint and must not override the current reconciliation above.
+
+## Historical 6cfa snapshot — superseded by the 2026-10-17 b4 reconciliation
+
+Everything from this heading through the end of the file is retained point-in-time evidence from older checkpoints. It is not the canonical current ledger; use the b4 reconciliation above. Older “current”, “authoritative”, and “pending” wording is historical to the named checkpoint.
+
+This section records superseded 6cfa evidence; historical evidence remains intact. `overallPass=false` and `fullCustomerRetestComplete=false`.
+
+| Surface | Current status | Evidence and remaining boundary |
+|---|---|---|
+| Main / deployment | **6cfa pushed; CI/deploy green** | Main and staging are exact `6cfa3b9347a31ae3c9d1e96972a86b0a4c1a5d21`; CI `38975915873` and deploy `38975915820` are green. Production remains cc026. |
+| WordPress Preview42 | **6/6 bounded native cases pass** | The installed editor reports source `6cfa3b9`; clean reopen, 414px editor rendering, native Preview, 390px public menu/Escape focus, real Visit navigation, and retained External HTTPS POST markup all pass ([report](native/wordpress-preview42-native-acceptance.json)). The public run also records two Electron sandbox/preload host errors, so this is not a clean-console result. The final WordPress record is `37e22717a799c71bc7f0c7f9fc288f0bd998e3e8` with green CI `38980064207`; Preview41 was never installed. |
+| Native page destination | **Fixed and accepted in Preview36** | 16 canonical pages, view-only clean, blocked GET error/Retry recovery, explicit empty/Home/current-page behavior, save/reload/public follow, ordinary Save legacy-self-link repair; protected 10 exact and coherent revisions ([native](native/wordpress-preview36-native-page-links.json)). |
+| Inline/history and RichText bugs | **Bounded native acceptance retained** | Inline history and RichText breadcrumb entity fixes passed their named staging/native checks; broader typography and customer journeys remain open. |
+| Review / inline UX | **Bounded native acceptance** | Review label, owner actions, RichText label and inline edit/view-only pass in the named staging reports; guest/member denials remain unproven. |
+| Dynamic WordPress fields | **Native bounded acceptance** | Post 370 title/content/distinct excerpt, Include 370/template 470 wins, responsive no-overflow, pause fallback/reactivate/restoration/final paused pass; global 462 stays draft/inactive ([report](native/wordpress-preview37-live-dynamic-fields.json)). |
+| Global 462 / block editor | **Bounded draft acceptance** | Single Page Title/Post Content save/reload and preview samples pass; live activation not run because ordinary WP block-editor canvas was blank after reload, cause unproven. |
+| CMS scalar authoring | **Native bounded acceptance** | 26 entries and seven current fields are retained for bounded authoring/query checks. Representative CMS readbacks, zero/false persistence, invalid blocking, pagination, and type locks pass ([report](native/staging-cms-scalar-matrix.json), [reviewed capture](native/staging-cms-zero-false-readable.jpg)). This is not a 26-entry field-by-field acceptance. |
+| Collection selection/source | **6cfa follow-ups accepted in bounded scope** | The earlier five repeated-selection cases, source-binding repair, shared-component guard, and source restoration remain accepted. The exact source-change Undo sequence now reconciles the selected visible copy and inspector context with no history left ([fixed Undo](native/staging-6cfa-source-undo-context-fixed.json)). |
+| Typed Collection filters | **21/21 native cases pass** | Boolean `No`, `false` aliases, `Yes`, Undo/Redo; numeric zero and invalid correction; leap-day/invalid/contains Date; configured/legacy/substring Options; and readable Reference labels/runtime all pass. Only Option `SIL` and final Boolean `No` were individually reloaded. The 414px canvas has a 399px client width and no horizontal overflow ([report](native/staging-6cfa-typed-filter-acceptance.json), [desktop](native/staging-6cfa-boolean-no-readable.jpg), [mobile](native/staging-6cfa-boolean-no-mobile-readable.jpg)). |
+| Collection Site checks targeting | **Confirmed open defect; candidate fix unaccepted** | The no-alt finding names Courtyard, but its first **Show me** selects Community Garden ([before](native/staging-6cfa-site-check-item-target-before.json), [capture](native/staging-6cfa-site-check-item-target-before.jpg)). Candidate structured-target work is local/uncommitted and has no staging acceptance. |
+| Accordion | **17 runtime/content cases pass; label defect open** | The finite content/runtime matrix passes 17/17. Ten module Style checks were observed before reload only; persistence and common Advanced remain untested. After editing a question and blurring, the canvas and input update while the visible edit-row label and input context label remain stale ([matrix](native/staging-6cfa-accordion-content-matrix.json), [before](native/staging-6cfa-accordion-label-before.json), [capture](native/staging-6cfa-accordion-label-before.jpg)). Its candidate fix is local/uncommitted and not staging-accepted. |
+| Save interruption | **Recovery passed; cause open** | During typed-filter work the editor reported a lost host connection. The unsaved draft remained in-tab; a 260,852-byte valid JSON backup was downloaded with mode `0600`; Try saving again succeeded; and the `SIL` filter survived reload ([report](native/staging-6cfa-save-interruption.json)). The message comes from the save-failure path, not an editor heartbeat. A separate observation of three successful PUT 200 responses does not identify this incident's cause. |
+| Protected install proof | **Native/contract guard exact** | The 14 protected fixtures remain exactly equal after native save/reload/publish of separate disposable post 479: 170 post/revision rows, 156 revisions, 3,213 metadata/design-stylesheet rows, and global design bytes have no exceptions. Post 479 is explicitly outside protected14 ([after-479 guard](wordpress-contract/preview40-post-479-protected14-readonly.json)). |
+| WordPress Preview40 forms | **Historical bounded acceptance retained** | Preview40 native public forms reached controlled External HTTPS POST and GET echo receipts with HTTP 200; the exact POST action/method was restored after GET. Provider/email fulfillment remains unproven ([POST](native/wordpress-preview40-external-https-form.json), [GET/restoration](native/wordpress-preview40-external-get-form.json)). |
+
+Fifteen broad remaining areas stay open. `overallPass=false` and `fullCustomerRetestComplete=false`; the Collection Site checks target defect, Accordion stale edit labels, the unexplained save interruption, provider/email fulfillment, ordinary Gutenberg blank iframe, public Collection breadth, and broader product coverage remain unresolved.
+
+## Historical e300 reconciliation — 2026-10-17 (superseded point-in-time evidence)
+
+This table is retained historical evidence only. It is not authoritative for the 532 current state; `overallPass` and `fullCustomerRetestComplete` remain false for that checkpoint.
+
+| Surface | Current status | Evidence and remaining boundary |
+|---|---|---|
+| Main / deployments | **e300 pushed; CI/deploy pending** | Main is `e300251a0c4c1740579982c48fa93295dc455308`. Staging remains exact `d99b445`, whose CI `38934875036` and deploy `38934875058` passed; production remains cc026. |
+| Final source candidate | **Functional and gallery gates pass before deployment** | 2,275 passed / 5 skipped across 198 files / 2 skipped; 30/30 gallery behavior; 24/24 exact baseline matches. The focus hardening and updated manifest are committed in e300; deployment is pending. |
+| Capture layer | **Reviewed local baseline accepted** | Final 24 captures are byte- and pixel-exact to the reviewed baseline; the manifest is the only baseline record changed and verifies 24 images against 28 source files ([comparison](gallery/focus-final/exact-comparison.json)). |
+| WordPress Preview34 package | **Installed Local QA; WP CI green** | Exact main d99 is pinned by WordPress `9c8c0f6`; installed manifest and protected state match exactly ([pin](wordpress-contract/preview34-pin.json)). Preview35 awaits the final e300 main result and WordPress CI. No release or production claim. |
+| Compact toolbar | **Cloud 390 and WordPress 600/390 accepted** | Cloud live-link/History/focus/bounds pass ([report](native/staging-compact-toolbar-deployed.json)). WordPress History/Checks/Help, settled focus return, clean Save, and no 390px overflow are accepted; the old aggregate false flag is an early animation read corrected by [settled evidence](native/wordpress-preview34-help-focus-before.json). |
+| Help focus hardening | **Committed in e300; deployment pending** | Escape, Close dialog, and Got it return to visible More tools at 390px ([report](native/local-help-focus-fixed.json)). Preview34 already passed after settling; this is defensive hardening, not a confirmed staging/WP defect. |
+| WordPress revision coherence | **Page, draft global, and legacy warning accepted** | Page 420 passes 14/14 checks; draft global 430 passes 22/22 and stays unpublished; legacy global 141 shows the unavailable warning and no Restore buttons. |
+| Button class deletion | **Staging roundtrip accepted** | Authored padding/border/background/text survive class delete, Undo/Redo, save/reload, preview, and final d99 reload ([report](native/staging-button-class-deletion-roundtrip-final.json)). Imported shorthand collision and broader shared styles remain open. |
+| Cloud Collection query/condition | **Five-item staging fixture accepted** | Composed query, Photo empty/nonempty, pagination, conditional Image, reload, and original restoration pass. The reviewed [conditional preview](native/staging-collection-conditional-preview-visible.jpg) shows five cards and one Image; [restoration](native/staging-collection-original-restored.json) returns two cards/two Images. Larger datasets, other fields, and Cloud/public breadth remain open. WordPress dynamic fields are separate; Collection is not a WordPress Add choice. |
+| Form recovery | **Cloud/local native accepted** | Before/after-store retries preserve `_pc_request` and deduplicate as recorded ([report](native/form-fault-final-integrated.json)). WordPress exposes External HTTPS only (`managedForms=false`); external delivery remains open. |
+| Live-review owner actions | **Local native accepted** | Resolve/reopen/remove/filter/restore/reload and focus/target metrics retain their recorded pass. Staging/release scope remains separate. |
+| Dependency audit | **One dev-only advisory chain; production audit 0** | Three high nodes are one unpatched Braces chain through build tooling; no runtime production finding ([audit](dependency-audit-b2c3731.json)). |
+| Generated working state | **Recovered exactly** | Six accidentally rebuilt outputs were restored, and all 11 protected files matched the pre-incident SHA256 snapshot after staging and e300 commit. No source, working-state, or customer-data loss ([incident](generated-preservation-incident/incident.json), [verification](generated-working-preservation-focus-2026-10-17.json)). |
+
+Open work remains broader than these rows: completing e300 CI/deploy and Preview35, hosted/public health, typography and module breadth, keyboard paste/nesting, broader shared-style and Cloud Collection cases, WordPress dynamic fields and External HTTPS delivery, account/session, billing, providers, and production promotion.
+
+### Eight accepted WordPress journeys
+
+These are concrete, bounded native journeys. They do not imply complete WordPress coverage.
+
+| # | Journey | Accepted evidence and limit |
+|---:|---|---|
+| 1 | New-page entry | Gutenberg exposes **Edit with Pagecraft** ([capture](native/wordpress-new-page.png)); conversion, save, and publication are separate. |
+| 2 | Heading persistence | Eighteen Style and thirteen Advanced mutations survived save, reload, and render (`heading-style-1..7.json`, `heading-advanced-1..2.json`); incomplete Content probes remain excluded. |
+| 3 | Button controls and links | Eight controls survived save/reload, and External URL, email, and phone hrefs rendered then restored ([report](native/button-manual-links.json)); destination navigation was not attempted. |
+| 4 | Fresh Button/Form defaults | Preview16 fresh defaults are readable ([report](native/wordpress-preview16-new-defaults.json)); its retired managed-mode save attempt is an unsupported capability, not a required WordPress journey. |
+| 5 | View-only matrix | Mobile/Tablet/Desktop by Content/Style/Advanced kept Save and Undo disabled with no busy state ([report](native/wordpress-preview30-view-only-final.json)). |
+| 6 | Compact tools and history | Preview34 at 600/390 exposes History, Checks, and Help, keeps Save clean, has no 390 overflow, and post 378 lists unique versions 14 through 1 ([compact report](native/wordpress-preview34-compact-toolbar.json), [settled Help focus](native/wordpress-preview34-help-focus-before.json)). |
+| 7 | Page revision recovery | Page 420 restored version 2 into coherent version 4, passed 14/14 database checks, and survived fresh reload ([native](native/wordpress-preview34-native-restore.json), [guard](wordpress-contract/preview34-native-restore-verification.json)). |
+| 8 | Global and legacy revision handling | Draft global 430 restored coherently with 22/22 checks and stayed unpublished; legacy global 141 showed the unavailable warning with no Restore action ([global](native/wordpress-preview34-native-global430-restore.json), [guard](wordpress-contract/preview34-native-global430-restore-verification.json), [legacy](native/wordpress-preview34-legacy-global141-history.json)). |
+
+WordPress declares `managedForms=false` and supports External HTTPS only. Preview25 proves endpoint-only saved markup with no submission ([report](native/wordpress-preview25-external-form.json)); external delivery remains open. Cloud Collection is not a WordPress Add choice, and WordPress dynamic-field coverage is tracked independently.
+
+Snapshot: 2026-10-17 Asia/Manila. This is a point-in-time evidence index, not an overall pass or a full-coverage claim.
+
+## Status meanings
+
+| Status | Meaning in this ledger |
+|---|---|
+| **Native verified** | A current real-browser or WordPress interaction has direct state/render evidence for the exact behavior named in the row. This never implies the whole family passed. |
+| **Contract verified** | Current executable core, adapter, REST, PHP, renderer, or package tests traverse the behavior. Current native acceptance is still absent or narrower. |
+| **Pending native** | Current native proof is missing, incomplete, stopped, or too narrow to accept the named behavior. |
+| **Blocked external** | Completion requires an external provider, deployed/public environment, or authorized mutation that is not available in this retest. |
+
+## Historical native snapshot — superseded by the b4 current reconciliation
+
+The following snapshot is retained for provenance from an older checkpoint. It must not be read as the current native status; use the b4 reconciliation at the top of this ledger.
+
+| Evidence | Status | What it proves | Deliberate exclusions |
+|---|---|---|---|
+| [cloud-preview-home-desktop.png](native/cloud-preview-home-desktop.png) | **Native verified** | Current Cloud draft preview renders the home page, global navigation, hero image/content, and desktop layout. | No publication commit, public URL, exhaustive module interaction, or console result. |
+| [cloud-preview-visit-desktop.png](native/cloud-preview-visit-desktop.png) and [cloud-preview-visit-mobile.png](native/cloud-preview-visit-mobile.png) | **Native verified** | The Visit page renders at desktop and mobile widths with responsive typography, media, and layout. | No tablet capture and no public deployment. |
+| [cloud-preview-mobile-menu.png](native/cloud-preview-mobile-menu.png) | **Native verified** | The configured mobile **dropdown** navigation opens and exposes Menu, Story, and Visit; keyboard Escape closes it. | This fixture is not fullscreen and has no second close control. Repeated route navigation and a broader focus matrix remain pending. |
+| [cloud-blank-form-validation.png](native/cloud-blank-form-validation.png) | **Native verified** | Submitting the visible reservation form blank triggers native required-field validation. | No successful delivery, inbox, webhook, spam, retry, or external destination proof. |
+| [exported-form-network.json](native/exported-form-network.json) | **Blocked external** | A normal click on the valid exported Visit form initiated one native document POST to the controlled receiver at `localhost:4900/forms/s1/morning-field-reservation-form-159`. CDP then reported `Network.loadingFailed`, `net::ERR_BLOCKED_BY_CLIENT`, `blockedReason: inspector`; the receiver store saw no request. | This is a built-in-browser/inspector interception boundary, not a confirmed Pagecraft delivery failure. No API call or direct POST was used to bypass the browser policy. |
+| [published form network](native/published-form-network.json), [thank-you page](native/published-form-thank-you.png), [inbox](native/published-form-inbox.png), and [entry detail](native/published-form-inbox-detail.png) | **Native verified** | The published same-origin form sent one normal-click POST to `localhost:4902/forms/s1/morning-field-reservation-form-159`, received the 200 `/forms/thanks` page, returned to the site with Submit enabled, and produced one successful inbox entry with the exact fictional QA fields. | This proves the controlled same-origin receiver path only. It does not clear the cross-origin built-in-browser interception above or prove external email/provider delivery. |
+| [final CMS export](native/final-cms-content-export.json), [typed DOM readback](native/final-cms-typed-readback.json), [reference proof](native/final-cms-reimport-proof.json), and [reopened image](native/final-cms-reimport-image-reopened.png) | **Native verified** | Native export → file-chooser import → save → reload retained one collection with all nine field types and two published items. Typed controls read back Title `QA Espresso`, Category `Coffee`, Description HTML, Website, Price `4.50`, date `2026-10-16`, Featured `Yes`, and Photo `table.webp`; QA Tea’s Related value remained QA Espresso. | Direct DOM/value evidence supersedes the earlier false `innerText` Price probe. This remains one collection/two-item fixture rather than exhaustive CMS acceptance. |
+| `http://localhost:4902/full-retest-final-20261015/` plus current root publication report | **Native verified** | Publish review, confirmation, version 10, and Copy live link completed for the controlled five-page local fixture. | Local fixture publication only; no staging, production, cache/CDN, public DNS, SSL, or rollback proof. |
+| [new Button compatibility](native/button-compatibility-final.json), [Form compatibility](native/form-default-compatibility-after.json), and [published output](native/wordpress-output-preview14-public.json) | **Native verified** | The new Button/Form semantic fallback is natively retested locally and in WordPress preview 14: fresh Solid uses paper on accent `4.64`, transparent variants inherit surrounding text, and public output retains readable foregrounds. | Broader staging/customer acceptance remains pending. See [findings.md](findings.md). |
+| `accordion-1.json` and `accordion-2.json` | **Pending native** | Both actor runs persisted the selected inspector values, but their persistence records are unaccepted because selected edit mode intentionally forces every Accordion answer open and changes computed height across mutation/reload/reselection timing. | Zero native passes are counted. Manually verify All closed/First/All, single-open behavior, preview, and reload. Exact Accordion/Tabs edit-mode height and UI-only `--z`/`--zfit` variables are helper exclusions; declared Common properties such as Max width remain strict. |
+| [historical gallery drift review](gallery/cms-reference-final/capture-drift-review.md) and behavior checks | **Historical failure preserved** | This older gallery had 30/30 behavior, 24 actual captures, and 0/24 pixel comparisons passing. Manual review found no visible defect; evidence favored capture color/compositor/AA drift. | The run was not rewritten. Current stable repeat and fresh baseline evidence are recorded above; the exact cause of this historical drift remains unproven. |
+| [native-project-export.json](native/native-project-export.json) and [native-content-export.json](native/native-content-export.json) | **Native verified** | The controlled `localhost:4899` fixture exposes five project pages, one CMS collection with all nine field types, two published items, and visible export metadata. | No native file-chooser import has run. This editable project fixture is distinct from the four-page static site export below. |
+| [native-export-verified.json](native/native-export-verified.json), [after ZIP](native/native-site-export-after.zip), and [before ZIP](native/native-site-export-before.zip) | **Native verified** | The after-fix static export has 20 entries, resolves all 16 referenced image paths with zero missing files, and reports no raster format mismatch; its four generated pages are `index`, `menu`, `story`, and `visit`. The before-fix sample had six entries and no asset files. | The static ZIP is a four-page export. It does not prove the fifth editable fixture page, editable-project media portability, import, or publication. |
+| [wordpress-new-page.png](native/wordpress-new-page.png) | **Native verified** | Gutenberg exposes **Edit with Pagecraft** on a new WordPress page. | Entry-point proof only; it does not prove conversion, save, publication, or frontend output. |
+| `heading-style-1..7.json` and `heading-advanced-1..2.json` | **Native verified** | After removing repeated probes, restorations, and numeric primers, 18 distinct Style mutations and 13 distinct Advanced mutations survived edit, save, reload, and render. The final Advanced batch completed with no errors. | These are scoped persistence checks. The repeated Style batches add no acceptance count, and the stopped Style 8 helper run is excluded. |
+| `button-1.json` and [button-manual-links.json](native/button-manual-links.json) | **Native verified** | Eight distinct Button controls survived save/reload; purpose-built native flows rendered External URL, email, and phone links exactly, then restored no-link output. | The stopped Button 2 helper run is excluded. Navigation at the external destinations was not attempted. |
+| [heading-unit-save-stop.png](native/heading-unit-save-stop.png), `heading-canonical-1.json`, `heading-content-1/2/3.json`, and `heading-progress.json` | **Pending native** | Running/stopped snapshots preserve diagnostic state only. | Incomplete records, duplicated retries, and helper wait errors are excluded from native pass counts; the screenshot is not acceptance evidence by itself. |
+| [WP27 view-only clean](native/wordpress-preview27-view-only-clean.json) | **Native verified (scoped)** | Content/Style/Advanced view-only checks across Mobile/Tablet/Desktop left Save disabled, busy null, and history unchanged. | This is WordPress view-only proof; Cloud/device inspection breadth and account/session lifecycle remain separate. |
+| [staging Code](native/staging-code-copy-preview.json), [Table](native/staging-table-semantic-readback.json), [Breadcrumb](native/staging-breadcrumb-combined-reopen.json), [Icon](native/staging-icon-all-choices.json), [Embed](native/staging-embed-aspect-options.json), [Tabs](native/staging-tabs-preview-keyboard.json), and [Form GET](native/staging-form-get-query-reopen.json) | **Native verified** | Current staging QA has scoped save/reopen or preview evidence for Code copy, table semantics, breadcrumb current item/link, all Icon choices, Embed aspect ratios, Tabs Home/End, and Form GET/query persistence. | These are scoped module checks, not exhaustive module/control coverage or a complete customer flow. |
+| [dark-brand Button variants](native/staging-dark-brand-button-variants.json) and [dark-brand Form](native/staging-dark-brand-form-fixed.json) | **Native verified** | Four Button variants save/reopen with readable dark-brand output, and the fresh Form submit uses the corrected readable pair (`7.73:1`). | Fresh native WordPress default-button/Form acceptance remains pending; the earlier `1.76:1` result is superseded by corrected staging evidence. |
+| [preview16 combined reopen](native/wordpress-preview16-button-combined-reopen.json), [public output](native/wordpress-preview16-public-combined.json), [mobile output](native/wordpress-preview16-public-mobile.json), and [mobile menu](native/wordpress-preview16-public-mobile-menu.png) | **Native verified (scoped)** | Preview 16 on exact 43a passes the original combined typography regression through reopen and public output, with readable fresh defaults and mobile/menu evidence. | Preview 16 records the retired managed-mode save failure as unsupported-choice evidence. Current WordPress capability is External HTTPS only (`managedForms=false`). This is local WordPress QA output, not a production release or exhaustive module acceptance. |
+
+The native actor ledger counts only distinct primary mutations from error-free completed or
+`batch-paused` files. It excludes restoration actions, numeric primers, repeated probes in later
+batches, incomplete `running` files, and every `stopped-with-error` helper run. Those exclusions
+leave 18 Heading Style mutations, 13 Heading Advanced mutations, and eight Button mutations.
+Accordion 1/2 are separately classified as unaccepted helper false positives: their inspector
+values persisted, but the selected edit renderer intentionally opens all panels and invalidates
+exact height comparison. Tabs share that selected edit-mode pattern. UI-only `--z`/`--zfit`
+variables are also non-persistence output; actual declared properties and width constraints remain
+strict.
+
+### Action-level native control index
+
+The [native control coverage index](native/native-control-coverage-index.md) mechanically dedupes recognizable actor actions by module, tab, control, action, and option. It records 74 accepted primary control-retention keys from 93 eligible raw actions: Accordion 10, Button 8, Divider 6, Form 9, Heading 31, and Tabs 10. These counts are scoped retention evidence, not module or feature passes.
+
+The same index keeps restoration separate (80 eligible deduped keys), numeric precondition/cleanup support separate (7 deduped keys), manual/no-op records separate (7 deduped keys), and five error actions outside eligible reports. It also records 16 deduped primary actions from running or stopped reports as incomplete diagnostics. No overall percentage is derived: the 250 source control cases in [source-control-coverage.json](../cafe-module-acceptance-2026-10-13/module-inventory/source-control-coverage.json) are historical source inventory, not a current assessment of every module, and are not one-to-one with actor action keys.
+
+Accordion 1/2 remain false-positive helper runs with zero native passes. Accordion 3/4/5 retention is accepted with exact edit-mode height and UI-only `--z`/`--zfit` exclusions. Fresh preview keyboard evidence in [accordion-fresh-preview-keyboard.json](native/accordion-fresh-preview-keyboard.json) supersedes interrupted preview activation evidence. Code 1 stopped after an app restart during input and remains incomplete, not a product failure. Form continued runs retain many settings, while Alignment, Field layout, and Grid columns were not exercised by generic actor actions; [continued-form-grid.json](native/continued-form-grid.json) records the before-state two-column rendering and Submit end alignment, while parent-tool evidence verified actual restored output. [button-compatibility-final.json](native/button-compatibility-final.json) supersedes the intermediate foreground result and records the new Solid paper-on-accent `4.64`, all variants, and post-reload border `0`. The prior form-integrity gallery is historical at 22/24 images with 30/30 behavior; the historical first-click review is 24/24 images and 30/30 behavior ([review](gallery/first-click-final/review.json)).
+
+Historical local-candidate verification records `npm test` at 2,275 passed / 5 skipped across 198 files / 2 skipped, including TypeScript and the reviewed baseline manifest ([log](tests-focus-return-final-20261017.log)). No overall pass claim follows from that result.
+
+## Historical module and Add-choice ledger — superseded by the b4 current reconciliation
+
+The following module ledger is retained as point-in-time evidence. Its “Current” wording belongs to that older checkpoint and does not override the canonical 532 block above.
+
+All module rows have current serialized save/load/render coverage in both the Cloud customer fixture and the hermetic WordPress journey. A **Native verified** row below applies only to the named current native behavior.
+
+| # | Stored module type | Add label / route | Status | Current evidence and remaining native scope |
+|---:|---|---|---|---|
+| 1 | `section` | Section | **Contract verified** | Cloud preview/export and WordPress fallback round trip; current direct Section authoring remains pending native. |
+| 2 | `row` | Row; backing type for Columns | **Contract verified** | Structure and responsive CSS serialize/render; direct current row/column editing remains pending native. |
+| 3 | `slider` | Slider | **Pending native** | Current staging runtime shows arrow/dot movement and enabled-state updates in [staging-slider-preview-runtime.json](native/staging-slider-preview-runtime.json). Smooth-scroll last measurement was mid-animation; do not claim exact destination or Home/End acceptance. Blank-default worker patch and after-fix native retest remain pending. |
+| 4 | `list` | Collection | **Contract verified** | CMS list binding/filter/sort/detail output covered; current native CMS list journey pending. |
+| 5 | `column` | Internal child; no direct Add tile | **Contract verified** | Present in nested fixtures and output; current native column controls pending. |
+| 6 | `box` | Box; backing type for Flex, Grid, Link block | **Contract verified** | Preset properties and JSON round trip covered; current native preset editing pending. |
+| 7 | `heading` | Heading | **Native verified** | Thirty-one distinct scoped Style/Advanced mutations persisted in accepted current actor files; Content running snapshots, remaining controls, and cross-control combinations are pending native. |
+| 8 | `text` | WYSIWYG | **Contract verified** | Rich HTML survives save/render; prior toolbar/link evidence is partial and not current acceptance. |
+| 9 | `quote` | Quote | **Contract verified** | Text/by/source and styling survive contracts; current native authoring pending. |
+| 10 | `image` | Image | **Contract verified** | URL/alt/caption/link and WordPress media URL survive; current upload/edit path pending native. |
+| 11 | `video` | Video | **Contract verified** | Source/poster/ratio/control flags survive; current playback/facade behavior pending native. |
+| 12 | `button` | Button | **Native verified** | Eight scoped controls survived native save/reload, external/email/phone modes rendered exact href values before restoration, and the local new-Button compatibility retest records the corrected paper-on-accent Solid default. Staging and WordPress acceptance remain pending. |
+| 13 | `nav` | Nav menu | **Native verified** | Current Cloud mobile dropdown opens, renders the expected links, and closes with Escape; exhaustive nav authoring, route repetition, and WordPress menu sync remain pending native. |
+| 14 | `form` | Form | **Native verified** | Current blank required validation is visible; all native field types and widths are contract verified, while successful delivery is external. |
+| 15 | `spacer` | Spacer | **Contract verified** | Serialized module survives render; current direct resizing/editing pending native. |
+| 16 | `divider` | Divider | **Contract verified** | Serialized output is covered; prior native hit-target proof predates this snapshot and does not establish current full controls. |
+| 17 | `crumbs` | Breadcrumb | **Contract verified** | Manual items and links survive; current native mode/item/accessibility journey pending. |
+| 18 | `code` | Code | **Contract verified** | Body/language/title/numbers/copy flags survive; current syntax/copy interaction pending native. |
+| 19 | `table` | Table | **Contract verified** | Body/header/row-header/caption/zebra survive; current native authoring pending. |
+| 20 | `tabs` | Tabs | **Contract verified** | Items and rendered tab hooks survive; current keyboard and panel interaction pending native. |
+| 21 | `accordion` | Accordion | **Contract verified** | Items/open/single/marker survive contracts. The current actor’s two height failures are edit-mode forced-panel false positives and add zero native passes; manual All closed/First/All, single-open, preview, keyboard, and reload checks remain. |
+| 22 | `embed` | Embed | **Contract verified** | HTML/ratio survive the document and renderer; current sandbox and ratio interaction pending native. |
+| 23 | `icon` | Icon | **Contract verified** | Name/label/link survive; prior 35-glyph evidence is historical, with current native selection pending. |
+| 24 | `gallery` | Gallery | **Contract verified** | Items/captions/lightbox/ratio/fit survive; current upload/lightbox/history pending native. |
+
+The five preset Add choices are tracked separately because they do not add five new stored types:
+
+| Add choice | Stored result | Status | Evidence boundary |
+|---|---|---|---|
+| Columns | `row` with generated `column` children | **Contract verified** | `makeFor()` shape, JSON round trip, preview/export. |
+| Flex | `box` with `layout: flex` | **Contract verified** | Exact preset property and JSON round trip. |
+| Grid | `box` with `layout: grid` | **Contract verified** | Exact preset property and JSON round trip. |
+| Box | `box` | **Contract verified** | Base box creation and round trip. |
+| Link block | `box` with a link target | **Contract verified** | Exact preset link property and round trip. |
+
+Together, the 22 direct module choices plus these five presets account for all 27 Add choices. `column` is an internal stored type and `box` enters through the preset group.
+
+## Shared controls and design system
+
+| Surface | Status | Current evidence | Missing native acceptance |
+|---|---|---|---|
+| 250 declared module control occurrences | **Contract verified** | The prior inventory records 250/250 component-render cases; current customer fixtures exercise representative authored values and complete document round trips. | The prior `source-control-coverage.json` deliberately leaves all 250 `browserStatus` values `not-run`; no exhaustive current native matrix exists. |
+| Content properties and conditional branches | **Contract verified** | Current tests cover all 24 renderers, 84 primitive property declarations, CMS/component conditions, and serialized values. | Current visible controller branches across every module. |
+| Common Style declarations | **Contract verified** | Current tests cover 64 nonresponsive declarations, CSS compilation, token/class targets, and save/load. | Only three primary Heading Style behaviors have current native persistence proof. |
+| Responsive Style declarations | **Contract verified** | The prior inventory covers 92 responsive declarations at desktop/tablet/mobile; current contracts cover responsive reset, state/class targeting, and exact range values. | Current exhaustive native Tablet and reset/inheritance matrix. |
+| Advanced controls | **Contract verified** | Eight Advanced controls and responsive compilation have executable coverage. | Current native HTML ID/class, visibility, custom CSS, animation, and invalid-value behavior. |
+| Hover/focus states | **Contract verified** | Serialized equality and compiled CSS sentinels cover desktop/tablet/mobile hover and focus. | Current native state isolation and reset. |
+| Raw/range controls | **Contract verified** | Exact `0`, `.01`, `1.05`, and `5.01` serialization/compilation covered. | Native min/max/step and keyboard/pointer behavior. |
+| Duplicate/delete/move/copy/paste and multi-select | **Pending native** | Focused core history/structure tests exist, but the current retest has no complete native journey. | Visible action feedback, ordering, recovery, and save/reopen. |
+| Undo/redo and recovery | **Contract verified** | Full serialized documents restore exactly in Cloud and WordPress contracts. | Current native cross-surface history labels and save/reopen recovery. |
+| Color tokens | **Contract verified** | Cloud and WordPress retain token values and compile variables. | Current native create/edit/delete/usage journey. |
+| Text styles | **Native verified** | Heading detachment from its text style persisted natively; full style definitions and responsive values survive contracts. | Create/update/delete, usage propagation, and multiple consumer types. |
+| Reusable classes | **Native verified (scoped)** | Native shared-class roundtrip covers desktop/mobile values, local override, remove, undo/redo, and reload persistence ([report](native/staging-shared-class-roundtrip.json)). | Remaining tokens, site CSS/fonts, global header/footer, and broader shared-style propagation. |
+| Site CSS and fonts | **Contract verified** | WordPress settings handlers and Cloud renderer preserve both font families, custom CSS, and design tokens; invalid settings preserve the last good design. | Current native settings edit/save/reopen and loaded font network/render proof. |
+| Global header/footer | **Contract verified** | Both regions, responsive rules, component instances, marker pairs, PHP storage, restore, and frontend fallback survive. | Current native global editor save/reopen across both regions. |
+
+## Responsive, navigation, forms, CMS, and reusable content
+
+| Surface | Status | Current evidence | Remaining boundary |
+|---|---|---|---|
+| Desktop/mobile page rendering | **Native verified** | Current Home desktop plus Visit desktop/mobile captures. | Tablet and broader route/module matrix. |
+| WordPress responsive persistence | **Native verified** | Fresh reload retained Desktop `42px`, Mobile `27px`, Mobile padding `9px`; view-only toggles did not enable Save. | Tablet values, resets, multiple modules, and concurrent UI. |
+| Mobile menu open/render | **Native verified** | Current configured dropdown opens with Menu, Story, and Visit; Escape closes it. | Repeated route navigation, broader focus behavior, other menu modes, and WordPress-native menu. |
+| Native WordPress menu synchronization | **Contract verified** | PHP import/save/idempotence and target-neutral link contracts pass. | Real menu edits and frontend navigation in current WordPress runtime. |
+| Form schema and rendering | **Contract verified** | Text, email, tel, URL, number, date, textarea, select, checkbox, required, and 50/33/25/20 widths serialize and render. | Current native authoring of every field type and layout. |
+| Blank required validation | **Native verified** | Current screenshot shows browser validation on a required field. | Cross-browser messages and all required fields. |
+| Controlled same-origin form delivery | **Native verified** | The version-10 local publication accepted the valid normal-click POST, rendered the 200 thank-you page, restored Submit after Back, and stored one Success inbox entry whose detail matched the fictional QA values. | Same-origin controlled fixture only; no external provider or email receipt. |
+| Cross-origin exported form delivery | **Blocked external** | The exported `localhost:4901` page emitted the correctly addressed POST to `localhost:4900`, then the built-in-browser inspector blocked document navigation before the receiver saw it; Submit remained disabled. | Browser-control limitation remains. Do not substitute an API/direct POST because that would evade the policy under test. |
+| Form delivery contract | **Native verified (scoped)** | Staging published form rejected empty required and invalid email, reached thanks, produced one matching inbox/CSV receipt, and f8 native OS CSV download matched the exact message ([receipt](native/staging-published-form-receipt.json), [CSV](native/staging-native-csv-after-f8a5d05.json)). | Earlier top-tab timeout is historical with cause unproven; external provider/email delivery, failure/retry, and broader form editor completion remain open. |
+| CMS document | **Native verified** | The final controlled fixture exposes one collection, all nine field types, required Category with three options, and two published items. Typed post-reload readback confirms text, option, rich HTML, image, link, number, date, boolean, and reference values across the two items. | Native list/detail authoring, conditions, deletion/history, larger datasets, and exhaustive value editing remain pending. |
+| CMS content import/export | **Native verified** | Native export, file-chooser import, save, reload, and typed CMS reopen retained the Photo as `table.webp`, Price `4.50`, Website/date/rich text/category/Featured values, and QA Tea’s Related value as QA Espresso. Contracts cover metadata, later-declared references, collision remapping, and the fixed exported-image path resolver. | One controlled file and collection; malformed files, rollback, large imports, and every customer-facing failure mode remain pending. |
+| Reusable components | **Contract verified** | Definition, eight prop kinds, variants, empty values, instance overrides, deletion behavior, CMS-bound props, globals, and rendering survive. | Current native create/edit/variant/instance/save/reopen journey. |
+| Blocks and libraries | **Pending native** | Prior evidence is partial; they are outside the new full customer fixture’s acceptance assertions. | Current create/insert/update/delete/share/import flows. |
+
+The [published Cloud-form script](../../app/src/core/index.ts#L8023) disables its submit button
+after the native `submit` event and re-enables it on `pageshow`. That explains the observed disabled button when the inspector blocks
+navigation before a response or page transition. The current reproduction is specific to the
+built-in browser control layer, so this remains an audited retry risk rather than a confirmed
+product defect; no production edit was made.
+
+## Persistence, publication, and service boundaries
+
+| Surface | Status | Current evidence | Remaining boundary |
+|---|---|---|---|
+| Cloud save/load/preview | **Native verified (scoped)** | Simulated HTTP 502, identical 409, real-writer conflict, and unavailable-readback branches are evidenced; unavailable-readback simulated 409 plus GET503 blocked overwrite and recovered exact saved caption ([report](native/staging-unavailable-readback.json)). | Final hosted/public health after successful deploy `38820307896`, and broader native recovery journey. |
+| WordPress page save/load/render | **Native verified** | Current root journey saved and reopened responsive Heading values twice; the REST/PHP contract independently covers the complete document and fallback output. | More module-native edits and actual failure injection. |
+| Global WordPress persistence | **Contract verified** | Global save/load/stale conflict/revision/restore and fallback output pass through public REST handlers. | Current native header/footer editing. |
+| Offline retry | **Contract verified** | Adapter failure leaves version unchanged; explicit retry saves and loads version 1. | Browser network interruption and recovery UI. |
+| Concurrent saves | **Native verified (scoped)** | Distinct real-writer documents remain blocked with a “Somebody else saved this page” dialog, and unavailable-readback simulated 409 plus GET503 blocks overwrite with backup/reload recovery ([reports](native/staging-real-writer-conflict.json), [unavailable](native/staging-unavailable-readback.json)). | Broader two-tab/recovery matrix and final deployed health; original transport cause remains unconfirmed. |
+| Revisions and restore | **Contract verified** | Cloud history restores version 1 as version 3; WordPress page/global stale restores do not mutate or add revisions, and valid restore returns exact content. | Current native history panel/list/restore workflow. |
+| WordPress import and conversion | **Contract verified** | Whole-project/page/global import, replacement, explicit conversion, link/media localization, native menus, unchanged reimport, archive identity, and safety revisions pass production-class PHP tests. | Current native upload/review/confirm/rollback. |
+| Cloud content import | **Native verified** | Final native file-chooser reimport, save, reload, image reopen, and item-reference reopen pass; contracts cover metadata loss and collection/item/field collision remapping. | Exhaustive values, malformed files, rollback, and all customer-facing error flows remain pending. |
+| Draft preview | **Native verified** | Current Home and Visit desktop/mobile preview captures render the draft. | Broader route and interaction coverage. |
+| Native static export | **Native verified** | The after-fix four-page ZIP contains 20 entries; all 16 referenced image paths resolve, no file is missing, and decoded raster formats match their extensions. | The prior six-entry/no-asset ZIP is retained as before evidence; editable project JSON media portability and native import remain separate gaps. |
+| Cloud publication contract | **Contract verified** | Publication/preview/hosted-style server regressions pass locally. | Immutable storage commit and externally served output. |
+| Controlled Cloud local publication | **Native verified** | The controlled fixture passed Publish review and confirmation, created reviewed version 10, exposed Copy live link, and served five pages at the local publication URL. Its same-origin form completed to inbox. | Local fixture only; immutable storage internals, rollback, cache/CDN, staging, and production remain outside this proof. |
+| Hosted deployment and live URL | **Native deployment verified; public health pending** | Main `9c263a6` is pushed/deployed with exact `__deployment`; CI `38820308112` and deploy `38820307896` passed. | Current staging/public health, console/network, cache, fonts, rollback, full visual acceptance, production promotion, and public endpoint health remain pending. |
+| WordPress publication | **Native verified (scoped)** | Preview23 media/Details remain accepted; Preview27 resource guards, unused-resource deletion, combined retry, and colour/text cross-page checks pass ([pin](wordpress-contract/preview27-pin.json); [guards](native/wordpress-preview27-resource-guards.json); [retry](native/wordpress-preview27-combined-retry.json)). | Shared-design PUT503 recovery modal, WP27 stale palette, remaining persistence/public delivery, managed forms, broader public routes, and full module acceptance remain open. |
+
+## Customer, account, billing, and operational health
+
+| Surface | Status | Current evidence | Remaining boundary |
+|---|---|---|---|
+| Core customer editing journey | **Pending native** | Current evidence adds direct controls, RichText/Quote/Spacer/Collection/Navigation/Link block/shared-class reports, Cloud recovery, Form integrity reload proof, published form receipt, Preview23 media/Details, Preview27 resource/retry/colour guards, library conflict/reload, and reusable-component structural evidence. | This is still not an exhaustive all-module/control journey or one complete Cloud-and-WordPress acceptance pass; List breadth, responsive reset/inheritance, shared-design PUT503 recovery, WP27 stale palette, Cloud stale CSS modal readback, managed forms/public delivery, structural operations, repeaters, console/public health, and remaining user journeys remain pending. |
+| Authentication/owner authorization | **Contract verified** | Cloud in-process authenticated owner save/load/history routes pass. | Current sign-in, expiry, logout, role denial, and recovery UI. |
+| Customer/account UI | **Native verified (scoped)** | Pro complimentary private plan, 21 owned sites, unlimited allowance, 19 MB of 5 GB storage, and changed=false are recorded ([report](native/staging-account-pro.json)). | Account/session lifecycle, expiry, logout, and broader account controls remain open. |
+| Billing/checkout/portal/webhooks | **Blocked external** | No authorized payment-provider account, test checkout, portal, invoice, or webhook mutation was exercised. | Provider test mode plus safe customer and webhook lifecycle. |
+| Browser console/runtime errors | **Pending native** | Screenshots and actor JSON do not provide a complete console/network-error sweep. | Capture console, failed requests, CSP, mixed content, and unhandled errors on final candidate routes. |
+| Public endpoint health | **Pending native** | Staging source synchronization is verified by exact `__deployment` SHA. | Verify status, redirects, assets, cache headers, robots/sitemap, SSL, console/network health, and representative public routes on staging. |
+| External email/form delivery | **Blocked external** | Blank validation and same-origin local submission/inbox pass natively, and delivery contracts pass. Cross-origin IAB navigation remains inspector-blocked and no real external destination has been exercised. | Safe external submission, receipt, retry, duplicate, email/provider delivery, and failure handling. |
+
+## Prior 297/250 matrix interpretation
+
+The prior module inventory at source `2b58ad694a9fc397a45379643f4b79f6c60e3789` remains useful for enumeration and risk selection, but it is not current native acceptance:
+
+- [coverage-matrix.json](../cafe-module-acceptance-2026-10-13/module-inventory/coverage-matrix.json) contains 297 cases: **288 partial**, **9 not run**, **0 passed**, **0 failed**.
+- [source-runtime-results.md](../cafe-module-acceptance-2026-10-13/module-inventory/source-runtime-results.md) records component/source evidence for all 250 declared control cases, all 69 option declarations, all 92 responsive declarations, and 10 specialized structural controls. It explicitly keeps every one of the 250 browser statuses at `not-run`.
+- [runtime-review.md](../cafe-module-acceptance-2026-10-13/module-inventory/runtime-review.md) contains many useful partial native records, including slider, gallery, forms, responsive menu, CMS history, Heading insertion, and interaction options. Many actor files are `running` or `batch-paused`; those records stay supporting evidence and do not become current **Native verified** rows here.
+- [control-contract-audit.md](native/control-contract-audit.md) maps the 230 module-owned Content/Style declarations to focused native checks for conditional branches, child rendering, CMS/component binding, and runtime interaction. It is a risk-led test plan only; generic inspector value retention does not prove those expected outputs.
+- Historical partial evidence can prioritize the next native checks. It cannot fill a current-source, current-build, save/reopen, publication, console, account, billing, or public-health gap.
+
+## Next native priorities
+
+1. Complete one uninterrupted Cloud customer journey through save/reopen, history restore, preview, and controlled publication.
+2. Complete current WordPress header/footer, reusable component, token/class, import, revision restore, and public frontend journeys.
+3. Run the remaining modules through at least one representative Content control, one Style control, one responsive override/reset, and save/reopen; keep exhaustive 250-control acceptance separate.
+4. Capture final console/network health on every candidate route and width.
+5. Provision explicit external test boundaries before billing, email/form delivery, or deployed public-health checks.
+
+## Latest continuation note — 2026-10-15
+
+The current staging site is `c11494e8-3ae5-4be0-b707-e937278a710a` (**Full Customer Retest 2026-10-15**), with seven pages and a completed CommonGround 3/3 guide. Native Code, Table, Breadcrumb, Icon, Embed, Tabs, Form GET/query, dark-brand Button variants, and Form contrast are now scoped **Native verified** rows above. The Slider remains **Pending native** because the last smooth-scroll sample was mid-animation; only functional movement and enabled-state changes are evidenced. Do not infer Home/End Slider acceptance.
+
+Historical main was `26f600d`; both CI workflows were green, but CI readback was pending. Preview 15 was installed from `3fd05be`; fresh native WordPress default-button/Form checks remained pending. The production-only dependency audit was clean, while the full audit retained three dev-tool entries from one unpatched Braces chain; no real SMTP delivery was exercised. Generated recovery restored exact pre-task hashes for `index.html` and `dist/core.cjs` ([recovery evidence](generated-recovery-20261015.json)). This is recovery evidence, not a claim of source or customer-data loss.
+
+The manual Add new site action and native input delivery recovered after the earlier browser-control interruption. The interruption remains in [findings.md](findings.md) and [browser-input-stall.json](native/browser-input-stall.json); stopped probes remain excluded from pass counts. Table conditional-colors and Slider blank-default worker patches are uncommitted, with native after-fix evidence pending. No overall percentage or full-product pass is claimed.
+
+
+## Historical execution boundary — superseded by the b4 current reconciliation
+
+The following boundary is retained for provenance from an older checkpoint. It is not a current queue or release assessment.
+
+The earlier native input-delivery interruption is preserved in [input interruption](native/browser-input-stall.json), but manual Add new site now opens and native input has recovered. The attempted Form GET method change remains a scoped saved/reopened result; stopped activation probes are not passes and are not classified as confirmed product defects. Staging dashboard authentication and unlimited-site entitlement were visible; the full staged customer journey remains pending. WordPress native update and public responsive evidence completed before the interruption.
+
+## Superseding 43a / preview 16 checkpoint — 2026-10-15
+
+- Exact current source is `43a92533b9af4b2f04470c8ea6580ed572fe21d4`; preview 16 is the matching local WordPress QA package. The original combined typography regression passes through native save/reopen and public output ([reopen](native/wordpress-preview16-button-combined-reopen.json), [public](native/wordpress-preview16-public-combined.json)). This is scoped evidence, not full WordPress acceptance.
+- Preview 16 also records readable fresh Button/Form defaults and the retired managed-mode save failure ([defaults](native/wordpress-preview16-new-defaults.json), [capability audit](wordpress-contract/managed-form-gap.md)). Current WordPress capability evidence declares `managedForms=false`; Preview25 proves External HTTPS saved markup without submission ([report](native/wordpress-preview25-external-form.json)). Managed mode is not a required WordPress journey.
+- Earlier Cloud lost-response and false-dirty findings are superseded in part by the current native recovery and Preview 20 evidence: simulated 502/identical-409 committed saves read back correctly, distinct real-writer documents remain blocked with backup/reload, and Preview 20 records Save disabled with no dirty warning after save/reload. Unavailable-readback, final Cloud/device health, and broader dirty-state coverage remain open ([save scope](save-recovery-build-path.json), [view-only evidence](native/wordpress-view-only-dirty.json)).
+- Gallery evidence at that checkpoint was split deliberately: the older comparison was `0/24` because of distributed raster differences and two 768px Menus height differences; the then-current form-integrity review was `22/24` images and `30/30` behavior, with the two Builder Menu differences reviewed as then-current geometry versus unexplained old capture provenance. No overall/full-QA pass or percentage followed.
+
+## Historical native and build checkpoint — 2026-10-16 (superseded by current bc2e72ad)
+
+This section supersedes earlier rows where they conflict. It records the latest native evidence without changing the ledger rule that primary actions, restoration/support, no-op, errors, runtime, and WordPress proof remain separate.
+
+| Module | Bounded native direct-control result | Evidence and limit |
+|---|---|---|
+| Section | Content width, Min height, and HTML tag directly tested | [Section roundtrip](native/staging-section-controls-roundtrip.json); two widths, native min-height, all seven tags, and reload readback. |
+| Row | Gap, Vertical align, Distribution, Wrap, and Columns directly tested | [Row roundtrip](native/staging-row-controls-roundtrip.json); five alignment choices, five distribution choices, both wrap modes, columns 1–6, and reload readback. |
+| Column | Width/share, Min basis, Vertical align, Horizontal align, and Gap directly tested | [Column roundtrip](native/staging-column-controls-roundtrip.json); values and reload readback. |
+| Heading | Content five controls plus Position, Top, and Max width directly tested | [Heading roundtrip](native/staging-heading-controls-roundtrip.json); nine text styles, eight tags, three alignments, five links, Position choices, Top `12px`, Max width `300px`, and reload readback. |
+| Image | All eight Content and six Style controls directly tested | [Image roundtrip](native/staging-image-controls-roundtrip.json); lazy preview is `loading="lazy"`, eager is `null`, and phone link commit is correct. The linked decorative Image label fix is native-verified and the prior site-check finding is gone ([fixed](native/staging-decorative-image-link-fixed.json)). |
+| Box | Gap directly tested in addition to existing direct Box controls | [Box Gap roundtrip](native/staging-box-gap-roundtrip.json); `27px` survives reload. |
+
+The bounded structural ledger now has `remainingCount: 0` and `partialCount: 0` for these six modules, but `overallPercentage` remains null. This does not certify the untouched component classes, shared styles, structural editing, undo/redo, repeaters, form submission, WordPress/public publication, deployment, or operational gates.
+
+The v40/v41 conflict recovery evidence shows the host and backup documents are identical and no edit was lost. Native HTTP 502, identical 409, and unavailable-readback branches read back exact saved content; the distinct real-writer document remains blocked with backup/reload. The original transport cause is unconfirmed and final deployed health remains open ([502](native/staging-http502-save-recovery.json), [409](native/staging-identical409-save-recovery.json), [unavailable](native/staging-unavailable-readback.json), [conflict](native/staging-real-writer-conflict.json)).
+
+Native RichText, Quote, Spacer, Collection, Navigation authoring, Link block, unavailable-readback recovery, account Pro readback, block lifecycle, multiselect atomic Undo, and component-property variants/delete Undo provide scoped evidence. The current Form fixed report adds canonical/unique field names, contrast cleanup, responsive grid/field visibility, and reload readback; full-page POST failure recovery remains unrun due browser Document interception. WP27 acceptance remains historical exact-6e evidence; WP28 recovery/palette evidence is historical accepted; WP29 exact source is installed/pinned with native CAS/concurrency accepted and native CMS partial import remaining open.
+
+Latest isolated verification in that historical checkpoint was **2,191 passed / 5 skipped across 192 files / 2 skipped**; the later ea9 run was **2,235/5 across 195 files/2 skipped**, and the 9c run was **2,238/5 across 196 files/2 skipped**. At that historical checkpoint, the first-click gallery was **24/24 images and 30/30 behavior**; the prior 22/24 review and blank frames remain historical. Main `13831c8`, bc2e72ad, 6a37586d, 6e68b414, ea9a0345, 9c263a6, and 5ad are historical; the then-authoritative source was `b1172773aa217b6aa37c906ab25db85cff8f51f6`. The canonical current source is recorded in the b4 block at the top.
+
+No overall percentage or full-QA pass followed. At that checkpoint, remaining gates included List/collection breadth, responsive typography reset/inheritance, native CMS partial import, backup receipt verification, keyboard shortcut paste/nesting, Form full-page POST fault proof, public routes/console/network health, account/session lifecycle, billing, and external-provider checks. Exact-5ad CMS acceptance and the authoritative current queue are recorded above.
+
+## Historical 9c source, animation, export, and WP checkpoint — 2026-10-16
+
+This section supersedes earlier source/deployment values and retains the ledger separation between primary actions, restoration/support, no-op, error, runtime, and WordPress proof.
+
+| Surface | Current scoped result | Evidence and remaining boundary |
+|---|---|---|
+| Main/staging | `9c263a6` pushed/deployed with exact `__deployment`; CI `38820308112` and deploy `38820307896` passed. WP29 exact source installed/pinned from `c956c6dc`; latest suite is 2,238/5 across 196/2 | Production remains `cc026d65`; public/staging health, console/network, and production promotion remain open. |
+| Animation | 27 named animation choices, four transition presets, custom timing, replay, None, reduced-motion, inspector persistence/reload in the `722af3b` report | [Motion](native/staging-motion-all-options.json), [persisted](native/staging-motion-persisted.jpg), [reduced](native/staging-motion-reduced.jpg); tested Heading/shared transition surface only; no new 6e native acceptance is inferred. |
+| Divider | 1px reset, explicit 0, mobile 4px override/clear, desktop unchanged, colour reset, save/reload in the `722af3b` report | [Divider](native/staging-divider-fixed.json), [mobile](native/staging-divider-mobile-fixed.jpg); old failure is retained as before evidence; no new 6e native acceptance is inferred. |
+| CSV export | Actual OS download completed with exact message | [f8 native report](native/staging-native-csv-after-f8a5d05.json); old top-tab timeout is historical and its cause is unproven. |
+| WordPress Preview 23/25/27/28/29 | Preview23 media/Details accepted; Preview25 endpoint-only markup/menu accepted; WP27/28 remain historical scoped evidence; WP29 exact source installed/pinned with native CAS/concurrency accepted and backup receipt unverified; native CMS partial import was still open at that checkpoint and is now superseded by exact-5ad scoped acceptance | [WP29 pin](wordpress-contract/preview29-pin.json), [CAS](native/wordpress-preview29-design-concurrency.json), [WP28 pin](wordpress-contract/preview28-pin.json). No form submission occurred. |
+| Local gallery | historical first-click review: **24/24 image comparisons, 30/30 behavior** | [Review](gallery/first-click-final/review.json): changed pixels are 2 in `builder-actions-1440.png` and 1 in `builder-tables-768.png`; no reviewed layout regression. Prior 22/24 form-integrity review remains historical. |
+
+At that historical checkpoint, the clean suite was **2,238 passed / 5 skipped across 196 files / 2 skipped**; typecheck/build/demo passed and no overall percentage followed. Unavailable-readback recovery, account Pro readback, block lifecycle, exact-ea9 multiselect labels/atomic Undo, component-property variants/delete Undo with ea9 reload, first-click/dropdown geometry, live palette lifecycle with full reload/rendered CSS, and collection empty/filter restore were accepted. WP29 native CAS/concurrency was accepted with backup receipt unverified; CMS partial import was then open and is now superseded by exact-5ad acceptance.
+
+
+## Historical 6e source and native update — superseded by current ea9 — 2026-10-16
+
+| Surface | Current scoped result | Evidence and remaining boundary |
+|---|---|---|
+| Main/staging | Historical `6e68b414` checkpoint; CI `38801113000` and deploy `38801113070` were green | Superseded by current 9c263a6 source and successful deploy `38820307896`; production remains unchanged. |
+| Form integrity | Native fixed report from `d5a4061d` passes canonical/unique field names, responsive grid/field visibility, contrast cleanup, and reload readback | [Report](native/staging-form-integrity-fixed.json). Full-page POST failure recovery was not run because browser Document interception is unavailable; no submission occurred ([limit](native/staging-form-network-failure-limit.json)). No new 6e native Form acceptance is inferred. |
+| WP29 native concurrency/CMS | Exact source installed/pinned; stale shared-design write blocked with truthful partial-save notification and reload winner; native backup file receipt unverified; CMS partial import remains open | [WP29 pin](wordpress-contract/preview29-pin.json), [CAS](native/wordpress-preview29-design-concurrency.json), [import contract](wordpress-contract/design-concurrency-import-regression.json). |
+| Color/custom CSS and cross-page guard | WP27 historical guards plus exact-ea9 live palette add/rename/value/delete, same-dialog CSS, and full reload/rendered literals accepted | [WP27 guards](native/wordpress-preview27-resource-guards.json), [unused](native/wordpress-preview27-unused-resource-deletion.json), [Cloud CSS](native/staging-colour-css-preservation.json), [settings palette](native/staging-settings-palette-fixed.json). Native CMS partial import was still open at that checkpoint and is now superseded by exact-5ad scoped acceptance. |
+| Local gallery | **Historical 24/24 image comparisons, 30/30 behavior** | The then-current [first-click review](gallery/first-click-final/review.json) had only 2 and 1 changed pixels in named captures, with no layout regression. The later 0/24 drift run is also historical; current final-repeat evidence is recorded in the canonical b4 block at the top. |
+
+At that historical checkpoint, the clean suite was **2,238 passed / 5 skipped across 196 files / 2 skipped**. Full QA remained incomplete; native CMS partial import was then open and is now superseded by exact-5ad acceptance. Keyboard shortcut paste, Form full-page POST fault proof, broader component/customer journeys, public health, and operational gates remain open; no overall percentage follows.

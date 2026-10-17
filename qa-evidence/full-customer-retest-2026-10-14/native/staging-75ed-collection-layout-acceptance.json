@@ -1,0 +1,431 @@
+{
+  "environment": "staging",
+  "sourceCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "baseline": [
+    {
+      "bp": "Desktop",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 591
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 591
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "18px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "source": "QA Shared Spaces · 5 items"
+    },
+    {
+      "bp": "Tablet",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 384
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 384
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "18px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "source": "QA Shared Spaces · 5 items"
+    },
+    {
+      "bp": "Mobile",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 374
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 374
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "20px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "source": "QA Shared Spaces · 5 items"
+    }
+  ],
+  "cases": [
+    {
+      "kind": "Vertical align",
+      "layout": "Grid",
+      "bp": "Desktop",
+      "label": "Top",
+      "expected": "flex-start",
+      "actual": "flex-start",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Grid",
+      "bp": "Desktop",
+      "label": "Middle",
+      "expected": "center",
+      "actual": "center",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Grid",
+      "bp": "Desktop",
+      "label": "Bottom",
+      "expected": "flex-end",
+      "actual": "flex-end",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Grid",
+      "bp": "Desktop",
+      "label": "Base",
+      "expected": "baseline",
+      "actual": "baseline",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Grid",
+      "bp": "Desktop",
+      "label": "Fill",
+      "expected": "stretch",
+      "actual": "stretch",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Slider",
+      "bp": "Desktop",
+      "label": "Top",
+      "expected": "flex-start",
+      "actual": "flex-start",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Slider",
+      "bp": "Desktop",
+      "label": "Middle",
+      "expected": "center",
+      "actual": "center",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Slider",
+      "bp": "Desktop",
+      "label": "Bottom",
+      "expected": "flex-end",
+      "actual": "flex-end",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Slider",
+      "bp": "Desktop",
+      "label": "Base",
+      "expected": "baseline",
+      "actual": "baseline",
+      "passed": true
+    },
+    {
+      "kind": "Vertical align",
+      "layout": "Slider",
+      "bp": "Desktop",
+      "label": "Fill",
+      "expected": "stretch",
+      "actual": "stretch",
+      "passed": true
+    },
+    {
+      "kind": "Unpaginated limit",
+      "value": "3",
+      "expectedCount": 3,
+      "actualCount": 3,
+      "titles": [
+        "Community Garden",
+        "Courtyard",
+        "Reading Room"
+      ],
+      "passed": true
+    },
+    {
+      "kind": "Unpaginated limit",
+      "value": "",
+      "expectedCount": 5,
+      "actualCount": 5,
+      "titles": [
+        "Community Garden",
+        "Courtyard",
+        "Reading Room",
+        "Shared Kitchen",
+        "Workshop"
+      ],
+      "passed": true
+    },
+    {
+      "kind": "Title descending",
+      "expected": [
+        "Workshop",
+        "Shared Kitchen",
+        "Reading Room",
+        "Courtyard",
+        "Community Garden"
+      ],
+      "actual": [
+        "Workshop",
+        "Shared Kitchen",
+        "Reading Room",
+        "Courtyard",
+        "Community Garden"
+      ],
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "sliderWrapBefore": [
+    {
+      "selected": "Wrap",
+      "displayed": "Wrap",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 374
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 374
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-slider pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "20px",
+        "grid": "none",
+        "wrap": "nowrap"
+      }
+    },
+    {
+      "selected": "No wrap",
+      "displayed": "No wrap",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 374
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 374
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-slider pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "20px",
+        "grid": "none",
+        "wrap": "nowrap"
+      }
+    }
+  ],
+  "negativeGapBefore": {
+    "input": {
+      "min": "",
+      "step": "1",
+      "valid": false,
+      "value": "-2.5"
+    },
+    "render": {
+      "align": "center",
+      "cards": [
+        {
+          "tag": "DIV",
+          "text": "Community Garden",
+          "width": 600
+        },
+        {
+          "tag": "DIV",
+          "text": "Courtyard",
+          "width": 600
+        }
+      ],
+      "classes": "pagecraft-list pagecraft-lyfiy6wd",
+      "display": "flex",
+      "gap": "normal",
+      "grid": "none",
+      "wrap": "wrap"
+    }
+  },
+  "originalHiddenLimit": "1",
+  "editorFresh": {
+    "layout": "Slider",
+    "per": "",
+    "limit": "",
+    "gap": "5",
+    "gapUnit": "%"
+  },
+  "sliderRoundtrip": [
+    {
+      "bp": "Desktop",
+      "end": {
+        "count": 5,
+        "gap": "5%",
+        "left": 5040,
+        "max": 5040,
+        "width": 1200
+      },
+      "home": {
+        "left": 0,
+        "max": 5040
+      },
+      "passed": true
+    },
+    {
+      "bp": "Tablet",
+      "end": {
+        "count": 5,
+        "gap": "5%",
+        "left": 3301,
+        "max": 3301,
+        "width": 786
+      },
+      "home": {
+        "left": 0,
+        "max": 3301
+      },
+      "passed": true
+    },
+    {
+      "bp": "Mobile",
+      "end": {
+        "count": 5,
+        "gap": "20px",
+        "left": 1576,
+        "max": 1576,
+        "width": 374
+      },
+      "home": {
+        "left": 0,
+        "max": 1576
+      },
+      "passed": true
+    }
+  ],
+  "restoredRender": [
+    {
+      "bp": "Desktop",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 591
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 591
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "18px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "per": "2"
+    },
+    {
+      "bp": "Tablet",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 384
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 384
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "18px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "per": "2"
+    },
+    {
+      "bp": "Mobile",
+      "render": {
+        "align": "center",
+        "cards": [
+          {
+            "tag": "DIV",
+            "text": "Community Garden",
+            "width": 374
+          },
+          {
+            "tag": "DIV",
+            "text": "Courtyard",
+            "width": 374
+          }
+        ],
+        "classes": "pagecraft-list pagecraft-lyfiy6wd",
+        "display": "flex",
+        "gap": "20px",
+        "grid": "none",
+        "wrap": "wrap"
+      },
+      "layout": "Grid",
+      "per": "2"
+    }
+  ],
+  "hiddenLimitRestored": "1",
+  "passed": true,
+  "scope": "Bounded Collection layout, vertical alignment, sorting, limits, percentage-gap slider navigation and restoration. Broader CMS/Style/Advanced/public host coverage remains open."
+}

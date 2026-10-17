@@ -1,0 +1,485 @@
+{
+  "baseCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "archives": [
+    "/tmp/pagecraft-nav-units-one-75ed",
+    "/tmp/pagecraft-nav-units-two-75ed"
+  ],
+  "source7": {
+    "app/src/core/index.ts": {
+      "main": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+      "one": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+      "two": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+      "exact": true
+    },
+    "app/src/ui/inspector/Inspector.tsx": {
+      "main": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+      "one": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+      "two": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+      "exact": true
+    },
+    "app/src/ui/inspector/Controls.tsx": {
+      "main": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+      "one": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+      "two": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+      "exact": true
+    },
+    "packages/editor/src/compiler.ts": {
+      "main": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+      "one": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+      "two": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+      "exact": true
+    },
+    "tests/editor-compiler.test.ts": {
+      "main": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298",
+      "one": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298",
+      "two": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298",
+      "exact": true
+    },
+    "tests/collection-slider-controls.test.tsx": {
+      "main": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+      "one": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+      "two": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+      "exact": true
+    },
+    "tests/unit-control-validation.test.tsx": {
+      "main": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+      "one": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+      "two": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+      "exact": true
+    }
+  },
+  "generated11": {
+    "index.html": {
+      "one": "0cc22ccdc91176dbe59546157e88f8e151363ba2afd0a5ac02fc2d43a954052f",
+      "two": "0cc22ccdc91176dbe59546157e88f8e151363ba2afd0a5ac02fc2d43a954052f",
+      "mainProtectedBefore": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "dist/core.cjs": {
+      "one": "ccd9aca10e9e3261e31d82884f0baf8bcf27e88df0e334f64d2d55b2555cd2ad",
+      "two": "ccd9aca10e9e3261e31d82884f0baf8bcf27e88df0e334f64d2d55b2555cd2ad",
+      "mainProtectedBefore": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "packages/editor/dist/contract.json": {
+      "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "mainProtectedBefore": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": false
+    },
+    "packages/editor/dist/editor.html": {
+      "one": "a6d94898356158954150736bde0fdc606567f1d10ad91a66dccc7d2952595f06",
+      "two": "a6d94898356158954150736bde0fdc606567f1d10ad91a66dccc7d2952595f06",
+      "mainProtectedBefore": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "mainProtectedBefore": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "mainProtectedBefore": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "two": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "mainProtectedBefore": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "dist/demo/index.html": {
+      "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "mainProtectedBefore": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "mainProtectedBefore": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": false
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "mainProtectedBefore": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": false
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": "23e87c3c0f3a2ae205dacfbfcac76c0446349029896989e112d5c56e166a784e",
+      "two": "23e87c3c0f3a2ae205dacfbfcac76c0446349029896989e112d5c56e166a784e",
+      "mainProtectedBefore": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "archivesExact": true,
+      "differsFromMainProtectedBefore": true
+    }
+  },
+  "generated11Deterministic": true,
+  "mainProtected11Exact": true,
+  "wordpressGolden": {
+    "main": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "one": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "two": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4"
+  },
+  "wordpressGoldenExpected": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "task": "Navigation component binding, Collection Slider control, and unit validation integration",
+  "date": "2026-10-17",
+  "status": "complete local integration verification; native/deployment/packaging remain root-owned",
+  "commands": {
+    "npmCi": "npm ci --ignore-scripts (both archives)",
+    "editorBuild": "npm run build:editor-package (both archives)",
+    "demoBuild": "npm run build (both archives)",
+    "typecheck": "npm run typecheck (both archives)",
+    "focused": "npx vitest run tests/editor-compiler.test.ts tests/unit-control-validation.test.tsx tests/collection-slider-controls.test.tsx tests/box-spacing-validation.test.tsx tests/gallery-focus-state.test.tsx tests/full-retest-shared-combinations.test.ts (both archives)",
+    "goldenCandidate": "PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector' (both archives)",
+    "provisionalFullOne": "npm test (archive ONE only)",
+    "conditionalMatrix": "npx vitest run tests/module-control-behavior.test.tsx (both archives)",
+    "finalFullOne": "npm test (archive ONE only, after reviewed baseline copy)",
+    "independentBaselineTwo": "npx vitest run tests/ui-baselines.test.mjs (archive TWO)"
+  },
+  "results": {
+    "npmCi": {
+      "one": 0,
+      "two": 0,
+      "advisories": "existing 3 high severity findings; dependencies unchanged"
+    },
+    "builds": {
+      "one": 0,
+      "two": 0
+    },
+    "typecheck": {
+      "one": 0,
+      "two": 0
+    },
+    "focused": {
+      "one": {
+        "exitCode": 0,
+        "filesPassed": 6,
+        "testsPassed": 22
+      },
+      "two": {
+        "exitCode": 0,
+        "filesPassed": 6,
+        "testsPassed": 22
+      }
+    },
+    "goldenCandidate": {
+      "one": {
+        "exitCode": 0,
+        "testsPassed": 1,
+        "testsSkipped": 29
+      },
+      "two": {
+        "exitCode": 0,
+        "testsPassed": 1,
+        "testsSkipped": 29
+      }
+    },
+    "provisionalFullOne": {
+      "exitCode": 1,
+      "filesPassed": 213,
+      "filesFailed": 2,
+      "filesSkipped": 2,
+      "testsPassed": 2397,
+      "testsFailed": 2,
+      "testsSkipped": 5,
+      "expectedPendingBaselineFailure": "tests/ui-baselines.test.mjs: Inspector.tsx source hash requires reviewed gallery baseline",
+      "additionalIntegrationFailure": "tests/module-control-behavior.test.tsx: conditional declarations increased from 33 to 34 after Collection Wrap gained `when`; frozen seven-file scope contains no conditionalSetup/count update",
+      "historical": true,
+      "resolution": "The additional conditional-control failure is resolved by the root-owned exact eighth overlay and passes both focused archives; the historical two-failure log is preserved."
+    },
+    "conditionalMatrix": {
+      "one": {
+        "exitCode": 0,
+        "testsPassed": 5
+      },
+      "two": {
+        "exitCode": 0,
+        "testsPassed": 5
+      },
+      "coverage": "34/34 conditional declarations, including Collection Wrap off for Slider and on for Grid"
+    },
+    "galleryReview": {
+      "path": "qa-evidence/full-customer-retest-2026-10-14/gallery/navigation-units-final",
+      "behaviorChecksPassed": 30,
+      "behaviorChecksTotal": 30,
+      "imageComparisonsPassed": 24,
+      "imageComparisonsTotal": 24,
+      "changedPixels": 0,
+      "rootViewedFullImages": [
+        "cloud-fields-1440.png",
+        "builder-menus-1440.png",
+        "cloud-dialogs-768.png",
+        "builder-fields-768.png"
+      ],
+      "reviewedBaselineFiles": 25
+    },
+    "finalFullOne": {
+      "exitCode": 0,
+      "filesPassed": 215,
+      "filesSkipped": 2,
+      "testsPassed": 2399,
+      "testsSkipped": 5
+    },
+    "independentBaselineTwo": {
+      "exitCode": 0,
+      "filesPassed": 1,
+      "testsPassed": 2,
+      "images": 24,
+      "sourceFiles": 28
+    }
+  },
+  "boundaries": [
+    "No command wrote or ran npm/build/test in the main checkout.",
+    "No browser action was performed by this worker; root performed and reviewed the built-in gallery capture.",
+    "No WordPress state, main golden, commit, push, package, install, staging, or production action."
+  ],
+  "source8ConditionalMatrix": {
+    "path": "tests/module-control-behavior.test.tsx",
+    "mainSha256": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+    "oneSha256": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+    "twoSha256": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+    "exact": true
+  },
+  "finalIntegrity": {
+    "source8": {
+      "app/src/core/index.ts": {
+        "main": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+        "one": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+        "two": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb"
+      },
+      "app/src/ui/inspector/Inspector.tsx": {
+        "main": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+        "one": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+        "two": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb"
+      },
+      "app/src/ui/inspector/Controls.tsx": {
+        "main": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+        "one": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+        "two": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f"
+      },
+      "packages/editor/src/compiler.ts": {
+        "main": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+        "one": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+        "two": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1"
+      },
+      "tests/editor-compiler.test.ts": {
+        "main": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298",
+        "one": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298",
+        "two": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298"
+      },
+      "tests/collection-slider-controls.test.tsx": {
+        "main": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+        "one": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+        "two": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d"
+      },
+      "tests/unit-control-validation.test.tsx": {
+        "main": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+        "one": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+        "two": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5"
+      },
+      "tests/module-control-behavior.test.tsx": {
+        "main": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+        "one": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+        "two": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261"
+      }
+    },
+    "source8Exact": true,
+    "generated11": {
+      "index.html": {
+        "one": "0cc22ccdc91176dbe59546157e88f8e151363ba2afd0a5ac02fc2d43a954052f",
+        "two": "0cc22ccdc91176dbe59546157e88f8e151363ba2afd0a5ac02fc2d43a954052f"
+      },
+      "dist/core.cjs": {
+        "one": "ccd9aca10e9e3261e31d82884f0baf8bcf27e88df0e334f64d2d55b2555cd2ad",
+        "two": "ccd9aca10e9e3261e31d82884f0baf8bcf27e88df0e334f64d2d55b2555cd2ad"
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "a6d94898356158954150736bde0fdc606567f1d10ad91a66dccc7d2952595f06",
+        "two": "a6d94898356158954150736bde0fdc606567f1d10ad91a66dccc7d2952595f06"
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6"
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc"
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+        "two": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200"
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495"
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0"
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "23e87c3c0f3a2ae205dacfbfcac76c0446349029896989e112d5c56e166a784e",
+        "two": "23e87c3c0f3a2ae205dacfbfcac76c0446349029896989e112d5c56e166a784e"
+      }
+    },
+    "generated11ArchivesExact": true,
+    "baseline25": {
+      "public/internal-ui-baselines/builder-actions-1440.png": {
+        "main": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+        "one": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+        "two": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968"
+      },
+      "public/internal-ui-baselines/builder-actions-768.png": {
+        "main": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+        "one": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+        "two": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e"
+      },
+      "public/internal-ui-baselines/builder-dialogs-1440.png": {
+        "main": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+        "one": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+        "two": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0"
+      },
+      "public/internal-ui-baselines/builder-dialogs-768.png": {
+        "main": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+        "one": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+        "two": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769"
+      },
+      "public/internal-ui-baselines/builder-feedback-1440.png": {
+        "main": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+        "one": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+        "two": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a"
+      },
+      "public/internal-ui-baselines/builder-feedback-768.png": {
+        "main": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+        "one": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+        "two": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3"
+      },
+      "public/internal-ui-baselines/builder-fields-1440.png": {
+        "main": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+        "one": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+        "two": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a"
+      },
+      "public/internal-ui-baselines/builder-fields-768.png": {
+        "main": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+        "one": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+        "two": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e"
+      },
+      "public/internal-ui-baselines/builder-menus-1440.png": {
+        "main": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+        "one": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+        "two": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f"
+      },
+      "public/internal-ui-baselines/builder-menus-768.png": {
+        "main": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+        "one": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+        "two": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94"
+      },
+      "public/internal-ui-baselines/builder-tables-1440.png": {
+        "main": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+        "one": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+        "two": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46"
+      },
+      "public/internal-ui-baselines/builder-tables-768.png": {
+        "main": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+        "one": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+        "two": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696"
+      },
+      "public/internal-ui-baselines/cloud-actions-1440.png": {
+        "main": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+        "one": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+        "two": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518"
+      },
+      "public/internal-ui-baselines/cloud-actions-768.png": {
+        "main": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+        "one": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+        "two": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf"
+      },
+      "public/internal-ui-baselines/cloud-dialogs-1440.png": {
+        "main": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+        "one": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+        "two": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6"
+      },
+      "public/internal-ui-baselines/cloud-dialogs-768.png": {
+        "main": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+        "one": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+        "two": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea"
+      },
+      "public/internal-ui-baselines/cloud-feedback-1440.png": {
+        "main": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+        "one": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+        "two": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5"
+      },
+      "public/internal-ui-baselines/cloud-feedback-768.png": {
+        "main": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+        "one": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+        "two": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872"
+      },
+      "public/internal-ui-baselines/cloud-fields-1440.png": {
+        "main": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+        "one": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+        "two": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44"
+      },
+      "public/internal-ui-baselines/cloud-fields-768.png": {
+        "main": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+        "one": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+        "two": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0"
+      },
+      "public/internal-ui-baselines/cloud-menus-1440.png": {
+        "main": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+        "one": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+        "two": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973"
+      },
+      "public/internal-ui-baselines/cloud-menus-768.png": {
+        "main": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+        "one": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+        "two": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4"
+      },
+      "public/internal-ui-baselines/cloud-tables-1440.png": {
+        "main": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+        "one": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+        "two": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21"
+      },
+      "public/internal-ui-baselines/cloud-tables-768.png": {
+        "main": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+        "one": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+        "two": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20"
+      },
+      "public/internal-ui-baselines/manifest.json": {
+        "main": "03165e7ffe22686a4fccc7c7784cebcf301dd149c7910aa460c3616c74922d56",
+        "one": "03165e7ffe22686a4fccc7c7784cebcf301dd149c7910aa460c3616c74922d56",
+        "two": "03165e7ffe22686a4fccc7c7784cebcf301dd149c7910aa460c3616c74922d56"
+      }
+    },
+    "baseline25MainOneTwoExact": true,
+    "baselineCount": 25,
+    "mainProtected11Exact": true,
+    "wordpressGolden": {
+      "main": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+      "one": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+      "two": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4"
+    },
+    "wordpressGoldenExpectedExact": true
+  }
+}

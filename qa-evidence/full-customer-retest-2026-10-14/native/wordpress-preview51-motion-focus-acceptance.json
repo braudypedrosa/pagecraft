@@ -1,0 +1,192 @@
+{
+  "environment": "Local WordPress QA",
+  "editorVersion": "0.2.17-preview.20261017.51",
+  "sourceCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "phpFix": "491c6729d13d93010e5891daf9be47f5b90bd189",
+  "fixture": 487,
+  "cases": [
+    {
+      "kind": "combined timing and Once",
+      "breakpoint": "Desktop",
+      "render": {
+        "animation": "0.8s cubic-bezier(0.2, 0.7, 0.1, 1) 0.12s forwards bpBounce",
+        "delay": "0.12s",
+        "duration": "0.8s",
+        "easing": "cubic-bezier(0.2, 0.7, 0.1, 1)",
+        "name": "bpBounce",
+        "once": "true",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)"
+      },
+      "attributes": [
+        [
+          "bp-duration",
+          "800ms"
+        ],
+        [
+          "bp-delay",
+          "120ms"
+        ],
+        [
+          "bp-easing",
+          "cubic-bezier(0.2, 0.7, 0.1, 1)"
+        ],
+        [
+          "bp-animation-once",
+          "true"
+        ]
+      ]
+    },
+    {
+      "kind": "combined timing and Once",
+      "breakpoint": "Tablet",
+      "render": {
+        "animation": "0.8s cubic-bezier(0.2, 0.7, 0.1, 1) 0.12s forwards bpBounce",
+        "delay": "0.12s",
+        "duration": "0.8s",
+        "easing": "cubic-bezier(0.2, 0.7, 0.1, 1)",
+        "name": "bpBounce",
+        "once": "true",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)"
+      },
+      "layout": {
+        "scrollWidth": 820,
+        "viewport": 820,
+        "width": 772
+      }
+    },
+    {
+      "kind": "combined timing and Once",
+      "breakpoint": "Mobile",
+      "render": {
+        "animation": "0.8s cubic-bezier(0.2, 0.7, 0.1, 1) 0.12s forwards bpBounce",
+        "delay": "0.12s",
+        "duration": "0.8s",
+        "easing": "cubic-bezier(0.2, 0.7, 0.1, 1)",
+        "name": "bpBounce",
+        "once": "true",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)"
+      },
+      "layout": {
+        "scrollWidth": 414,
+        "viewport": 414,
+        "width": 374
+      }
+    },
+    {
+      "kind": "combined timing with reduced motion",
+      "breakpoint": "Desktop",
+      "render": {
+        "animation": "none",
+        "delay": "0s",
+        "duration": "0s",
+        "easing": "ease",
+        "name": "none",
+        "once": "true",
+        "opacity": "1",
+        "transform": "none"
+      }
+    },
+    {
+      "kind": "combined timing with reduced motion",
+      "breakpoint": "Tablet",
+      "render": {
+        "animation": "none",
+        "delay": "0s",
+        "duration": "0s",
+        "easing": "ease",
+        "name": "none",
+        "once": "true",
+        "opacity": "1",
+        "transform": "none"
+      }
+    },
+    {
+      "kind": "combined timing with reduced motion",
+      "breakpoint": "Mobile",
+      "render": {
+        "animation": "none",
+        "delay": "0s",
+        "duration": "0s",
+        "easing": "ease",
+        "name": "none",
+        "once": "true",
+        "opacity": "1",
+        "transform": "none"
+      }
+    },
+    {
+      "kind": "Spin easing only retains preset duration",
+      "breakpoint": "Desktop",
+      "render": {
+        "animation": "0.8s linear forwards bpSpin",
+        "delay": "0s",
+        "duration": "0.8s",
+        "easing": "linear",
+        "name": "bpSpin",
+        "once": null,
+        "opacity": "0.16667",
+        "transform": "matrix(0.416652, 0.721697, -0.721697, 0.416652, 0, 0)"
+      }
+    }
+  ],
+  "restored": true,
+  "combinedEditorFresh": {
+    "duration": "800ms",
+    "delay": "120ms",
+    "easing": "cubic-bezier(0.2, 0.7, 0.1, 1)",
+    "once": true
+  },
+  "padding": {
+    "input": {
+      "min": "0",
+      "valid": true,
+      "value": "0"
+    },
+    "computed": "0px"
+  },
+  "focus": {
+    "render": {
+      "bg": "rgb(187, 204, 221)",
+      "focused": true,
+      "parentFocus": false
+    },
+    "mobile": {
+      "bg": "rgb(187, 204, 221)",
+      "focused": true,
+      "scrollWidth": 414,
+      "viewport": 414
+    }
+  },
+  "restoredPublic": {
+    "motion": {
+      "animation": "none",
+      "delay": "0s",
+      "duration": "0s",
+      "easing": "ease",
+      "name": "none",
+      "once": null,
+      "opacity": "1",
+      "transform": "none"
+    },
+    "gallery": {
+      "attrs": [],
+      "bg": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px"
+    },
+    "runtimeScripts": [
+      "http://pagecraft-wordpress-qa.local/wp-content/plugins/pagecraft-builder/assets/pagecraft-runtime.js?ver=11d5734736c9"
+    ]
+  },
+  "restoredEditor": {
+    "animation": "— none —",
+    "saveDisabled": true,
+    "idsExact": true,
+    "temporaryFocusColourReset": true
+  },
+  "passed": true,
+  "coverage": "Bounded native save/reload/frontend animation attributes, partial preset overrides, reduced motion D/T/M, Gallery Focus D/M and padding clamp; full WordPress/module QA remains incomplete."
+}

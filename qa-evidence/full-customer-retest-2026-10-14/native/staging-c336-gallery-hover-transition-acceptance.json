@@ -1,0 +1,78 @@
+{
+  "at": "2026-10-17T07:02:52.670Z",
+  "source": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "environment": "staging",
+  "node": "nfzf4v1jd",
+  "cases": [
+    {
+      "choice": "None",
+      "rendered": {
+        "duration": "0s",
+        "easing": "ease",
+        "property": "all"
+      },
+      "pass": true
+    },
+    {
+      "choice": "Fast",
+      "rendered": {
+        "duration": "0.15s",
+        "easing": "ease",
+        "property": "all"
+      },
+      "pass": true
+    },
+    {
+      "choice": "Standard",
+      "rendered": {
+        "duration": "0.25s",
+        "easing": "ease",
+        "property": "all"
+      },
+      "pass": true
+    },
+    {
+      "choice": "Smooth",
+      "rendered": {
+        "duration": "0.4s",
+        "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "property": "all"
+      },
+      "pass": true
+    },
+    {
+      "choice": "Custom",
+      "rendered": {
+        "duration": "0.1s",
+        "easing": "linear",
+        "property": "background-color"
+      },
+      "pass": true
+    }
+  ],
+  "fullStateCoverage": false,
+  "before": {
+    "background": "rgb(204, 224, 204)",
+    "hover": true
+  },
+  "hovered": {
+    "background": "rgb(204, 224, 204)",
+    "hover": true,
+    "transition": "background-color 0.1s linear"
+  },
+  "left": {
+    "background": "rgba(0, 0, 0, 0)",
+    "hover": false
+  },
+  "reducedMotion": {
+    "background": "rgb(204, 224, 204)",
+    "duration": "1e-05s",
+    "hover": true
+  },
+  "restored": {
+    "background": "rgba(0, 0, 0, 0)",
+    "duration": "0s"
+  },
+  "pass": true,
+  "restoredPersisted": true
+}

@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 3,
+  "snapshot": "2026-10-17 main/staging 75ed8acb11bb3297d4889f3edade56d6af31807e exact; CI 39013646681 green; deployment endpoint exact; WP51 installed/accepted bounded; production cc026; all fifteen broad areas open",
+  "source": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "purpose": "Mechanical native-coverage ledger for the bounded direct controls in Heading, Image, Section, Row, Column, and Box. This is an evidence map, not an overall denominator or product pass rate.",
+  "scope": {
+    "modules": [
+      "Heading",
+      "Image",
+      "Section",
+      "Row",
+      "Column",
+      "Box"
+    ],
+    "tabs": [
+      "Content",
+      "Style",
+      "Advanced"
+    ],
+    "dedupeKey": [
+      "module",
+      "tab",
+      "control",
+      "action",
+      "option"
+    ],
+    "countingRule": "Count only current native reports with recognizable actions or semantic settings and an observable persistence or render result. Keep restoration, support, no-op, error, numeric precondition, and source/component evidence separate."
+  },
+  "inputs": [
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-section-controls-roundtrip.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-row-controls-roundtrip.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-column-controls-roundtrip.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-heading-controls-roundtrip.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-image-controls-roundtrip.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-decorative-image-link-fixed.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/staging-box-gap-roundtrip.json",
+    "qa-evidence/cafe-module-acceptance-2026-10-13/module-inventory/source-control-coverage.json",
+    "qa-evidence/cafe-module-acceptance-2026-10-13/module-inventory/inventory.md"
+  ],
+  "sourceInventoryBoundary": {
+    "controlCases": 250,
+    "browserPassed": 0,
+    "browserNotRun": 250,
+    "percentage": null,
+    "reason": "The historical source inventory is not current native coverage and is not used as a denominator."
+  },
+  "coveredDirectControls": [
+    {
+      "module": "Section",
+      "tab": "Content",
+      "controls": [
+        "Content width",
+        "Min height",
+        "HTML tag"
+      ],
+      "reports": [
+        "staging-section-controls-roundtrip.json"
+      ],
+      "result": "Two width modes, native min-height, all seven semantic tags, and reload readback are recorded."
+    },
+    {
+      "module": "Row",
+      "tab": "Content",
+      "controls": [
+        "Gap",
+        "Vertical align",
+        "Distribution",
+        "Wrap",
+        "Columns"
+      ],
+      "reports": [
+        "staging-row-controls-roundtrip.json"
+      ],
+      "result": "Gap, five alignment choices, five distribution choices, both wrap modes, columns 1-6, and reload readback are recorded."
+    },
+    {
+      "module": "Column",
+      "tab": "Content",
+      "controls": [
+        "Width (share)",
+        "Min basis",
+        "Vertical align",
+        "Horizontal align",
+        "Gap"
+      ],
+      "reports": [
+        "staging-column-controls-roundtrip.json"
+      ],
+      "result": "Share, min-basis, vertical, horizontal, and gap values plus reload readback are recorded."
+    },
+    {
+      "module": "Box",
+      "tab": "Content",
+      "controls": [
+        "Layout",
+        "Direction",
+        "Distribute",
+        "Align",
+        "Wrap",
+        "Columns",
+        "Gap",
+        "HTML tag",
+        "Link"
+      ],
+      "reports": [
+        "continued-box-1.json",
+        "continued-box-2.json",
+        "continued-box-grid-1.json",
+        "continued-box-tag.json",
+        "staging-box-gap-roundtrip.json",
+        "staging-link-block-roundtrip.json"
+      ],
+      "result": "Existing direct controls plus a 27px Gap save/reload roundtrip are recorded."
+    },
+    {
+      "module": "Heading",
+      "tab": "Content",
+      "controls": [
+        "Heading text",
+        "Text style",
+        "HTML tag",
+        "Alignment",
+        "Link"
+      ],
+      "reports": [
+        "staging-heading-controls-roundtrip.json"
+      ],
+      "result": "Nine text styles, eight tags, three alignments, five link modes, text, and reload readback are recorded."
+    },
+    {
+      "module": "Heading",
+      "tab": "Style",
+      "controls": [
+        "Size",
+        "Colour",
+        "Weight",
+        "Line height",
+        "Letter spacing",
+        "Font",
+        "Transform"
+      ],
+      "reports": [
+        "heading-style-1.json",
+        "heading-style-2.json",
+        "heading-style-3.json",
+        "heading-style-4.json",
+        "heading-style-5.json",
+        "heading-style-6.json",
+        "heading-style-7.json",
+        "heading-style-8.json"
+      ]
+    },
+    {
+      "module": "Heading",
+      "tab": "Advanced",
+      "controls": [
+        "HTML id",
+        "CSS classes",
+        "Z-index",
+        "Overflow",
+        "Custom CSS",
+        "Position",
+        "Top",
+        "Max width"
+      ],
+      "reports": [
+        "heading-advanced-1.json",
+        "heading-advanced-2.json",
+        "staging-heading-controls-roundtrip.json"
+      ],
+      "result": "Position choices plus direct Top 12px and Max width 300px values are included in the fresh native roundtrip."
+    },
+    {
+      "module": "Image",
+      "tab": "Content",
+      "controls": [
+        "Image source",
+        "Alt text",
+        "Decorative image",
+        "Intrinsic size",
+        "Caption",
+        "Link",
+        "Alignment",
+        "Lazy load"
+      ],
+      "reports": [
+        "staging-image-controls-roundtrip.json"
+      ],
+      "result": "All eight Content controls have direct native evidence; lazy-load preview records lazy and null loading values, and the phone link commit is correct."
+    },
+    {
+      "module": "Image",
+      "tab": "Style",
+      "controls": [
+        "Width",
+        "Height",
+        "Fit",
+        "Radius",
+        "Opacity",
+        "Filter"
+      ],
+      "reports": [
+        "staging-image-controls-roundtrip.json"
+      ],
+      "result": "All six Style controls have direct native evidence."
+    }
+  ],
+  "partialDirectControls": [],
+  "remaining": [],
+  "separateFindings": [
+    {
+      "module": "Image",
+      "finding": "The initial linked decorative Image unnamed-link finding is superseded: staging 13831c8 now renders and reloads the explicit link label, and the native site-check finding is gone.",
+      "report": "staging-decorative-image-link-fixed.json"
+    },
+    {
+      "module": "Heading",
+      "finding": "The v40/v41 conflict recovery report shows identical host and backup documents with no edit lost. The later native 502/identical-409 and real-writer checks cover committed recovery and distinct-document blocking; the original transport cause remains unconfirmed and unavailable-readback/final-health checks remain open.",
+      "report": "staging-real-writer-conflict.json"
+    },
+    {
+      "module": "Collection / Site checks",
+      "finding": "Earlier 6cfa repeated-item target defect is fixed and staging-accepted for Courtyard and page-2 Reading Room; CMS fixtures were restored.",
+      "report": "staging-5da-site-check-item-target-fixed.json"
+    },
+    {
+      "module": "Accordion",
+      "finding": "Earlier stale-label defect is fixed and staging-accepted; question/answer/canvas labels and focus context refresh after blur, and one Undo restores the old state. Broader Accordion Style/Advanced coverage remains open.",
+      "report": "staging-5da-accordion-label-fixed.json"
+    }
+  ],
+  "notAttributedAcrossModules": [
+    {
+      "report": "continued-form-grid.json",
+      "reason": "Form-owned native grid proof does not count as direct Row or Column control coverage."
+    },
+    {
+      "report": "staging-collection-controls.json",
+      "reason": "Collection-owned output does not count as direct Heading or Column controls."
+    },
+    {
+      "report": "source-control-coverage.json",
+      "reason": "Source/component evidence only; browser status is not-run."
+    }
+  ],
+  "interpretation": {
+    "remainingCount": 0,
+    "partialCount": 0,
+    "overallPercentage": null,
+    "fullCustomerRetestComplete": false,
+    "note": "The bounded six-module direct-control matrix remains zero remaining/zero partial. Main/staging are exact b4 with green CI/deploy. RichText bounded acceptance passes the named runtime, typography, Undo/Redo, and fresh reload cases; broader module coverage remains open. Preview44 clean-state fix is committed/installed and four clean-state cases pass with settled Save disabled; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router. Fifteen broad areas remain open; no overall QA percentage or pass.",
+    "overallPass": false
+  },
+  "currentSource": {
+    "main": "23939c587921a3d709053017b061122ef951df11",
+    "ci": "39007134973",
+    "deploy": "39007134967",
+    "wpPackage": "4042c8df780701480091d840ebb4864e0836630b",
+    "wpZip": "e6199f6f",
+    "wpManifest": "a75499e5",
+    "wpEvidence": "2e302ca1014f644ea7923cf2df8a3256f27093b4",
+    "wpCi": "39007960617",
+    "wpInstalled": true,
+    "postNativeGuard": "pending"
+  },
+  "sourceBoundary": "Structural ledger remains limited to named direct controls. Semantic Add and Gallery common Style are current bounded evidence; package-worker final post-native guard is accepted; Gallery background/border bounded acceptance is current; Gallery motion partial fix remains pending final full native verification. and broad coverage stays open.",
+  "currentScopedEvidence": {
+    "semanticAdd": "native/staging-23939-semantic-add-acceptance.json: six click/drag/Redo atomic originals restored; native/wordpress-preview49-semantic-add-acceptance.json: five host-supported cases, Save disabled, IDs exact",
+    "gallery": "native/staging-23939-gallery-common-style-acceptance.json: 12 finite cases, combined persistence/reset, exact original structure restore; common breadth open",
+    "wordpressRuntime": "Theme runtime and package-worker final post-native guard accepted; strict known15/legacy14/broad/Builder54/Theme19 exact",
+    "galleryMotion": "native/staging-23939-gallery-motion-in-progress.json: partial timing; Fadeout source/tests ready with dual-build/focused 22 green; final full native verification pending",
+    "galleryBackground": "native/staging-23939-gallery-background-acceptance.json: 10 finite cases, exact asset identity/inheritance/resets/restoration",
+    "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration"
+  }
+}

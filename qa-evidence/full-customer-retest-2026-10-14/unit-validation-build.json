@@ -1,0 +1,79 @@
+{
+  "at": "2026-10-17",
+  "purpose": "UnitCtl validation for nonnegative CSS values while preserving explicit negative controls and raw decimals.",
+  "sourceCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "archives": {
+    "red": "/tmp/pagecraft-unit-validation-red.qXo9Tb",
+    "green": "/tmp/pagecraft-unit-validation-green.Tkvo6D"
+  },
+  "overlays": {
+    "app/src/core/index.ts": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+    "app/src/ui/inspector/Inspector.tsx": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+    "app/src/ui/inspector/Controls.tsx": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+    "tests/unit-control-validation.test.tsx": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5"
+  },
+  "red": {
+    "baseControls": "exact 75ed8ac source",
+    "metadataOverlays": [
+      "app/src/core/index.ts",
+      "app/src/ui/inspector/Inspector.tsx"
+    ],
+    "command": "npx vitest run tests/unit-control-validation.test.tsx",
+    "exitCode": 1,
+    "testsFailed": 3,
+    "testsPassed": 1,
+    "expectedFailure": true,
+    "log": "unit-validation-red.log"
+  },
+  "green": {
+    "controlsOverlay": "app/src/ui/inspector/Controls.tsx",
+    "focusedCommand": "npx vitest run tests/unit-control-validation.test.tsx tests/box-spacing-validation.test.tsx tests/box-unit-choice.test.tsx tests/inspector-responsive-scope.test.tsx",
+    "focusedExitCode": 0,
+    "testFilesPassed": 4,
+    "testsPassed": 13,
+    "typecheckCommand": "npm run typecheck",
+    "typecheckExitCode": 0,
+    "focusedLog": "unit-validation-green-focused.log",
+    "typecheckLog": "unit-validation-green-typecheck.log"
+  },
+  "npmCi": {
+    "redExitCode": 0,
+    "greenExitCode": 0,
+    "unchangedHighSeverityFindings": 3,
+    "dependencyChangesMade": false
+  },
+  "executionBoundary": {
+    "allNpmAndTestCommandsResolvedOutsideMain": true,
+    "mainBuildRun": false,
+    "browserUsed": false,
+    "wordpressTouched": false,
+    "commitOrPushRun": false
+  },
+  "protectedMainGeneratedBefore": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "protectedMainGeneratedAfter": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "protectedMainGeneratedExact": true
+}

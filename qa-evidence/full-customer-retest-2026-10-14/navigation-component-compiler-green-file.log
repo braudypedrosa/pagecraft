@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-navigation-component-compiler-green-75ed
+
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  16:17:59
+   Duration  434ms (transform 182ms, setup 0ms, import 218ms, tests 126ms, environment 0ms)
+

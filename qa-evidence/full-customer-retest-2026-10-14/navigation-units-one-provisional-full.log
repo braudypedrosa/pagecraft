@@ -1,0 +1,57 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (452 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-nav-units-one-75ed/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-nav-units-one-75ed
+
+(node:40940) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40922) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/module-control-behavior.test.tsx (5 tests | 1 failed) 304ms
+   × all 33 conditional declarations render only in their applicable state 8ms
+(node:41023) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/ui-baselines.test.mjs (2 tests | 1 failed) 21ms
+   × reviewed gallery baselines match the current shared UI sources 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/module-control-behavior.test.tsx > all 33 conditional declarations render only in their applicable state
+AssertionError: expected [ { owner: 'list', …(2) }, …(33) ] to have a length of 33 but got 34
+
+- Expected
++ Received
+
+- 33
++ 34
+
+ ❯ tests/module-control-behavior.test.tsx:110:24
+    108|     for (const control of group.items) if (control.when) declarations.…
+    109|
+    110|   expect(declarations).toHaveLength(33);
+       |                        ^
+    111|   expect(Object.keys(conditionalSetup).sort()).toEqual(
+    112|     declarations.map(({ owner, control }) => `${owner}:${control.label…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+app/src/ui/inspector/Inspector.tsx
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 213 passed | 2 skipped (217)
+      Tests  2 failed | 2397 passed | 5 skipped (2404)
+   Start at  16:27:43
+   Duration  26.18s (transform 13.55s, setup 0ms, import 67.24s, tests 187.85s, environment 28.82s)
+

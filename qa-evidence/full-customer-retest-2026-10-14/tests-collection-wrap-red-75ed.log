@@ -1,0 +1,115 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-collection-wrap-red-75ed
+
+ ❯ tests/collection-slider-controls.test.tsx (1 test | 1 failed) 27ms
+   × Collection Slider hides ineffective Wrap without losing responsive Grid settings 26ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/collection-slider-controls.test.tsx > Collection Slider hides ineffective Wrap without losing responsive Grid settings
+AssertionError: desktop Slider cannot wrap its slide track: expected <div class="f" role="group" …(1)>…(2)</div> to be undefined
+
+- Expected:
+undefined
+
++ Received:
+<div
+  aria-labelledby="inspector-field-10"
+  class="f"
+  role="group"
+>
+  <label
+    for="inspector-field-10-0"
+  >
+    <span
+      id="inspector-field-10"
+    >
+      Wrap
+    </span>
+    <span
+      class="rsp"
+      title="Editing the desktop base value"
+    >
+      <svg
+        class=""
+        fill="none"
+        height="9"
+        stroke="currentColor"
+        stroke-width="1.4"
+        viewBox="0 0 16 16"
+        width="9"
+      >
+        <rect
+          height="9"
+          rx="1.5"
+          width="13"
+          x="1.5"
+          y="2.5"
+        />
+        <path
+          d="M5.5 14h5"
+        />
+      </svg>
+    </span>
+    <button
+      aria-label="Restore default for Wrap"
+      class="rst"
+      title="Restore default for Wrap"
+      type="button"
+    >
+      <svg
+        class=""
+        fill="none"
+        height="9"
+        stroke="currentColor"
+        stroke-width="1.4"
+        viewBox="0 0 16 16"
+        width="9"
+      >
+        <path
+          d="M3.1 5.1A5.7 5.7 0 111.9 9.4"
+          stroke-linecap="round"
+        />
+        <path
+          d="M2.7 2.4v3.4h3.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </label>
+  <select
+    aria-label="Wrap"
+    aria-labelledby="inspector-field-10"
+    class="ctl"
+    id="inspector-field-10-0"
+  >
+    <option
+      value="wrap"
+    >
+      Wrap
+    </option>
+    <option
+      value="nowrap"
+    >
+      No wrap
+    </option>
+  </select>
+</div>
+
+ ❯ tests/collection-slider-controls.test.tsx:37:79
+     35|     act(() => r.pick(field('Layout')!.querySelector('select')!, 'slide…
+     36|     draw();
+     37|     expect(field('Wrap'), `${breakpoint} Slider cannot wrap its slide …
+       |                                                                               ^
+     38|
+     39|     act(() => r.pick(field('Layout')!.querySelector('select')!, 'grid'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  16:12:30
+   Duration  949ms (transform 265ms, setup 0ms, import 310ms, tests 27ms, environment 514ms)
+

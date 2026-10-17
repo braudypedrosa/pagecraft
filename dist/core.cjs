@@ -2300,7 +2300,14 @@ var DEF = {
            value away with no way back through the UI. Same defect as a unit control whose
            list omits the stored unit. */
         { t: "pick", c: "align-items", label: "Vertical align", r: 1, opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["baseline", "Base"], ["stretch", "Fill"]] },
-        { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] }
+        {
+          t: "select",
+          c: "flex-wrap",
+          label: "Wrap",
+          r: 1,
+          opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]],
+          when: (n) => n.props.collectionLayout !== "slider"
+        }
       ],
       style: []
     }
@@ -2400,7 +2407,7 @@ var DEF = {
         { t: "color", c: "color", label: "Colour", layout: "inline", r: 1 },
         { t: "select", c: "font-weight", label: "Weight", layout: "inline", r: 1, opts: [["", "Default"], ["300", "Light 300"], ["400", "Regular 400"], ["500", "Medium 500"], ["600", "Semibold 600"], ["700", "Bold 700"], ["800", "Extrabold 800"], ["900", "Black 900"]] },
         { t: "unit", c: "line-height", label: "Line height", layout: "inline", r: 1, units: U.line },
-        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "opt", c: "font-family", label: "Font", r: 1, og: fontGroups, ph: "'Family',sans-serif" },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"], ["capitalize", "Capitalize"]] }
       ]
@@ -2648,7 +2655,7 @@ var DEF = {
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
         { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
-        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
@@ -2701,7 +2708,7 @@ var DEF = {
         { t: "color", c: "color", label: "Link colour", r: 1 },
         { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
         { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
-        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, units: U.track },
+        { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
     }
@@ -3185,7 +3192,7 @@ var DEF = {
     controls: {
       content: [
         { t: "imgs", k: "items", label: "Images" },
-        { t: "unit", c: "--g-cols", label: "Columns", r: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
+        { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
         { t: "select", k: "ratio", label: "Tile shape", opts: [["4 / 3", "4:3"], ["1 / 1", "Square"], ["3 / 2", "3:2"], ["16 / 9", "16:9"], ["3 / 4", "3:4 portrait"], ["", "Whatever each image is"]] },
         { t: "select", k: "fit", label: "Fit", opts: [["cover", "Cover \u2014 fill and crop"], ["contain", "Contain \u2014 fit inside"]] },
         { t: "toggle", k: "lightbox", label: "Open full size on click" },

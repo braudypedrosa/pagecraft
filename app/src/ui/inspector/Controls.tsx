@@ -151,6 +151,8 @@ function UnitCtl({ n, c }: P) {
   const w = writer(n, c);
   const { n: num, u: parsed } = C.parseU(valueOf(n, c));
   const units = c.units || ['px'];
+  const min = c.min ?? (c.neg ? undefined : 0);
+  const max = c.max;
   /* An empty value parses to an empty unit, which is not one of the offered ones. The
      string version relied on the browser picking the first option when none matched;
      setting `value` explicitly instead leaves selectedIndex at -1 and reads back '',
@@ -168,12 +170,24 @@ function UnitCtl({ n, c }: P) {
   const push = (root: HTMLElement) => {
     const numEl = root.querySelector('input') as HTMLInputElement;
     const unitEl = root.querySelector('select') as HTMLSelectElement;
-    const v = String(numEl.value).trim();
+    const raw = String(numEl.value).trim();
+    let v = raw;
+    if (raw !== '') {
+      const parsed = Number(raw);
+      if (!Number.isFinite(parsed)) return;
+      let clamped = parsed;
+      if (min !== undefined) clamped = Math.max(min, clamped);
+      if (max !== undefined) clamped = Math.min(max, clamped);
+      if (clamped !== parsed) {
+        v = String(clamped);
+        numEl.value = v;
+      }
+    }
     w.live(v === '' ? '' : v + (unitEl.value || ''));
   };
   return <Field n={n} c={c}>
     <div class="unit">
-      <input data-field-part="value" class="ctl" type="number" step={c.step || 1} value={num} placeholder="auto"
+      <input data-field-part="value" class="ctl" type="number" min={min} max={max} step={c.step ?? 1} value={num} placeholder="auto"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
       <select data-field-part="unit" class="ctl" value={u}
         onChange={e => {

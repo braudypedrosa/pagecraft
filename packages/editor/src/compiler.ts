@@ -88,27 +88,45 @@ function applyDesign(document: Doc, design: CompileOptions['design']) {
 
 const MENU_LOCATIONS = new Set(['primary', 'footer', 'utility']);
 
-function walkNodes(value: unknown, visit: (node: Record<string, any>) => void) {
+function walkRenderedNodes(
+  document: Doc,
+  value: unknown,
+  components: Set<string>,
+  visit: (node: Record<string, any>) => void,
+) {
   if (!Array.isArray(value)) return;
   value.forEach(item => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return;
     const node = item as Record<string, any>;
-    visit(node);
-    walkNodes(node.children, visit);
+    const use = String(node.use || '');
+    const definition = use
+      ? document.meta.components?.find(component => component.id === use)
+      : undefined;
+    if (definition) {
+      if (!components.has(use)) {
+        components.add(use);
+        walkRenderedNodes(document, [definition.node], components, visit);
+      }
+    } else {
+      visit(node);
+    }
+    /* Instance children are stored outside the definition because they fill its slots. */
+    walkRenderedNodes(document, node.children, components, visit);
   });
 }
 
 /** Match NativeMenu::ensureDocumentBindings for raw stored documents. */
 function ensureMenuBindings(document: Doc) {
   let headerCount = 0;
-  walkNodes(document.header, node => {
+  const components = new Set<string>();
+  walkRenderedNodes(document, document.header, components, node => {
     if (node.type !== 'nav' || !node.props || typeof node.props !== 'object') return;
     const declared = String(node.props.menuLocation || '');
     if (!MENU_LOCATIONS.has(declared)) node.props.menuLocation = headerCount === 0 ? 'primary' : 'utility';
     headerCount++;
   });
   let footerCount = 0;
-  walkNodes(document.footer, node => {
+  walkRenderedNodes(document, document.footer, components, node => {
     if (node.type !== 'nav' || !node.props || typeof node.props !== 'object') return;
     const declared = String(node.props.menuLocation || '');
     if (!MENU_LOCATIONS.has(declared) && footerCount === 0) node.props.menuLocation = 'footer';
