@@ -1,0 +1,304 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Independent Video inspector-applicability and recognized-provider URL verification from committed parent 2a975d8 with three reviewed source/test overlays.",
+  "parentCommit": "2a975d8997fedbb6939ba7a093cc3a7c7f6cc474",
+  "exports": [
+    "/tmp/pagecraft-video-one-2a",
+    "/tmp/pagecraft-video-two-2a"
+  ],
+  "overlayCount": 3,
+  "overlays": {
+    "app/src/core/index.ts": {
+      "sha256": "4e27b4bd61eefee19aa96162d4d708f3374aedf9a926e0bc0924c99227fd8a45",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/video-control-applicability.test.ts": {
+      "sha256": "91f9d4d990495a743f389b7bc4647caf358a31bf577e6065d1cd026ca9217b62",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/module-control-behavior.test.tsx": {
+      "sha256": "3bbc901c6d488997a45a137abf2f94b81537269c996f61bf4ab2a348a622a2b7",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-one-npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-video-two-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-two-npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "urlRegressionRed": {
+      "command": "npx vitest run tests/video-control-applicability.test.ts",
+      "cwd": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-video-url-red-20261017.log",
+      "exitCode": 1,
+      "testFilesFailed": 1,
+      "testsPassed": 12,
+      "testsFailed": 2,
+      "failure": "Before the URL parser change, a YouTube watch URL with feature before v was treated as generic and could not use the facade."
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-one-package-build-final.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-video-two-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-two-package-build-final.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-one-demo-build-final.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-video-two-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-two-demo-build-final.log",
+        "exitCode": 0
+      }
+    },
+    "focusedRegression": {
+      "command": "npx vitest run tests/video-control-applicability.test.ts tests/module-control-behavior.test.tsx tests/core.test.ts -t 'Video|video|facade|autoplay|conditional declarations'",
+      "one": {
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-one-focused-final.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 24,
+        "testsSkipped": 656
+      },
+      "two": {
+        "cwd": "/tmp/pagecraft-video-two-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-two-focused-final.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 24,
+        "testsSkipped": 656
+      }
+    },
+    "interruptedFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-video-one-2a",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-video-final-20261017.log",
+      "exitCode": 130,
+      "status": "intentionally interrupted after the new conditional declarations exposed the registry fixture gap",
+      "observedFailure": "tests/module-control-behavior.test.tsx: all 31 conditional declarations render only in their applicable state"
+    },
+    "fullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-video-one-2a",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-video-url-final-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 208,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 210,
+      "testsPassed": 2368,
+      "testsSkipped": 5,
+      "testsTotal": 2373,
+      "duration": "45.86s"
+    },
+    "goldenReview": {
+      "status": "not required",
+      "reason": "The full-suite WordPress golden guard passed with the existing fixture.",
+      "goldenFixtureChanged": false,
+      "rebaselinePerformed": false
+    },
+    "dependencyAudit": {
+      "all": {
+        "command": "npm audit --json",
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-npm-audit.json",
+        "exitCode": 1,
+        "high": 3,
+        "critical": 0,
+        "affected": [
+          {
+            "name": "vite-plugin-singlefile",
+            "relationship": "direct dev dependency",
+            "severity": "high"
+          },
+          {
+            "name": "micromatch",
+            "relationship": "transitive dev dependency through vite-plugin-singlefile",
+            "severity": "high"
+          },
+          {
+            "name": "braces",
+            "relationship": "transitive dev dependency through micromatch",
+            "severity": "high",
+            "advisory": "GHSA-vfj7-8cjw-p6xm"
+          }
+        ]
+      },
+      "production": {
+        "command": "npm audit --omit=dev --json",
+        "cwd": "/tmp/pagecraft-video-one-2a",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/video-npm-audit-production.json",
+        "exitCode": 0,
+        "total": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "remediationApplied": false,
+      "note": "npm proposes vite-plugin-singlefile 0.9.0 as a semver-major change; no dependency change was authorized or applied."
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "0a45e72867909b6d7bee710beec4835a72990afa5d5d29ae4fab18a45d9359a3",
+        "two": "0a45e72867909b6d7bee710beec4835a72990afa5d5d29ae4fab18a45d9359a3",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "8052b707d0758121fe441b79a68eae87991264c5b91915719b4db3352c4a0544",
+        "equalsParentCommitted": false
+      },
+      "dist/core.cjs": {
+        "one": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "two": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "7292f7db52c1e3cbc8af40aa551857d25883e4f693b0feaf8139d0d20c75c1c0",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "c222d6999a0f0ec9b16263f22018f0deed07e9395fee6e885dec7d8e6ed0122c",
+        "two": "c222d6999a0f0ec9b16263f22018f0deed07e9395fee6e885dec7d8e6ed0122c",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "03553cdc59b6c1fc11c7540de827273b240b7851bc3a9f783eb29fc64d6e8257",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "two": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "equalsParentCommitted": true
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "710ebe9033d4039af77ffe35dc89120efeb6f958b38504ac180d754aa07b0a04",
+        "two": "710ebe9033d4039af77ffe35dc89120efeb6f958b38504ac180d754aa07b0a04",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExactCount": 6,
+    "parentCommittedChangedExpected": [
+      "index.html",
+      "dist/core.cjs",
+      "packages/editor/dist/editor.html"
+    ],
+    "untrackedGeneratedCount": 2,
+    "protectedBefore": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "protectedAfter": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "mainProtected11Unchanged": true,
+    "mainProtected11Count": 11,
+    "mainProtectedEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-inline-label-2026-10-17.json",
+    "mainProtectedEvidenceKey": "protectedBefore",
+    "rawNodeImport": {
+      "run": false,
+      "reason": "The change is limited to Video editor controls, provider parsing, renderer reuse, and UI/runtime tests."
+    },
+    "rootProtectedOriginal11": {
+      "reference": "generated-working-preservation-2026-10-17.json",
+      "key": "protectedBefore",
+      "count": 11,
+      "byteExact": true
+    }
+  },
+  "review": {
+    "rootSourceReview": "approved with youtube-nocookie preservation required",
+    "youtubeNoCookieBehavior": "kept as an exact generic iframe instead of converting to the regular YouTube host",
+    "unexpectedScopeChanges": []
+  },
+  "sourceScope": "Only app/src/core/index.ts, tests/video-control-applicability.test.ts, and tests/module-control-behavior.test.tsx were overlaid. Builds and full tests ran only in isolated exports; main generated files were not written."
+}

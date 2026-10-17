@@ -67,6 +67,11 @@ const conditionalSetup: Record<string, {
     off: n => { n.props.decorative = 0; n.props.link = ''; },
     on: n => { n.props.decorative = 1; n.props.link = 'https://example.com/details'; },
   },
+  'video:Load player on click': {
+    off: n => { n.props.src = 'https://cdn.example.com/clip.mp4'; n.props.autoplay = 0; },
+    on: n => { n.props.src = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ'; n.props.autoplay = 0; },
+  },
+  'video:Muted': { off: n => { n.props.autoplay = 1; }, on: n => { n.props.autoplay = 0; } },
   'button:Position': { off: () => {}, on: () => {}, onParent: 'column' },
   'form:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
   'form:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
@@ -93,7 +98,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 31 conditional declarations render only in their applicable state', () => {
+test('all 33 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -102,7 +107,7 @@ test('all 31 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(31);
+  expect(declarations).toHaveLength(33);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );

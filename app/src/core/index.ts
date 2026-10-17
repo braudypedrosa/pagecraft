@@ -806,10 +806,12 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'src', label: 'Video URL', ph: 'YouTube, Vimeo or .mp4' },
         { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['1 / 1', '1:1'], ['21 / 9', '21:9'], ['9 / 16', '9:16 vertical']] },
         { t: 'img', k: 'poster', label: 'Poster image' },
-        { t: 'toggle', k: 'facade', label: 'Load player on click' },
+        { t: 'toggle', k: 'facade', label: 'Load player on click',
+          when: n => !n.props.autoplay && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) },
         { t: 'toggle', k: 'controls', label: 'Show controls' },
-        { t: 'toggle', k: 'autoplay', label: 'Autoplay' },
-        { t: 'toggle', k: 'muted', label: 'Muted' },
+        { t: 'toggle', k: 'autoplay', label: 'Autoplay',
+          note: 'Autoplay videos play without sound.' },
+        { t: 'toggle', k: 'muted', label: 'Muted', when: n => !n.props.autoplay },
         { t: 'toggle', k: 'loop', label: 'Loop' }
       ],
       style: [
@@ -8174,10 +8176,29 @@ ${m.css || ''}
 /* One place that understands a video URL, used by both the embed and the facade */
 function vidSrc(p: any) {
   const src = String(p.src || '').trim();
-  let m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{6,})/);
-  if (m) return { kind: 'youtube', id: m[1] };
-  m = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (m) return { kind: 'vimeo', id: m[1] };
+  const videoId = (value: string | null) => value && /^[\w-]{6,}$/.test(value) ? value : '';
+  try {
+    const url = new URL(src);
+    if ((url.protocol === 'http:' || url.protocol === 'https:') && !url.username && !url.password) {
+      const host = url.hostname.toLowerCase();
+      const parts = url.pathname.split('/').filter(Boolean);
+      const youtubeHosts = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com']);
+      let id = '';
+      if (youtubeHosts.has(host)) {
+        if (url.pathname === '/watch') id = videoId(url.searchParams.get('v'));
+        else if (['embed', 'shorts', 'live'].includes(parts[0])) id = videoId(parts[1] || '');
+      } else if (host === 'youtu.be' || host === 'www.youtu.be') {
+        id = videoId(parts[0] || '');
+      }
+      if (id) return { kind: 'youtube', id };
+
+      const vimeoHosts = new Set(['vimeo.com', 'www.vimeo.com']);
+      if (vimeoHosts.has(host) || host === 'player.vimeo.com') {
+        const candidate = parts[0] === 'video' ? parts[1] : (host === 'player.vimeo.com' ? '' : parts[0]);
+        if (candidate && /^\d+$/.test(candidate)) return { kind: 'vimeo', id: candidate };
+      }
+    }
+  } catch { /* Non-URL sources continue through file and generic fallbacks. */ }
   if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith('data:video')) return { kind: 'file', id: src };
   return { kind: src ? 'other' : 'none', id: src };
 }
@@ -8201,20 +8222,13 @@ const embedUrl = (p: any) => {
 const canFacade = (p: any) => p.facade && !p.autoplay && ['youtube', 'vimeo'].includes(vidSrc(p).kind);
 
 function vid(p: any) {
-  const src = String(p.src || '').trim();
-  const q: string[] = [];
-  if (p.autoplay) q.push('autoplay=1');
-  if (p.muted || p.autoplay) q.push('mute=1', 'muted=1');
-  if (p.loop) q.push('loop=1');
-  if (!p.controls) q.push('controls=0');
-  let mt = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{6,})/);
-  if (mt) return `<iframe src="https://www.youtube.com/embed/${mt[1]}?${q.join('&amp;')}${p.loop ? '&amp;playlist=' + mt[1] : ''}" title="Video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
-  mt = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (mt) return `<iframe src="https://player.vimeo.com/video/${mt[1]}?${q.join('&amp;')}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
-  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith('data:video'))
-    return `<video src="${esc(src)}"${p.controls ? ' controls' : ''}${p.autoplay ? ' autoplay' : ''}${p.muted || p.autoplay ? ' muted playsinline' : ''}${p.loop ? ' loop' : ''}${p.poster ? ` poster="${esc(p.poster)}"` : ''}></video>`;
-  if (!src) return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
-  return `<iframe src="${esc(src)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
+  const source = vidSrc(p);
+  if (source.kind === 'youtube') return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  if (source.kind === 'vimeo') return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  if (source.kind === 'file')
+    return `<video src="${esc(source.id)}"${p.controls ? ' controls' : ''}${p.autoplay ? ' autoplay' : ''}${p.muted || p.autoplay ? ' muted playsinline' : ''}${p.loop ? ' loop' : ''}${p.poster ? ` poster="${esc(p.poster)}"` : ''}></video>`;
+  if (source.kind === 'none') return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
+  return `<iframe src="${esc(source.id)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 
 /* Plain multi-line text to paragraphs: a blank line starts one, a single
