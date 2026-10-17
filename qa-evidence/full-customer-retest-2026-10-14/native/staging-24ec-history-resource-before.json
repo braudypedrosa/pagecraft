@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "site": "c11494e8-3ae5-4be0-b707-e937278a710a",
+  "uiAttempts": 2,
+  "uiError": "History is unavailable. Host request failed (500) Try again.",
+  "historyReadsOnly": true,
+  "revisions": 773,
+  "firstVersion": 1,
+  "latestVersion": 773,
+  "storedDocumentBytes": 25304752,
+  "logs": [
+    {
+      "time": "2026-10-17T11:51:49.819Z",
+      "function": "pagecraft-db-v3",
+      "message": "Memory limit exceeded",
+      "memoryBytes": 321204069,
+      "edgeStatus": 546,
+      "correlation": "Within first native UI history-failure window; joined execution id confirms function error/546."
+    },
+    {
+      "time": "2026-10-17T11:52:26.635Z",
+      "function": "pagecraft-db-v3",
+      "message": "CPU Time exceeded",
+      "memoryBytes": 14364415,
+      "edgeStatus": 200,
+      "correlation": "Retry window; response200 prevents conclusively mapping this log to second UI500."
+    }
+  ],
+  "primaryDocumentation": "https://supabase.com/docs/guides/troubleshooting/edge-function-546-error-response",
+  "status": "confirmed backend history resource amplification, fix in progress; no schema/data/gateway deployment performed"
+}

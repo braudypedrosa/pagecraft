@@ -378,9 +378,16 @@ test('an owner can inspect history and restore without deleting later versions',
 
   const listed = await admin(`/api/sites/${site.id}/history`, {}, cookie);
   a.equal(listed.status, 200);
-  const versions = await listed.json() as { version: number; author: { email: string } | null }[];
+  const versions = await listed.json() as { version: number; author: { email: string } | null; doc?: unknown; context?: unknown }[];
   a.deepEqual(versions.map(v => v.version), [2, 1]);
   a.equal(versions[0].author?.email, 'client@acme.test');
+  a.equal(versions.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
+    'history list responses never expose immutable document payloads');
+  const indexed = await store.history(site.id);
+  a.equal(indexed.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
+    'the in-memory history contract is metadata-only too');
+  a.deepEqual((await store.revision(site.id, 1))?.doc, site.doc,
+    'one-version detail reads still return the immutable document');
 
   const restored = await admin(`/api/sites/${site.id}/history/1/restore`, {
     method: 'POST', body: JSON.stringify({ currentVersion: 2 })

@@ -60,6 +60,11 @@ export interface SiteRevision {
   createdAt: string;
 }
 
+/** The history index is intentionally metadata-only. Full immutable documents are loaded one
+    version at a time through `revision`, so a long-lived site does not multiply its document
+    size through the database gateway merely to paint a list. */
+export type SiteRevisionMeta = Pick<SiteRevision, 'siteId' | 'version' | 'savedBy' | 'createdAt'>;
+
 export interface CmsWriteHead {
   connectionId: string;
   collectionId: string;
@@ -103,7 +108,7 @@ export interface Store {
     id: string, doc: Doc, version: number, savedBy: string, connectionId: string,
     context: Record<string, unknown>, active?: () => Promise<boolean>
   ): Promise<SaveResult>;
-  history(id: string): Promise<SiteRevision[]>;
+  history(id: string): Promise<SiteRevisionMeta[]>;
   revision(id: string, version: number): Promise<SiteRevision | null>;
   /** Latest WordPress write sequence per requested item, read without returning revision docs. */
   cmsWriteHeads(id: string, connectionId: string, itemKeys: string[]): Promise<CmsWriteHead[]>;
@@ -327,7 +332,7 @@ export class MemoryStore implements Store {
   }
 
   async history(id: string) {
-    return (this.revisions.get(id) || []).slice().reverse().map(r => this.revisionCopy(r));
+    return (this.revisions.get(id) || []).slice().reverse().map(({ doc: _doc, context: _context, ...meta }) => meta);
   }
 
   async revision(id: string, version: number) {

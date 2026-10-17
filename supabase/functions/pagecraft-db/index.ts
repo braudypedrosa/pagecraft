@@ -594,7 +594,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     }
     case "site.history":
       return await sql`
-        select site_id, version, doc, saved_by, context, created_at
+        select site_id, version, saved_by, created_at
         from site_revisions where site_id = ${
         text(args.id)
       } order by version desc

@@ -1,0 +1,37 @@
+{
+  "base": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "files": {
+    "server/src/store.ts": {
+      "baseSha256": "4c3ab5a8c94b16406535651c16ba28b6ee09cc0f173c169e43a30083e87e0c83",
+      "candidateSha256": "cc8dd9073c6a3a71456d1d634bba77cdfdc75477f958a1668138dc7ec9bfb880"
+    },
+    "server/src/store-pg.ts": {
+      "baseSha256": "d5db1700d7a66dd5baa1ca9b406307a5c68dc20d3e02452f32231bffb8febd51",
+      "candidateSha256": "31647cad3c803d104bb23020d5afad9c9d3a993feefb431020834adaf8fe83bb"
+    },
+    "server/src/store-gateway.ts": {
+      "baseSha256": "d7d61b04ae1a0705545290fdd303207386fc7dadf30cf8646d78a3dad0c75a9d",
+      "candidateSha256": "f89079accdac1604272c425547f013a7715c053ddb75fde0d4c5cc5a984faf67"
+    },
+    "supabase/functions/pagecraft-db/index.ts": {
+      "baseSha256": "62d335f51a5af7bd6e1cbc4eed0e417ba912fa66766507769e1c865949c6e38f",
+      "candidateSha256": "876fa7847647b891c71381de1c11a7f792251a65af502a59b364e73fc0b0f34e"
+    },
+    "server/tests/gateway-db.test.ts": {
+      "baseSha256": "acb23ec2c658351eacee9560ba6cdd70815613d1cc1e029a1fb735225e35ea85",
+      "candidateSha256": "79924c735bf7f689f5b66b21259832ab61f5a5ae328604d2da2908feccfc7ab4"
+    },
+    "server/tests/store-gateway.test.ts": {
+      "baseSha256": "6a715e7e9912d212653094214bdcc12b3e1e5e03cf24ded39ce62ffe99e91c66",
+      "candidateSha256": "5100a4f79e5e268ae78eb656185f30e1f8965d4e6de09de47a12a575bb1da815"
+    },
+    "server/tests/store-pg.test.ts": {
+      "baseSha256": "5c7131cb6494019bdfdd2114627fb6892fee1053d0748998953c5dcef940e7da",
+      "candidateSha256": "35501ab9ed879773cb9cf728d034aab06547c3c222eef522feb4d036f835d650"
+    },
+    "server/tests/app.test.ts": {
+      "baseSha256": "07afd1ee32965200c334de3ae2caf7e8ecb216d08380a6e8b1b2b1c902e67887",
+      "candidateSha256": "68722cb1c587bb4a57ebafece510adad516e19e6490388c8d488ee6aca8c5db9"
+    }
+  }
+}

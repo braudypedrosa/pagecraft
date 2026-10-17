@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "ci": 39029900534,
+  "deploymentRun": 39029900538,
+  "stagingNative": "../native/staging-24ec-integer-acceptance.json",
+  "nativeCases": 10,
+  "nativeRestored": true,
+  "productionPromoted": false,
+  "newUnrelatedOpenDefect": "Cloud version history resource exhaustion, before evidence native/staging-24ec-history-resource-before.json",
+  "overallPass": false,
+  "fullCustomerRetestComplete": false,
+  "staging": {
+    "commit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+    "branch": "development"
+  },
+  "production": {
+    "commit": "cc026d65d275f16374eb356d0331cebb93430c85",
+    "branch": "production"
+  },
+  "protectedGenerated11Exact": true
+}

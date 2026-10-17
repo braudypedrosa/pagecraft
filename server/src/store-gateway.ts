@@ -38,6 +38,7 @@ import {
   type ScheduledPublishResult,
   type Site,
   type SiteRevision,
+  type SiteRevisionMeta,
   slugFrom,
   type Store,
   validSlug,
@@ -240,12 +241,19 @@ interface RevisionRow {
   context: Record<string, unknown> | null;
   created_at: string;
 }
+type RevisionMetaRow = Omit<RevisionRow, "doc" | "context">;
 const toRevision = (row: RevisionRow): SiteRevision => ({
   siteId: row.site_id,
   version: row.version,
   doc: row.doc,
   savedBy: row.saved_by,
   context: row.context,
+  createdAt: new Date(row.created_at).toISOString(),
+});
+const toRevisionMeta = (row: RevisionMetaRow): SiteRevisionMeta => ({
+  siteId: row.site_id,
+  version: row.version,
+  savedBy: row.saved_by,
   createdAt: new Date(row.created_at).toISOString(),
 });
 
@@ -502,8 +510,8 @@ export class GatewayStore implements Store {
     return { ok: false, guarded: true };
   }
   async history(id: string) {
-    return (await this.gateway.call<RevisionRow[]>("site.history", { id })).map(
-      toRevision,
+    return (await this.gateway.call<RevisionMetaRow[]>("site.history", { id })).map(
+      toRevisionMeta,
     );
   }
   async revision(id: string, version: number) {

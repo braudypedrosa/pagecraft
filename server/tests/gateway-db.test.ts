@@ -250,6 +250,40 @@ async function siteWithOwner(siteId: string, userId: string) {
   await db.query(`insert into site_users (site_id, user_id, role) values ($1, $2, 'owner')`, [siteId, userId]);
 }
 
+test('site history stays metadata-only when saved documents exceed the gateway response budget', async () => {
+  const siteId = 'large-history', ownerId = 'large-history-owner';
+  await siteWithOwner(siteId, ownerId);
+  const payload = 'x'.repeat(1024 * 1024);
+  for (let version = 1; version <= 8; version++) {
+    await db.query(`insert into site_revisions
+      (site_id, version, doc, saved_by, context, created_at)
+      values ($1, $2, $3::jsonb, $4, $5::jsonb, $6)`, [
+      siteId, version,
+      JSON.stringify({ ...doc, meta: { payload: `${version}:${payload}` } }),
+      ownerId, JSON.stringify({ marker: `revision-${version}` }),
+      `2026-10-${String(version).padStart(2, '0')}T12:00:00.000Z`,
+    ]);
+  }
+
+  const history = await call('site.history', { id: siteId });
+  a.equal(history.status, 200, JSON.stringify(history.body));
+  a.ok(Buffer.byteLength(JSON.stringify(history.body), 'utf8') < 64 * 1024,
+    'listing metadata must not echo every immutable document through the Edge gateway');
+  const rows = history.body.data as Record<string, unknown>[];
+  a.deepEqual(rows.map(row => row.version), [8, 7, 6, 5, 4, 3, 2, 1]);
+  for (const row of rows) {
+    a.equal(Object.hasOwn(row, 'doc'), false);
+    a.equal(Object.hasOwn(row, 'context'), false);
+    a.equal(row.saved_by, ownerId);
+    a.equal(typeof row.created_at, 'string');
+  }
+
+  const detail = await operation('site.revision', { id: siteId, version: 4 });
+  a.equal(detail.status, 200);
+  a.equal(detail.body.doc.meta.payload, `4:${payload}`);
+  a.deepEqual(detail.body.context, { marker: 'revision-4' });
+});
+
 /** A site paired with WordPress and published once: every table that refers to it has a row. */
 async function connectedSite(siteId: string, userId: string) {
   await siteWithOwner(siteId, userId);

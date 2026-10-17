@@ -1,0 +1,81 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-investigation-24ec
+
+ ❯ server/tests/store-gateway.test.ts (31 tests | 1 failed) 60ms
+   × gateway store lists revision metadata and fetches one document only by version 4ms
+ ❯ server/tests/gateway-db.test.ts (14 tests | 1 failed) 1185ms
+   × site history stays metadata-only when saved documents exceed the gateway response budget 79ms
+ ❯ server/tests/store-pg.test.ts (34 tests | 1 failed) 14407ms
+   × history lists immutable revision metadata while revision reads one full document 408ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/gateway-db.test.ts > site history stays metadata-only when saved documents exceed the gateway response budget
+AssertionError: listing metadata must not echo every immutable document through the Edge gateway
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ server/tests/gateway-db.test.ts:270:5
+    268|   const history = await call('site.history', { id: siteId });
+    269|   a.equal(history.status, 200, JSON.stringify(history.body));
+    270|   a.ok(Buffer.byteLength(JSON.stringify(history.body), 'utf8') < 64 * …
+       |     ^
+    271|     'listing metadata must not echo every immutable document through t…
+    272|   const rows = history.body.data as Record<string, unknown>[];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  server/tests/store-gateway.test.ts > gateway store lists revision metadata and fetches one document only by version
+AssertionError: Expected values to be strictly equal:
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ server/tests/store-gateway.test.ts:382:7
+    380|   a.deepEqual(history.map((revision) => revision.version), [3, 2]);
+    381|   for (const revision of history) {
+    382|     a.equal(Object.hasOwn(revision, "doc"), false);
+       |       ^
+    383|     a.equal(Object.hasOwn(revision, "context"), false);
+    384|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  server/tests/store-pg.test.ts > history lists immutable revision metadata while revision reads one full document
+AssertionError: Expected values to be strictly equal:
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ server/tests/store-pg.test.ts:175:5
+    173|   const history = await sites.history(site.id);
+    174|   a.deepEqual(history.map(r => [r.version, r.savedBy]), [[2, 'owner-2'…
+    175|   a.equal(history.some(revision => Object.hasOwn(revision, 'doc') || O…
+       |     ^
+    176|   a.equal((await sites.revision(site.id, 2))!.doc.pages[0].title, 'Lat…
+    177|   a.equal((await sites.revision(site.id, 1))!.doc.pages[0].title, orig…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  3 failed | 116 passed (119)
+   Start at  19:59:41
+   Duration  14.86s (transform 1.18s, setup 0ms, import 2.65s, tests 15.95s, environment 0ms)
+

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-investigation-24ec
+
+
+ Test Files  5 passed (5)
+      Tests  123 passed (123)
+   Start at  20:00:17
+   Duration  15.29s (transform 1.49s, setup 0ms, import 2.95s, tests 17.57s, environment 0ms)
+

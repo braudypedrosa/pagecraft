@@ -1,0 +1,244 @@
+{
+  "sourceCommit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "site": "c11494e8-3ae5-4be0-b707-e937278a710a",
+  "module": "Gallery nfzf4v1jd",
+  "tests": [
+    {
+      "name": "Desktop Columns 2.5",
+      "expected": "3",
+      "value": {
+        "stepMismatch": false,
+        "value": "3"
+      },
+      "rendered": {
+        "columns": "3",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "386.656px 386.672px 386.656px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2e0",
+      "expected": "2",
+      "value": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "590px 590px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 0.4",
+      "expected": "1",
+      "value": {
+        "stepMismatch": false,
+        "value": "1"
+      },
+      "rendered": {
+        "columns": "1",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "1200px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2.4",
+      "expected": "2",
+      "value": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "590px 590px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet Columns 3.5",
+      "expected": "4",
+      "value": {
+        "stepMismatch": false,
+        "value": "4"
+      },
+      "rendered": {
+        "columns": "4",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "81px 81px 81px 81px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Columns 1.5",
+      "expected": "2",
+      "value": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "images": [
+          {
+            "alt": "Shared reading room beneath timber trusses",
+            "loaded": true
+          },
+          {
+            "alt": "Courtyard with stone walls and planting",
+            "loaded": true
+          }
+        ],
+        "tracks": "156.812px 156.812px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Position integer and length",
+      "expected": {
+        "z": "3",
+        "top": "2.5px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "2.5px",
+        "z": "3"
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet Position integer and length",
+      "expected": {
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Position integer and length",
+      "expected": {
+        "z": "0",
+        "top": "2px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "2px",
+        "z": "0"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile scientific Top remount readback",
+      "expected": "2e0",
+      "got": "2e0",
+      "passed": true
+    }
+  ],
+  "before": {
+    "ids": [
+      "n0ixrm339",
+      "n16nly2l",
+      "ndaf5h2uo",
+      "ndaf5i3u8",
+      "ndaf5i4ie",
+      "ndaf5i5ai",
+      "ndg0tb6h3",
+      "ndkykp1ph",
+      "ndqnyz12r",
+      "nekp7m18n",
+      "new39q14y",
+      "nf2dwm1sr",
+      "nf2mtp1tt",
+      "nf79yr1ny",
+      "nf9pkh1qj",
+      "nfijph1o1",
+      "nfijph2tj",
+      "nfijph3od",
+      "nfijph4io",
+      "nfkqui5jb",
+      "nfli4f6uf",
+      "nfljgi79t",
+      "nfzf4v1jd",
+      "nfzf4v2ot",
+      "ngwr2y1hh",
+      "nk8y2k11g",
+      "nlm3id1i6",
+      "nlyfiy6wd",
+      "nlyfiy7ci",
+      "nlyfiy7ci",
+      "nm2n7s85a",
+      "nm2n7s85a",
+      "nmekzi9lf",
+      "nmekzi9lf",
+      "nmiqidanw",
+      "nnevx9171",
+      "nnkziz2pl",
+      "nut4a73l1",
+      "nut4a74wk",
+      "nut4a751d",
+      "nut4a76ef"
+    ]
+  },
+  "restored": true,
+  "boundary": "Version history is currently unavailable; all test changes will be reverted through existing Undo then saved original state verified after reload. Individual staging authored matrices are runtime-only; fresh authored matrix already accepted in clean local v2.",
+  "undoCount": 13,
+  "undoExhausted": true,
+  "cssRestored": true,
+  "beforeCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "freshCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "idsExact": true,
+  "passed": true
+}

@@ -19,7 +19,7 @@
 import type { Doc } from '../../app/src/core/types.ts';
 import { planEntitlements } from './plans.ts';
 import {
-  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store,
+  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SiteRevisionMeta, type SaveResult, type Store,
   type ScheduledPublishInput, type ScheduledPublishResult
 } from './store.ts';
 import {
@@ -394,9 +394,14 @@ interface RevisionRow {
   site_id: string; version: number; doc: Doc; saved_by: string | null;
   context: Record<string, unknown> | null; created_at: Date | string;
 }
+type RevisionMetaRow = Omit<RevisionRow, 'doc' | 'context'>;
 const toRevision = (r: RevisionRow): SiteRevision => ({
   siteId: r.site_id, version: r.version, doc: r.doc, savedBy: r.saved_by,
   context: r.context,
+  createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
+});
+const toRevisionMeta = (r: RevisionMetaRow): SiteRevisionMeta => ({
+  siteId: r.site_id, version: r.version, savedBy: r.saved_by,
   createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
 });
 
@@ -572,9 +577,9 @@ export class PgStore implements Store {
   }
 
   async history(id: string) {
-    const { rows } = await this.db.query<RevisionRow>(
-      'select * from site_revisions where site_id = $1 order by version desc', [id]);
-    return rows.map(toRevision);
+    const { rows } = await this.db.query<RevisionMetaRow>(
+      'select site_id, version, saved_by, created_at from site_revisions where site_id = $1 order by version desc', [id]);
+    return rows.map(toRevisionMeta);
   }
 
   async revision(id: string, version: number) {

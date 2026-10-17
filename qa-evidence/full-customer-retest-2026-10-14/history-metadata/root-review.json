@@ -1,0 +1,23 @@
+{
+  "baseCommit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "sourceFiles": [
+    "server/src/store.ts",
+    "server/src/store-pg.ts",
+    "server/src/store-gateway.ts",
+    "supabase/functions/pagecraft-db/index.ts",
+    "server/tests/gateway-db.test.ts",
+    "server/tests/store-gateway.test.ts",
+    "server/tests/store-pg.test.ts",
+    "server/tests/app.test.ts"
+  ],
+  "fullTestsPassed": 2423,
+  "fullTestsSkipped": 5,
+  "nativeBefore": "../native/staging-24ec-history-resource-before.json",
+  "liveFunction": "pagecraft-db-v3",
+  "liveVersionBefore": 26,
+  "liveSixFilesExactlyMatchBase": true,
+  "deploymentScope": "Shared database gateway; one metadata SELECT only, auth/settings and immutable revisions retained. Production app branch is not promoted.",
+  "deploymentStatus": "pending",
+  "oldAppMetadataCompatibility": "toRevision only assigns undefined doc/context; all existing history callers read metadata; revision detail remains full",
+  "protected11Exact": true
+}

@@ -357,6 +357,40 @@ test("gateway site metadata excludes documents and hot public lookups are bounde
   a.deepEqual(calls.map((call) => call.op), ["site.listMeta", "site.bySlug"]);
 });
 
+test("gateway store lists revision metadata and fetches one document only by version", async () => {
+  const metadata = [3, 2].map((version) => ({
+    site_id: "s1",
+    version,
+    saved_by: "owner-1",
+    created_at: `2026-10-0${version}T12:00:00.000Z`,
+  }));
+  const detail = {
+    ...metadata[1],
+    doc: siteRow.doc,
+    context: { marker: "revision-two" },
+  };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "site.history") return metadata;
+    if (call.op === "site.revision") return detail;
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const sites = new GatewayStore(gateway);
+
+  const history = await sites.history("s1");
+  a.deepEqual(history.map((revision) => revision.version), [3, 2]);
+  for (const revision of history) {
+    a.equal(Object.hasOwn(revision, "doc"), false);
+    a.equal(Object.hasOwn(revision, "context"), false);
+  }
+  const revision = await sites.revision("s1", 2);
+  a.deepEqual(revision?.doc, siteRow.doc);
+  a.deepEqual(revision?.context, { marker: "revision-two" });
+  a.deepEqual(calls, [
+    { op: "site.history", args: { id: "s1" } },
+    { op: "site.revision", args: { id: "s1", version: 2 } },
+  ]);
+});
+
 test("gateway site rows expire in seconds, fresh reads skip them, and the save fast path keeps its exact version for minutes", async () => {
   vi.useFakeTimers({ toFake: ["Date"] });
   try {

@@ -1,0 +1,36 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-history-memory-red-24ec
+
+ ❯ server/tests/app.test.ts (40 tests | 1 failed | 39 skipped) 27ms
+   × an owner can inspect history and restore without deleting later versions 26ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/app.test.ts > an owner can inspect history and restore without deleting later versions
+AssertionError: the in-memory history contract is metadata-only too
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ server/tests/app.test.ts:387:5
+    385|     'history list responses never expose immutable document payloads');
+    386|   const indexed = await store.history(site.id);
+    387|   a.equal(indexed.some(version => Object.hasOwn(version, 'doc') || Obj…
+       |     ^
+    388|     'the in-memory history contract is metadata-only too');
+    389|   a.deepEqual((await store.revision(site.id, 1))?.doc, site.doc,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 39 skipped (40)
+   Start at  20:04:04
+   Duration  966ms (transform 461ms, setup 0ms, import 844ms, tests 27ms, environment 0ms)
+
