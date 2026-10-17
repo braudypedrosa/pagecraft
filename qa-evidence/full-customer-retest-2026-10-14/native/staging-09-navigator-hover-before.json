@@ -1,0 +1,36 @@
+{
+  "at": "2026-10-17T04:09:32.325Z",
+  "sourceCommit": "09b604bd9ada2d18728bc122ff1ee4bba3f79dd4",
+  "node": "nfzf4v1jd",
+  "labelBefore": {
+    "bottom": 418,
+    "height": 20,
+    "left": 205,
+    "right": 325,
+    "top": 398,
+    "width": 120,
+    "x": 205,
+    "y": 398
+  },
+  "labelAfter": {
+    "bottom": 418,
+    "height": 20,
+    "left": 205,
+    "right": 255,
+    "top": 398,
+    "width": 50,
+    "x": 205,
+    "y": 398
+  },
+  "clickedPoint": [
+    265,
+    408
+  ],
+  "observed": {
+    "hiddenButton": "Show on Desktop",
+    "hover": true,
+    "paddingRight": "76px"
+  },
+  "expected": "Row selects without changing Gallery visibility",
+  "bugConfirmed": true
+}

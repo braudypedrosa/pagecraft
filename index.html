@@ -614,7 +614,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 .lrow .lk{width:13px;height:13px;flex:0 0 13px;color:var(--text-3);opacity:.7}
 .lrow .act{position:absolute;right:4px;top:50%;transform:translateY(-50%);opacity:0;pointer-events:none;display:flex;gap:var(--sp-1)}
 .lrow:hover .act,.lrow:focus-within .act{opacity:1;pointer-events:auto}
-.lrow:has(.act):hover,.lrow:has(.act):focus-within{padding-right:76px}
+.lrow:has(.act){padding-right:76px}
 .lrow .act button{width:var(--ic-sm);height:var(--ic-sm);display:grid;place-items:center;border-radius:var(--r-sm);color:var(--text-3)}
 .lrow .act button:hover{background:var(--line);color:var(--text)}
 /* the row's own grab affordance, revealed on hover so the list stays quiet */
@@ -11563,6 +11563,10 @@ dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
 dlg.addEventListener('keydown',function(e){
 if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
+if(e.key==='Tab'){
+var bs=dlg.querySelectorAll('.pagecraft-lightbox-btn:not([hidden]):not(:disabled)'),first=bs[0],last=bs[bs.length-1];
+if(first&&((e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last))){e.preventDefault();(e.shiftKey?last:first).focus();}
+}
 });
 }
 function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;

@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-17T04:18:29.603Z",
+  "environment": "staging",
+  "sourceCommit": "1c6043fdd30faa790964ce304710563db5a0908e",
+  "page": "QA Modules",
+  "node": "nfzf4v1jd",
+  "cases": [
+    {
+      "name": "First image opens with correct alt and caption",
+      "observed": {
+        "alt": "Shared reading room beneath timber trusses",
+        "caption": "Reading room study",
+        "focus": "Previous image",
+        "open": true,
+        "tag": "DIALOG"
+      },
+      "pass": true
+    },
+    {
+      "name": "ArrowRight advances to second image",
+      "observed": {
+        "alt": "Courtyard with stone walls and planting",
+        "caption": "Courtyard study",
+        "focus": "Previous image",
+        "open": true,
+        "tag": "DIALOG"
+      },
+      "pass": true
+    },
+    {
+      "name": "ArrowRight wraps to first image",
+      "observed": {
+        "alt": "Shared reading room beneath timber trusses",
+        "caption": "Reading room study",
+        "focus": "Previous image",
+        "open": true,
+        "tag": "DIALOG"
+      },
+      "pass": true
+    },
+    {
+      "name": "ArrowLeft wraps to last image",
+      "observed": {
+        "alt": "Courtyard with stone walls and planting",
+        "caption": "Courtyard study",
+        "focus": "Previous image",
+        "open": true,
+        "tag": "DIALOG"
+      },
+      "pass": true
+    },
+    {
+      "name": "Next button advances and ShiftTab wraps to Close",
+      "observed": {
+        "alt": "Shared reading room beneath timber trusses",
+        "caption": "Reading room study",
+        "focus": null,
+        "open": true,
+        "tag": "DIALOG"
+      },
+      "pass": false
+    },
+    {
+      "name": "Escape closes lightbox and returns focus to opener",
+      "observed": {
+        "activeLabel": null,
+        "activeTag": "BODY",
+        "openDialogs": 1
+      },
+      "pass": false
+    },
+    {
+      "name": "Mobile lightbox stays within viewport",
+      "observed": {
+        "bodyOverflow": false,
+        "imageWidth": 380.90625,
+        "viewport": 414,
+        "width": 414
+      },
+      "pass": true
+    },
+    {
+      "name": "Escape without focus leak closes and restores opener",
+      "observed": {
+        "activeClass": "pagecraft-gallery-frame",
+        "activeTag": "A",
+        "dialogs": 0
+      },
+      "pass": true
+    }
+  ],
+  "fullModuleComplete": false,
+  "focusLeakConfirmed": {
+    "input": "Native Shift+Tab from first lightbox control",
+    "focusedOuterControl": "Publish this draft",
+    "dialogStillOpen": true,
+    "device": "Mobile",
+    "cause": "Native dialog inside iframe does not contain focus in parent editor context"
+  }
+}

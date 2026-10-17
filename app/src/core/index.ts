@@ -9104,6 +9104,10 @@ dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
 dlg.addEventListener('keydown',function(e){
 if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
+if(e.key==='Tab'){
+var bs=dlg.querySelectorAll('.pagecraft-lightbox-btn:not([hidden]):not(:disabled)'),first=bs[0],last=bs[bs.length-1];
+if(first&&((e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last))){e.preventDefault();(e.shiftKey?last:first).focus();}
+}
 });
 }
 function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;

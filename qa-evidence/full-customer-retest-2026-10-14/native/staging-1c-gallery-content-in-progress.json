@@ -1,0 +1,182 @@
+{
+  "at": "2026-10-17T04:32:44.578Z",
+  "environment": "staging",
+  "sourceCommit": "1c6043fdd30faa790964ce304710563db5a0908e",
+  "node": "nfzf4v1jd",
+  "original": {
+    "columns": "590px 590px",
+    "display": "grid",
+    "frames": [
+      {
+        "alt": "Shared reading room beneath timber trusses",
+        "caption": "Reading room study",
+        "imgFit": "contain",
+        "lightbox": false,
+        "loading": null,
+        "ratio": "1 / 1",
+        "tag": "A"
+      },
+      {
+        "alt": "Courtyard with stone walls and planting",
+        "caption": "Courtyard study",
+        "imgFit": "contain",
+        "lightbox": false,
+        "loading": null,
+        "ratio": "1 / 1",
+        "tag": "A"
+      }
+    ],
+    "gap": "20px",
+    "style": "--g-ratio:1 / 1;--g-fit:contain"
+  },
+  "cases": [
+    {
+      "name": "Tile shape 4:3",
+      "observed": [
+        "4 / 3",
+        "4 / 3"
+      ],
+      "expected": "4 / 3",
+      "pass": true
+    },
+    {
+      "name": "Tile shape 3:2",
+      "observed": [
+        "3 / 2",
+        "3 / 2"
+      ],
+      "expected": "3 / 2",
+      "pass": true
+    },
+    {
+      "name": "Tile shape 16:9",
+      "observed": [
+        "16 / 9",
+        "16 / 9"
+      ],
+      "expected": "16 / 9",
+      "pass": true
+    },
+    {
+      "name": "Tile shape 3:4 portrait",
+      "observed": [
+        "3 / 4",
+        "3 / 4"
+      ],
+      "expected": "3 / 4",
+      "pass": true
+    },
+    {
+      "name": "Tile shape Whatever each image is",
+      "observed": [
+        "auto",
+        "auto"
+      ],
+      "expected": "auto",
+      "pass": true
+    },
+    {
+      "name": "Tile shape Square",
+      "observed": [
+        "1 / 1",
+        "1 / 1"
+      ],
+      "expected": "1 / 1",
+      "pass": true
+    },
+    {
+      "name": "Fit Cover — fill and crop",
+      "observed": [
+        "cover",
+        "cover"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Fit Contain — fit inside",
+      "observed": [
+        "contain",
+        "contain"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Captions OFF removes tile captions",
+      "observed": [
+        null,
+        null
+      ],
+      "pass": true
+    },
+    {
+      "name": "Lightbox OFF renders non-link tile",
+      "observed": [
+        "SPAN",
+        "SPAN"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Alt and caption preserve special text without markup",
+      "observed": {
+        "alt": "QA reading room <sample> & café",
+        "caption": "QA caption <sample> & café",
+        "captionHtml": "QA caption &lt;sample&gt; &amp; café"
+      },
+      "pass": true
+    },
+    {
+      "name": "Move image 2 up reorders image and caption together",
+      "observed": [
+        {
+          "alt": "Courtyard with stone walls and planting",
+          "caption": "Courtyard study"
+        },
+        {
+          "alt": "QA reading room <sample> & café",
+          "caption": "QA caption <sample> & café"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "name": "Remove image 2 retains first image and Undo restores both",
+      "removed": [
+        "QA reading room <sample> & café"
+      ],
+      "pass": true,
+      "restored": [
+        "QA reading room <sample> & café",
+        "Courtyard with stone walls and planting"
+      ]
+    }
+  ],
+  "fullModuleComplete": false,
+  "restored": {
+    "columns": "590px 590px",
+    "display": "grid",
+    "frames": [
+      {
+        "alt": "Shared reading room beneath timber trusses",
+        "caption": "Reading room study",
+        "imgFit": "contain",
+        "lightbox": false,
+        "loading": null,
+        "ratio": "1 / 1",
+        "tag": "A"
+      },
+      {
+        "alt": "Courtyard with stone walls and planting",
+        "caption": "Courtyard study",
+        "imgFit": "contain",
+        "lightbox": false,
+        "loading": null,
+        "ratio": "1 / 1",
+        "tag": "A"
+      }
+    ],
+    "gap": "20px",
+    "style": "--g-ratio:1 / 1;--g-fit:contain"
+  },
+  "restoredExact": true
+}
