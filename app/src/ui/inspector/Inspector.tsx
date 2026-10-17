@@ -424,6 +424,26 @@ export const advControls = (n: PcNode): Control[] => [
   { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
 ];
 
+function ManagedMobileLinks({ n }: { n: PcNode }) {
+  if (!n.props.managedMobileLinks) return null;
+  const owner = C.mobileMenuOwner(C.state.ui.cedit || '');
+  const open = () => {
+    if (!owner) return;
+    if (owner.mode === 'component' && owner.componentId) L.editComponent(owner.componentId);
+    else {
+      if (owner.page !== undefined) C.state.cur = owner.page;
+      L.editComponent(null);
+      L.setMode(owner.mode);
+    }
+    L.select(owner.node.id, { scroll: false });
+  };
+  return <Panel title="Navigation links" n={n}>
+    <button type="button" class="btn" title="Edit the links on the parent navigation" disabled={!owner} onClick={open}>
+      Edit navigation links
+    </button>
+  </Panel>;
+}
+
 function ContentSource({ n }: { n: PcNode }) {
   const col = n.src ? C.findCollection(n.src) : null;
   return (
@@ -722,7 +742,7 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
         {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
         {tab === 'content' ? <UnsupportedManagedForm n={n} /> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
-        {tab === 'content' ? (
+        {tab === 'content' && n.props.managedMobileLinks ? <ManagedMobileLinks n={n} /> : tab === 'content' ? (
           content.length
             ? n.type === 'form' && !n.use
               ? [['Form fields', ['fields']], ['Button', ['submit']], ['Submission', ['mode', 'action', 'method']], ['Options', ['aria']]].map(([title, keys]) =>

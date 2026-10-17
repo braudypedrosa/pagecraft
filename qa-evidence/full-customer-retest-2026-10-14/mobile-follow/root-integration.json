@@ -1,0 +1,22 @@
+{
+  "sourceParent": "c73b97a1548d7448074678f73907441c0fe6b3c0",
+  "candidateSources": {
+    "app/src/core/types.ts": "98a2d0423534e5b9e51b48727b7cbb8ad955c6fedff6f8a3db978dec4f577722",
+    "app/src/core/index.ts": "0ea488ad1d2802c193ffa2e15c4d2f7c1963491c8360daed9da1fa9899049cdc",
+    "app/src/ui/inspector/MobileMenuBuilder.tsx": "290f501baa0258c6b2986690564f4bcb089206dd5cf71c51683980d34cc65616",
+    "app/src/ui/inspector/Inspector.tsx": "0080c7cd2e8f2e948f2f7daa82c2f95a3a893ef1bf0b8cfbe1b17afab3f395b4",
+    "tests/customer-inspector-regressions.test.tsx": "6f5f3e7f83a29ba0f0bd1287e9cd0bbb31e26560c11a86840f84b6ebd83b5c3a",
+    "tests/editor-compiler.test.ts": "89ada3e4fce233020028ea346e7d6bd0194e062c1f854005e893c77649040824",
+    "tests/mobile-menu-follow-content.test.tsx": "4dc839d7de9955311633fc6a42f786fce4c06642a61416386c3fc227618489e9"
+  },
+  "source7ExactAcrossMainCandidateOneTwo": true,
+  "protectedWorking11Exact": true,
+  "generated11Deterministic": true,
+  "nativeRecord": "mobile-follow/gallery-c73/native-follow-builder-acceptance.json",
+  "fullSuite": {
+    "passed": 2408,
+    "skipped": 5
+  },
+  "nativeScope": "isolated candidate only; staging and WordPress Follow acceptance pending",
+  "fullQAComplete": false
+}

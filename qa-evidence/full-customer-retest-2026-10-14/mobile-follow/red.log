@@ -1,0 +1,65 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-mobile-menu-follow-candidate-75ed-v4
+
+ ❯ tests/mobile-menu-follow-content.test.tsx (4 tests | 4 failed) 14ms
+   × a new built menu follows the current parent links and keeps one non-landmark link list 5ms
+   × legacy custom menus stay custom and keep their authored tree byte for byte 1ms
+   × mode switches are atomic and keep independent follow and custom layouts through save and reload 7ms
+   × managed links are read only and the compact action returns to their reusable Nav owner 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/mobile-menu-follow-content.test.tsx > a new built menu follows the current parent links and keeps one non-landmark link list
+TypeError: mobileMenuMode is not a function
+ ❯ tests/mobile-menu-follow-content.test.tsx:29:12
+     27|   const definition = C.ensureMobileMenuComponent(nav);
+     28|
+     29|   expect(C.mobileMenuMode(nav)).toBe('follow');
+       |            ^
+     30|   expect(nav.props.mobileMenuFollowComponent).toBe(definition.id);
+     31|   expect(C.mobileMenuDefinition(nav)).toBe(definition);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/mobile-menu-follow-content.test.tsx > legacy custom menus stay custom and keep their authored tree byte for byte
+TypeError: mobileMenuMode is not a function
+ ❯ tests/mobile-menu-follow-content.test.tsx:60:12
+     58|   const before = JSON.stringify(definition);
+     59|
+     60|   expect(C.mobileMenuMode(nav)).toBe('custom');
+       |            ^
+     61|   expect(C.mobileMenuDefinition(nav)).toBe(definition);
+     62|   expect(C.renderNode(nav, { edit: false })).toContain('Legacy heading…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/mobile-menu-follow-content.test.tsx > mode switches are atomic and keep independent follow and custom layouts through save and reload
+TypeError: Cannot read properties of null (reading 'node')
+ ❯ tests/mobile-menu-follow-content.test.tsx:74:10
+     72|   const followId = String(nav.props.mobileMenuFollowComponent);
+     73|   const follow = C.findComponent(followId)!;
+     74|   follow.node.children.push(C.N('heading', { text: 'Follow extra' }));
+       |          ^
+     75|   const followBefore = JSON.stringify(follow);
+     76|   C.componentClose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/mobile-menu-follow-content.test.tsx > managed links are read only and the compact action returns to their reusable Nav owner
+TypeError: mobileMenuLinksNode is not a function
+ ❯ tests/mobile-menu-follow-content.test.tsx:121:21
+    119|   C.state.meta.components = [{ id: 'header-component', name: 'Header c…
+    120|   const follow = C.ensureMobileMenuComponent(nav);
+    121|   const managed = C.mobileMenuLinksNode(follow)!;
+       |                     ^
+    122|   C.componentOpen(follow.id);
+    123|   C.selSet([managed.id]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  16:29:07
+   Duration  939ms (transform 244ms, setup 0ms, import 288ms, tests 14ms, environment 535ms)
+

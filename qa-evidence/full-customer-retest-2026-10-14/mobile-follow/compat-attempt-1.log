@@ -1,0 +1,81 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-mobile-menu-follow-candidate-75ed-v4
+
+ ❯ tests/customer-rendering-regressions.test.ts (25 tests | 2 failed) 127ms
+     × built mobile menu preserves nested link metadata and renders it 3ms
+     × generated mobile links survive canonical JSON key ordering without Button defaults 7ms
+ ❯ tests/mobile-nav-menu.test.mjs (24 tests | 1 failed) 257ms
+   × building a menu creates one persisted reusable component seeded from the navigation links 3ms
+ ❯ tests/customer-inspector-regressions.test.tsx (12 tests | 1 failed) 150ms
+   × opening a mobile menu component selects its root as the insertion target 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/customer-inspector-regressions.test.tsx > opening a mobile menu component selects its root as the insertion target
+TypeError: Cannot read properties of null (reading 'id')
+ ❯ tests/customer-inspector-regressions.test.tsx:186:56
+    184|   act(() => r.click(r.$('button.btn')));
+    185|   const definition = C.findComponent(String(n.props.mobileMenuComponen…
+    186|   assert.equal(r.arg('editComponent')?.[0], definition.id);
+       |                                                        ^
+    187|   assert.equal(r.arg('select')?.[0], definition.node.id);
+    188| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/customer-rendering-regressions.test.ts > customer rendering defects > built mobile menu preserves nested link metadata and renders it
+AssertionError: expected [] to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ tests/customer-rendering-regressions.test.ts:207:21
+    205|     const buttons: any[] = [];
+    206|     C.eachNode([definition.node], node => { if (node.type === 'button'…
+    207|     expect(buttons).toHaveLength(2);
+       |                     ^
+    208|     expect(buttons[0].props).toMatchObject({ link: '/parent', target: …
+    209|     expect(buttons[0].adv.cls).toBe('featured');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/customer-rendering-regressions.test.ts > customer rendering defects > generated mobile links survive canonical JSON key ordering without Button defaults
+TypeError: Cannot read properties of undefined (reading 'css')
+ ❯ tests/customer-rendering-regressions.test.ts:245:17
+    243|     C.eachNode([restored.node], node => { if (node.type === 'button') …
+    244|     const link = buttons[0];
+    245|     expect(link.css.d).toMatchObject({
+       |                 ^
+    246|       'padding-top': '12px', 'padding-right': '0', 'padding-bottom': '…
+    247|       'border-width': '0', 'border-radius': '0', 'background-color': '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/mobile-nav-menu.test.mjs > building a menu creates one persisted reusable component seeded from the navigation links
+AssertionError: expected undefined to be 'primary-mobile-menu' // Object.is equality
+
+- Expected:
+"primary-mobile-menu"
+
++ Received:
+undefined
+
+ ❯ tests/mobile-nav-menu.test.mjs:124:41
+    122|   const definition = C.ensureMobileMenuComponent(nav);
+    123|   expect(definition.mobileMenu).toBe(true);
+    124|   expect(nav.props.mobileMenuComponent).toBe(definition.id);
+       |                                         ^
+    125|   expect(C.ensureMobileMenuComponent(nav)).toBe(definition);
+    126|   expect(C.mobileMenuComponents()).toEqual([definition]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  3 failed | 3 passed (6)
+      Tests  4 failed | 81 passed (85)
+   Start at  16:31:37
+   Duration  1.24s (transform 1.61s, setup 0ms, import 2.98s, tests 710ms, environment 504ms)
+

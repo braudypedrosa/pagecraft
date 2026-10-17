@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-mobile-menu-follow-candidate-75ed-v4
+
+
+ Test Files  9 passed (9)
+      Tests  95 passed (95)
+   Start at  16:33:38
+   Duration  1.29s (transform 2.26s, setup 0ms, import 3.74s, tests 831ms, environment 2.14s)
+

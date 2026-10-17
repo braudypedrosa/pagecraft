@@ -182,7 +182,7 @@ test('opening a mobile menu component selects its root as the insertion target',
   const n = C.insert('nav', null, 0)!;
   r.draw(<MobileMenuBuilder n={n} />);
   act(() => r.click(r.$('button.btn')));
-  const definition = C.findComponent(String(n.props.mobileMenuComponent))!;
+  const definition = C.mobileMenuDefinition(n)!;
   assert.equal(r.arg('editComponent')?.[0], definition.id);
   assert.equal(r.arg('select')?.[0], definition.node.id);
 });

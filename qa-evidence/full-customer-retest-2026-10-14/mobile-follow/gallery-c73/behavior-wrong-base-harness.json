@@ -1,0 +1,95 @@
+{
+  "reason": "Root passed origin instead of required /internal/components base; checks visited Sites screen. No product regression inferred.",
+  "results": [
+    {
+      "host": "cloud",
+      "check": "Select Escape preserves Home, closes picker and returns focus",
+      "passed": false,
+      "detail": "TypeError: Cannot read properties of null (reading 'selectedOptions')\n    at __playwrightEvaluate (<anonymous>:2686:75)\n    at <anonymous>:2687:14\n    at runUserScript (<anonymous>:2688:10)\n    at <anonymous>:2692:10\n    at <anonymous>:2693:3"
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Unsaved dialog value survives resize from 1440px to 768px",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Dialog Escape closes and returns focus to opener after exit animation",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Empty dialog footer has no displayed box",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open without footer\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open without footer\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Long native form keeps fixed dialog edges and a scrolling body",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Open long form dialog\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Open long form dialog\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Processing prevents duplicate activation",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Start processing\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Start processing\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Success restores action",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Start processing\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Start processing\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Failure restores action with recoverable error",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Start processing\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Start processing\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Disclosure remains mounted during exit and survives rapid reopening",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Toggle details\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Toggle details\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Reduced-motion disclosure exit completes",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Toggle details\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Toggle details\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh failure retains previous result and offers retry",
+      "passed": false,
+      "detail": "TypeError: Cannot read properties of null (reading 'hidden')\n    at __playwrightEvaluate (<anonymous>:2687:31)\n    at <anonymous>:2688:14\n    at runUserScript (<anonymous>:2689:10)\n    at <anonymous>:2693:10\n    at <anonymous>:2694:3"
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh recovery clears error silently and retains result",
+      "passed": false,
+      "detail": "Error: Playwright selector deadline exceeded\nwaiting on click for selector internal:role=button[name=\"Retry refresh\"s]\nLocator diagnostics: {\"kind\":\"no_matches\",\"action\":\"click\",\"locator\":\"internal:role=button[name=\\\"Retry refresh\\\"s]\",\"matchCount\":0,\"matches\":[],\"visibleCount\":0,\"truncated\":false}"
+    }
+  ]
+}

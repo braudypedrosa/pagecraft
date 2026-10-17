@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-mobile-menu-follow-candidate-75ed-v4
+
+ ❯ tests/mobile-menu-follow-content.test.tsx (7 tests | 1 failed | 6 skipped) 8ms
+   × style undo and redo keep the exact valid Follow owner active 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/mobile-menu-follow-content.test.tsx > style undo and redo keep the exact valid Follow owner active
+AssertionError: expected '<div id="n5juwd1x6z" data-id="n5juwd1…' to contain 'Owner link'
+
+Expected: "Owner link"
+Received: "<div id="n5juwd1x6z" data-id="n5juwd1x6z" data-t="nav" data-sel class="pagecraft-nav-menu pagecraft-mobile-nav-links pagecraft-5juwd1x6z"><ul class="pagecraft-nav-list pagecraft-managed-mobile-links"></ul></div>"
+
+ ❯ tests/mobile-menu-follow-content.test.tsx:233:67
+    231|   C.undo();
+    232|   expect(C.locate(managedId)!.node.css.d.color).toBe(originalColor);
+    233|   expect(C.renderNode(C.locate(managedId)!.node, { edit: true })).toCo…
+       |                                                                   ^
+    234|   r.draw(() => <Inspector />, 'right');
+    235|   expect((r.$('button[title="Edit the links on the parent navigation"]…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 skipped (7)
+   Start at  16:46:20
+   Duration  803ms (transform 245ms, setup 0ms, import 293ms, tests 8ms, environment 403ms)
+

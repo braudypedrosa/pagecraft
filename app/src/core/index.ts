@@ -1910,8 +1910,12 @@ function edit(fn: () => void, label?: string) {
   HOOKS.change();
   HOOKS.save();
 }
-function restore(snap: Doc) {
+function restore(snap: Doc, preserveMobileMenuOwner = false) {
+  const owner = preserveMobileMenuOwner ? state.ui.mobileMenuOwner : null;
   state.meta = snap.meta; state.header = snap.header; state.footer = snap.footer; state.pages = snap.pages;
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = owner;
+  if (owner) mobileMenuOwner(owner.menuComponentId); // validate the exact owner and menu ref in this snapshot
   if (state.cur >= state.pages.length) state.cur = 0;
   selSet(selIds());                        // drop members this snapshot has no node for
   HOOKS.change(); HOOKS.save();
@@ -1931,7 +1935,7 @@ function undo() {
   rememberHistory(current, label);
   hist.r.push(current);
   hist.u.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note('Undo: ' + label);
 }
 function redo() {
@@ -1942,7 +1946,7 @@ function redo() {
   rememberHistory(current, label);
   hist.u.push(current);
   hist.r.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note('Redo: ' + label);
 }
 
@@ -5490,8 +5494,75 @@ function findComponent(id?: string | null): ComponentDef | null {
 
 /** Menu layouts use the same persisted definitions and canvas as global components. */
 const mobileMenuComponents = () => components().filter(c => c.mobileMenu);
-function ensureMobileMenuComponent(n: PcNode): ComponentDef {
-  const current = findComponent(n.props.mobileMenuComponent);
+const mobileMenuMode = (n: PcNode): 'follow' | 'custom' =>
+  n.props.mobileMenuMode === 'follow' || n.props.mobileMenuMode === 'custom'
+    ? n.props.mobileMenuMode
+    : n.props.mobileMenuComponent ? 'custom' : 'follow';
+const mobileMenuRef = (n: PcNode, mode = mobileMenuMode(n)) =>
+  mode === 'follow' ? n.props.mobileMenuFollowComponent : n.props.mobileMenuComponent;
+const mobileMenuDefinition = (n: PcNode) => findComponent(mobileMenuRef(n));
+const mobileMenuLinksNode = (definition: ComponentDef | null): PcNode | null => {
+  let found: PcNode | null = null;
+  if (definition) eachNode([definition.node], node => {
+    if (!found && node.type === 'nav' && node.props.managedMobileLinks) found = node;
+  });
+  return found;
+};
+type MobileMenuOwnerContext = NonNullable<Ui['mobileMenuOwner']>;
+type MobileMenuOwner = { node: PcNode; mode: MobileMenuOwnerContext['mode']; page?: number; componentId?: string };
+const ownsMobileMenu = (node: PcNode, componentId: string) => node.type === 'nav'
+  && (node.props.mobileMenuFollowComponent === componentId || node.props.mobileMenuComponent === componentId);
+function mobileMenuOwnerContext(n: PcNode, componentId: string): MobileMenuOwnerContext | null {
+  if (!ownsMobileMenu(n, componentId)) return null;
+  for (const [mode, list] of [['header', state.header], ['footer', state.footer]] as const) {
+    const hit = locate(n.id, list);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
+  }
+  for (let page = 0; page < state.pages.length; page++) {
+    const hit = locate(n.id, state.pages[page].tree);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: 'page', page };
+  }
+  for (const definition of components()) {
+    if (definition.id === componentId) continue;
+    const hit = locate(n.id, [definition.node]);
+    if (hit?.node === n) return {
+      menuComponentId: componentId, nodeId: n.id, mode: 'component', ownerComponentId: definition.id
+    };
+  }
+  return null;
+}
+function prepareMobileMenuEdit(n: PcNode, componentId: string) {
+  state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
+  return !!state.ui.mobileMenuOwnerPending;
+}
+function mobileMenuOwner(componentId: string): MobileMenuOwner | null {
+  const context = state.ui.mobileMenuOwner;
+  if (!context || context.menuComponentId !== componentId || !findComponent(componentId)) {
+    if (context?.menuComponentId === componentId) state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  let hit: Handle | null = null;
+  if (context.mode === 'header') hit = locate(context.nodeId, state.header);
+  else if (context.mode === 'footer') hit = locate(context.nodeId, state.footer);
+  else if (context.mode === 'page' && context.page !== undefined) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  else if (context.mode === 'component' && context.ownerComponentId) {
+    const owner = findComponent(context.ownerComponentId);
+    if (owner) hit = locate(context.nodeId, [owner.node]);
+  }
+  if (!hit || !ownsMobileMenu(hit.node, componentId)) {
+    state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  return {
+    node: hit.node, mode: context.mode, page: context.page,
+    componentId: context.ownerComponentId
+  };
+}
+/** Programmatic callers still get the historical Custom snapshot. The real Build-menu UI
+    passes its resolved mode explicitly, and a new Nav resolves that mode to Follow. */
+function ensureMobileMenuComponent(n: PcNode, requested: 'follow' | 'custom' = 'custom'): ComponentDef {
+  const mode: 'follow' | 'custom' = requested === 'custom' ? 'custom' : 'follow';
+  const current = findComponent(mobileMenuRef(n, mode));
   if (current) return current;
   const name = (n.props.aria || 'Main') + ' mobile menu';
   const base = tokenId(name) || 'mobile-menu';
@@ -5536,12 +5607,28 @@ function ensureMobileMenuComponent(n: PcNode): ComponentDef {
     }, descendants)]);
   }).filter((node): node is PcNode => !!node);
   const links = branches('', new Set());
+  const managed = N('nav', { managedMobileLinks: 1, collapse: 'never', aria: '' }, {
+    d: {
+      width: '100%', 'align-self': 'stretch', 'justify-content': 'flex-start',
+      'font-size': '22px', 'font-weight': '500', color: cvar('text'),
+      '--nav-hover': cvar('ink'), '--nav-gap': '4px', '--nav-panel': cvar('bg')
+    }, t: {}, m: {}
+  });
   const node = N('section', { tag: 'div', width: 'full' },
     { d: { padding: '16px 0', background: 'transparent' }, t: {}, m: {} },
-    [N('row', {}, {}, [N('column', {}, {}, links)])]);
-  const definition: ComponentDef = { id, name, mobileMenu: true, node, props: [] };
+    [N('row', {}, {}, [N('column', {}, {}, mode === 'follow' ? [managed] : links)])]);
+  const definition: ComponentDef = { id, name, mobileMenu: true, mobileMenuSource: mode, node, props: [] };
   components().push(definition);
-  n.props.mobileMenuComponent = id;
+  if (mode === 'follow') n.props.mobileMenuFollowComponent = id;
+  else n.props.mobileMenuComponent = id;
+  return definition;
+}
+function setMobileMenuMode(n: PcNode, mode: 'follow' | 'custom') {
+  let definition: ComponentDef | null = null;
+  edit(() => {
+    definition = ensureMobileMenuComponent(n, mode);
+    n.props.mobileMenuMode = mode;
+  }, mode === 'follow' ? 'Follow navigation links' : 'Use custom mobile menu content');
   return definition;
 }
 
@@ -5694,7 +5781,8 @@ function instControls(n: PcNode): Control[] {
 /** The content controls for a node: an instance's properties, or the widget's own. One reader
     so the panel, the content role and the search cannot disagree about what a node holds. */
 const contentControls = (n: PcNode): Control[] =>
-  (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
+  n.type === 'nav' && n.props.managedMobileLinks ? []
+    : (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
 
 /** Which of a control's keys hold words rather than settings, for this node. The per-type
     answer for an ordinary widget; for an instance, the properties whose kind is content. A
@@ -5821,7 +5909,9 @@ function instances(cid: string) {
 }
 const componentUsage = (cid: string) => {
   let count = instances(cid).length;
-  allTrees().forEach(list => eachNode(list, n => { if (n.type === 'nav' && n.props.mobileMenuComponent === cid) count++; }));
+  allTrees().forEach(list => eachNode(list, n => {
+    if (n.type === 'nav' && (n.props.mobileMenuComponent === cid || n.props.mobileMenuFollowComponent === cid)) count++;
+  }));
   return count;
 };
 
@@ -5953,7 +6043,10 @@ function componentDelete(cid: string) {
     Returns false for a component that is not there, so a stale id leaves the editor where it
     is rather than showing an empty canvas with no way back. */
 function componentOpen(cid: string) {
-  if (!findComponent(cid)) return false;
+  const pending = state.ui.mobileMenuOwnerPending;
+  state.ui.mobileMenuOwnerPending = null;
+  if (!findComponent(cid)) { state.ui.mobileMenuOwner = null; return false; }
+  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : null;
   state.ui.mode = 'component';
   state.ui.cedit = cid;
   state.ui.sel = null;
@@ -5962,6 +6055,8 @@ function componentOpen(cid: string) {
 }
 /** Back to the page. */
 function componentClose() {
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = null;
   state.ui.mode = 'page';
   state.ui.cedit = null;
   state.ui.sel = null;
@@ -7630,7 +7725,13 @@ function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
     acc.m += `${selector}>*{flex-basis:80%}`;
   }
-  if (n.type === 'nav') {
+  if (n.type === 'nav' && n.props.managedMobileLinks) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-mobile-nav-links{display:block}`
+      + `${selector}>.pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:var(--nav-gap,4px);min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}`
+      + `${selector}>.pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}`
+      + `${selector} .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}`;
+  } else if (n.type === 'nav') {
     const c = n.props.collapse;
     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
     else if (c !== 'never') acc.m += navCollapse(n);
@@ -7661,7 +7762,7 @@ function usedComponents(lists: PcNode[][]): ComponentDef[] {
   const seen = new Set<string>();
   const out: ComponentDef[] = [];
   const visit = (list: PcNode[]) => eachNode(list, n => {
-    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? n.props.mobileMenuComponent : null]) {
+    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? mobileMenuRef(n) : null]) {
       if (!id || seen.has(id)) continue;
       const cd = findComponent(id);
       if (!cd) continue;
@@ -8608,7 +8709,11 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<${tag} ${at} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
-      const items = Array.isArray(p.items) ? p.items as NavItem[] : [];
+      const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === 'component' && state.ui.cedit
+        ? mobileMenuOwner(state.ui.cedit) : null;
+      const items = p.managedMobileLinks
+        ? (o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner!.node.props.items as NavItem[] : []))
+        : (Array.isArray(p.items) ? p.items as NavItem[] : []);
       const name = esc(p.aria || 'Main');
       const mid = domId + '-menu';
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || ''))
@@ -8634,12 +8739,19 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || '#')}"${target}${relationship}>${esc(it.label || '')}</a>`
           + (nested ? `<ul class="sub-menu">${nested}</ul>` : '') + `</li>`;
       }).join('');
-      const mobileDefinition = p.mobileMenu !== 'fullscreen' ? findComponent(p.mobileMenuComponent) : null;
+      if (p.managedMobileLinks) {
+        return `<div ${at} ${cx('pagecraft-nav-menu pagecraft-mobile-nav-links')}>`
+          + `<ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf('', new Set())}</ul></div>`;
+      }
+      /* A component-root Nav reads its definition props through `p`; the instance shell may
+         predate a mobile layout added while editing that definition. */
+      const mobileDefinition = p.mobileMenu !== 'fullscreen'
+        ? mobileMenuDefinition({ ...n, props: p } as PcNode) : null;
       const mobileInstance: PcNode | null = mobileDefinition ? {
         ...mobileDefinition.node, id: self.id + '-mobile', use: mobileDefinition.id,
         children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
       } : null;
-      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined })}</div>` : '';
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined, mobileMenuItems: items })}</div>` : '';
       return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
@@ -9640,6 +9752,8 @@ export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
   esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
+
+export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
 export type { ProposalChange, ProposalInput };

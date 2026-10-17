@@ -1,0 +1,196 @@
+{
+  "task": "Independent dual verification of managed Follow navigation candidate",
+  "baseCommit": "c73b97a1548d7448074678f73907441c0fe6b3c0",
+  "exports": {
+    "one": "/private/tmp/pagecraft-mobile-follow-one-c73-v1",
+    "two": "/private/tmp/pagecraft-mobile-follow-two-c73-v1"
+  },
+  "candidateOnly": true,
+  "candidateHashes": {
+    "app/src/core/types.ts": "98a2d0423534e5b9e51b48727b7cbb8ad955c6fedff6f8a3db978dec4f577722",
+    "app/src/core/index.ts": "0ea488ad1d2802c193ffa2e15c4d2f7c1963491c8360daed9da1fa9899049cdc",
+    "app/src/ui/inspector/MobileMenuBuilder.tsx": "290f501baa0258c6b2986690564f4bcb089206dd5cf71c51683980d34cc65616",
+    "app/src/ui/inspector/Inspector.tsx": "0080c7cd2e8f2e948f2f7daa82c2f95a3a893ef1bf0b8cfbe1b17afab3f395b4",
+    "tests/mobile-menu-follow-content.test.tsx": "4dc839d7de9955311633fc6a42f786fce4c06642a61416386c3fc227618489e9",
+    "tests/customer-inspector-regressions.test.tsx": "6f5f3e7f83a29ba0f0bd1287e9cd0bbb31e26560c11a86840f84b6ebd83b5c3a",
+    "tests/editor-compiler.test.ts": "89ada3e4fce233020028ea346e7d6bd0194e062c1f854005e893c77649040824"
+  },
+  "candidateSourcesExactInBoth": true,
+  "committedEighthOverlay": {
+    "file": "tests/module-control-behavior.test.tsx",
+    "sha256": "06ab3660c90b80902757165cffa9f5deda01743cbd1e7452d4b87edea91d6261",
+    "mainOneTwoExact": true,
+    "copiedSeparately": false
+  },
+  "reviewedBaselines": {
+    "count": 25,
+    "oneTwoByteExact": true,
+    "manifestSha256": "3a0cace21946ddcf860c20184acb9ce2691d5f83002205bf460516f30d5a87fe",
+    "recordedIn": "ONE via tools/ui-baselines.mjs record --reviewed",
+    "copiedTo": "TWO only",
+    "mainWritten": false
+  },
+  "npmCi": {
+    "one": {
+      "exit": 0,
+      "log": "one-npm-ci.log"
+    },
+    "two": {
+      "exit": 0,
+      "log": "two-npm-ci.log"
+    },
+    "note": "Both installs reported the known 3 high severity audit findings; no upgrade was authorized."
+  },
+  "builds": {
+    "one": {
+      "editorPackage": {
+        "exit": 0,
+        "log": "one-editor-build.log"
+      },
+      "demo": {
+        "exit": 0,
+        "log": "one-demo-build.log"
+      }
+    },
+    "two": {
+      "editorPackage": {
+        "exit": 0,
+        "log": "two-editor-build.log"
+      },
+      "demo": {
+        "exit": 0,
+        "log": "two-demo-build.log"
+      }
+    }
+  },
+  "typecheck": {
+    "one": {
+      "exit": 0,
+      "log": "one-typecheck.log"
+    },
+    "two": {
+      "exit": 0,
+      "log": "two-typecheck.log"
+    }
+  },
+  "focused": {
+    "command": "npx vitest run tests/mobile-menu-follow-content.test.tsx tests/mobile-nav-menu.test.mjs tests/customer-rendering-regressions.test.ts tests/customer-inspector-regressions.test.tsx tests/full-customer-roundtrip.test.ts tests/editor-compiler.test.ts tests/collection-slider-controls.test.tsx tests/unit-control-validation.test.tsx",
+    "one": {
+      "exit": 0,
+      "summary": "9 files, 99 tests passed",
+      "log": "one-focused.log"
+    },
+    "two": {
+      "exit": 0,
+      "summary": "9 files, 99 tests passed",
+      "log": "two-focused.log"
+    }
+  },
+  "wordpressGolden": {
+    "one": {
+      "exit": 0,
+      "summary": "1 passed, 29 skipped",
+      "log": "one-wordpress-golden.log"
+    },
+    "two": {
+      "exit": 0,
+      "summary": "1 passed, 29 skipped",
+      "log": "two-wordpress-golden.log"
+    },
+    "fixtureSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "mainOneTwoByteExact": true
+  },
+  "generated11": {
+    "count": 11,
+    "acrossExportsByteExact": true,
+    "hashes": {
+      "index.html": "b68bba6100aefcfeb878bdc5a3929b0e313b8db5eead25138650decfa0099ca7",
+      "dist/core.cjs": "5d961b1b8f4be64283c622cb0e94da635dc533a091a601a44180f84091e9b772",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "364e9aa393468a895c3838cce52e445d21d2581c78f76f0cf876f2d1fca2e2ad",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "packages/editor/dist/runtime.js": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "dist/demo/index.html": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "10008287e9f079aa90cfa206a047c6a40f22f63e0107d9c95ccfda872c07cc08"
+    }
+  },
+  "mainProtected11": {
+    "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "count": 11,
+    "allExact": true,
+    "actual": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    }
+  },
+  "loopbackReady": "/private/tmp/pagecraft-mobile-follow-one-c73-v1",
+  "pending": [
+    "Root actual Follow builder UI acceptance in loopback",
+    "Root decision on later main integration, packaging, and staging"
+  ],
+  "excluded": [
+    "main writes or npm commands",
+    "browser or staging work",
+    "database or WordPress writes",
+    "package, commit, or push"
+  ],
+  "initialFullSuiteOne": {
+    "exit": 1,
+    "summary": "215 files passed, 1 failed, 2 skipped; 2407 tests passed, 1 failed, 5 skipped",
+    "onlyFailure": "tests/ui-baselines.test.mjs: reviewed gallery baselines match the current shared UI sources",
+    "changedSourceReported": [
+      "app/src/ui/inspector/Inspector.tsx"
+    ],
+    "log": "one-full-suite.log"
+  },
+  "initialBaselineCheckTwo": {
+    "exit": 1,
+    "onlyFailure": "UI baseline source fingerprint requires review for app/src/ui/inspector/Inspector.tsx",
+    "log": "two-baseline-check.log"
+  },
+  "rootGalleryReview": {
+    "interactionChecks": {
+      "passed": 30,
+      "total": 30,
+      "evidence": "qa-evidence/mobile-menu-follow-candidate/gallery-c73/behavior-final.json"
+    },
+    "screenshots": {
+      "pixelExact": 24,
+      "total": 24,
+      "changedPixels": 0
+    },
+    "manualFullCaptureReview": [
+      "cloud-fields-1440",
+      "builder-menus-1440",
+      "cloud-dialogs-768",
+      "builder-fields-768"
+    ],
+    "wrongBaseHarness": {
+      "result": "15 checks reached Sites because root supplied origin instead of /internal/components; no product defect",
+      "evidence": "qa-evidence/mobile-menu-follow-candidate/gallery-c73/behavior-wrong-base-harness.json"
+    },
+    "correctedHarness": "15/15 cloud and 15/15 builder checks passed"
+  },
+  "finalFullSuiteOne": {
+    "exit": 0,
+    "summary": "216 files passed, 2 skipped; 2408 tests passed, 5 skipped",
+    "log": "one-final-full-suite.log"
+  },
+  "finalBaselineCheckTwo": {
+    "exit": 0,
+    "summary": "UI baselines verified: 24 images, 28 source files",
+    "log": "two-final-baseline-check.log"
+  }
+}

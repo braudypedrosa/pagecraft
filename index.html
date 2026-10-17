@@ -5485,11 +5485,15 @@ function edit(fn, label) {
   HOOKS.change();
   HOOKS.save();
 }
-function restore(snap) {
+function restore(snap, preserveMobileMenuOwner = false) {
+  const owner = preserveMobileMenuOwner ? state.ui.mobileMenuOwner : null;
   state.meta = snap.meta;
   state.header = snap.header;
   state.footer = snap.footer;
   state.pages = snap.pages;
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = owner;
+  if (owner) mobileMenuOwner(owner.menuComponentId);
   if (state.cur >= state.pages.length) state.cur = 0;
   selSet(selIds());
   HOOKS.change();
@@ -5509,7 +5513,7 @@ function undo() {
   rememberHistory(current, label);
   hist.r.push(current);
   hist.u.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note("Undo: " + label);
 }
 function redo() {
@@ -5520,7 +5524,7 @@ function redo() {
   rememberHistory(current, label);
   hist.u.push(current);
   hist.r.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note("Redo: " + label);
 }
 var lvl = (t) => DEF[BASE[t] || t].level;
@@ -8306,8 +8310,71 @@ function findComponent(id) {
   return id ? components().find((c) => c.id === id) || null : null;
 }
 var mobileMenuComponents = () => components().filter((c) => c.mobileMenu);
-function ensureMobileMenuComponent(n) {
-  const current = findComponent(n.props.mobileMenuComponent);
+var mobileMenuMode = (n) => n.props.mobileMenuMode === "follow" || n.props.mobileMenuMode === "custom" ? n.props.mobileMenuMode : n.props.mobileMenuComponent ? "custom" : "follow";
+var mobileMenuRef = (n, mode = mobileMenuMode(n)) => mode === "follow" ? n.props.mobileMenuFollowComponent : n.props.mobileMenuComponent;
+var mobileMenuDefinition = (n) => findComponent(mobileMenuRef(n));
+var mobileMenuLinksNode = (definition) => {
+  let found = null;
+  if (definition) eachNode([definition.node], (node) => {
+    if (!found && node.type === "nav" && node.props.managedMobileLinks) found = node;
+  });
+  return found;
+};
+var ownsMobileMenu = (node, componentId) => node.type === "nav" && (node.props.mobileMenuFollowComponent === componentId || node.props.mobileMenuComponent === componentId);
+function mobileMenuOwnerContext(n, componentId) {
+  if (!ownsMobileMenu(n, componentId)) return null;
+  for (const [mode, list] of [["header", state.header], ["footer", state.footer]]) {
+    const hit = locate(n.id, list);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
+  }
+  for (let page2 = 0; page2 < state.pages.length; page2++) {
+    const hit = locate(n.id, state.pages[page2].tree);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: "page", page: page2 };
+  }
+  for (const definition of components()) {
+    if (definition.id === componentId) continue;
+    const hit = locate(n.id, [definition.node]);
+    if (hit?.node === n) return {
+      menuComponentId: componentId,
+      nodeId: n.id,
+      mode: "component",
+      ownerComponentId: definition.id
+    };
+  }
+  return null;
+}
+function prepareMobileMenuEdit(n, componentId) {
+  state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
+  return !!state.ui.mobileMenuOwnerPending;
+}
+function mobileMenuOwner(componentId) {
+  const context = state.ui.mobileMenuOwner;
+  if (!context || context.menuComponentId !== componentId || !findComponent(componentId)) {
+    if (context?.menuComponentId === componentId) state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  let hit = null;
+  if (context.mode === "header") hit = locate(context.nodeId, state.header);
+  else if (context.mode === "footer") hit = locate(context.nodeId, state.footer);
+  else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  else if (context.mode === "component" && context.ownerComponentId) {
+    const owner = findComponent(context.ownerComponentId);
+    if (owner) hit = locate(context.nodeId, [owner.node]);
+  }
+  if (!hit || !ownsMobileMenu(hit.node, componentId)) {
+    state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  return {
+    node: hit.node,
+    mode: context.mode,
+    page: context.page,
+    componentId: context.ownerComponentId
+  };
+}
+function ensureMobileMenuComponent(n, requested = "custom") {
+  const mode = requested === "custom" ? "custom" : "follow";
+  const current = findComponent(mobileMenuRef(n, mode));
   if (current) return current;
   const name = (n.props.aria || "Main") + " mobile menu";
   const base = tokenId(name) || "mobile-menu";
@@ -8363,15 +8430,39 @@ function ensureMobileMenuComponent(n) {
     }, descendants)]);
   }).filter((node2) => !!node2);
   const links = branches("", /* @__PURE__ */ new Set());
+  const managed = N("nav", { managedMobileLinks: 1, collapse: "never", aria: "" }, {
+    d: {
+      width: "100%",
+      "align-self": "stretch",
+      "justify-content": "flex-start",
+      "font-size": "22px",
+      "font-weight": "500",
+      color: cvar("text"),
+      "--nav-hover": cvar("ink"),
+      "--nav-gap": "4px",
+      "--nav-panel": cvar("bg")
+    },
+    t: {},
+    m: {}
+  });
   const node = N(
     "section",
     { tag: "div", width: "full" },
     { d: { padding: "16px 0", background: "transparent" }, t: {}, m: {} },
-    [N("row", {}, {}, [N("column", {}, {}, links)])]
+    [N("row", {}, {}, [N("column", {}, {}, mode === "follow" ? [managed] : links)])]
   );
-  const definition = { id, name, mobileMenu: true, node, props: [] };
+  const definition = { id, name, mobileMenu: true, mobileMenuSource: mode, node, props: [] };
   components().push(definition);
-  n.props.mobileMenuComponent = id;
+  if (mode === "follow") n.props.mobileMenuFollowComponent = id;
+  else n.props.mobileMenuComponent = id;
+  return definition;
+}
+function setMobileMenuMode(n, mode) {
+  let definition = null;
+  edit(() => {
+    definition = ensureMobileMenuComponent(n, mode);
+    n.props.mobileMenuMode = mode;
+  }, mode === "follow" ? "Follow navigation links" : "Use custom mobile menu content");
   return definition;
 }
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
@@ -8491,7 +8582,7 @@ function instControls(n) {
     opts: pr.t === "select" ? pr.opts || [] : void 0
   }));
 }
-var contentControls = (n) => n.use ? instControls(n) : DEF[n.type].controls.content || [];
+var contentControls = (n) => n.type === "nav" && n.props.managedMobileLinks ? [] : n.use ? instControls(n) : DEF[n.type].controls.content || [];
 var CONTENT_PROP = ["text", "rich", "img", "link"];
 function contentKeysOf(n) {
   if (!n.use) return contentKeys(n.type);
@@ -8603,7 +8694,7 @@ function instances(cid) {
 var componentUsage = (cid) => {
   let count = instances(cid).length;
   allTrees().forEach((list) => eachNode(list, (n) => {
-    if (n.type === "nav" && n.props.mobileMenuComponent === cid) count++;
+    if (n.type === "nav" && (n.props.mobileMenuComponent === cid || n.props.mobileMenuFollowComponent === cid)) count++;
   }));
   return count;
 };
@@ -8730,7 +8821,13 @@ function componentDelete(cid) {
   return n;
 }
 function componentOpen(cid) {
-  if (!findComponent(cid)) return false;
+  const pending = state.ui.mobileMenuOwnerPending;
+  state.ui.mobileMenuOwnerPending = null;
+  if (!findComponent(cid)) {
+    state.ui.mobileMenuOwner = null;
+    return false;
+  }
+  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : null;
   state.ui.mode = "component";
   state.ui.cedit = cid;
   state.ui.sel = null;
@@ -8738,6 +8835,8 @@ function componentOpen(cid) {
   return true;
 }
 function componentClose() {
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = null;
   state.ui.mode = "page";
   state.ui.cedit = null;
   state.ui.sel = null;
@@ -10435,7 +10534,10 @@ function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) 
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
     acc.m += `${selector}>*{flex-basis:80%}`;
   }
-  if (n.type === "nav") {
+  if (n.type === "nav" && n.props.managedMobileLinks) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-mobile-nav-links{display:block}${selector}>.pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:var(--nav-gap,4px);min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}${selector}>.pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}${selector} .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}`;
+  } else if (n.type === "nav") {
     const c = n.props.collapse;
     if (c === "tablet") acc.t += navCollapse(n);
     else if (c !== "never") acc.m += navCollapse(n);
@@ -10459,7 +10561,7 @@ function usedComponents(lists) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   const visit = (list) => eachNode(list, (n) => {
-    for (const id of [n.use, n.type === "nav" && n.props.mobileMenu !== "fullscreen" ? n.props.mobileMenuComponent : null]) {
+    for (const id of [n.use, n.type === "nav" && n.props.mobileMenu !== "fullscreen" ? mobileMenuRef(n) : null]) {
       if (!id || seen.has(id)) continue;
       const cd = findComponent(id);
       if (!cd) continue;
@@ -11227,7 +11329,8 @@ function renderNode(n, o) {
       return `<${tag} ${at} ${cx("pagecraft-button")} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
-      const items = Array.isArray(p.items) ? p.items : [];
+      const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === "component" && state.ui.cedit ? mobileMenuOwner(state.ui.cedit) : null;
+      const items = p.managedMobileLinks ? o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner.node.props.items : []) : Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
       const mid = domId + "-menu";
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || "")) ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : "";
@@ -11251,7 +11354,10 @@ function renderNode(n, o) {
         const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
       }).join("");
-      const mobileDefinition = p.mobileMenu !== "fullscreen" ? findComponent(p.mobileMenuComponent) : null;
+      if (p.managedMobileLinks) {
+        return `<div ${at} ${cx("pagecraft-nav-menu pagecraft-mobile-nav-links")}><ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf("", /* @__PURE__ */ new Set())}</ul></div>`;
+      }
+      const mobileDefinition = p.mobileMenu !== "fullscreen" ? mobileMenuDefinition({ ...n, props: p }) : null;
       const mobileInstance = mobileDefinition ? {
         ...mobileDefinition.node,
         id: self.id + "-mobile",
@@ -11261,7 +11367,7 @@ function renderNode(n, o) {
         cls: [],
         adv: { htmlId: "", cls: "", css: "" }
       } : null;
-      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0 })}</div>` : "";
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0, mobileMenuItems: items })}</div>` : "";
       return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
     }
     case "form": {
@@ -12287,6 +12393,10 @@ var __CORE = {
   menuFor,
   migrate,
   mobileMenuComponents,
+  mobileMenuDefinition,
+  mobileMenuLinksNode,
+  mobileMenuMode,
+  mobileMenuOwner,
   moveMany,
   moveNode,
   multiOn,
@@ -12323,6 +12433,7 @@ var __CORE = {
   pasteStyles,
   pasteStylesMany,
   patternInsert,
+  prepareMobileMenuEdit,
   previewIndex,
   previewItem,
   propAdd,
@@ -12368,6 +12479,7 @@ var __CORE = {
   sendEdge,
   setCloudFormEndpoint,
   setCss,
+  setMobileMenuMode,
   showsNode,
   sitePlan,
   sitemapXml,
@@ -21508,28 +21620,51 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
 
   // app/src/ui/inspector/MobileMenuBuilder.tsx
   function MobileMenuBuilder({ n: n2 }) {
-    const menus = C2.mobileMenuComponents();
-    const selected = menus.find((menu) => menu.id === n2.props.mobileMenuComponent);
+    const mode = C2.mobileMenuMode(n2);
+    const menus = C2.mobileMenuComponents().filter((menu) => menu.mobileMenuSource !== "follow");
+    const selected = C2.mobileMenuDefinition(n2);
     const choose = (id) => {
       C2.edit(() => {
         n2.props.mobileMenuComponent = id;
       });
       repaint("right");
     };
+    const chooseMode = (next) => {
+      if (next === mode) return;
+      C2.setMobileMenuMode(n2, next);
+      repaint("right");
+    };
     const open = () => {
       let id = selected?.id;
       if (!id) C2.edit(() => {
-        id = C2.ensureMobileMenuComponent(n2).id;
+        id = C2.ensureMobileMenuComponent(n2, mode).id;
       });
       if (id) {
         const rootId = C2.findComponent(id)?.node.id;
+        C2.prepareMobileMenuEdit(n2, id);
         L2.editComponent(id);
         if (rootId) L2.select(rootId, { scroll: false });
       }
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "f", children: [
-        /* @__PURE__ */ u2("label", { htmlFor: "mobile-menu-layout", children: "Menu layout" }),
+        /* @__PURE__ */ u2("label", { htmlFor: "mobile-menu-content", children: "Content" }),
+        /* @__PURE__ */ u2(
+          "select",
+          {
+            id: "mobile-menu-content",
+            "data-mobile-menu-mode": true,
+            value: mode,
+            onChange: (e3) => chooseMode(e3.target.value === "custom" ? "custom" : "follow"),
+            children: [
+              /* @__PURE__ */ u2("option", { value: "follow", children: "Follow navigation" }),
+              /* @__PURE__ */ u2("option", { value: "custom", children: "Custom content" })
+            ]
+          }
+        )
+      ] }),
+      mode === "custom" && menus.length ? /* @__PURE__ */ u2("div", { class: "f", children: [
+        /* @__PURE__ */ u2("label", { htmlFor: "mobile-menu-layout", children: "Custom layout" }),
         /* @__PURE__ */ u2(
           "select",
           {
@@ -21537,13 +21672,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             value: selected?.id || "",
             onChange: (e3) => choose(e3.target.value),
             children: [
-              /* @__PURE__ */ u2("option", { value: "", children: "Use menu links" }),
+              /* @__PURE__ */ u2("option", { value: "", children: "New custom layout" }),
               menus.map((menu) => /* @__PURE__ */ u2("option", { value: menu.id, children: menu.name }, menu.id))
             ]
           }
         )
-      ] }),
-      /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: open, children: selected ? "Edit menu" : "Build menu" })
+      ] }) : null,
+      /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: open, children: selected ? "Edit layout" : "Build menu" })
     ] });
   }
 
@@ -22048,6 +22183,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
     { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
   ];
+  function ManagedMobileLinks({ n: n2 }) {
+    if (!n2.props.managedMobileLinks) return null;
+    const owner = C2.mobileMenuOwner(C2.state.ui.cedit || "");
+    const open = () => {
+      if (!owner) return;
+      if (owner.mode === "component" && owner.componentId) L2.editComponent(owner.componentId);
+      else {
+        if (owner.page !== void 0) C2.state.cur = owner.page;
+        L2.editComponent(null);
+        L2.setMode(owner.mode);
+      }
+      L2.select(owner.node.id, { scroll: false });
+    };
+    return /* @__PURE__ */ u2(Panel, { title: "Navigation links", n: n2, children: /* @__PURE__ */ u2("button", { type: "button", class: "btn", title: "Edit the links on the parent navigation", disabled: !owner, onClick: open, children: "Edit navigation links" }) });
+  }
   function ContentSource({ n: n2 }) {
     const col = n2.src ? C2.findCollection(n2.src) : null;
     return /* @__PURE__ */ u2(Panel, { title: "Content source", n: n2, children: [
@@ -22375,7 +22525,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             tab2 === "content" && formHandling ? /* @__PURE__ */ u2("p", { class: "note", style: "padding:12px", children: formHandling.note }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(UnsupportedManagedForm, { n: n2 }) : null,
             tab2 === "content" ? /* @__PURE__ */ u2(ComponentProps, { n: n2 }) : null,
-            tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys3]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys3.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
+            tab2 === "content" && n2.props.managedMobileLinks ? /* @__PURE__ */ u2(ManagedMobileLinks, { n: n2 }) : tab2 === "content" ? content.length ? n2.type === "form" && !n2.use ? [["Form fields", ["fields"]], ["Button", ["submit"]], ["Submission", ["mode", "action", "method"]], ["Options", ["aria"]]].map(([title, keys3]) => /* @__PURE__ */ u2(Group, { title, collapsed: title !== "Form fields", n: n2, items: content.filter((c3) => keys3.includes(c3.k || "")) }, title)) : /* @__PURE__ */ u2(Group, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, items: content }) : /* @__PURE__ */ u2(Panel, { title: n2.type === "box" ? C2.nameOf(n2) : d3.label, n: n2, children: n2.use ? /* @__PURE__ */ u2("div", { class: "note", children: [
               "No editable properties. ",
               /* @__PURE__ */ u2(HelpTip, { label: "Component properties", text: "Edit the component definition to add properties that vary between instances." })
             ] }) : /* @__PURE__ */ u2("div", { class: "note", children: "No content options \u2014 use the Style tab." }) }) : tab2 === "style" ? /* @__PURE__ */ u2(S, { children: [

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-mobile-follow-one-c73-v1
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 29 skipped (30)
+   Start at  16:56:04
+   Duration  644ms (transform 351ms, setup 0ms, import 434ms, tests 76ms, environment 0ms)
+

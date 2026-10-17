@@ -1,0 +1,730 @@
+--- a/app/src/core/types.ts
++++ b/app/src/core/types.ts
+@@ -120,7 +120,14 @@
+ }
+ export interface NavProps {
+   mobileMenu?: 'dropdown' | 'fullscreen';
++  /** How a built mobile panel gets its links. Missing preserves legacy custom definitions. */
++  mobileMenuMode?: 'follow' | 'custom';
++  /** The legacy/custom layout. Kept separate so switching back restores authored content. */
+   mobileMenuComponent?: string;
++  /** The managed layout whose links follow this navigation at render time. */
++  mobileMenuFollowComponent?: string;
++  /** Internal marker for the one managed link list inside a follow layout. */
++  managedMobileLinks?: 0 | 1 | boolean;
+   items?: NavItem[];
+   collapse?: string;
+   aria?: string;
+@@ -430,6 +437,8 @@
+ export interface ComponentDef {
+   /** Reusable native layout for a full-width mobile navigation panel. */
+   mobileMenu?: boolean;
++  /** Follow layouts are private to their parent Nav; absent means legacy/custom. */
++  mobileMenuSource?: 'follow' | 'custom';
+   id: string;
+   name: string;
+   /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */
+@@ -721,6 +730,16 @@
+   mode: 'page' | 'header' | 'footer' | 'component';
+   /** the component being edited, while `mode` is `component` */
+   cedit?: string | null;
++  /** One-shot exact parent context supplied immediately before a mobile layout opens. */
++  mobileMenuOwnerPending?: {
++    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
++    page?: number; ownerComponentId?: string;
++  } | null;
++  /** Exact parent context active for the current mobile-layout editing session. */
++  mobileMenuOwner?: {
++    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
++    page?: number; ownerComponentId?: string;
++  } | null;
+   dev: Device;
+   /** the primary selection, whose controls the inspector draws */
+   sel: string | null;
+@@ -791,6 +810,8 @@
+       of itself would otherwise render until the stack runs out, and a page builder should not
+       be able to hang the tab it renders in. */
+   stack?: string[];
++  /** Authoritative parent Nav links while its managed mobile component renders. */
++  mobileMenuItems?: NavItem[];
+   /** how far this file sits from the root, e.g. '../' */
+   rel?: string;
+   /** set while a Collection list repeats its contents */
+--- a/app/src/core/index.ts
++++ b/app/src/core/index.ts
+@@ -1910,8 +1910,12 @@
+   HOOKS.change();
+   HOOKS.save();
+ }
+-function restore(snap: Doc) {
++function restore(snap: Doc, preserveMobileMenuOwner = false) {
++  const owner = preserveMobileMenuOwner ? state.ui.mobileMenuOwner : null;
+   state.meta = snap.meta; state.header = snap.header; state.footer = snap.footer; state.pages = snap.pages;
++  state.ui.mobileMenuOwnerPending = null;
++  state.ui.mobileMenuOwner = owner;
++  if (owner) mobileMenuOwner(owner.menuComponentId); // validate the exact owner and menu ref in this snapshot
+   if (state.cur >= state.pages.length) state.cur = 0;
+   selSet(selIds());                        // drop members this snapshot has no node for
+   HOOKS.change(); HOOKS.save();
+@@ -1931,7 +1935,7 @@
+   rememberHistory(current, label);
+   hist.r.push(current);
+   hist.u.pop();
+-  restore(target);
++  restore(target, true);
+   HOOKS.note('Undo: ' + label);
+ }
+ function redo() {
+@@ -1942,7 +1946,7 @@
+   rememberHistory(current, label);
+   hist.u.push(current);
+   hist.r.pop();
+-  restore(target);
++  restore(target, true);
+   HOOKS.note('Redo: ' + label);
+ }
+ 
+@@ -5490,8 +5494,75 @@
+ 
+ /** Menu layouts use the same persisted definitions and canvas as global components. */
+ const mobileMenuComponents = () => components().filter(c => c.mobileMenu);
+-function ensureMobileMenuComponent(n: PcNode): ComponentDef {
+-  const current = findComponent(n.props.mobileMenuComponent);
++const mobileMenuMode = (n: PcNode): 'follow' | 'custom' =>
++  n.props.mobileMenuMode === 'follow' || n.props.mobileMenuMode === 'custom'
++    ? n.props.mobileMenuMode
++    : n.props.mobileMenuComponent ? 'custom' : 'follow';
++const mobileMenuRef = (n: PcNode, mode = mobileMenuMode(n)) =>
++  mode === 'follow' ? n.props.mobileMenuFollowComponent : n.props.mobileMenuComponent;
++const mobileMenuDefinition = (n: PcNode) => findComponent(mobileMenuRef(n));
++const mobileMenuLinksNode = (definition: ComponentDef | null): PcNode | null => {
++  let found: PcNode | null = null;
++  if (definition) eachNode([definition.node], node => {
++    if (!found && node.type === 'nav' && node.props.managedMobileLinks) found = node;
++  });
++  return found;
++};
++type MobileMenuOwnerContext = NonNullable<Ui['mobileMenuOwner']>;
++type MobileMenuOwner = { node: PcNode; mode: MobileMenuOwnerContext['mode']; page?: number; componentId?: string };
++const ownsMobileMenu = (node: PcNode, componentId: string) => node.type === 'nav'
++  && (node.props.mobileMenuFollowComponent === componentId || node.props.mobileMenuComponent === componentId);
++function mobileMenuOwnerContext(n: PcNode, componentId: string): MobileMenuOwnerContext | null {
++  if (!ownsMobileMenu(n, componentId)) return null;
++  for (const [mode, list] of [['header', state.header], ['footer', state.footer]] as const) {
++    const hit = locate(n.id, list);
++    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
++  }
++  for (let page = 0; page < state.pages.length; page++) {
++    const hit = locate(n.id, state.pages[page].tree);
++    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: 'page', page };
++  }
++  for (const definition of components()) {
++    if (definition.id === componentId) continue;
++    const hit = locate(n.id, [definition.node]);
++    if (hit?.node === n) return {
++      menuComponentId: componentId, nodeId: n.id, mode: 'component', ownerComponentId: definition.id
++    };
++  }
++  return null;
++}
++function prepareMobileMenuEdit(n: PcNode, componentId: string) {
++  state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
++  return !!state.ui.mobileMenuOwnerPending;
++}
++function mobileMenuOwner(componentId: string): MobileMenuOwner | null {
++  const context = state.ui.mobileMenuOwner;
++  if (!context || context.menuComponentId !== componentId || !findComponent(componentId)) {
++    if (context?.menuComponentId === componentId) state.ui.mobileMenuOwner = null;
++    return null;
++  }
++  let hit: Handle | null = null;
++  if (context.mode === 'header') hit = locate(context.nodeId, state.header);
++  else if (context.mode === 'footer') hit = locate(context.nodeId, state.footer);
++  else if (context.mode === 'page' && context.page !== undefined) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
++  else if (context.mode === 'component' && context.ownerComponentId) {
++    const owner = findComponent(context.ownerComponentId);
++    if (owner) hit = locate(context.nodeId, [owner.node]);
++  }
++  if (!hit || !ownsMobileMenu(hit.node, componentId)) {
++    state.ui.mobileMenuOwner = null;
++    return null;
++  }
++  return {
++    node: hit.node, mode: context.mode, page: context.page,
++    componentId: context.ownerComponentId
++  };
++}
++/** Programmatic callers still get the historical Custom snapshot. The real Build-menu UI
++    passes its resolved mode explicitly, and a new Nav resolves that mode to Follow. */
++function ensureMobileMenuComponent(n: PcNode, requested: 'follow' | 'custom' = 'custom'): ComponentDef {
++  const mode: 'follow' | 'custom' = requested === 'custom' ? 'custom' : 'follow';
++  const current = findComponent(mobileMenuRef(n, mode));
+   if (current) return current;
+   const name = (n.props.aria || 'Main') + ' mobile menu';
+   const base = tokenId(name) || 'mobile-menu';
+@@ -5536,14 +5607,30 @@
+     }, descendants)]);
+   }).filter((node): node is PcNode => !!node);
+   const links = branches('', new Set());
++  const managed = N('nav', { managedMobileLinks: 1, collapse: 'never', aria: '' }, {
++    d: {
++      width: '100%', 'align-self': 'stretch', 'justify-content': 'flex-start',
++      'font-size': '22px', 'font-weight': '500', color: cvar('text'),
++      '--nav-hover': cvar('ink'), '--nav-gap': '4px', '--nav-panel': cvar('bg')
++    }, t: {}, m: {}
++  });
+   const node = N('section', { tag: 'div', width: 'full' },
+     { d: { padding: '16px 0', background: 'transparent' }, t: {}, m: {} },
+-    [N('row', {}, {}, [N('column', {}, {}, links)])]);
+-  const definition: ComponentDef = { id, name, mobileMenu: true, node, props: [] };
++    [N('row', {}, {}, [N('column', {}, {}, mode === 'follow' ? [managed] : links)])]);
++  const definition: ComponentDef = { id, name, mobileMenu: true, mobileMenuSource: mode, node, props: [] };
+   components().push(definition);
+-  n.props.mobileMenuComponent = id;
++  if (mode === 'follow') n.props.mobileMenuFollowComponent = id;
++  else n.props.mobileMenuComponent = id;
+   return definition;
+ }
++function setMobileMenuMode(n: PcNode, mode: 'follow' | 'custom') {
++  let definition: ComponentDef | null = null;
++  edit(() => {
++    definition = ensureMobileMenuComponent(n, mode);
++    n.props.mobileMenuMode = mode;
++  }, mode === 'follow' ? 'Follow navigation links' : 'Use custom mobile menu content');
++  return definition;
++}
+ 
+ /** The declared property, or null. */
+ const findProp = (def: ComponentDef | null, k: string) =>
+@@ -5694,7 +5781,8 @@
+ /** The content controls for a node: an instance's properties, or the widget's own. One reader
+     so the panel, the content role and the search cannot disagree about what a node holds. */
+ const contentControls = (n: PcNode): Control[] =>
+-  (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
++  n.type === 'nav' && n.props.managedMobileLinks ? []
++    : (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
+ 
+ /** Which of a control's keys hold words rather than settings, for this node. The per-type
+     answer for an ordinary widget; for an instance, the properties whose kind is content. A
+@@ -5821,7 +5909,9 @@
+ }
+ const componentUsage = (cid: string) => {
+   let count = instances(cid).length;
+-  allTrees().forEach(list => eachNode(list, n => { if (n.type === 'nav' && n.props.mobileMenuComponent === cid) count++; }));
++  allTrees().forEach(list => eachNode(list, n => {
++    if (n.type === 'nav' && (n.props.mobileMenuComponent === cid || n.props.mobileMenuFollowComponent === cid)) count++;
++  }));
+   return count;
+ };
+ 
+@@ -5953,7 +6043,10 @@
+     Returns false for a component that is not there, so a stale id leaves the editor where it
+     is rather than showing an empty canvas with no way back. */
+ function componentOpen(cid: string) {
+-  if (!findComponent(cid)) return false;
++  const pending = state.ui.mobileMenuOwnerPending;
++  state.ui.mobileMenuOwnerPending = null;
++  if (!findComponent(cid)) { state.ui.mobileMenuOwner = null; return false; }
++  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : null;
+   state.ui.mode = 'component';
+   state.ui.cedit = cid;
+   state.ui.sel = null;
+@@ -5962,6 +6055,8 @@
+ }
+ /** Back to the page. */
+ function componentClose() {
++  state.ui.mobileMenuOwnerPending = null;
++  state.ui.mobileMenuOwner = null;
+   state.ui.mode = 'page';
+   state.ui.cedit = null;
+   state.ui.sel = null;
+@@ -7630,7 +7725,13 @@
+     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
+     acc.m += `${selector}>*{flex-basis:80%}`;
+   }
+-  if (n.type === 'nav') {
++  if (n.type === 'nav' && n.props.managedMobileLinks) {
++    const selector = selOf(n);
++    acc.d += `${selector}.pagecraft-mobile-nav-links{display:block}`
++      + `${selector}>.pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:var(--nav-gap,4px);min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}`
++      + `${selector}>.pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}`
++      + `${selector} .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}`;
++  } else if (n.type === 'nav') {
+     const c = n.props.collapse;
+     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
+     else if (c !== 'never') acc.m += navCollapse(n);
+@@ -7661,7 +7762,7 @@
+   const seen = new Set<string>();
+   const out: ComponentDef[] = [];
+   const visit = (list: PcNode[]) => eachNode(list, n => {
+-    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? n.props.mobileMenuComponent : null]) {
++    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? mobileMenuRef(n) : null]) {
+       if (!id || seen.has(id)) continue;
+       const cd = findComponent(id);
+       if (!cd) continue;
+@@ -8608,7 +8709,11 @@
+       return `<${tag} ${at} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+     }
+     case 'nav': {
+-      const items = Array.isArray(p.items) ? p.items as NavItem[] : [];
++      const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === 'component' && state.ui.cedit
++        ? mobileMenuOwner(state.ui.cedit) : null;
++      const items = p.managedMobileLinks
++        ? (o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner!.node.props.items as NavItem[] : []))
++        : (Array.isArray(p.items) ? p.items as NavItem[] : []);
+       const name = esc(p.aria || 'Main');
+       const mid = domId + '-menu';
+       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || ''))
+@@ -8634,12 +8739,19 @@
+         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || '#')}"${target}${relationship}>${esc(it.label || '')}</a>`
+           + (nested ? `<ul class="sub-menu">${nested}</ul>` : '') + `</li>`;
+       }).join('');
+-      const mobileDefinition = p.mobileMenu !== 'fullscreen' ? findComponent(p.mobileMenuComponent) : null;
++      if (p.managedMobileLinks) {
++        return `<div ${at} ${cx('pagecraft-nav-menu pagecraft-mobile-nav-links')}>`
++          + `<ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf('', new Set())}</ul></div>`;
++      }
++      /* A component-root Nav reads its definition props through `p`; the instance shell may
++         predate a mobile layout added while editing that definition. */
++      const mobileDefinition = p.mobileMenu !== 'fullscreen'
++        ? mobileMenuDefinition({ ...n, props: p } as PcNode) : null;
+       const mobileInstance: PcNode | null = mobileDefinition ? {
+         ...mobileDefinition.node, id: self.id + '-mobile', use: mobileDefinition.id,
+         children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
+       } : null;
+-      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined })}</div>` : '';
++      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined, mobileMenuItems: items })}</div>` : '';
+       return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
+         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
+         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
+@@ -9641,5 +9753,7 @@
+   esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+ };
+ 
++export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };
++
+ export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
+ export type { ProposalChange, ProposalInput };
+--- a/app/src/ui/inspector/MobileMenuBuilder.tsx
++++ b/app/src/ui/inspector/MobileMenuBuilder.tsx
+@@ -3,17 +3,24 @@
+ 
+ /** Mobile layouts use the same native component canvas as reusable site sections. */
+ export function MobileMenuBuilder({ n }: { n: PcNode }) {
+-  const menus = C.mobileMenuComponents();
+-  const selected = menus.find(menu => menu.id === n.props.mobileMenuComponent);
++  const mode = C.mobileMenuMode(n);
++  const menus = C.mobileMenuComponents().filter(menu => menu.mobileMenuSource !== 'follow');
++  const selected = C.mobileMenuDefinition(n);
+   const choose = (id: string) => {
+     C.edit(() => { n.props.mobileMenuComponent = id; });
+     repaint('right');
+   };
++  const chooseMode = (next: 'follow' | 'custom') => {
++    if (next === mode) return;
++    C.setMobileMenuMode(n, next);
++    repaint('right');
++  };
+   const open = () => {
+     let id = selected?.id;
+-    if (!id) C.edit(() => { id = C.ensureMobileMenuComponent(n).id; });
++    if (!id) C.edit(() => { id = C.ensureMobileMenuComponent(n, mode).id; });
+     if (id) {
+       const rootId = C.findComponent(id)?.node.id;
++      C.prepareMobileMenuEdit(n, id);
+       L.editComponent(id);
+       /* Component mode clears selection. Seed its root as the predictable Add target so the
+          first element click works without a preparatory canvas click. */
+@@ -23,14 +30,22 @@
+   return (
+     <>
+       <div class="f">
+-        <label htmlFor="mobile-menu-layout">Menu layout</label>
++        <label htmlFor="mobile-menu-content">Content</label>
++        <select id="mobile-menu-content" data-mobile-menu-mode value={mode}
++          onChange={e => chooseMode((e.target as HTMLSelectElement).value === 'custom' ? 'custom' : 'follow')}>
++          <option value="follow">Follow navigation</option>
++          <option value="custom">Custom content</option>
++        </select>
++      </div>
++      {mode === 'custom' && menus.length ? <div class="f">
++        <label htmlFor="mobile-menu-layout">Custom layout</label>
+         <select id="mobile-menu-layout" value={selected?.id || ''}
+           onChange={e => choose((e.target as HTMLSelectElement).value)}>
+-          <option value="">Use menu links</option>
++          <option value="">New custom layout</option>
+           {menus.map(menu => <option key={menu.id} value={menu.id}>{menu.name}</option>)}
+         </select>
+-      </div>
+-      <button type="button" class="btn" onClick={open}>{selected ? 'Edit menu' : 'Build menu'}</button>
++      </div> : null}
++      <button type="button" class="btn" onClick={open}>{selected ? 'Edit layout' : 'Build menu'}</button>
+     </>
+   );
+ }
+--- a/app/src/ui/inspector/Inspector.tsx
++++ b/app/src/ui/inspector/Inspector.tsx
+@@ -423,6 +423,26 @@
+   { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'] },
+   { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
+ ];
++
++function ManagedMobileLinks({ n }: { n: PcNode }) {
++  if (!n.props.managedMobileLinks) return null;
++  const owner = C.mobileMenuOwner(C.state.ui.cedit || '');
++  const open = () => {
++    if (!owner) return;
++    if (owner.mode === 'component' && owner.componentId) L.editComponent(owner.componentId);
++    else {
++      if (owner.page !== undefined) C.state.cur = owner.page;
++      L.editComponent(null);
++      L.setMode(owner.mode);
++    }
++    L.select(owner.node.id, { scroll: false });
++  };
++  return <Panel title="Navigation links" n={n}>
++    <button type="button" class="btn" title="Edit the links on the parent navigation" disabled={!owner} onClick={open}>
++      Edit navigation links
++    </button>
++  </Panel>;
++}
+ 
+ function ContentSource({ n }: { n: PcNode }) {
+   const col = n.src ? C.findCollection(n.src) : null;
+@@ -722,7 +742,7 @@
+         {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
+         {tab === 'content' ? <UnsupportedManagedForm n={n} /> : null}
+         {tab === 'content' ? <ComponentProps n={n} /> : null}
+-        {tab === 'content' ? (
++        {tab === 'content' && n.props.managedMobileLinks ? <ManagedMobileLinks n={n} /> : tab === 'content' ? (
+           content.length
+             ? n.type === 'form' && !n.use
+               ? [['Form fields', ['fields']], ['Button', ['submit']], ['Submission', ['mode', 'action', 'method']], ['Options', ['aria']]].map(([title, keys]) =>
+--- a/tests/customer-inspector-regressions.test.tsx
++++ b/tests/customer-inspector-regressions.test.tsx
+@@ -182,7 +182,7 @@
+   const n = C.insert('nav', null, 0)!;
+   r.draw(<MobileMenuBuilder n={n} />);
+   act(() => r.click(r.$('button.btn')));
+-  const definition = C.findComponent(String(n.props.mobileMenuComponent))!;
++  const definition = C.mobileMenuDefinition(n)!;
+   assert.equal(r.arg('editComponent')?.[0], definition.id);
+   assert.equal(r.arg('select')?.[0], definition.node.id);
+ });
+--- a/tests/editor-compiler.test.ts
++++ b/tests/editor-compiler.test.ts
+@@ -151,6 +151,46 @@
+       html: result.html, globalCss: result.globalCss, pageCss: result.pageCss,
+     })).digest('hex'));
+     expect(JSON.stringify(Core.doc())).toBe(activeBefore);
++  });
++
++  it('renders a followed mobile layout from the hydrated WordPress menu instead of its saved labels', async () => {
++    Core.blankProject('Followed mobile menu compiler input');
++    const page = Core.state.pages[0];
++    page.id = 'followed-mobile-page';
++    const nav = Core.N('nav', {
++      aria: 'Primary', menuLocation: 'primary', collapse: 'mobile', mobileMenu: 'dropdown',
++      items: [{ id: 'old', label: 'Saved stale label', href: 'https://old.example/' }],
++    });
++    Core.state.header = [nav];
++    const layout = Core.ensureMobileMenuComponent(nav, 'follow');
++    nav.props.mobileMenuMode = 'follow';
++    layout.node.children.push(Core.N('heading', { text: 'Persistent custom widget' }));
++    const input = Core.clone(Core.doc());
++    const inputBefore = JSON.stringify(input);
++
++    const result = await compileDocument(input, {
++      pageId: page.id,
++      assets: {},
++      wordpressMenus: [{
++        location: 'primary', id: '91', items: [
++          { id: 'contact', label: 'Contact now', url: 'https://site.example.test/contact/' },
++          { id: 'work', label: 'Current work', url: 'https://site.example.test/work/' },
++          { id: 'case', parentId: 'work', label: 'Case study', url: 'https://site.example.test/work/case/' },
++        ],
++      }],
++    }, dependencies());
++
++    expect(result.html.match(/Contact now/g)).toHaveLength(2);
++    expect(result.html.match(/Current work/g)).toHaveLength(2);
++    expect(result.html.match(/Case study/g)).toHaveLength(2);
++    expect(result.html).not.toContain('Saved stale label');
++    expect(result.html).toContain('pagecraft-managed-mobile-links');
++    expect(result.html).toContain('Persistent custom widget');
++    const managed = result.html.slice(result.html.indexOf('pagecraft-managed-mobile-links'));
++    expect(managed.indexOf('Contact now')).toBeLessThan(managed.indexOf('Current work'));
++    expect(managed).toMatch(/Current work[\s\S]*class="sub-menu"[\s\S]*Case study/);
++    expect(result.html.match(/<nav\b/g)).toHaveLength(1);
++    expect(JSON.stringify(input)).toBe(inputBefore);
+   });
+ 
+   it('binds current WordPress menus through reachable component definitions and slots once', async () => {
+--- /dev/null
++++ b/tests/mobile-menu-follow-content.test.tsx
+@@ -0,0 +1,265 @@
++// @vitest-environment jsdom
++import { afterEach, beforeEach, expect, test } from 'vitest';
++import { act } from 'preact/test-utils';
++// @ts-expect-error jsdom has no bundled declarations in this workspace.
++import { JSDOM } from 'jsdom';
++import * as C from '../app/src/core/index';
++import { Inspector } from '../app/src/ui/inspector/Inspector';
++import { MobileMenuBuilder } from '../app/src/ui/inspector/MobileMenuBuilder';
++import { rig, type Rig } from './ui.setup';
++
++let r: Rig;
++beforeEach(() => { r = rig(); });
++afterEach(() => { act(() => r.draw(null)); r.host.remove(); });
++
++const links = [
++  { id: 'work', label: 'Work', href: '/work' },
++  { id: 'about', label: 'About', href: '/about' },
++];
++
++function mobileContent(nav: ReturnType<typeof C.N>) {
++  const dom = new JSDOM(`<body>${C.renderNode(nav, { edit: false })}</body>`, { url: 'https://example.test/' });
++  return dom.window.document.querySelector('[data-nav-content]') as HTMLElement;
++}
++
++test('a new built menu follows the current parent links and keeps one non-landmark link list', () => {
++  const nav = C.N('nav', { aria: 'Primary', items: links });
++  C.state.header.push(nav);
++  const definition = C.ensureMobileMenuComponent(nav, 'follow');
++
++  expect(C.mobileMenuMode(nav)).toBe('follow');
++  expect(nav.props.mobileMenuFollowComponent).toBe(definition.id);
++  expect(C.mobileMenuDefinition(nav)).toBe(definition);
++  expect(C.contentControls(C.mobileMenuLinksNode(definition)!)).toEqual([]);
++
++  nav.props.items = [
++    { id: 'contact', label: 'Contact', href: '/contact' },
++    { id: 'work', label: 'Our work', href: '/projects' },
++    { id: 'case', parentId: 'work', label: 'Case study', href: '/projects/case-study' },
++  ];
++  const content = mobileContent(nav);
++  expect([...content.querySelectorAll('a')].map(link => [link.textContent, link.getAttribute('href')])).toEqual([
++    ['Contact', '/contact'], ['Our work', '/projects'], ['Case study', '/projects/case-study'],
++  ]);
++  expect(content.querySelectorAll('ul.pagecraft-managed-mobile-links')).toHaveLength(1);
++  expect(content.querySelectorAll('nav,[data-nav],[data-nav-t]')).toHaveLength(0);
++  expect(content.querySelector('li .sub-menu a')?.textContent).toBe('Case study');
++  const managed = C.mobileMenuLinksNode(definition)!;
++  managed.css.d.color = '#345678';
++  const css = C.treeCss([[nav]], false);
++  expect(css).toContain(`${C.selOf(managed)}.pagecraft-mobile-nav-links`);
++  expect(css).toContain('flex-direction:column');
++  expect(css).toContain('color:#345678');
++
++  nav.props.items = [{ id: 'new', label: 'New only', href: '/new' }];
++  expect([...mobileContent(nav).querySelectorAll('a')].map(link => link.textContent)).toEqual(['New only']);
++});
++
++test('legacy custom menus stay custom and keep their authored tree byte for byte', () => {
++  const widget = C.N('heading', { text: 'Legacy heading' }, { d: { color: '#123456' }, t: {}, m: {} });
++  widget.id = 'legacy-authored-id';
++  const root = C.N('section', { tag: 'div' }, {}, [widget]);
++  const definition = { id: 'legacy-mobile', name: 'Legacy mobile', mobileMenu: true, node: root, props: [] };
++  C.state.meta.components = [definition];
++  const nav = C.N('nav', { items: links, mobileMenuComponent: definition.id });
++  const before = JSON.stringify(definition);
++
++  expect(C.mobileMenuMode(nav)).toBe('custom');
++  expect(C.mobileMenuDefinition(nav)).toBe(definition);
++  expect(C.renderNode(nav, { edit: false })).toContain('Legacy heading');
++  expect(JSON.stringify(definition)).toBe(before);
++
++  const compatibilityNav = C.N('nav', { items: links });
++  const compatibilityLayout = C.ensureMobileMenuComponent(compatibilityNav);
++  expect(compatibilityLayout.mobileMenuSource).toBe('custom');
++  expect(compatibilityNav.props.mobileMenuComponent).toBe(compatibilityLayout.id);
++});
++
++test('mode switches are atomic and keep independent follow and custom layouts through save and reload', () => {
++  const nav = C.N('nav', { aria: 'Primary', items: links });
++  C.state.header.push(nav);
++  r.draw(() => <MobileMenuBuilder n={nav} />, 'right');
++
++  act(() => r.click(r.$('button.btn')));
++  const followId = String(nav.props.mobileMenuFollowComponent);
++  const follow = C.findComponent(followId)!;
++  follow.node.children.push(C.N('heading', { text: 'Follow extra' }));
++  const followBefore = JSON.stringify(follow);
++  C.componentClose();
++  C.hist.u.length = 0;
++  C.hist.r.length = 0;
++  r.draw(() => <MobileMenuBuilder n={nav} />, 'right');
++
++  act(() => r.pick(r.$('select[data-mobile-menu-mode]')!, 'custom'));
++  const customId = String(nav.props.mobileMenuComponent);
++  const custom = C.findComponent(customId)!;
++  custom.node.id = 'custom-root-id';
++  custom.node.css.d['background-color'] = '#abcdef';
++  custom.node.children.push(C.N('heading', { text: 'Custom widget' }));
++  const customBefore = JSON.stringify(custom);
++  expect(C.hist.u).toHaveLength(1);
++
++  C.undo();
++  expect(C.mobileMenuMode(C.state.header[0])).toBe('follow');
++  expect(C.findComponent(customId)).toBeNull();
++  expect(JSON.stringify(C.findComponent(followId))).toBe(followBefore);
++  C.redo();
++  expect(C.mobileMenuMode(C.state.header[0])).toBe('custom');
++  expect(JSON.stringify(C.findComponent(customId))).toBe(customBefore);
++
++  const restoredCustomBefore = JSON.stringify(C.findComponent(customId));
++  const liveNav = C.state.header[0];
++  C.setMobileMenuMode(liveNav, 'follow');
++  C.setMobileMenuMode(liveNav, 'custom');
++  expect(JSON.stringify(C.findComponent(customId))).toBe(restoredCustomBefore);
++
++  const saved = C.clone(C.doc());
++  C.blankProject('Other');
++  C.restore(saved);
++  expect(C.state.header[0].props.mobileMenuFollowComponent).toBe(followId);
++  expect(C.state.header[0].props.mobileMenuComponent).toBe(customId);
++  expect(JSON.stringify(C.findComponent(customId))).toBe(restoredCustomBefore);
++});
++
++test('managed links are read only and the compact action returns to their reusable Nav owner', () => {
++  const nav = C.N('nav', { aria: 'Primary', items: links });
++  nav.id = 'component-owned-nav';
++  const ownerRoot = C.N('section', {}, {}, [nav]);
++  C.state.meta.components = [{ id: 'header-component', name: 'Header component', node: ownerRoot, props: [] }];
++  const follow = C.ensureMobileMenuComponent(nav, 'follow');
++  const managed = C.mobileMenuLinksNode(follow)!;
++  expect(C.prepareMobileMenuEdit(nav, follow.id)).toBe(true);
++  C.componentOpen(follow.id);
++  expect(C.renderNode(managed, { edit: true })).toContain('Work');
++  expect(C.renderNode(managed, { edit: true })).toContain('About');
++  C.selSet([managed.id]);
++
++  r.draw(() => <Inspector />, 'right');
++  expect(r.host.textContent).toContain('Edit navigation links');
++  expect(r.host.textContent).not.toContain('Menu links');
++  expect(r.host.textContent).not.toContain('Collapse at');
++  expect(r.host.textContent).not.toContain('Mobile menu');
++  expect(r.$('button[title="Edit the links on the parent navigation"]')).not.toBeNull();
++
++  act(() => r.click(r.$('button[title="Edit the links on the parent navigation"]')));
++  expect(r.calls).toContainEqual(['editComponent', 'header-component']);
++  expect(r.calls).toContainEqual(['select', nav.id, { scroll: false }]);
++});
++
++test('a shared Follow layout previews and returns to the exact parent that opened it', () => {
++  const first = C.N('nav', { aria: 'First', items: [{ id: 'first', label: 'First link', href: '/first' }] });
++  first.id = 'first-parent-nav';
++  C.state.header = [first];
++  const follow = C.ensureMobileMenuComponent(first, 'follow');
++  first.props.mobileMenuMode = 'follow';
++  const second = C.N('nav', {
++    aria: 'Second', mobileMenuMode: 'follow', mobileMenuFollowComponent: follow.id,
++    items: [{ id: 'second', label: 'Second link', href: '/second' }],
++  });
++  second.id = 'second-parent-nav';
++  C.state.footer = [second];
++  const managed = C.mobileMenuLinksNode(follow)!;
++
++  r.draw(() => <MobileMenuBuilder n={second} />, 'right');
++  act(() => r.click(r.$('button.btn')));
++  expect(C.renderNode(managed, { edit: true })).toContain('Second link');
++  expect(C.renderNode(managed, { edit: true })).not.toContain('First link');
++  C.selSet([managed.id]);
++  r.draw(() => <Inspector />, 'right');
++  act(() => r.click(r.$('button[title="Edit the links on the parent navigation"]')));
++  expect(r.calls).toContainEqual(['setMode', 'footer']);
++  expect(r.calls).toContainEqual(['select', second.id, { scroll: false }]);
++
++  r.draw(() => <MobileMenuBuilder n={first} />, 'right');
++  act(() => r.click(r.$('button.btn')));
++  expect(C.renderNode(managed, { edit: true })).toContain('First link');
++  expect(C.renderNode(managed, { edit: true })).not.toContain('Second link');
++
++  // A direct component open has no parent handoff and must drop the prior owner.
++  C.componentOpen(follow.id);
++  expect(C.renderNode(managed, { edit: true })).not.toContain('First link');
++  expect(C.renderNode(managed, { edit: true })).not.toContain('Second link');
++
++  C.componentClose();
++  r.draw(() => <MobileMenuBuilder n={second} />, 'right');
++  act(() => r.click(r.$('button.btn')));
++  C.state.footer = [];
++  expect(C.renderNode(managed, { edit: true })).not.toContain('First link');
++  expect(C.renderNode(managed, { edit: true })).not.toContain('Second link');
++  C.selSet([managed.id]);
++  r.draw(() => <Inspector />, 'right');
++  const action = r.$('button[title="Edit the links on the parent navigation"]') as HTMLButtonElement;
++  expect(action.disabled).toBe(true);
++  const callsBefore = r.calls.length;
++  act(() => r.click(action));
++  expect(r.calls).toHaveLength(callsBefore);
++});
++
++test('restoring a document clears an active mobile-menu owner context', () => {
++  const nav = C.N('nav', { items: [{ id: 'one', label: 'Owner link', href: '/owner' }] });
++  C.state.header = [nav];
++  const follow = C.ensureMobileMenuComponent(nav, 'follow');
++  nav.props.mobileMenuMode = 'follow';
++  expect(C.prepareMobileMenuEdit(nav, follow.id)).toBe(true);
++  C.componentOpen(follow.id);
++  expect(C.state.ui.mobileMenuOwner?.nodeId).toBe(nav.id);
++  const snapshot = C.clone(C.doc());
++  C.restore(snapshot);
++  expect(C.state.ui.mobileMenuOwner).toBeNull();
++  expect(C.state.ui.mobileMenuOwnerPending).toBeNull();
++  const managed = C.mobileMenuLinksNode(C.findComponent(follow.id))!;
++  expect(C.renderNode(managed, { edit: true })).not.toContain('Owner link');
++});
++
++test('style undo and redo keep the exact valid Follow owner active', () => {
++  const nav = C.N('nav', { items: [{ id: 'one', label: 'Owner link', href: '/owner' }] });
++  nav.id = 'history-owner-nav';
++  C.state.header = [nav];
++  const follow = C.ensureMobileMenuComponent(nav, 'follow');
++  nav.props.mobileMenuMode = 'follow';
++  expect(C.prepareMobileMenuEdit(nav, follow.id)).toBe(true);
++  C.componentOpen(follow.id);
++  const managedId = C.mobileMenuLinksNode(follow)!.id;
++  C.selSet([managedId]);
++  C.hist.u.length = 0;
++  C.hist.r.length = 0;
++  const originalColor = C.locate(managedId)!.node.css.d.color;
++
++  C.edit(() => { C.locate(managedId)!.node.css.d.color = '#123456'; });
++  expect(C.locate(managedId)!.node.css.d.color).toBe('#123456');
++
++  C.undo();
++  expect(C.locate(managedId)!.node.css.d.color).toBe(originalColor);
++  expect(C.renderNode(C.locate(managedId)!.node, { edit: true })).toContain('Owner link');
++  r.draw(() => <Inspector />, 'right');
++  expect((r.$('button[title="Edit the links on the parent navigation"]') as HTMLButtonElement).disabled).toBe(false);
++
++  C.redo();
++  expect(C.locate(managedId)!.node.css.d.color).toBe('#123456');
++  expect(C.renderNode(C.locate(managedId)!.node, { edit: true })).toContain('Owner link');
++  r.draw(() => <Inspector />, 'right');
++  expect((r.$('button[title="Edit the links on the parent navigation"]') as HTMLButtonElement).disabled).toBe(false);
++});
++
++test('history restore drops an exact owner whose menu reference changed', () => {
++  const nav = C.N('nav', { items: [{ id: 'one', label: 'Original owner link', href: '/owner' }] });
++  C.state.header = [nav];
++  const follow = C.ensureMobileMenuComponent(nav, 'follow');
++  const replacement = C.ensureMobileMenuComponent(nav, 'custom');
++  nav.props.mobileMenuMode = 'follow';
++  expect(C.prepareMobileMenuEdit(nav, follow.id)).toBe(true);
++  C.componentOpen(follow.id);
++  const managedId = C.mobileMenuLinksNode(follow)!.id;
++  C.selSet([managedId]);
++  C.hist.u.length = 0;
++  C.hist.r.length = 0;
++
++  C.edit(() => { nav.props.mobileMenuFollowComponent = replacement.id; });
++  C.edit(() => { C.state.meta.name = 'Changed after invalid owner snapshot'; });
++  C.undo();
++
++  expect(C.state.ui.mobileMenuOwner).toBeNull();
++  expect(C.renderNode(C.locate(managedId)!.node, { edit: true })).not.toContain('Original owner link');
++  r.draw(() => <Inspector />, 'right');
++  expect((r.$('button[title="Edit the links on the parent navigation"]') as HTMLButtonElement).disabled).toBe(true);
++});

@@ -287,6 +287,10 @@ __export(index_exports, {
   menuFor: () => menuFor,
   migrate: () => migrate,
   mobileMenuComponents: () => mobileMenuComponents,
+  mobileMenuDefinition: () => mobileMenuDefinition,
+  mobileMenuLinksNode: () => mobileMenuLinksNode,
+  mobileMenuMode: () => mobileMenuMode,
+  mobileMenuOwner: () => mobileMenuOwner,
   moveMany: () => moveMany,
   moveNode: () => moveNode,
   multiOn: () => multiOn,
@@ -323,6 +327,7 @@ __export(index_exports, {
   pasteStyles: () => pasteStyles,
   pasteStylesMany: () => pasteStylesMany,
   patternInsert: () => patternInsert,
+  prepareMobileMenuEdit: () => prepareMobileMenuEdit,
   previewIndex: () => previewIndex,
   previewItem: () => previewItem,
   propAdd: () => propAdd,
@@ -368,6 +373,7 @@ __export(index_exports, {
   sendEdge: () => sendEdge,
   setCloudFormEndpoint: () => setCloudFormEndpoint,
   setCss: () => setCss,
+  setMobileMenuMode: () => setMobileMenuMode,
   showsNode: () => showsNode,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
@@ -3719,11 +3725,15 @@ function edit(fn, label) {
   HOOKS.change();
   HOOKS.save();
 }
-function restore(snap) {
+function restore(snap, preserveMobileMenuOwner = false) {
+  const owner = preserveMobileMenuOwner ? state.ui.mobileMenuOwner : null;
   state.meta = snap.meta;
   state.header = snap.header;
   state.footer = snap.footer;
   state.pages = snap.pages;
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = owner;
+  if (owner) mobileMenuOwner(owner.menuComponentId);
   if (state.cur >= state.pages.length) state.cur = 0;
   selSet(selIds());
   HOOKS.change();
@@ -3743,7 +3753,7 @@ function undo() {
   rememberHistory(current, label);
   hist.r.push(current);
   hist.u.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note("Undo: " + label);
 }
 function redo() {
@@ -3754,7 +3764,7 @@ function redo() {
   rememberHistory(current, label);
   hist.u.push(current);
   hist.r.pop();
-  restore(target);
+  restore(target, true);
   HOOKS.note("Redo: " + label);
 }
 var lvl = (t) => DEF[BASE[t] || t].level;
@@ -6540,8 +6550,71 @@ function findComponent(id) {
   return id ? components().find((c) => c.id === id) || null : null;
 }
 var mobileMenuComponents = () => components().filter((c) => c.mobileMenu);
-function ensureMobileMenuComponent(n) {
-  const current = findComponent(n.props.mobileMenuComponent);
+var mobileMenuMode = (n) => n.props.mobileMenuMode === "follow" || n.props.mobileMenuMode === "custom" ? n.props.mobileMenuMode : n.props.mobileMenuComponent ? "custom" : "follow";
+var mobileMenuRef = (n, mode = mobileMenuMode(n)) => mode === "follow" ? n.props.mobileMenuFollowComponent : n.props.mobileMenuComponent;
+var mobileMenuDefinition = (n) => findComponent(mobileMenuRef(n));
+var mobileMenuLinksNode = (definition) => {
+  let found = null;
+  if (definition) eachNode([definition.node], (node) => {
+    if (!found && node.type === "nav" && node.props.managedMobileLinks) found = node;
+  });
+  return found;
+};
+var ownsMobileMenu = (node, componentId) => node.type === "nav" && (node.props.mobileMenuFollowComponent === componentId || node.props.mobileMenuComponent === componentId);
+function mobileMenuOwnerContext(n, componentId) {
+  if (!ownsMobileMenu(n, componentId)) return null;
+  for (const [mode, list] of [["header", state.header], ["footer", state.footer]]) {
+    const hit = locate(n.id, list);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
+  }
+  for (let page2 = 0; page2 < state.pages.length; page2++) {
+    const hit = locate(n.id, state.pages[page2].tree);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: "page", page: page2 };
+  }
+  for (const definition of components()) {
+    if (definition.id === componentId) continue;
+    const hit = locate(n.id, [definition.node]);
+    if (hit?.node === n) return {
+      menuComponentId: componentId,
+      nodeId: n.id,
+      mode: "component",
+      ownerComponentId: definition.id
+    };
+  }
+  return null;
+}
+function prepareMobileMenuEdit(n, componentId) {
+  state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
+  return !!state.ui.mobileMenuOwnerPending;
+}
+function mobileMenuOwner(componentId) {
+  const context = state.ui.mobileMenuOwner;
+  if (!context || context.menuComponentId !== componentId || !findComponent(componentId)) {
+    if (context?.menuComponentId === componentId) state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  let hit = null;
+  if (context.mode === "header") hit = locate(context.nodeId, state.header);
+  else if (context.mode === "footer") hit = locate(context.nodeId, state.footer);
+  else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  else if (context.mode === "component" && context.ownerComponentId) {
+    const owner = findComponent(context.ownerComponentId);
+    if (owner) hit = locate(context.nodeId, [owner.node]);
+  }
+  if (!hit || !ownsMobileMenu(hit.node, componentId)) {
+    state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  return {
+    node: hit.node,
+    mode: context.mode,
+    page: context.page,
+    componentId: context.ownerComponentId
+  };
+}
+function ensureMobileMenuComponent(n, requested = "custom") {
+  const mode = requested === "custom" ? "custom" : "follow";
+  const current = findComponent(mobileMenuRef(n, mode));
   if (current) return current;
   const name = (n.props.aria || "Main") + " mobile menu";
   const base = tokenId(name) || "mobile-menu";
@@ -6597,15 +6670,39 @@ function ensureMobileMenuComponent(n) {
     }, descendants)]);
   }).filter((node2) => !!node2);
   const links = branches("", /* @__PURE__ */ new Set());
+  const managed = N("nav", { managedMobileLinks: 1, collapse: "never", aria: "" }, {
+    d: {
+      width: "100%",
+      "align-self": "stretch",
+      "justify-content": "flex-start",
+      "font-size": "22px",
+      "font-weight": "500",
+      color: cvar("text"),
+      "--nav-hover": cvar("ink"),
+      "--nav-gap": "4px",
+      "--nav-panel": cvar("bg")
+    },
+    t: {},
+    m: {}
+  });
   const node = N(
     "section",
     { tag: "div", width: "full" },
     { d: { padding: "16px 0", background: "transparent" }, t: {}, m: {} },
-    [N("row", {}, {}, [N("column", {}, {}, links)])]
+    [N("row", {}, {}, [N("column", {}, {}, mode === "follow" ? [managed] : links)])]
   );
-  const definition = { id, name, mobileMenu: true, node, props: [] };
+  const definition = { id, name, mobileMenu: true, mobileMenuSource: mode, node, props: [] };
   components().push(definition);
-  n.props.mobileMenuComponent = id;
+  if (mode === "follow") n.props.mobileMenuFollowComponent = id;
+  else n.props.mobileMenuComponent = id;
+  return definition;
+}
+function setMobileMenuMode(n, mode) {
+  let definition = null;
+  edit(() => {
+    definition = ensureMobileMenuComponent(n, mode);
+    n.props.mobileMenuMode = mode;
+  }, mode === "follow" ? "Follow navigation links" : "Use custom mobile menu content");
   return definition;
 }
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
@@ -6725,7 +6822,7 @@ function instControls(n) {
     opts: pr.t === "select" ? pr.opts || [] : void 0
   }));
 }
-var contentControls = (n) => n.use ? instControls(n) : DEF[n.type].controls.content || [];
+var contentControls = (n) => n.type === "nav" && n.props.managedMobileLinks ? [] : n.use ? instControls(n) : DEF[n.type].controls.content || [];
 var CONTENT_PROP = ["text", "rich", "img", "link"];
 function contentKeysOf(n) {
   if (!n.use) return contentKeys(n.type);
@@ -6837,7 +6934,7 @@ function instances(cid) {
 var componentUsage = (cid) => {
   let count = instances(cid).length;
   allTrees().forEach((list) => eachNode(list, (n) => {
-    if (n.type === "nav" && n.props.mobileMenuComponent === cid) count++;
+    if (n.type === "nav" && (n.props.mobileMenuComponent === cid || n.props.mobileMenuFollowComponent === cid)) count++;
   }));
   return count;
 };
@@ -6964,7 +7061,13 @@ function componentDelete(cid) {
   return n;
 }
 function componentOpen(cid) {
-  if (!findComponent(cid)) return false;
+  const pending = state.ui.mobileMenuOwnerPending;
+  state.ui.mobileMenuOwnerPending = null;
+  if (!findComponent(cid)) {
+    state.ui.mobileMenuOwner = null;
+    return false;
+  }
+  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : null;
   state.ui.mode = "component";
   state.ui.cedit = cid;
   state.ui.sel = null;
@@ -6972,6 +7075,8 @@ function componentOpen(cid) {
   return true;
 }
 function componentClose() {
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = null;
   state.ui.mode = "page";
   state.ui.cedit = null;
   state.ui.sel = null;
@@ -8669,7 +8774,10 @@ function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) 
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
     acc.m += `${selector}>*{flex-basis:80%}`;
   }
-  if (n.type === "nav") {
+  if (n.type === "nav" && n.props.managedMobileLinks) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-mobile-nav-links{display:block}${selector}>.pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:var(--nav-gap,4px);min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}${selector}>.pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}${selector} .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}`;
+  } else if (n.type === "nav") {
     const c = n.props.collapse;
     if (c === "tablet") acc.t += navCollapse(n);
     else if (c !== "never") acc.m += navCollapse(n);
@@ -8693,7 +8801,7 @@ function usedComponents(lists) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   const visit = (list) => eachNode(list, (n) => {
-    for (const id of [n.use, n.type === "nav" && n.props.mobileMenu !== "fullscreen" ? n.props.mobileMenuComponent : null]) {
+    for (const id of [n.use, n.type === "nav" && n.props.mobileMenu !== "fullscreen" ? mobileMenuRef(n) : null]) {
       if (!id || seen.has(id)) continue;
       const cd = findComponent(id);
       if (!cd) continue;
@@ -9461,7 +9569,8 @@ function renderNode(n, o) {
       return `<${tag} ${at} ${cx("pagecraft-button")} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
-      const items = Array.isArray(p.items) ? p.items : [];
+      const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === "component" && state.ui.cedit ? mobileMenuOwner(state.ui.cedit) : null;
+      const items = p.managedMobileLinks ? o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner.node.props.items : []) : Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
       const mid = domId + "-menu";
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || "")) ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : "";
@@ -9485,7 +9594,10 @@ function renderNode(n, o) {
         const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
       }).join("");
-      const mobileDefinition = p.mobileMenu !== "fullscreen" ? findComponent(p.mobileMenuComponent) : null;
+      if (p.managedMobileLinks) {
+        return `<div ${at} ${cx("pagecraft-nav-menu pagecraft-mobile-nav-links")}><ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf("", /* @__PURE__ */ new Set())}</ul></div>`;
+      }
+      const mobileDefinition = p.mobileMenu !== "fullscreen" ? mobileMenuDefinition({ ...n, props: p }) : null;
       const mobileInstance = mobileDefinition ? {
         ...mobileDefinition.node,
         id: self.id + "-mobile",
@@ -9495,7 +9607,7 @@ function renderNode(n, o) {
         cls: [],
         adv: { htmlId: "", cls: "", css: "" }
       } : null;
-      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0 })}</div>` : "";
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0, mobileMenuItems: items })}</div>` : "";
       return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
     }
     case "form": {
@@ -10521,6 +10633,10 @@ function proposalApply(changes, proposalId = "") {
   menuFor,
   migrate,
   mobileMenuComponents,
+  mobileMenuDefinition,
+  mobileMenuLinksNode,
+  mobileMenuMode,
+  mobileMenuOwner,
   moveMany,
   moveNode,
   multiOn,
@@ -10557,6 +10673,7 @@ function proposalApply(changes, proposalId = "") {
   pasteStyles,
   pasteStylesMany,
   patternInsert,
+  prepareMobileMenuEdit,
   previewIndex,
   previewItem,
   propAdd,
@@ -10602,6 +10719,7 @@ function proposalApply(changes, proposalId = "") {
   sendEdge,
   setCloudFormEndpoint,
   setCss,
+  setMobileMenuMode,
   showsNode,
   sitePlan,
   sitemapXml,

@@ -120,7 +120,14 @@ export interface ButtonProps extends Linkable, Styled {
 }
 export interface NavProps {
   mobileMenu?: 'dropdown' | 'fullscreen';
+  /** How a built mobile panel gets its links. Missing preserves legacy custom definitions. */
+  mobileMenuMode?: 'follow' | 'custom';
+  /** The legacy/custom layout. Kept separate so switching back restores authored content. */
   mobileMenuComponent?: string;
+  /** The managed layout whose links follow this navigation at render time. */
+  mobileMenuFollowComponent?: string;
+  /** Internal marker for the one managed link list inside a follow layout. */
+  managedMobileLinks?: 0 | 1 | boolean;
   items?: NavItem[];
   collapse?: string;
   aria?: string;
@@ -430,6 +437,8 @@ export interface Variant {
 export interface ComponentDef {
   /** Reusable native layout for a full-width mobile navigation panel. */
   mobileMenu?: boolean;
+  /** Follow layouts are private to their parent Nav; absent means legacy/custom. */
+  mobileMenuSource?: 'follow' | 'custom';
   id: string;
   name: string;
   /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */
@@ -721,6 +730,16 @@ export interface Ui {
   mode: 'page' | 'header' | 'footer' | 'component';
   /** the component being edited, while `mode` is `component` */
   cedit?: string | null;
+  /** One-shot exact parent context supplied immediately before a mobile layout opens. */
+  mobileMenuOwnerPending?: {
+    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
+    page?: number; ownerComponentId?: string;
+  } | null;
+  /** Exact parent context active for the current mobile-layout editing session. */
+  mobileMenuOwner?: {
+    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
+    page?: number; ownerComponentId?: string;
+  } | null;
   dev: Device;
   /** the primary selection, whose controls the inspector draws */
   sel: string | null;
@@ -791,6 +810,8 @@ export interface RenderOpts {
       of itself would otherwise render until the stack runs out, and a page builder should not
       be able to hang the tab it renders in. */
   stack?: string[];
+  /** Authoritative parent Nav links while its managed mobile component renders. */
+  mobileMenuItems?: NavItem[];
   /** how far this file sits from the root, e.g. '../' */
   rel?: string;
   /** set while a Collection list repeats its contents */

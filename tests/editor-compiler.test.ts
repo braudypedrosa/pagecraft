@@ -153,6 +153,46 @@ describe('sealed editor compiler', () => {
     expect(JSON.stringify(Core.doc())).toBe(activeBefore);
   });
 
+  it('renders a followed mobile layout from the hydrated WordPress menu instead of its saved labels', async () => {
+    Core.blankProject('Followed mobile menu compiler input');
+    const page = Core.state.pages[0];
+    page.id = 'followed-mobile-page';
+    const nav = Core.N('nav', {
+      aria: 'Primary', menuLocation: 'primary', collapse: 'mobile', mobileMenu: 'dropdown',
+      items: [{ id: 'old', label: 'Saved stale label', href: 'https://old.example/' }],
+    });
+    Core.state.header = [nav];
+    const layout = Core.ensureMobileMenuComponent(nav, 'follow');
+    nav.props.mobileMenuMode = 'follow';
+    layout.node.children.push(Core.N('heading', { text: 'Persistent custom widget' }));
+    const input = Core.clone(Core.doc());
+    const inputBefore = JSON.stringify(input);
+
+    const result = await compileDocument(input, {
+      pageId: page.id,
+      assets: {},
+      wordpressMenus: [{
+        location: 'primary', id: '91', items: [
+          { id: 'contact', label: 'Contact now', url: 'https://site.example.test/contact/' },
+          { id: 'work', label: 'Current work', url: 'https://site.example.test/work/' },
+          { id: 'case', parentId: 'work', label: 'Case study', url: 'https://site.example.test/work/case/' },
+        ],
+      }],
+    }, dependencies());
+
+    expect(result.html.match(/Contact now/g)).toHaveLength(2);
+    expect(result.html.match(/Current work/g)).toHaveLength(2);
+    expect(result.html.match(/Case study/g)).toHaveLength(2);
+    expect(result.html).not.toContain('Saved stale label');
+    expect(result.html).toContain('pagecraft-managed-mobile-links');
+    expect(result.html).toContain('Persistent custom widget');
+    const managed = result.html.slice(result.html.indexOf('pagecraft-managed-mobile-links'));
+    expect(managed.indexOf('Contact now')).toBeLessThan(managed.indexOf('Current work'));
+    expect(managed).toMatch(/Current work[\s\S]*class="sub-menu"[\s\S]*Case study/);
+    expect(result.html.match(/<nav\b/g)).toHaveLength(1);
+    expect(JSON.stringify(input)).toBe(inputBefore);
+  });
+
   it('binds current WordPress menus through reachable component definitions and slots once', async () => {
     Core.blankProject('Component menu compiler input');
     const page = Core.state.pages[0];
