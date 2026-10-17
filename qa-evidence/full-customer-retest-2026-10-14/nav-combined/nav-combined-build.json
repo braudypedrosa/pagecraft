@@ -1,0 +1,140 @@
+{
+  "task": "Combined Navigation Focus, managed control, and Follow component Preview dual verification",
+  "baseCommit": "d84e79da7444500283b549cdb457b2a635063cf1",
+  "exports": [
+    "/private/tmp/pagecraft-nav-combined-one-d84-v1",
+    "/private/tmp/pagecraft-nav-combined-two-d84-v1"
+  ],
+  "sourceOverlays": {
+    "app/src/core/index.ts": "6f744b39878e4b745271516dcbaee9fa22f5739823c5465b10ede05461fb0a73",
+    "tests/module-control-behavior.test.tsx": "30c5eb292a1b02d05c00bcb1d73e300c2288f7ced00b70db6c1a0e3ab6039525",
+    "tests/mobile-menu-follow-content.test.tsx": "916d2e2d011f82331c846eb20b53b48934018f5b6182a99910de3595118c3abd",
+    "tests/nav-focus-state.test.ts": "bffacb884cfbe24fe6b7346cd0ca501b1b2e8df39e6e8b67d464097c94b67e6a",
+    "builder.html": "606926347d429046342a36580ad2be53eb7ad0df86f0657a4e22c8bc1965735a",
+    "tests/boot.test.mjs": "33a8e72382be85e9d6c7164676a659f615aa0eb1370cc08d7d29e389e56a6d52"
+  },
+  "allSixSourcesExactAcrossExports": true,
+  "install": {
+    "command": "npm ci --ignore-scripts",
+    "oneExit": 0,
+    "twoExit": 0,
+    "auditSummary": "Both installs reported the known 3 high-severity findings; no dependency change was applied."
+  },
+  "build": {
+    "commands": [
+      "npm run build:editor-package",
+      "npm run build"
+    ],
+    "oneExit": 0,
+    "twoExit": 0
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "oneExit": 0,
+    "twoExit": 0
+  },
+  "focusedNavigation": {
+    "command": "npx vitest run tests/nav-focus-state.test.ts tests/gallery-focus-state.test.tsx tests/module-control-behavior.test.tsx tests/mobile-menu-follow-content.test.tsx tests/mobile-nav-menu.test.mjs tests/full-retest-shared-combinations.test.ts",
+    "one": "6 files, 46 tests passed",
+    "two": "6 files, 46 tests passed"
+  },
+  "bootSuite": {
+    "command": "npx vitest run tests/boot.test.mjs",
+    "one": "37 tests passed",
+    "two": "37 tests passed"
+  },
+  "wordpressGolden": {
+    "command": "npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector'",
+    "one": "1 passed, 29 skipped",
+    "two": "1 passed, 29 skipped",
+    "sha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "exactToMain": true
+  },
+  "uiBaseline": {
+    "command": "node tools/ui-baselines.mjs check",
+    "oneExit": 1,
+    "twoExit": 1,
+    "expectedFailure": "Only builder.html source fingerprint requires reviewed gallery capture.",
+    "recorded": false,
+    "log": "ui-baseline-expected-failure.log",
+    "reviewedByRoot": true,
+    "reviewedBaselineFiles": 25,
+    "copiedExactToTwo": true,
+    "finalTwoExit": 0,
+    "finalTwoSummary": "UI baselines verified: 24 images, 28 source files",
+    "finalTwoLog": "ui-baseline-final.log"
+  },
+  "provisionalFullSuiteOne": {
+    "command": "npm test -- --maxWorkers=4",
+    "exit": 1,
+    "summary": "216 files passed, 2 skipped, 1 failed; 2413 tests passed, 5 skipped, 1 failed",
+    "onlyFailure": "tests/ui-baselines.test.mjs: reviewed gallery baselines match the current shared UI sources; builder.html needs review",
+    "log": "full-suite-provisional.log",
+    "diagnosticRetained": true
+  },
+  "generated": {
+    "count": 11,
+    "deterministicAcrossExports": true,
+    "details": "determinism-and-guards.json"
+  },
+  "mainProtected11": {
+    "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "allExact": true,
+    "count": 11
+  },
+  "gallery": {
+    "serverSession": 48052,
+    "url": "http://localhost:4944/internal/components",
+    "captureDirectory": "/private/tmp/pagecraft-nav-combined-one-d84-v1/qa-evidence/nav-combined-verification/gallery/nav-combined-final",
+    "instructions": "gallery-capture-instructions.txt",
+    "owner": "Root built-in browser only",
+    "baselineRecordProhibitedThisPhase": true,
+    "behaviorChecks": "30 of 30 passed",
+    "captureFiles": 24,
+    "comparison": "24 of 24 passed",
+    "comparisonDetail": "21 images had zero changed pixels; 3 passing images had 5 changed pixels total within the unchanged threshold.",
+    "rootViewed": [
+      "builder-actions-768",
+      "cloud-dialogs-1440",
+      "actual fixed Follow component on mobile"
+    ],
+    "captureProofFiles": 28,
+    "captureProofCopiedExactToTwo": true,
+    "initialAdapterDiagnostic": {
+      "path": "gallery/nav-combined-final/behavior-harness-initial.json",
+      "result": "13 of 15 Cloud checks passed; 2 harness checks lacked tab.type and tab.clickAt methods.",
+      "resolution": "Adapter corrected; full 30-check rerun passed. This was not a product defect."
+    },
+    "reviewStatus": "Root reviewed and recorded in export ONE; no main baseline copy in this task."
+  },
+  "mainExecution": "No install, build, typecheck, or tests were run in main.",
+  "pending": [
+    "Root staging acceptance",
+    "Package, integration, commit, and push remain with root",
+    "Stop gallery server session 48052 after root confirms its browser tab is closed"
+  ],
+  "finalFullSuiteOne": {
+    "command": "npm test -- --maxWorkers=4",
+    "exit": 0,
+    "summary": "217 files passed, 2 skipped; 2414 tests passed, 5 skipped",
+    "log": "full-suite-final.log"
+  },
+  "nativeAcceptance": {
+    "environment": "Isolated local combined export; not staging acceptance",
+    "evidence": [
+      "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/full-customer-retest-2026-10-14/native/local-nav-combined-acceptance.json",
+      "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/full-customer-retest-2026-10-14/native/local-nav-controls-focus-in-progress.json"
+    ],
+    "combinedSevenCases": "7 of 7 passed: Follow component Preview and keyboard Focus at desktop/tablet/mobile; managed common background transparent at desktop/tablet and #ddeeff on mobile; parent panel #b7f34a remains independent.",
+    "carriedFrozenCoreProof": "Ordinary Navigation keyboard Focus at desktop/tablet/mobile, pointer exclusion, managed page Focus, control applicability, mobile background, and real Custom form Send-button focus passed without submitting."
+  },
+  "finalGuards": {
+    "sixSourcesFrozenExact": true,
+    "generated11Deterministic": true,
+    "mainProtected11Exact": true,
+    "reviewedBaseline25ExactAcrossExports": true,
+    "galleryProofExactAcrossExports": true,
+    "wordpressGoldenExact": true,
+    "evidence": "final-guards.json"
+  }
+}

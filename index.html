@@ -4473,7 +4473,7 @@ var DEF = {
         { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "color", c: "color", label: "Link colour", r: 1 },
         { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
-        { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
+        { t: "color", c: "--nav-panel", label: "Menu background", r: 1, when: (n) => !n.props.managedMobileLinks },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
@@ -5861,6 +5861,7 @@ function tokenVars() {
 var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 var BUTTON_AUTHORED = "--pc-authored-button-";
 var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
+var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
@@ -5886,7 +5887,10 @@ function tokenCss() {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
-        if (k === "focus") acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+        if (k === "focus") {
+          acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
       }
     });
   }));
@@ -10477,7 +10481,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = n.type === "gallery" && k === "focus" ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {
@@ -24756,7 +24760,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
           { t: "color", c: "color", label: "Link colour", r: 1 },
           { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
-          { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
+          { t: "color", c: "--nav-panel", label: "Menu background", r: 1, when: (n2) => !n2.props.managedMobileLinks },
           { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
           { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
         ]
@@ -28624,6 +28628,13 @@ function paint() {
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
   const css = treeCss(curSets(), editing);
+  /* A Follow mobile-menu definition has no copied links of its own. In component Preview,
+     carry the exact validated parent that opened the definition just as edit rendering does;
+     export rendering stays independent of transient editor ownership. */
+  const previewMobileMenuOwner = !editing && state.ui.mode === 'component' && state.ui.cedit
+    ? mobileMenuOwner(state.ui.cedit) : null;
+  const previewMobileMenuItems = Array.isArray(previewMobileMenuOwner?.node.props.items)
+    ? previewMobileMenuOwner.node.props.items : null;
 
   let html = '';
   for (const R of regions()) {
@@ -28633,7 +28644,13 @@ function paint() {
        bindings unresolved — every bound heading showing the literal it stands in for —
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
-    if (!editing) { html += renderList(nodes, { edit: false, canvas: true, ...pageCtx() }); continue; }
+    if (!editing) {
+      html += renderList(nodes, {
+        edit: false, canvas: true, ...pageCtx(),
+        ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
+      });
+      continue;
+    }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })

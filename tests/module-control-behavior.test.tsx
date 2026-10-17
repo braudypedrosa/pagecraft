@@ -73,6 +73,7 @@ const conditionalSetup: Record<string, {
     on: n => { n.props.src = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ'; n.props.autoplay = 0; },
   },
   'video:Muted': { off: n => { n.props.autoplay = 1; }, on: n => { n.props.autoplay = 0; } },
+  'nav:Menu background': { off: n => { n.props.managedMobileLinks = 1; }, on: n => { delete n.props.managedMobileLinks; } },
   'button:Position': { off: () => {}, on: () => {}, onParent: 'column' },
   'form:Where submissions go': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
   'form:Method': { off: n => { n.props.mode = 'wordpress'; }, on: n => { n.props.mode = 'external'; } },
@@ -99,7 +100,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 34 conditional declarations render only in their applicable state', () => {
+test('all 35 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -108,7 +109,7 @@ test('all 34 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(34);
+  expect(declarations).toHaveLength(35);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );

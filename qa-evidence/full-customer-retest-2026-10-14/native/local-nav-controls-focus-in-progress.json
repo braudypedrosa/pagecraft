@@ -1,0 +1,103 @@
+{
+  "source": "d84 plus frozen four-file navigation candidate",
+  "fixture": "http://localhost:4951/edit/s1",
+  "cases": [
+    {
+      "name": "Ordinary navigation keyboard child Desktop",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "rootFocusVisible": false,
+      "width": 1280,
+      "passed": true
+    },
+    {
+      "name": "Ordinary navigation keyboard child Tablet",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "rootFocusVisible": false,
+      "width": 834,
+      "passed": true
+    },
+    {
+      "name": "Ordinary mobile pointer toggle excludes Focus style",
+      "background": "rgba(0, 0, 0, 0)",
+      "focused": 0,
+      "open": "true",
+      "passed": true
+    },
+    {
+      "name": "Ordinary Mobile keyboard toggle Focus",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        {
+          "tag": "BUTTON",
+          "text": ""
+        }
+      ],
+      "rootFocusVisible": false,
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Managed Follow keyboard child Mobile page preview",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "id": "pagecraft-nav-menu-8bfgweho-88c7p170-mobile",
+      "tag": "DIV",
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Managed mobile background control visibility",
+      "menuBackgroundAbsent": true,
+      "commonColourPresent": true,
+      "passed": true
+    },
+    {
+      "name": "Managed mobile common background paints on pointer-opened panel",
+      "background": "rgb(221, 238, 255)",
+      "focus": 0,
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Custom mobile menu real form button keyboard Focus without submission",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        {
+          "tag": "BUTTON",
+          "text": "Send"
+        }
+      ],
+      "formValues": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "passed": true
+    }
+  ],
+  "scope": "Isolated in-memory Pro fixture, UI authored; not staging acceptance",
+  "componentPreviewDefect": {
+    "confirmed": true,
+    "linksBefore": 3,
+    "linksAfter": 0,
+    "note": "Preview from component context loses parent Follow items; fix pending"
+  }
+}

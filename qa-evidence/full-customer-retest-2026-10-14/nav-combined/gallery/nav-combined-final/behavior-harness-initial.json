@@ -1,0 +1,248 @@
+[
+  {
+    "host": "cloud",
+    "check": "Select Escape preserves Home, closes picker and returns focus",
+    "passed": true,
+    "detail": {
+      "before": "Home",
+      "opened": {
+        "expanded": "true",
+        "popovers": 1
+      },
+      "after": {
+        "expanded": "false",
+        "popovers": 0,
+        "role": "combobox",
+        "value": "Home"
+      }
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
+    "passed": true,
+    "detail": {
+      "before": {
+        "modal": true,
+        "receivesPointer": true,
+        "topLayer": true,
+        "withinViewport": true
+      },
+      "resized": {
+        "anchored": true,
+        "menuVisible": true,
+        "overflow": false,
+        "value": "public"
+      }
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
+    "passed": true,
+    "detail": {
+      "escaped": {
+        "expanded": "false",
+        "focus": "Sample access",
+        "menus": 0,
+        "open": true,
+        "value": "private"
+      },
+      "tabbed": {
+        "focusInDialog": true,
+        "menus": 0,
+        "open": true
+      },
+      "backwards": "dialog-name",
+      "parentClosed": true
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
+    "passed": true,
+    "detail": {
+      "reopened": {
+        "expanded": "true",
+        "visible": true
+      },
+      "closed": {
+        "menus": 0,
+        "open": false,
+        "topLayer": 0
+      }
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Unsaved dialog value survives resize from 1440px to 768px",
+    "passed": false,
+    "detail": "tab.type is not a function"
+  },
+  {
+    "host": "cloud",
+    "check": "Dialog Escape closes and returns focus to opener after exit animation",
+    "passed": true,
+    "detail": {
+      "opened": true,
+      "focus": "Open dialog",
+      "open": false
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Empty dialog footer has no displayed box",
+    "passed": true,
+    "detail": {
+      "border": "1px",
+      "children": 0,
+      "display": "none",
+      "height": 0,
+      "open": true
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Long native form keeps fixed dialog edges and a scrolling body",
+    "passed": true,
+    "detail": {
+      "measurements": [
+        {
+          "actualBottomPadding": 16,
+          "bodyScrollable": true,
+          "footerInside": true,
+          "footerPadding": 16,
+          "headerInside": true,
+          "height": 900,
+          "horizontalOverflow": false,
+          "inputHeights": [
+            44
+          ],
+          "modal": true,
+          "open": true,
+          "scrollAfter": 258,
+          "scrollBefore": 0,
+          "width": 1440
+        },
+        {
+          "actualBottomPadding": 16,
+          "bodyScrollable": true,
+          "footerInside": true,
+          "footerPadding": 16,
+          "headerInside": true,
+          "height": 600,
+          "horizontalOverflow": false,
+          "inputHeights": [
+            44
+          ],
+          "modal": true,
+          "open": true,
+          "scrollAfter": 558,
+          "scrollBefore": 0,
+          "width": 768
+        },
+        {
+          "actualBottomPadding": 16,
+          "bodyScrollable": true,
+          "footerInside": true,
+          "footerPadding": 16,
+          "headerInside": true,
+          "height": 900,
+          "horizontalOverflow": false,
+          "inputHeights": [
+            44
+          ],
+          "modal": true,
+          "open": true,
+          "scrollAfter": 258,
+          "scrollBefore": 0,
+          "width": 768
+        }
+      ],
+      "closed": {
+        "focus": "Open long form dialog",
+        "open": false
+      }
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Processing prevents duplicate activation",
+    "passed": false,
+    "detail": "tab.clickAt is not a function"
+  },
+  {
+    "host": "cloud",
+    "check": "Success restores action",
+    "passed": true,
+    "detail": {
+      "busy": null,
+      "disabled": false,
+      "finishDisabled": true,
+      "label": "Start processing"
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Failure restores action with recoverable error",
+    "passed": true,
+    "detail": {
+      "alert": "Preview failed. Try Start processing again.",
+      "busy": null,
+      "disabled": false,
+      "label": "Start processing"
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Disclosure remains mounted during exit and survives rapid reopening",
+    "passed": true,
+    "detail": {
+      "open": {
+        "expanded": "true",
+        "height": 45.59375,
+        "hidden": false
+      },
+      "exiting": {
+        "expanded": "false",
+        "height": 45.59375,
+        "hidden": false
+      },
+      "reopened": {
+        "expanded": "true",
+        "height": 45.59375,
+        "hidden": false
+      }
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Reduced-motion disclosure exit completes",
+    "passed": true,
+    "detail": {
+      "expanded": "false",
+      "hidden": true
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Refresh failure retains previous result and offers retry",
+    "passed": true,
+    "detail": {
+      "errorShown": true,
+      "previous": "Sample inbox · 3 entries",
+      "retryEnabled": true,
+      "role": "alert"
+    }
+  },
+  {
+    "host": "cloud",
+    "check": "Refresh recovery clears error silently and retains result",
+    "passed": true,
+    "detail": {
+      "errorHidden": true,
+      "previous": "Sample inbox · 3 entries",
+      "noticesAdded": 0
+    }
+  }
+]

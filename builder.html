@@ -3974,6 +3974,13 @@ function paint() {
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
   const css = treeCss(curSets(), editing);
+  /* A Follow mobile-menu definition has no copied links of its own. In component Preview,
+     carry the exact validated parent that opened the definition just as edit rendering does;
+     export rendering stays independent of transient editor ownership. */
+  const previewMobileMenuOwner = !editing && state.ui.mode === 'component' && state.ui.cedit
+    ? mobileMenuOwner(state.ui.cedit) : null;
+  const previewMobileMenuItems = Array.isArray(previewMobileMenuOwner?.node.props.items)
+    ? previewMobileMenuOwner.node.props.items : null;
 
   let html = '';
   for (const R of regions()) {
@@ -3983,7 +3990,13 @@ function paint() {
        bindings unresolved — every bound heading showing the literal it stands in for —
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
-    if (!editing) { html += renderList(nodes, { edit: false, canvas: true, ...pageCtx() }); continue; }
+    if (!editing) {
+      html += renderList(nodes, {
+        edit: false, canvas: true, ...pageCtx(),
+        ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
+      });
+      continue;
+    }
     if (!nodes.length && !live) continue;                 // nothing to show as context
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })

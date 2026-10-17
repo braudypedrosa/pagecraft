@@ -755,6 +755,44 @@ test('Preview runs the same Tabs, Gallery, Code, Slider, Video, navigation and a
   w.togglePreview();
 });
 
+test('Preview keeps the exact parent links while editing a Follow mobile-menu component', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const frame = doc.querySelector('#canvas');
+  if (!frame.contentDocument.getElementById('s-root')) {
+    frame.contentDocument.open();
+    frame.contentDocument.write(frame.srcdoc);
+    frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  if (doc.querySelector('#savedTag').textContent === '—') w.bindTop();
+  const nav = C.N('nav', { items: [
+    { id: 'work', label: 'Work', href: '/work' },
+    { id: 'about', label: 'About', href: '/about' },
+    { id: 'contact', label: 'Contact', href: '/contact' },
+  ] });
+  C.state.header = [nav];
+  C.page().tree = [];
+  C.state.footer = [];
+  const follow = C.ensureMobileMenuComponent(nav, 'follow');
+  nav.props.mobileMenuMode = 'follow';
+  a.equal(C.prepareMobileMenuEdit(nav, follow.id), true);
+  a.equal(C.componentOpen(follow.id), true);
+  w.render();
+
+  const labels = () => [...frame.contentDocument.querySelectorAll('.pagecraft-managed-mobile-links a')]
+    .map(link => link.textContent.trim());
+  a.deepEqual(labels(), ['Work', 'About', 'Contact'], 'component edit resolves its exact parent');
+
+  a.equal(doc.body.classList.contains('preview'), false);
+  doc.querySelector('#previewBtn').click();
+  a.equal(doc.body.classList.contains('preview'), true, 'the toolbar control enters Preview');
+  a.deepEqual(labels(), ['Work', 'About', 'Contact'], 'Preview must keep the exact parent context');
+
+  doc.querySelector('#previewBtn').click();
+  C.componentClose();
+});
+
 test('the canvas runs only the editor’s own nonce-bearing scripts, and Preview frames an Embed', async () => {
   const { window: w, doc } = await boot();
   const C = w.__CORE;

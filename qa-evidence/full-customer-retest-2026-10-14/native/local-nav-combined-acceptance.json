@@ -1,0 +1,98 @@
+{
+  "baseCommit": "d84e79da7444500283b549cdb457b2a635063cf1",
+  "candidate": "/tmp/pagecraft-nav-combined-one-d84-v1",
+  "cases": [
+    {
+      "name": "Follow component Preview Desktop",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "links": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "width": 1280,
+      "passed": true
+    },
+    {
+      "name": "Follow component Preview Tablet",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "links": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "width": 834,
+      "passed": true
+    },
+    {
+      "name": "Follow component Preview Mobile",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        {
+          "tag": "A",
+          "text": "About"
+        }
+      ],
+      "links": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Managed mobile-only background Desktop",
+      "menuBackgroundControls": 0,
+      "colourValue": null,
+      "background": "rgba(0, 0, 0, 0)",
+      "width": 1320,
+      "passed": true
+    },
+    {
+      "name": "Managed mobile-only background Tablet",
+      "menuBackgroundControls": 0,
+      "colourValue": null,
+      "background": "rgba(0, 0, 0, 0)",
+      "width": 834,
+      "passed": true
+    },
+    {
+      "name": "Managed mobile-only background Mobile",
+      "menuBackgroundControls": 0,
+      "colourValue": null,
+      "background": "rgb(221, 238, 255)",
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Parent Mobile Menu background paints outer panel independently",
+      "focus": 0,
+      "managedBackground": "rgb(221, 238, 255)",
+      "panelBackground": "rgb(183, 243, 74)",
+      "panelVariable": "#b7f34a",
+      "passed": true,
+      "initialHarnessExpectation": "rgb(183, 244, 67) was an incorrect hard-coded approximation of Craft Green; actual token is #b7f34a"
+    }
+  ],
+  "phase": "native-after isolated six-file candidate",
+  "componentPreviewReopenLinks": [
+    "Work",
+    "About",
+    "Contact"
+  ],
+  "allNativeAfterPassed": true,
+  "carriedFrozenCoreProof": "local-nav-controls-focus-in-progress.json ordinary D/T/M + pointer exclusion and Custom actual Send button focus; Core hash exact across both candidates"
+}

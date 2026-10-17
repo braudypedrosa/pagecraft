@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-17T09:05:47.189Z",
+  "capturedAt": "2026-10-17T10:21:13.186Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": true,
-        "dark": false
+        "light": false,
+        "dark": true
       }
     },
     "browserCommandLine": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "c09cdd5a4cadf6409058a83035aeaf7c0054befc495e1a29c361f5d98dd67d76",
+    "builder.html": "606926347d429046342a36580ad2be53eb7ad0df86f0657a4e22c8bc1965735a",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -652,7 +652,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+      "sha256": "e67b388575052382b31130146a4b64be79fd4a354c1f4f0d67468d6b3af294c8",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -689,7 +689,7 @@
       }
     },
     "cloud-fields-768.png": {
-      "sha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+      "sha256": "1ec6251a2e9748238dd5337015ae95ceaa6b284f560e8a75233ce5b4595363f1",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -726,7 +726,7 @@
       }
     },
     "cloud-actions-1440.png": {
-      "sha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+      "sha256": "e151d3b64d951d20b8ce733da94d0997a4ba27ec1ff9811d936315f4e592ab51",
       "width": 1440,
       "height": 959,
       "state": "Processing action, disabled and destructive actions",
@@ -763,7 +763,7 @@
       }
     },
     "cloud-actions-768.png": {
-      "sha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+      "sha256": "84b0c44223e4225ac891da7a23784ab93522860914882d72ab6481d91f223cb1",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions",
@@ -948,7 +948,7 @@
       }
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+      "sha256": "1da517fb2baeb95363aefbc6babe1ba3e12dcd3f92768a44df51f1ffbe479c2a",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1022,7 +1022,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+      "sha256": "3a6d3280b412c787baeada945d1a3817222cda030c5dc84fbc01d4362482b913",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1096,7 +1096,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+      "sha256": "305c8afa70ea5a32b0965e44ad59d5aa73fcf6dc04355a59e5c764f3b4569f3d",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1133,7 +1133,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "01e70db01853af033ee5cbfa1743a9e5ca560aa9ae33c31e30aaf8ee090cfd68",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1170,7 +1170,7 @@
       }
     },
     "builder-actions-1440.png": {
-      "sha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+      "sha256": "9640de35730920508fd8392bdc0449347b284075c61a53e114051ae0eba79c39",
       "width": 1440,
       "height": 1224,
       "state": "Processing action, disabled and destructive actions",
@@ -1207,7 +1207,7 @@
       }
     },
     "builder-actions-768.png": {
-      "sha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+      "sha256": "31e69e47f58dd5a9314a1a6224788f8770557aba654ff46c91f7a4cf0a9b5249",
       "width": 768,
       "height": 1279,
       "state": "Processing action, disabled and destructive actions",
@@ -1244,7 +1244,7 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+      "sha256": "858d7e70918caa6891bb433a8340715682eb3b367532906ad57220aac5629530",
       "width": 1440,
       "height": 1228,
       "state": "First row hovered, second row neutral, empty result",
@@ -1281,7 +1281,7 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+      "sha256": "002677be8d879cb1bf3058fb061f3f11330440a19757d8a28fba3b61c2a54e8a",
       "width": 768,
       "height": 1284,
       "state": "First row hovered, second row neutral, empty result",
@@ -1392,7 +1392,7 @@
       }
     },
     "builder-dialogs-1440.png": {
-      "sha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+      "sha256": "5160a2661319be23dcce60698176334a99f9d723c29276e7000a6517aa3e414f",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1466,7 +1466,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+      "sha256": "7c1dab2b3cd0bf9ce0055d2ec73bde8bf1e3eeddd07bf372f9a16df6de641396",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1503,7 +1503,7 @@
       }
     },
     "builder-feedback-768.png": {
-      "sha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+      "sha256": "32df81f4371ee14c6e71e151117262cee8cd8c45fe482c7280ca418ec666858e",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

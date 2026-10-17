@@ -897,7 +897,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'color', c: 'color', label: 'Link colour', r: 1 },
         { t: 'color', c: '--nav-hover', label: 'Hover colour', r: 1 },
-        { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1 },
+        { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1, when: n => !n.props.managedMobileLinks },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
         { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
@@ -2428,6 +2428,11 @@ const BUTTON_AUTHORED = '--pc-authored-button-';
    0,2 as every reusable state, so a later per-node state still wins the established cascade. */
 const galleryFocusSelector = (selector: string) =>
   `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
+/* A Nav's keyboard surface can be its toggle, an ordinary or managed link, or any custom
+   interactive widget inside its mobile layout. Keep the Nav guard at zero specificity and
+   let :focus-visible contribute the same single state class as the generic selector. */
+const navFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
@@ -2458,9 +2463,12 @@ function tokenCss() {
       const d = decl((c.st && c.st[k] && c.st[k]![b]) || {});
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
-        /* Keep the ordinary class selector for generic focusables and add the Gallery's
-           focused-frame path once, beside the class rule whose cascade order it shares. */
-        if (k === 'focus') acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+        /* Keep the ordinary class selector for generic focusables and add the guarded
+           descendant paths beside the class rule whose cascade order they share. */
+        if (k === 'focus') {
+          acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
       }
     });
   }));
@@ -7648,8 +7656,10 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = n.type === 'gallery' && k === 'focus'
-      ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === 'focus' && n.type === 'gallery'
+      ? galleryFocusSelector(selOf(n))
+      : k === 'focus' && n.type === 'nav'
+        ? navFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {

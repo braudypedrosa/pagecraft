@@ -263,3 +263,49 @@ test('history restore drops an exact owner whose menu reference changed', () => 
   r.draw(() => <Inspector />, 'right');
   expect((r.$('button[title="Edit the links on the parent navigation"]') as HTMLButtonElement).disabled).toBe(true);
 });
+
+test('managed link styling exposes effective controls and keeps parent Menu background', () => {
+  const parent = C.N('nav', { items: links });
+  C.state.pages[0].tree = [parent];
+  const follow = C.ensureMobileMenuComponent(parent, 'follow');
+  parent.props.mobileMenuMode = 'follow';
+  const managed = C.mobileMenuLinksNode(follow)!;
+  expect(C.prepareMobileMenuEdit(parent, follow.id)).toBe(true);
+  C.componentOpen(follow.id);
+  C.selSet([managed.id]);
+  C.state.ui.stab = 'style';
+  r.draw(() => <Inspector />, 'right');
+
+  const managedLabels = [...r.host.querySelectorAll('label')].map(label => label.textContent?.trim());
+  expect(managedLabels).not.toContain('Menu background');
+  expect(managedLabels).toEqual(expect.arrayContaining([
+    'Link spacing', 'Link colour', 'Hover colour', 'Letter spacing', 'Colour',
+  ]));
+
+  managed.css.d['background-color'] = '#102030';
+  managed.css.d['--nav-panel'] = '#fedcba';
+  managed.css.d['--nav-gap'] = '11px';
+  managed.css.d.color = '#345678';
+  managed.css.d['--nav-hover'] = '#456789';
+  managed.css.d['letter-spacing'] = '0.08em';
+  const rendered = new JSDOM(`<body>${C.renderNode(managed, { edit: false, mobileMenuItems: links })}</body>`).window.document;
+  const root = rendered.querySelector('.pagecraft-mobile-nav-links')!;
+  expect(root.tagName).toBe('DIV');
+  expect(root.querySelectorAll('a')).toHaveLength(2);
+  expect(root.querySelector('[data-nav],[data-nav-t],.pagecraft-mobile-menu')).toBeNull();
+  const css = C.treeCss([[follow.node]], false);
+  expect(css).toContain('background-color:#102030');
+  expect(css).toContain('--nav-gap:11px');
+  expect(css).toContain('color:#345678');
+  expect(css).toContain('--nav-hover:#456789');
+  expect(css).toContain('letter-spacing:0.08em');
+  expect(css).toContain(`${C.selOf(managed)}>.pagecraft-nav-list{`);
+  expect(css).toContain('background:transparent');
+
+  C.componentClose();
+  C.selSet([parent.id]);
+  C.state.ui.stab = 'style';
+  r.draw(() => <Inspector />, 'right');
+  const parentLabels = [...r.host.querySelectorAll('label')].map(label => label.textContent?.trim());
+  expect(parentLabels).toContain('Menu background');
+});

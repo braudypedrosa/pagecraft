@@ -2713,7 +2713,7 @@ var DEF = {
         { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "color", c: "color", label: "Link colour", r: 1 },
         { t: "color", c: "--nav-hover", label: "Hover colour", r: 1 },
-        { t: "color", c: "--nav-panel", label: "Menu background", r: 1 },
+        { t: "color", c: "--nav-panel", label: "Menu background", r: 1, when: (n) => !n.props.managedMobileLinks },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "None"], ["uppercase", "UPPERCASE"]] }
       ]
@@ -4101,6 +4101,7 @@ function tokenVars() {
 var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 var BUTTON_AUTHORED = "--pc-authored-button-";
 var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
+var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
@@ -4126,7 +4127,10 @@ function tokenCss() {
       const d = decl(c.st && c.st[k] && c.st[k][b] || {});
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
-        if (k === "focus") acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+        if (k === "focus") {
+          acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
       }
     });
   }));
@@ -8717,7 +8721,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = n.type === "gallery" && k === "focus" ? galleryFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {
