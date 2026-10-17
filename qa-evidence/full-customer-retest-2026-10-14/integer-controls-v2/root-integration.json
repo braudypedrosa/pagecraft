@@ -15,8 +15,8 @@
   "images": 24,
   "changedPixels": 0,
   "protectedGenerated11Exact": true,
-  "stagingNative": "pending",
-  "wordpressParity": "pending",
+  "stagingNative": "native/staging-24ec-integer-acceptance.json:10cases accepted/restored",
+  "wordpressParity": "Preview55:15cases accepted/restored; final WPbbde657e2170ed804c57c00215577d444749b855; new513/514; protected15+legacy14exact",
   "overallPass": false,
   "fullCustomerRetestComplete": false
 }

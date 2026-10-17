@@ -1,0 +1,146 @@
+{
+  "version": "0.2.17-preview.20261017.54",
+  "commit": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+  "originalIds": [
+    "nxo96g28f",
+    "nxo96g3zt",
+    "nxo96g47r",
+    "nxo96g5qr",
+    "ny2qsh6e8",
+    "ny2qsh74a",
+    "ny2qsh8kv",
+    "ny2qsh9qo",
+    "ny5zleam3",
+    "ny6igvbfj",
+    "ny6kabci2"
+  ],
+  "cases": [
+    {
+      "name": "WordPress Follow component edit Desktop",
+      "labels": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "menuBackgroundControls": 0,
+      "passed": true
+    },
+    {
+      "name": "WordPress Follow component edit Tablet",
+      "labels": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "menuBackgroundControls": 0,
+      "passed": true
+    },
+    {
+      "name": "WordPress Follow component edit Mobile",
+      "labels": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "menuBackgroundControls": 0,
+      "passed": true
+    },
+    {
+      "name": "Saved WordPress ordinary keyboard Focus Desktop",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "About"
+      ],
+      "width": 1425,
+      "passed": true,
+      "initialWidthHarnessNote": "Initial assertion compared document clientWidth to viewport width, incorrectly counting the 15px scrollbar as a failure. Correct check uses innerWidth.",
+      "contentWidth": 1425,
+      "viewportWidth": 1440
+    },
+    {
+      "name": "Saved WordPress ordinary keyboard Focus Tablet",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "About"
+      ],
+      "width": 819,
+      "passed": true,
+      "initialWidthHarnessNote": "Initial assertion compared document clientWidth to viewport width, incorrectly counting the 15px scrollbar as a failure. Correct check uses innerWidth.",
+      "contentWidth": 819,
+      "viewportWidth": 834
+    },
+    {
+      "name": "Saved WordPress Mobile pointer and managed background",
+      "background": "rgba(0, 0, 0, 0)",
+      "focus": 0,
+      "links": [
+        "Work",
+        "About",
+        "Contact"
+      ],
+      "managedBackground": "rgb(221, 238, 255)",
+      "passed": true
+    },
+    {
+      "name": "Saved WordPress Mobile keyboard toggle Focus",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "BUTTON"
+      ],
+      "passed": true
+    },
+    {
+      "name": "Saved WordPress managed Mobile keyboard child Focus",
+      "background": "rgb(204, 221, 238)",
+      "focus": [
+        "About"
+      ],
+      "passed": true
+    },
+    {
+      "name": "Saved WordPress Escape closes and restores toggle focus",
+      "expanded": "false",
+      "focusRestored": true,
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "restoreBaseline": {
+    "uiVersion": 11,
+    "note": "Captured native current Version11 before authoring"
+  },
+  "parentDataId": "na52ip1qt",
+  "managedMenuBackgroundControls": 0,
+  "previewAdapter": {
+    "nativeFrontendPreviewDialog": true,
+    "unsavedChoices": [
+      "Save changes and preview",
+      "Preview saved version"
+    ],
+    "cancelledInitialProbe": true,
+    "componentRuntimePreviewControl": "WordPress adapter uses native page preview; Cloud component Preview covered by staging-029 acceptance"
+  },
+  "managedDataId": "na5o5dez8",
+  "savedReload": {
+    "mode": "Follow navigation",
+    "saveDisabled": true
+  },
+  "restoration": {
+    "nativeHistoryVersion": 11,
+    "baselineTimestamp": "17 Oct 2026, 17:56",
+    "freshEditorOriginal11IdsExact": true,
+    "saveDisabled": true,
+    "freshFrontendGallery": {
+      "gap": "12px",
+      "tracks": "602.5px 602.5px"
+    },
+    "temporaryNavigationAbsent": true
+  },
+  "savePreview": {
+    "action": "Save changes and preview",
+    "saveCalls": 1,
+    "openedNativeFrontendTab": true,
+    "savedVersion": 12
+  },
+  "passed": true
+}

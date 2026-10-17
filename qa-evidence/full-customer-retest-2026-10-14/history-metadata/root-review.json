@@ -17,7 +17,12 @@
   "liveVersionBefore": 26,
   "liveSixFilesExactlyMatchBase": true,
   "deploymentScope": "Shared database gateway; one metadata SELECT only, auth/settings and immutable revisions retained. Production app branch is not promoted.",
-  "deploymentStatus": "pending",
+  "deploymentStatus": "Shared gateway27 read-back6filesexact; stagingb2c94 exact with greenCI+deployment",
   "oldAppMetadataCompatibility": "toRevision only assigns undefined doc/context; all existing history callers read metadata; revision detail remains full",
-  "protected11Exact": true
+  "protected11Exact": true,
+  "nativeAfter": "../native/staging-b2-history-acceptance.json",
+  "nativeCases": 4,
+  "restored": true,
+  "retainedVersions": "All baseline1..779 retained; actualnativeSave780/Restore781",
+  "postDeployResourceErrorsObserved": 0
 }

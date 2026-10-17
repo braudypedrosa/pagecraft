@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-10-17T10:49:38.719769+00:00",
+  "staging": {
+    "commit": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+    "branch": "development"
+  },
+  "production": {
+    "commit": "cc026d65d275f16374eb356d0331cebb93430c85",
+    "branch": "production"
+  },
+  "ci": {
+    "run": 39025098481,
+    "conclusion": "success"
+  },
+  "deployment": {
+    "run": 39025098450,
+    "verifyJob": 117374429803,
+    "deployJob": 117375048351,
+    "conclusion": "success"
+  },
+  "nativeAcceptance": "native/staging-029-nav-acceptance.json",
+  "nativeCases": 9,
+  "restored": true,
+  "fullQaComplete": false,
+  "remainingBroadAreas": 15
+}

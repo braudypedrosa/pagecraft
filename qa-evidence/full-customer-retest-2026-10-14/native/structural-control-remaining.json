@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
-  "snapshot": "2026-10-17 main/staging 75ed8acb11bb3297d4889f3edade56d6af31807e exact; CI 39013646681 green; deployment endpoint exact; WP51 installed/accepted bounded; production cc026; all fifteen broad areas open",
-  "source": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "snapshot": "2026-10-17 main/staging b2c94c6d7417604a7faf7e7a97600c5dbb3293a2 exact; CI 39031378941/deploy 39031378985 green; integer controls bounded accepted (24 local + 10 staging real-image, 2421 passed/5 skipped, 30 behaviors, 24 zero-pixel); scientific 2e0 normalization accepted; all fifteen broad areas open",
+  "source": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
   "purpose": "Mechanical native-coverage ledger for the bounded direct controls in Heading, Image, Section, Row, Column, and Box. This is an evidence map, not an overall denominator or product pass rate.",
   "scope": {
     "modules": [
@@ -263,13 +263,27 @@
     "wpInstalled": true,
     "postNativeGuard": "pending"
   },
-  "sourceBoundary": "Structural ledger remains limited to named direct controls. Semantic Add and Gallery common Style are current bounded evidence; package-worker final post-native guard is accepted; Gallery background/border bounded acceptance is current; Gallery motion partial fix remains pending final full native verification. and broad coverage stays open.",
+  "sourceBoundary": "Structural ledger remains limited to named direct controls. Current b2c94 direct-control records remain bounded evidence; integer, WordPress, history, and Quote evidence are tracked in the canonical current records. Fifteen broad coverage areas remain open.",
   "currentScopedEvidence": {
     "semanticAdd": "native/staging-23939-semantic-add-acceptance.json: six click/drag/Redo atomic originals restored; native/wordpress-preview49-semantic-add-acceptance.json: five host-supported cases, Save disabled, IDs exact",
     "gallery": "native/staging-23939-gallery-common-style-acceptance.json: 12 finite cases, combined persistence/reset, exact original structure restore; common breadth open",
-    "wordpressRuntime": "Theme runtime and package-worker final post-native guard accepted; strict known15/legacy14/broad/Builder54/Theme19 exact",
-    "galleryMotion": "native/staging-23939-gallery-motion-in-progress.json: partial timing; Fadeout source/tests ready with dual-build/focused 22 green; final full native verification pending",
+    "wordpressRuntime": "WP55 bounded native acceptance is recorded separately; protected15 and legacy14 are exact, with only the stated revision/post-count fixture scope changed.",
+    "galleryMotion": "Named motion persistence evidence is accepted in current native records; broader combinations and full customer coverage remain open.",
     "galleryBackground": "native/staging-23939-gallery-background-acceptance.json: 10 finite cases, exact asset identity/inheritance/resets/restoration",
-    "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration"
+    "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration",
+    "currentSource": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
+    "status": "Bounded direct-control ledger remains current; fractional/scientific integer representation accepted in local v2 / staging24ec / WP55 reports. Broader coverage remains open."
+  },
+  "historicalSnapshots": {
+    "02979-checkpoint": {
+      "semanticAdd": "native/staging-23939-semantic-add-acceptance.json: six click/drag/Redo atomic originals restored; native/wordpress-preview49-semantic-add-acceptance.json: five host-supported cases, Save disabled, IDs exact",
+      "gallery": "native/staging-23939-gallery-common-style-acceptance.json: 12 finite cases, combined persistence/reset, exact original structure restore; common breadth open",
+      "wordpressRuntime": "Theme runtime and package-worker final post-native guard accepted; strict known15/legacy14/broad/Builder54/Theme19 exact",
+      "galleryMotion": "native/staging-23939-gallery-motion-in-progress.json: partial timing; Fadeout source/tests ready with dual-build/focused 22 green; final full native verification pending",
+      "galleryBackground": "native/staging-23939-gallery-background-acceptance.json: 10 finite cases, exact asset identity/inheritance/resets/restoration",
+      "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration",
+      "currentSource": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+      "status": "Historical 029 checkpoint: direct-control ledger and named evidence at that point; not current."
+    }
   }
 }

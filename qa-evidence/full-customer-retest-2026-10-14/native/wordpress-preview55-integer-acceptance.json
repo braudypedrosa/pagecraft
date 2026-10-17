@@ -1,0 +1,280 @@
+{
+  "sourceCommit": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "version": "0.2.17-preview.20261017.55",
+  "post": 487,
+  "baselineVersion": 13,
+  "before": {
+    "ids": [
+      "nxo96g28f",
+      "nxo96g3zt",
+      "nxo96g47r",
+      "nxo96g5qr",
+      "ny2qsh6e8",
+      "ny2qsh74a",
+      "ny2qsh8kv",
+      "ny2qsh9qo",
+      "ny5zleam3",
+      "ny6igvbfj",
+      "ny6kabci2"
+    ]
+  },
+  "tests": [
+    {
+      "name": "Desktop Columns 2.5",
+      "expected": "3",
+      "got": {
+        "stepMismatch": false,
+        "value": "3"
+      },
+      "rendered": {
+        "columns": "3",
+        "grid": "438.656px 438.672px 438.656px",
+        "images": [
+          true,
+          true
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2e0",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "grid": "664px 664px",
+        "images": [
+          true,
+          true
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2.5",
+      "expected": "3",
+      "got": {
+        "stepMismatch": false,
+        "value": "3"
+      },
+      "rendered": {
+        "columns": "3",
+        "grid": "438.656px 438.672px 438.656px",
+        "images": [
+          true,
+          true
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet Columns 3.5",
+      "expected": "4",
+      "got": {
+        "stepMismatch": false,
+        "value": "4"
+      },
+      "rendered": {
+        "columns": "4",
+        "grid": "187.5px 187.5px 187.5px 187.5px",
+        "images": [
+          true,
+          true
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Columns 1.5",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "grid": "183px 183px",
+        "images": [
+          true,
+          true
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop integerZ and precise length",
+      "expected": {
+        "z": "3",
+        "top": "2px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "2px",
+        "z": "3"
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet integerZ and precise length",
+      "expected": {
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile integerZ and precise length",
+      "expected": {
+        "z": "0",
+        "top": "0.75px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "0.75px",
+        "z": "0"
+      },
+      "passed": true
+    },
+    {
+      "name": "Fresh saved editor Desktop",
+      "expected": {
+        "columns": "3",
+        "z": "3",
+        "top": "2px"
+      },
+      "got": {
+        "columns": "3",
+        "top": "2px",
+        "z": "3"
+      },
+      "topInput": "2e0",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved editor Tablet",
+      "expected": {
+        "columns": "4",
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "columns": "4",
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "topInput": "-1.25",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved editor Mobile",
+      "expected": {
+        "columns": "2",
+        "z": "0",
+        "top": "0.75px"
+      },
+      "got": {
+        "columns": "2",
+        "top": "0.75px",
+        "z": "0"
+      },
+      "topInput": ".75",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved editor Save disabled",
+      "passed": true
+    },
+    {
+      "name": "Saved frontend Desktop",
+      "expected": {
+        "width": 1440,
+        "columns": "3",
+        "z": "3",
+        "top": "2px"
+      },
+      "got": {
+        "columns": "3",
+        "grid": "438.656px 438.672px 438.656px",
+        "images": [
+          true,
+          true
+        ],
+        "overflow": false,
+        "top": "2px",
+        "viewport": 1440,
+        "z": "3"
+      },
+      "passed": true
+    },
+    {
+      "name": "Saved frontend Tablet",
+      "expected": {
+        "width": 834,
+        "columns": "4",
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "columns": "4",
+        "grid": "187.5px 187.5px 187.5px 187.5px",
+        "images": [
+          true,
+          true
+        ],
+        "overflow": false,
+        "top": "-1.25px",
+        "viewport": 834,
+        "z": "-2"
+      },
+      "passed": true
+    },
+    {
+      "name": "Saved frontend Mobile",
+      "expected": {
+        "width": 390,
+        "columns": "2",
+        "z": "0",
+        "top": "0.75px"
+      },
+      "got": {
+        "columns": "2",
+        "grid": "171px 171px",
+        "images": [
+          true,
+          true
+        ],
+        "overflow": false,
+        "top": "0.75px",
+        "viewport": 390,
+        "z": "0"
+      },
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "idsExact": true,
+  "cssExact": true,
+  "beforeCssSha": "9474302012e60b28183c03fbe9b97e2dbe13c021b00f62563f98e06560df470c",
+  "afterCssSha": "9474302012e60b28183c03fbe9b97e2dbe13c021b00f62563f98e06560df470c",
+  "saveDisabled": true,
+  "passed": true,
+  "frontendRestored": {
+    "columns": "2",
+    "gap": "12px",
+    "top": "auto",
+    "z": "auto"
+  },
+  "visualEvidence": [
+    "wordpress-preview55-integer-mobile.png",
+    "wordpress-preview55-restored-editor.jpg"
+  ],
+  "visualsViewedByRoot": true
+}

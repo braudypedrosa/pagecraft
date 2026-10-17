@@ -2,121 +2,25 @@
   "snapshot": {
     "date": "2026-10-17",
     "checkout": "development",
-    "head": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+    "head": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
     "purpose": "native QA evidence-only remaining queue",
     "overallPass": false,
     "percentage": null,
-    "deployment": "Main/staging exact 75ed8acb11bb3297d4889f3edade56d6af31807e; CI 39013646681 green; deployment endpoint exact; production cc026. Native Focus/spacing accepted in staging-75ed; Cloud motion restoration accepted; WP51 installed/accepted with strict guards exact.",
+    "deployment": "Runtime acceptance at b2c94c6d7417604a7faf7e7a97600c5dbb3293a2; CI39031378941/deploy39031378985 green. Production APP cc026 unchanged; SHARED database gateway pagecraft-db-v3 updated26\u219227 (metadata SELECT only; auth/settings retained).",
     "fullCustomerRetestComplete": false,
     "currentReconciliation": {
-      "focused": "Native Focus/spacing, Cloud motion restoration, and bounded WordPress Preview51 motion/Padding/Focus/KSES acceptance are current. Navigation has a concrete stale PHP definition finding with fix pending; RichText link-colour overrides remain in progress; fifteen broad areas remain open.",
-      "isolated": "Staging Semantic Add accepts six click/drag/Redo cases; WordPress accepts five host-supported cases with Save disabled and original IDs exact. Gallery common Style has 12 finite cases with persistence/reset and exact original structure restoration.",
-      "pageLinks": "Preview36 native page links accepted: 16 canonical pages, clean view-only, blocked GET error/Retry recovery, explicit empty/Home/current-page behavior, save/reload/public follow, ordinary Save raw-legacy self-link repair, protected 10 exact, coherent revisions, final v18 canonical URL+HTML.",
-      "pageLinkEvidence": [
-        "native/wordpress-preview36-native-page-links.json",
-        "wordpress-contract/preview36-native-436-route-repair-readonly.json",
-        "wordpress-contract/preview36-native-436-page-picker-final-readonly.json"
-      ],
-      "preview40": "Historical bounded acceptance retained for Preview40 External HTTPS POST/GET echo receipts; provider/email fulfillment remains open.",
-      "newAcceptedJourneys": [
-        "native/staging-b10-review-label-fixed.json",
-        "native/staging-782-review-owner-actions.json",
-        "native/staging-code-language-matrix.json",
-        "native/staging-table-finite-content-matrix.json",
-        "native/staging-782-rich-text-label-fixed.json",
-        "native/staging-782-inline-edit-view-only.json",
-        "native/wordpress-preview40-mobile-library.json",
-        "native/staging-cms-scalar-matrix.json",
-        "native/wordpress-preview40-external-https-form.json",
-        "native/wordpress-preview40-external-get-form.json",
-        "native/staging-cms-zero-false-readable.jpg",
-        "wordpress-contract/preview40-post-479-protected14-readonly.json",
-        "native/staging-c411-collection-selection-fixed.json",
-        "native/staging-c411-collection-source-swap.json",
-        "native/staging-c411-component-source-guard.json",
-        "native/staging-c411-scalar-query-runtime.json",
-        "native/staging-6cfa-source-undo-context-fixed.json",
-        "native/staging-6cfa-typed-filter-acceptance.json",
-        "native/staging-6cfa-boolean-no-readable.jpg",
-        "native/staging-6cfa-boolean-no-mobile-readable.jpg",
-        "native/wordpress-preview42-native-acceptance.json",
-        "native/staging-6cfa-accordion-content-matrix.json",
-        "native/staging-5da-site-check-item-target-fixed.json",
-        "native/staging-5da-site-check-page2-fixed.json",
-        "native/staging-5da-accordion-label-fixed.json",
-        "native/staging-93db-visibility-fixed.json",
-        "native/staging-93db-tabs-content-style-acceptance.json",
-        "native/staging-93db-form-label-fixed.json",
-        "native/staging-93db-nav-label-fixed.json",
-        "native/staging-2a-slider-keyboard-acceptance.json",
-        "native/staging-b4-slider-style-advanced-structure.json",
-        "native/staging-b4-slider-in-progress.json",
-        "native/staging-09-video-acceptance.json",
-        "native/staging-1c-focus-refresh-acceptance.json",
-        "native/staging-2a-slider-keyboard-acceptance.json",
-        "native/staging-c670-navigator-acceptance.json",
-        "native/staging-c670-gallery-keyboard-acceptance.json",
-        "native/staging-1c-gallery-content-in-progress.json",
-        "native/staging-1c-gallery-responsive-in-progress.json",
-        "native/staging-1c-focus-refresh-acceptance.json",
-        "native/staging-c670-gallery-responsive-acceptance.json",
-        "native/staging-c670-gallery-advanced-acceptance.json",
-        "native/wordpress-runtime-resolution-acceptance.json",
-        "native/wordpress-preview48-slider-add-history.json",
-        "native/staging-c670-gallery-visibility-acceptance.json",
-        "native/staging-23939-semantic-add-acceptance.json",
-        "native/wordpress-preview49-semantic-add-acceptance.json",
-        "native/staging-23939-gallery-common-style-acceptance.json",
-        "native/staging-23939-gallery-background-acceptance.json",
-        "native/staging-23939-gallery-border-edges-acceptance.json"
-      ],
-      "openLimitations": [
-        "native/wordpress-preview36-native-block-editor-empty.json: ordinary WordPress block-editor canvas blank after reload; no Pagecraft cause confirmed",
-        "Only SIL Option contains and final Boolean No were individually reloaded; the other typed-filter cases are native control/runtime acceptance, not persistence proof.",
-        "Public Cloud Collection routes and remaining Style/Advanced/layout combinations remain open.",
-        "native/staging-6cfa-save-interruption.json: backup/retry/reload recovery passed, but the original host disconnect cause is unconfirmed and is not an editor-heartbeat finding.",
-        "Preview40 controlled External HTTPS POST/GET echo receipt does not prove provider/email fulfillment or external failure handling.",
-        "native/staging-532-cms-image-remove-fixed.json: CMS image removal and restored empty item pass in bounded staging evidence; broader CMS image coverage remains open.",
-        "Accordion: label refresh and visibility fixes are staging-accepted; ten module Style values and ten Advanced values pass reload. Common Style/shared-CSS breadth and broader persistence remain open.",
-        "Tabs: 16 content/runtime cases, eight module Style values, three alignment options, keyboard/pointer/mobile behavior, and reload pass; common Style/Advanced remains unclaimed.",
-        "native/staging-532-publication-validation-fixed.json: exact Show me validation reaches actionable 422; public publication and production readiness remain unproven.",
-        "Full suite records 2343 passed / 5 skipped tests across 206 files / 2 skipped; gallery records 30 behavior checks and 24 byte-exact captures. This remains scoped evidence.",
-        "Controlled two-tab conflict/recovery passes versions 508/509 with valid 295312-byte/9-page backup and exact original RichHTML fresh reload; generic export is 295331 bytes/9 pages. Private 0600 copies are not committed. Original ambiguous network-save cause remains unproven.",
-        "RichText→Quote→Paragraph deletion bounded acceptance passes in native/staging-b4-richtext-acceptance.json: eight block/inline-toolbar runtime cases, three separately persisted D/T/M typography matrices, four line-height unit runtime cases, one Undo/Redo, and fresh single-session reload. Thirty-five other runtime cases are not all persisted; broader RichText/module coverage remains open.",
-        "Slider: six native/device Home/End cases plus unit-only reduced-motion/nested-descendant evidence; one Style+Advanced fresh-reload/restore flow, duplicate/move/delete Undo/Redo, and finite content runtime. Full module/Add-slide UX remains open.",
-        "Dependency audit: three dev-only high nodes are one GHSA-vfj7-8cjw-p6xm Braces chain; no official patched release, proposed npm plugin 0.9 incompatible with Vite 8, vulnerable parser not called by default inlinePattern, production audit 0; tracked exception with no speculative override.",
-        "native/staging-c670-navigator-acceptance.json: physical fresh label click plus Hide/Undo pass; raw CDP hover blocked before input, keyboard focus width stable, and one stale first physical attempt after focus scroll classified as harness behavior.",
-        "native/staging-1c-gallery-content-in-progress.json: 15 Content cases pass; native/staging-1c-gallery-responsive-in-progress.json: three D/T/M responsive persistence cases pass, final restoration readback pending, original M gap 8px/columns 2 preserved.",
-        "Source c6702371 passes 5 skipped, 30 behavior checks, and 24 pixel-exact gallery checks; this does not close native Gallery Style/Advanced.",
-        "native/staging-c670-gallery-responsive-acceptance.json: three D/T/M persistence cases and final original restoration pass; Desktop/Tablet gap 20px/radius 16, Mobile gap 8px/columns 2 preserved with clear overrides.",
-        "native/wordpress-runtime-resolution-acceptance.json: eight Gallery D/M and six Slider D/T/M Home/End cases pass with real reduced-motion, no overflow, and 14 total pass; existing published protected436 without Save uses one current plugin runtime, with 414 navigation opening three links and Escape closing. No post/meta/generated-file writes were made.",
-        "native/wordpress-preview48-slider-add-history.json: wrong Undo Add-column is recorded; atomic Undo/Redo passes and the P2 fix remains pending.",
-        "native/staging-c670-gallery-visibility-acceptance.json: 9/9 independent D/T/M visibility cases pass and all are restored.",
-        "Inactive Builder retains one deterministic persisted page/template/header/footer fallback; PHP contract covers live plugin only. Existing Gutenberg blank iframe remains a host limitation.",
-        "Gallery Fadeout entrance UX and partial timing fixes have source/tests ready with dual-build/focused 22 green; final full native verification remains pending.",
-        "native/staging-23939-gallery-spacing-acceptance.json: rem/em/% spacing and negative margins pass with reset/fresh persistence; negative Padding -1% is UI-valid but renders 0px; Controls fix and three focused tests have clean-archive red/green evidence pending full/native integration.",
-        "native/staging-c336-gallery-focus-state-before.json and .jpg: keyboard anchor is :focus-visible while nonfocusable Gallery parent style does not match; worker fix pending native retest.",
-        "Gallery broader Style/Advanced/background/border/motion/visibility coverage remains open; all fifteen broad areas remain open.",
-        "Cloud saved Bounce Delay 0.2/Once renders expected attributes after fresh reload on Desktop/Mobile; reset to None and fresh reload remain pending.",
-        "Combined full suite records 2393 passed / 5 skipped, 30 behavior checks, 24 images with zero reviewed pixel differences, dual 11-run determinism, and protected11 exact; this remains bounded evidence.",
-        "native/staging-75ed-focus-spacing-acceptance.json: six negative-padding D/T/M cases across four units, valid negative Margin, Undo/Redo, and ten Focus keyboard/pointer/class-cascade D/T/M cases pass; lightbox-off preservation, re-enable, and original IDs restore fresh.",
-        "native/staging-c336-gallery-motion-persistence.json: Cloud None/Transition restoration passes fresh and hover Transition is retained; broader motion remains open.",
-        "native/wordpress-preview51-motion-focus-acceptance.json: seven motion cases plus Padding and Focus D/M pass; KSES save/editor/fresh/public D/T/M and reduced-motion attributes are accepted.",
-        "Navigation stale PHP component definitions are a concrete bounded finding; reviewed uncommitted fix is pending, broader Navigation remains unaccepted. Custom generated mobile-menu snapshot divergence is under design ownership review.",
-        "native/staging-75ed-focus-spacing-acceptance.json: six negative-padding D/T/M cases across four units, valid negative Margin, Undo/Redo, and ten Focus keyboard/pointer/class-cascade D/T/M cases pass; lightbox-off preservation, re-enable, and original IDs restore fresh.",
-        "native/staging-c336-gallery-motion-persistence.json: Cloud None/Transition restoration passes fresh and hover Transition is retained; broader motion remains open.",
-        "native/wordpress-preview51-motion-focus-acceptance.json: seven motion cases plus Padding and Focus D/M pass; KSES save/editor/fresh/public D/T/M and reduced-motion attributes are accepted.",
-        "Navigation stale PHP component definitions are a concrete bounded finding; reviewed uncommitted fix is pending, broader Navigation remains unaccepted. Custom generated mobile-menu snapshot divergence is under design ownership review.",
-        "native/staging-75ed-richtext-alignment-link-acceptance.json: 12 finite D/T/M alignment choices, three persisted alignment matrices, toolbar link add/remove/query and entity escaping, three custom link-colour save/reload/preview cases, exact original restoration, and readable mobile proof pass; broader Advanced/common Style/shared-text coverage remains open."
-      ],
-      "remainingAreas": 15,
-      "overallPass": false,
-      "operationalFindingEvidence": [
-        "native/staging-6cfa-save-interruption.json"
-      ],
-      "preview50": "Preview50 installed; WordPress KSES strips bp-duration, bp-delay, bp-easing, and animation-once from saved output despite editor persistence. Real-Local KSES red/green manual gate confirms this bounded defect.",
-      "preview51": "WP51 installed and accepted: package 1b8f23d..., evidence 23934e10dee5c6f10e119504fa1c24e22b0942b0, CI 39015364932 green; native wordpress-preview51-motion-focus-acceptance.json passes seven motion cases plus Padding and Focus D/M. KSES fix is accepted across save/editor/fresh/public D/T/M and reduced-motion attributes. Protected15/legacy14/broad guards exact; Theme unchanged."
-    }
+      "focused": "Integer representation is accepted: native/local-integer-v2-acceptance.json has 24 local cases including 2e0/scientific length and fresh D/T/M; native/staging-24ec-integer-acceptance.json separately has 10 real-image cases with exact Undo13/fresh CSS and IDs restoration. Verification 2421 passed/5 skipped,30 behavior checks,24 zero-pixel images.",
+      "wordpress": "WP55 native/wordpress-preview55-integer-acceptance.json is bounded accepted with saved Editor D/T/M and actual frontend 1440/834/390, Save disabled, Restore Version 13 to document 15, 11 IDs/CSS exact, revisions 513/514 only, 25 preexisting exact, protected15/legacy14 exact, and broad guard 56d956df0ae435a527f6b628230b515504e30237fb1d3aa6efe17aa330532298.",
+      "history": "native/staging-b2-history-acceptance.json passes the four-case Save attribution -> Version 780 -> Restore 779 -> 781 path with CSS/IDs/Quote exact, rows 1..781, and zero post-deploy resource errors; retry CPU evidence was inconclusive.",
+      "quote": "native/staging-029-quote-content-alignment.json passes nine D/T/M runtime cases with fresh restoration; the initial text-align expectation is classified as a harness issue because Content uses align-self.",
+      "open": "All fifteen broad areas remain open; overallPass=false and fullCustomerRetestComplete=false."
+    },
+    "openLimitations": [
+      "All fifteen explicitly named broader coverage areas below remain open; this is not an overall product pass.",
+      "Historical v1 scientific 2e0 failure is fixed and is not a current release hold.",
+      "Production app promotion is separate; shared gateway history query was updated in place with unchanged authorization and no revision pruning."
+    ],
+    "openBroadAreas": 15
   },
   "evidenceLevels": [
     "all-options",
@@ -802,222 +706,130 @@
     "collectionC411Native": "Historical precursor: c411 accepted repeated selection, source-binding repair, shared-component guard, pagination, and restoration while exposing two narrower follow-ups. Both follow-ups now pass on deployed 6cfa.",
     "cmsFollowupGallery": "Historical candidate comparison retained. Current acceptance comes from direct 6cfa native source-Undo and typed-filter evidence.",
     "collection6cfaNative": "Source-change Undo context passes. Typed filters pass 21/21 across Boolean aliases/Undo/Redo, Number zero/invalid correction, Date leap-day/invalid/contains, Option legacy/configured/substring, and Reference label/runtime. Only SIL and final Boolean No were individually reloaded; 414px canvas/399px client has no horizontal overflow.",
-    "wordpressPreview44": "Preview44 clean-state fix is committed/installed and passes four cases including Quote→Paragraph and focused Size Edit/Undo-clean; no Save was clicked and settled Save is disabled. Older native acceptance is historical before adapter fix; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router.",
+    "wordpressPreview44": "Preview44 clean-state fix is committed/installed and passes four cases including Quote\u2192Paragraph and focused Size Edit/Undo-clean; no Save was clicked and settled Save is disabled. Older native acceptance is historical before adapter fix; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router.",
     "collectionSiteCheckTarget": "Earlier 6cfa target defect is fixed and staging-accepted for Courtyard and page-2 Reading Room; CMS fixtures were restored. See native/staging-5da-site-check-item-target-fixed.json and native/staging-5da-site-check-page2-fixed.json.",
     "accordionB4Native": "Seventeen of seventeen finite content/runtime cases, ten module Style values, and ten module Advanced values pass reload; 5da label refresh and one-Undo restoration are accepted. Common Style/shared-CSS breadth remains open."
   },
   "remainingPriority": [
     {
       "priority": "P0",
-      "area": "Text/RichText",
-      "controls": [
-        "remaining responsive override/reset and full style matrix"
-      ],
+      "area": "Text / RichText shared Style and Advanced",
       "needs": [
-        "complete native breakpoint matrix",
-        "reset/inheritance",
-        "broader customer journey"
-      ]
+        "Complete common Style/Advanced settings, responsive reset, shared-style combinations, and public output."
+      ],
+      "status": "open"
     },
     {
       "priority": "P0",
-      "area": "Cloud List/collection",
-      "controls": [
-        "stage-accepted structured Site checks item targeting",
-        "larger datasets",
-        "broader save/reopen combinations",
-        "Style/Advanced/layout combinations",
-        "public Cloud Collection journeys"
-      ],
+      "area": "Collection / List broader settings and hosting",
       "needs": [
-        "fix confirmed Courtyard finding → Community Garden Show me mismatch; candidate is local/uncommitted",
-        "retain 6cfa source-Undo context and 21/21 typed-filter acceptance",
-        "do not claim persistence for all 21 cases; only SIL and final Boolean No were individually reloaded",
-        "retain c411 selection, source repair, shared-component guard, pagination, and restoration evidence",
-        "track WordPress dynamic fields separately; Collection is not a WordPress Add choice"
+        "Complete remaining typed-filter persistence, List shared Style/Advanced, larger datasets, and hosted public pagination."
       ],
-      "reports": [
-        "native/staging-6cfa-source-undo-context-fixed.json",
-        "native/staging-6cfa-typed-filter-acceptance.json",
-        "native/staging-6cfa-boolean-no-readable.jpg",
-        "native/staging-6cfa-boolean-no-mobile-readable.jpg",
-        "native/staging-6cfa-site-check-item-target-before.json",
-        "native/staging-6cfa-site-check-item-target-before.jpg"
-      ]
+      "status": "open"
     },
     {
       "priority": "P0",
-      "area": "Navigation authoring",
-      "controls": [
-        "WordPress sync/public route and broader responsive/style matrix"
-      ],
+      "area": "Navigation and native WordPress menus",
       "needs": [
-        "current WordPress menu sync",
-        "public route verification",
-        "remaining keyboard/focus and style cases"
-      ]
+        "Complete broader collapse/style combinations and actual native WordPress menu/component synchronization journey."
+      ],
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Typography breadth beyond Size",
+      "area": "Typography breadth",
       "needs": [
-        "retain accepted five-module Desktop/Tablet/Mobile Size roundtrip and exact restoration",
-        "test remaining weight, line height, letter spacing, family, transform, shared styles, and broader public journeys"
+        "Exercise remaining families, weights, spacing, transforms and shared typography on saved public output."
       ],
-      "reports": [
-        "native/staging-responsive-typography-roundtrip.json",
-        "native/staging-responsive-menu-restored.png"
-      ]
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Cloud save recovery",
+      "area": "Original Cloud save interruption",
       "needs": [
-        "retain native 502/identical-409/real-writer/unavailable-readback evidence",
-        "retain 6cfa valid backup, retry, and SIL reload recovery",
-        "if the interruption recurs, capture PUT/readback network failure and online/offline evidence; do not call it a heartbeat failure",
-        "verify hosted/public health"
+        "Controlled conflict recovery passed; establish the cause of the original unrelated host/save interruption if reproducible. History resource exhaustion is a separate fixed defect."
       ],
-      "reports": [
-        "native/staging-6cfa-save-interruption.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P0",
-      "area": "WordPress External HTTPS form",
+      "area": "WordPress External HTTPS Forms provider",
       "needs": [
-        "retain Preview40 native POST and GET controlled HTTP 200 echo receipts",
-        "retain exact POST action/method restoration after GET",
-        "managedForms=false; managed mode is not a WordPress requirement",
-        "provider/email fulfillment and external failure handling remain open"
+        "Complete actual captured email fulfillment, controlled provider failure, validation and Back/retry. Managed Forms remain unsupported."
       ],
-      "reports": [
-        "native/wordpress-preview40-external-https-form.json",
-        "native/wordpress-preview40-external-get-form.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P2",
-      "area": "Historical WP29 backup path",
-      "controls": [
-        "stale-design-conflict backup file receipt"
-      ],
+      "area": "Historical Preview29 backup gap",
       "needs": [
-        "retain exact-5ad Preview30 package/native and CMS acceptance",
-        "verify the separate historical WP29 conflict-backup receipt only if still required"
+        "Document unrecoverable historical backup evidence gap; current complete backups remain verified."
       ],
-      "reports": [
-        "native/wordpress-preview29-design-concurrency.json",
-        "wordpress-contract/preview30-pin.json",
-        "native/wordpress-preview30-view-only-final.json",
-        "native/staging-cms-partial-reference-fixed.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Structural editing",
+      "area": "Structural editing depth",
       "needs": [
-        "retain exact-ea9 multiselect labels/atomic Undo and component-properties reload evidence",
-        "keyboard shortcut paste, nesting, and deeper structural breadth"
+        "Complete remaining nesting, move, multiselect and cross-page/component structural journeys."
       ],
-      "reports": [
-        "native/staging-multiselect-history-fixed.json",
-        "native/staging-component-properties-variants.json",
-        "native/staging-keyboard-paste-control-limit.json",
-        "native/staging-reusable-component-structural.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Form completion",
+      "area": "Form module completion",
       "needs": [
-        "retain accepted full editor-control roundtrip and published validation/receipt proof",
-        "retain accepted Cloud/local managed Form request-ID recovery evidence",
-        "retain bounded Preview40 External HTTPS POST/GET echo receipts and exact POST restoration",
-        "provider/email fulfillment, external failure handling, and broader published customer combinations"
+        "Complete remaining fields/layout/Style/Advanced combinations and saved frontend journeys."
       ],
-      "reports": [
-        "native/staging-form-full-controls-roundtrip.json",
-        "native/staging-published-form-receipt.json",
-        "native/wordpress-preview40-external-https-form.json",
-        "native/wordpress-preview40-external-get-form.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Baseline modules",
-      "modules": [
-        "Accordion edited-row/context labels",
-        "remaining direct modules outside accepted matrix and Divider"
-      ],
+      "area": "Remaining module settings",
       "needs": [
-        "stage-accept the Accordion label refresh candidate; current defect leaves visible edit-row/context labels stale after blur",
-        "retain 17/17 Accordion content/runtime acceptance without extending it to persistence",
-        "reload the ten Accordion module Style checks and test common Advanced",
-        "native own-control roundtrip for remaining modules"
-      ]
+        "Complete finite remaining Content controls plus common Style/Advanced across baseline modules."
+      ],
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Preview42 host diagnostics and broader WordPress coverage",
+      "area": "WordPress broader compatibility",
       "needs": [
-        "retain 6/6 bounded native acceptance without a clean-console claim",
-        "classify or reproduce the two Electron sandbox/preload host errors if they affect a customer flow",
-        "continue broader WordPress module/public coverage"
+        "Complete remaining WordPress module/host journeys; separately retain Electron host errors without unsupported Pagecraft attribution."
       ],
-      "reports": [
-        "native/wordpress-preview42-native-acceptance.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P2",
-      "area": "Shared styles/status",
+      "area": "Shared styles and status breadth",
       "needs": [
-        "retain accepted Button class-deletion longhand retention on final d99",
-        "imported shorthand collision remains automated-only",
-        "automatic compound hover+focus preservation and broader site CSS/fonts/global/spacing/background/border/effects coverage remain open"
+        "Complete cross-module multi-setting updates, detachment, resets and persisted status feedback."
       ],
-      "reports": [
-        "native/staging-button-class-deletion-roundtrip-final.json",
-        "native/staging-shared-style-fixes.json",
-        "native/staging-compound-class-delete-guard.json"
-      ]
+      "status": "open"
     },
     {
       "priority": "P2",
-      "area": "CMS/WordPress",
+      "area": "CMS and WordPress dynamic fields",
       "needs": [
-        "broader content import/export and reusable component journeys beyond the bounded partial-reference case",
-        "WP publication/recovery",
-        "public routes"
-      ]
+        "Complete broader dynamic-field, CMS reference and import/export journeys."
+      ],
+      "status": "open"
     },
     {
       "priority": "P2",
-      "area": "Deployment/public health",
+      "area": "Deployment and public health",
       "needs": [
-        "retain 6cfa CI/deploy and exact staging readback",
-        "retain Preview42 6/6 bounded acceptance and its explicit Electron-host errors",
-        "investigate the save interruption if it recurs with request-level evidence",
-        "hosted public endpoint health, console/network, provider fulfillment, and production promotion"
-      ]
+        "Verify remaining hosted routes, publication artifacts and public operational behavior. Production promotion stays separate."
+      ],
+      "status": "open"
     },
     {
       "priority": "P1",
-      "area": "Color/custom CSS and cross-page guard",
+      "area": "Colours, Custom CSS and cross-page guards",
       "needs": [
-        "retain WP27 historical colour/text in-use and unused-resource acceptance",
-        "retain exact-ea9 palette add/rename/value/delete, same-dialog CSS, full reload and rendered literals",
-        "retain WP29 exact-9c concurrency acceptance",
-        "retain exact-5ad CMS partial-reference acceptance",
-        "verify separate WP29 stale-conflict backup receipt if required"
+        "Complete remaining colour/custom-CSS combinations and cross-page preservation checks."
       ],
-      "reports": [
-        "native/wordpress-preview27-resource-guards.json",
-        "native/wordpress-preview27-unused-resource-deletion.json",
-        "native/staging-settings-palette-fixed.json",
-        "native/wordpress-preview29-design-concurrency.json"
-      ]
+      "status": "open"
     }
   ],
   "reportingRules": {
@@ -1083,8 +895,354 @@
     "protectedAfter479": "After disposable post 479 save/reload/publish, all 14 protected fixtures remain strictly exact with no exceptions. Post 479 is separate and excluded from protected14.",
     "cmsScalarAuthoring": "Twenty-six entries and seven current fields support bounded authoring evidence. This is representative readback, not 26 full field-by-field acceptance or public Collection acceptance.",
     "cmsFollowupGallery": "Historical candidate comparison retained; direct 6cfa native evidence now accepts both follow-ups in bounded scope.",
-    "wordpressPreview44": "Preview44 clean-state fix is committed/installed and four cases pass, including Quote→Paragraph and focused Size Edit/Undo-clean; no Save was clicked and settled Save is disabled. Older native acceptance is historical before adapter fix; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router.",
+    "wordpressPreview44": "Preview44 clean-state fix is committed/installed and four cases pass, including Quote\u2192Paragraph and focused Size Edit/Undo-clean; no Save was clicked and settled Save is disabled. Older native acceptance is historical before adapter fix; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router.",
     "saveInterruption": "6cfa backup/retry/SIL-reload recovery passes. Cause is unconfirmed; the warning comes from save failure/readback, not editor heartbeat. Separate three-PUT-200 observation does not prove the incident cause.",
     "siteCheckItemTarget": "5da deployed/native acceptance covers Courtyard and page-2 Reading Room targeting with fixtures restored; broader Site checks coverage remains open."
+  },
+  "historicalCheckpoints": {
+    "d84-current-reconciliation-2026-10-17": {
+      "focused": "Final native/local-integer-controls-acceptance.json passes 14 bounded cases including fresh reload; Gallery 30/30 behavior and 24/24 images are accepted. Scientific 2e0 representation remains release-held; Slider worker v2 is in progress and not preclaimed. Navigation is bounded accepted with broader combinations open.",
+      "isolated": "Staging Semantic Add accepts six click/drag/Redo cases; WordPress accepts five host-supported cases with Save disabled and original IDs exact. Gallery common Style has 12 finite cases with persistence/reset and exact original structure restoration.",
+      "pageLinks": "Preview36 native page links accepted: 16 canonical pages, clean view-only, blocked GET error/Retry recovery, explicit empty/Home/current-page behavior, save/reload/public follow, ordinary Save raw-legacy self-link repair, protected 10 exact, coherent revisions, final v18 canonical URL+HTML.",
+      "pageLinkEvidence": [
+        "native/wordpress-preview36-native-page-links.json",
+        "wordpress-contract/preview36-native-436-route-repair-readonly.json",
+        "wordpress-contract/preview36-native-436-page-picker-final-readonly.json"
+      ],
+      "preview40": "Historical bounded acceptance retained for Preview40 External HTTPS POST/GET echo receipts; provider/email fulfillment remains open.",
+      "newAcceptedJourneys": [
+        "native/staging-b10-review-label-fixed.json",
+        "native/staging-782-review-owner-actions.json",
+        "native/staging-code-language-matrix.json",
+        "native/staging-table-finite-content-matrix.json",
+        "native/staging-782-rich-text-label-fixed.json",
+        "native/staging-782-inline-edit-view-only.json",
+        "native/wordpress-preview40-mobile-library.json",
+        "native/staging-cms-scalar-matrix.json",
+        "native/wordpress-preview40-external-https-form.json",
+        "native/wordpress-preview40-external-get-form.json",
+        "native/staging-cms-zero-false-readable.jpg",
+        "wordpress-contract/preview40-post-479-protected14-readonly.json",
+        "native/staging-c411-collection-selection-fixed.json",
+        "native/staging-c411-collection-source-swap.json",
+        "native/staging-c411-component-source-guard.json",
+        "native/staging-c411-scalar-query-runtime.json",
+        "native/staging-6cfa-source-undo-context-fixed.json",
+        "native/staging-6cfa-typed-filter-acceptance.json",
+        "native/staging-6cfa-boolean-no-readable.jpg",
+        "native/staging-6cfa-boolean-no-mobile-readable.jpg",
+        "native/wordpress-preview42-native-acceptance.json",
+        "native/staging-6cfa-accordion-content-matrix.json",
+        "native/staging-5da-site-check-item-target-fixed.json",
+        "native/staging-5da-site-check-page2-fixed.json",
+        "native/staging-5da-accordion-label-fixed.json",
+        "native/staging-93db-visibility-fixed.json",
+        "native/staging-93db-tabs-content-style-acceptance.json",
+        "native/staging-93db-form-label-fixed.json",
+        "native/staging-93db-nav-label-fixed.json",
+        "native/staging-2a-slider-keyboard-acceptance.json",
+        "native/staging-b4-slider-style-advanced-structure.json",
+        "native/staging-b4-slider-in-progress.json",
+        "native/staging-09-video-acceptance.json",
+        "native/staging-1c-focus-refresh-acceptance.json",
+        "native/staging-2a-slider-keyboard-acceptance.json",
+        "native/staging-c670-navigator-acceptance.json",
+        "native/staging-c670-gallery-keyboard-acceptance.json",
+        "native/staging-1c-gallery-content-in-progress.json",
+        "native/staging-1c-gallery-responsive-in-progress.json",
+        "native/staging-1c-focus-refresh-acceptance.json",
+        "native/staging-c670-gallery-responsive-acceptance.json",
+        "native/staging-c670-gallery-advanced-acceptance.json",
+        "native/wordpress-runtime-resolution-acceptance.json",
+        "native/wordpress-preview48-slider-add-history.json",
+        "native/staging-c670-gallery-visibility-acceptance.json",
+        "native/staging-23939-semantic-add-acceptance.json",
+        "native/wordpress-preview49-semantic-add-acceptance.json",
+        "native/staging-23939-gallery-common-style-acceptance.json",
+        "native/staging-23939-gallery-background-acceptance.json",
+        "native/staging-23939-gallery-border-edges-acceptance.json"
+      ],
+      "openLimitations": [
+        "native/wordpress-preview36-native-block-editor-empty.json: ordinary WordPress block-editor canvas blank after reload; no Pagecraft cause confirmed",
+        "Only SIL Option contains and final Boolean No were individually reloaded; the other typed-filter cases are native control/runtime acceptance, not persistence proof.",
+        "Public Cloud Collection routes and remaining Style/Advanced/layout combinations remain open.",
+        "native/staging-6cfa-save-interruption.json: backup/retry/reload recovery passed, but the original host disconnect cause is unconfirmed and is not an editor-heartbeat finding.",
+        "Preview40 controlled External HTTPS POST/GET echo receipt does not prove provider/email fulfillment or external failure handling.",
+        "native/staging-532-cms-image-remove-fixed.json: CMS image removal and restored empty item pass in bounded staging evidence; broader CMS image coverage remains open.",
+        "Accordion: label refresh and visibility fixes are staging-accepted; ten module Style values and ten Advanced values pass reload. Common Style/shared-CSS breadth and broader persistence remain open.",
+        "Tabs: 16 content/runtime cases, eight module Style values, three alignment options, keyboard/pointer/mobile behavior, and reload pass; common Style/Advanced remains unclaimed.",
+        "native/staging-532-publication-validation-fixed.json: exact Show me validation reaches actionable 422; public publication and production readiness remain unproven.",
+        "Full suite records 2343 passed / 5 skipped tests across 206 files / 2 skipped; gallery records 30 behavior checks and 24 byte-exact captures. This remains scoped evidence.",
+        "Controlled two-tab conflict/recovery passes versions 508/509 with valid 295312-byte/9-page backup and exact original RichHTML fresh reload; generic export is 295331 bytes/9 pages. Private 0600 copies are not committed. Original ambiguous network-save cause remains unproven.",
+        "RichText\u2192Quote\u2192Paragraph deletion bounded acceptance passes in native/staging-b4-richtext-acceptance.json: eight block/inline-toolbar runtime cases, three separately persisted D/T/M typography matrices, four line-height unit runtime cases, one Undo/Redo, and fresh single-session reload. Thirty-five other runtime cases are not all persisted; broader RichText/module coverage remains open.",
+        "Slider: six native/device Home/End cases plus unit-only reduced-motion/nested-descendant evidence; one Style+Advanced fresh-reload/restore flow, duplicate/move/delete Undo/Redo, and finite content runtime. Full module/Add-slide UX remains open.",
+        "Dependency audit: three dev-only high nodes are one GHSA-vfj7-8cjw-p6xm Braces chain; no official patched release, proposed npm plugin 0.9 incompatible with Vite 8, vulnerable parser not called by default inlinePattern, production audit 0; tracked exception with no speculative override.",
+        "native/staging-c670-navigator-acceptance.json: physical fresh label click plus Hide/Undo pass; raw CDP hover blocked before input, keyboard focus width stable, and one stale first physical attempt after focus scroll classified as harness behavior.",
+        "native/staging-1c-gallery-content-in-progress.json: 15 Content cases pass; native/staging-1c-gallery-responsive-in-progress.json: three D/T/M responsive persistence cases pass, final restoration readback pending, original M gap 8px/columns 2 preserved.",
+        "Source c6702371 passes 5 skipped, 30 behavior checks, and 24 pixel-exact gallery checks; this does not close native Gallery Style/Advanced.",
+        "native/staging-c670-gallery-responsive-acceptance.json: three D/T/M persistence cases and final original restoration pass; Desktop/Tablet gap 20px/radius 16, Mobile gap 8px/columns 2 preserved with clear overrides.",
+        "native/wordpress-runtime-resolution-acceptance.json: eight Gallery D/M and six Slider D/T/M Home/End cases pass with real reduced-motion, no overflow, and 14 total pass; existing published protected436 without Save uses one current plugin runtime, with 414 navigation opening three links and Escape closing. No post/meta/generated-file writes were made.",
+        "native/wordpress-preview48-slider-add-history.json: wrong Undo Add-column is recorded; atomic Undo/Redo passes and the P2 fix remains pending.",
+        "native/staging-c670-gallery-visibility-acceptance.json: 9/9 independent D/T/M visibility cases pass and all are restored.",
+        "Inactive Builder retains one deterministic persisted page/template/header/footer fallback; PHP contract covers live plugin only. Existing Gutenberg blank iframe remains a host limitation.",
+        "Gallery Fadeout entrance UX and partial timing fixes have source/tests ready with dual-build/focused 22 green; final full native verification remains pending.",
+        "native/staging-23939-gallery-spacing-acceptance.json: rem/em/% spacing and negative margins pass with reset/fresh persistence; negative Padding -1% is UI-valid but renders 0px; Controls fix and three focused tests have clean-archive red/green evidence pending full/native integration.",
+        "native/staging-c336-gallery-focus-state-before.json and .jpg: keyboard anchor is :focus-visible while nonfocusable Gallery parent style does not match; worker fix pending native retest.",
+        "Gallery broader Style/Advanced/background/border/motion/visibility coverage remains open; all fifteen broad areas remain open.",
+        "Cloud saved Bounce Delay 0.2/Once renders expected attributes after fresh reload on Desktop/Mobile; reset to None and fresh reload remain pending.",
+        "Combined full suite records 2393 passed / 5 skipped, 30 behavior checks, 24 images with zero reviewed pixel differences, dual 11-run determinism, and protected11 exact; this remains bounded evidence.",
+        "native/staging-75ed-focus-spacing-acceptance.json: six negative-padding D/T/M cases across four units, valid negative Margin, Undo/Redo, and ten Focus keyboard/pointer/class-cascade D/T/M cases pass; lightbox-off preservation, re-enable, and original IDs restore fresh.",
+        "native/staging-c336-gallery-motion-persistence.json: Cloud None/Transition restoration passes fresh and hover Transition is retained; broader motion remains open.",
+        "native/wordpress-preview51-motion-focus-acceptance.json: seven motion cases plus Padding and Focus D/M pass; KSES save/editor/fresh/public D/T/M and reduced-motion attributes are accepted.",
+        "Navigation stale PHP component definitions are a concrete bounded finding; reviewed uncommitted fix is pending, broader Navigation remains unaccepted. Custom generated mobile-menu snapshot divergence is under design ownership review.",
+        "native/staging-75ed-focus-spacing-acceptance.json: six negative-padding D/T/M cases across four units, valid negative Margin, Undo/Redo, and ten Focus keyboard/pointer/class-cascade D/T/M cases pass; lightbox-off preservation, re-enable, and original IDs restore fresh.",
+        "native/staging-c336-gallery-motion-persistence.json: Cloud None/Transition restoration passes fresh and hover Transition is retained; broader motion remains open.",
+        "native/wordpress-preview51-motion-focus-acceptance.json: seven motion cases plus Padding and Focus D/M pass; KSES save/editor/fresh/public D/T/M and reduced-motion attributes are accepted.",
+        "Navigation stale PHP component definitions are a concrete bounded finding; reviewed uncommitted fix is pending, broader Navigation remains unaccepted. Custom generated mobile-menu snapshot divergence is under design ownership review.",
+        "native/staging-75ed-richtext-alignment-link-acceptance.json: 12 finite D/T/M alignment choices, three persisted alignment matrices, toolbar link add/remove/query and entity escaping, three custom link-colour save/reload/preview cases, exact original restoration, and readable mobile proof pass; broader Advanced/common Style/shared-text coverage remains open.",
+        "native/staging-75ed-collection-layout-acceptance.json: 13 content/layout cases, three saved 5% Slider Home/End D/T/M cases, and exact fresh restoration pass; hidden limit 1, per-page 2, Grid, D gap 18, and M gap 20 are scoped; broader List Style/Advanced/public/larger-dataset coverage remains open.",
+        "c73 Navigation Unit/Wrap native acceptance is in progress; navigation-units build records 2399 passed / 5 skipped, 30/30 behavior, and 24/24 zero-pixel images only.",
+        "Mobile-menu candidate has 99 focused tests green in isolation only, without integration/native acceptance; no new filter acceptance is claimed.",
+        "native/staging-c73-unit-wrap-acceptance.json: 18 cases pass with saved Gap 0 and Columns 1 fresh reload, negative Top/Z-index and Button letter-spacing D/T/M retention, initial values restored fresh, and IDs exact.",
+        "native/staging-c73-collection-filter-acceptance.json: Title five operators, Photo/Photo Description presence, five-record CMS UI audit, and saved Contains D/T/M pass with restoration; initial all-Photo expectation was a fixture assumption corrected by CMS and no CMS entries were saved.",
+        "WP52 native/wordpress-preview52-numeric-acceptance.json and final guards complete: exact authoritative 11 editable data-ids, revisions 501/502, protected15/legacy14 unchanged, broad baseline 92ba2a482c8a144ef6591e6aee5c8b86da3a8247a922e274897fa9a73390a0cc exact.",
+        "WP53 installed e19724eb50851f61bbb26ed2c97b76bd3ab480f2, CI 39021774627 all PHP green; Follow53 restore and final guard pending.",
+        "native/staging-d84-managed-background-before.json and native/staging-d84-nav-focus-before.json confirm ineffective managed Menu background and missing authored Nav Focus styles on keyboard-focused descendants; four-file candidate is unshipped despite dual-build 2413/5 and unchanged canonical fingerprints.",
+        "WP53 native/wordpress-preview53-follow-acceptance.json final complete/restored: authoritative 11 editable data-ids, six revisions 503-508, document 8->11, protected15/legacy14 exact, canonical restored content exact; package evidence 7ba16caac48e810d8c12bf40947a437e99a1ad83 CI 39023315271 all PHP green, final guard broad 04c4755ca6daae5313608a20b8734fe7767b526d40b0d6893983ae887b1a272e exact.",
+        "native/local-follow-component-preview-empty.jpg confirms Edit preview shows three links while component Preview drops all; two-source candidate /tmp/pagecraft-nav-combined-one-d84-v1 unshipped with native-after pending.",
+        "Source 02979a836aff95253ee01cecb6dc92b37b2abe6e is shipped, but CI/deploy and staging/native acceptance remain pending; staging remains d84 until marker verification.",
+        "native/local-nav-combined-acceptance.json: seven local cases pass, including Follow Preview and keyboard Focus D/T/M; this does not establish staging acceptance.",
+        "native/staging-029-nav-acceptance.json: nine cases pass/restored fresh, including Follow component Preview, Focus D/T/M, managed Menu background, Mobile common background, legacy Custom Header, IDs exact, and ordinary collapsed toggle; pointer was tested and does not activate Focus; Escape and keyboard Focus remain distinct.",
+        "native/staging-fractional-count-before.json: Columns 2.5 step mismatch exports one 1200px track instead of 590px/590px; relative Z 2.5 exports auto while Z 2 exports 2; restored fresh with IDs exact. Candidate 33740caafca9393b666f14ba6cec1f0766ac4c05 is outside Main and unintegrated.",
+        "native/wordpress-preview54-nav-acceptance.json: nine bounded cases pass/restored with actual Save/frontend Preview, Follow mode, parent Focus D/T/M, managed-mobile Focus distinction, tested pointer nonactivation, Escape, and component Edit links D/T/M; toolbar uses intentional native frontend Preview dialog, not WP inline component-runtime Preview.",
+        "WP54 evidence 369710ccab76ffb6cd14dc4c415e78d35e5ef880 CI 39027314318 all PHP green; final guard base 1a6b9ddfafc947209bc1c50273b1d8c72c04e451285621f0bd3e899783d04713 exact.",
+        "native/staging-029-nav-acceptance.json and native/wordpress-preview54-nav-acceptance.json: bounded navigation/Follow/Focus/managed-mobile acceptance, with pointer tested and nonactivating Focus; native frontend Preview dialog is intentional, and no WP inline component-runtime Preview claim is made.",
+        "WP54 guard is exact for protected/restored content scope; raw broad guard changes are limited to accepted fixture/post-count/revision-meta scope, not every broad metadata field.",
+        "native/local-integer-controls-acceptance.json: 14 bounded cases pass including fresh reload; Gallery 30/30 behavior and 24/24 images are accepted.",
+        "Scientific 2e0 representation remains a separate release-held boundary; Slider worker v2 is in progress and not preclaimed."
+      ],
+      "remainingAreas": 15,
+      "overallPass": false,
+      "operationalFindingEvidence": [
+        "native/staging-6cfa-save-interruption.json"
+      ],
+      "preview50": "Preview50 installed; WordPress KSES strips bp-duration, bp-delay, bp-easing, and animation-once from saved output despite editor persistence. Real-Local KSES red/green manual gate confirms this bounded defect.",
+      "preview51": "WP51 installed and accepted: package 1b8f23d..., evidence 23934e10dee5c6f10e119504fa1c24e22b0942b0, CI 39015364932 green; native wordpress-preview51-motion-focus-acceptance.json passes seven motion cases plus Padding and Focus D/M. KSES fix is accepted across save/editor/fresh/public D/T/M and reduced-motion attributes. Protected15/legacy14/broad guards exact; Theme unchanged."
+    },
+    "d84-open-limitations-2026-10-17": [],
+    "d84-remaining-priority-2026-10-17": [
+      {
+        "priority": "P0",
+        "area": "Text/RichText",
+        "controls": [
+          "remaining responsive override/reset and full style matrix"
+        ],
+        "needs": [
+          "complete native breakpoint matrix",
+          "reset/inheritance",
+          "broader customer journey"
+        ]
+      },
+      {
+        "priority": "P0",
+        "area": "Cloud List/collection",
+        "controls": [
+          "stage-accepted structured Site checks item targeting",
+          "larger datasets",
+          "broader save/reopen combinations",
+          "Style/Advanced/layout combinations",
+          "public Cloud Collection journeys"
+        ],
+        "needs": [
+          "fix confirmed Courtyard finding \u2192 Community Garden Show me mismatch; candidate is local/uncommitted",
+          "retain 6cfa source-Undo context and 21/21 typed-filter acceptance",
+          "do not claim persistence for all 21 cases; only SIL and final Boolean No were individually reloaded",
+          "retain c411 selection, source repair, shared-component guard, pagination, and restoration evidence",
+          "track WordPress dynamic fields separately; Collection is not a WordPress Add choice"
+        ],
+        "reports": [
+          "native/staging-6cfa-source-undo-context-fixed.json",
+          "native/staging-6cfa-typed-filter-acceptance.json",
+          "native/staging-6cfa-boolean-no-readable.jpg",
+          "native/staging-6cfa-boolean-no-mobile-readable.jpg",
+          "native/staging-6cfa-site-check-item-target-before.json",
+          "native/staging-6cfa-site-check-item-target-before.jpg"
+        ]
+      },
+      {
+        "priority": "P0",
+        "area": "Navigation authoring",
+        "controls": [
+          "WordPress sync/public route and broader responsive/style matrix"
+        ],
+        "needs": [
+          "current WordPress menu sync",
+          "public route verification",
+          "remaining keyboard/focus and style cases"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Typography breadth beyond Size",
+        "needs": [
+          "retain accepted five-module Desktop/Tablet/Mobile Size roundtrip and exact restoration",
+          "test remaining weight, line height, letter spacing, family, transform, shared styles, and broader public journeys"
+        ],
+        "reports": [
+          "native/staging-responsive-typography-roundtrip.json",
+          "native/staging-responsive-menu-restored.png"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Cloud save recovery",
+        "needs": [
+          "retain native 502/identical-409/real-writer/unavailable-readback evidence",
+          "retain 6cfa valid backup, retry, and SIL reload recovery",
+          "if the interruption recurs, capture PUT/readback network failure and online/offline evidence; do not call it a heartbeat failure",
+          "verify hosted/public health"
+        ],
+        "reports": [
+          "native/staging-6cfa-save-interruption.json"
+        ]
+      },
+      {
+        "priority": "P0",
+        "area": "WordPress External HTTPS form",
+        "needs": [
+          "retain Preview40 native POST and GET controlled HTTP 200 echo receipts",
+          "retain exact POST action/method restoration after GET",
+          "managedForms=false; managed mode is not a WordPress requirement",
+          "provider/email fulfillment and external failure handling remain open"
+        ],
+        "reports": [
+          "native/wordpress-preview40-external-https-form.json",
+          "native/wordpress-preview40-external-get-form.json"
+        ]
+      },
+      {
+        "priority": "P2",
+        "area": "Historical WP29 backup path",
+        "controls": [
+          "stale-design-conflict backup file receipt"
+        ],
+        "needs": [
+          "retain exact-5ad Preview30 package/native and CMS acceptance",
+          "verify the separate historical WP29 conflict-backup receipt only if still required"
+        ],
+        "reports": [
+          "native/wordpress-preview29-design-concurrency.json",
+          "wordpress-contract/preview30-pin.json",
+          "native/wordpress-preview30-view-only-final.json",
+          "native/staging-cms-partial-reference-fixed.json"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Structural editing",
+        "needs": [
+          "retain exact-ea9 multiselect labels/atomic Undo and component-properties reload evidence",
+          "keyboard shortcut paste, nesting, and deeper structural breadth"
+        ],
+        "reports": [
+          "native/staging-multiselect-history-fixed.json",
+          "native/staging-component-properties-variants.json",
+          "native/staging-keyboard-paste-control-limit.json",
+          "native/staging-reusable-component-structural.json"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Form completion",
+        "needs": [
+          "retain accepted full editor-control roundtrip and published validation/receipt proof",
+          "retain accepted Cloud/local managed Form request-ID recovery evidence",
+          "retain bounded Preview40 External HTTPS POST/GET echo receipts and exact POST restoration",
+          "provider/email fulfillment, external failure handling, and broader published customer combinations"
+        ],
+        "reports": [
+          "native/staging-form-full-controls-roundtrip.json",
+          "native/staging-published-form-receipt.json",
+          "native/wordpress-preview40-external-https-form.json",
+          "native/wordpress-preview40-external-get-form.json"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Baseline modules",
+        "modules": [
+          "Accordion edited-row/context labels",
+          "remaining direct modules outside accepted matrix and Divider"
+        ],
+        "needs": [
+          "stage-accept the Accordion label refresh candidate; current defect leaves visible edit-row/context labels stale after blur",
+          "retain 17/17 Accordion content/runtime acceptance without extending it to persistence",
+          "reload the ten Accordion module Style checks and test common Advanced",
+          "native own-control roundtrip for remaining modules"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Preview42 host diagnostics and broader WordPress coverage",
+        "needs": [
+          "retain 6/6 bounded native acceptance without a clean-console claim",
+          "classify or reproduce the two Electron sandbox/preload host errors if they affect a customer flow",
+          "continue broader WordPress module/public coverage"
+        ],
+        "reports": [
+          "native/wordpress-preview42-native-acceptance.json"
+        ]
+      },
+      {
+        "priority": "P2",
+        "area": "Shared styles/status",
+        "needs": [
+          "retain accepted Button class-deletion longhand retention on final d99",
+          "imported shorthand collision remains automated-only",
+          "automatic compound hover+focus preservation and broader site CSS/fonts/global/spacing/background/border/effects coverage remain open"
+        ],
+        "reports": [
+          "native/staging-button-class-deletion-roundtrip-final.json",
+          "native/staging-shared-style-fixes.json",
+          "native/staging-compound-class-delete-guard.json"
+        ]
+      },
+      {
+        "priority": "P2",
+        "area": "CMS/WordPress",
+        "needs": [
+          "broader content import/export and reusable component journeys beyond the bounded partial-reference case",
+          "WP publication/recovery",
+          "public routes"
+        ]
+      },
+      {
+        "priority": "P2",
+        "area": "Deployment/public health",
+        "needs": [
+          "retain 6cfa CI/deploy and exact staging readback",
+          "retain Preview42 6/6 bounded acceptance and its explicit Electron-host errors",
+          "investigate the save interruption if it recurs with request-level evidence",
+          "hosted public endpoint health, console/network, provider fulfillment, and production promotion"
+        ]
+      },
+      {
+        "priority": "P1",
+        "area": "Color/custom CSS and cross-page guard",
+        "needs": [
+          "retain WP27 historical colour/text in-use and unused-resource acceptance",
+          "retain exact-ea9 palette add/rename/value/delete, same-dialog CSS, full reload and rendered literals",
+          "retain WP29 exact-9c concurrency acceptance",
+          "retain exact-5ad CMS partial-reference acceptance",
+          "verify separate WP29 stale-conflict backup receipt if required"
+        ],
+        "reports": [
+          "native/wordpress-preview27-resource-guards.json",
+          "native/wordpress-preview27-unused-resource-deletion.json",
+          "native/staging-settings-palette-fixed.json",
+          "native/wordpress-preview29-design-concurrency.json"
+        ]
+      }
+    ]
   }
 }
