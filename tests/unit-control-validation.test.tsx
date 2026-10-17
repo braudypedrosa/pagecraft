@@ -81,6 +81,149 @@ test('Gallery columns honor their explicit minimum while legitimate negative con
   }
 });
 
+test('integer CSS controls round fractional input while lengths retain decimals', () => {
+  const gallery = node('gallery');
+  const columns = C.DEF.gallery.controls.content.find(control => control.c === '--g-cols')!;
+  const columnsInput = enter(gallery, columns, '2.5');
+  assert.equal(columnsInput.value, '3');
+  assert.equal(gallery.css.d['--g-cols'], '3');
+  r.draw(null);
+
+  const heading = node();
+  const zIndex = advControls(heading).find(control => control.c === 'z-index')!;
+  const zInput = enter(heading, zIndex, '2.5');
+  assert.equal(zInput.value, '3');
+  assert.equal(heading.css.d['z-index'], '3');
+  r.draw(null);
+
+  const length = advControls(heading).find(control => control.c === 'top')!;
+  const lengthInput = enter(heading, length, '2.5');
+  assert.equal(lengthInput.value, '2.5');
+  assert.equal(heading.css.d.top, '2.5px');
+});
+
+test('integer controls canonicalize finite numeric spellings without rewriting lengths', () => {
+  const heading = node();
+  const zIndex = advControls(heading).find(control => control.c === 'z-index')!;
+  for (const [raw, expected] of [
+    ['2e0', '2'], ['2.0', '2'], ['-2e0', '-2'], ['2e-1', '0'], ['-0', '0'],
+    ['1e21', '1000000000000000000000'],
+  ]) {
+    const input = enter(heading, zIndex, raw);
+    assert.equal(input.value, expected);
+    assert.equal(heading.css.d['z-index'], expected);
+    r.draw(null);
+  }
+
+  const length = advControls(heading).find(control => control.c === 'top')!;
+  const lengthInput = enter(heading, length, '2e0');
+  assert.equal(lengthInput.value, '2e0');
+  assert.equal(heading.css.d.top, '2e0px');
+
+  r.draw(null);
+  const gallery = node('gallery');
+  const columns = C.DEF.gallery.controls.content.find(control => control.c === '--g-cols')!;
+  const columnsInput = enter(gallery, columns, '2e-1');
+  assert.equal(columnsInput.value, '1');
+  assert.equal(gallery.css.d['--g-cols'], '1');
+});
+
+test('unit parsing and remount preserve valid scientific and decimal lengths', () => {
+  assert.deepEqual(C.parseU('2e0px'), { n: '2e0', u: 'px' });
+  assert.deepEqual(C.parseU('+2E-1REM'), { n: '2E-1', u: 'rem' });
+  assert.deepEqual(C.parseU('2.50em'), { n: '2.50', u: 'em' });
+  assert.deepEqual(C.parseU('-.5vh'), { n: '-.5', u: 'vh' });
+  assert.deepEqual(C.parseU('var(--space)'), { n: '', u: '' });
+  assert.deepEqual(C.parseU('calc(2px + 1rem)'), { n: '', u: '' });
+
+  const heading = node();
+  const top = advControls(heading).find(control => control.c === 'top')!;
+  heading.css.d.top = '2e0px';
+  r.draw(<Ctl n={heading} c={top} />);
+  assert.equal(valueInput().value, '2e0');
+
+  r.draw(null);
+  r.draw(<Ctl n={heading} c={top} />);
+  assert.equal(valueInput().value, '2e0');
+  assert.equal(heading.css.d.top, '2e0px');
+});
+
+test('renderer normalizes legacy fractional integer CSS values without changing lengths', () => {
+  const gallery = node('gallery');
+  gallery.css.d['--g-cols'] = '2.5';
+  let buckets = { d: '', t: '', m: '' };
+  C.nodeCss(gallery, false, buckets);
+  assert.match(buckets.d, /--g-cols:3;/);
+
+  const heading = node();
+  heading.css.d['z-index'] = '-2.5';
+  heading.css.d.top = '2.5px';
+  buckets = { d: '', t: '', m: '' };
+  C.nodeCss(heading, false, buckets);
+  assert.match(buckets.d, /z-index:-2;/);
+  assert.match(buckets.d, /top:2.5px;/);
+});
+
+test('renderer canonicalizes finite scientific and legacy integer declarations', () => {
+  const gallery = node('gallery');
+  const heading = node();
+  const cases = [
+    ['--g-cols', gallery, '2e0', '2'],
+    ['--g-cols', gallery, '2e-1px', '1'],
+    ['z-index', heading, '+2', '2'],
+    ['z-index', heading, '2.0', '2'],
+    ['z-index', heading, '-2e0', '-2'],
+    ['z-index', heading, '-0', '0'],
+    ['z-index', heading, '1e21', '1000000000000000000000'],
+  ] as const;
+
+  for (const [key, target, raw, expected] of cases) {
+    target.css.d[key] = raw;
+    const buckets = { d: '', t: '', m: '' };
+    C.nodeCss(target, false, buckets);
+    assert.ok(buckets.d.includes(`${key}:${expected};`), `${key}:${raw} should compile as ${expected}`);
+    delete target.css.d[key];
+  }
+
+  heading.css.d.top = '2e0px';
+  const buckets = { d: '', t: '', m: '' };
+  C.nodeCss(heading, false, buckets);
+  assert.match(buckets.d, /top:2e0px;/);
+});
+
+test('renderer preserves existing nonnumeric CSS values for integer-key declarations', () => {
+  const heading = node();
+  for (const value of ['auto', 'var(--layer)', 'calc(2 + 1)']) {
+    heading.css.d['z-index'] = value;
+    const buckets = { d: '', t: '', m: '' };
+    C.nodeCss(heading, false, buckets);
+    assert.ok(buckets.d.includes(`z-index:${value};`));
+  }
+
+  const gallery = node('gallery');
+  gallery.css.d['--g-cols'] = 'var(--columns)';
+  const buckets = { d: '', t: '', m: '' };
+  C.nodeCss(gallery, false, buckets);
+  assert.match(buckets.d, /--g-cols:var\(--columns\);/);
+});
+
+test('integer controls keep negative Z-index, clamp zero Gallery columns, and clear empty input', () => {
+  const heading = node();
+  const zIndex = advControls(heading).find(control => control.c === 'z-index')!;
+  const zInput = enter(heading, zIndex, '-2.5');
+  assert.equal(zInput.value, '-2');
+  assert.equal(heading.css.d['z-index'], '-2');
+  r.draw(null);
+
+  const gallery = node('gallery');
+  const columns = C.DEF.gallery.controls.content.find(control => control.c === '--g-cols')!;
+  const columnsInput = enter(gallery, columns, '0.4');
+  assert.equal(columnsInput.value, '1');
+  assert.equal(gallery.css.d['--g-cols'], '1');
+  act(() => r.type(columnsInput, ''));
+  assert.equal(gallery.css.d['--g-cols'], undefined);
+});
+
 test('explicit bounds clamp only out-of-range finite values and empty input still clears', () => {
   const n = node();
   const bounded: Control = { t: 'unit', c: 'width', label: 'Width', r: 1, min: 2, max: 5, units: ['px'] };

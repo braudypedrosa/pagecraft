@@ -1,0 +1,14 @@
+{
+  "candidateSource": "33740caafca9393b666f14ba6cec1f0766ac4c05",
+  "input": "2e0",
+  "after": {
+    "stepMismatch": false,
+    "value": ""
+  },
+  "render": {
+    "columns": "2e0",
+    "tracks": "1200px"
+  },
+  "confirmed": true,
+  "note": "First integer candidate passes fractional cases but leaves integer-valued scientific notation raw; not deployed."
+}

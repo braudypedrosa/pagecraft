@@ -467,6 +467,8 @@ export type ControlKind =
 export interface Control {
   t: ControlKind;
   label: string;
+  /** Numeric controls that write CSS integer grammars, such as repeat() counts or z-index. */
+  integer?: 1;
   /** Compact rows are opt-in after reviewing the label and choices. */
   layout?: 'inline';
   /** A colour that paints a background can also own a gradient. Text and border colours

@@ -1,0 +1,52 @@
+{
+  "sourceCommit": "d84e79da7444500283b549cdb457b2a635063cf1",
+  "fixture": "https://staging.itspagecraft.com/edit/c11494e8-3ae5-4be0-b707-e937278a710a",
+  "before": {
+    "columns": "2",
+    "tracks": "590px 590px"
+  },
+  "cases": [
+    {
+      "name": "Gallery decimal Columns",
+      "input": {
+        "step": "1",
+        "stepMismatch": true,
+        "value": "2.5"
+      },
+      "columns": "2.5",
+      "tracks": "1200px"
+    },
+    {
+      "name": "Positioned Gallery decimal Z-index",
+      "input": {
+        "step": "1",
+        "stepMismatch": true,
+        "value": "2.5"
+      },
+      "position": "relative",
+      "zIndex": "auto"
+    },
+    {
+      "name": "Positioned Gallery valid integer Z-index control",
+      "position": "relative",
+      "zIndex": "2"
+    }
+  ],
+  "restored": true,
+  "undoLabels": [
+    "Undo: Change gallery position (⌘Z)",
+    "Undo: Change gallery position (⌘Z)",
+    "Undo: Change gallery position (⌘Z)"
+  ],
+  "localRestoration": {
+    "columns": "2",
+    "position": "relative",
+    "tracks": "590px 590px",
+    "zIndex": "auto"
+  },
+  "freshRestoration": {
+    "idsExact": true,
+    "columns": "2",
+    "freshReload": true
+  }
+}

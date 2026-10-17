@@ -1,0 +1,10 @@
+Server session: 39769
+Gallery URL: http://localhost:4944/internal/components
+Capture directory: /private/tmp/pagecraft-integer-v2-one-029/qa-evidence/integer-controls-v2/gallery/integer-controls-v2-final
+After root writes behavior-checks.json, use the built-in browser tab:
+var captureModule = await import('/private/tmp/pagecraft-integer-v2-one-029/tools/capture-ui-gallery.mjs');
+var captureDirectory = '/private/tmp/pagecraft-integer-v2-one-029/qa-evidence/integer-controls-v2/gallery/integer-controls-v2-final';
+await captureModule.captureGallery(tab, captureDirectory,
+  await captureModule.readBehaviorChecks(captureDirectory));
+Compare only in this phase; do not record:
+node tools/ui-baselines.mjs compare /private/tmp/pagecraft-integer-v2-one-029/qa-evidence/integer-controls-v2/gallery/integer-controls-v2-final

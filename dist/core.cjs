@@ -3198,7 +3198,7 @@ var DEF = {
     controls: {
       content: [
         { t: "imgs", k: "items", label: "Images" },
-        { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
+        { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, integer: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
         { t: "select", k: "ratio", label: "Tile shape", opts: [["4 / 3", "4:3"], ["1 / 1", "Square"], ["3 / 2", "3:2"], ["16 / 9", "16:9"], ["3 / 4", "3:4 portrait"], ["", "Whatever each image is"]] },
         { t: "select", k: "fit", label: "Fit", opts: [["cover", "Cover \u2014 fill and crop"], ["contain", "Contain \u2014 fit inside"]] },
         { t: "toggle", k: "lightbox", label: "Open full size on click" },
@@ -4483,8 +4483,11 @@ function classMove(id, dir) {
 }
 function parseU(v) {
   const s = String(v == null ? "" : v).trim();
-  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
-  return m ? { n: m[1], u: m[2] || "" } : { n: "", u: "" };
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  return m ? { n: m[1].replace(/^\+/, ""), u: (m[2] || "").toLowerCase() } : { n: "", u: "" };
+}
+function cssInteger(value) {
+  return BigInt(Math.round(value)).toString();
 }
 var STATES = [
   ["hover", "Hover", ":hover"],
@@ -8647,8 +8650,14 @@ function decl(map) {
   };
   const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) })).sort((a, b) => a.rank - b.rank || a.i - b.i);
   for (const { k } of keys) {
-    const v = map[k];
+    let v = map[k];
     if (v === "" || v == null) continue;
+    if (k === "--g-cols" || k === "z-index") {
+      const raw = String(v).trim();
+      const numeric = raw.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(?:px)?$/i);
+      const number = numeric ? Number(numeric[1]) : NaN;
+      if (Number.isFinite(number)) v = cssInteger(k === "--g-cols" ? Math.max(1, Math.round(number)) : number);
+    }
     out += `${k}:${v};`;
   }
   return out;

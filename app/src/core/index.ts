@@ -1256,7 +1256,7 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'imgs', k: 'items', label: 'Images' },
-        { t: 'unit', c: '--g-cols', label: 'Columns', r: 1, min: 1, units: [''], note: 'Responsive — set fewer on Tablet and Mobile.' },
+        { t: 'unit', c: '--g-cols', label: 'Columns', r: 1, min: 1, integer: 1, units: [''], note: 'Responsive — set fewer on Tablet and Mobile.' },
         { t: 'select', k: 'ratio', label: 'Tile shape', opts: [['4 / 3', '4:3'], ['1 / 1', 'Square'], ['3 / 2', '3:2'], ['16 / 9', '16:9'], ['3 / 4', '3:4 portrait'], ['', 'Whatever each image is']] },
         { t: 'select', k: 'fit', label: 'Fit', opts: [['cover', 'Cover — fill and crop'], ['contain', 'Contain — fit inside']] },
         { t: 'toggle', k: 'lightbox', label: 'Open full size on click' },
@@ -2872,8 +2872,14 @@ function classMove(id: string, dir: number) {
     strings rather than NaN, because the inspector shows this straight to the user. */
 function parseU(v: unknown): { n: string; u: string } {
   const s = String(v == null ? '' : v).trim();
-  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
-  return m ? { n: m[1], u: m[2] || '' } : { n: '', u: '' };
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  return m ? { n: m[1].replace(/^\+/, ''), u: (m[2] || '').toLowerCase() } : { n: '', u: '' };
+}
+
+/** CSS integer grammars do not accept exponent notation. Callers validate finiteness first;
+    BigInt expands large rounded Numbers instead of String(number) turning them back into e+. */
+function cssInteger(value: number): string {
+  return BigInt(Math.round(value)).toString();
 }
 
 /**
@@ -7554,8 +7560,19 @@ function decl(map: Decls) {
   const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) }))
     .sort((a, b) => a.rank - b.rank || a.i - b.i);
   for (const { k } of keys) {
-    const v = map[k];
+    let v = map[k];
     if (v === '' || v == null) continue;
+    /* These two authored values feed CSS grammars whose numeric part is an integer.
+       Normalize old/imported fractional values at compile time as a narrow defense;
+       ordinary lengths and spacing remain untouched and retain decimal precision. */
+    if (k === '--g-cols' || k === 'z-index') {
+      const raw = String(v).trim();
+      /* `px` is tolerated here for old generic-unit fixtures/imports; the authored
+         grammar itself still receives the integer with no unit. */
+      const numeric = raw.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(?:px)?$/i);
+      const number = numeric ? Number(numeric[1]) : NaN;
+      if (Number.isFinite(number)) v = cssInteger(k === '--g-cols' ? Math.max(1, Math.round(number)) : number);
+    }
     out += `${k}:${v};`;
   }
   return out;

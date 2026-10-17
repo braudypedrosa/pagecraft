@@ -147,6 +147,10 @@ function SelectCtl({ n, c }: P) {
   </Field>;
 }
 
+/* CSS integer grammars do not accept exponent notation. UnitCtl validates finiteness first;
+   BigInt expands large rounded Numbers instead of String(number) turning them back into e+. */
+const cssInteger = (value: number) => BigInt(Math.round(value)).toString();
+
 function UnitCtl({ n, c }: P) {
   const w = writer(n, c);
   const { n: num, u: parsed } = C.parseU(valueOf(n, c));
@@ -175,10 +179,13 @@ function UnitCtl({ n, c }: P) {
     if (raw !== '') {
       const parsed = Number(raw);
       if (!Number.isFinite(parsed)) return;
-      let clamped = parsed;
+      let clamped = c.integer ? Math.round(parsed) : parsed;
       if (min !== undefined) clamped = Math.max(min, clamped);
       if (max !== undefined) clamped = Math.min(max, clamped);
-      if (clamped !== parsed) {
+      if (c.integer) {
+        v = cssInteger(clamped);
+        numEl.value = v;
+      } else if (clamped !== parsed) {
         v = String(clamped);
         numEl.value = v;
       }

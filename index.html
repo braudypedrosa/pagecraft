@@ -4958,7 +4958,7 @@ var DEF = {
     controls: {
       content: [
         { t: "imgs", k: "items", label: "Images" },
-        { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
+        { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, integer: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
         { t: "select", k: "ratio", label: "Tile shape", opts: [["4 / 3", "4:3"], ["1 / 1", "Square"], ["3 / 2", "3:2"], ["16 / 9", "16:9"], ["3 / 4", "3:4 portrait"], ["", "Whatever each image is"]] },
         { t: "select", k: "fit", label: "Fit", opts: [["cover", "Cover \u2014 fill and crop"], ["contain", "Contain \u2014 fit inside"]] },
         { t: "toggle", k: "lightbox", label: "Open full size on click" },
@@ -6243,8 +6243,11 @@ function classMove(id, dir) {
 }
 function parseU(v) {
   const s = String(v == null ? "" : v).trim();
-  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
-  return m ? { n: m[1], u: m[2] || "" } : { n: "", u: "" };
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  return m ? { n: m[1].replace(/^\+/, ""), u: (m[2] || "").toLowerCase() } : { n: "", u: "" };
+}
+function cssInteger(value) {
+  return BigInt(Math.round(value)).toString();
 }
 var STATES = [
   ["hover", "Hover", ":hover"],
@@ -10407,8 +10410,14 @@ function decl(map) {
   };
   const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) })).sort((a, b) => a.rank - b.rank || a.i - b.i);
   for (const { k } of keys) {
-    const v = map[k];
+    let v = map[k];
     if (v === "" || v == null) continue;
+    if (k === "--g-cols" || k === "z-index") {
+      const raw = String(v).trim();
+      const numeric = raw.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(?:px)?$/i);
+      const number = numeric ? Number(numeric[1]) : NaN;
+      if (Number.isFinite(number)) v = cssInteger(k === "--g-cols" ? Math.max(1, Math.round(number)) : number);
+    }
     out += `${k}:${v};`;
   }
   return out;
@@ -20479,6 +20488,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       value
     ) });
   }
+  var cssInteger = (value) => BigInt(Math.round(value)).toString();
   function UnitCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const { n: num, u: parsed } = C2.parseU(valueOf(n2, c3));
@@ -20497,10 +20507,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (raw !== "") {
         const parsed2 = Number(raw);
         if (!Number.isFinite(parsed2)) return;
-        let clamped = parsed2;
+        let clamped = c3.integer ? Math.round(parsed2) : parsed2;
         if (min !== void 0) clamped = Math.max(min, clamped);
         if (max !== void 0) clamped = Math.min(max, clamped);
-        if (clamped !== parsed2) {
+        if (c3.integer) {
+          v3 = cssInteger(clamped);
+          numEl.value = v3;
+        } else if (clamped !== parsed2) {
           v3 = String(clamped);
           numEl.value = v3;
         }
@@ -22182,7 +22195,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     { t: "text", k: "_cls", label: "CSS classes", ph: "hero card--dark" },
     { t: "select", c: "position", label: "Position", r: 1, opts: [["static", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
     { t: "unit", c: "top", label: "Top", r: 1, neg: 1, units: ["px", "%", "rem"] },
-    { t: "unit", c: "z-index", label: "Z-index", r: 1, neg: 1, units: [""] },
+    { t: "unit", c: "z-index", label: "Z-index", r: 1, neg: 1, integer: 1, units: [""] },
     { t: "select", c: "overflow", label: "Overflow", r: 1, opts: [["", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
     { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
     { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
@@ -25245,7 +25258,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       controls: {
         content: [
           { t: "imgs", k: "items", label: "Images" },
-          { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
+          { t: "unit", c: "--g-cols", label: "Columns", r: 1, min: 1, integer: 1, units: [""], note: "Responsive \u2014 set fewer on Tablet and Mobile." },
           { t: "select", k: "ratio", label: "Tile shape", opts: [["4 / 3", "4:3"], ["1 / 1", "Square"], ["3 / 2", "3:2"], ["16 / 9", "16:9"], ["3 / 4", "3:4 portrait"], ["", "Whatever each image is"]] },
           { t: "select", k: "fit", label: "Fit", opts: [["cover", "Cover \u2014 fill and crop"], ["contain", "Contain \u2014 fit inside"]] },
           { t: "toggle", k: "lightbox", label: "Open full size on click" },
