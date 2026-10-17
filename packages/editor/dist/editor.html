@@ -5127,6 +5127,10 @@ function codeSpans(src, lang) {
 }
 var SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
+Array.prototype.forEach.call(document.querySelectorAll('[data-slides]'),function(t){
+function seek(left){t.scrollTo({left:left,behavior:rm.matches?'auto':'smooth'});}
+t.addEventListener('keydown',function(event){if(event.target!==t||event.key!=='Home'&&event.key!=='End')return;
+event.preventDefault();seek(event.key==='Home'?0:Math.max(0,t.scrollWidth-t.clientWidth));});});
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
 var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
 if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
