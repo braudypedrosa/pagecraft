@@ -44,7 +44,7 @@ function Editor({ t }: { t: TextStyle }) {
   };
 
   /** number-and-unit pair, reading the unit off its own select so the two stay together */
-  const Unit = ({ prop, units }: { prop: string; units: string[] }) => {
+  const Unit = ({ prop, units, label }: { prop: string; units: string[]; label: string }) => {
     const p = C.parseU(b[prop]);
     const u = units.includes(p.u) ? p.u : units[0];
     const push = (root: HTMLElement) => {
@@ -54,11 +54,11 @@ function Editor({ t }: { t: TextStyle }) {
     };
     return (
       <div class="unit">
-        <input class="ctl" type="number" step="any" value={p.n}
+        <input class="ctl" type="number" step="any" value={p.n} aria-label={`${label} value`}
           placeholder={C.parseU(ph(prop)).n || 'auto'}
           onInput={e => push((e.target as HTMLElement).parentElement!)}
           onBlur={() => { L.endTx(); repaint('styles'); }} />
-        <select class="ctl" value={u}
+        <select class="ctl" value={u} aria-label={`${label} unit`}
           onChange={e => { push((e.target as HTMLElement).parentElement!); L.endTx(); }}>
           {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
         </select>
@@ -68,7 +68,7 @@ function Editor({ t }: { t: TextStyle }) {
 
   const Choice = ({ prop, opts, label }: { prop: string; opts: string[][]; label: string }) => (
     <div class="f"><label>{label}</label>
-      <select class="ctl" value={b[prop] || ''}
+      <select class="ctl" value={b[prop] || ''} aria-label={label}
         onChange={e => {
           write(prop, (e.target as HTMLSelectElement).value);
           L.endTx(); repaint('styles');
@@ -103,12 +103,12 @@ function Editor({ t }: { t: TextStyle }) {
       </div>
 
       <div class="row2">
-        <div class="f"><label>Size</label><Unit prop="font-size" units={C.U.size} /></div>
+        <div class="f"><label>Size</label><Unit prop="font-size" units={C.U.size} label="Size" /></div>
         <Choice prop="font-weight" opts={WEIGHTS} label="Weight" />
       </div>
       <div class="row2">
-        <div class="f"><label>Line height</label><Unit prop="line-height" units={C.U.line} /></div>
-        <div class="f"><label>Letter spacing</label><Unit prop="letter-spacing" units={C.U.track} /></div>
+        <div class="f"><label>Line height</label><Unit prop="line-height" units={C.U.line} label="Line height" /></div>
+        <div class="f"><label>Letter spacing</label><Unit prop="letter-spacing" units={C.U.track} label="Letter spacing" /></div>
       </div>
       <div class="f"><label>Font</label>
         <FontSelect value={b['font-family'] || ''} ariaLabel="Font" onChange={v => {
@@ -123,7 +123,7 @@ function Editor({ t }: { t: TextStyle }) {
         <div class="f">
           <div class="pc-label-with-help"><label>Default HTML tag</label>
             <HelpTip label="Default HTML tag" text="Applied when a heading uses this text style." /></div>
-          <select class="ctl" value={t.tag || ''}
+          <select class="ctl" value={t.tag || ''} aria-label="Default HTML tag"
             onChange={e => {
               L.tx('tstag:' + t.id);
               const v = (e.target as HTMLSelectElement).value;
@@ -142,7 +142,7 @@ function Editor({ t }: { t: TextStyle }) {
             <span class="sw"><i style={{ background: C.resolveColor(colVal) || 'transparent' }} /></span>
             {tok
               ? <span class="tokchip"><Icon name="link" size={10} /> {tok.name}</span>
-              : <input class="ctl hex" value={colVal} placeholder={ph('color') || 'inherit'}
+              : <input class="ctl hex" value={colVal} placeholder={ph('color') || 'inherit'} aria-label="Colour"
                 onInput={e => write('color', (e.target as HTMLInputElement).value.trim())}
                 onBlur={() => { L.endTx(); repaint('styles'); }} />}
             <button class="x" title="Clear" onClick={() => setColor(null)}>

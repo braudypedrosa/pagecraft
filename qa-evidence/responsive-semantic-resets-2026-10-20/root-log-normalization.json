@@ -1,0 +1,35 @@
+{
+  "reason": "Trailing blank lines only; originals retained in isolated checkout.",
+  "logs": [
+    {
+      "file": "focused-tests.log",
+      "originalSha256": "31158da3cd24a35b53f0c12c9df99ea9f118c89d64c068ab6dc05662d5dac396",
+      "savedSha256": "549f3ce655a8665d949e75f3f7fe36487954188280a8b991232b70c131a6c2b5"
+    },
+    {
+      "file": "full-suite-transition-final.log",
+      "originalSha256": "a1afd318db498520cd72f28831f55d6d5540d49a1374d35dfc2de52ed310129b",
+      "savedSha256": "21b63195c8e24af6a0015fbef8efec647b7840ba248483ed40700ea9153ef896"
+    },
+    {
+      "file": "full-suite.log",
+      "originalSha256": "010b9a7b2cba91883c1af17ac96f5428b9fad55dd31fdc2387a68d5ce238c966",
+      "savedSha256": "4e48a152d5e96b8d67ba660bd8e7900a8d6f7d842a16d0972210854af49f9c1c"
+    },
+    {
+      "file": "full-suite-a11y-final.log",
+      "originalSha256": "ea01a6333d71b4bd3b2a10f01041281b242739451c1151a644d7d314c50f198d",
+      "savedSha256": "094da42d0983cbe9dd8b267e349ff74143076d0765cdf19a09a0f9a4fe9b73ff"
+    },
+    {
+      "file": "typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "savedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "full-suite-final.log",
+      "originalSha256": "d477d1e3c7a17f4ce2823023773d169dd7e29dff4e4d4f7fc22133ca60e2fe45",
+      "savedSha256": "b54890bb965d30429885de727dc1159c3057d6f72e9293da542108020351390c"
+    }
+  ]
+}

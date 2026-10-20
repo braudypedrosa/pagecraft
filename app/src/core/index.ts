@@ -401,20 +401,23 @@ function fontGroups(): [string, string[][]][] {
   return groups;
 }
 const SHADOWS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['0 1px 2px rgba(17,19,17,.07)', 'Hairline'],
   ['0 8px 20px -8px rgba(17,19,17,.18)', 'Soft'],
   ['0 20px 44px -14px rgba(17,19,17,.28)', 'Elevated'],
   ['0 34px 70px -22px rgba(17,19,17,.38)', 'Deep']
 ];
 const TRANSITIONS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['all .15s ease', 'Fast'],
   ['all .25s ease', 'Standard'],
   ['all .4s cubic-bezier(.4,0,.2,1)', 'Smooth']
 ];
 const FILTERS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['grayscale(1)', 'Greyscale'],
   ['saturate(1.25)', 'Richer'],
   ['contrast(1.1)', 'More contrast'],
@@ -672,7 +675,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
         { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
       ]
     }
   },
@@ -847,7 +850,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         {
           t: 'select', c: 'margin-top', label: 'Position', r: 1,
-          opts: [['', 'In the normal flow'], ['auto', 'Push to column bottom']],
+          opts: [['', 'Default'], ['0', 'In the normal flow'], ['auto', 'Push to column bottom']],
           note: 'Uses the column’s remaining height above this button.',
           when: n => !!locate(n.id)?.parent && locate(n.id)!.parent!.type === 'column'
         }
@@ -859,7 +862,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -901,7 +904,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'color', c: '--nav-hover', label: 'Hover colour', r: 1 },
         { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1, when: n => !n.props.managedMobileLinks },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },

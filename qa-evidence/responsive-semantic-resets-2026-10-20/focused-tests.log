@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/responsive-reset-controls
+
+(node:58979) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  6 passed (6)
+      Tests  93 passed (93)
+   Start at  23:11:07
+   Duration  1.49s (transform 1.50s, setup 0ms, import 1.90s, tests 1.20s, environment 1.51s)

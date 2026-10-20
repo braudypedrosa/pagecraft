@@ -1,0 +1,40 @@
+{
+  "base": "50c8446fba4f63d560dff3f702bcec3535b60e18",
+  "sourceFiles": {
+    "app/src/core/index.ts": "a0a77b56c030f3d3639fa495a797bae009b4334ce4089d1404c0e3ce80d9422e",
+    "app/src/ui/TextStyles.tsx": "ace6e0497fec25d9d0223ac93bbba8cb045e870b0ba11981616e8a3dd4110e72",
+    "tests/responsive-semantic-resets.test.tsx": "4a86f74b255b712cd379130e4794e6f7cc419c3bf53a23b96b8612d67855bf5e"
+  },
+  "behavior": {
+    "shadow": "Default removes the declaration; None stores box-shadow:none.",
+    "filter": "Default removes the declaration; None stores filter:none.",
+    "buttonPosition": "Default removes the declaration; In the normal flow stores margin-top:0.",
+    "moduleTransforms": "Heading, Button, and Nav distinguish Default from explicit text-transform:none.",
+    "transition": "Default removes the local declaration; None stores transition:none and overrides an applied class.",
+    "textStyleChoices": "Every visible Text Style input and enhanced combobox exposes its specific field label."
+  },
+  "checks": {
+    "focused": "7 files passed; 98 tests passed",
+    "typecheck": "passed",
+    "fullSuite": "222 files passed, 2 skipped; 2463 tests passed, 5 skipped",
+    "build": "passed",
+    "editorBuildTwice": "passed; 11 generated artifact SHA-256 hashes identical",
+    "postSuiteGeneratedIntegrity": "passed",
+    "demo": "passed; 1 component, 6 instances, 4 collection items, 0 findings",
+    "uiBaselines": "passed; 24 images, 28 source files",
+    "npmAudit": "0 vulnerabilities",
+    "npmAuditProduction": "0 vulnerabilities",
+    "diffCheck": "passed",
+    "qaHarness": "http://localhost:4949/ returned HTTP 200; fictional in-memory data only"
+  },
+  "scope": {
+    "motionTransitionChanged": true,
+    "fullscreenNavigationChanged": false,
+    "signedGoldenChanged": false,
+    "galleryBaselineChanged": false
+  },
+  "limitations": [
+    "Root owns native browser acceptance and Main integration.",
+    "Compiler bundles are build products outside the guarded nine-artifact integration contract."
+  ]
+}
