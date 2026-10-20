@@ -3860,6 +3860,10 @@ function runPreviewRuntime(html, editing = false) {
   previewDispose = () => {};
   if (!cdoc) return;
 
+  const runtimeDisposers = [];
+  cwin.__pagecraftRegisterPreviewDispose = cleanup => {
+    if (typeof cleanup === 'function') runtimeDisposers.push(cleanup);
+  };
   let runtimeStyle = null;
   if (!editing) {
     runtimeStyle = cdoc.createElement('style');
@@ -3915,9 +3919,11 @@ function runPreviewRuntime(html, editing = false) {
   } finally {
     if (add) proto.addEventListener = add;
     Object.keys(nativeObserver).forEach(name => { cwin[name] = nativeObserver[name]; });
+    try { delete cwin.__pagecraftRegisterPreviewDispose; } catch (e) { }
   }
 
   previewDispose = () => {
+    runtimeDisposers.forEach(dispose => { try { dispose(); } catch (e) { } });
     listeners.forEach(([target, type, fn, opts]) => {
       try { target.removeEventListener(type, fn, opts); } catch (e) { }
     });
@@ -3926,6 +3932,7 @@ function runPreviewRuntime(html, editing = false) {
     $$('.pagecraft-lightbox', cdoc).forEach(el => el.remove());
     $$('[data-pagecraft-select-popover]', cdoc).forEach(el => el.remove());
     $$('[data-pagecraft-date-popover]', cdoc).forEach(el => el.remove());
+    try { delete cwin.__pagecraftRegisterPreviewDispose; } catch (e) { }
     try { delete cwin.bpAnimate; } catch (e) { }
   };
 }
@@ -5440,7 +5447,10 @@ function appendSmart(key) {
   if (!leaf) { toast('That does not fit there'); return; }
   PC_UI.recordElementUse(key);
   /* Use the same selection transition as a canvas click so the tablet inspector
-     replaces the Add panel immediately after an element is placed. */
+     replaces the Add panel immediately after an element is placed. A newly added
+     module needs its editable fields visible even if the previous selection left
+     the inspector on Style or Advanced. */
+  state.ui.stab = 'content';
   select(leaf.id);
   toast(labelOf(key) + ' added');
   const el = cdoc && cdoc.getElementById(state.ui.sel);

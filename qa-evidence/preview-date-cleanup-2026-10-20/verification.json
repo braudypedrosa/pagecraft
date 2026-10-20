@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-20",
+  "baseCommit": "409f6989a47c2b6b95a515b2df61e0f650ce4432",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/preview-date-cleanup",
+  "scope": [
+    "Dispose compiler-owned Preview runtimes before generic listener cleanup.",
+    "Stop Zag date actors, unsubscribe render, remove direct listeners and portals, and destroy live announcer state on Preview exit.",
+    "Open Content after palette insertion while preserving the active inspector tab for ordinary selection."
+  ],
+  "regressionEvidence": {
+    "before": {
+      "openExitResidualRuntimeGlobalListeners": 6,
+      "finalLiveAnnouncerCount": 1
+    },
+    "after": {
+      "openExitResidualRuntimeGlobalListeners": 0,
+      "finalLiveAnnouncerCount": 0
+    },
+    "selectCleanup": "zero residual document/window listeners and zero popovers in focused regression",
+    "reentry": "fresh date Preview enhanced and opened after disposal in focused regression",
+    "embedInsertion": "Advanced to Add Embed selects Content; ordinary selection preserves Advanced in focused regression"
+  },
+  "verification": [
+    {
+      "command": "npx vitest run tests/public-form-controls-runtime.test.ts tests/editor-insertion-discovery.test.mjs",
+      "exitCode": 0,
+      "result": "2 files, 19 tests passed",
+      "log": "focused-tests.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "result": "passed",
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "result": "218 files passed, 2 skipped; 2444 tests passed, 5 skipped; sole failure is expected reviewed gallery source gate for builder.html",
+      "log": "full-suite.log"
+    },
+    {
+      "command": "npm run build:editor-package (twice)",
+      "exitCode": 0,
+      "result": "11 tracked package outputs byte-identical across sequential builds",
+      "logs": [
+        "editor-build-one.log",
+        "editor-build-two.log"
+      ],
+      "hashes": [
+        "editor-build-one.sha256",
+        "editor-build-two.sha256"
+      ]
+    },
+    {
+      "command": "node tools/build-demo.mjs",
+      "exitCode": 0,
+      "result": "62 KB; 1 component, 6 instances; 4 collection items; 0 findings",
+      "log": "demo.log"
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 0,
+      "result": "0 vulnerabilities",
+      "log": "npm-audit.json"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 0,
+      "result": "0 vulnerabilities",
+      "log": "npm-audit-production.json"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "passed"
+    }
+  ],
+  "sourceFiles": {
+    "builder.html": "91d80806f1cebb3c958abf5629aea21af507c8431272913c478ee01eb77f8efb",
+    "app/src/runtime/public-date.ts": "700c67eee3566e654b6011d3e4d9f55d4ae2913c50e22e7068f5fb25946c63a3",
+    "tests/public-form-controls-runtime.test.ts": "6144353a2e699b05accb001a1e55566367b8c91cc6d577cd41c69d68f0206d28",
+    "tests/editor-insertion-discovery.test.mjs": "cb727970dad16fde243bc81a54b4e85a78b107991d0ee05fc06cc6c3284c6881"
+  },
+  "generatedFiles": {
+    "index.html": "2d34e266775f5c043b629a48ddf3679e663bce05af902225ac8c3527c2637159",
+    "dist/core.cjs": "df6db325fe8ca916be20827ae68c711044df282182c862b087c7676e5587b0bc",
+    "packages/editor/dist/editor.html": "60c3bb2117af7ab23a2387ba8290ee144fbcb012e44b5a64b0ca77537ff7db47",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "5ea70e6a5a0255bd138b5403113710a711fb8659bb787bfc6d5d937d3f5b1b56",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "bae23379a698f9d742558e0818a7a0239f34df16ce8af85151238f0cf1606656",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "ffab233c373b9aababecd3be7584e11be145dabcc814e7836c53dfa8710be518",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19"
+  },
+  "additionalGeneratedDemo": {
+    "dist/demo/index.html": "1aad67e1a84d1ecb7889a344901e033f82cab9a9059fffbd157f1d5c46090d0c"
+  },
+  "knownReviewGate": "public/internal-ui-baselines/manifest.json was intentionally not updated; root owns built-in-browser gallery review.",
+  "browserVerification": "Pending root native built-in-browser verification; no browser action performed in this worktree."
+}

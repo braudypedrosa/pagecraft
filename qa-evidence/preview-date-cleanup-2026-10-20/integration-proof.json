@@ -1,0 +1,40 @@
+{
+  "base": "409f6989a47c2b6b95a515b2df61e0f650ce4432",
+  "source": [
+    "builder.html",
+    "app/src/runtime/public-date.ts",
+    "app/src/core/public-form-controls.generated.ts",
+    "tests/public-form-controls-runtime.test.ts",
+    "tests/editor-insertion-discovery.test.mjs",
+    "public/internal-ui-baselines/manifest.json"
+  ],
+  "generatedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+    "packages/editor/dist/runtime.js",
+    "dist/demo/index.html",
+    "packages/editor/dist/templates.json"
+  ],
+  "protectedWorkingBytesPreserved": true,
+  "candidateSha256": {
+    "builder.html": "91d80806f1cebb3c958abf5629aea21af507c8431272913c478ee01eb77f8efb",
+    "app/src/runtime/public-date.ts": "700c67eee3566e654b6011d3e4d9f55d4ae2913c50e22e7068f5fb25946c63a3",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19",
+    "tests/public-form-controls-runtime.test.ts": "6144353a2e699b05accb001a1e55566367b8c91cc6d577cd41c69d68f0206d28",
+    "tests/editor-insertion-discovery.test.mjs": "cb727970dad16fde243bc81a54b4e85a78b107991d0ee05fc06cc6c3284c6881",
+    "public/internal-ui-baselines/manifest.json": "f7de57798aff46b335ec57c3d9146b2ae1a1ad6362278a5e15682f1209cb1e11",
+    "index.html": "2d34e266775f5c043b629a48ddf3679e663bce05af902225ac8c3527c2637159",
+    "dist/core.cjs": "df6db325fe8ca916be20827ae68c711044df282182c862b087c7676e5587b0bc",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "60c3bb2117af7ab23a2387ba8290ee144fbcb012e44b5a64b0ca77537ff7db47",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "bae23379a698f9d742558e0818a7a0239f34df16ce8af85151238f0cf1606656",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "ffab233c373b9aababecd3be7584e11be145dabcc814e7836c53dfa8710be518",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "dist/demo/index.html": "1aad67e1a84d1ecb7889a344901e033f82cab9a9059fffbd157f1d5c46090d0c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+  }
+}

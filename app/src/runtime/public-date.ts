@@ -58,6 +58,7 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
   let lastMachineValue = original;
   let invalidDraft = '';
   let validationShown = false;
+  let disposed = false;
   const validate = () => {
     const value = input.value.trim();
     let message = '';
@@ -99,6 +100,7 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
       input.value = next;
       validate();
       if (changed) queueMicrotask(() => {
+        if (disposed) return;
         // Notify the form without feeding the synthetic event back through Zag's text parser.
         // The next render immediately restores the machine's DOM listeners.
         propCleanups.forEach(cleanup => cleanup());
@@ -127,6 +129,7 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
     return node;
   };
   const render = () => {
+    if (disposed) return;
     const textValue = input.value;
     const activePart = content.contains(document.activeElement)
       ? (document.activeElement as HTMLElement).dataset.part
@@ -203,6 +206,7 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
     content.replaceChildren(head, table);
     if (activePart === 'prev-trigger' || activePart === 'next-trigger') {
       requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (disposed) return;
         const active = document.activeElement;
         const replacement = content.querySelector<HTMLElement>(`[data-part="${activePart}"]`);
         if (replacement && (!active || !active.isConnected || active === document.body)) replacement.focus();
@@ -210,13 +214,13 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
     }
   };
 
-  machine.subscribe(render);
+  const unsubscribeRender = machine.subscribe(render);
   machine.start();
   render();
-  input.addEventListener('input', () => {
+  const onInput = () => {
     invalidDraft = validate() ? '' : input.value;
-  });
-  input.addEventListener('blur', () => {
+  };
+  const onBlur = () => {
     validationShown = true;
     const valid = validate();
     if (!valid) invalidDraft = input.value;
@@ -227,17 +231,20 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
       else if (!input.value.trim() && lastMachineValue) api.clearValue();
     }
     window.setTimeout(() => {
+      if (disposed) return;
       if (!invalidDraft) return;
       input.value = invalidDraft;
       validate();
     });
-  });
-  input.addEventListener('invalid', () => {
+  };
+  const onInvalid = () => {
     validationShown = true;
     if (invalidDraft) input.value = invalidDraft;
     validate();
-  });
-  input.form?.addEventListener('reset', () => window.setTimeout(() => {
+  };
+  const form = input.form;
+  const onReset = () => window.setTimeout(() => {
+    if (disposed) return;
     input.value = resetValue;
     const parsed = isoDate(resetValue);
     lastMachineValue = resetValue;
@@ -245,7 +252,27 @@ function enhanceDate(input: HTMLInputElement, ordinal: number) {
     validationShown = false;
     api.setValue(parsed ? [parsed] : []);
     validate();
-  }));
+  });
+  input.addEventListener('input', onInput);
+  input.addEventListener('blur', onBlur);
+  input.addEventListener('invalid', onInvalid);
+  form?.addEventListener('reset', onReset);
+  const registerPreviewDispose = (window as typeof window & {
+    __pagecraftRegisterPreviewDispose?: (cleanup: () => void) => void;
+  }).__pagecraftRegisterPreviewDispose;
+  registerPreviewDispose?.(() => {
+    if (disposed) return;
+    disposed = true;
+    unsubscribeRender();
+    machine.stop();
+    propCleanups.forEach(cleanup => cleanup());
+    propCleanups = [];
+    input.removeEventListener('input', onInput);
+    input.removeEventListener('blur', onBlur);
+    input.removeEventListener('invalid', onInvalid);
+    form?.removeEventListener('reset', onReset);
+    positioner.remove();
+  });
   validate();
 }
 

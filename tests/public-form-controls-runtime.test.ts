@@ -29,6 +29,37 @@ function domFor(markup: string) {
   return dom;
 }
 
+function globalListenerAudit(dom: ReturnType<typeof domFor>) {
+  const win = dom.window as any;
+  const proto = win.EventTarget.prototype;
+  const nativeAdd = proto.addEventListener;
+  const nativeRemove = proto.removeEventListener;
+  const records: Array<{ target: EventTarget; type: string; listener: EventListenerOrEventListenerObject; capture: boolean; active: boolean }> = [];
+  const capture = (options: boolean | AddEventListenerOptions | undefined) =>
+    typeof options === 'boolean' ? options : !!options?.capture;
+  proto.addEventListener = function (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {
+    if (!records.some(record => record.active && record.target === this && record.type === type
+      && record.listener === listener && record.capture === capture(options))) {
+      records.push({ target: this, type, listener, capture: capture(options), active: true });
+    }
+    return nativeAdd.call(this, type, listener, options);
+  };
+  proto.removeEventListener = function (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {
+    const record = records.find(candidate => candidate.active && candidate.target === this && candidate.type === type
+      && candidate.listener === listener && candidate.capture === capture(options));
+    if (record) record.active = false;
+    return nativeRemove.call(this, type, listener, options);
+  };
+  return {
+    activeGlobals: () => records.filter(record => record.active
+      && (record.target === win || record.target === win.document)),
+    restore: () => {
+      proto.addEventListener = nativeAdd;
+      proto.removeEventListener = nativeRemove;
+    },
+  };
+}
+
 beforeEach(() => {
   C.seed();
   C.blankProject('Public form controls');
@@ -43,6 +74,10 @@ describe('public form control rendering', () => {
     expect(runtime).toContain("if (!used || (editing && source !== SLIDE_JS && source !== NAV_JS)) return;");
     expect(runtime).toContain("$$('[data-pagecraft-select-popover]', cdoc).forEach(el => el.remove());");
     expect(runtime).toContain("$$('[data-pagecraft-date-popover]', cdoc).forEach(el => el.remove());");
+    expect(runtime).toContain('cwin.__pagecraftRegisterPreviewDispose = cleanup =>');
+    expect(runtime).toContain('runtimeDisposers.forEach(dispose =>');
+    expect(runtime.indexOf('runtimeDisposers.forEach(dispose =>')).toBeLessThan(runtime.indexOf('listeners.forEach(([target'));
+    expect(runtime).toContain('delete cwin.__pagecraftRegisterPreviewDispose');
   });
 
   test('ships only the control runtime used by the page', () => {
@@ -126,6 +161,33 @@ describe('public form control rendering', () => {
 });
 
 describe('public custom select', () => {
+  test('leaves no document or window listeners when Preview disposes it after use', () => {
+    const form = formNode([{ type: 'select', label: 'Plan', name: 'plan', opts: 'Small, Large' }]);
+    const dom = domFor(C.renderNode(form, { edit: false }));
+    const audit = globalListenerAudit(dom);
+    const win = dom.window as any;
+    const proto = win.EventTarget.prototype;
+    const add = proto.addEventListener;
+    const listeners: Array<[EventTarget, string, EventListenerOrEventListenerObject, boolean | AddEventListenerOptions | undefined]> = [];
+    proto.addEventListener = function (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {
+      listeners.push([this, type, listener, options]);
+      return add.call(this, type, listener, options);
+    };
+    try {
+      dom.window.eval(scriptBody(C.PUBLIC_SELECT_JS));
+    } finally {
+      proto.addEventListener = add;
+    }
+
+    dom.window.document.querySelector<HTMLButtonElement>('.pc-select-button')!.click();
+    listeners.forEach(([target, type, listener, options]) => target.removeEventListener(type, listener, options));
+    dom.window.document.querySelectorAll('[data-pagecraft-select-popover]').forEach((node: Element) => node.remove());
+
+    expect(audit.activeGlobals()).toHaveLength(0);
+    expect(dom.window.document.querySelector('[data-pagecraft-select-popover]')).toBeNull();
+    audit.restore();
+  });
+
   test('supports keyboard selection, native FormData, and form reset', async () => {
     const form = formNode([{ type: 'select', label: 'Plan', name: 'plan', opts: 'Small, Large, Enterprise' }]);
     const dom = domFor(C.renderNode(form, { edit: false }));
@@ -190,6 +252,51 @@ describe('public custom select', () => {
 });
 
 describe('public Zag date picker', () => {
+  test('stops its Preview machine and can enhance a fresh Preview after disposal', async () => {
+    const form = formNode([{ type: 'date', label: 'Visit', name: 'visit' }]);
+    const markup = C.renderNode(form, { edit: false });
+    const dom = domFor(markup);
+    const win = dom.window as any;
+    const disposers: Array<() => void> = [];
+    win.__pagecraftRegisterPreviewDispose = (dispose: () => void) => disposers.push(dispose);
+    dom.window.eval(scriptBody(C.PUBLIC_DATE_JS));
+    delete win.__pagecraftRegisterPreviewDispose;
+    expect(disposers).toHaveLength(1);
+
+    const trigger = dom.window.document.querySelector<HTMLButtonElement>('.pc-date-trigger')!;
+    trigger.click();
+    await new Promise(resolve => dom.window.setTimeout(resolve));
+    const day = (Array.from(dom.window.document.querySelectorAll('.pc-date-day:not([data-outside-range])')) as HTMLButtonElement[])
+      .find(item => item.getAttribute('aria-disabled') !== 'true')!;
+    day.click();
+    await new Promise(resolve => dom.window.setTimeout(resolve));
+    expect(dom.window.document.querySelector('[data-live-announcer][role="alert"]')).not.toBeNull();
+
+    const audit = globalListenerAudit(dom);
+    trigger.click();
+    await new Promise(resolve => dom.window.setTimeout(resolve, 20));
+    expect(audit.activeGlobals().length).toBeGreaterThan(0);
+
+    disposers[0]();
+    await new Promise(resolve => dom.window.setTimeout(resolve));
+    expect(audit.activeGlobals()).toHaveLength(0);
+    expect(dom.window.document.querySelector('[data-live-announcer]')).toBeNull();
+    expect(dom.window.document.querySelector('[data-pagecraft-date-popover]')).toBeNull();
+    audit.restore();
+
+    dom.window.document.body.innerHTML = markup;
+    const freshDisposers: Array<() => void> = [];
+    win.__pagecraftRegisterPreviewDispose = (dispose: () => void) => freshDisposers.push(dispose);
+    dom.window.eval(scriptBody(C.PUBLIC_DATE_JS));
+    delete win.__pagecraftRegisterPreviewDispose;
+    expect(freshDisposers).toHaveLength(1);
+    const freshTrigger = dom.window.document.querySelector<HTMLButtonElement>('.pc-date-trigger')!;
+    freshTrigger.click();
+    await new Promise(resolve => dom.window.setTimeout(resolve));
+    expect(dom.window.document.querySelector<HTMLElement>('.pc-date-content')!.hidden).toBe(false);
+    freshDisposers[0]();
+  });
+
   test('portals the calendar outside clipped content and constrains it to Zag available height', () => {
     const form = formNode([{ type: 'date', label: 'Visit', name: 'visit' }]);
     const dom = domFor(`<div style="overflow:hidden;max-height:20px">${C.renderNode(form, { edit: false })}</div>`);

@@ -1,0 +1,20 @@
+[
+  {
+    "file": "final-full-suite.log",
+    "originalSha256": "31b8043411e76368aee1560ca2247d7ac8c8f9fd49947767da0148776426f208",
+    "savedSha256": "4a2d8b9b3dcffd021014d0cb65b385c48e4b1b194fccd738787e101a5e226e94",
+    "normalization": "Remove terminal blank lines only; candidate original retained unchanged"
+  },
+  {
+    "file": "focused-tests.log",
+    "originalSha256": "c8ad3d6acb54030b005b10672e962ceb58b931d2daaae41fb4f3c12e0d5abbd9",
+    "savedSha256": "100bce0c29a1038df2034e307c318079ade3644cfa1b68c6b100f960d1bd65a5",
+    "normalization": "Remove terminal blank lines only; candidate original retained unchanged"
+  },
+  {
+    "file": "full-suite.log",
+    "originalSha256": "f71b69b1cc171258e3c4d4b7ccdde88634d3ca2d602515ff399d4ae05ca8b21a",
+    "savedSha256": "0dfea62aebf75838fc89a0ac91edba8af36f04d15b5b9fd9eb96b936d071e867",
+    "normalization": "Remove terminal blank lines only; candidate original retained unchanged"
+  }
+]
