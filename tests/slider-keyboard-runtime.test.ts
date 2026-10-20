@@ -150,6 +150,51 @@ describe('Slider keyboard runtime', () => {
     expect(dots.children).toHaveLength(3);
   });
 
+  test('26-slide bottom controls stay bounded while every position remains reachable', () => {
+    const slider = C.N('slider', { arrows: 1, controlsPosition: 'bottom' }, {},
+      Array.from({ length: 26 }, () => C.N('column')),
+    );
+    const dom = runSliderRuntime(C.renderNode(slider, { edit: false }), false, runtimeDom => {
+      const track = runtimeDom.window.document.querySelector<HTMLElement>('[data-slides]')!;
+      Object.defineProperties(track, {
+        scrollWidth: { configurable: true, value: 7_800 },
+        clientWidth: { configurable: true, value: 300 },
+        offsetLeft: { configurable: true, value: 0 },
+      });
+      Array.from(track.children).forEach((slide, index) => {
+        Object.defineProperty(slide, 'offsetLeft', { configurable: true, value: index * 300 });
+      });
+      track.scrollTo = vi.fn((options: ScrollToOptions) => {
+        track.scrollLeft = Number(options.left || 0);
+      }) as unknown as typeof track.scrollTo;
+      track.scrollBy = vi.fn();
+    });
+
+    const track = dom.window.document.querySelector<HTMLElement>('[data-slides]')!;
+    const dots = Array.from(
+      dom.window.document.querySelectorAll('.pagecraft-slider-dot'),
+    ) as HTMLButtonElement[];
+    expect(dots).toHaveLength(26);
+    expect(dots.at(-1)?.getAttribute('aria-label')).toBe('Go to carousel position 26 of 26');
+    dots.at(-1)?.dispatchEvent(new dom.window.KeyboardEvent('keydown', {
+      key: 'Enter', bubbles: true, cancelable: true,
+    }));
+    expect(track.scrollTo).toHaveBeenLastCalledWith({ left: 7_500, behavior: 'smooth' });
+
+    track.focus();
+    track.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(track.scrollTo).toHaveBeenLastCalledWith({ left: 7_500, behavior: 'smooth' });
+
+    const css = C.baseCss(false);
+    const boxRule = css.match(/\.pagecraft-slider-box\{[^}]*\}/)?.[0] || '';
+    const dotsRule = css.match(/\.controls-bottom>\.pagecraft-slider-dots\{[^}]*\}/)?.[0] || '';
+    expect(boxRule).toContain('min-width:0');
+    expect(boxRule).toContain('max-width:100%');
+    expect(dotsRule).toContain('min-width:0');
+    expect(dotsRule).toContain('flex-wrap:wrap');
+    expect(css).toContain('@media(max-width:767px){.pagecraft-slider-dots{margin-top:10px}.pagecraft-slider-dot{width:44px;height:44px}}');
+  });
+
   test('a standalone arrows-off slider keeps its no-JavaScript export', () => {
     const slider = C.N('slider', { arrows: 0 });
     C.state.pages[0].tree = [slider];

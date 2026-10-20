@@ -1,0 +1,150 @@
+{
+  "format": "pagecraft.qa.golden-diagnostic.v1",
+  "baseCommit": "95106068e3a5614f17b6d014f3b2b869a8fb594a",
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "fixturePreserved": true,
+  "before": {
+    "bytes": 391163,
+    "sha256": "d3a88f0e84924bd98edbc837b0955e71f2bc1d46f76ea5655bd7968124e6f96d"
+  },
+  "candidate": {
+    "bytes": 391379,
+    "sha256": "6347908a7a656c59a471cc0693a67b75cab7053ef3d6b43fb2d67a8f5491d84b"
+  },
+  "deltaBytes": 216,
+  "changedLeafCount": 12,
+  "leaves": [
+    {
+      "path": "desired.release.manifest",
+      "oldBytes": 18784,
+      "newBytes": 18784,
+      "oldSha256": "130ae0f5ebdc78f0b7202911cee14d55e13a301bdec8d411b1b5d4da449bb05d",
+      "newSha256": "9d1f3f3cb411c16cb65fe9abf4d19463d1caae7d57bf47daf412336a7f7a6158"
+    },
+    {
+      "path": "desired.release.signature",
+      "oldBytes": 86,
+      "newBytes": 86,
+      "oldSha256": "bbaa0f58c6df0325c59ec8a213d121118184bcc2613441014bb1eeb14126dd44",
+      "newSha256": "3a09f88bd498902d8bfc3cd64ee218693afe1b7f735661750c2107af69904f24"
+    },
+    {
+      "path": "desired.deployment.envelope",
+      "oldBytes": 730,
+      "newBytes": 730,
+      "oldSha256": "cc30afd067d62a6bd93d2393417e7f8f103877e8825c182e9e19db1ccc6a8f25",
+      "newSha256": "3406f26abcd7da59922ee5570fdc97cd6ce0b8571498f3a5eaa3a39604a55781"
+    },
+    {
+      "path": "desired.deployment.signature",
+      "oldBytes": 86,
+      "newBytes": 86,
+      "oldSha256": "c076b7cec4ef6cc94f836fbe0e93824bb1c5fb29fc420b595a951324d25a352b",
+      "newSha256": "c1bb6bea20e806d2d5cdca3ab50154b107a48d8f80961d102aead7c3340d104d"
+    },
+    {
+      "path": "artifact.routes[0].css",
+      "oldBytes": 31449,
+      "newBytes": 31503,
+      "oldSha256": "21c47a098f1d6ceb0c72948bee15f4a90b2d031a92c22b7aac9da006397975c4",
+      "newSha256": "eb07bdcbe3802d9116aa0b0c5131a411e31eacc436657ded355532e908b74f07",
+      "semanticChanges": [
+        {
+          "selector": ".pagecraft-slider-box",
+          "added": "min-width:0;max-width:100%"
+        },
+        {
+          "selector": ".controls-bottom>.pagecraft-slider-dots",
+          "added": "min-width:0;flex-wrap:wrap"
+        }
+      ]
+    },
+    {
+      "path": "artifact.routes[0].sourceHash",
+      "oldBytes": 64,
+      "newBytes": 64,
+      "oldSha256": "edddef330ffc39795ae081478033508acea1f67b1ba4ffaf79f9c6302daf58a4",
+      "newSha256": "0dd34fb826102d97e8b38b39dab0a104464c719d20de44435d568a9cdadb20ea",
+      "oldValue": "662a4dfa3f9f4a0ad86ff04a0577285a205b8bbb1f117613bd3fccdab2c2537a",
+      "newValue": "b34ea7b812919ac95ae090c4accd8da69f77b3295f7eaddcf0491abb3c613dc8"
+    },
+    {
+      "path": "artifact.routes[1].css",
+      "oldBytes": 49863,
+      "newBytes": 49917,
+      "oldSha256": "1a1382414f1777436e1dc348323207a3f5084cea8ee4466d76f2a23bccb3eb49",
+      "newSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+      "semanticChanges": [
+        {
+          "selector": ".pagecraft-slider-box",
+          "added": "min-width:0;max-width:100%"
+        },
+        {
+          "selector": ".controls-bottom>.pagecraft-slider-dots",
+          "added": "min-width:0;flex-wrap:wrap"
+        }
+      ]
+    },
+    {
+      "path": "artifact.routes[1].sourceHash",
+      "oldBytes": 64,
+      "newBytes": 64,
+      "oldSha256": "3a37e80a3a5856384f0f8284afa0f121659c66ad4dc5e1c8bb55ddabb0aaa87d",
+      "newSha256": "1057c4a03df865cd68eaaba13c7b90611a2e217af91ecc1919ecd623587cde40",
+      "oldValue": "0795631395d14a99eb276346d41b8721121f8d119e5dd4c0135cd4270ea57a79",
+      "newValue": "96d21f934d035a0d63cf51e243054fa490212deb9c170a7483dd1e4019569514"
+    },
+    {
+      "path": "artifact.routes[2].css",
+      "oldBytes": 49863,
+      "newBytes": 49917,
+      "oldSha256": "1a1382414f1777436e1dc348323207a3f5084cea8ee4466d76f2a23bccb3eb49",
+      "newSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+      "semanticChanges": [
+        {
+          "selector": ".pagecraft-slider-box",
+          "added": "min-width:0;max-width:100%"
+        },
+        {
+          "selector": ".controls-bottom>.pagecraft-slider-dots",
+          "added": "min-width:0;flex-wrap:wrap"
+        }
+      ]
+    },
+    {
+      "path": "artifact.routes[2].sourceHash",
+      "oldBytes": 64,
+      "newBytes": 64,
+      "oldSha256": "8982dc7dff3edf00b15ff2e35c0058a95192028ba60f010a28f529922d2bf94a",
+      "newSha256": "4db44390ba855043b7d6d1688d5f8eb49fd91f6539e001d1098470e3bcdccdb0",
+      "oldValue": "797448336c8d064bfa9c28f4396e9b0cc4397e6f602f77d8876fa1e1634f71ec",
+      "newValue": "490046fbbcc3af4d714ef4499bda8d4f005bd7ba047b3c8ba0731cb65c5109f7"
+    },
+    {
+      "path": "artifact.routes[3].css",
+      "oldBytes": 49863,
+      "newBytes": 49917,
+      "oldSha256": "1a1382414f1777436e1dc348323207a3f5084cea8ee4466d76f2a23bccb3eb49",
+      "newSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+      "semanticChanges": [
+        {
+          "selector": ".pagecraft-slider-box",
+          "added": "min-width:0;max-width:100%"
+        },
+        {
+          "selector": ".controls-bottom>.pagecraft-slider-dots",
+          "added": "min-width:0;flex-wrap:wrap"
+        }
+      ]
+    },
+    {
+      "path": "artifact.routes[3].sourceHash",
+      "oldBytes": 64,
+      "newBytes": 64,
+      "oldSha256": "865ca8b9089aab760336b0dd6031398a67a2e1710ed520f2e3331581352f2d18",
+      "newSha256": "3216c476024a320bde0722709e1e00738ceb2d954c86214c4afb8b4a06a5a03c",
+      "oldValue": "b308d1e3d4406dc4fc9091dd4843534935bb83f1995dd5bd1cf043c0823ce76f",
+      "newValue": "8a10206d5a48dcc813ed5e6818c92ff5a21be84bdca1ae7a0fc5b553f70b55de"
+    }
+  ]
+}

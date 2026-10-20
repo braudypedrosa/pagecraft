@@ -1,0 +1,123 @@
+{
+  "format": "pagecraft.qa.verification.v1",
+  "baseCommit": "95106068e3a5614f17b6d014f3b2b869a8fb594a",
+  "outcome": "candidate-passed",
+  "change": {
+    "summary": "Keep 26 direct slider position controls while allowing the bottom controls to shrink and wrap inside the slider width.",
+    "globalOverflowMaskAdded": false,
+    "directPositionControls": 26,
+    "mobileHitTargetPx": 44
+  },
+  "checks": [
+    {
+      "name": "Focused slider, collection and Core tests",
+      "result": "passed",
+      "tests": 667
+    },
+    {
+      "name": "TypeScript typecheck",
+      "result": "passed"
+    },
+    {
+      "name": "Final full suite",
+      "result": "passed",
+      "testFilesPassed": 220,
+      "testFilesSkipped": 2,
+      "testsPassed": 2449,
+      "testsSkipped": 5
+    },
+    {
+      "name": "Deterministic editor package build",
+      "result": "passed"
+    },
+    {
+      "name": "UI baseline source gate",
+      "result": "passed",
+      "images": 24,
+      "sourceFiles": 28
+    },
+    {
+      "name": "WordPress golden review",
+      "result": "passed",
+      "changedLeaves": 12,
+      "fixtureDeltaBytes": 216
+    },
+    {
+      "name": "Native responsive width and direct navigation",
+      "result": "passed",
+      "desktop": {
+        "viewport": 1280,
+        "document": 1280
+      },
+      "tablet": {
+        "viewport": 834,
+        "document": 834
+      },
+      "mobile": {
+        "viewport": 414,
+        "document": 414,
+        "dotRows": 6,
+        "dotHitTarget": "44x44"
+      },
+      "dot26": {
+        "scrollLeft": 8388
+      },
+      "home": {
+        "scrollLeft": 0
+      },
+      "end": {
+        "scrollLeft": 8388
+      },
+      "nextArrow": {
+        "scrollLeft": 338,
+        "passed": true
+      }
+    }
+  ],
+  "files": {
+    "app/src/core/index.ts": {
+      "sha256": "e9e44bcf3426e9de4af7a617c62c4eb75eb5174cc98c374af4dfd54b52a87c6f",
+      "bytes": 560981
+    },
+    "tests/slider-keyboard-runtime.test.ts": {
+      "sha256": "fca53bca647d17260cee88c2fd52fea0e3599fa793b82ee791a5ab0cc974ca3e",
+      "bytes": 8674
+    },
+    "tests/collection-public-large-dataset.test.ts": {
+      "sha256": "32918d6710526e0133477525dcb752de12b7a3c254002e976ccd82566a66fe2d",
+      "bytes": 4197
+    },
+    "server/tests/fixtures/wordpress-artifact-v1.json": {
+      "sha256": "93c9da65b24223ec39dad9e72f7634faedd3bf1abdb5335e2037744a7c922737",
+      "bytes": 391379
+    },
+    "dist/core.cjs": {
+      "sha256": "19e30e9d8a152f0073afac8bba165964661bece7f65ef55945d11463973066b7",
+      "bytes": 645690
+    },
+    "index.html": {
+      "sha256": "c98e4a9fd8fb76257a42e646206a92f7d20e83374cc3363063fe636aa835b9db",
+      "bytes": 2197789
+    },
+    "packages/editor/dist/editor.html": {
+      "sha256": "a8078175393a4dbdbc81a74c7597c46b02a50468b9794031f278ebb9f1827d5d",
+      "bytes": 2197765
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "sha256": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+      "bytes": 105172
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "sha256": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3",
+      "bytes": 177873
+    },
+    "qa-evidence/slider-many-dots-2026-10-20/wordpress-golden-diagnostic.json": {
+      "sha256": "f64a09c29976e6561ef84f0211bf36a737d1835f6050cb9b2445234217d8d693",
+      "bytes": 5659
+    },
+    "qa-evidence/slider-many-dots-2026-10-20/integration-checklist.md": {
+      "sha256": "68fd3ed2d275647e940dfa3ea64f78946e0aa0762ada96d6aa29051f15c23ef8",
+      "bytes": 3320
+    }
+  }
+}
