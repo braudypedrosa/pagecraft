@@ -7787,6 +7787,11 @@ function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
     const c = n.props.collapse;
     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
     else if (c !== 'never') acc.m += navCollapse(n);
+    else {
+      const selector = selOf(n);
+      acc.m += `${selector}.pagecraft-nav-menu{min-width:0;max-width:100%}`
+        + `${selector}>.pagecraft-nav-list{min-width:0;max-width:100%;flex-wrap:wrap;justify-content:inherit}`;
+    }
   }
   acc.t += bucket(n, 't', editing, parent, detachedComponentRoot);
   acc.t += inheritedElementPriority(n, 't');

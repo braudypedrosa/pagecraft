@@ -2252,6 +2252,31 @@ test('a nav collapses at the breakpoint the author chose', () => {
   a.deepEqual(at(), { tablet: false, mobile: false });
 });
 
+test('a Never nav wraps inside its authored mobile column and inherits its alignment', () => {
+  blank();
+  const nav = insert('nav', null, 0);
+  nav.props.collapse = 'never';
+  nav.css = { d: { 'justify-content': 'flex-start', width: '185px' }, t: {}, m: {} };
+  const { base, tablet, mobile } = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const selector = C.selOf(nav);
+  a.match(base, new RegExp(`${selector}\\{[^}]*justify-content:flex-start;[^}]*width:185px`));
+  a.match(mobile, new RegExp(`${selector}\\.pagecraft-nav-menu\\{min-width:0;max-width:100%\\}`));
+  a.match(mobile, new RegExp(`${selector}>\\.pagecraft-nav-list\\{min-width:0;max-width:100%;flex-wrap:wrap;justify-content:inherit\\}`));
+  a.equal(/justify-content:flex-end/.test(mobile), false);
+  a.equal(/pagecraft-nav-toggle\\{display:flex\\}/.test(tablet), false);
+});
+
+test('Never-nav wrapping does not apply to managed mobile links', () => {
+  blank();
+  const nav = insert('nav', null, 0);
+  nav.props.collapse = 'never';
+  nav.props.managedMobileLinks = 1;
+  const { mobile } = blocks(C.treeCss([C.state.pages[0].tree], false));
+  const selector = C.selOf(nav);
+  a.equal(mobile.includes(`${selector}.pagecraft-nav-menu{min-width:0;max-width:100%}`), false);
+  a.equal(mobile.includes(`${selector}>.pagecraft-nav-list{min-width:0;max-width:100%;flex-wrap:wrap;justify-content:inherit}`), false);
+});
+
 test('asset references survive buildPage for the export step to resolve', () => {
   blank();
   const img = insert('image', null, 0);

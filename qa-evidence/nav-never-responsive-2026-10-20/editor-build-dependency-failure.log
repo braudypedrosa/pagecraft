@@ -1,0 +1,129 @@
+
+> pagecraft@0.2.0 build:editor-package
+> node packages/editor/build.mjs
+
+✘ [ERROR] Could not resolve "@zag-js/date-picker"
+
+    app/src/runtime/public-date.ts:1:28:
+      1 │ import * as datePicker from '@zag-js/date-picker';
+        ╵                             ~~~~~~~~~~~~~~~~~~~~~
+
+  You can mark the path "@zag-js/date-picker" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+✘ [ERROR] Could not resolve "@zag-js/vanilla"
+
+    app/src/runtime/public-date.ts:2:60:
+      2 │ ...nillaMachine, normalizeProps, spreadProps } from '@zag-js/vanilla';
+        ╵                                                     ~~~~~~~~~~~~~~~~~
+
+  You can mark the path "@zag-js/vanilla" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: Build failed with 2 errors:
+app/src/runtime/public-date.ts:1:28: ERROR: Could not resolve "@zag-js/date-picker"
+app/src/runtime/public-date.ts:2:60: ERROR: Could not resolve "@zag-js/vanilla"
+    at failureErrorWithLog (/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:1752:15)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:1211:25
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:1163:52
+    at buildResponseToResult (/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:1209:7)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:1236:16
+    at responseCallbacks.<computed> (/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:886:9)
+    at handleIncomingPacket (/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:941:12)
+    at Socket.readFromStdout (/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/esbuild/lib/main.js:864:7)
+    at Socket.emit (node:events:509:20)
+    at addChunk (node:internal/streams/readable:564:12) {
+  errors: [
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 28,
+        file: 'app/src/runtime/public-date.ts',
+        length: 21,
+        line: 1,
+        lineText: "import * as datePicker from '@zag-js/date-picker';",
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'You can mark the path "@zag-js/date-picker" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.'
+        }
+      ],
+      pluginName: '',
+      text: 'Could not resolve "@zag-js/date-picker"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 60,
+        file: 'app/src/runtime/public-date.ts',
+        length: 17,
+        line: 2,
+        lineText: "import { VanillaMachine, normalizeProps, spreadProps } from '@zag-js/vanilla';",
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'You can mark the path "@zag-js/vanilla" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.'
+        }
+      ],
+      pluginName: '',
+      text: 'Could not resolve "@zag-js/vanilla"'
+    }
+  ],
+  warnings: []
+}
+
+Node.js v26.0.0
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-never-responsive/tools/build-public-form-controls.mjs
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-never-responsive/build.mjs:21:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:642:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 72096,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v26.0.0
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.0.0/bin/node /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-never-responsive/build.mjs
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-never-responsive/packages/editor/build.mjs:22:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:642:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 72095,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v26.0.0
