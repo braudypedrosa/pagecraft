@@ -1,0 +1,13 @@
+{
+  "severity": "Low",
+  "expected": "Selected spacing unit is readable without ellipsis.",
+  "observed": {
+    "controlWidth": 58,
+    "font": "12px",
+    "gap": "10px",
+    "labelClient": 16,
+    "labelScroll": 17,
+    "selected": "em"
+  },
+  "bugConfirmed": true
+}

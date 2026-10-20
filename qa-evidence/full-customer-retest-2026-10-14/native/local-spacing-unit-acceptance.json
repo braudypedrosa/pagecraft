@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "gap": "4px",
+      "labelClient": 13,
+      "labelScroll": 13,
+      "text": "px",
+      "width": 58
+    },
+    {
+      "gap": "4px",
+      "labelClient": 17,
+      "labelScroll": 17,
+      "text": "em",
+      "width": 58
+    },
+    {
+      "gap": "4px",
+      "labelClient": 21,
+      "labelScroll": 21,
+      "text": "rem",
+      "width": 58
+    },
+    {
+      "gap": "4px",
+      "labelClient": 11,
+      "labelScroll": 11,
+      "text": "%",
+      "width": 58
+    }
+  ],
+  "allReadable": true,
+  "fullCustomerRetestComplete": false
+}

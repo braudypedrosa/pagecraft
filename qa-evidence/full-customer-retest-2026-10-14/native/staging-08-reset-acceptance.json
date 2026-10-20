@@ -1,0 +1,416 @@
+{
+  "environment": "Cloud staging",
+  "commit": "08b9820890082c86b6a222a71fffd8f7c55c2971",
+  "baselineVersion": 818,
+  "baselineCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "baselineIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "tests": [
+    {
+      "name": "Author Desktop combined settings",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 1305,
+          "size": "22px",
+          "width": 1305
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Author Tablet combined settings",
+      "state": {
+        "ui": {
+          "font": "Lora",
+          "unit": "em",
+          "line": "1.5",
+          "padUnit": "em",
+          "pad": "1.5"
+        },
+        "render": {
+          "font": "Lora, Georgia, \"Times New Roman\", serif",
+          "line": "27px",
+          "padding": "27px",
+          "scrollWidth": 819,
+          "size": "18px",
+          "width": 819
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Author Mobile combined settings",
+      "state": {
+        "ui": {
+          "font": "System sans",
+          "unit": "%",
+          "line": "150",
+          "padUnit": "%",
+          "pad": "3"
+        },
+        "render": {
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "line": "24px",
+          "padding": "10.7656px",
+          "scrollWidth": 399,
+          "size": "16px",
+          "width": 399
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Fresh reload Desktop",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 1305,
+          "size": "22px",
+          "width": 1305
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Fresh reload Tablet",
+      "state": {
+        "ui": {
+          "font": "Lora",
+          "unit": "em",
+          "line": "1.5",
+          "padUnit": "em",
+          "pad": "1.5"
+        },
+        "render": {
+          "font": "Lora, Georgia, \"Times New Roman\", serif",
+          "line": "27px",
+          "padding": "27px",
+          "scrollWidth": 819,
+          "size": "18px",
+          "width": 819
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Fresh reload Mobile",
+      "state": {
+        "ui": {
+          "font": "System sans",
+          "unit": "%",
+          "line": "150",
+          "padUnit": "%",
+          "pad": "3"
+        },
+        "render": {
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "line": "24px",
+          "padding": "10.7656px",
+          "scrollWidth": 399,
+          "size": "16px",
+          "width": 399
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Clear Mobile overrides updates all three visible labels",
+      "state": {
+        "ui": {
+          "font": "Lora",
+          "unit": "em",
+          "line": "1.5",
+          "padUnit": "em",
+          "pad": "1.5"
+        },
+        "render": {
+          "font": "Lora, Georgia, \"Times New Roman\", serif",
+          "line": "24px",
+          "padding": "24px",
+          "scrollWidth": 399,
+          "size": "16px",
+          "width": 399
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Clear Tablet overrides updates all three visible labels",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 819,
+          "size": "18px",
+          "width": 819
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "Keyboard End and Enter preserves focus after select replacement",
+      "focus": {
+        "label": "Line height unit",
+        "role": "combobox"
+      },
+      "selected": "%",
+      "pass": true
+    },
+    {
+      "name": "Fresh inherited Tablet",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 819,
+          "size": "18px",
+          "width": 819
+        }
+      },
+      "ownOverrides": [
+        0,
+        0,
+        0
+      ],
+      "pass": true
+    },
+    {
+      "name": "Fresh inherited Mobile",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 399,
+          "size": "16px",
+          "width": 399
+        }
+      },
+      "ownOverrides": [
+        0,
+        0,
+        0
+      ],
+      "pass": true
+    },
+    {
+      "name": "Working draft Preview Desktop",
+      "render": {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "line": "28px",
+        "padding": "12px",
+        "scrollWidth": 1367,
+        "width": 1367
+      },
+      "pass": true
+    },
+    {
+      "name": "Working draft Preview Tablet",
+      "render": {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "line": "28px",
+        "padding": "12px",
+        "scrollWidth": 823,
+        "width": 823
+      },
+      "pass": true
+    },
+    {
+      "name": "Working draft Preview Mobile",
+      "render": {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "line": "28px",
+        "padding": "12px",
+        "scrollWidth": 403,
+        "width": 403
+      },
+      "pass": true
+    }
+  ],
+  "restored": true,
+  "fullCustomerRetestComplete": false,
+  "harnessInitialResetProbes": [
+    {
+      "name": "Clear Mobile overrides updates all three visible labels",
+      "state": {
+        "ui": {
+          "font": "Lora",
+          "unit": "em",
+          "line": "1.5",
+          "padUnit": "em",
+          "pad": "1.5"
+        },
+        "render": {
+          "font": "Lora, Georgia, \"Times New Roman\", serif",
+          "line": "24px",
+          "padding": "24px",
+          "scrollWidth": 574,
+          "size": "16px",
+          "width": 399
+        }
+      },
+      "pass": false
+    },
+    {
+      "name": "Clear Tablet overrides updates all three visible labels",
+      "state": {
+        "ui": {
+          "font": "System serif",
+          "unit": "px",
+          "line": "28",
+          "padUnit": "px",
+          "pad": "12"
+        },
+        "render": {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "line": "28px",
+          "padding": "12px",
+          "scrollWidth": 819,
+          "size": "18px",
+          "width": 819
+        }
+      },
+      "pass": true
+    }
+  ],
+  "harnessNotes": [
+    "Initial reset probe inherited the intentionally changed common padding unit onto previously authored large side numbers (16em and18em), causing expected authored overflow. This is a fixture-design issue, not a reset-label failure. Repeat uses explicit moderate values on all four sides."
+  ],
+  "spacingLabelConcern": {
+    "font": "12px",
+    "gap": "10px",
+    "labelClient": 13,
+    "labelScroll": 13,
+    "text": "px",
+    "width": 58
+  },
+  "beforeRestoreCurrent": 826,
+  "restoredCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "restoredIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "restoredVersion": "Version 827\n20 Oct 2026, 15:36\nBraudy Pedrosa\nCURRENT"
+}

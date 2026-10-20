@@ -1,3 +1,9 @@
+## Current checkpoint — 2026-10-20
+
+Responsive select reset fix `08b9820890082c86b6a222a71fffd8f7c55c2971` is accepted on Cloud staging in `native/staging-08-reset-acceptance.json`: 14 named author/save/reload/reset/keyboard/Preview cases, original Version818 restored as827, exact CSS and41 node IDs. WordPress Preview56 has10 named author/fresh/reset/inheritance readbacks, with original document17 restored and exact CSS/11IDs; strict post-native database guard passed: protected15/legacy14/options/menus/routes exact; only fixture487 and five new revisions changed; restored original content as document20. Its author-time computed reads can precede rendering; fresh saved reads are authoritative. WordPress frontend Preview and keyboard focus are not claimed for this batch.
+
+Spacing unit label clipping is separately confirmed and fixed in two scoped builder CSS rules. Four units fit at58px in the isolated built candidate (`native/local-spacing-unit-acceptance.json`); staging deployment/acceptance and WordPress Preview57 remain pending. Full QA remains incomplete; fourteen broad areas stay open. Current bounded tests do not establish production readiness.
+
 ## Current reconciliation — 2026-10-17 bounded state
 
 This is the authoritative current control-level map, not an overall denominator, release gate, or module pass claim. Last native runtime acceptance: `b2c94c6d7417604a7faf7e7a97600c5dbb3293a2`; CI `39031378941` and deploy `39031378985` green. Production app remains `cc026`; shared gateway version 27 has the narrow history metadata fix. WP54 Navigation and WP55 integer acceptance are separate bounded reports with final guards. Integer fractional and scientific representation cases are accepted. `overallPass=false`, `fullCustomerRetestComplete=false`, and fourteen broad areas remain open; the controlled Local provider journey is bounded complete.
