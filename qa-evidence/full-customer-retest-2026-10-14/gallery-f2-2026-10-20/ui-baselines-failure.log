@@ -1,0 +1,24 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-gallery-f2-UEEP2a
+
+ ❯ tests/ui-baselines.test.mjs (2 tests | 1 failed) 18ms
+   × reviewed gallery baselines match the current shared UI sources 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+builder.html
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  16:00:50
+   Duration  1.73s (transform 24ms, setup 0ms, import 1.59s, tests 18ms, environment 0ms)
+
