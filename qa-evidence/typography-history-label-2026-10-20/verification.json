@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-20",
+  "baseCommit": "a6acad2650b15daf4daac8e74bba38396a4a5b59",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/typography-history-label",
+  "change": "The Update typography transaction now has the explicit history label Update typography.",
+  "behavior": "Undo restores the prior shared font size and local override; Redo reapplies the shared typography update. Both directions retain the same action label.",
+  "verification": [
+    {
+      "command": "npx vitest run tests/text-style-update-ui.test.tsx tests/history-labels.test.ts",
+      "result": "14/14 passed",
+      "log": "focused-tests.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm test",
+      "result": "219 files passed, 2 skipped; 2445 tests passed, 5 skipped; gallery gate passed",
+      "log": "full-suite.log"
+    },
+    {
+      "command": "npm run build:editor-package twice",
+      "result": "11 generated outputs byte-identical",
+      "hashes": [
+        "editor-build-one.sha256",
+        "editor-build-two.sha256"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "sourceFiles": {
+    "app/src/ui/inspector/Controls.tsx": "43b594c31ac306d284fefc1151f565412bcbca7bb7650e1fc5d110d335db821a",
+    "tests/text-style-update-ui.test.tsx": "431ca03cb6c9b463cc5f255de6540a5586327e98439675d4b8e293c80244be49"
+  },
+  "generatedFiles": {
+    "index.html": "c12dddc17424d6726f85c466d52e3e8c41b2bdedc870dd9b106a246e2d7acdf7",
+    "dist/core.cjs": "df6db325fe8ca916be20827ae68c711044df282182c862b087c7676e5587b0bc",
+    "packages/editor/dist/editor.html": "00083830aeb42351176c754468b008eeaa3419dbc82aee379f119fe315ee9c01",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "5ea70e6a5a0255bd138b5403113710a711fb8659bb787bfc6d5d937d3f5b1b56",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "bae23379a698f9d742558e0818a7a0239f34df16ce8af85151238f0cf1606656",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "ffab233c373b9aababecd3be7584e11be145dabcc814e7836c53dfa8710be518",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19"
+  },
+  "nativeReview": {
+    "owner": "root",
+    "passed": true,
+    "evidence": "../full-customer-retest-2026-10-14/native/local-typography-history-label.json"
+  },
+  "delivery": "Local isolated checkout only; uncommitted, unpushed, undeployed."
+}

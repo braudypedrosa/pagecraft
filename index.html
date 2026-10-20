@@ -21274,7 +21274,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       let updated = false;
       C2.edit(() => {
         updated = C2.tsUpdateFrom(n2);
-      });
+      }, "Update typography");
       if (updated) L2.toast("Typography updated");
     };
     const create = async () => {

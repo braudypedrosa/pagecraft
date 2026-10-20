@@ -41,6 +41,7 @@ test('the confirmed typography update shares fonts, keeps spacing, and becomes d
   source.css.d['font-size'] = '18px';
   r.draw(() => <Ctl n={source} c={control} />, 'right');
   const update = r.$('.pc-text-style-actions button') as HTMLButtonElement;
+  const previousSharedSize = C.findStyle('btn')!.css.d['font-size'];
   a.equal(update.disabled, false);
   await act(async () => { r.click(update); });
   const confirmation = r.arg('askConfirm')!;
@@ -55,4 +56,14 @@ test('the confirmed typography update shares fonts, keeps spacing, and becomes d
   a.equal(r.arg('toast')![0], 'Typography updated');
   r.draw(() => <Ctl n={source} c={control} />, 'right');
   a.equal((r.$('.pc-text-style-actions button') as HTMLButtonElement).disabled, true);
+
+  a.equal(C.historyLabel('undo'), 'Update typography');
+  C.undo();
+  a.equal(C.historyLabel('redo'), 'Update typography');
+  a.equal(C.findStyle('btn')!.css.d['font-size'], previousSharedSize);
+  a.equal(C.locate(source.id)!.node.css.d['font-size'], '18px');
+  C.redo();
+  a.equal(C.historyLabel('undo'), 'Update typography');
+  a.equal(C.findStyle('btn')!.css.d['font-size'], '18px');
+  a.equal(C.locate(source.id)!.node.css.d['font-size'], undefined);
 });

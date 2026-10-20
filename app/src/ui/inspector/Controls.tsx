@@ -715,7 +715,7 @@ function TstyleCtl({ n, c }: P) {
       { ok: 'Update typography', danger: false })) return;
     if (!C.tsCanUpdateFrom(n)) return;
     let updated = false;
-    C.edit(() => { updated = C.tsUpdateFrom(n); });
+    C.edit(() => { updated = C.tsUpdateFrom(n); }, 'Update typography');
     if (updated) L.toast('Typography updated');
   };
   const create = async () => {
