@@ -1,0 +1,21 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (458 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-richtext-reset-d4-v1/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-richtext-reset-d4-v1
+
+(node:48860) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49044) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49181) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  218 passed | 2 skipped (220)
+      Tests  2426 passed | 5 skipped (2431)
+   Start at  21:09:20
+   Duration  46.43s (transform 2.83s, setup 0ms, import 26.29s, tests 122.27s, environment 15.94s)
+

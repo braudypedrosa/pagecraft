@@ -20550,7 +20550,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             w3.done();
           },
           children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
-        }
+        },
+        `${choiceKey}|${u4}`
       )
     ] }) });
   }
@@ -20909,7 +20910,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               }
             },
             children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
-          }
+          },
+          `${choiceKey}|${u4}`
         )
       ] })
     ] });
@@ -21259,13 +21261,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const known2 = pool.some(([v3]) => String(v3) === cur);
     const ck = n2.id + "|" + (c3.c || c3.k);
     const custom = !!C2.state.ui.custom[ck] || !known2 && cur !== "";
+    const selected = custom ? "__custom" : cur;
+    const selectKey = [ck, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || "", selected].join("|");
     const opt = ([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3);
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       /* @__PURE__ */ u2(
         "select",
         {
           class: "ctl",
-          value: custom ? "__custom" : cur,
+          value: selected,
           onChange: (e3) => {
             const v3 = e3.target.value;
             if (v3 === "__custom") {
@@ -21280,7 +21284,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             groups ? groups.map(([g3, list2]) => /* @__PURE__ */ u2("optgroup", { label: g3, children: list2.map(opt) }, g3)) : (c3.opts || []).map(opt),
             /* @__PURE__ */ u2("option", { value: "__custom", children: "Custom\u2026" })
           ]
-        }
+        },
+        selectKey
       ),
       custom ? /* @__PURE__ */ u2(
         "input",

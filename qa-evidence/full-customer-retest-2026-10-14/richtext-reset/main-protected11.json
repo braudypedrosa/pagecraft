@@ -1,0 +1,60 @@
+{
+  "allExact": true,
+  "files": {
+    "index.html": {
+      "expected": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "actual": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "exact": true
+    },
+    "dist/core.cjs": {
+      "expected": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "actual": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "exact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "expected": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "actual": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "exact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "expected": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "actual": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "expected": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "actual": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "expected": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "actual": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "exact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "expected": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "actual": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "exact": true
+    },
+    "dist/demo/index.html": {
+      "expected": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "actual": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "exact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "expected": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "actual": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "exact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "expected": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "actual": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "expected": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "actual": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "exact": true
+    }
+  }
+}

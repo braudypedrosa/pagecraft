@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "name": "pagecraft",
+  "dependencies": {
+    "vite-plugin-singlefile": {
+      "version": "2.3.3",
+      "resolved": "https://registry.npmjs.org/vite-plugin-singlefile/-/vite-plugin-singlefile-2.3.3.tgz",
+      "overridden": false,
+      "dependencies": {
+        "micromatch": {
+          "version": "4.0.8",
+          "resolved": "https://registry.npmjs.org/micromatch/-/micromatch-4.0.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "braces": {
+              "version": "3.0.3",
+              "resolved": "https://registry.npmjs.org/braces/-/braces-3.0.3.tgz",
+              "overridden": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

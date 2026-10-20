@@ -1,0 +1,55 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-richtext-reset-d4-v1
+
+ ❯ tests/inspector-responsive-select-readback.test.tsx (3 tests | 2 failed) 59ms
+   × clearing responsive unit and box overrides refreshes enhanced unit labels from inherited CSS 39ms
+   × clearing a responsive font override refreshes the enhanced preset label 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-responsive-select-readback.test.tsx > clearing responsive unit and box overrides refreshes enhanced unit labels from inherited CSS
+AssertionError: visible enhanced label follows the native select
+
+'%' !== 'em'
+
+
+Expected: "em"
+Received: "%"
+
+ ❯ tests/inspector-responsive-select-readback.test.tsx:48:10
+     46|   assert.equal(value('Line height').value, '1.5');
+     47|   assert.equal(unit('Line height').value, 'em', 'native select already…
+     48|   assert.equal(trigger('Line height unit').textContent?.trim(), 'em', …
+       |          ^
+     49|
+     50|   const box = C.insert('section', null, 1)!;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/inspector-responsive-select-readback.test.tsx > clearing a responsive font override refreshes the enhanced preset label
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'System sans'
+- 'Lora'
+
+
+Expected: "Lora"
+Received: "System sans"
+
+ ❯ tests/inspector-responsive-select-readback.test.tsx:84:10
+     82|   await settle();
+     83|   assert.equal((r.$('select[aria-label="Font"]') as HTMLSelectElement)…
+     84|   assert.equal(trigger('Font').textContent?.trim(), 'Lora');
+       |          ^
+     85| });
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  21:06:31
+   Duration  638ms (transform 228ms, setup 0ms, import 271ms, tests 59ms, environment 222ms)
+

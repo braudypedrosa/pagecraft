@@ -1,0 +1,222 @@
+{
+  "base": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+  "archives": {
+    "one": "/private/tmp/pagecraft-reset-resume-one-Y66W8f",
+    "two": "/private/tmp/pagecraft-reset-resume-two-7uStpz"
+  },
+  "outputs": {
+    "index.html": {
+      "one": {
+        "sha256": "b4d3cd93e0b1cf8b7a3de303462b9ced01e55d2f3d786793feb21e0219c112e4",
+        "bytes": 2039356
+      },
+      "two": {
+        "sha256": "b4d3cd93e0b1cf8b7a3de303462b9ced01e55d2f3d786793feb21e0219c112e4",
+        "bytes": 2039356
+      },
+      "exact": true
+    },
+    "dist/core.cjs": {
+      "one": {
+        "sha256": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+        "bytes": 488167
+      },
+      "two": {
+        "sha256": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+        "bytes": 488167
+      },
+      "exact": true
+    },
+    "dist/demo/index.html": {
+      "one": {
+        "sha256": "ac6b5104a94227f7621103909dcef4cc1a5aba92d39bd0052b5fc36ab3395e20",
+        "bytes": 63062
+      },
+      "two": {
+        "sha256": "612e0036f37bf81e9ad00376e153fd475703ad09287d29d614c5dfce3f00e4f8",
+        "bytes": 63063
+      },
+      "exact": false
+    },
+    "packages/editor/dist/contract.json": {
+      "one": {
+        "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "bytes": 839
+      },
+      "two": {
+        "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "bytes": 839
+      },
+      "exact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "one": {
+        "sha256": "34ccb5ff4e281a119fceb7d7a8f0ac9761677da7bb14288ab5a51a215ca2c942",
+        "bytes": 2039332
+      },
+      "two": {
+        "sha256": "34ccb5ff4e281a119fceb7d7a8f0ac9761677da7bb14288ab5a51a215ca2c942",
+        "bytes": 2039332
+      },
+      "exact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": {
+        "sha256": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+        "bytes": 15800
+      },
+      "two": {
+        "sha256": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+        "bytes": 15800
+      },
+      "exact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": {
+        "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "bytes": 15132
+      },
+      "two": {
+        "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "bytes": 15132
+      },
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": {
+        "sha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "bytes": 104794
+      },
+      "two": {
+        "sha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "bytes": 104794
+      },
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": {
+        "sha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "bytes": 177243
+      },
+      "two": {
+        "sha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "bytes": 177243
+      },
+      "exact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": {
+        "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "bytes": 1556
+      },
+      "two": {
+        "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "bytes": 1556
+      },
+      "exact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": {
+        "sha256": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+        "bytes": 199274
+      },
+      "two": {
+        "sha256": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+        "bytes": 199274
+      },
+      "exact": true
+    }
+  },
+  "allOutputsExact": false,
+  "sourceOverlay": {
+    "app/src/ui/inspector/Controls.tsx": {
+      "main": {
+        "sha256": "eade36a91cc039fdccd6b2321a95ed4cc5292d1c7eecf0d214cf7e254c492592",
+        "bytes": 50584
+      },
+      "one": {
+        "sha256": "eade36a91cc039fdccd6b2321a95ed4cc5292d1c7eecf0d214cf7e254c492592",
+        "bytes": 50584
+      },
+      "two": {
+        "sha256": "eade36a91cc039fdccd6b2321a95ed4cc5292d1c7eecf0d214cf7e254c492592",
+        "bytes": 50584
+      },
+      "exact": true
+    },
+    "tests/inspector-responsive-select-readback.test.tsx": {
+      "main": {
+        "sha256": "870f4a0bd7e048a9869b273301231f58a0bba1b662b13a6579bc2813c4d92b5c",
+        "bytes": 4880
+      },
+      "one": {
+        "sha256": "870f4a0bd7e048a9869b273301231f58a0bba1b662b13a6579bc2813c4d92b5c",
+        "bytes": 4880
+      },
+      "two": {
+        "sha256": "870f4a0bd7e048a9869b273301231f58a0bba1b662b13a6579bc2813c4d92b5c",
+        "bytes": 4880
+      },
+      "exact": true
+    }
+  },
+  "allSourceOverlayExact": true,
+  "mainProtectedBefore": {
+    "index.html": {
+      "current": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "expected": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "exact": true
+    },
+    "dist/core.cjs": {
+      "current": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "expected": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "exact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "current": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "expected": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "exact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "current": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "expected": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "exact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "current": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "expected": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "exact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "current": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "expected": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "current": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "expected": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "current": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "expected": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "exact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "current": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "expected": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "current": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "expected": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "exact": true
+    },
+    "dist/demo/index.html": {
+      "current": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "expected": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "exact": true
+    }
+  },
+  "mainProtected11Exact": true
+}

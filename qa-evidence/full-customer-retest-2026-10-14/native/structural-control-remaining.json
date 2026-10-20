@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "snapshot": "2026-10-17 main/staging b2c94c6d7417604a7faf7e7a97600c5dbb3293a2 exact; CI 39031378941/deploy 39031378985 green; integer controls bounded accepted (24 local + 10 staging real-image, 2421 passed/5 skipped, 30 behaviors, 24 zero-pixel); scientific 2e0 normalization accepted; all fifteen broad areas open",
+  "snapshot": "2026-10-17: last native runtime b2; evidence-only staging d4 verified; controlled WP provider bounded complete; fourteen of fifteen broad areas open. RichText reset-label candidate locally verified; staging pending.",
   "source": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
   "purpose": "Mechanical native-coverage ledger for the bounded direct controls in Heading, Image, Section, Row, Column, and Box. This is an evidence map, not an overall denominator or product pass rate.",
   "scope": {
@@ -248,22 +248,20 @@
     "partialCount": 0,
     "overallPercentage": null,
     "fullCustomerRetestComplete": false,
-    "note": "The bounded six-module direct-control matrix remains zero remaining/zero partial. Main/staging are exact b4 with green CI/deploy. RichText bounded acceptance passes the named runtime, typography, Undo/Redo, and fresh reload cases; broader module coverage remains open. Preview44 clean-state fix is committed/installed and four clean-state cases pass with settled Save disabled; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router. Fifteen broad areas remain open; no overall QA percentage or pass.",
+    "note": "The bounded six-module direct-control matrix remains zero remaining/zero partial. This is not an overall denominator. Current runtime acceptance and source state are recorded separately; fourteen broader areas remain open.",
     "overallPass": false
   },
   "currentSource": {
-    "main": "23939c587921a3d709053017b061122ef951df11",
-    "ci": "39007134973",
-    "deploy": "39007134967",
-    "wpPackage": "4042c8df780701480091d840ebb4864e0836630b",
-    "wpZip": "e6199f6f",
-    "wpManifest": "a75499e5",
-    "wpEvidence": "2e302ca1014f644ea7923cf2df8a3256f27093b4",
-    "wpCi": "39007960617",
-    "wpInstalled": true,
-    "postNativeGuard": "pending"
+    "lastNativeRuntime": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
+    "evidenceOnlyStagingAtCapture": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+    "wpInstalledVersion": "0.2.17-preview.20261017.55",
+    "wpEvidence": "0bf42bf9ae45f480d9619b306de9142023d5f05c",
+    "wpCi": "39034480254",
+    "postNativeGuard": "accepted; raw fixture-only changes retained",
+    "sharedGatewayVersion": 27,
+    "productionApp": "cc026d65d275f16374eb356d0331cebb93430c85"
   },
-  "sourceBoundary": "Structural ledger remains limited to named direct controls. Current b2c94 direct-control records remain bounded evidence; integer, WordPress, history, and Quote evidence are tracked in the canonical current records. Fifteen broad coverage areas remain open.",
+  "sourceBoundary": "The structural ledger covers only named direct controls. Integer, history, Forms and RichText evidence are separately scoped; fourteen of fifteen tracked broad areas remain open.",
   "currentScopedEvidence": {
     "semanticAdd": "native/staging-23939-semantic-add-acceptance.json: six click/drag/Redo atomic originals restored; native/wordpress-preview49-semantic-add-acceptance.json: five host-supported cases, Save disabled, IDs exact",
     "gallery": "native/staging-23939-gallery-common-style-acceptance.json: 12 finite cases, combined persistence/reset, exact original structure restore; common breadth open",
@@ -272,7 +270,9 @@
     "galleryBackground": "native/staging-23939-gallery-background-acceptance.json: 10 finite cases, exact asset identity/inheritance/resets/restoration",
     "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration",
     "currentSource": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
-    "status": "Bounded direct-control ledger remains current; fractional/scientific integer representation accepted in local v2 / staging24ec / WP55 reports. Broader coverage remains open."
+    "status": "Bounded direct-control ledger remains current; fractional/scientific integer representation accepted in local v2 / staging24ec / WP55 reports. Broader coverage remains open.",
+    "richtextFontsReset": "native/staging-d4-richtext-fonts-acceptance.json records 53 built-in font choices, Custom input and four line-height units applying correctly, plus three fresh saved D/T/M matrices and three working-draft Preview matrices. Responsive reset exposed stale visible Font/unit labels while hidden native values and CSS inherit correctly; a numeric edit still produced 30px. Local fix passes four native cases and 2,426 tests / 5 skipped with 11/11 deterministic outputs. Staging fix acceptance is pending. Individual Google font download completion and per-choice persistence are not claimed.",
+    "controlledForms": "native/wordpress-forms-p0-acceptance.json passes 8 controlled Local cases: fresh five-field POST contract, required/email validation, success, controlled 503 with no email, Back/correction and keyboard retry. Exactly 3 provider POSTs and 2 Mailpit messages; original page restored at document 17, revisions 515\u2013518 only. Root compared raw guards: protected15/legacy14/preexisting revisions/options/menus/routes exact. Temporary provider and isolated Mailpit removed. WP evidence 0bf42bf9ae45f480d9619b306de9142023d5f05c, CI 39034480254 green. This closes the planned controlled provider/mail-capture journey; real inbox delivery, remote-provider operation, and pointer retry after Back remain unclaimed."
   },
   "historicalSnapshots": {
     "02979-checkpoint": {
@@ -284,6 +284,18 @@
       "galleryBorder": "native/staging-23939-gallery-border-edges-acceptance.json: four px/rem edge cases, exact persistence/resets/restoration",
       "currentSource": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
       "status": "Historical 029 checkpoint: direct-control ledger and named evidence at that point; not current."
+    },
+    "23939-package-checkpoint": {
+      "main": "23939c587921a3d709053017b061122ef951df11",
+      "ci": "39007134973",
+      "deploy": "39007134967",
+      "wpPackage": "4042c8df780701480091d840ebb4864e0836630b",
+      "wpZip": "e6199f6f",
+      "wpManifest": "a75499e5",
+      "wpEvidence": "2e302ca1014f644ea7923cf2df8a3256f27093b4",
+      "wpCi": "39007960617",
+      "wpInstalled": true,
+      "postNativeGuard": "pending"
     }
   }
 }

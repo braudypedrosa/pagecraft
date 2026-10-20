@@ -1,0 +1,72 @@
+{
+  "count": 11,
+  "allExact": true,
+  "files": {
+    "index.html": {
+      "oneSha256": "9f30743b319a5403502361d8f7469562f89c2fc6c8a6fdd6b4b727a4cae2a6f1",
+      "twoSha256": "9f30743b319a5403502361d8f7469562f89c2fc6c8a6fdd6b4b727a4cae2a6f1",
+      "exact": true,
+      "bytes": 2039476
+    },
+    "dist/core.cjs": {
+      "oneSha256": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+      "twoSha256": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+      "exact": true,
+      "bytes": 488167
+    },
+    "packages/editor/dist/contract.json": {
+      "oneSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "twoSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "exact": true,
+      "bytes": 839
+    },
+    "packages/editor/dist/editor.html": {
+      "oneSha256": "96bf04430bb0665280e88fe9e62ab61b484aded32c55584f3553b60c522b9a3f",
+      "twoSha256": "96bf04430bb0665280e88fe9e62ab61b484aded32c55584f3553b60c522b9a3f",
+      "exact": true,
+      "bytes": 2039452
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "oneSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "twoSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "exact": true,
+      "bytes": 104794
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "oneSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "twoSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "exact": true,
+      "bytes": 177243
+    },
+    "packages/editor/dist/runtime.js": {
+      "oneSha256": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "twoSha256": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "exact": true,
+      "bytes": 15800
+    },
+    "dist/demo/index.html": {
+      "oneSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "twoSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "exact": true,
+      "bytes": 55833
+    },
+    "packages/editor/dist/templates.json": {
+      "oneSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "twoSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "exact": true,
+      "bytes": 15132
+    },
+    "packages/editor/dist/compiler.js": {
+      "oneSha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "twoSha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exact": true,
+      "bytes": 1556
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "oneSha256": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+      "twoSha256": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+      "exact": true,
+      "bytes": 199274
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "base": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+  "exactChangedFiles": 2,
+  "sourceFiles": {
+    "app/src/ui/inspector/Controls.tsx": {
+      "oneSha256": "eade36a91cc039fdccd6b2321a95ed4cc5292d1c7eecf0d214cf7e254c492592",
+      "twoSha256": "eade36a91cc039fdccd6b2321a95ed4cc5292d1c7eecf0d214cf7e254c492592",
+      "exact": true
+    },
+    "tests/inspector-responsive-select-readback.test.tsx": {
+      "oneSha256": "870f4a0bd7e048a9869b273301231f58a0bba1b662b13a6579bc2813c4d92b5c",
+      "twoSha256": "870f4a0bd7e048a9869b273301231f58a0bba1b662b13a6579bc2813c4d92b5c",
+      "exact": true
+    }
+  }
+}

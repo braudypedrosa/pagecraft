@@ -1,0 +1,9 @@
+# Responsive dropdown reset and controlled Forms checkpoint
+
+The customer-style typography flow exposed misleading inspector labels after responsive reset. Hidden native values and compiled CSS were correct, while enhanced visible Font and unit labels retained the cleared override. A subsequent number edit produced the correct 30px; no wrong-unit write is claimed. The fix replaces resolved Unit, Box and preset selects when their scope/value changes so the existing enhancer rebuilds the visible label.
+
+The candidate has two meaningful before-fix test failures, 43 focused passes, 2,426 full passes and 5 skips, clean typecheck/editor/demo builds, and 11 exact outputs across two fresh archives. Root native local acceptance passes four cases: Mobile and Tablet Unit/Box/Font reset, keyboard focus and End/Enter, and unit selection before entering the first number. Main generated working bytes remain protected. Staging acceptance and WordPress packaging of this fix are pending at this checkpoint.
+
+The separate WordPress controlled External HTTPS journey passes eight native cases. Exactly three provider requests produce two local captured emails; the forced 503 sends none. The original fixture is restored at version 17 with four new revisions515–518. Root compared raw pre/post guards independently: protected pages, existing revisions, original page content, options, menus and routes are exact. Provider and isolated Mailpit are removed; private logs, database and complete backups are preserved. WP evidence commit0bf42bf9 and CI39034480254 are green. This is controlled Local proof, not real-inbox or remote-provider deliverability.
+
+Full customer QA remains incomplete. Fourteen of fifteen tracked broader areas remain open; the planned controlled Local provider journey is bounded complete. Production app remains cc026; the previously deployed shared gateway27 history SELECT is tracked separately.

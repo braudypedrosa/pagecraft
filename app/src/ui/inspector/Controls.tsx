@@ -196,7 +196,11 @@ function UnitCtl({ n, c }: P) {
     <div class="unit">
       <input data-field-part="value" class="ctl" type="number" min={min} max={max} step={c.step ?? 1} value={num} placeholder="auto"
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
-      <select data-field-part="unit" class="ctl" value={u}
+      {/* Replacing the controlled leaf when its resolved scope/value changes lets the shared
+          enhancer retire its visible label too. Setting select.value alone does not emit a
+          DOM mutation, so an inherited unit could be correct natively while its trigger kept
+          describing the cleared override. */}
+      <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u}
         onChange={e => {
           const select = e.target as HTMLSelectElement;
           setChoice({ key: choiceKey, unit: select.value });
@@ -490,7 +494,7 @@ function BoxCtl({ n, c }: P) {
         <input data-field-part={s} class="ctl" key={s} type="number" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
       ))}
-      <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
+      <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
         onChange={e => {
           const select = e.target as HTMLSelectElement;
           setChoice({ key: choiceKey, unit: select.value });
@@ -761,11 +765,13 @@ function OptCtl({ n, c }: P) {
   /* an unrecognised stored value means somebody typed it, so the custom input opens
      itself rather than silently showing the first preset instead */
   const custom = !!C.state.ui.custom[ck] || (!known && cur !== '');
+  const selected = custom ? '__custom' : cur;
+  const selectKey = [ck, C.dk(), C.state.ui.st || '', C.state.ui.target || '', selected].join('|');
 
   const opt = ([v, l]: string[]) => <option key={v} value={v}>{l}</option>;
 
   return <Field n={n} c={c}>
-    <select class="ctl" value={custom ? '__custom' : cur}
+    <select key={selectKey} class="ctl" value={selected}
       onChange={e => {
         const v = (e.target as HTMLSelectElement).value;
         if (v === '__custom') { C.state.ui.custom[ck] = true; repaint('right'); return; }

@@ -1,0 +1,36 @@
+{
+  "changedSections": [
+    "postCounts",
+    "fixture487RevisionIds",
+    "fixture487Posts",
+    "fixture487Meta"
+  ],
+  "newRevisions": [
+    "515",
+    "516",
+    "517",
+    "518"
+  ],
+  "newMetaCount": 116,
+  "preexistingRevisionsExact": true,
+  "originalPageContentExact": true,
+  "onlyOriginalPagePostChanges": [
+    "post_date",
+    "post_modified",
+    "post_modified_gmt"
+  ],
+  "existingMetaChanges": [
+    {
+      "id": "7656",
+      "key": "_pagecraft_document_version",
+      "changedFields": [
+        "meta_value"
+      ]
+    }
+  ],
+  "allNewPostsFixtureRevisions": true,
+  "allNewMetaForNewRevisions": true,
+  "providerAbsent": true,
+  "protected15Exact": true,
+  "legacy14Exact": true
+}

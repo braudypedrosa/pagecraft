@@ -1,0 +1,61 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-richtext-reset-d4-v1
+
+ ❯ tests/inspector-responsive-select-readback.test.tsx (3 tests | 3 failed) 56ms
+   × clearing responsive unit and box overrides refreshes enhanced unit labels from inherited CSS 39ms
+   × clearing a responsive font override refreshes the enhanced preset label 10ms
+   × empty unit choices remain local but enhanced labels reset across editing scopes 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-responsive-select-readback.test.tsx > clearing responsive unit and box overrides refreshes enhanced unit labels from inherited CSS
+TypeError: Cannot read properties of null (reading 'textContent')
+ ❯ tests/inspector-responsive-select-readback.test.tsx:42:38
+     40|   r.draw(() => <Ctl n={text} c={lineHeight} />, 'right');
+     41|   await enhance();
+     42|   assert.equal(trigger('Line height').textContent?.trim(), '%');
+       |                                      ^
+     43|
+     44|   act(() => r.click(r.$('button.rsp')));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/inspector-responsive-select-readback.test.tsx > clearing a responsive font override refreshes the enhanced preset label
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'System sans'
+- 'Lora'
+
+
+Expected: "Lora"
+Received: "System sans"
+
+ ❯ tests/inspector-responsive-select-readback.test.tsx:84:10
+     82|   await settle();
+     83|   assert.equal((r.$('select[aria-label="Font"]') as HTMLSelectElement)…
+     84|   assert.equal(trigger('Font').textContent?.trim(), 'Lora');
+       |          ^
+     85| });
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/inspector-responsive-select-readback.test.tsx > empty unit choices remain local but enhanced labels reset across editing scopes
+TypeError: Cannot read properties of null (reading 'textContent')
+ ❯ tests/inspector-responsive-select-readback.test.tsx:96:38
+     94|   await settle();
+     95|   assert.equal(text.css.d['line-height'], undefined);
+     96|   assert.equal(trigger('Line height').textContent?.trim(), '%');
+       |                                      ^
+     97|
+     98|   C.state.ui.dev = 'mobile';
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  21:06:20
+   Duration  931ms (transform 252ms, setup 0ms, import 291ms, tests 56ms, environment 480ms)
+

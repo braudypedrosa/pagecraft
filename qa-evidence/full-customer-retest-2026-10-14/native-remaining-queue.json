@@ -13,14 +13,18 @@
       "wordpress": "WP55 native/wordpress-preview55-integer-acceptance.json is bounded accepted with saved Editor D/T/M and actual frontend 1440/834/390, Save disabled, Restore Version 13 to document 15, 11 IDs/CSS exact, revisions 513/514 only, 25 preexisting exact, protected15/legacy14 exact, and broad guard 56d956df0ae435a527f6b628230b515504e30237fb1d3aa6efe17aa330532298.",
       "history": "native/staging-b2-history-acceptance.json passes the four-case Save attribution -> Version 780 -> Restore 779 -> 781 path with CSS/IDs/Quote exact, rows 1..781, and zero post-deploy resource errors; retry CPU evidence was inconclusive.",
       "quote": "native/staging-029-quote-content-alignment.json passes nine D/T/M runtime cases with fresh restoration; the initial text-align expectation is classified as a harness issue because Content uses align-self.",
-      "open": "All fifteen broad areas remain open; overallPass=false and fullCustomerRetestComplete=false."
+      "open": "Fourteen broad areas remain open among fifteen tracked areas. Controlled Local WordPress provider journey is bounded complete. overallPass=false; fullCustomerRetestComplete=false.",
+      "forms": "native/wordpress-forms-p0-acceptance.json passes 8 controlled Local cases: fresh five-field POST contract, required/email validation, success, controlled 503 with no email, Back/correction and keyboard retry. Exactly 3 provider POSTs and 2 Mailpit messages; original page restored at document 17, revisions 515\u2013518 only. Root compared raw guards: protected15/legacy14/preexisting revisions/options/menus/routes exact. Temporary provider and isolated Mailpit removed. WP evidence 0bf42bf9ae45f480d9619b306de9142023d5f05c, CI 39034480254 green. This closes the planned controlled provider/mail-capture journey; real inbox delivery, remote-provider operation, and pointer retry after Back remain unclaimed.",
+      "typographyReset": "native/staging-d4-richtext-fonts-acceptance.json records 53 built-in font choices, Custom input and four line-height units applying correctly, plus three fresh saved D/T/M matrices and three working-draft Preview matrices. Responsive reset exposed stale visible Font/unit labels while hidden native values and CSS inherit correctly; a numeric edit still produced 30px. Local fix passes four native cases and 2,426 tests / 5 skipped with 11/11 deterministic outputs. Staging fix acceptance is pending. Individual Google font download completion and per-choice persistence are not claimed."
     },
     "openLimitations": [
-      "All fifteen explicitly named broader coverage areas below remain open; this is not an overall product pass.",
+      "Fourteen broader areas remain open; one controlled Local provider journey is bounded complete. This is not an overall product pass.",
       "Historical v1 scientific 2e0 failure is fixed and is not a current release hold.",
       "Production app promotion is separate; shared gateway history query was updated in place with unchanged authorization and no revision pruning."
     ],
-    "openBroadAreas": 15
+    "openBroadAreas": 14,
+    "headMeaning": "Last natively accepted runtime commit; later evidence-only commits do not imply additional native coverage.",
+    "trackedBroadAreas": 15
   },
   "evidenceLevels": [
     "all-options",
@@ -708,13 +712,31 @@
     "collection6cfaNative": "Source-change Undo context passes. Typed filters pass 21/21 across Boolean aliases/Undo/Redo, Number zero/invalid correction, Date leap-day/invalid/contains, Option legacy/configured/substring, and Reference label/runtime. Only SIL and final Boolean No were individually reloaded; 414px canvas/399px client has no horizontal overflow.",
     "wordpressPreview44": "Preview44 clean-state fix is committed/installed and passes four cases including Quote\u2192Paragraph and focused Size Edit/Undo-clean; no Save was clicked and settled Save is disabled. Older native acceptance is historical before adapter fix; root-verified protected 14/15 guard passes with exact installed 54 manifest and unchanged options/router.",
     "collectionSiteCheckTarget": "Earlier 6cfa target defect is fixed and staging-accepted for Courtyard and page-2 Reading Room; CMS fixtures were restored. See native/staging-5da-site-check-item-target-fixed.json and native/staging-5da-site-check-page2-fixed.json.",
-    "accordionB4Native": "Seventeen of seventeen finite content/runtime cases, ten module Style values, and ten module Advanced values pass reload; 5da label refresh and one-Undo restoration are accepted. Common Style/shared-CSS breadth remains open."
+    "accordionB4Native": "Seventeen of seventeen finite content/runtime cases, ten module Style values, and ten module Advanced values pass reload; 5da label refresh and one-Undo restoration are accepted. Common Style/shared-CSS breadth remains open.",
+    "wordpressControlledProvider20261017": {
+      "status": "bounded_complete",
+      "report": "native/wordpress-forms-p0-acceptance.json",
+      "cases": 8,
+      "passed": true,
+      "restored": true,
+      "wpEvidence": "0bf42bf9ae45f480d9619b306de9142023d5f05c",
+      "ci": "39034480254",
+      "rootGuard": "native/wordpress-forms-p0-root-guard-review.json",
+      "scope": "native/wordpress-forms-p0-acceptance.json passes 8 controlled Local cases: fresh five-field POST contract, required/email validation, success, controlled 503 with no email, Back/correction and keyboard retry. Exactly 3 provider POSTs and 2 Mailpit messages; original page restored at document 17, revisions 515\u2013518 only. Root compared raw guards: protected15/legacy14/preexisting revisions/options/menus/routes exact. Temporary provider and isolated Mailpit removed. WP evidence 0bf42bf9ae45f480d9619b306de9142023d5f05c, CI 39034480254 green. This closes the planned controlled provider/mail-capture journey; real inbox delivery, remote-provider operation, and pointer retry after Back remain unclaimed."
+    },
+    "richtextFontsReset20261017": {
+      "status": "font/runtime matrices accepted; confirmed label bug has local fix, staging pending",
+      "report": "native/staging-d4-richtext-fonts-acceptance.json",
+      "localFixReport": "native/local-richtext-reset-acceptance.json",
+      "scope": "native/staging-d4-richtext-fonts-acceptance.json records 53 built-in font choices, Custom input and four line-height units applying correctly, plus three fresh saved D/T/M matrices and three working-draft Preview matrices. Responsive reset exposed stale visible Font/unit labels while hidden native values and CSS inherit correctly; a numeric edit still produced 30px. Local fix passes four native cases and 2,426 tests / 5 skipped with 11/11 deterministic outputs. Staging fix acceptance is pending. Individual Google font download completion and per-choice persistence are not claimed."
+    }
   },
   "remainingPriority": [
     {
       "priority": "P0",
       "area": "Text / RichText shared Style and Advanced",
       "needs": [
+        "Stage-accept the shared enhanced-dropdown reset-label fix, then continue broader settings.",
         "Complete common Style/Advanced settings, responsive reset, shared-style combinations, and public output."
       ],
       "status": "open"
@@ -754,10 +776,14 @@
     {
       "priority": "P0",
       "area": "WordPress External HTTPS Forms provider",
-      "needs": [
-        "Complete actual captured email fulfillment, controlled provider failure, validation and Back/retry. Managed Forms remain unsupported."
-      ],
-      "status": "open"
+      "needs": [],
+      "status": "bounded_complete",
+      "accepted": "Eight native controlled Local cases; 3 POSTs, 2 captured emails, fresh contract, validation, failure and Back/keyboard retry, exact fixture restoration and cleanup.",
+      "limitations": [
+        "Real inbox deliverability and remote-provider infrastructure are not tested.",
+        "Pointer retry after Back is unclaimed because browser input timed out; keyboard retry passed.",
+        "Managed Forms remain unsupported by the WordPress host contract."
+      ]
     },
     {
       "priority": "P2",

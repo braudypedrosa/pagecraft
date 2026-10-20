@@ -1,0 +1,112 @@
+{
+  "task": "RichText responsive reset enhanced-select readback",
+  "date": "2026-10-17",
+  "base": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+  "archive": "/private/tmp/pagecraft-richtext-reset-d4-v1",
+  "changedFiles": [
+    "app/src/ui/inspector/Controls.tsx",
+    "tests/inspector-responsive-select-readback.test.tsx"
+  ],
+  "patch": {
+    "path": "/private/tmp/pagecraft-richtext-reset-d4-v1/qa-evidence/richtext-reset/richtext-reset.patch",
+    "sha256": "f0fbee8937dc5645776bd50fc4469bf8c96ca2bd6e45dab237b072e11f7cd6b9"
+  },
+  "cause": "Preact updates native select.value during responsive inheritance repaint, but property changes do not create MutationObserver records. Shared custom-select trigger therefore kept its prior visible label while hidden native value and rendered CSS were already correct.",
+  "fix": "Key UnitCtl and BoxCtl unit selects by editing scope plus resolved unit, and OptCtl preset select by scope plus selected option. Existing custom-select replacement/rebind path refreshes the visible trigger.",
+  "checks": {
+    "redFinal": {
+      "exit": 1,
+      "files": "1 failed",
+      "tests": "2 failed, 1 passed",
+      "failures": [
+        "UnitCtl hidden em but visible %",
+        "OptCtl hidden Lora but visible System sans"
+      ],
+      "log": "red-final.log"
+    },
+    "focusedFinal": {
+      "exit": 0,
+      "files": "8 passed",
+      "tests": "43 passed",
+      "log": "green-focused-final.log"
+    },
+    "typecheck": {
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    "patchApplyCheck": {
+      "exit": 0
+    },
+    "scope": {
+      "exactChangedFiles": 2,
+      "sharedCustomSelectChanged": false
+    },
+    "mainProtected11": {
+      "exact": true,
+      "count": 11,
+      "evidence": "main-protected11.json"
+    },
+    "fullSuite": {
+      "exit": 0,
+      "files": "218 passed, 2 skipped",
+      "tests": "2426 passed, 5 skipped",
+      "duration": "46.43s",
+      "log": "full-suite.log"
+    },
+    "oneEditorBuild": {
+      "exit": 0,
+      "log": "one-editor-build.log"
+    },
+    "oneDemoBuild": {
+      "exit": 0,
+      "log": "one-demo-build.log"
+    },
+    "twoEditorBuild": {
+      "exit": 0,
+      "log": "/private/tmp/pagecraft-richtext-reset-d4-v2/qa-evidence/richtext-reset/two-editor-build.log"
+    },
+    "twoDemoBuild": {
+      "exit": 0,
+      "log": "/private/tmp/pagecraft-richtext-reset-d4-v2/qa-evidence/richtext-reset/two-demo-build.log"
+    },
+    "generatedDeterminism": {
+      "exact": true,
+      "count": 11,
+      "evidence": "generated-determinism.json"
+    },
+    "sourceFreeze": {
+      "exactChangedFiles": 2,
+      "bothArchivesExact": true,
+      "evidence": "source-freeze-final.json"
+    },
+    "mainProtected11AfterBuilds": {
+      "exact": true,
+      "count": 11,
+      "evidence": "main-protected11-after-builds.json"
+    }
+  },
+  "covered": [
+    "UnitCtl override reset",
+    "BoxCtl override reset",
+    "OptCtl known font override reset",
+    "empty unit choice remains UI-only",
+    "device/state/class target scope changes",
+    "custom-select replacement lifecycle and first-click guard"
+  ],
+  "delivery": {
+    "mainEdited": false,
+    "built": true,
+    "committed": false,
+    "pushed": false,
+    "deployed": false,
+    "browserUsed": false
+  },
+  "remaining": [
+    "Root native candidate verification across Desktop/Tablet/Mobile",
+    "Root Main integration, commit, deployment, and staging retest"
+  ],
+  "verificationArchives": [
+    "/private/tmp/pagecraft-richtext-reset-d4-v1",
+    "/private/tmp/pagecraft-richtext-reset-d4-v2"
+  ]
+}

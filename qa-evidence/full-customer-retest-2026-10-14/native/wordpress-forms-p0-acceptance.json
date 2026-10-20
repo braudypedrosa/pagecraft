@@ -1,0 +1,196 @@
+{
+  "environment": "Local WordPress QA Preview55",
+  "baselineVersion": 15,
+  "temporaryFormId": "ndo5dd1yy",
+  "runId": "20261017T123226Z-0e892055",
+  "providerBasename": "pagecraft-forms-p0-20261017T123226Z-0e892055.php",
+  "tests": [
+    {
+      "name": "Five-field External HTTPS POST contract persisted fresh",
+      "got": {
+        "fields": [
+          {
+            "disabled": false,
+            "name": "name",
+            "required": true,
+            "type": "text"
+          },
+          {
+            "disabled": false,
+            "name": "email",
+            "required": true,
+            "type": "email"
+          },
+          {
+            "disabled": false,
+            "name": "message",
+            "required": true,
+            "type": "textarea"
+          },
+          {
+            "disabled": false,
+            "name": "qa_scenario",
+            "required": false,
+            "type": "text"
+          },
+          {
+            "disabled": false,
+            "name": "qa_correlation",
+            "required": false,
+            "type": "text"
+          }
+        ],
+        "method": "post",
+        "name": "QA external provider mail form"
+      },
+      "actionMatchesPrivateReceipt": true,
+      "saveDisabled": true,
+      "passed": true
+    },
+    {
+      "name": "Empty submit blocked by native required validation",
+      "got": {
+        "emailMissing": true,
+        "focused": "name",
+        "messageMissing": true,
+        "nameMissing": true,
+        "url": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Malformed email blocked before navigation",
+      "got": {
+        "focused": "email",
+        "typeMismatch": true,
+        "url": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Readiness and mail baseline after invalid submits",
+      "providerRemainingPosts": 6,
+      "mailpitMessages": 0,
+      "passed": true
+    },
+    {
+      "name": "One successful native POST reaches captured mail",
+      "nativeResponse": {
+        "ok": true,
+        "correlation": "pcqa-native-20261017-a"
+      },
+      "mailpitMessages": 1,
+      "hardcodedRecipient": "pagecraft-qa-recipient@example.invalid",
+      "bodyIncludes": [
+        "Pagecraft QA Customer",
+        "pagecraft-customer@example.invalid",
+        "Controlled QA message for café delivery, 2026-10-17."
+      ],
+      "passed": true
+    },
+    {
+      "name": "Controlled provider rejection returns readable error with no new email",
+      "expectedStatus": 503,
+      "providerRequests": 2,
+      "providerOutcome": "forced_failure_before_wp_mail",
+      "mailpitMessages": 1,
+      "passed": true
+    },
+    {
+      "name": "Corrected keyboard retry reaches exactly one additional captured message",
+      "providerRequests": 3,
+      "outcomes": [
+        {
+          "scenario": "success",
+          "correlation": "pcqa-native-20261017-a",
+          "outcome": "wp_mail_accepted"
+        },
+        {
+          "scenario": "fail",
+          "correlation": "pcqa-native-20261017-b",
+          "outcome": "forced_failure_before_wp_mail"
+        },
+        {
+          "scenario": "success",
+          "correlation": "pcqa-native-20261017-c",
+          "outcome": "wp_mail_accepted"
+        }
+      ],
+      "mailpitMessages": 2,
+      "passed": true
+    },
+    {
+      "name": "Combined Back and correction journey retains customer data through retry",
+      "otherFieldsRetained": true,
+      "emailEvidence": "Email input reads are privacy-redacted. Email was never edited after first submit; the actual captured retry message displays the exact fictional address entered initially.",
+      "retryBodyEmailObserved": true,
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "authoring": "Native builder UI only; defaults plus two text fields with explicit Field names; External HTTPS/POST",
+  "beforeOriginalIds": [
+    "nxo96g28f",
+    "nxo96g3zt",
+    "nxo96g47r",
+    "nxo96g5qr",
+    "ny2qsh6e8",
+    "ny2qsh74a",
+    "ny2qsh8kv",
+    "ny2qsh9qo",
+    "ny5zleam3",
+    "ny6igvbfj",
+    "ny6kabci2"
+  ],
+  "harnessNotes": [
+    "After browser Back, one semantic button click timed out at CDP mouse dispatch; native view remained the form and provider log still contained only the single success. No duplicate submission was attempted before checking effects.",
+    "A later locator Return did not submit; provider stayed at two requests, all validity flags were true and submit enabled. Native Tab focused the submit button; native Return completed one retry. No duplicate provider calls. Pointer retry after Back remains unclaimed.",
+    "Initial two per-Back comparisons incorrectly compared privacy-redacted Email value with literal text. Kept as diagnostic probes; acceptance uses the combined journey, unchanged Email input, and actual captured retry body rather than reading around the redaction."
+  ],
+  "harnessFirstRetentionProbes": [
+    {
+      "name": "Browser Back preserves successful submission values",
+      "got": {
+        "email": "<redacted>",
+        "message": "Controlled QA message for café delivery, 2026-10-17.",
+        "name": "Pagecraft QA Customer",
+        "qa_correlation": "pcqa-native-20261017-a",
+        "qa_scenario": "success"
+      },
+      "passed": false
+    },
+    {
+      "name": "Back after rejection retains all customer values for correction",
+      "got": {
+        "email": "<redacted>",
+        "message": "Controlled QA message for café delivery, 2026-10-17.",
+        "name": "Pagecraft QA Customer",
+        "qa_correlation": "pcqa-native-20261017-b",
+        "qa_scenario": "fail"
+      },
+      "passed": false
+    }
+  ],
+  "restoration": {
+    "method": "Native History Restore Version 15",
+    "verifiedAt": "2026-10-17T12:51:10.398Z",
+    "originalIdsExact": true,
+    "fullCssExact": true,
+    "tempFormAbsent": true,
+    "saveDisabled": true,
+    "frontendTempFormAbsent": true
+  },
+  "passed": true,
+  "cleanup": {
+    "status": "Worker verified temporary provider removed, isolated Mailpit stopped, ports absent",
+    "finalDocumentVersion": 17,
+    "newRevisionIds": [
+      515,
+      516,
+      517,
+      518
+    ],
+    "protectedStateUnchanged": true,
+    "details": "Final strict database and runtime guard supplied by WordPress packaging worker; root to independently review receipt."
+  }
+}

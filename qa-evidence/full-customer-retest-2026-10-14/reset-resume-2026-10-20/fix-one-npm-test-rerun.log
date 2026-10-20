@@ -1,0 +1,117 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (458 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-reset-resume-one-Y66W8f/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-reset-resume-one-Y66W8f
+
+ ❯ server/tests/premade-workflow.test.ts (3 tests | 1 failed) 35170ms
+   × CLI keeps drafts out of catalog, verifies evidence, promotes once and preserves legacy releases 35136ms
+ ❯ server/tests/submissions.test.ts (16 tests | 1 failed) 37036ms
+   × failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200 30597ms
+ ❯ tests/editor-settings-feedback.test.mjs (3 tests | 2 failed) 50553ms
+   × Cloud settings Close is quiet when unchanged, but preserves pending names and errors 17302ms
+   × Close waits for an unsaved document and prevents duplicate processing 27645ms
+ ❯ server/tests/template-release-validation.test.ts (3 tests | 1 failed) 60839ms
+   × template audit accepts exact source candidates and only exact form prerequisites 39700ms
+ ❯ tests/workspace-shell.test.mjs (6 tests | 2 failed) 75309ms
+   × Cloud serves the same font bytes as the portable editor, only on the editor host 16250ms
+   × site rename success and validation errors have distinct semantic notices 24010ms
+ ❯ server/tests/loadable.test.ts (4 tests | 3 failed) 48026ms
+   × node can import every server module, not only vitest 16479ms
+   × production refuses to boot without durable storage 15055ms
+   × production refuses to boot without Supabase Auth and Turnstile configuration 15211ms
+[vitest-pool]: Timeout terminating forks worker for test files /private/tmp/pagecraft-reset-resume-one-Y66W8f/tests/workspace-shell.test.mjs.
+ ❯ tests/editor-save-recovery.test.mjs (6 tests | 3 failed) 115667ms
+   × an unreadable project in this browser is left exactly as it was 23072ms
+   × closing the tab inside the save debounce prompts, and pagehide writes the last edit 29333ms
+   × an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make” 27550ms
+stderr | tests/component-gallery.test.mjs > all specimens use the current host cascade and contain no submitting forms
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+
+stderr | tests/component-gallery.test.mjs > every family includes a real-component long-content or recovery fixture
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+
+ ❯ server/tests/template-picker.test.ts (4 tests | 1 failed) 42436ms
+   × template picker renders the five named templates and represented facets 28730ms
+ ❯ tests/component-gallery.test.mjs (9 tests | 2 failed) 114630ms
+   × all specimens use the current host cascade and contain no submitting forms 35771ms
+   × every family includes a real-component long-content or recovery fixture 66614ms
+ ❯ server/tests/founder-reporting-gateway.test.ts (3 tests | 1 failed) 26991ms
+   × reporting SQL executes against the existing table shapes without reading document or asset bodies 24622ms
+ ❯ server/tests/collaboration-invitations.test.ts (6 tests | 1 failed) 23888ms
+   × Postgres decisions lock and atomically convert pending rows into accepted membership 23421ms
+ ❯ server/tests/scheduled-publish.test.ts (8 tests | 4 failed) 134153ms
+   × postgres: a due snapshot publishes while its baseline is live, even though the draft moved on 18001ms
+   × postgres: a newer publication supersedes the baseline, and the schedule does not apply 29354ms
+   × postgres: a never-published site accepts a schedule whose baseline is null 64388ms
+   × postgres: an unknown site or revision is missing, not an error 22363ms
+ ❯ server/tests/pro-plan-entitlements.test.ts (4 tests | 1 failed) 37069ms
+   × Postgres resolves the assigned plan while preserving atomic Free creation limits 29978ms
+ ❯ server/tests/gateway-db.test.ts (14 tests | 14 skipped) 13740ms
+ ❯ tests/media-drop.test.mjs (13 tests | 3 failed) 144262ms
+   × both browser surfaces search without replacing the focused field and filter immediately 17057ms
+   × large libraries render bounded batches and recover from an empty search 30560ms
+   × a failed host upload returning no ID is reported and can be retried 27349ms
+(node:60379) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/boot.test.mjs (37 tests | 3 failed) 157153ms
+   × WordPress mode boots the shared editor and saves a native fallback through the nonce adapter 18998ms
+   × a content collaborator is not offered the owner-only Publish action 26071ms
+   × project and CMS text fields close their undo transactions on blur 16296ms
+(node:60461) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/editor-usability-feedback.test.mjs (23 tests | 3 failed) 166670ms
+   × palette insertion history keeps semantic aliases and atomic Slider children 27305ms
+   × client review opens owner workflow without outbound mutations and explains unsaved changes 35221ms
+   × client review is unavailable outside owner account access: {"role":"content"} 27283ms
+(node:60823) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
