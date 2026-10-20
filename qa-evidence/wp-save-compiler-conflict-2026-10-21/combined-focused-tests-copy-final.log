@@ -1,0 +1,70 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-save-compiler-conflict
+
+ ✓ tests/gallery-capture-steps.test.mjs > captureGallerySteps yields each saved PNG and writes the manifest only at completion 22ms
+ ✓ tests/gallery-capture-steps.test.mjs > captureGallerySteps cancellation restores CDP state without writing a manifest 3ms
+ ✓ tests/editor-save-recovery.test.mjs > busy saves preserve edits, wait for explicit retry, and retain real conflict protection 1217ms
+ × tests/editor-save-recovery.test.mjs > a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action 1099ms
+   → The input did not match the regular expression /Pagecraft was updated while this editor was open/i. Input:
+
+'\n' +
+  '    \n' +
+  '      The Pagecraft compiler changed while this editor was open.\n' +
+  '      The Pagecraft compiler changed before this output was saved. Reload the editor and save again.\n' +
+  '    \n' +
+  '    \n' +
+  '      Your latest changes are still in this tab and were not saved. Download your copy first,\n' +
+  '      then reload the builder to use the compiler currently installed by WordPress.\n' +
+  '    '
+
+ ✓ tests/editor-save-recovery.test.mjs > hosted network failure gives connection guidance and retry preserves the unsaved document 3231ms
+ ✓ tests/editor-save-recovery.test.mjs > a hosted document this build cannot open is never overwritten by the demo 1777ms
+ ✓ tests/editor-save-recovery.test.mjs > an unreadable project in this browser is left exactly as it was 1758ms
+ ✓ tests/editor-save-recovery.test.mjs > closing the tab inside the save debounce prompts, and pagehide writes the last edit 1049ms
+ ✓ tests/editor-save-recovery.test.mjs > an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make” 1041ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action
+AssertionError: The input did not match the regular expression /Pagecraft was updated while this editor was open/i. Input:
+
+'\n' +
+  '    \n' +
+  '      The Pagecraft compiler changed while this editor was open.\n' +
+  '      The Pagecraft compiler changed before this output was saved. Reload the editor and save again.\n' +
+  '    \n' +
+  '    \n' +
+  '      Your latest changes are still in this tab and were not saved. Download your copy first,\n' +
+  '      then reload the builder to use the compiler currently installed by WordPress.\n' +
+  '    '
+
+
+- Expected:
+/Pagecraft was updated while this editor was open/i
+
++ Received:
+"
+
+      The Pagecraft compiler changed while this editor was open.
+      The Pagecraft compiler changed before this output was saved. Reload the editor and save again.
+
+
+      Your latest changes are still in this tab and were not saved. Download your copy first,
+      then reload the builder to use the compiler currently installed by WordPress.
+    "
+
+ ❯ tests/editor-save-recovery.test.mjs:137:12
+    135|     assert.equal(document.querySelector('#modal').hidden, false, 'reco…
+    136|     assert.equal(document.querySelector('#mTitle').textContent, 'Reloa…
+    137|     assert.match(document.querySelector('#mBody').textContent, /Pagecr…
+       |            ^
+    138|     assert.match(document.querySelector('#mBody').textContent, /latest…
+    139|     assert.doesNotMatch(document.querySelector('#mBody').textContent, …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 8 passed (9)
+   Start at  04:05:32
+   Duration  11.82s (transform 44ms, setup 0ms, import 596ms, tests 11.20s, environment 0ms)

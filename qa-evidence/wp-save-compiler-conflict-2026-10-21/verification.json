@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-21",
+  "timezone": "Asia/Manila",
+  "status": "accepted candidate; ready for guarded integration",
+  "baseCommit": "b19fae0471f36f5779524068ff4b4764dc00456b",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-save-compiler-conflict",
+  "changedSource": {
+    "builder.html": "7ad943c4c05d57295f50f3bc5e380ed5675fb0d328a9088bfda1e4319c7f55de",
+    "tests/editor-save-recovery.test.mjs": "1050a39874c6d06efacb64757eece91f9afe0d686eaaac4852805c04368c4ed1",
+    "tools/capture-ui-gallery.mjs": "392a4a97b3bdfe29a8885f4942aad0c29b079b24f6507fab2a4a5183be4d8111",
+    "tests/gallery-capture-steps.test.mjs": "82984a103b123ea3da2c27886beddcaa68ee3ced22551a00ea87815ff33ac81c",
+    "public/internal-ui-baselines/manifest.json": "f634655249580630c33bc651dd7f359b9407c347f908900a6025ccf9ac9af868"
+  },
+  "behavior": {
+    "compilerConflict": "A 409 with reloadRequired opens a visible, focused recovery dialog with plain-language update copy, Download my copy, and Reload builder.",
+    "safety": "The failed draft and version remain unchanged; no automatic retry, overwrite, or saved acknowledgement occurs.",
+    "wordPressShell": "The separate WordPress transform preserves the specific recovery dialog and reopens it from Site checks without a second PUT."
+  },
+  "checks": {
+    "focused": { "result": "pass", "tests": 9, "log": "combined-focused-tests-copy-final-after-build.log" },
+    "typecheck": { "result": "pass", "log": "final-typecheck.log" },
+    "fullSuite": { "result": "pass", "testFilesPassed": 225, "testFilesSkipped": 2, "testsPassed": 2488, "testsSkipped": 5, "log": "final-full-suite.log" },
+    "deterministicBuild": { "result": "pass", "artifacts": 11, "diffBytes": 0, "hashes": "final-generated-hashes-build-2.sha256" },
+    "demo": { "result": "pass", "components": 1, "instances": 6, "collectionItems": 4, "findings": 0, "log": "final-demo.log" },
+    "baselineGate": { "result": "pass", "images": 24, "sourceFiles": 28, "log": "final-ui-baseline-gate.log" },
+    "gallery": {
+      "result": "pass",
+      "runs": 2,
+      "behaviorChecksPerRun": 30,
+      "capturesPerRun": 24,
+      "changedPixels": 0,
+      "paths": [
+        "../compiler-save-recovery-2026-10-21/gallery-final",
+        "../compiler-save-recovery-2026-10-21/gallery-final-repeat",
+        "../compiler-save-recovery-2026-10-21/gallery-final-repeat-comparison.json"
+      ]
+    },
+    "native": {
+      "result": "pass",
+      "scope": "final faithful WordPress manual Save, plain copy, backup, Site checks return, title and actions",
+      "evidence": [
+        "Main qa/native/local-wordpress-final-compiler-recovery.json",
+        "Main qa/native/local-wordpress-final-compiler-recovery.jpg"
+      ]
+    },
+    "dependencyAudit": {
+      "result": "known advisories",
+      "all": { "moderate": 2, "high": 0, "critical": 0 },
+      "production": { "moderate": 1, "high": 0, "critical": 0 },
+      "notes": "sanitize-html is the production advisory; Vite/launch-editor is development-only. Neither dependency changed in this candidate.",
+      "logs": ["final-npm-audit.json", "final-npm-audit-production.json"]
+    },
+    "diffCheck": { "result": "pass" }
+  },
+  "observedFailures": [
+    "Before the fix, reloadRequired 409 was presented as Somebody else saved this page.",
+    "The first wording assertion after the copy edit read the stale packaged editor and failed; rebuilding the required editor package made the unchanged assertion pass.",
+    "The pre-review full suite failed only the expected builder source fingerprint gate; the final reviewed manifest passes the complete suite.",
+    "The first WordPress transformed harness exposed that Site checks reopened generic recovery; the WordPress-owned generator fix and visible Save regression resolved it."
+  ],
+  "integration": {
+    "includeEvidence": [
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery-final",
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery-final-repeat",
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery-final-repeat-comparison.json",
+      "qa-evidence/wp-save-compiler-conflict-2026-10-21"
+    ],
+    "excludeSupersededEvidence": [
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery",
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery-repeat",
+      "qa-evidence/compiler-save-recovery-2026-10-21/gallery-repeat-comparison.json"
+    ],
+    "delivery": "local only; no commit, push, deployment, Main write, database write, or valid save was performed by this worker"
+  }
+}

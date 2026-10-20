@@ -50,6 +50,19 @@ await captureModule.captureGallery(tab, captureDirectory,
   await captureModule.readBehaviorChecks(captureDirectory));
 ```
 
+For a browser session with a short command deadline, capture in batches using the same recipe:
+
+```js
+var steps = captureModule.captureGallerySteps(tab, captureDirectory,
+  await captureModule.readBehaviorChecks(captureDirectory));
+// Run this batch again in later calls until all 24 images have been yielded.
+for (var i = 0; i < 6; i++) nodeRepl.write(await steps.next());
+// Resume once after the final image to validate sources, write capture.json, and reset emulation.
+nodeRepl.write(await steps.next());
+```
+
+Use `await steps.return()` when abandoning a partial run so viewport and media emulation are restored. Partial PNGs are not accepted evidence; `capture.json` is written only after the complete inventory and source checks pass. Keep the iterator paused between calls rather than launching browser work in the background.
+
 4. Compare the candidate captures:
 
 ```sh

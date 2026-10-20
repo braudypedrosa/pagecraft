@@ -104,7 +104,7 @@ async function runtimeCharacteristics(cdp){
  try{return JSON.parse(result.value);}catch{throw new Error('Capture environment returned invalid JSON.');}
 }
 
-export async function captureGallery(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion,captureBeyondViewport=false}={}){
+export async function* captureGallerySteps(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion,captureBeyondViewport=false}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
  if(typeof captureBeyondViewport!=='boolean')throw new TypeError('captureBeyondViewport must be a boolean.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
@@ -133,10 +133,10 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    await cdp.send('Emulation.setDeviceMetricsOverride',metricsFor(width,900));
    if(await tab.playwright.evaluate(()=>document.body.dataset.galleryHost)!==host){
     await tab.playwright.getByRole('link',{name:host==='cloud'?'Cloud':'Builder',exact:true}).click();
-    await tab.playwright.locator(`body[data-gallery-host="${host}"]`).waitFor({state:'attached'});
+    await tab.playwright.locator(`body[data-gallery-host="${host}"]`).waitFor({state:'attached',timeoutMs:10000});
    }
    await tab.playwright.getByRole('link',{name:section[0].toUpperCase()+section.slice(1),exact:true}).click();
-   await tab.playwright.locator(`body[data-gallery-host="${host}"][data-gallery-section="${section}"]`).waitFor({state:'attached'});
+   await tab.playwright.locator(`body[data-gallery-host="${host}"][data-gallery-section="${section}"]`).waitFor({state:'attached',timeoutMs:10000});
    await tab.playwright.locator('body').press('Control+Home');
    await tab.playwright.evaluate(async()=>{await document.fonts.ready;return document.documentElement.dataset.galleryReady;});
    if(section==='fields')await tab.playwright.locator(host==='cloud'?'#site-name':'#editor-name').click();
@@ -155,6 +155,7 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
    const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),bytes);
    evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},screenshotProvenance:provenance,pngColorMetadata:pngColorMetadata(bytes)};
    if(section==='menus'||section==='dialogs')await tab.pressKey('Escape');
+   yield {name,index:Object.keys(evidence.captures).length,total:names.length,screenshots:Object.keys(evidence.captures).length,directory};
   }
   if(names.some(name=>!evidence.captures[name]))throw new Error('Incomplete capture inventory');
   const current=await sourceHashes();if(Object.keys(current).some(file=>current[file]!==evidence.sources[file]))throw new Error('UI sources changed during capture.');
@@ -166,5 +167,9 @@ export async function captureGallery(tab,directory,behaviorChecks,{browser='Code
   const cleanup=await Promise.allSettled([cdp.send('Emulation.clearDeviceMetricsOverride',{}),cdp.send('Emulation.setEmulatedMedia',{features:[]})]);
   if(!failed){const rejected=cleanup.find(result=>result.status==='rejected');if(rejected)throw rejected.reason;}
  }
+}
+export async function captureGallery(tab,directory,behaviorChecks,options={}){
+ const iterator=captureGallerySteps(tab,directory,behaviorChecks,options);
+ while(true){const step=await iterator.next();if(step.done)return step.value;}
 }
 export const readBehaviorChecks=async directory=>JSON.parse(await readFile(resolve(directory,'behavior-checks.json'),'utf8'));

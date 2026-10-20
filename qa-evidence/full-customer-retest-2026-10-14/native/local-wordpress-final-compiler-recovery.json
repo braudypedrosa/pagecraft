@@ -1,0 +1,17 @@
+{
+  "title": "Reload Pagecraft to keep editing",
+  "body": "Pagecraft was updated while this editor was open.\nYour latest changes are still in this tab and have not been saved. Download a copy before reloading.",
+  "visible": true,
+  "actions": [
+    "Download my copy",
+    "Reload builder"
+  ],
+  "returned": {
+    "title": "Reload Pagecraft to keep editing",
+    "actions": [
+      "Download my copy",
+      "Reload builder"
+    ],
+    "visible": true
+  }
+}

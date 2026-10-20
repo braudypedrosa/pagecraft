@@ -1,0 +1,80 @@
+{
+  "change": "Remove trailing whitespace and extra blank EOF lines only; preserve original candidate logs",
+  "files": [
+    {
+      "file": "combined-focused-tests-copy-final-after-build.log",
+      "originalSha256": "d95482783486f1a75fdd0a6957cbadb6639df71dbfd8e8beab4d857e6268028f",
+      "normalizedSha256": "5bb9d28f2c25aeeb830f757d70c5bca1e6175ca61ea6baf3876886c4aaea37c1"
+    },
+    {
+      "file": "npm-audit-production.stderr.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalizedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "file": "full-suite.log",
+      "originalSha256": "67faeb83fbe0efc1d4c58b10b2dd06d42668c369c2f887e18b7e18c37ec6c0a1",
+      "normalizedSha256": "d27448ccb150d83d0ac18c416a707acded714367cb0b4cf45c2fff907996e760"
+    },
+    {
+      "file": "typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "npm-audit.stderr.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalizedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "file": "editor-save-recovery-focused.log",
+      "originalSha256": "d44792efe6fe28ee9fe8e1658944e6addb7d6050118f11efc63291e8ea7fde9f",
+      "normalizedSha256": "39fd3b9ee8cb130eccefd557fd72b89e24fb5628a687a06ebf963ea17b5fd331"
+    },
+    {
+      "file": "final-typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "typecheck-after-gallery-helper.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "combined-focused-tests-copy-final.log",
+      "originalSha256": "c4b2fc381827b0f57414ff2b83723bff06af8028a39bbb6b7f6bcb93e4e61a7a",
+      "normalizedSha256": "3cdb4d5fafc9a49ca9e37b4dae235f78ad1c89a8291813276c432d0dbc390209"
+    },
+    {
+      "file": "combined-focused-tests.log",
+      "originalSha256": "65c14151cb37f3c165f081a256c105fa763a043a9a945b3b847548d5583a3b6e",
+      "normalizedSha256": "d18e71e270622714f59998a09112f644d6164502f4a4a27d53cc6a61de7532f9"
+    },
+    {
+      "file": "typecheck-copy-final.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "final-npm-audit-production.stderr.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalizedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "file": "behavior-suite.log",
+      "originalSha256": "dcddc97f604af11363fc2f711c2c687c53d397ace03d8fddc241bad9eeb42e1b",
+      "normalizedSha256": "0b63fc7588e3002f2fefca75d98a488a2667c37f45214932cc93288815f72a3c"
+    },
+    {
+      "file": "final-npm-audit.stderr.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalizedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "file": "final-full-suite.log",
+      "originalSha256": "ca92eb38078832fedad8726222b695e464d28a0f8fc9933c455ff4d36f6b998a",
+      "normalizedSha256": "f2b1dcb66f5672344510919b75806b15159bf1c892b4b206765ae448bcf3cf49"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+7ad943c4c05d57295f50f3bc5e380ed5675fb0d328a9088bfda1e4319c7f55de  builder.html
+1050a39874c6d06efacb64757eece91f9afe0d686eaaac4852805c04368c4ed1  tests/editor-save-recovery.test.mjs
+392a4a97b3bdfe29a8885f4942aad0c29b079b24f6507fab2a4a5183be4d8111  tools/capture-ui-gallery.mjs
+82984a103b123ea3da2c27886beddcaa68ee3ced22551a00ea87815ff33ac81c  tests/gallery-capture-steps.test.mjs
+f634655249580630c33bc651dd7f359b9407c347f908900a6025ccf9ac9af868  public/internal-ui-baselines/manifest.json
+1406e9fdf0e99d2a2debed25d113c7eb543b957ef810529fc6f8bdbce029250f  qa-evidence/wp-save-compiler-conflict-2026-10-21/verification.json
+da8efe8e352cf0cc6b2a5204856a0c6d6ff4b2e1f10d07aa1d80801fbe5e970a  qa-evidence/wp-save-compiler-conflict-2026-10-21/task-close.md

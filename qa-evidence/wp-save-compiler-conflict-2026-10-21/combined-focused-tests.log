@@ -1,0 +1,17 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-save-compiler-conflict
+
+ ✓ tests/gallery-capture-steps.test.mjs > captureGallerySteps yields each saved PNG and writes the manifest only at completion 22ms
+ ✓ tests/gallery-capture-steps.test.mjs > captureGallerySteps cancellation restores CDP state without writing a manifest 3ms
+ ✓ tests/editor-save-recovery.test.mjs > busy saves preserve edits, wait for explicit retry, and retain real conflict protection 1205ms
+ ✓ tests/editor-save-recovery.test.mjs > a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action 1696ms
+ ✓ tests/editor-save-recovery.test.mjs > hosted network failure gives connection guidance and retry preserves the unsaved document 3211ms
+ ✓ tests/editor-save-recovery.test.mjs > a hosted document this build cannot open is never overwritten by the demo 1754ms
+ ✓ tests/editor-save-recovery.test.mjs > an unreadable project in this browser is left exactly as it was 1752ms
+ ✓ tests/editor-save-recovery.test.mjs > closing the tab inside the save debounce prompts, and pagehide writes the last edit 1046ms
+ ✓ tests/editor-save-recovery.test.mjs > an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make” 1037ms
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  03:49:36
+   Duration  12.23s (transform 41ms, setup 0ms, import 503ms, tests 11.73s, environment 0ms)

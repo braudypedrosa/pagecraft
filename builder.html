@@ -2958,6 +2958,9 @@ async function writeServer(opts = {}) {
     if (e && e.status === 409 && e.payload?.retryable === true && !e.payload.conflict) {
       saveState = 'failed'; stamp('NOT SAVED', true); warnSaveBusy(); return;
     }
+    if (e && e.status === 409 && e.payload?.reloadRequired === true) {
+      saveState = 'failed'; stamp('NOT SAVED', true); warnCompilerReload(e.payload); return;
+    }
     if (e && e.status === 409) {
       if (!IS_WORDPRESS && cloudAttempt) {
         /* A prior interrupted attempt remains the first candidate: the author may have edited
@@ -3021,6 +3024,28 @@ function warnSaveBusy() {
   $('#busyRetry').addEventListener('click', () => {
     closeModal(); writeNow();
   });
+}
+
+/* WordPress compiled the save against a different Pagecraft release from the editor in this
+   tab. Retrying those same bytes cannot make the two compilers agree, and this is not another
+   author's version conflict. Preserve the draft, offer a backup, and make the required reload
+   explicit without advancing the document version or replaying the write. */
+function warnCompilerReload(info) {
+  rememberSaveProblem('Pagecraft was updated while this editor was open. Your latest changes have not been saved. Download a copy before reloading.', () => warnCompilerReload(info));
+  if (saveWarned) return;
+  saveWarned = true;
+  openModal('Reload Pagecraft to keep editing', `
+    <div class="alert">
+      <b>Pagecraft was updated while this editor was open.</b>
+    </div>
+    <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
+      Your latest changes are still in this tab and have not been saved. Download a copy before reloading.
+    </div>`, `
+    <button class="btn" id="compilerBackup">Download my copy</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" id="compilerReload">Reload builder</button>`);
+  $('#compilerBackup').addEventListener('click', event => backupJson(event));
+  $('#compilerReload').addEventListener('click', reloadDiscardingChanges);
 }
 
 /* A previous cloud request may have committed after its response was lost. If the host cannot

@@ -88,6 +88,74 @@ test('busy saves preserve edits, wait for explicit retry, and retain real confli
   }
 });
 
+test('a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action', async () => {
+  const config = {
+    restUrl: 'http://localhost/wp-json/pagecraft/v1', nonce: 'qa-nonce', version: 39,
+    doc: null, role: 'owner', page: { id: 42, title: 'Compiler conflict QA', slug: 'compiler-qa' },
+    capabilities: ['edit_document', 'edit_structure']
+  };
+  const marker = '<script>\n/* =====================================================================';
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,
+    `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
+  const requests = [];
+  let answer;
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true,
+    url: 'http://localhost/wp-admin/admin-ajax.php', virtualConsole: new VirtualConsole(),
+    beforeParse(window) {
+      window.fetch = async (url, options = {}) => {
+        if (String(url).endsWith('/document') && options.method === 'PUT') {
+          requests.push(JSON.parse(options.body));
+          return new Promise(resolve => { answer = (status, payload) => resolve({
+            ok: status === 200, status, json: async () => payload
+          }); });
+        }
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await new Promise(resolve => setTimeout(resolve, 800));
+    const window = dom.window, document = window.document;
+    // jsdom can stop boot at the iframe load boundary; real WordPress binds the shell action.
+    if (document.querySelector('#publishLabel').textContent !== 'Done') window.bindTop();
+    window.__CORE.state.meta.name = 'Keep this compiler-conflict draft';
+
+    document.querySelector('#exportBtn').click();
+    await tick();
+    assert.equal(requests.length, 1, 'the WordPress Done action makes one save attempt');
+    assert.equal(requests[0].version, 39);
+    answer(409, {
+      error: 'The Pagecraft compiler changed before this output was saved. Reload the editor and save again.',
+      reloadRequired: true,
+      compiler: { editorVersion: '0.2.17-preview.20261021.69' }
+    });
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    assert.equal(document.querySelector('#modal').hidden, false, 'recovery must be visible, not only written into hidden modal DOM');
+    assert.equal(document.querySelector('#mTitle').textContent, 'Reload Pagecraft to keep editing');
+    assert.match(document.querySelector('#mBody').textContent, /Pagecraft was updated while this editor was open/i);
+    assert.match(document.querySelector('#mBody').textContent, /latest changes are still in this tab and have not been saved/i);
+    assert.doesNotMatch(document.querySelector('#mBody').textContent, /compiler|0\.2\.17|renderer/i,
+      'server diagnostics stay out of the customer-facing recovery dialog');
+    assert.equal(document.querySelector('#compilerBackup')?.textContent, 'Download my copy');
+    assert.equal(document.querySelector('#compilerReload')?.textContent, 'Reload builder');
+    assert.ok(document.querySelector('#modalBox').contains(document.activeElement), 'focus moves into the visible recovery dialog');
+    assert.equal(document.querySelector('#stReload'), null, 'a compiler mismatch is not presented as another author saving');
+    assert.equal(document.querySelector('#busyRetry'), null, 'retrying the same obsolete compiler is not offered');
+    assert.equal(document.querySelector('#svRetry'), null);
+    assert.equal(window.__CORE.state.meta.name, 'Keep this compiler-conflict draft');
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+    assert.equal(requests.length, 1, 'the failed save is not replayed automatically');
+    const unload = new window.Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(unload);
+    assert.equal(unload.defaultPrevented, true, 'the preserved draft remains unsaved until deliberate recovery');
+  } finally {
+    dom.window.close();
+  }
+});
+
 const marker = '<script>\n/* =====================================================================';
 const built = () => readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const settle = () => new Promise(resolve => setTimeout(resolve, 800));
