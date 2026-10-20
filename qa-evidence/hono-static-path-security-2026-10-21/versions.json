@@ -1,0 +1,21 @@
+{
+  "baseCommit": "d29371bf52bc65f720d1a4ed3d26b91293ad614f",
+  "advisory": "GHSA-5r4p-p66f-jhc7",
+  "officialAdvisoryUrl": "https://github.com/honojs/hono/security/advisories/GHSA-5r4p-p66f-jhc7",
+  "before": {
+    "rootHono": "4.13.7",
+    "serverHono": "^4.13.7",
+    "resolved": "4.13.7"
+  },
+  "after": {
+    "rootHono": "4.13.11",
+    "serverHono": "^4.13.11",
+    "resolved": "4.13.11"
+  },
+  "checks": {
+    "focusedServerTests": "57 passed / 4 files",
+    "fullSuite": "2472 passed, 5 skipped / 223 passed, 2 skipped",
+    "typecheck": "passed",
+    "audits": "0 findings full and production"
+  }
+}

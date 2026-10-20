@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/hono-security-d293
+
+
+ Test Files  4 passed (4)
+      Tests  57 passed (57)
+   Start at  00:58:31
+   Duration  1.18s (transform 1.03s, setup 0ms, import 2.00s, tests 1.08s, environment 0ms)

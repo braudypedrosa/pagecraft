@@ -1,0 +1,17 @@
+{
+  "base": "d29371bf52bc65f720d1a4ed3d26b91293ad614f",
+  "reviewedFiles": {
+    "package.json": "358fe49f034d0527ae0f32a53db08726133c5bf92ad02eda74e5739ac95a1a06",
+    "server/package.json": "b641a1e491c8ffaf6f644b6b7f774fed664219f7437336920ac1be66749ea278",
+    "package-lock.json": "009b12eccdd58b18fa89bcb2db2aef905463b4a4c7bd9462acc5c6395467fae3",
+    "server/tests/app.test.ts": "2bd2b1c9ba5da03f12f044089df36ef8ed74bbdd55ec0fdcbbd8f603a4c514c8"
+  },
+  "generatedWorking11Preserved": true,
+  "generatedIndexUnchanged": true,
+  "fullSuitePassed": 2472,
+  "skipped": 5,
+  "productionAuditFindings": 0,
+  "fullAuditFindings": 0,
+  "authRegression": "Authenticated plain baseline200/imagepng control; three unauthenticated aliases404.",
+  "limitation": "Affected library use is confirmed. No Pagecraft authentication bypass has been demonstrated."
+}

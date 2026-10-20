@@ -31,7 +31,7 @@ const demo = (): Doc => {
    Fabricating a session would leave the login flow untested by everything that uses it. */
 const rig = async (
   role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>,
-  nativeForms = false, fontFetch?: typeof fetch
+  nativeForms = false, fontFetch?: typeof fetch, componentGallery = false
 ) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
@@ -40,6 +40,7 @@ const rig = async (
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
+    componentGallery,
     submissions: nativeForms ? new FileSubmissionStore(join(tmpdir(), `pagecraft-app-test-${randomUUID()}`)) : undefined,
     optimizeAsset: hostedPublications
       ? async bytes => { await onOptimize?.(); return { bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' }; }
@@ -442,6 +443,19 @@ test('paths resolve as a static host would, and a missing one is a 404', async (
   a.equal(legacy.headers.get('location'), '/' + second.slug);
   a.equal((await get('/robots.txt')).status, 200);
   a.equal((await get('/nope')).status, 404);
+});
+
+test('encoded component baseline aliases never bypass the editor auth boundary', async () => {
+  const { get, admin, signIn } = await rig('owner', false, undefined, false, undefined, true);
+  const { cookie } = await signIn();
+  const plain = await admin('/internal/components/baselines/cloud-actions-1440.png', {}, cookie);
+  a.equal(plain.status, 200, 'the authenticated control path must serve the fixture');
+  a.match(plain.headers.get('content-type') || '', /^image\/png/);
+  for (const path of [
+    '/internal/components/baselines/cloud-actions-1440.png',
+    '/internal/components/baselines/cloud-actions-1440%2epng',
+    '/internal/components/baselines/cloud-actions-1440%252epng',
+  ]) a.equal((await get(path)).status, 404, path);
 });
 
 test('site roots and index aliases redirect to one clean URL without losing the query', async () => {

@@ -41,7 +41,7 @@
     "@zag-js/date-picker": "1.46.0",
     "@zag-js/vanilla": "1.46.0",
     "echarts": "6.1.0",
-    "hono": "4.13.7",
+    "hono": "4.13.11",
     "nodemailer": "10.0.9",
     "pg": "8.23.0",
     "preact": "^10.29.8",
