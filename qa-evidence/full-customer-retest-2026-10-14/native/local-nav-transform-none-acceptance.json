@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "device": "Desktop",
+      "links": [
+        {
+          "text": "Work",
+          "transform": "uppercase"
+        },
+        {
+          "text": "About",
+          "transform": "uppercase"
+        },
+        {
+          "text": "Contact",
+          "transform": "uppercase"
+        }
+      ],
+      "transform": "uppercase",
+      "width": 1280
+    },
+    {
+      "device": "Tablet",
+      "links": [
+        {
+          "text": "Work",
+          "transform": "none"
+        },
+        {
+          "text": "About",
+          "transform": "none"
+        },
+        {
+          "text": "Contact",
+          "transform": "none"
+        }
+      ],
+      "transform": "none",
+      "width": 834
+    },
+    {
+      "device": "Mobile",
+      "links": [
+        {
+          "text": "Work",
+          "transform": "none"
+        },
+        {
+          "text": "About",
+          "transform": "none"
+        },
+        {
+          "text": "Contact",
+          "transform": "none"
+        }
+      ],
+      "transform": "none",
+      "width": 414
+    }
+  ],
+  "mobileReset": "Transform\nInherited\nNone",
+  "tabletReset": "Transform\nInherited\nUPPERCASE",
+  "mobileAfterBothResets": "Transform\nInherited\nUPPERCASE"
+}

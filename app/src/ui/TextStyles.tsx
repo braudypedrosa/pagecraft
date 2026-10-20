@@ -20,7 +20,7 @@ let styleDev: Bp = 'd';
 const WEIGHTS: string[][] = [['', 'Default'], ['300', 'Light 300'], ['400', 'Regular 400'],
   ['500', 'Medium 500'], ['600', 'Semibold 600'], ['700', 'Bold 700'],
   ['800', 'Extrabold 800'], ['900', 'Black 900']];
-const CASES: string[][] = [['', 'None'], ['uppercase', 'UPPERCASE'],
+const CASES: string[][] = [['none', 'None'], ['uppercase', 'UPPERCASE'],
   ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']];
 const TAGS: string[][] = [['', 'Leave as-is'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3'],
   ['h4', 'H4'], ['h5', 'H5'], ['h6', 'H6'], ['p', 'Paragraph'], ['div', 'div — not a heading']];
@@ -136,7 +136,7 @@ function Editor({ t }: { t: TextStyle }) {
       ) : null}
 
       <div class="row2">
-        <Choice prop="text-transform" opts={CASES} label="Transform" />
+        <Choice prop="text-transform" opts={[['', 'Inherit'], ...CASES]} label="Transform" />
         <div class="f"><label>Colour</label>
           <div class="clr">
             <span class="sw"><i style={{ background: C.resolveColor(colVal) || 'transparent' }} /></span>

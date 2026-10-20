@@ -672,7 +672,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
         { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
       ]
     }
   },
@@ -859,7 +859,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -901,7 +901,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'color', c: '--nav-hover', label: 'Hover colour', r: 1 },
         { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1, when: n => !n.props.managedMobileLinks },
         { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
