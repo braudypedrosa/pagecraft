@@ -416,11 +416,11 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
 export const advControls = (n: PcNode): Control[] => [
   { t: 'text', k: '_id', label: 'HTML id', ph: C.autoId(n), note: 'What a link anchor targets. Auto unless you set one.' },
   { t: 'text', k: '_cls', label: 'CSS classes', ph: 'hero card--dark' },
-  { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
-  { t: 'unit', c: 'top', label: 'Top', r: 1, neg: 1, units: ['px', '%', 'rem'] },
-  { t: 'unit', c: 'z-index', label: 'Z-index', r: 1, neg: 1, integer: 1, units: [''] },
+  { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['', 'Default'], ['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
+  { t: 'unit', c: 'top', label: 'Top', r: 1, neg: 1, units: ['px', '%', 'rem'], opts: [['auto', 'Auto']] },
+  { t: 'unit', c: 'z-index', label: 'Z-index', r: 1, neg: 1, integer: 1, units: [''], opts: [['auto', 'Auto']] },
   { t: 'select', c: 'overflow', label: 'Overflow', r: 1, opts: [['', 'Default'], ['visible', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
-  { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'] },
+  { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'], opts: [['none', 'None']] },
   { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
 ];
 

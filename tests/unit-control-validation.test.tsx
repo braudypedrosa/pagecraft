@@ -5,6 +5,7 @@ import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { advControls } from '../app/src/ui/inspector/Inspector';
+import { installCustomSelects } from '../shared/custom-select.js';
 import { rig, type Rig } from './ui.setup';
 import type { Control, Node as PcNode } from '../app/src/core/types';
 
@@ -100,6 +101,35 @@ test('integer CSS controls round fractional input while lengths retain decimals'
   const lengthInput = enter(heading, length, '2.5');
   assert.equal(lengthInput.value, '2.5');
   assert.equal(heading.css.d.top, '2.5px');
+});
+
+test('native step validity matches decimal, explicit-step, and integer unit rules', () => {
+  const heading = node();
+  const top = advControls(heading).find(control => control.c === 'top')!;
+  const topInput = enter(heading, top, '-1.5');
+  assert.equal(topInput.step, 'any');
+  assert.equal(topInput.validity.valid, true, 'a stored fractional length must remain natively valid');
+  r.draw(null);
+
+  const measured: Control = {
+    t: 'unit', c: 'width', label: 'Measured width', r: 1, min: 0, step: .25, units: ['px']
+  };
+  const measuredInput = enter(heading, measured, '1.25');
+  assert.equal(measuredInput.step, '0.25');
+  assert.equal(measuredInput.validity.valid, true);
+  measuredInput.value = '1.1';
+  assert.equal(measuredInput.validity.stepMismatch, true, 'an explicit step remains a native constraint');
+  r.draw(null);
+
+  const zIndex = advControls(heading).find(control => control.c === 'z-index')!;
+  r.draw(<Ctl n={heading} c={zIndex} />);
+  const zInput = valueInput();
+  assert.equal(zInput.step, '1');
+  zInput.value = '-2.7';
+  assert.equal(zInput.validity.stepMismatch, true, 'integer controls retain their whole-number constraint');
+  act(() => r.type(zInput, '-2.7'));
+  assert.equal(zInput.value, '-3');
+  assert.equal(zInput.validity.valid, true);
 });
 
 test('integer controls canonicalize finite numeric spellings without rewriting lengths', () => {
@@ -278,4 +308,70 @@ test('unit validation preserves responsive, state, class, and empty unit-choice 
   assert.equal(empty.css.d.gap, undefined, 'unit choice stays UI-only while the value is empty');
   act(() => r.type(valueInput(), '4.5'));
   assert.equal(empty.css.d.gap, '4.5rem');
+});
+
+test('Advanced unit controls expose only their valid CSS keyword and keep numeric validation', () => {
+  const heading = node();
+  const cases = [
+    ['top', [['auto', 'Auto']], '-12.5', 'px', '-12.5px'],
+    ['z-index', [['auto', 'Auto']], '-2.5', '', '-2'],
+    ['max-width', [['none', 'None']], '-12.5', 'px', '0px'],
+  ] as const;
+
+  for (const [property, options, raw, unit, expected] of cases) {
+    const control = advControls(heading).find(candidate => candidate.c === property)!;
+    assert.deepEqual(control.opts, options);
+    const input = enter(heading, control, raw, unit);
+    assert.equal(input.getAttribute('aria-label'), `${control.label} value`);
+    assert.equal(unitSelect().getAttribute('aria-label'), `${control.label} unit or keyword`);
+    assert.equal(heading.css.d[property], expected);
+    r.draw(null);
+  }
+});
+
+test('a keyword switches to a numeric draft without clearing or writing until a valid number exists', () => {
+  const heading = node();
+  const top = advControls(heading).find(control => control.c === 'top')!;
+  heading.css.d.top = '24px';
+  r.draw(() => <Ctl n={heading} c={top} />, 'right');
+
+  act(() => r.pick(unitSelect(), 'auto'));
+  assert.equal(heading.css.d.top, 'auto');
+  assert.equal(valueInput().value, '');
+  assert.equal(valueInput().disabled, true);
+
+  act(() => r.pick(unitSelect(), 'rem'));
+  assert.equal(unitSelect().value, 'rem');
+  assert.equal(valueInput().disabled, false);
+  assert.equal(heading.css.d.top, 'auto', 'choosing a numeric unit is a draft until a number exists');
+
+  act(() => r.type(valueInput(), '-1.25'));
+  assert.equal(heading.css.d.top, '-1.25rem');
+
+  r.draw(null);
+  r.draw(() => <Ctl n={heading} c={top} />, 'right');
+  assert.equal(unitSelect().value, 'rem');
+  assert.equal(valueInput().value, '-1.25');
+});
+
+test('enhanced keyword picker keeps its field name and keyboard navigation can select None', async () => {
+  HTMLElement.prototype.scrollIntoView = () => {};
+  const heading = node();
+  const maxWidth = advControls(heading).find(control => control.c === 'max-width')!;
+  heading.css.d['max-width'] = '240px';
+  r.draw(() => <Ctl n={heading} c={maxWidth} />, 'right');
+  installCustomSelects();
+
+  const trigger = r.$('.pc-custom-select-trigger[aria-label="Max width unit or keyword"]') as HTMLButtonElement;
+  assert.ok(trigger);
+  act(() => trigger.click());
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+  const initial = menu.querySelector<HTMLButtonElement>('[data-active="true"]')!;
+  act(() => { initial.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })); });
+  const active = menu.querySelector<HTMLButtonElement>('[data-active="true"]')!;
+  assert.equal(active.textContent?.trim(), 'None');
+  act(() => active.click());
+  assert.equal(heading.css.d['max-width'], 'none');
+  assert.match(trigger.textContent || '', /None/);
 });

@@ -4,6 +4,7 @@ import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { TextStyles } from '../app/src/ui/TextStyles';
+import { advControls } from '../app/src/ui/inspector/Inspector';
 import { installCustomSelects } from '../shared/custom-select.js';
 import type { Control, Node as PcNode } from '../app/src/core/types';
 import { rig, type Rig } from './ui.setup';
@@ -116,6 +117,69 @@ test.each(['heading', 'button', 'nav'] as const)(
     expect(node.css.d['text-transform']).toBeUndefined();
     expect(transform().value).toBe('');
     expect(transform().selectedOptions[0]?.textContent).toBe('Default');
+  },
+);
+
+test('Advanced Position distinguishes Default from explicit Static', () => {
+  const node = C.N('heading');
+  place(node);
+  const control = advControls(node).find(candidate => candidate.c === 'position')!;
+  C.state.ui.dev = 'desktop';
+  r.draw(() => <Ctl n={node} c={control} />, 'right');
+  const position = () => r.$('select[aria-label="Position"]') as HTMLSelectElement;
+  expect(position().value).toBe('');
+  expect(position().selectedOptions[0]?.textContent).toBe('Default');
+
+  act(() => r.pick(position(), 'static'));
+  expect(node.css.d.position).toBe('static');
+  act(() => r.click(r.$('button[aria-label="Restore default for Position"]')));
+  expect(node.css.d.position).toBeUndefined();
+  expect(position().value).toBe('');
+  expect(position().selectedOptions[0]?.textContent).toBe('Default');
+});
+
+test.each([
+  ['top', 'Top', '18px', 'auto'],
+  ['z-index', 'Z-index', '7', 'auto'],
+  ['max-width', 'Max width', '240px', 'none'],
+] as const)(
+  '%s keyword is an explicit responsive value and clearing restores the shared class',
+  (property, label, desktop, keyword) => {
+    const node = C.N('heading');
+    const classId = C.classAdd('Advanced keyword base', { d: { [property]: desktop }, t: {}, m: {} });
+    C.classApply(node, classId);
+    place(node);
+    const control = advControls(node).find(candidate => candidate.c === property)!;
+    const picker = () => r.$(`select[aria-label="${label} unit or keyword"]`) as HTMLSelectElement;
+
+    C.state.ui.dev = 'tablet';
+    r.draw(() => <Ctl n={node} c={control} />, 'right');
+    act(() => r.pick(picker(), keyword));
+    expect(node.css.t[property]).toBe(keyword);
+    expect(C.cssVal(node, property, true)).toEqual({ v: keyword, own: true });
+
+    C.state.ui.dev = 'mobile';
+    r.draw(() => <Ctl n={node} c={control} />, 'right');
+    expect(C.cssVal(node, property, true)).toEqual({ v: keyword, own: false });
+    act(() => r.pick(picker(), keyword));
+    expect(node.css.m[property]).toBe(keyword);
+
+    const restored = restoredNode(node.id);
+    const buckets = { d: '', t: '', m: '' };
+    C.nodeCss(restored, false, buckets);
+    expect(buckets.t).toContain(`${property}:${keyword};`);
+    expect(buckets.m).toContain(`${property}:${keyword};`);
+    expect(C.tokenCss().d).toContain(`.c-${classId}{${property}:${desktop};}`);
+
+    act(() => r.click(r.$(`button[aria-label="Clear Mobile override for ${label}"]`)));
+    expect(node.css.m[property]).toBeUndefined();
+    expect(C.cssVal(node, property, true)).toEqual({ v: keyword, own: false });
+
+    C.state.ui.dev = 'tablet';
+    r.draw(() => <Ctl n={node} c={control} />, 'right');
+    act(() => r.click(r.$(`button[aria-label="Clear Tablet override for ${label}"]`)));
+    expect(node.css.t[property]).toBeUndefined();
+    expect(C.effectiveAt(node.id, property)).toBe(desktop);
   },
 );
 

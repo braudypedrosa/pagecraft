@@ -1,0 +1,18 @@
+{
+  "independentRootReview": true,
+  "accepted": true,
+  "structuredByteExact": true,
+  "sqlTables": 133,
+  "unchangedTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "soleOption": "_elementor_design_system_sync_css_meta",
+  "onlyChangedField": "time",
+  "deltaSeconds": 1061,
+  "otherValueByteExact": true,
+  "currentVersion": 36,
+  "fixtureRevisions": 59,
+  "totalRevisions": 267,
+  "limitations": "Theme semantic version remains0.2.1; updater release not verified."
+}

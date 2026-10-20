@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-20T16:45:36.568Z",
+  "capturedAt": "2026-10-20T17:36:01.706Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -102,7 +102,7 @@
     "app/src/ui/CmsWorkspace.tsx": "baa82c07850aaa41b571c4794aaf7dcab5a0eb32e4b41fa6726d8c6e2aed5bb5",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
-    "app/src/ui/inspector/Inspector.tsx": "4f84c3ccc811a75a738f314f684b900ddb188a55b84accaff92b447c5608f291",
+    "app/src/ui/inspector/Inspector.tsx": "afb612d44c25660b700af8f150edac5359da6c057e895d4ae078dcab22ca6444",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "6c89b94304b156d495bb21a261e32959f64bcad816d2483c86bf0b722496fe93",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",

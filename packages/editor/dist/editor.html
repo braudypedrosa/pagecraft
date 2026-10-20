@@ -20605,14 +20605,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var cssInteger = (value) => BigInt(Math.round(value)).toString();
   function UnitCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
-    const { n: num, u: parsed } = C2.parseU(valueOf(n2, c3));
+    const rawValue = String(valueOf(n2, c3) ?? "");
+    const { n: num, u: parsed } = C2.parseU(rawValue);
     const units = c3.units || ["px"];
+    const keywords = Array.isArray(c3.opts) ? c3.opts : [];
+    const keyword = keywords.find(([value]) => value === rawValue)?.[0] || "";
     const min = c3.min ?? (c3.neg ? void 0 : 0);
     const max = c3.max;
     const resolvedUnit = units.includes(parsed) ? parsed : units[0];
     const choiceKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
-    const [choice, setChoice] = d2({ key: choiceKey, unit: resolvedUnit });
-    const u4 = num !== "" ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
+    const defaultChoice = keyword || resolvedUnit;
+    const [choice, setChoice] = d2({ key: choiceKey, source: rawValue, unit: defaultChoice });
+    const u4 = num !== "" ? resolvedUnit : choice.key === choiceKey && choice.source === rawValue ? choice.unit : defaultChoice;
+    const keywordSelected = keywords.some(([value]) => value === u4);
     const push = (root) => {
       const numEl = root.querySelector("input");
       const unitEl = root.querySelector("select");
@@ -20643,9 +20648,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           type: "number",
           min,
           max,
-          step: c3.step ?? 1,
+          step: c3.step ?? (c3.integer ? 1 : "any"),
           value: num,
-          placeholder: "auto",
+          placeholder: keywords.length ? "number" : "auto",
+          disabled: keywordSelected,
           onInput: (e3) => push(e3.target.parentElement),
           onBlur: w3.done
         }
@@ -20656,16 +20662,25 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "data-field-part": "unit",
           class: "ctl",
           value: u4,
+          "aria-label": keywords.length ? `${c3.label} unit or keyword` : void 0,
           onChange: (e3) => {
             const select = e3.target;
-            setChoice({ key: choiceKey, unit: select.value });
+            if (keywords.some(([value]) => value === select.value)) {
+              setChoice({ key: choiceKey, source: select.value, unit: select.value });
+              w3.hard(select.value);
+              return;
+            }
+            setChoice({ key: choiceKey, source: rawValue, unit: select.value });
             const root = select.parentElement;
             if (root.querySelector("input").value.trim()) push(root);
             w3.done();
           },
-          children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
+          children: keywords.length ? /* @__PURE__ */ u2(S, { children: [
+            /* @__PURE__ */ u2("optgroup", { label: "Units", children: units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2)) }),
+            /* @__PURE__ */ u2("optgroup", { label: "Keywords", children: keywords.map(([value, label]) => /* @__PURE__ */ u2("option", { value, children: label }, value)) })
+          ] }) : units.map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 || "\u2014" }, x2))
         },
-        `${choiceKey}|${u4}`
+        `${choiceKey}|${rawValue}|${u4}`
       )
     ] }) });
   }
@@ -22312,11 +22327,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var advControls = (n2) => [
     { t: "text", k: "_id", label: "HTML id", ph: C2.autoId(n2), note: "What a link anchor targets. Auto unless you set one." },
     { t: "text", k: "_cls", label: "CSS classes", ph: "hero card--dark" },
-    { t: "select", c: "position", label: "Position", r: 1, opts: [["static", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
-    { t: "unit", c: "top", label: "Top", r: 1, neg: 1, units: ["px", "%", "rem"] },
-    { t: "unit", c: "z-index", label: "Z-index", r: 1, neg: 1, integer: 1, units: [""] },
+    { t: "select", c: "position", label: "Position", r: 1, opts: [["", "Default"], ["static", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
+    { t: "unit", c: "top", label: "Top", r: 1, neg: 1, units: ["px", "%", "rem"], opts: [["auto", "Auto"]] },
+    { t: "unit", c: "z-index", label: "Z-index", r: 1, neg: 1, integer: 1, units: [""], opts: [["auto", "Auto"]] },
     { t: "select", c: "overflow", label: "Overflow", r: 1, opts: [["", "Default"], ["visible", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
-    { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
+    { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"], opts: [["none", "None"]] },
     { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
   ];
   function ManagedMobileLinks({ n: n2 }) {

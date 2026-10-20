@@ -153,8 +153,14 @@ const cssInteger = (value: number) => BigInt(Math.round(value)).toString();
 
 function UnitCtl({ n, c }: P) {
   const w = writer(n, c);
-  const { n: num, u: parsed } = C.parseU(valueOf(n, c));
+  const rawValue = String(valueOf(n, c) ?? '');
+  const { n: num, u: parsed } = C.parseU(rawValue);
   const units = c.units || ['px'];
+  /* A few numeric CSS properties also have one meaningful keyword. Keep those choices on
+     their own control definitions: every other UnitCtl remains numeric-only, and this never
+     opens a free-form route around its min, integer or unit validation. */
+  const keywords = Array.isArray(c.opts) ? c.opts : [];
+  const keyword = keywords.find(([value]) => value === rawValue)?.[0] || '';
   const min = c.min ?? (c.neg ? undefined : 0);
   const max = c.max;
   /* An empty value parses to an empty unit, which is not one of the offered ones. The
@@ -165,10 +171,14 @@ function UnitCtl({ n, c }: P) {
      accident, and what it has to do on purpose. */
   const resolvedUnit = units.includes(parsed) ? parsed : units[0];
   const choiceKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
-  const [choice, setChoice] = useState({ key: choiceKey, unit: resolvedUnit });
+  const defaultChoice = keyword || resolvedUnit;
+  const [choice, setChoice] = useState({ key: choiceKey, source: rawValue, unit: defaultChoice });
   /* A unit chosen before a number exists is UI state, not an empty CSS declaration. Keep it
-     until the number makes the pair persist. Changing target or breakpoint starts fresh. */
-  const u = num !== '' ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
+     until the number makes the pair persist. The source value joins the key so a draft cannot
+     survive a reset, inherited-value change or repaint into a different stored declaration. */
+  const u = num !== '' ? resolvedUnit
+    : choice.key === choiceKey && choice.source === rawValue ? choice.unit : defaultChoice;
+  const keywordSelected = keywords.some(([value]) => value === u);
   /* the unit is read off the select rather than closed over, so changing either half
      sends the pair — a number with the old unit is a different value */
   const push = (root: HTMLElement) => {
@@ -194,21 +204,34 @@ function UnitCtl({ n, c }: P) {
   };
   return <Field n={n} c={c}>
     <div class="unit">
-      <input data-field-part="value" class="ctl" type="number" min={min} max={max} step={c.step ?? 1} value={num} placeholder="auto"
+      <input data-field-part="value" class="ctl" type="number" min={min} max={max}
+        step={c.step ?? (c.integer ? 1 : 'any')} value={num}
+        placeholder={keywords.length ? 'number' : 'auto'} disabled={keywordSelected}
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
       {/* Replacing the controlled leaf when its resolved scope/value changes lets the shared
           enhancer retire its visible label too. Setting select.value alone does not emit a
           DOM mutation, so an inherited unit could be correct natively while its trigger kept
           describing the cleared override. */}
-      <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u}
+      <select key={`${choiceKey}|${rawValue}|${u}`} data-field-part="unit" class="ctl" value={u}
+        aria-label={keywords.length ? `${c.label} unit or keyword` : undefined}
         onChange={e => {
           const select = e.target as HTMLSelectElement;
-          setChoice({ key: choiceKey, unit: select.value });
+          if (keywords.some(([value]) => value === select.value)) {
+            setChoice({ key: choiceKey, source: select.value, unit: select.value });
+            w.hard(select.value);
+            return;
+          }
+          setChoice({ key: choiceKey, source: rawValue, unit: select.value });
           const root = select.parentElement!;
           if ((root.querySelector('input') as HTMLInputElement).value.trim()) push(root);
           w.done();
         }}>
-        {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
+        {keywords.length
+          ? <>
+            <optgroup label="Units">{units.map(x => <option key={x} value={x}>{x || '—'}</option>)}</optgroup>
+            <optgroup label="Keywords">{keywords.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</optgroup>
+          </>
+          : units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
       </select>
     </div>
   </Field>;

@@ -1,0 +1,72 @@
+{
+  "base": "2d19d89c3f14a3f804ba9d0c714dcaf114afe35d",
+  "cases": [
+    {
+      "device": "Tablet",
+      "maxWidth": "none",
+      "position": "relative",
+      "top": "0px",
+      "viewport": 834,
+      "width": 786,
+      "zIndex": "auto"
+    },
+    {
+      "device": "Mobile",
+      "maxWidth": "none",
+      "position": "relative",
+      "top": "0px",
+      "viewport": 414,
+      "width": 374,
+      "zIndex": "auto"
+    },
+    {
+      "device": "Desktop",
+      "maxWidth": "240px",
+      "position": "relative",
+      "top": "24px",
+      "viewport": 1280,
+      "width": 240,
+      "zIndex": "10"
+    }
+  ],
+  "editor": {
+    "top": 1,
+    "zIndex": 1,
+    "maxWidth": 1,
+    "disabledValues": 3
+  },
+  "savedReload": {
+    "maxWidth": "none",
+    "position": "relative",
+    "top": "0px",
+    "viewport": 834,
+    "width": 786,
+    "zIndex": "auto"
+  },
+  "compiledKeywords": [
+    ".pagecraft-qa-ui-heading{text-align:left;margin-bottom:0px;position:relative;top:24px;z-index:10;max-width:240px;}",
+    ".pagecraft-qa-ui-heading{top:auto;z-index:auto;max-width:none;}"
+  ],
+  "clearedTablet": {
+    "maxWidth": "240px",
+    "position": "relative",
+    "top": "24px",
+    "viewport": 834,
+    "width": 240,
+    "zIndex": "10"
+  },
+  "unitDraft": {
+    "cssUnchangedBeforeNumericInput": true,
+    "choiceAfterUnrelatedRepaint": "rem",
+    "numericEnabled": true
+  },
+  "validation": {
+    "top": null,
+    "zIndex": null,
+    "maxWidth": null,
+    "rules": [
+      ".pagecraft-qa-ui-heading{text-align:left;margin-bottom:0px;position:relative;top:24px;z-index:10;max-width:240px;}",
+      ".pagecraft-qa-ui-heading{top:-1.5rem;z-index:-3;max-width:none;overflow:visible;}"
+    ]
+  }
+}

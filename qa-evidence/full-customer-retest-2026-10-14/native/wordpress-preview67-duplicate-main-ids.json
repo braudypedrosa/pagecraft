@@ -1,0 +1,30 @@
+{
+  "ids": [
+    {
+      "height": 101,
+      "inFooter": false,
+      "inHeader": true,
+      "inPost": false,
+      "tag": "DIV"
+    },
+    {
+      "height": 748.796875,
+      "inFooter": false,
+      "inHeader": false,
+      "inPost": true,
+      "tag": "DIV"
+    },
+    {
+      "height": 218.6875,
+      "inFooter": true,
+      "inHeader": false,
+      "inPost": false,
+      "tag": "DIV"
+    }
+  ],
+  "afterSkip": {
+    "firstTargetInHeader": true,
+    "hash": "#pagecraft-main",
+    "scrollY": 0
+  }
+}

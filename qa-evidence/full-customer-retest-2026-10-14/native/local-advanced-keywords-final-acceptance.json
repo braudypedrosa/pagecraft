@@ -1,0 +1,101 @@
+{
+  "base": "2d19d89c3f14a3f804ba9d0c714dcaf114afe35d",
+  "controlsSha256": "997a0663d80da03de40d1a1367184b0604a8732f1f01ec2a697306a68b4749fd",
+  "initialPosition": "Default",
+  "cases": [
+    {
+      "device": "Tablet",
+      "maxWidth": "none",
+      "position": "relative",
+      "top": "0px",
+      "viewport": 834,
+      "width": 786,
+      "zIndex": "auto"
+    },
+    {
+      "device": "Mobile",
+      "maxWidth": "none",
+      "position": "relative",
+      "top": "0px",
+      "viewport": 414,
+      "width": 374,
+      "zIndex": "auto"
+    },
+    {
+      "device": "Desktop",
+      "maxWidth": "240px",
+      "position": "relative",
+      "top": "24px",
+      "viewport": 1280,
+      "width": 240,
+      "zIndex": "10"
+    }
+  ],
+  "reloadEditor": {
+    "top": "Auto",
+    "zIndex": "Auto",
+    "maxWidth": "None"
+  },
+  "clearedTablet": {
+    "maxWidth": "240px",
+    "position": "relative",
+    "top": "24px",
+    "viewport": 834,
+    "width": 240,
+    "zIndex": "10"
+  },
+  "draft": {
+    "writesNothing": true,
+    "survivesRepaint": "rem"
+  },
+  "numericValidation": [
+    {
+      "label": "Top value",
+      "step": "any",
+      "valid": true,
+      "value": "-1.5"
+    },
+    {
+      "label": "Z-index value",
+      "step": "1",
+      "valid": true,
+      "value": "-3"
+    },
+    {
+      "label": "Max width value",
+      "step": "any",
+      "valid": true,
+      "value": "0"
+    }
+  ],
+  "numericRules": [
+    ".pagecraft-qa-ui-heading{text-align:left;margin-bottom:0px;position:relative;top:24px;z-index:10;max-width:240px;}",
+    ".pagecraft-qa-ui-heading{top:-1.5rem;z-index:-3;max-width:0px;overflow:visible;}"
+  ],
+  "explicitMobileBadges": {
+    "top": 1,
+    "zIndex": 1,
+    "maxWidth": 1
+  },
+  "explicitMobileReload": {
+    "maxWidth": "none",
+    "position": "relative",
+    "top": "0px",
+    "viewport": 414,
+    "width": 374,
+    "zIndex": "auto"
+  },
+  "note": "Relative positioning resolves top:auto to computed0px; the compiled literal auto declaration was checked separately. Earlier in-progress readings made immediately after numeric edits were superseded by fresh settled reads.",
+  "sharedClass": {
+    "maxWidth": "none",
+    "position": "relative",
+    "top": "0px",
+    "viewport": 834,
+    "width": 786,
+    "zIndex": "auto",
+    "rules": [
+      ".c-card{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);border-radius:16px;top:24px;z-index:10;max-width:240px;}",
+      ".c-card{padding-top:22px;padding-right:22px;padding-bottom:22px;padding-left:22px;}"
+    ]
+  }
+}
