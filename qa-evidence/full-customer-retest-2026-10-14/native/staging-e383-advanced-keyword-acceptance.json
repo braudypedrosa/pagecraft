@@ -1,0 +1,126 @@
+{
+  "build": "e383c592412655fcac4aeefd5675f4bd00c3d70e",
+  "baseline": 926,
+  "keyboard": {
+    "method": "Open picker; End; Enter",
+    "choices": [
+      "Relative",
+      "Auto",
+      "Auto",
+      "Default",
+      "None"
+    ],
+    "tablet": {
+      "css": [
+        ".pagecraft-daf5h2uo{color:var(--c-ink);align-self:flex-start;padding-top:13px;padding-left:26px;border-radius:8px;padding-right:26px;padding-bottom:13px;background-color:var(--c-brand);position:relative;top:24px;z-index:10;max-width:240px;}",
+        ".pagecraft-daf5h2uo{top:auto;z-index:auto;max-width:none;}"
+      ],
+      "max": "none",
+      "top": "0px",
+      "z": "auto"
+    }
+  },
+  "escape": "None",
+  "reload": {
+    "choices": [
+      "Relative",
+      "Auto",
+      "Auto",
+      "Default",
+      "None"
+    ],
+    "computed": {
+      "max": "none",
+      "top": "0px",
+      "z": "auto"
+    }
+  },
+  "mobile": {
+    "max": "none",
+    "top": "0px",
+    "z": "auto"
+  },
+  "clearTablet": {
+    "max": "240px",
+    "top": "24px",
+    "z": "10"
+  },
+  "numeric": [
+    {
+      "label": "Top value",
+      "step": "any",
+      "valid": true,
+      "value": "-1.5"
+    },
+    {
+      "label": "Z-index value",
+      "step": "1",
+      "valid": true,
+      "value": "-3"
+    },
+    {
+      "label": "Max width value",
+      "step": "any",
+      "valid": true,
+      "value": "0"
+    },
+    {
+      "label": "Opacity value",
+      "step": "0.01",
+      "valid": true,
+      "value": "1"
+    }
+  ],
+  "numericComputed": {
+    "max": "0px",
+    "top": "-24px",
+    "z": "-3"
+  },
+  "restoration": {
+    "ids": [
+      "ndaf5i5ai",
+      "ndaf5i4ie",
+      "ndaf5i3u8",
+      "ndaf5h2uo",
+      "ndg0tb6h3",
+      "ndkykp1ph",
+      "ndqnyz12r",
+      "nekp7m18n",
+      "new39q14y",
+      "n0ixrm339",
+      "n16nly2l",
+      "nf2dwm1sr",
+      "nf2mtp1tt",
+      "nf79yr1ny",
+      "nf9pkh1qj",
+      "nfijph4io",
+      "nfijph1o1",
+      "nfkqui5jb",
+      "nfijph2tj",
+      "nfli4f6uf",
+      "nfijph3od",
+      "nfljgi79t",
+      "nfzf4v2ot",
+      "nfzf4v1jd",
+      "ngwr2y1hh",
+      "nk8y2k11g",
+      "nlm3id1i6",
+      "nmiqidanw",
+      "nnevx9171",
+      "nnkziz2pl",
+      "nut4a73l1",
+      "nlyfiy6wd",
+      "nlyfiy7ci",
+      "nm2n7s85a",
+      "nmekzi9lf",
+      "nlyfiy7ci",
+      "nm2n7s85a",
+      "nmekzi9lf",
+      "nut4a76ef",
+      "nut4a751d",
+      "nut4a74wk"
+    ],
+    "cssSha256": "dc18a25cdf665dbe3e31e4493ae7ebaaece77c00ea26ac797424cc84db034f90",
+    "originalIdsExact": true
+  }
+}

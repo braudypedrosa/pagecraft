@@ -2436,9 +2436,9 @@ var DEF = {
            asks — and named the way the row names them, so learning one teaches the other. */
         { t: "pick", c: "flex-direction", label: "Direction", r: 1, when: (n) => n.props.layout === "flex", opts: [["row", "Row"], ["column", "Column"]] },
         { t: "unit", c: "gap", label: "Gap", layout: "inline", r: 1, units: U.space, when: (n) => n.props.layout !== "block" },
-        { t: "select", c: "justify-content", label: "Distribute", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
+        { t: "select", c: "justify-content", label: "Distribute", r: 1, when: (n) => n.props.layout !== "block", opts: [["", "Default"], ["flex-start", "Start"], ["center", "Center"], ["flex-end", "End"], ["space-between", "Space between"], ["space-around", "Space around"]] },
         { t: "pick", c: "align-items", label: "Align", r: 1, when: (n) => n.props.layout !== "block", opts: [["flex-start", "vTop"], ["center", "vMid"], ["flex-end", "vBot"], ["stretch", "Fill"]] },
-        { t: "select", c: "flex-wrap", label: "Wrap", r: 1, when: (n) => n.props.layout === "flex", opts: [["wrap", "Wrap"], ["nowrap", "No wrap"]] },
+        { t: "select", c: "flex-wrap", label: "Wrap", r: 1, when: (n) => n.props.layout === "flex", opts: [["", "Default"], ["wrap", "Wrap"], ["nowrap", "No wrap"]] },
         /* Grid. A count rather than a template string: `repeat(3, minmax(0, 1fr))` is the
            answer to "three across" every time, and `minmax(0, 1fr)` rather than `1fr` because
            a grid child with long content overflows its track otherwise — the single most
@@ -2720,7 +2720,7 @@ var DEF = {
         { t: "color", c: "background-color", label: "Background", r: 1 },
         { t: "color", c: "color", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "font-size", label: "Size", layout: "inline", r: 1, units: U.space },
-        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
+        { t: "select", c: "font-weight", label: "Weight", r: 1, layout: "inline", opts: [["", "Default"], ["400", "400"], ["500", "500"], ["600", "600"], ["700", "700"]] },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "unit", c: "letter-spacing", label: "Letter spacing", r: 1, neg: 1, units: U.track },
         { t: "select", c: "text-transform", label: "Transform", r: 1, opts: [["", "Default"], ["none", "None"], ["uppercase", "UPPERCASE"]] }
@@ -3527,13 +3527,13 @@ var COMMON_STYLE = [
     items: [
       { t: "color", c: "background-color", label: "Colour", r: 1, paint: 1 },
       { t: "img", c: "background-image", label: "Image", r: 1, bg: 1 },
-      { t: "select", c: "background-size", label: "Size", r: 1, when: hasBackdrop, opts: [["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
+      { t: "select", c: "background-size", label: "Size", r: 1, when: hasBackdrop, opts: [["", "Default"], ["cover", "Cover"], ["contain", "Contain"], ["auto", "Auto"]] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
       { t: "pick", c: "background-position", label: "Position", r: 1, when: hasBackdrop, opts: [["left center", "alignL"], ["center center", "alignC"], ["right center", "alignR"], ["top center", "vTop"], ["bottom center", "vBot"]] },
-      { t: "select", c: "background-repeat", label: "Repeat", r: 1, when: hasBackdrop, opts: [["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
+      { t: "select", c: "background-repeat", label: "Repeat", r: 1, when: hasBackdrop, opts: [["", "Default"], ["no-repeat", "No repeat"], ["repeat", "Repeat"]] }
     ]
   },
   {

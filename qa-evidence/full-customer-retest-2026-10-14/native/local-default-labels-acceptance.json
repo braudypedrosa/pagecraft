@@ -1,0 +1,75 @@
+{
+  "base": "e383c592412655fcac4aeefd5675f4bd00c3d70e",
+  "button": {
+    "initial": "Default",
+    "reset": "Default",
+    "computed": "600"
+  },
+  "box": {
+    "distribute": "Default",
+    "wrap": "Default",
+    "reload": {
+      "distribute": "Default",
+      "wrap": "Default"
+    },
+    "tabletDefaultInherits": {
+      "distribute": "Center",
+      "wrap": "No wrap"
+    }
+  },
+  "background": {
+    "size": "Default",
+    "repeat": "Default",
+    "afterReset": {
+      "size": "Default",
+      "repeat": "Default"
+    },
+    "computed": {
+      "compiled": [
+        ".pagecraft-1jd3x5qk{background-image:url(\"/api/sites/s1/assets/a1gr0xq0\");}"
+      ],
+      "distribution": "normal",
+      "repeat": "repeat",
+      "size": "auto",
+      "wrap": "wrap"
+    },
+    "reload": {
+      "size": "Default",
+      "repeat": "Default"
+    }
+  },
+  "boxIds": [
+    {
+      "id": "nzs0hd1y96",
+      "type": null
+    },
+    {
+      "id": "qa-ui-heading",
+      "type": null
+    },
+    {
+      "id": "qa-ui-contact",
+      "type": null
+    },
+    {
+      "id": "n165g0433",
+      "type": null
+    },
+    {
+      "id": "n165g0331",
+      "type": null
+    },
+    {
+      "id": "n165g02wl",
+      "type": null
+    },
+    {
+      "id": "n165g01rm",
+      "type": null
+    },
+    {
+      "id": "n1jd3x5qk",
+      "type": null
+    }
+  ]
+}

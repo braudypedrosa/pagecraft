@@ -1,0 +1,54 @@
+{
+  "base": "e383c592412655fcac4aeefd5675f4bd00c3d70e",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/empty-default-options",
+  "sourceFiles": {
+    "app/src/core/index.ts": "abb8749fb79cbc8324d6e6d664da1a0a84e115d5f0315ad9f448da23653753a2",
+    "tests/empty-default-options.test.tsx": "0b1755c1820f1f6c06243f4ca5c9ee4bff0595952978ba6cb9cc2741725fcb16"
+  },
+  "salvage": {
+    "workerPatchSha256": "8afbcc271cf7db6047a084d5c16097360d0298c7e5e41a0e5440f9b55b58319e",
+    "coreSha256": "abb8749fb79cbc8324d6e6d664da1a0a84e115d5f0315ad9f448da23653753a2",
+    "originalTestSha256": "3807388f3b63f0e4b4d83a6583a3b40806f99a7e0c143ac8f8738a74dd0b9e8f",
+    "testReview": "Strengthened to select Default directly and verify saved/compiled omission plus responsive inheritance."
+  },
+  "checks": {
+    "redRegression": "5/5 failed before Core change because no empty Default option existed.",
+    "focused": "passed: 4 files, 693 tests.",
+    "typecheck": "passed.",
+    "fullSuite": "passed: 224 files, 2 skipped; 2,485 tests, 5 skipped.",
+    "editorBuildTwice": "passed; all 11 required artifact hashes identical.",
+    "postSuiteGeneratedIntegrity": "passed; all 11 hashes identical to the second build.",
+    "npmAudit": "passed: 0 vulnerabilities.",
+    "npmAuditProduction": "passed: 0 vulnerabilities.",
+    "uiBaselineGate": "passed: 24 images, 28 source files.",
+    "impeccableDetector": "one pre-existing unrelated broken-image warning for Core <img onerror> at line 5369.",
+    "diffCheck": "passed.",
+    "qaHarness": "Native review completed on http://localhost:4953/; session 11515 / PID 21518 was stopped and port 4953 confirmed closed.",
+    "nativeAcceptance": "passed: initial Flex controls showed Default with computed normal/wrap; after authoring Desktop Center/No wrap and Tablet End/Wrap, Tablet Default restored the Desktop Center/No wrap values. Button Default preserved factory 600, and Background Default computed auto/repeat while omitting those declarations."
+  },
+  "generatedChanges": [
+    "dist/core.cjs",
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "untrackedBuildProducts": [
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "scope": {
+    "browserUsedByWorker": false,
+    "baselineChanged": false,
+    "commitCreated": false,
+    "pushed": false,
+    "mainMutatedByTakeoverWorker": false
+  },
+  "limitations": [
+    "Main integration, CI, deployment, and WordPress packaging remain root-owned."
+  ],
+  "reviewedArtifacts": {
+    "Main qa-evidence/full-customer-retest-2026-10-14/native/local-default-labels-acceptance.json": "3380b7700d303522139408d8675c8c857e65d077af1f486533864368fca282dd",
+    "Main qa-evidence/full-customer-retest-2026-10-14/native/local-default-labels-background.jpg": "ab97196256a009c5c0eb127bec126f11468f2b2316ea9ffc63e1ae2acfdc715a",
+    "qa-evidence/empty-default-options-2026-10-21/generated-hashes-post-suite.sha256": "3b3593c8afeb8b2cb6130d940a9023461c09e224375350ee6bb25ff70ab61916"
+  },
+  "provenance": "This takeover worker used only the isolated checkout. An earlier worker wrote Main incorrectly; root restored those changes before this takeover began."
+}
