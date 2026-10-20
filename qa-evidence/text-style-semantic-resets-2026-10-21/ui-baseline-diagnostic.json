@@ -1,0 +1,13 @@
+{
+  "sourceFileCount": 28,
+  "changedSources": [
+    {
+      "file": "app/src/ui/inspector/Inspector.tsx",
+      "manifestSha256": "04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2",
+      "candidateSha256": "4f84c3ccc811a75a738f314f684b900ddb188a55b84accaff92b447c5608f291"
+    }
+  ],
+  "recordedImageCount": 24,
+  "recordedImageHashMismatches": [],
+  "interpretation": "The existing baseline files remain untouched and match their manifest. Fresh candidate capture and comparison are still required because the gate stops on the Inspector source fingerprint before checking images."
+}

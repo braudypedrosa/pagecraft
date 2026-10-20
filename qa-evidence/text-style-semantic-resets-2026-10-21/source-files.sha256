@@ -1,0 +1,3 @@
+7d34bb4d3833f6a8995cf9154d18cbfb0ad1e9576e04b502d18685c71ea11dc2  app/src/core/index.ts
+4f84c3ccc811a75a738f314f684b900ddb188a55b84accaff92b447c5608f291  app/src/ui/inspector/Inspector.tsx
+6735f7505a9bf7c72c617d3b3888f5ab11fe900a762970c9b8b9580d53be8804  tests/responsive-text-rich-resets.test.tsx

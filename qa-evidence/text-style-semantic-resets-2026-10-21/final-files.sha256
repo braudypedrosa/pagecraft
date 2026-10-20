@@ -1,0 +1,7 @@
+7d34bb4d3833f6a8995cf9154d18cbfb0ad1e9576e04b502d18685c71ea11dc2  app/src/core/index.ts
+4f84c3ccc811a75a738f314f684b900ddb188a55b84accaff92b447c5608f291  app/src/ui/inspector/Inspector.tsx
+6735f7505a9bf7c72c617d3b3888f5ab11fe900a762970c9b8b9580d53be8804  tests/responsive-text-rich-resets.test.tsx
+ef4c5fb19b90411f7d10da0f28ff2acd93494a2b26d67f0d23b1172f23bae32b  public/internal-ui-baselines/manifest.json
+4a364dad7173d5102f421569dab4a08084d285b9a23b3d79d2d6ff9b15f13911  qa-evidence/text-style-semantic-resets-2026-10-21/verification.json
+b2e5886fdfee67d9afcb4176100caab369357e9aabc98dade2a6fe2db7c0b8eb  qa-evidence/text-style-semantic-resets-2026-10-21/task-close.md
+cb563df32761785a56a75925d03707216e1bde811314d8678e26ef061aad55c6  qa-evidence/text-style-semantic-resets-2026-10-21/generated-nine-assessment.json

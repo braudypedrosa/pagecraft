@@ -1,0 +1,42 @@
+{
+  "filesAssessed": 9,
+  "included": [
+    "index.html",
+    "dist/core.cjs",
+    "dist/demo/index.html",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "currentChangeOutputs": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/editor.html"
+  ],
+  "unchangedOutputs": [
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "demo": {
+    "commandPassed": true,
+    "findings": 0,
+    "baseSha256": "1aad67e1a84d1ecb7889a344901e033f82cab9a9059fffbd157f1d5c46090d0c",
+    "generatedSha256": "ad4801f1715a4b4a93deb01b5b9c07233a1f1184b25c09ccf8223e667b18854d",
+    "diff": "154 additions and 154 deletions: two stale earlier slider-foundation rule updates plus regenerated node IDs; no Font Inherit or Overflow Visible demo behavior belongs to this editor-control change.",
+    "decision": "Restored the base Demo and excluded this unrelated generated drift from the candidate change."
+  },
+  "compilerBundles": {
+    "integrationSet": false,
+    "files": [
+      "packages/editor/dist/compiler.js",
+      "packages/editor/dist/compiler-worker.js"
+    ],
+    "note": "Build products retained in the isolated checkout; excluded from the guarded nine-file integration assessment."
+  }
+}

@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/text-rich-reset-audit
+
+(node:84239) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:84374) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:84505) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  222 passed | 2 skipped (224)
+      Tests  2469 passed | 5 skipped (2474)
+   Start at  00:24:59
+   Duration  25.70s (transform 10.71s, setup 0ms, import 63.26s, tests 200.44s, environment 31.90s)

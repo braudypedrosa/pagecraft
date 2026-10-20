@@ -3891,7 +3891,8 @@ function gfontsLink() {
 `;
 }
 var FONT_BASE = [
-  ["", "Inherit"],
+  ["", "Default"],
+  ["inherit", "Inherit"],
   ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", "System sans"],
   ["Georgia,'Times New Roman',serif", "System serif"],
   ["ui-monospace,SFMono-Regular,Menlo,Consolas,monospace", "System monospace"]
@@ -22314,7 +22315,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     { t: "select", c: "position", label: "Position", r: 1, opts: [["static", "Static"], ["relative", "Relative"], ["absolute", "Absolute"], ["sticky", "Sticky"], ["fixed", "Fixed"]] },
     { t: "unit", c: "top", label: "Top", r: 1, neg: 1, units: ["px", "%", "rem"] },
     { t: "unit", c: "z-index", label: "Z-index", r: 1, neg: 1, integer: 1, units: [""] },
-    { t: "select", c: "overflow", label: "Overflow", r: 1, opts: [["", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
+    { t: "select", c: "overflow", label: "Overflow", r: 1, opts: [["", "Default"], ["visible", "Visible"], ["hidden", "Hidden"], ["auto", "Auto"]] },
     { t: "unit", c: "max-width", label: "Max width", r: 1, units: ["px", "rem", "%", "ch"] },
     { t: "area", k: "_css", label: "Custom CSS", rows: 4, ph: "& { \u2026 }" }
   ];
@@ -24273,7 +24274,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var gfIndex = Object.fromEntries(GF.map(([fam, cat, w3]) => [fam.toLowerCase(), { fam, cat, w: w3 }]));
   var stackFor = (fam, cat) => `'${fam}',${GF_FALLBACK[cat] || GF_FALLBACK.s}`;
   var FONT_BASE = [
-    ["", "Inherit"],
+    ["", "Default"],
+    ["inherit", "Inherit"],
     ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", "System sans"],
     ["Georgia,'Times New Roman',serif", "System serif"],
     ["ui-monospace,SFMono-Regular,Menlo,Consolas,monospace", "System monospace"]

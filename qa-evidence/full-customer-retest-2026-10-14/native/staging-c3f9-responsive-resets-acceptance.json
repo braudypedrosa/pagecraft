@@ -1,0 +1,67 @@
+{
+  "commit": "c3f9e6ea60a42490cec156dfb1b8090fce49d3df",
+  "transitionNone": {
+    "duration": "0s",
+    "property": "none"
+  },
+  "positionUI": "Position\nOverride\nIn the normal flow",
+  "shadowUI": "Shadow\nOverride\nNone",
+  "filterUI": "Filter\nOverride\nNone",
+  "desktop": {
+    "button": {
+      "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+      "top": "0px",
+      "transition": "0s"
+    },
+    "images": [
+      {
+        "filter": "grayscale(1)",
+        "loaded": true
+      },
+      {
+        "filter": "grayscale(1)",
+        "loaded": true
+      }
+    ]
+  },
+  "tablet": {
+    "button": {
+      "shadow": "none",
+      "top": "0px",
+      "transition": "0s"
+    },
+    "images": [
+      {
+        "filter": "none",
+        "loaded": true
+      },
+      {
+        "filter": "none",
+        "loaded": true
+      }
+    ]
+  },
+  "mobile": {
+    "button": {
+      "shadow": "none",
+      "top": "0px",
+      "transition": "0s"
+    },
+    "images": [
+      {
+        "filter": "none",
+        "loaded": true
+      },
+      {
+        "filter": "none",
+        "loaded": true
+      }
+    ]
+  },
+  "restoration": {
+    "versionRestored": 926,
+    "ids": 41,
+    "idsExact": true,
+    "cssSha256": "dc18a25cdf665dbe3e31e4493ae7ebaaece77c00ea26ac797424cc84db034f90"
+  }
+}

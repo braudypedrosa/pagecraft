@@ -419,7 +419,7 @@ export const advControls = (n: PcNode): Control[] => [
   { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
   { t: 'unit', c: 'top', label: 'Top', r: 1, neg: 1, units: ['px', '%', 'rem'] },
   { t: 'unit', c: 'z-index', label: 'Z-index', r: 1, neg: 1, integer: 1, units: [''] },
-  { t: 'select', c: 'overflow', label: 'Overflow', r: 1, opts: [['', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
+  { t: 'select', c: 'overflow', label: 'Overflow', r: 1, opts: [['', 'Default'], ['visible', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
   { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'] },
   { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
 ];

@@ -2134,7 +2134,8 @@ function gfontsLink() {
 `;
 }
 var FONT_BASE = [
-  ["", "Inherit"],
+  ["", "Default"],
+  ["inherit", "Inherit"],
   ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", "System sans"],
   ["Georgia,'Times New Roman',serif", "System serif"],
   ["ui-monospace,SFMono-Regular,Menlo,Consolas,monospace", "System monospace"]

@@ -1,0 +1,254 @@
+{
+  "source": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "package": "0.2.17-preview.20261020.66",
+  "cases": [
+    {
+      "device": "Mobile390",
+      "align": "flex-end",
+      "brand": {
+        "right": 185,
+        "width": 165,
+        "x": 20
+      },
+      "document": 390,
+      "links": [
+        {
+          "contained": true,
+          "right": 370,
+          "text": "Projects",
+          "x": 281.5625
+        },
+        {
+          "contained": true,
+          "right": 266.859375,
+          "text": "About",
+          "x": 207.359375
+        },
+        {
+          "contained": true,
+          "right": 370,
+          "text": "Contact",
+          "x": 286.859375
+        },
+        {
+          "contained": true,
+          "right": 370,
+          "text": "Services",
+          "x": 288.1875
+        }
+      ],
+      "nav": {
+        "right": 370,
+        "width": 165,
+        "x": 205
+      },
+      "toggle": "none",
+      "viewport": 390
+    },
+    {
+      "device": "Tablet834",
+      "align": "normal",
+      "brand": {
+        "right": 405,
+        "width": 381,
+        "x": 24
+      },
+      "document": 834,
+      "links": [
+        {
+          "contained": true,
+          "right": 525.546875,
+          "text": "Projects",
+          "x": 437.109375
+        },
+        {
+          "contained": true,
+          "right": 605.046875,
+          "text": "About",
+          "x": 545.546875
+        },
+        {
+          "contained": true,
+          "right": 708.1875,
+          "text": "Contact",
+          "x": 625.046875
+        },
+        {
+          "contained": true,
+          "right": 810,
+          "text": "Services",
+          "x": 728.1875
+        }
+      ],
+      "nav": {
+        "right": 810,
+        "width": 381,
+        "x": 429
+      },
+      "toggle": "none",
+      "viewport": 834
+    },
+    {
+      "device": "Desktop1440",
+      "align": "normal",
+      "brand": {
+        "right": 708,
+        "width": 658,
+        "x": 50
+      },
+      "document": 1440,
+      "links": [
+        {
+          "contained": true,
+          "right": 1105.546875,
+          "text": "Projects",
+          "x": 1017.109375
+        },
+        {
+          "contained": true,
+          "right": 1185.046875,
+          "text": "About",
+          "x": 1125.546875
+        },
+        {
+          "contained": true,
+          "right": 1288.1875,
+          "text": "Contact",
+          "x": 1205.046875
+        },
+        {
+          "contained": true,
+          "right": 1390,
+          "text": "Services",
+          "x": 1308.1875
+        }
+      ],
+      "nav": {
+        "right": 1390,
+        "width": 658,
+        "x": 732
+      },
+      "toggle": "none",
+      "viewport": 1440
+    }
+  ],
+  "resets": [
+    {
+      "button": {
+        "marginTop": "703.891px",
+        "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+        "transition": "0s",
+        "transitionProperty": "none"
+      },
+      "document": 1440,
+      "image": {
+        "filter": "grayscale(1)",
+        "loaded": true,
+        "naturalWidth": 1536
+      },
+      "viewport": 1440
+    },
+    {
+      "button": {
+        "marginTop": "0px",
+        "shadow": "none",
+        "transition": "0s",
+        "transitionProperty": "none"
+      },
+      "document": 834,
+      "image": {
+        "filter": "none",
+        "loaded": true,
+        "naturalWidth": 1536
+      },
+      "viewport": 834
+    },
+    {
+      "button": {
+        "marginTop": "0px",
+        "shadow": "none",
+        "transition": "0s",
+        "transitionProperty": "none"
+      },
+      "document": 390,
+      "image": {
+        "filter": "none",
+        "loaded": true,
+        "naturalWidth": 1536
+      },
+      "viewport": 390
+    }
+  ],
+  "clearedTablet": [
+    {
+      "button": {
+        "marginTop": "888.547px",
+        "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+        "transition": "0s",
+        "transitionProperty": "none"
+      },
+      "document": 834,
+      "image": {
+        "filter": "grayscale(1)",
+        "loaded": true,
+        "naturalWidth": 1536
+      },
+      "viewport": 834
+    },
+    {
+      "button": {
+        "marginTop": "0px",
+        "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+        "transition": "0s",
+        "transitionProperty": "none"
+      },
+      "document": 390,
+      "image": {
+        "filter": "grayscale(1)",
+        "loaded": true,
+        "naturalWidth": 1536
+      },
+      "viewport": 390
+    }
+  ],
+  "mobileOverrideBadges": {
+    "shadow": 1
+  },
+  "explicitMobile": {
+    "button": {
+      "marginTop": "0px",
+      "shadow": "none",
+      "transition": "0s",
+      "transitionProperty": "none"
+    },
+    "document": 390,
+    "image": {
+      "filter": "none",
+      "loaded": true,
+      "naturalWidth": 1536
+    },
+    "viewport": 390
+  },
+  "notes": [
+    "Selecting an already selected inherited None did not pin a new Mobile shadow/filter override; first clear-Tablet reading is retained as an observation, not passed explicit-Mobile proof. After setting None against restored inherited Soft/Greyscale, the Mobile override badge and actual frontend None are confirmed.",
+    "No global classes, shared styles or media uploads were created."
+  ],
+  "restoration": {
+    "restoredVersion": 28,
+    "ids": [
+      "nxo96g5qr",
+      "nxo96g47r",
+      "nxo96g3zt",
+      "nxo96g28f",
+      "ny2qsh9qo",
+      "ny2qsh6e8",
+      "ny5zleam3",
+      "ny2qsh74a",
+      "ny6igvbfj",
+      "ny2qsh8kv",
+      "ny6kabci2"
+    ],
+    "cssSha256": "a8ed037aa8851156d8aeacd9fc751778ef748c084b7085d2092410c761b11866",
+    "saveDisabled": true
+  }
+}
