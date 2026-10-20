@@ -1,0 +1,37 @@
+{
+  "commit": "487565221af6854b4502f278ccedc88c6b6081a6",
+  "sourceFix": "f2bcf2ef6233fd03df3a93c4d5ab1ea022cc58f1",
+  "cases": [
+    {
+      "client": 13,
+      "gap": "4px",
+      "scroll": 13,
+      "text": "px",
+      "width": 58
+    },
+    {
+      "client": 17,
+      "gap": "4px",
+      "scroll": 17,
+      "text": "em",
+      "width": 58
+    },
+    {
+      "client": 21,
+      "gap": "4px",
+      "scroll": 21,
+      "text": "rem",
+      "width": 58
+    },
+    {
+      "client": 11,
+      "gap": "4px",
+      "scroll": 11,
+      "text": "%",
+      "width": 58
+    }
+  ],
+  "passed": true,
+  "restored": true,
+  "fullCustomerRetestComplete": false
+}

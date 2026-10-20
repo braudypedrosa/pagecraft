@@ -1,5 +1,11 @@
 import { createHash } from 'node:crypto';
-import { fontFaceCss, parseFontCss } from '../../app/src/core/index.ts';
+import {
+  fontFaceCss,
+  parseFontCss,
+  PUBLIC_DATE_JS,
+  PUBLIC_SELECT_JS,
+  SHARED_FOOTER_END,
+} from '../../app/src/core/index.ts';
 import { decodeHtmlEntities, utf8ByteCompare } from './releases.ts';
 
 const CSS_HOST = 'fonts.googleapis.com';
@@ -303,8 +309,11 @@ const fontSlug = (value: string) =>
  * foundation used to start, with each face's bytes in `assets/fonts/`. Under `assets/` because
  * the hosted router already turns that folder into absolute URLs, which a 404 page served at
  * any depth needs. A page whose stylesheet does not start with the foundation keeps it inline:
- * the cascade is never reordered to save bytes. Exports and connected releases do not call
- * this; their pages stay self-contained. */
+ * the cascade is never reordered to save bytes.
+ * The compiler-owned public form-control runtimes get the same treatment as JavaScript files.
+ * Only an exact generated tag after the shared-footer boundary can move: owner-authored scripts
+ * remain byte-for-byte and in place. Exports and connected releases do not call this; their
+ * pages stay self-contained. */
 export function shareHostedStyles(
   files: Map<string, string>,
   foundation?: { css: string; pages: Map<string, { rel: string; inline: string }> },
@@ -351,22 +360,47 @@ export function shareHostedStyles(
     return path;
   };
 
+  const scripts = new Map<string, HostedStyleFile>();
+  const runtime = (source: string) => {
+    const open = source.indexOf('>');
+    const close = source.lastIndexOf('</script>');
+    if (open < 0 || close <= open) throw new Error('public form runtime wrapper is malformed');
+    const bytes = new TextEncoder().encode(source.slice(open + 1, close));
+    const path = `assets/runtime.${hash(bytes).slice(0, 16)}.js`;
+    if (!scripts.has(path)) scripts.set(path, {
+      path,
+      mediaType: 'text/javascript; charset=utf-8',
+      bytes,
+    });
+    return path;
+  };
+
+  const extractRuntime = (html: string, source: string, rel: string) => {
+    const boundary = html.lastIndexOf(SHARED_FOOTER_END);
+    const at = html.lastIndexOf(source);
+    if (boundary < 0 || at < boundary) return html;
+    const tag = `<script src="${rel}${runtime(source)}"></script>`;
+    return html.slice(0, at) + tag + html.slice(at + source.length);
+  };
+
   const output = new Map<string, string>();
   for (const [path, source] of files) {
     if (!path.toLowerCase().endsWith('.html')) { output.set(path, source); continue; }
     let html = source;
     const frozen = html.match(FROZEN_STYLE);
     const page = foundation?.pages.get(path);
+    const rel = page ? page.rel : '../'.repeat(path.split('/').length - 1);
+    html = extractRuntime(html, PUBLIC_SELECT_JS, rel);
+    html = extractRuntime(html, PUBLIC_DATE_JS, rel);
     const opening = page ? '<style>\n' + page.inline : '';
     const hasFoundation = !!opening && html.includes(opening);
     if (!frozen && !hasFoundation) { output.set(path, html); continue; }
     const css = [frozen ? frozenCss(frozen[1], frozen[2]) : '', hasFoundation ? foundation!.css : '']
       .filter(Boolean).join('\n');
-    const rel = page ? page.rel : '../'.repeat(path.split('/').length - 1);
     const link = `<link rel="stylesheet" href="${rel}${sheet(css)}">\n`;
     if (frozen) html = html.replace(frozen[0], () => hasFoundation ? '' : link);
     if (hasFoundation) html = html.replace(opening, () => `${link}<style>\n`);
     output.set(path, html);
   }
-  return { files: output, extra: [...sheets.values(), ...fonts.values()] };
+  return { files: output, extra: [...sheets.values(), ...fonts.values(), ...scripts.values()] };
 }

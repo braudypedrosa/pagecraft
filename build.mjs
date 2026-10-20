@@ -7,6 +7,7 @@ import { BUILDER_HEADER_CSS, HEADER_DEVICE_ICONS } from './shared/builder-header
    /*<core>* / … /*< /core>* / and are extracted verbatim, so the tests run
    against exactly the code that ships. */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSync, transformSync } from 'esbuild';
@@ -17,6 +18,9 @@ import { UI_TYPOGRAPHY_CSS } from './shared/ui-typography.js';
 import { UI_FOCUS_CSS } from './shared/ui-focus.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
+execFileSync(process.execPath, [join(here, 'tools', 'build-public-form-controls.mjs')], {
+  cwd: here, stdio: 'inherit'
+});
 const frag = readFileSync(join(here, 'builder.html'), 'utf8');
 
 /* ---- 0. brand fonts, embedded so the standalone editor works offline.

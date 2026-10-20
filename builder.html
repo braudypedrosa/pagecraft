@@ -3823,7 +3823,9 @@ function paintCss() {
   syncFonts();
   const el = cdoc.getElementById('s-css');
   if (!el) return;
-  el.textContent = assetsToBlob(treeCss(curSets(), !document.body.classList.contains('preview')));
+  const editing = !document.body.classList.contains('preview');
+  const sets = curSets();
+  el.textContent = assetsToBlob(treeCss(sets, editing) + publicFormControlCssFor(sets, editing));
   positionHud();
 }
 
@@ -3897,6 +3899,8 @@ function runPreviewRuntime(html, editing = false) {
     [/data-nav/.test(html), NAV_JS],
     [/data-facade/.test(html), FACADE_JS],
     [/data-lightbox/.test(html), LB_JS],
+    [/data-pagecraft-select/.test(html), PUBLIC_SELECT_JS],
+    [/data-pagecraft-date/.test(html), PUBLIC_DATE_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {
@@ -3920,6 +3924,8 @@ function runPreviewRuntime(html, editing = false) {
     observers.forEach(observer => { try { observer.disconnect(); } catch (e) { } });
     if (runtimeStyle) runtimeStyle.remove();
     $$('.pagecraft-lightbox', cdoc).forEach(el => el.remove());
+    $$('[data-pagecraft-select-popover]', cdoc).forEach(el => el.remove());
+    $$('[data-pagecraft-date-popover]', cdoc).forEach(el => el.remove());
     try { delete cwin.bpAnimate; } catch (e) { }
   };
 }
@@ -3975,7 +3981,8 @@ function paint() {
   const editing = !document.body.classList.contains('preview');
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
-  const css = treeCss(curSets(), editing);
+  const sets = curSets();
+  const css = treeCss(sets, editing) + publicFormControlCssFor(sets, editing);
   /* A Follow mobile-menu definition has no copied links of its own. In component Preview,
      carry the exact validated parent that opened the definition just as edit rendering does;
      export rendering stays independent of transient editor ownership. */

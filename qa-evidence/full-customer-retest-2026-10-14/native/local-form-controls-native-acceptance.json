@@ -1,0 +1,354 @@
+{
+  "environment": "isolated candidate localhost4944",
+  "sourceDate": "21119bd149d15a99a5a98794f28a91fbe33707320a716718ba8bc838eccae4a3",
+  "tests": [
+    {
+      "case": "initial validation neutral",
+      "actual": {
+        "aria": null,
+        "focus": "",
+        "message": "Please fill in this field.",
+        "valid": false,
+        "value": ""
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar ArrowRight focus",
+      "actual": {
+        "focus": "Choose Wednesday, October 21, 2026",
+        "tag": "BUTTON"
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar Enter ISO selection",
+      "actual": {
+        "aria": null,
+        "focus": "pagecraft-form-qa-ui-contact-f2",
+        "message": "",
+        "valid": true,
+        "value": "2026-10-21"
+      },
+      "pass": true
+    },
+    {
+      "case": "typed impossible ISO retained",
+      "actual": {
+        "aria": "true",
+        "focus": "pagecraft-date-pagecraft-form-qa-ui-contact-f2-trigger",
+        "message": "Enter a date in YYYY-MM-DD format.",
+        "valid": false,
+        "value": "2026-02-30"
+      },
+      "pass": true
+    },
+    {
+      "case": "impossible ISO submit blocked",
+      "actual": {
+        "aria": "true",
+        "focus": "pagecraft-form-qa-ui-contact-f2",
+        "message": "Enter a date in YYYY-MM-DD format.",
+        "valid": false,
+        "value": "2026-02-30"
+      },
+      "pass": true
+    },
+    {
+      "case": "typed valid ISO correction",
+      "actual": {
+        "aria": "false",
+        "focus": "pagecraft-date-pagecraft-form-qa-ui-contact-f2-trigger",
+        "message": "",
+        "valid": true,
+        "value": "2026-11-15"
+      },
+      "pass": true
+    },
+    {
+      "case": "next month focus retained",
+      "actual": {
+        "focus": "Switch to next month",
+        "grid": "December 2026",
+        "inside": true,
+        "tag": "BUTTON"
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar Escape restores trigger",
+      "actual": {
+        "focus": "Open calendar",
+        "open": "closed"
+      },
+      "pass": true
+    },
+    {
+      "case": "select End updates named owner",
+      "actual": {
+        "aria": "true",
+        "name": "workshop",
+        "value": "Studio"
+      },
+      "pass": true
+    },
+    {
+      "case": "mobile select body portal fit",
+      "actual": {
+        "parent": "BODY",
+        "position": "fixed",
+        "rect": {
+          "bottom": 611.375,
+          "height": 162,
+          "left": 20,
+          "right": 394,
+          "top": 449.375,
+          "width": 374,
+          "x": 20,
+          "y": 449.375
+        },
+        "viewport": 668
+      },
+      "pass": true
+    },
+    {
+      "case": "typeahead long option wraps",
+      "actual": {
+        "scroll": 414,
+        "trigger": {
+          "bottom": 467.375,
+          "height": 72,
+          "left": 20,
+          "right": 394,
+          "top": 395.375,
+          "width": 374,
+          "x": 20,
+          "y": 395.375
+        },
+        "value": "Accessibility and community planning with a very long option label for small mobile screens",
+        "width": 414
+      },
+      "pass": true
+    },
+    {
+      "case": "responsive styled controls Desktop",
+      "actual": {
+        "button": 643.5625,
+        "buttonHeight": 46,
+        "dateType": "text",
+        "form": 1200,
+        "iconWidth": 18,
+        "scroll": 1280,
+        "selectCSS": true,
+        "selectOwnerAria": "true",
+        "triggerWidth": 1200,
+        "width": 1280
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar viewport Desktop",
+      "actual": {
+        "overflow": "auto",
+        "parent": "BODY",
+        "rect": {
+          "bottom": 308,
+          "height": 299,
+          "left": 40,
+          "right": 360,
+          "top": 9,
+          "width": 320,
+          "x": 40,
+          "y": 9
+        },
+        "viewport": 668
+      },
+      "pass": true
+    },
+    {
+      "case": "responsive styled controls Tablet",
+      "actual": {
+        "button": 643.5625,
+        "buttonHeight": 46,
+        "dateType": "text",
+        "form": 786,
+        "iconWidth": 18,
+        "scroll": 834,
+        "selectCSS": true,
+        "selectOwnerAria": "true",
+        "triggerWidth": 786,
+        "width": 834
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar viewport Tablet",
+      "actual": {
+        "overflow": "auto",
+        "parent": "BODY",
+        "rect": {
+          "bottom": 660,
+          "height": 298,
+          "left": 24,
+          "right": 344,
+          "top": 362,
+          "width": 320,
+          "x": 24,
+          "y": 362
+        },
+        "viewport": 668
+      },
+      "pass": true
+    },
+    {
+      "case": "responsive styled controls Mobile",
+      "actual": {
+        "button": 374,
+        "buttonHeight": 70,
+        "dateType": "text",
+        "form": 374,
+        "iconWidth": 18,
+        "scroll": 414,
+        "selectCSS": true,
+        "selectOwnerAria": "true",
+        "triggerWidth": 374,
+        "width": 414
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar viewport Mobile",
+      "actual": {
+        "overflow": "auto",
+        "parent": "BODY",
+        "rect": {
+          "bottom": 660,
+          "height": 299,
+          "left": 20,
+          "right": 340,
+          "top": 361,
+          "width": 320,
+          "x": 20,
+          "y": 361
+        },
+        "viewport": 668
+      },
+      "pass": true
+    },
+    {
+      "case": "fresh saved authoring survives reload and enhances Preview",
+      "actual": {
+        "date": "text",
+        "options": [
+          "Garden workshop",
+          "Accessibility and community planning with a very long option label for small mobile screens",
+          "Studio"
+        ],
+        "select": "true",
+        "submit": "Send my workshop and accessibility enquiry — include planning details & next steps"
+      },
+      "pass": true
+    },
+    {
+      "case": "compiled publication preview loads shared runtimes and styles",
+      "actual": {
+        "controlCss": [
+          {
+            "tag": "LINK",
+            "hrefScheme": "data",
+            "hrefBytes": 200011,
+            "date": false
+          },
+          {
+            "tag": "STYLE",
+            "hrefScheme": null,
+            "hrefBytes": 0,
+            "date": true
+          }
+        ],
+        "date": "text",
+        "scripts": [
+          {
+            "inlineBytes": 1053,
+            "srcScheme": null,
+            "srcBytes": 0
+          },
+          {
+            "inlineBytes": 0,
+            "srcScheme": "data",
+            "srcBytes": 7004
+          },
+          {
+            "inlineBytes": 0,
+            "srcScheme": "data",
+            "srcBytes": 189480
+          },
+          {
+            "inlineBytes": 3515,
+            "srcScheme": null,
+            "srcBytes": 0
+          }
+        ],
+        "selectAria": "true"
+      },
+      "pass": true
+    },
+    {
+      "case": "publication preview typed ISO",
+      "actual": {
+        "valid": true,
+        "value": "2026-12-10"
+      },
+      "pass": true
+    },
+    {
+      "case": "publication preview dropdown selection",
+      "actual": {
+        "value": "Studio"
+      },
+      "pass": true
+    },
+    {
+      "case": "calendar escapes authored overflow hidden",
+      "actual": {
+        "days": 35,
+        "formOverflow": "hidden",
+        "popupParent": "BODY",
+        "rect": {
+          "bottom": 660,
+          "height": 299,
+          "left": 20,
+          "right": 340,
+          "top": 361,
+          "width": 320,
+          "x": 20,
+          "y": 361
+        },
+        "viewport": 668
+      },
+      "pass": true
+    },
+    {
+      "case": "select escapes authored overflow hidden",
+      "actual": {
+        "parent": "BODY",
+        "rect": {
+          "bottom": 611.375,
+          "height": 162,
+          "left": 20,
+          "right": 394,
+          "top": 449.375,
+          "width": 374,
+          "x": 20,
+          "y": 449.375
+        },
+        "viewport": 668
+      },
+      "pass": true
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "submissions": 0,
+  "allPassed": true,
+  "boundary": "23 local browser cases; no actual valid submission; native reset/FormData/minmax/unavailable dates remain automated-only; no Cloud staging or WordPress acceptance yet."
+}

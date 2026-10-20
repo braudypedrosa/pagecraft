@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "candidate": "public-form-controls-2026-10-20",
+  "baselineCommit": "487565221af6854b4502f278ccedc88c6b6081a6",
+  "checks": {
+    "fullSuite": {
+      "status": "passed",
+      "testFiles": {
+        "passed": 219,
+        "skipped": 2,
+        "total": 221
+      },
+      "tests": {
+        "passed": 2442,
+        "skipped": 5,
+        "failed": 0,
+        "total": 2447
+      },
+      "log": "verification/full-suite.log"
+    },
+    "demo": {
+      "status": "passed",
+      "sizeKilobytes": 62,
+      "components": 1,
+      "componentInstances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "verification/demo.log"
+    },
+    "dependencyAudit": {
+      "status": "passed",
+      "fullVulnerabilities": 0,
+      "productionVulnerabilities": 0,
+      "fullReport": "verification/npm-audit-full.json",
+      "productionReport": "verification/npm-audit-production.json"
+    },
+    "deterministicEditorBuild": {
+      "status": "passed",
+      "comparedOutputs": 11,
+      "firstBuildLog": "verification/editor-build-one.log",
+      "secondBuildLog": "verification/editor-build-two.log",
+      "firstHashes": "verification/editor-build-one.sha256",
+      "secondHashes": "verification/editor-build-two.sha256"
+    },
+    "gallery": {
+      "status": "passed",
+      "reviewedPngs": 24,
+      "pixelsChanged": false,
+      "evidenceDirectory": "gallery",
+      "manifest": "public/internal-ui-baselines/manifest.json",
+      "manifestSha256": "364455695cca6c9ef5154dfe1a78795b879b259f0131f27528836bed03811ff4"
+    },
+    "nativeBrowser": {
+      "status": "accepted",
+      "casesPassed": 23,
+      "evidenceOwnedByRoot": "qa/native/local-form-controls-native-acceptance.json",
+      "coverage": [
+        "Preview and publication rendering",
+        "Strict ISO invalid-date blocking and valid correction",
+        "Calendar keyboard navigation, focus return, and responsive portal fit",
+        "Custom select End, typeahead, named value, and responsive portal fit",
+        "Authored overflow-hidden containers"
+      ],
+      "limitations": [
+        "No valid external form submission was performed.",
+        "Native browser form reset is not claimed."
+      ]
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "app/src/core/index.ts",
+      "sha256": "cb35a5feeb389079c75b7d517b04f768b81007ea285003e727cc813daa2920c3"
+    },
+    {
+      "path": "app/src/core/public-form-controls-css.ts",
+      "sha256": "ae0bef9e48696d62b38eef183dfb542b9f3f78d4c678d666f89a96d305359f44"
+    },
+    {
+      "path": "app/src/core/public-form-controls.generated.ts",
+      "sha256": "604f45be0631949aa8c331f33df5716fd2b6ac2844f96c972965cb7fa9f3cb4b"
+    },
+    {
+      "path": "app/src/runtime/THIRD-PARTY.md",
+      "sha256": "2f508ed87652c84604194b1e21275fde55c64c97e8b5b296ff9d13ce52ac2a59"
+    },
+    {
+      "path": "app/src/runtime/public-date.ts",
+      "sha256": "21119bd149d15a99a5a98794f28a91fbe33707320a716718ba8bc838eccae4a3"
+    },
+    {
+      "path": "app/src/runtime/public-select.ts",
+      "sha256": "68247f0c7c578b9cebed19694e29d5bf0b63ab8a9fcf1ec246596e786a86d32d"
+    },
+    {
+      "path": "build.mjs",
+      "sha256": "9cf0ab1ccb60b35950093041a90ba4aeb0018f4cebdf0ba1de9494817692afc7"
+    },
+    {
+      "path": "builder.html",
+      "sha256": "1f45a5099e0e9e21b63f8da827267ff68b4e64b889e3f9f6ecba8232acb0d01f"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "d926ddec8150d603a17f68279449aad69baa59c381d485534d2c90fed5782d95"
+    },
+    {
+      "path": "package.json",
+      "sha256": "a57b41809fe20b26213726ed9cdf875f964814cf08eacd4e51751fcc805ca027"
+    },
+    {
+      "path": "packages/editor/build.mjs",
+      "sha256": "bf5f7a35ff7498c9e90015cf56b596fd183abe64c85865073d78f68bd103fe4a"
+    },
+    {
+      "path": "server/src/font-freeze.ts",
+      "sha256": "1203f888fb98729f7633e669292e6a9afed02ef0db47f4fe915c85be80c92e1a"
+    },
+    {
+      "path": "server/tests/hosted-styles.test.ts",
+      "sha256": "e892591285d6653a62fd731803b53634ebb00182c3aef93f01f09e9437b77d4c"
+    },
+    {
+      "path": "tests/public-form-controls-runtime.test.ts",
+      "sha256": "bb7ef0c27f8ca76e7eb048fa18e28b9337f74b46cffd2b5ccdaa59dc85b187d8"
+    },
+    {
+      "path": "tools/build-public-form-controls.mjs",
+      "sha256": "09330a0249a40c1bc176c4665fd7e7bd6928aa3dc235a81e9efe3c628f67b467"
+    },
+    {
+      "path": "tools/test-editor-build-order.mjs",
+      "sha256": "fd71b1e9acdc2229119c71163605038f2d0819640dc8bc43300c8654d631e0d5"
+    }
+  ],
+  "generatedOutputs": [
+    {
+      "path": "index.html",
+      "sha256": "3eb65da63249ba7b71be6c04cfd6094ca834bfa779cf9b6669e682bb873e2ccd"
+    },
+    {
+      "path": "dist/core.cjs",
+      "sha256": "1b560348d4a3279377601368286e2bff8a3a14d3b4cc47f43cd25dd412fed4e7"
+    },
+    {
+      "path": "packages/editor/dist/editor.html",
+      "sha256": "b9f8073efc8150e8258db6d2133fbf76ff97c42c05af1507885085c43e718093"
+    },
+    {
+      "path": "packages/editor/dist/compiler.js",
+      "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0"
+    },
+    {
+      "path": "packages/editor/dist/compiler-worker.js",
+      "sha256": "a767685fdda954ed099867ebb9066f825efebc5445afca6dc7edcb89978f5370"
+    },
+    {
+      "path": "packages/editor/dist/runtime.js",
+      "sha256": "7bbeae0e62d97abaef1d8ecdacacc1ffd939c058b07812aefd18902ac02861ec"
+    },
+    {
+      "path": "packages/editor/dist/templates.json",
+      "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+    },
+    {
+      "path": "packages/editor/dist/contract.json",
+      "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+      "sha256": "bae23379a698f9d742558e0818a7a0239f34df16ce8af85151238f0cf1606656"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+      "sha256": "ffab233c373b9aababecd3be7584e11be145dabcc814e7836c53dfa8710be518"
+    },
+    {
+      "path": "app/src/core/public-form-controls.generated.ts",
+      "sha256": "604f45be0631949aa8c331f33df5716fd2b6ac2844f96c972965cb7fa9f3cb4b"
+    }
+  ],
+  "reviewedArtifacts": [
+    {
+      "path": "public/internal-ui-baselines/manifest.json",
+      "sha256": "364455695cca6c9ef5154dfe1a78795b879b259f0131f27528836bed03811ff4"
+    },
+    {
+      "path": "server/tests/fixtures/wordpress-artifact-v1.json",
+      "sha256": "64390a1a2ba0f226b276b376684cfc583823183a3940457b3a100a50a4483031"
+    }
+  ],
+  "newUntrackedSourceFiles": [
+    "app/src/core/public-form-controls-css.ts",
+    "app/src/core/public-form-controls.generated.ts",
+    "app/src/runtime/THIRD-PARTY.md",
+    "app/src/runtime/public-date.ts",
+    "app/src/runtime/public-select.ts",
+    "tests/public-form-controls-runtime.test.ts",
+    "tools/build-public-form-controls.mjs",
+    "tools/test-editor-build-order.mjs"
+  ],
+  "evidenceNormalization": {
+    "file": "full-suite.log",
+    "change": "Terminal blank lines reduced to one final newline; diagnostic content unchanged",
+    "originalSha256": "311cf88e6ee4110fc198237d9b4247454330c798bdfb7703054f300588b3e9d9",
+    "retainedSource": "/tmp/pagecraft-public-form-controls-full-suite-approved-final.log"
+  }
+}

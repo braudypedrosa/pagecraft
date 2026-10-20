@@ -27,6 +27,8 @@ import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
    must not pull in this stateful core, shares the same answers. */
 import { safeUrl, stripScripts, cleanRich } from './safe-html.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
+import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
+import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
@@ -7839,14 +7841,41 @@ function treeCss(lists: PcNode[][], editing: boolean) {
 
 /** WordPress stores project/global and page rules independently. The shared file always owns
     the foundation and design tokens, even when the project has no visible header or footer. */
+function publicFormControlsUsed(lists: PcNode[][]) {
+  let select = false, date = false;
+  const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
+  rendered.forEach(list => eachNode(list, node => {
+    if (node.type !== 'form') return;
+    const fields = Array.isArray(node.props.fields) ? node.props.fields : [];
+    if (fields.some(field => field.type === 'select')) select = true;
+    if (fields.some(field => field.type === 'date')) date = true;
+  }));
+  return { select, date };
+}
+
+function publicFormControlCss(used: { select: boolean; date: boolean }) {
+  return (used.select ? `\n${PUBLIC_SELECT_CSS}` : '') + (used.date ? `\n${PUBLIC_DATE_CSS}` : '');
+}
+
+function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
+  return editing ? '' : publicFormControlCss(publicFormControlsUsed(lists));
+}
+
 function wordpressStyles(pg: Page) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
   const pageMoves = animUsed([pg.tree]);
+  const globalControls = publicFormControlsUsed(globalTrees);
+  const pageControls = publicFormControlsUsed([pg.tree]);
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false)
+      + publicFormControlCss(globalControls)
       + (globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : '')),
     page: tidy(treeRuleCss([pg.tree], false)
+      + publicFormControlCss({
+        select: pageControls.select && !globalControls.select,
+        date: pageControls.date && !globalControls.date,
+      })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
   };
 }
@@ -8097,6 +8126,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
+  max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;
 }
 .pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
 .pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
@@ -8787,6 +8817,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     }
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
+      const enhancedControls = fields.some(f => f.type === 'date' || f.type === 'select');
+      const controlsAttr = enhancedControls ? ' data-pagecraft-controls' : '';
       const fid = (i: number) => domId + '-f' + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
       const handling = resolveFormHandling(p, formId);
@@ -8816,16 +8848,18 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         if (f.type === 'textarea') return `<div class="pagecraft-field${half}">${lab}`
           + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}${disabled}></textarea></div>`;
         if (f.type === 'select') return `<div class="pagecraft-field${half}">${lab}`
-          + `<select id="${fid(i)}" name="${name}"${req}${disabled}>`
+          + `<select id="${fid(i)}" name="${name}" data-pagecraft-select${req}${disabled}>`
           + String(f.opts || '').split(',').map(o => o.trim()).filter(Boolean)
             .map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
           + `</select></div>`;
+        const dateAttr = f.type === 'date' ? ' data-pagecraft-date' : '';
+        const dateEdit = f.type === 'date' && o.edit ? ' readonly' : '';
         return `<div class="pagecraft-field${half}">${lab}`
-          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${req}${ph}${disabled}></div>`;
+          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${dateAttr}${dateEdit}${req}${ph}${disabled}></div>`;
       }).join('');
       if (!act) {
         const status = domId + '-status';
-        return `<div ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled>`
+        return `<div ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled${controlsAttr}>`
           + body
           + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
           + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
@@ -8833,7 +8867,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       }
       const managed = handling.kind === 'wordpress'
         ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
-      return `<form ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}>`
+      return `<form ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}>`
         + getQueryFields + body
         + (handling.kind === 'cloud' ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '')
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
@@ -8971,7 +9005,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          scripts wait for the exported page as they always have; the frame's one script reports
          its height, because an opaque frame cannot be measured from outside. */
       if (!o.edit) {
-        const frame = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0}body{display:flow-root}</style>'
+        // The isolated preview needs the same direct-child sizing as the exported embed.
+        const frameCss = 'html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}'
+          + (p.ratio ? 'html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}' : '');
+        const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + '</style>'
           + raw + (p.ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
         return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
           + `${p.ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
@@ -9415,6 +9452,8 @@ function buildPage(pg: Page, ctx: {
   const body = SHARED_HEADER_START + header + SHARED_HEADER_END
     + main
     + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
+  const hasPublicSelect = /data-pagecraft-select/.test(body);
+  const hasPublicDate = /data-pagecraft-date/.test(body);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
@@ -9430,14 +9469,14 @@ function buildPage(pg: Page, ctx: {
 ${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
-${tidy(css)}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
+${tidy(css)}${hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : ''}${hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : ''}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
 </style>
 ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainTags(m.headHtml || '')}${demoteMainTags(pg.headHtml || '')}
 </head>
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -9777,7 +9816,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

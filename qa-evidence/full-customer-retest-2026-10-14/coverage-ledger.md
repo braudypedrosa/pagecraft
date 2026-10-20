@@ -1,3 +1,27 @@
+## Latest integration checkpoint — 2026-10-20, form controls and Preview fixes
+
+The reviewed isolated candidate is integrated for staging release; deployment/native Cloud and WordPress acceptance are pending. Local native23 cases pass: calendar/typed ISO/impossible-date recovery/month-focus/Escape, select End/typeahead/long values, responsive clipping-safe popups including authored Overflow Hidden, fresh authoring and compiled publication-preview behavior. No valid external submission occurred; reset/FormData/minmax/unavailable dates remain automated-only. Preview runtime/CSS omissions, ISO separator filtering and lost month-navigation focus were found by native testing and corrected before release.
+
+Local long submit label and nested Embed Preview sizing fixes pass their named reports. Full suite2442passed/5skipped/0failed, demo0findings, audits0, two package builds byte-identical across11outputs. Gallery30behaviorchecks and24captures pass with zero pixel changes; root reviewed all24. Signed WordPress golden changed only the approved72byte Form button wrapping rule and derived hashes/signatures. Detailed proof: `qa-evidence/public-form-controls-2026-10-20/` and `native/local-form-controls-native-acceptance.json`.
+
+Cloud staging remains4875652 until the new deployment marker is verified. WordPress remainsPreview57; new package/runtime acceptance pending. Full customer QA remains false; fourteen broad areas remain open. Production readiness is not claimed.
+
+## Latest verified checkpoint — 2026-10-20, continuation in progress
+
+Full customer QA remains incomplete; fourteen broad areas stay open. Cloud staging remains `487565221af6854b4502f278ccedc88c6b6081a6`; no new form-control candidate has been deployed.
+
+WordPress Preview57 is now natively accepted for four spacing-unit labels, fresh original CSS/11 IDs and disabled Save. Post-native guard passed its protected content/options/menu/route/runtime scope. All SQL tables except wp_options match; six ordinary Elementor/update/transient option rows changed and are explicitly recorded in `pagecraft-wordpress/qa-evidence/preview57-pin-2026-10-20/wordpress-preview57-post-native-guard.json`. This is not whole-database byte equality.
+
+Additional restored Cloud acceptance: Breadcrumb18; Form23 layout/alignment/responsive Style author/fresh/Preview cases (`native/staging-form-style-responsive-acceptance.json`). Form tests restore Version882 with original CSS SHA `5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028` and all41 IDs exact. Eight Form types and duplicate-name validation are probed separately; shared Background/Border/Motion/Advanced and broader public journeys remain open.
+
+New confirmed defects: long Form submit text overflows Mobile; isolated Embed Preview fails to constrain fixed-width nested frames; new Date/Dropdown candidate scripts were omitted from Preview. All are being fixed/tested in an isolated candidate. Calendar/select upgrades and a select popup clipping fix remain unshipped pending native acceptance, full suite, signed release vectors and Cloud/WordPress integration. Native candidate tests are not staging acceptance.
+
+## Verified continuation — 2026-10-20, staging4875652
+
+Spacing labels: Cloud CI39392009402 and deploy39392009486 green, deployment marker exact487565221af6854b4502f278ccedc88c6b6081a6. Native actual Mobile inspector passes four58px labels without clipping; fixture restored exactly (`native/staging-487-spacing-unit-acceptance.json`). Local gallery30/30 interactions and24/24 screenshots with zero changed pixels; full clean suite2426pass/5skip. Initial f2 CI source-review gate failure and initial behavior-harness API failures remain in evidence. WordPress Preview57 package is built from code-identicalf2; guarded Local install/native acceptance remains pending.
+
+RichText Advanced:17 named cases pass including five Position choices, three Overflow choices, combined identity/classes/CustomCSS/transform and responsive Top/Z-index/MaxWidth/Opacity author/fresh/Preview matrices. Editor preserves internal node IDs; Preview has authored HTML id. Original CSS/41IDs restored. Fixed/sticky scroll behavior and published output unclaimed. Visibility:all8 combinations×3devices and3fresh saved all-hidden Preview checks pass; original CSS/41IDs restored. Shared-style, wider cross-module and public coverage remain open; fourteen broad areas remain open, fullCustomerRetestComplete=false.
+
 ## Current checkpoint — 2026-10-20
 
 Responsive select reset fix `08b9820890082c86b6a222a71fffd8f7c55c2971` is accepted on Cloud staging in `native/staging-08-reset-acceptance.json`: 14 named author/save/reload/reset/keyboard/Preview cases, original Version818 restored as827, exact CSS and41 node IDs. WordPress Preview56 has10 named author/fresh/reset/inheritance readbacks, with original document17 restored and exact CSS/11IDs; strict post-native database guard passed: protected15/legacy14/options/menus/routes exact; only fixture487 and five new revisions changed; restored original content as document20. Its author-time computed reads can precede rendering; fresh saved reads are authoritative. WordPress frontend Preview and keyboard focus are not claimed for this batch.
@@ -366,3 +390,5 @@ At that historical checkpoint, the clean suite was **2,238 passed / 5 skipped ac
 | Local gallery | **Historical 24/24 image comparisons, 30/30 behavior** | The then-current [first-click review](gallery/first-click-final/review.json) had only 2 and 1 changed pixels in named captures, with no layout regression. The later 0/24 drift run is also historical; current final-repeat evidence is recorded in the canonical b4 block at the top. |
 
 At that historical checkpoint, the clean suite was **2,238 passed / 5 skipped across 196 files / 2 skipped**. Full QA remained incomplete; native CMS partial import was then open and is now superseded by exact-5ad acceptance. Keyboard shortcut paste, Form full-page POST fault proof, broader component/customer journeys, public health, and operational gates remain open; no overall percentage follows.
+
+Latest native proof: Breadcrumb18 cases cover both modes×four separator glyphs, escaped label, fresh saved mode, responsive size/gap/colours and Preview; original CSS/41IDs restored. Initial wrapper-font probe is retained separately and corrected to measure actual link labels/ol gap; no product defect. WP57 four label choices fit58px; no page save, fresh original CSS/11IDs/SaveDisabled confirmed. Strict final WP database guard pending.

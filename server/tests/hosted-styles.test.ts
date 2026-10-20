@@ -13,6 +13,7 @@ import { MemoryHostedPublicationStore } from '../src/publications.ts';
 import { FileSiteTemplateStore } from '../src/site-templates.ts';
 import { freezeGoogleFontStylesheets, shareHostedStyles } from '../src/font-freeze.ts';
 import { blankDoc, renderSite } from '../src/render.ts';
+import * as Core from '../../app/src/core/index.ts';
 import type { AccountAuth, VerifiedIdentity } from '../src/account-auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 
@@ -65,7 +66,17 @@ test('Stillwood ships its fonts and foundation once, without reordering any page
     /* Put the foundation back where it was and drop the fonts: the page is what it was. */
     const page = rendered.foundation!.pages.get(path)!;
     const original = frozen.get(path)!.replace(/<style data-pagecraft-frozen-fonts="[a-f0-9]{64}">\n[\s\S]*?\n<\/style>\n?/, '');
-    a.equal(html.replace(link + '<style>\n', '<style>\n' + page.inline), original, `${path} changed beyond the move`);
+    let restored = html.replace(link + '<style>\n', '<style>\n' + page.inline);
+    for (const source of [Core.PUBLIC_SELECT_JS, Core.PUBLIC_DATE_JS]) {
+      const body = source.slice(source.indexOf('>') + 1, source.lastIndexOf('</script>'));
+      const runtime = shared.extra.find(file => file.mediaType.startsWith('text/javascript')
+        && new TextDecoder().decode(file.bytes) === body);
+      if (runtime) restored = restored.replace(
+        `<script src="${page.rel}${runtime.path}"></script>`,
+        () => source,
+      );
+    }
+    a.equal(restored, original, `${path} changed beyond the move`);
   }
   const after = Buffer.byteLength(shared.files.get('index.html')!);
   a.ok(after < before / 4, `index.html went from ${before} to ${after} bytes`);
@@ -112,6 +123,25 @@ const fontDoc = () => {
   return doc;
 };
 
+function controlDoc(type: 'select' | 'date', pageCount = 1) {
+  const doc = blankDoc('Cabins');
+  const fields = type === 'select'
+    ? [{ type, label: 'Plan', name: 'plan', opts: 'Small, Large' }]
+    : [{ type, label: 'Visit', name: 'visit', required: 1 }];
+  doc.pages[0].tree = [Core.N('form', { action: 'https://provider.test/submit', fields })];
+  doc.meta.headHtml = '<script>window.pagecraftOwnerScript="unchanged"</script>';
+  for (let index = 1; index < pageCount; index++) {
+    doc.pages.push({
+      ...structuredClone(doc.pages[0]),
+      id: `page-${index + 1}`,
+      name: `Page ${index + 1}`,
+      title: `Page ${index + 1}`,
+      slug: `page-${index + 1}`,
+    });
+  }
+  return doc;
+}
+
 test('a hosted page links a cached stylesheet and same-origin fonts that load in its sandbox', async () => {
   const { request, publication } = await hosted(fontDoc());
   const page = await request('/cabins/');
@@ -143,6 +173,32 @@ test('a hosted page links a cached stylesheet and same-origin fonts that load in
   const inlined = (await preview.text()).match(/href="data:text\/css;base64,([^"]+)"/)?.[1];
   a.ok(inlined, 'the preview inlines the shared stylesheet');
   a.match(Buffer.from(inlined!, 'base64').toString(), /url\(data:font\/woff2;base64,/);
+});
+
+test('hosted form runtimes are conditional immutable assets and owner scripts stay in place', async () => {
+  const selected = await hosted(controlDoc('select'));
+  const selectHtml = await (await selected.request('/cabins/')).text();
+  a.match(selectHtml, /<script>window\.pagecraftOwnerScript="unchanged"<\/script>/);
+  const selectSrc = selectHtml.match(/<script src="(\/cabins\/assets\/runtime\.[a-f0-9]{16}\.js)"><\/script>/)?.[1];
+  a.ok(selectSrc, 'the select page links its generated runtime');
+  const selectAssets = selected.publication.files.filter(file => file.mediaType.startsWith('text/javascript'));
+  a.equal(selectAssets.length, 1);
+  const selectResponse = await selected.request(selectSrc!);
+  a.equal(selectResponse.status, 200);
+  a.equal(selectResponse.headers.get('content-type'), 'text/javascript; charset=utf-8');
+  a.equal(selectResponse.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  const selectBytes = (await selectResponse.arrayBuffer()).byteLength;
+  a.ok(selectBytes < 10_000, `select runtime is unexpectedly large (${selectBytes} bytes)`);
+
+  const dated = await hosted(controlDoc('date', 2));
+  const dateAssets = dated.publication.files.filter(file => file.mediaType.startsWith('text/javascript'));
+  a.equal(dateAssets.length, 1, 'two date pages share one runtime asset');
+  const dateHtml = await (await dated.request('/cabins/')).text();
+  const secondHtml = await (await dated.request('/cabins/page-2')).text();
+  const dateSrc = dateHtml.match(/<script src="(\/cabins\/assets\/runtime\.[a-f0-9]{16}\.js)"><\/script>/)?.[1];
+  a.ok(dateSrc);
+  a.ok(secondHtml.includes(dateSrc!), 'every date page links the same runtime');
+  a.doesNotMatch(dateHtml, /new Proxy\(/, 'the runtime body is not repeated inline');
 });
 
 test('a hosted site without a Site URL gets canonical tags and a sitemap at its public address', async () => {

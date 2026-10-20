@@ -3,17 +3,11 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { buildSync, transformSync } from 'esbuild';
-import * as Core from '../../app/src/core/index.ts';
 import { ANIM_JS } from '../../app/src/core/anim.ts';
 import {
   PAGE_PACKAGE_FORMAT_V1, PORTABLE_PACKAGE_LIMITS_V1, SITE_PACKAGE_FORMAT_V1
 } from '../../app/src/package/types.ts';
-import {
-  COMPILER_DESCRIPTOR, COMPILER_RESULT_FORMAT, EDITOR_VERSION
-} from './src/contract.ts';
 import { resolveEditorVersion } from './version.mjs';
-import { blankDoc } from '../../server/src/render.ts';
-import { createPagePackage, createSitePackage } from '../../server/src/portable-packages.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
@@ -22,15 +16,26 @@ const editorSource = join(root, 'index.html');
 const packageJson = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8'));
 const editorVersion = resolveEditorVersion(packageJson.version);
 
-if (packageJson.version !== EDITOR_VERSION) {
-  throw new Error(`@pagecraft/editor package version ${packageJson.version} does not match compiler ${EDITOR_VERSION}.`);
-}
-const compilerDescriptor = Object.freeze({ ...COMPILER_DESCRIPTOR, editorVersion });
-
 // index.html is generated from builder.html plus the TypeScript UI and core. Package
 // builds must refresh it themselves: callers may invoke this file directly, and a
 // tracked index.html can legitimately lag behind the source modules in a checkout.
 execFileSync(process.execPath, [join(root, 'build.mjs')], { cwd: root, stdio: 'inherit' });
+/* Core imports the generated public form runtimes. Load every module that reaches Core only
+   after the generator runs, or a direct package build can cache stale runtime constants while
+   the editor HTML is rebuilt from the fresh file in the child process above. */
+const [Core, contract, render, portablePackages] = await Promise.all([
+  import('../../app/src/core/index.ts'),
+  import('./src/contract.ts'),
+  import('../../server/src/render.ts'),
+  import('../../server/src/portable-packages.ts'),
+]);
+const { COMPILER_DESCRIPTOR, COMPILER_RESULT_FORMAT, EDITOR_VERSION } = contract;
+const { blankDoc } = render;
+const { createPagePackage, createSitePackage } = portablePackages;
+if (packageJson.version !== EDITOR_VERSION) {
+  throw new Error(`@pagecraft/editor package version ${packageJson.version} does not match compiler ${EDITOR_VERSION}.`);
+}
+const compilerDescriptor = Object.freeze({ ...COMPILER_DESCRIPTOR, editorVersion });
 const editor = readFileSync(editorSource, 'utf8');
 
 if (!editor.includes('window.PC_WORDPRESS') || !editor.includes('createWordPressHostAdapter')
@@ -47,6 +52,8 @@ const runtimeSource = [
   Core.NAV_JS,
   Core.FACADE_JS,
   Core.LB_JS,
+  Core.PUBLIC_SELECT_JS,
+  Core.PUBLIC_DATE_JS,
   `<script>\n${ANIM_JS}\n</script>`
 ].map(unwrap).join('\n\n');
 const runtime = transformSync(runtimeSource, {

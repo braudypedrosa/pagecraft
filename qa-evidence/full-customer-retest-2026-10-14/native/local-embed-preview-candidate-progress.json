@@ -1,0 +1,33 @@
+{
+  "environment": "isolated candidate",
+  "tests": [
+    {
+      "case": "16:9 fixed iframe Preview Desktop",
+      "actual": {
+        "iframeHeight": 675,
+        "iframeWidth": 1200,
+        "scroll": 1200,
+        "width": 1200
+      }
+    },
+    {
+      "case": "16:9 fixed iframe Preview Tablet",
+      "actual": {
+        "iframeHeight": 442,
+        "iframeWidth": 786,
+        "scroll": 786,
+        "width": 786
+      }
+    },
+    {
+      "case": "16:9 fixed iframe Preview Mobile",
+      "actual": {
+        "iframeHeight": 210,
+        "iframeWidth": 374,
+        "scroll": 374,
+        "width": 374
+      }
+    }
+  ],
+  "fullCustomerRetestComplete": false
+}

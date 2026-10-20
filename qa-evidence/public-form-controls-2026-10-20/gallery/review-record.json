@@ -1,0 +1,44 @@
+{
+  "rootManualReview": true,
+  "reviewedFamilies": [
+    "fields",
+    "actions",
+    "tables",
+    "menus",
+    "dialogs",
+    "feedback"
+  ],
+  "reviewSheets": 6,
+  "captureSchemaVersion": 2,
+  "behaviorChecks": {
+    "total": 30,
+    "passed": 30,
+    "detailRetained": true
+  },
+  "comparison": {
+    "total": 24,
+    "passed": 24,
+    "changedPixels": 0
+  },
+  "baselinePngs": {
+    "count": 24,
+    "unchanged": true
+  },
+  "manifest": {
+    "path": "public/internal-ui-baselines/manifest.json",
+    "beforeSha256": "8698745cc5434874a498113bdfbb77554524f63625aeb62c4506afbb772010f7",
+    "afterSha256": "364455695cca6c9ef5154dfe1a78795b879b259f0131f27528836bed03811ff4",
+    "changedLeafPaths": [
+      "capturedAt",
+      "captureEnvironment.runtime.colorScheme.light",
+      "captureEnvironment.runtime.colorScheme.dark",
+      "sources.builder.html"
+    ],
+    "unexpectedNonMetadataPaths": []
+  },
+  "sourceBoundary": {
+    "changed": [
+      "builder.html"
+    ]
+  }
+}

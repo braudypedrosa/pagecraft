@@ -1,0 +1,324 @@
+{
+  "baselineVersion": 857,
+  "types": [
+    {
+      "type": "Text",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "INPUT",
+          "type": "text"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Email",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "INPUT",
+          "type": "email"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Phone",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "INPUT",
+          "type": "tel"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Number",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "INPUT",
+          "type": "number"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Date",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "INPUT",
+          "type": "date"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Long text",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": "Enter a sample value",
+          "required": true,
+          "tag": "TEXTAREA",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Dropdown",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    },
+    {
+      "type": "Checkbox",
+      "dom": [
+        {
+          "aria": null,
+          "name": "project-type",
+          "placeholder": null,
+          "required": true,
+          "tag": "SELECT",
+          "type": null
+        },
+        {
+          "aria": null,
+          "name": "qa-field-sample",
+          "placeholder": null,
+          "required": true,
+          "tag": "INPUT",
+          "type": "checkbox"
+        },
+        {
+          "aria": null,
+          "name": "_pc_trap",
+          "placeholder": null,
+          "required": false,
+          "tag": "INPUT",
+          "type": null
+        }
+      ]
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "duplicateNameGuard": {
+    "detected": true,
+    "message": "Two fields in a form in the page both submit as “email”, so one value will overwrite the other."
+  },
+  "dropdown": {
+    "required": false,
+    "options": [
+      {
+        "text": "Option A",
+        "value": "Option A"
+      },
+      {
+        "text": "Option B & garden",
+        "value": "Option B & garden"
+      },
+      {
+        "text": "<sample>",
+        "value": "<sample>"
+      }
+    ]
+  },
+  "requiredValidation": {
+    "focused": true,
+    "missing": true,
+    "valid": false
+  },
+  "emailValidation": {
+    "focused": true,
+    "typeMismatch": true,
+    "valid": false
+  },
+  "restoredCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "restoredIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "restored": true,
+  "gaps": [
+    "Public Form Date uses native input[type=date]; established custom calendar required",
+    "Public Form Dropdown uses native select; accessible themed custom select required"
+  ],
+  "boundaries": [
+    "Eight types rendered; not every field constraint validated",
+    "Required and malformed-email submits blocked with correct focus",
+    "No valid form submission or external message was sent",
+    "Fresh per-type persistence and public/WP controls retest remain pending"
+  ]
+}
