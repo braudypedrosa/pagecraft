@@ -1,0 +1,15 @@
+
+> pagecraft@0.2.0 build:next
+> vite build
+
+vite v8.2.4 building client environment for production...
+transforming...
+✓ 15 modules transformed.
+rendering chunks...
+[plugin vite:singlefile]
+
+[plugin vite:singlefile] Inlining: index-Bsf-qlip.js
+computing gzip size...
+dist/next/index.html  374.54 kB │ gzip: 116.16 kB
+
+✓ built in 201ms

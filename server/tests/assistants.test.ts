@@ -146,6 +146,53 @@ test('a token is for its own site, and stops working when its maker is no longer
   a.equal(refused.status, 401);
 });
 
+test('an authenticated assistant request is bounded before a proposal tool can run', async () => {
+  const r = await rig();
+  const token = await r.newAssistantToken();
+  const post = (body: BodyInit) => r.app.request(new Request('http://admin.test/mcp', {
+    method: 'POST', body,
+    headers: {
+      host: 'admin.test', authorization: `Bearer ${token}`,
+      'content-type': 'application/json', accept: 'application/json, text/event-stream',
+    },
+    ...(body instanceof ReadableStream ? { duplex: 'half' } : {}),
+  } as RequestInit & { duplex?: 'half' }));
+  const toolCall = (args: Record<string, unknown>) => ({
+    jsonrpc: '2.0', id: 1, method: 'tools/call',
+    params: { name: 'pagecraft_propose_changes', arguments: args },
+  });
+  const validChange = {
+    baseVersion: r.site.version, title: 'Bounded request',
+    changes: [{ type: 'text', nodeId: 'h1', value: 'Still unchanged' }],
+  };
+
+  const oversizedText = JSON.stringify(toolCall({ ...validChange, note: '🙂'.repeat(250_000) }));
+  const bytes = new TextEncoder().encode(oversizedText);
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(bytes.slice(0, 500_000));
+      controller.enqueue(bytes.slice(500_000));
+      controller.close();
+    },
+  });
+  const oversized = await post(stream);
+  a.equal(oversized.status, 413);
+  a.match(await oversized.text(), /must not exceed 1000000 bytes/);
+
+  const tooMany = await post(JSON.stringify(toolCall({
+    ...validChange,
+    values: Object.fromEntries(Array.from({ length: 10_001 }, (_, index) => [`field${index}`, index])),
+  })));
+  a.equal(tooMany.status, 200);
+  a.match(await tooMany.text(), /more than the maximum of 10000 elements/);
+  a.deepEqual(await r.assistants.proposals(r.site.id), [], 'neither rejected request reached the proposal callback');
+
+  const mcp = await r.mcpFor(token);
+  a.equal((await mcp.callTool({ name: 'pagecraft_site', arguments: {} })).isError, undefined,
+    'the same authenticated endpoint still accepts a normal request');
+  await mcp.close();
+});
+
 test('the editor lists proposals with previews, and each is decided once', async () => {
   const r = await rig();
   const mcp = await r.mcpFor(await r.newAssistantToken());

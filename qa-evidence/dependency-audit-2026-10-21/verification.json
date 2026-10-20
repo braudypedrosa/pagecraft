@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-21",
+  "timezone": "Asia/Manila",
+  "status": "local bounded candidate ready for review",
+  "baseCommit": "1f4895ca40c65a57d558910a8d7f9f8aab62d164",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/dependency-audit-1f4895c",
+  "dependencyPins": {
+    "sanitize-html": "2.18.0",
+    "vite": "8.2.4",
+    "@modelcontextprotocol/server": "2.3.0"
+  },
+  "checks": {
+    "baselineAudit": {
+      "result": "red",
+      "all": {
+        "high": 2,
+        "moderate": 1,
+        "packages": 3
+      },
+      "production": {
+        "high": 1,
+        "moderate": 1,
+        "packages": 2
+      },
+      "logs": [
+        "audit-before-all.json",
+        "audit-before-production.json"
+      ]
+    },
+    "finalAudit": {
+      "result": "pass",
+      "allVulnerabilities": 0,
+      "productionVulnerabilities": 0,
+      "logs": [
+        "audit-after-all.json",
+        "audit-after-production.json"
+      ]
+    },
+    "focused": {
+      "result": "pass",
+      "files": 4,
+      "tests": 59,
+      "log": "focused-tests.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "final-typecheck.log"
+    },
+    "fullSuite": {
+      "result": "pass",
+      "testFilesPassed": 227,
+      "testFilesSkipped": 2,
+      "testsPassed": 2496,
+      "testsSkipped": 5,
+      "log": "final-npm-test.log"
+    },
+    "editorBuildDeterminism": {
+      "result": "pass",
+      "artifacts": 11,
+      "diffBytes": 0,
+      "hashes": "final-generated-hashes-build-2.sha256"
+    },
+    "viteProductionBuild": {
+      "result": "pass",
+      "vite": "8.2.4",
+      "outputBytes": 374540,
+      "gzipBytes": 116160,
+      "log": "final-vite-build.log"
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "final-demo.log"
+    },
+    "templateAudit": {
+      "result": "pass with existing findings",
+      "templates": 5,
+      "pages": 34,
+      "renderErrors": 0,
+      "rendererWarnings": 18,
+      "configuredIntegrationFindings": 8,
+      "log": "final-template-audit.log"
+    },
+    "uiBaselineGate": {
+      "result": "pass",
+      "images": 24,
+      "sourceFiles": 28,
+      "log": "final-ui-baseline-gate.log"
+    },
+    "diffCheck": {
+      "result": "pass"
+    },
+    "mcpBounds": {
+      "result": "pass",
+      "cases": [
+        "unauthenticated malformed input rejected before parsing",
+        "valid concurrent same-id clients stay isolated",
+        "streamed multibyte body over 1 MB rejected before tool dispatch",
+        "10,001 input members rejected before tool dispatch",
+        "authenticated assistant /mcp keeps proposal storage unchanged after both limit rejections and accepts a later normal call"
+      ]
+    }
+  },
+  "exposureAssessment": "See advisory-review.md. The sanitizer boundary rejects the reviewed payload families. Both authenticated MCP handlers now enforce byte and structural limits before tool dispatch.",
+  "delivery": "local isolated checkout only; no commit, push, deployment, browser, database, or Main working-tree write",
+  "changedSource": {
+    "package.json": "31d58594bdafe8dd01d79468d2910f8e2a79f55629b888a827cef39f5eccd204",
+    "package-lock.json": "3384b925d3f38963ec68606689b4257cc6e34120df75fdcd7104dda61aba5848",
+    "server/package.json": "e23c855320f3a71a39272046bd904c2c7663ba79fa6cecdb429dcd8b67ac2ad4",
+    "server/src/assistant-mcp.ts": "199137f0bbca85f8690f1a28673e8467bdea4f3b9622489343966a19602e0f2b",
+    "server/src/integrations.ts": "25b92277b2881eb35c2672a96bb813ccc154bb600ee82bea66f281e25a7cd29c",
+    "server/tests/safe-html-security.test.ts": "a26ae72c770c35f0f338a2df45710f27d0e954836d22416330ce94c117cee521",
+    "server/tests/mcp-server-security-compatibility.test.ts": "09aa93d009920c572688706c57dcaa7127188e2b1b94668cf6c98d61f05982b3",
+    "server/tests/assistants.test.ts": "35d55fdae443242c775da7346f560bf73dce5ad99487f63ec764f36e6ca6946e"
+  },
+  "limits": {
+    "maxRequestBodyBytes": 1000000,
+    "maxToolInputElements": 10000,
+    "handlers": [
+      "assistant",
+      "WordPress integration"
+    ]
+  }
+}

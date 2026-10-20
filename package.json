@@ -27,14 +27,14 @@
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2",
+    "vite": "8.2.4",
     "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^4.1.11"
   },
   "dependencies": {
     "@hono/node-server": "1.19.17",
     "@internationalized/date": "3.12.4",
-    "@modelcontextprotocol/server": "^2.0.0",
+    "@modelcontextprotocol/server": "2.3.0",
     "@supabase/ssr": "0.12.5",
     "@supabase/supabase-js": "2.112.4",
     "@tanstack/table-core": "9.2.8",
@@ -45,7 +45,7 @@
     "nodemailer": "10.0.9",
     "pg": "8.23.0",
     "preact": "^10.29.8",
-    "sanitize-html": "2.17.7",
+    "sanitize-html": "2.18.0",
     "sharp": "0.35.5",
     "svgo": "4.1.0",
     "zod": "^4.5.4"

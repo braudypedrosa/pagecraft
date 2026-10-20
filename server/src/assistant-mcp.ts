@@ -26,6 +26,11 @@ const result = (value: Record<string, unknown>) => ({
 });
 const failure = (message: string) => ({ content: [{ type: "text" as const, text: message }], isError: true });
 
+/* Match the route's existing 1 MB policy. Ten thousand structural members leaves ample room
+   for fifty proposal changes and their component values while bounding validation work. */
+const MCP_MAX_REQUEST_BODY_BYTES = 1_000_000;
+const MCP_MAX_TOOL_INPUT_ELEMENTS = 10_000;
+
 const summary = (p: Proposal) => ({
   id: p.id, title: p.title, status: p.status, createdAt: p.createdAt, decidedAt: p.decidedAt,
   changes: p.changes.length, baseVersion: p.baseVersion,
@@ -61,7 +66,10 @@ const change = z.discriminatedUnion("type", [
 ]);
 
 function assistantServer(ctx: AssistantMcpContext) {
-  const server = new McpServer({ name: "pagecraft-assistant", version: "0.1.0" }, { capabilities: { tools: {} } });
+  const server = new McpServer(
+    { name: "pagecraft-assistant", version: "0.1.0" },
+    { capabilities: { tools: {} }, maxToolInputElements: MCP_MAX_TOOL_INPUT_ELEMENTS },
+  );
 
   server.registerTool("pagecraft_site", {
     description: `Start here. Read the outline of the Pagecraft site “${ctx.site.name}”: its pages, the header and footer, the components you can place and their properties, and the images you can use. Includes the version to send with a proposal.`,
@@ -112,7 +120,10 @@ function assistantServer(ctx: AssistantMcpContext) {
 }
 
 export function assistantMcpResponse(request: Request, ctx: AssistantMcpContext) {
-  const handler = createMcpHandler(() => assistantServer(ctx), { responseMode: "json" });
+  const handler = createMcpHandler(
+    () => assistantServer(ctx),
+    { responseMode: "json", maxRequestBodySize: MCP_MAX_REQUEST_BODY_BYTES },
+  );
   return handler.fetch(request, {
     authInfo: {
       token: "verified-pagecraft-assistant-token",

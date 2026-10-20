@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/dependency-audit-1f4895c
+
+
+ Test Files  4 passed (4)
+      Tests  59 passed (59)
+   Start at  06:02:31
+   Duration  1.82s (transform 2.01s, setup 0ms, import 3.63s, tests 737ms, environment 0ms)

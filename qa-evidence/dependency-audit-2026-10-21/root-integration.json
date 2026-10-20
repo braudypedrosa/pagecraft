@@ -1,0 +1,53 @@
+{
+  "base": "1f4895ca40c65a57d558910a8d7f9f8aab62d164",
+  "reviewedSource": {
+    "package.json": "31d58594bdafe8dd01d79468d2910f8e2a79f55629b888a827cef39f5eccd204",
+    "package-lock.json": "3384b925d3f38963ec68606689b4257cc6e34120df75fdcd7104dda61aba5848",
+    "server/package.json": "e23c855320f3a71a39272046bd904c2c7663ba79fa6cecdb429dcd8b67ac2ad4",
+    "server/src/assistant-mcp.ts": "199137f0bbca85f8690f1a28673e8467bdea4f3b9622489343966a19602e0f2b",
+    "server/src/integrations.ts": "25b92277b2881eb35c2672a96bb813ccc154bb600ee82bea66f281e25a7cd29c",
+    "server/tests/safe-html-security.test.ts": "a26ae72c770c35f0f338a2df45710f27d0e954836d22416330ce94c117cee521",
+    "server/tests/mcp-server-security-compatibility.test.ts": "09aa93d009920c572688706c57dcaa7127188e2b1b94668cf6c98d61f05982b3",
+    "server/tests/assistants.test.ts": "35d55fdae443242c775da7346f560bf73dce5ad99487f63ec764f36e6ca6946e"
+  },
+  "protected11WorkingBytesPreserved": true,
+  "canonicalGenerated8ByteExactHead": true,
+  "logNormalization": [
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/final-npm-test.log",
+      "originalSha256": "06d9e140761a09e29abdbe568111c5666399777ab4628355f6f1eff0c8ee8cbe",
+      "normalizedSha256": "3b986a57bf0c449534deb19cde82acb2798e82e7a6c6cbb4845769c04546077a"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/final-typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/final-vite-build.log",
+      "originalSha256": "2df7da746d8e66877bf0ec2b390e8c0924e17dab91ea58e62478bb77188f715c",
+      "normalizedSha256": "1ac5444b4e09aee479634b54993f8effd7c76e6a303bb8f3d1fb4f362cc83678"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/focused-tests.log",
+      "originalSha256": "ce55bbf93c0eb0fbc25b96037b098d6f2e4fab4ae1e801e0f247b57447377877",
+      "normalizedSha256": "af8c1259f8b0946a852cb99f8aa19e717890ce8301fccad8f95fe70c68750693"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/npm-test.log",
+      "originalSha256": "9cc6a2c4756b2fd1752ac1941a724e8ec490a1a3a0a62b578cff99b07b294bda",
+      "normalizedSha256": "6b54d17c6b18c318ebba64aefb167ba6c7dbf28adf319b8f647e31c480e62d31"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "file": "qa-evidence/dependency-audit-2026-10-21/vite-build.log",
+      "originalSha256": "70910a48ecd08cbdf34f4b324d86814174a48ecef4b974bfddb5805abccc9150",
+      "normalizedSha256": "054bba72bd4a95e732845008cf838f178e31254c6937029f40cdcfb5f2d38d7c"
+    }
+  ],
+  "evidenceFiles": 34
+}

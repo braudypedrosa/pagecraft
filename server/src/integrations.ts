@@ -28,6 +28,11 @@ const errorResult = (message: string) => ({
   isError: true,
 });
 
+/* The HTTP route already treats 1 MB as the assistant ceiling. Ten thousand structural
+   members is far above these read-only tools' two-key schema while bounding validation work. */
+const MCP_MAX_REQUEST_BODY_BYTES = 1_000_000;
+const MCP_MAX_TOOL_INPUT_ELEMENTS = 10_000;
+
 export const integrationDiscovery = (origin: string) => ({
   version: "2026-08-31",
   authorization: {
@@ -64,6 +69,7 @@ function pagecraftMcpServer(read: PagecraftIntegrationRead) {
     version: "0.1.0",
   }, {
     capabilities: { tools: {} },
+    maxToolInputElements: MCP_MAX_TOOL_INPUT_ELEMENTS,
   });
 
   server.registerTool(
@@ -144,7 +150,7 @@ export async function pagecraftMcpResponse(
 ): Promise<Response> {
   const handler = createMcpHandler(
     () => pagecraftMcpServer(read),
-    { responseMode: "json" },
+    { responseMode: "json", maxRequestBodySize: MCP_MAX_REQUEST_BODY_BYTES },
   );
   return handler.fetch(request, {
     authInfo: {
