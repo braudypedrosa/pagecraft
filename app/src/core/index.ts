@@ -7701,7 +7701,10 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
  * an element value inherited from a wider breakpoint. Re-assert only colliding inherited
  * element properties after reusable rules, at their normal specificity. Equal specificity is
  * deliberate: an explicit element value in the still-narrower media block must remain able to
- * override this bridge by source order. Wrapped images keep pixel styling on their inner img. */
+ * override this bridge by source order. Button surface classes use the reinforced
+ * `.class.pagecraft-button` selector that protects authored variants, so their inherited
+ * element surfaces need the matching per-node selector. Wrapped images keep pixel styling on
+ * their inner img. */
 function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
   const own = (n.css && n.css[b]) || {};
   const inherited = b === 't'
@@ -7716,6 +7719,21 @@ function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
       bridge[k] = inherited[k];
     }
   });
+  const buttonBridge: Decls = {};
+  if (n.type === 'button') for (const [property, value] of Object.entries(bridge)) {
+    if (!buttonVariantProperty(property)) continue;
+    const tabletOwns = b === 'm' && n.css.t[property] !== undefined && n.css.t[property] !== '';
+    const authoredDefault = n.css.d[BUTTON_AUTHORED + property] === '1';
+    /* Fresh Buttons store their desktop factory surface, but the reinforced class bridge must
+       still beat that untouched default. A real tablet override is authored even when its
+       value happens to equal the desktop factory value. */
+    if (!tabletOwns && BUTTON_VARIANT_DEFAULTS[property] === value && !authoredDefault) {
+      delete bridge[property];
+      continue;
+    }
+    buttonBridge[property] = value;
+    delete bridge[property];
+  }
   const wrappedImage = n.type === 'image' && !!(n.props.caption || n.props.link);
   const imageBridge: Decls = {};
   if (wrappedImage) for (const k of IMAGE_CONTENT_STYLE) {
@@ -7724,8 +7742,10 @@ function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
     delete bridge[k];
   }
   const body = decl(bridge);
+  const buttonBody = decl(buttonBridge);
   const imageBody = decl(imageBridge);
   return (body ? `${selOf(n)}{${body}}` : '')
+    + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : '')
     + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : '');
 }
 

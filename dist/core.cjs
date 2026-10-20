@@ -8817,6 +8817,18 @@ function inheritedElementPriority(n, b) {
       bridge[k] = inherited[k];
     }
   });
+  const buttonBridge = {};
+  if (n.type === "button") for (const [property, value] of Object.entries(bridge)) {
+    if (!buttonVariantProperty(property)) continue;
+    const tabletOwns = b === "m" && n.css.t[property] !== void 0 && n.css.t[property] !== "";
+    const authoredDefault = n.css.d[BUTTON_AUTHORED + property] === "1";
+    if (!tabletOwns && BUTTON_VARIANT_DEFAULTS[property] === value && !authoredDefault) {
+      delete bridge[property];
+      continue;
+    }
+    buttonBridge[property] = value;
+    delete bridge[property];
+  }
   const wrappedImage = n.type === "image" && !!(n.props.caption || n.props.link);
   const imageBridge = {};
   if (wrappedImage) for (const k of IMAGE_CONTENT_STYLE) {
@@ -8825,8 +8837,9 @@ function inheritedElementPriority(n, b) {
     delete bridge[k];
   }
   const body = decl(bridge);
+  const buttonBody = decl(buttonBridge);
   const imageBody = decl(imageBridge);
-  return (body ? `${selOf(n)}{${body}}` : "") + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : "");
+  return (body ? `${selOf(n)}{${body}}` : "") + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : "") + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : "");
 }
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {

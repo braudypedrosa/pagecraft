@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/button-class-specificity
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  20:15:43
+   Duration  955ms (transform 192ms, setup 0ms, import 606ms, tests 244ms, environment 0ms)
