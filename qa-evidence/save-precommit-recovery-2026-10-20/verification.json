@@ -1,0 +1,146 @@
+{
+  "format": "pagecraft.qa.verification.v1",
+  "date": "2026-10-20",
+  "baseCommit": "c3c72e90aacb1ad4acaa92d217408802f7de8c67",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-precommit-recovery",
+  "change": {
+    "behavior": "Cloud document saves acknowledge only response objects containing a finite numeric version.",
+    "acceptedVersions": [
+      0,
+      10
+    ],
+    "rejectedResponses": [
+      "malformed JSON",
+      "JSON null",
+      "missing version",
+      "string version",
+      "NaN",
+      "positive Infinity",
+      "negative Infinity"
+    ],
+    "incidentCauseClaimed": false
+  },
+  "recoveryRegression": {
+    "scenario": "pre-commit HTTP 502, readback remains at old version 99, explicit retry returns version 100",
+    "assertions": [
+      "failed save remains dirty",
+      "attempted version remains 99",
+      "ambiguous serialized snapshot is retained",
+      "generic save warning is shown",
+      "explicit retry sends identical document and version",
+      "successful retry advances to version 100 and clears dirty and ambiguous state"
+    ]
+  },
+  "verification": [
+    {
+      "command": "npx vitest run tests/host-adapters.test.ts tests/cloud-save-concurrency-recovery.test.ts",
+      "result": "passed",
+      "testFiles": 2,
+      "testsPassed": 22,
+      "testsFailed": 0,
+      "log": "focused-vitest.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "passed",
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm run build",
+      "result": "passed",
+      "log": "app-build.log"
+    },
+    {
+      "command": "npm run build:editor-package twice around the full suite",
+      "result": "passed",
+      "generatedOutputsCompared": 11,
+      "byteIdentical": true,
+      "logs": [
+        "editor-build-one.log",
+        "editor-build-two.log"
+      ],
+      "hashes": [
+        "editor-build-one.sha256",
+        "editor-build-two.sha256"
+      ]
+    },
+    {
+      "command": "npm test",
+      "result": "passed",
+      "testFilesPassed": 220,
+      "testFilesSkipped": 2,
+      "testsPassed": 2451,
+      "testsSkipped": 5,
+      "log": "full-suite.log"
+    },
+    {
+      "command": "node --experimental-strip-types tools/demo-site.mjs",
+      "result": "passed",
+      "summary": "62 KB; 1 component; 6 instances; 4 collection items; 0 findings",
+      "log": "demo-build.log",
+      "artifactDisposition": "dist/demo/index.html restored to base because its output includes unrelated prior generated drift and nondeterministic IDs"
+    },
+    {
+      "command": "node tools/ui-baselines.mjs check",
+      "result": "passed",
+      "images": 24,
+      "sourceFiles": 28,
+      "drift": null,
+      "log": "ui-baseline-check.log"
+    },
+    {
+      "command": "npm audit --json",
+      "result": "passed",
+      "vulnerabilities": 0,
+      "log": "npm-audit.json"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "result": "passed",
+      "vulnerabilities": 0,
+      "log": "npm-audit-production.json"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "sourceFiles": {
+    "app/src/host/web.ts": "1e07618281d8a0b6b167f942aa2015cddd6fc757871cf6283400b856d8a1da2d",
+    "tests/cloud-save-concurrency-recovery.test.ts": "3f881376618527c9bbf6b223443d949f67d9360dd1e9e0e3af33f886144aad99",
+    "tests/host-adapters.test.ts": "56c19ff719c554dfa79ba63f30e94f946870e9ea3ecd4b00bdc8205916eecc1f"
+  },
+  "generatedFiles": {
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19",
+    "index.html": "148e10db1643c1cb8d77bdbd9f49973c30e5e44ff9263301eaba7d28f89024d9",
+    "dist/core.cjs": "19e30e9d8a152f0073afac8bba165964661bece7f65ef55945d11463973066b7",
+    "packages/editor/dist/editor.html": "34d2bdf9c4e15929f1c70fd198e7f555570b2d993adb3de9469a907cdba77706",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "dc77a44e44f460e62230236c68f49a3e1aaf55be0fd8534957d00360ca51ef3a",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+  },
+  "generatedDeterminism": {
+    "count": 11,
+    "byteIdentical": true,
+    "diffFile": "editor-build-determinism.diff"
+  },
+  "trackedGeneratedChanges": [
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "untrackedBuildOutputs": [
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "scope": {
+    "mainWorkingTreeTouched": false,
+    "browserUsed": false,
+    "baselineFilesChanged": false,
+    "dependencyFilesChanged": false
+  },
+  "risk": "Malformed or incomplete HTTP 200 save responses now enter the existing uncertain-save/readback recovery path instead of being acknowledged. Legitimate finite numeric versions, including zero, remain accepted."
+}

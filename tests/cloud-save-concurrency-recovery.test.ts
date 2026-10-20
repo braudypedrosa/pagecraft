@@ -279,6 +279,60 @@ test('an HTTP 502 after commit reconciles exact bytes and queues a newer local e
   expect(h.state()).toMatchObject({ saveState: 'ok', version: 101, ambiguousCloudSave: null });
 });
 
+test('a pre-commit HTTP 502 keeps the exact snapshot dirty until an explicit retry succeeds', async () => {
+  const requests: SaveInput[] = [];
+  const remoteDocument = { meta: { name: 'Initial' }, pages: [] };
+  const h = harness(async input => {
+    requests.push(structuredClone(input));
+    if (requests.length === 1) {
+      throw Object.assign(new Error('gateway answered 502'), { status: 502, payload: null });
+    }
+    return { version: 100 };
+  }, async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ version: 99, doc: structuredClone(remoteDocument) }),
+  }));
+
+  h.setName('Not committed before gateway failure');
+  await h.writeServer();
+
+  expect(requests).toHaveLength(1);
+  expect(h.warnings.failed).toHaveBeenCalledTimes(1);
+  expect(h.warnings.busy).not.toHaveBeenCalled();
+  expect(h.warnings.stale).not.toHaveBeenCalled();
+  expect(h.warnings.unconfirmed).not.toHaveBeenCalled();
+  expect(h.state()).toMatchObject({
+    saving: false,
+    saveAgain: false,
+    saveState: 'failed',
+    dirty: true,
+    version: 99,
+    ambiguousCloudSave: {
+      version: 99,
+      document: requests[0].document,
+      serialized: h.saveDocumentKey(requests[0].document),
+    },
+  });
+  expect(h.stamps.at(-1)).toEqual(['NOT SAVED', true]);
+
+  await h.saveExplicitly();
+
+  expect(requests).toHaveLength(2);
+  expect(requests[1]).toEqual(requests[0]);
+  expect(h.warnings.failed).toHaveBeenCalledTimes(1);
+  expect(h.state()).toMatchObject({
+    saving: false,
+    saveAgain: false,
+    saveState: 'ok',
+    dirty: false,
+    version: 100,
+    ambiguousCloudSave: null,
+  });
+  expect(h.stamps.at(-1)?.[0]).toMatch(/Draft saved/);
+  expect(h.actions).toContain('Draft saved. Publish the site to make it public.');
+});
+
 test('an unavailable exact-conflict readback remains blocked as unconfirmed', async () => {
   const conflict = Object.assign(new Error('stale'), {
     status: 409, payload: { error: 'stale', conflict: { yours: 99, theirs: 100 } },

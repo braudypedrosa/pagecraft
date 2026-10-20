@@ -47,6 +47,16 @@ const webCapabilities = (role: WebHostOptions['role']): HostCapability[] => {
     'manage_menus', 'manage_settings', 'restore_revisions'];
 };
 
+const cloudSaveResponse = (body: unknown): { version: number } => {
+  const version = body && typeof body === 'object'
+    ? (body as { version?: unknown }).version
+    : undefined;
+  if (typeof version !== 'number' || !Number.isFinite(version)) {
+    throw new TypeError('Invalid Cloud save response: expected a finite numeric version.');
+  }
+  return body as { version: number };
+};
+
 export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
   const site = encodeURIComponent(options.siteId);
   const transport = options.transport || new FetchHostTransport(
@@ -85,10 +95,11 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
       },
       async save(input) {
         const doc = adoptHostDocument(input.document);
-        return (await transport.request<{ version: number }>({
+        const response = await transport.request<unknown>({
           method: 'PUT', path: `/api/sites/${site}`, body: { doc, version: input.version },
           ...(input.keepalive ? { keepalive: true } : {})
-        })).body;
+        });
+        return cloudSaveResponse(response.body);
       }
     },
     pages: pageAdapter(transport, `/api/sites/${site}/pages`),

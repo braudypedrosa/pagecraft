@@ -224,6 +224,50 @@ test('a save sent as the tab closes goes as keepalive only when the body is smal
   a.deepEqual(seen, [true, undefined, undefined], 'browsers refuse a keepalive body over 64 KiB outright');
 });
 
+test('Web saves acknowledge only responses with a finite numeric version', async () => {
+  const document = currentDocument();
+  const invalidResponses: Array<[string, () => Response]> = [
+    ['malformed JSON', () => new Response('{', { status: 200, headers: { 'content-type': 'application/json' } })],
+    ['JSON null', () => json(null)],
+    ['a missing version', () => json({})],
+    ['a nonnumeric version', () => json({ version: '10' })],
+  ];
+
+  for (const [label, response] of invalidResponses) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1', role: 'owner', fetch: async () => response(),
+    });
+    await a.rejects(
+      host.documents.save({ document, version: 9 }),
+      /Invalid Cloud save response: expected a finite numeric version/,
+      label,
+    );
+  }
+
+  for (const version of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1',
+      role: 'owner',
+      transport: {
+        async request<T>() {
+          return { status: 200, headers: new Headers(), body: { version } as T };
+        },
+      },
+    });
+    await a.rejects(
+      host.documents.save({ document, version: 9 }),
+      /Invalid Cloud save response: expected a finite numeric version/,
+    );
+  }
+
+  for (const version of [0, 10]) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1', role: 'owner', fetch: async () => json({ version }),
+    });
+    a.deepEqual(await host.documents.save({ document, version: 9 }), { version });
+  }
+});
+
 test('WordPress adapter can target a native global-element document without changing other host services', async () => {
   const calls: string[] = [];
   const doc = currentDocument();

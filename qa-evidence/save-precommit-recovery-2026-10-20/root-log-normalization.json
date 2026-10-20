@@ -1,0 +1,20 @@
+[
+  {
+    "file": "full-suite.log",
+    "originalSha256": "f1a971eb259be8b731d69607b163c327cc5e27cd15be34fd8ca0993282a5572c",
+    "savedSha256": "224967835b6459eb9aaeb5360cc3f697ee57358026c041905fc95f112a4d83ff",
+    "reason": "Remove trailing blank lines for git diff --check; originals retained in isolated checkout."
+  },
+  {
+    "file": "focused-vitest.log",
+    "originalSha256": "2babdd111eb7e421b8e7012840d6d7961e1a2fc6d74b9b3c3baa085c28525865",
+    "savedSha256": "52e9ee1e1bf109e55ef22d2e3956ec6b1851bd49bbc9dee2fab7ad56add1b481",
+    "reason": "Remove trailing blank lines for git diff --check; originals retained in isolated checkout."
+  },
+  {
+    "file": "typecheck.log",
+    "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "savedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef",
+    "reason": "Remove trailing blank lines for git diff --check; originals retained in isolated checkout."
+  }
+]

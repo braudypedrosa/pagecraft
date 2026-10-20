@@ -26135,6 +26135,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       "restore_revisions"
     ];
   };
+  var cloudSaveResponse = (body) => {
+    const version = body && typeof body === "object" ? body.version : void 0;
+    if (typeof version !== "number" || !Number.isFinite(version)) {
+      throw new TypeError("Invalid Cloud save response: expected a finite numeric version.");
+    }
+    return body;
+  };
   function createWebHostAdapter(options) {
     const site = encodeURIComponent(options.siteId);
     const transport = options.transport || new FetchHostTransport(
@@ -26173,12 +26180,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         },
         async save(input) {
           const doc = adoptHostDocument(input.document);
-          return (await transport.request({
+          const response = await transport.request({
             method: "PUT",
             path: `/api/sites/${site}`,
             body: { doc, version: input.version },
             ...input.keepalive ? { keepalive: true } : {}
-          })).body;
+          });
+          return cloudSaveResponse(response.body);
         }
       },
       pages: pageAdapter(transport, `/api/sites/${site}/pages`),
