@@ -23311,10 +23311,89 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const choices = C2.ANIM_NAMES.filter((name) => name !== "fade-out");
     return current === "fade-out" ? [...choices, "fade-out"] : choices;
   };
+  function TimingField({ value, label, placeholder, error, valid, onLive, onDone }) {
+    const errorId = g2();
+    const [draft, setDraft] = d2(value);
+    const [showError, setShowError] = d2(false);
+    const input = (next) => {
+      setDraft(next);
+      if (valid(next)) {
+        setShowError(false);
+        onLive(next.trim());
+      }
+    };
+    const finish = (event) => {
+      const invalid = !valid(draft);
+      if (invalid) setShowError(true);
+      onDone(event, invalid);
+    };
+    return /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("label", { children: label }),
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          "aria-label": label,
+          value: draft,
+          placeholder,
+          "aria-invalid": showError ? "true" : void 0,
+          "aria-describedby": showError ? errorId : void 0,
+          onInput: (e3) => input(e3.target.value),
+          onKeyDown: (e3) => {
+            if (e3.key === "Enter") finish(e3);
+          },
+          onBlur: finish
+        }
+      ),
+      showError ? /* @__PURE__ */ u2("div", { id: errorId, class: "note", role: "alert", children: error }) : null
+    ] });
+  }
+  var cssVarOrCalc = (value) => /^(?:var\(--[\w-]+(?:\s*,\s*[^)]+)?\)|calc\(.+\))$/i.test(value);
+  var cssTimeFallback = (value, allowNegative) => {
+    const v3 = value.trim();
+    if (!v3) return true;
+    if (cssVarOrCalc(v3)) return true;
+    const match = v3.match(/^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(ms|s)$/i);
+    if (!match) return false;
+    const number = Number(match[1]);
+    return Number.isFinite(number) && (allowNegative || number >= 0);
+  };
+  var cssSupports = (property, value, fallback) => {
+    if (typeof CSS !== "undefined" && typeof CSS.supports === "function") return CSS.supports(property, value);
+    return fallback();
+  };
+  var cssTime = (value, allowNegative) => {
+    const v3 = value.trim();
+    if (!v3) return true;
+    if (!allowNegative && v3.startsWith("-")) return false;
+    return cssSupports(
+      allowNegative ? "animation-delay" : "animation-duration",
+      v3,
+      () => cssTimeFallback(v3, allowNegative)
+    );
+  };
+  var cssEasingFallback = (value) => {
+    const v3 = value.trim();
+    if (!v3) return true;
+    if (cssVarOrCalc(v3) || /^linear\(.+\)$/i.test(v3)) return true;
+    if (/^(?:linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/i.test(v3)) return true;
+    if (/^steps\(\s*[1-9]\d*(?:\s*,\s*(?:start|end|jump-none|jump-both|jump-start|jump-end))?\s*\)$/i.test(v3)) return true;
+    const number = "[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)";
+    const match = v3.match(new RegExp(`^cubic-bezier\\(\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*\\)$`, "i"));
+    if (!match) return false;
+    const values = match.slice(1).map(Number);
+    return values.length === 4 && values.every(Number.isFinite) && values[0] >= 0 && values[0] <= 1 && values[2] >= 0 && values[2] <= 1;
+  };
+  var cssEasing = (value) => {
+    const v3 = value.trim();
+    if (!v3) return true;
+    return cssSupports("animation-timing-function", v3, () => cssEasingFallback(v3));
+  };
   function Motion({ n: n2, showTransition = true, showAnimation = true }) {
     const a3 = n2.anim || {};
     const apply = (patch) => {
       const next = { ...n2.anim || {}, ...patch };
+      for (const key2 of ["dur", "delay", "ease"]) if (next[key2] === "") delete next[key2];
       if (!next.name) delete n2.anim;
       else n2.anim = next;
     };
@@ -23331,23 +23410,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       apply({ [k3]: value.trim() });
       L2.repaint();
     };
-    const time = (k3, label, ph) => /* @__PURE__ */ u2("div", { class: "f", children: [
-      /* @__PURE__ */ u2("label", { children: label }),
-      /* @__PURE__ */ u2(
-        "input",
-        {
-          class: "ctl",
-          "aria-label": label,
-          value: a3[k3] || "",
-          placeholder: ph,
-          onInput: (e3) => live(k3, e3.target.value),
-          onBlur: () => {
-            L2.endTx();
-            repaint("right");
-          }
+    const time = (k3, label, ph) => /* @__PURE__ */ u2(
+      TimingField,
+      {
+        value: a3[k3] || "",
+        label,
+        placeholder: ph,
+        valid: (v3) => cssTime(v3, k3 === "delay"),
+        error: k3 === "dur" ? "Enter a duration such as 0.6s." : "Enter a delay such as 0s or -0.1s.",
+        onLive: (v3) => live(k3, v3),
+        onDone: (_event, invalid) => {
+          L2.endTx();
+          if (!invalid) repaint("right");
         }
-      )
-    ] });
+      },
+      `${n2.id}:${C2.dk()}:${C2.state.ui.st || ""}:${C2.state.ui.target || ""}:${k3}:${a3[k3] || ""}`
+    );
     return /* @__PURE__ */ u2(Panel, { title: "Motion", n: n2, gk: n2.type + ":Motion", children: [
       showTransition ? /* @__PURE__ */ u2(S, { children: [
         /* @__PURE__ */ u2("div", { class: "plabel", children: "When it changes" }),
@@ -23377,23 +23455,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         a3.name ? /* @__PURE__ */ u2(S, { children: [
           time("dur", "Duration", "Preset default"),
           time("delay", "Delay", "0s"),
-          /* @__PURE__ */ u2("div", { class: "f", children: [
-            /* @__PURE__ */ u2("label", { children: "Easing" }),
-            /* @__PURE__ */ u2(
-              "input",
-              {
-                class: "ctl",
-                "aria-label": "Easing",
-                value: a3.ease || "",
-                placeholder: "ease-in-out",
-                onInput: (e3) => live("ease", e3.target.value),
-                onBlur: () => {
-                  L2.endTx();
-                  repaint("right");
-                }
+          /* @__PURE__ */ u2(
+            TimingField,
+            {
+              value: a3.ease || "",
+              label: "Easing",
+              placeholder: "ease-in-out",
+              valid: cssEasing,
+              error: "Enter a CSS easing such as ease-in-out.",
+              onLive: (v3) => live("ease", v3),
+              onDone: (_event, invalid) => {
+                L2.endTx();
+                if (!invalid) repaint("right");
               }
-            )
-          ] }),
+            },
+            `${n2.id}:${C2.dk()}:${C2.state.ui.st || ""}:${C2.state.ui.target || ""}:ease:${a3.ease || ""}`
+          ),
           /* @__PURE__ */ u2("label", { class: "swrow", style: { marginTop: "var(--gap-1)" }, children: [
             /* @__PURE__ */ u2(
               "input",

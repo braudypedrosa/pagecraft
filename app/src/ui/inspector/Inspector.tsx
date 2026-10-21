@@ -9,7 +9,7 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useId, useState } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Disclosure } from '../Disclosure';
@@ -349,10 +349,94 @@ const entranceAnimations = (current = '') => {
   return current === 'fade-out' ? [...choices, 'fade-out'] : choices;
 };
 
+type TimingFieldProps = {
+  value: string;
+  label: string;
+  placeholder: string;
+  error: string;
+  valid: (value: string) => boolean;
+  onLive: (value: string) => void;
+  onDone: (event: Event, invalid: boolean) => void;
+};
+
+/* Keep a timing draft local until it is a valid CSS value. Invalid text must remain visible
+   long enough to explain the problem, but it must never reach bp-animate as an attribute. */
+function TimingField({ value, label, placeholder, error, valid, onLive, onDone }: TimingFieldProps) {
+  const errorId = useId();
+  const [draft, setDraft] = useState(value);
+  const [showError, setShowError] = useState(false);
+  const input = (next: string) => {
+    setDraft(next);
+    if (valid(next)) {
+      setShowError(false);
+      onLive(next.trim());
+    }
+  };
+  const finish = (event: Event) => {
+    const invalid = !valid(draft);
+    if (invalid) setShowError(true);
+    onDone(event, invalid);
+  };
+  return <div class="f"><label>{label}</label>
+    <input class="ctl" aria-label={label} value={draft} placeholder={placeholder}
+      aria-invalid={showError ? 'true' : undefined}
+      aria-describedby={showError ? errorId : undefined}
+      onInput={e => input((e.target as HTMLInputElement).value)}
+      onKeyDown={e => { if ((e as KeyboardEvent).key === 'Enter') finish(e); }}
+      onBlur={finish} />
+    {showError ? <div id={errorId} class="note" role="alert">{error}</div> : null}
+  </div>;
+}
+
+const cssVarOrCalc = (value: string) => /^(?:var\(--[\w-]+(?:\s*,\s*[^)]+)?\)|calc\(.+\))$/i.test(value);
+
+const cssTimeFallback = (value: string, allowNegative: boolean) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (cssVarOrCalc(v)) return true;
+  const match = v.match(/^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(ms|s)$/i);
+  if (!match) return false;
+  const number = Number(match[1]);
+  return Number.isFinite(number) && (allowNegative || number >= 0);
+};
+
+const cssSupports = (property: string, value: string, fallback: () => boolean) => {
+  if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function') return CSS.supports(property, value);
+  return fallback();
+};
+
+const cssTime = (value: string, allowNegative: boolean) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (!allowNegative && v.startsWith('-')) return false;
+  return cssSupports(allowNegative ? 'animation-delay' : 'animation-duration', v,
+    () => cssTimeFallback(v, allowNegative));
+};
+
+const cssEasingFallback = (value: string) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (cssVarOrCalc(v) || /^linear\(.+\)$/i.test(v)) return true;
+  if (/^(?:linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/i.test(v)) return true;
+  if (/^steps\(\s*[1-9]\d*(?:\s*,\s*(?:start|end|jump-none|jump-both|jump-start|jump-end))?\s*\)$/i.test(v)) return true;
+  const number = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)';
+  const match = v.match(new RegExp(`^cubic-bezier\\(\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*\\)$`, 'i'));
+  if (!match) return false;
+  const values = match.slice(1).map(Number);
+  return values.length === 4 && values.every(Number.isFinite) && values[0] >= 0 && values[0] <= 1 && values[2] >= 0 && values[2] <= 1;
+};
+
+const cssEasing = (value: string) => {
+  const v = value.trim();
+  if (!v) return true;
+  return cssSupports('animation-timing-function', v, () => cssEasingFallback(v));
+};
+
 function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode; showTransition?: boolean; showAnimation?: boolean }) {
   const a = n.anim || {};
   const apply = (patch: Record<string, unknown>) => {
     const next = { ...(n.anim || {}), ...patch };
+    for (const key of ['dur', 'delay', 'ease'] as const) if (next[key] === '') delete next[key];
     /* dropped outright when there is nothing left in it, so a project carries no empty blocks
        and `animUsed` cannot be fooled by one */
     if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
@@ -371,10 +455,10 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
     L.repaint();
   };
   const time = (k: 'dur' | 'delay', label: string, ph: string) => (
-    <div class="f"><label>{label}</label>
-      <input class="ctl" aria-label={label} value={(a as Record<string, string>)[k] || ''} placeholder={ph}
-        onInput={e => live(k, (e.target as HTMLInputElement).value)}
-        onBlur={() => { L.endTx(); repaint('right'); }} /></div>
+    <TimingField key={`${n.id}:${C.dk()}:${C.state.ui.st || ''}:${C.state.ui.target || ''}:${k}:${(a as Record<string, string>)[k] || ''}`} value={(a as Record<string, string>)[k] || ''}
+      label={label} placeholder={ph} valid={v => cssTime(v, k === 'delay')}
+      error={k === 'dur' ? 'Enter a duration such as 0.6s.' : 'Enter a delay such as 0s or -0.1s.'}
+      onLive={v => live(k, v)} onDone={(_event, invalid) => { L.endTx(); if (!invalid) repaint('right'); }} />
   );
 
   return (
@@ -398,10 +482,9 @@ function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode;
         <>
           {time('dur', 'Duration', 'Preset default')}
           {time('delay', 'Delay', '0s')}
-          <div class="f"><label>Easing</label>
-            <input class="ctl" aria-label="Easing" value={a.ease || ''} placeholder="ease-in-out"
-              onInput={e => live('ease', (e.target as HTMLInputElement).value)}
-              onBlur={() => { L.endTx(); repaint('right'); }} /></div>
+          <TimingField key={`${n.id}:${C.dk()}:${C.state.ui.st || ''}:${C.state.ui.target || ''}:ease:${a.ease || ''}`} value={a.ease || ''} label="Easing" placeholder="ease-in-out"
+            valid={cssEasing} error="Enter a CSS easing such as ease-in-out."
+            onLive={v => live('ease', v)} onDone={(_event, invalid) => { L.endTx(); if (!invalid) repaint('right'); }} />
           <label class="swrow" style={{ marginTop: 'var(--gap-1)' }}>
             <input type="checkbox" checked={!!a.once}
               onChange={e => hard({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />

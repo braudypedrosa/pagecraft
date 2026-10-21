@@ -1,0 +1,353 @@
+{
+  "conclusion": "success",
+  "headSha": "25797d7271651ef42334ff8a8fa5f241c8a6c528",
+  "jobs": [
+    {
+      "completedAt": "2026-10-21T21:02:21Z",
+      "conclusion": "success",
+      "databaseId": 119483362024,
+      "name": "verify (8.2)",
+      "startedAt": "2026-10-21T21:01:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-21T21:01:09Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-21T21:01:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:14Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-21T21:01:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:16Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 3,
+          "startedAt": "2026-10-21T21:01:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:19Z",
+          "conclusion": "success",
+          "name": "Run shivammathur/setup-php@v2",
+          "number": 4,
+          "startedAt": "2026-10-21T21:01:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:22Z",
+          "conclusion": "success",
+          "name": "Run composer install --no-interaction --prefer-dist",
+          "number": 5,
+          "startedAt": "2026-10-21T21:01:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:04Z",
+          "conclusion": "success",
+          "name": "Run npm run quality:php",
+          "number": 6,
+          "startedAt": "2026-10-21T21:01:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:04Z",
+          "conclusion": "success",
+          "name": "Run npm ci",
+          "number": 7,
+          "startedAt": "2026-10-21T21:02:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:05Z",
+          "conclusion": "success",
+          "name": "Run npm run build:editor",
+          "number": 8,
+          "startedAt": "2026-10-21T21:02:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:05Z",
+          "conclusion": "success",
+          "name": "Run npm run build:runtime",
+          "number": 9,
+          "startedAt": "2026-10-21T21:02:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:18Z",
+          "conclusion": "success",
+          "name": "Run npm test",
+          "number": 10,
+          "startedAt": "2026-10-21T21:02:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:19Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 19,
+          "startedAt": "2026-10-21T21:02:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:19Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 20,
+          "startedAt": "2026-10-21T21:02:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:19Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 21,
+          "startedAt": "2026-10-21T21:02:19Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/39675272596/job/119483362024"
+    },
+    {
+      "completedAt": "2026-10-21T21:02:10Z",
+      "conclusion": "success",
+      "databaseId": 119483362368,
+      "name": "verify (8.3)",
+      "startedAt": "2026-10-21T21:01:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-21T21:01:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-21T21:01:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:17Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-21T21:01:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:18Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 3,
+          "startedAt": "2026-10-21T21:01:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:21Z",
+          "conclusion": "success",
+          "name": "Run shivammathur/setup-php@v2",
+          "number": 4,
+          "startedAt": "2026-10-21T21:01:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:24Z",
+          "conclusion": "success",
+          "name": "Run composer install --no-interaction --prefer-dist",
+          "number": 5,
+          "startedAt": "2026-10-21T21:01:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:54Z",
+          "conclusion": "success",
+          "name": "Run npm run quality:php",
+          "number": 6,
+          "startedAt": "2026-10-21T21:01:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:55Z",
+          "conclusion": "success",
+          "name": "Run npm ci",
+          "number": 7,
+          "startedAt": "2026-10-21T21:01:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:55Z",
+          "conclusion": "success",
+          "name": "Run npm run build:editor",
+          "number": 8,
+          "startedAt": "2026-10-21T21:01:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:55Z",
+          "conclusion": "success",
+          "name": "Run npm run build:runtime",
+          "number": 9,
+          "startedAt": "2026-10-21T21:01:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:07Z",
+          "conclusion": "success",
+          "name": "Run npm test",
+          "number": 10,
+          "startedAt": "2026-10-21T21:01:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:07Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 19,
+          "startedAt": "2026-10-21T21:02:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:08Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 20,
+          "startedAt": "2026-10-21T21:02:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:08Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 21,
+          "startedAt": "2026-10-21T21:02:08Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/39675272596/job/119483362368"
+    },
+    {
+      "completedAt": "2026-10-21T21:02:07Z",
+      "conclusion": "success",
+      "databaseId": 119483362557,
+      "name": "verify (8.1)",
+      "startedAt": "2026-10-21T21:01:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-21T21:01:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-21T21:01:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:15Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-10-21T21:01:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:16Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 3,
+          "startedAt": "2026-10-21T21:01:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:20Z",
+          "conclusion": "success",
+          "name": "Run shivammathur/setup-php@v2",
+          "number": 4,
+          "startedAt": "2026-10-21T21:01:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:23Z",
+          "conclusion": "success",
+          "name": "Run composer install --no-interaction --prefer-dist",
+          "number": 5,
+          "startedAt": "2026-10-21T21:01:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:51Z",
+          "conclusion": "success",
+          "name": "Run npm run quality:php",
+          "number": 6,
+          "startedAt": "2026-10-21T21:01:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:52Z",
+          "conclusion": "success",
+          "name": "Run npm ci",
+          "number": 7,
+          "startedAt": "2026-10-21T21:01:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:52Z",
+          "conclusion": "success",
+          "name": "Run npm run build:editor",
+          "number": 8,
+          "startedAt": "2026-10-21T21:01:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:01:52Z",
+          "conclusion": "success",
+          "name": "Run npm run build:runtime",
+          "number": 9,
+          "startedAt": "2026-10-21T21:01:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:04Z",
+          "conclusion": "success",
+          "name": "Run npm test",
+          "number": 10,
+          "startedAt": "2026-10-21T21:01:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:05Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 19,
+          "startedAt": "2026-10-21T21:02:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:05Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 20,
+          "startedAt": "2026-10-21T21:02:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-21T21:02:05Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 21,
+          "startedAt": "2026-10-21T21:02:05Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/39675272596/job/119483362557"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/39675272596"
+}

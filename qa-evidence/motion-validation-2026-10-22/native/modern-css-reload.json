@@ -1,0 +1,71 @@
+[
+  {
+    "device": "Desktop",
+    "fields": {
+      "Duration": {
+        "invalid": null,
+        "value": "calc(0.2s + 100ms)"
+      },
+      "Delay": {
+        "invalid": null,
+        "value": "-200ms"
+      },
+      "Easing": {
+        "invalid": null,
+        "value": "linear(0, 0.5 50%, 1)"
+      }
+    },
+    "public": {
+      "animation": "0.3s linear(0 0%, 0.5 50%, 1 100%) -0.2s forwards bpFadeIn",
+      "delay": "-200ms",
+      "duration": "calc(0.2s + 100ms)",
+      "easing": "linear(0, 0.5 50%, 1)"
+    }
+  },
+  {
+    "device": "Tablet",
+    "fields": {
+      "Duration": {
+        "invalid": null,
+        "value": "calc(0.2s + 100ms)"
+      },
+      "Delay": {
+        "invalid": null,
+        "value": "-200ms"
+      },
+      "Easing": {
+        "invalid": null,
+        "value": "linear(0, 0.5 50%, 1)"
+      }
+    },
+    "public": {
+      "animation": "0.3s linear(0 0%, 0.5 50%, 1 100%) -0.2s forwards bpFadeIn",
+      "delay": "-200ms",
+      "duration": "calc(0.2s + 100ms)",
+      "easing": "linear(0, 0.5 50%, 1)"
+    }
+  },
+  {
+    "device": "Mobile",
+    "fields": {
+      "Duration": {
+        "invalid": null,
+        "value": "calc(0.2s + 100ms)"
+      },
+      "Delay": {
+        "invalid": null,
+        "value": "-200ms"
+      },
+      "Easing": {
+        "invalid": null,
+        "value": "linear(0, 0.5 50%, 1)"
+      }
+    },
+    "public": {
+      "animation": "0.3s linear(0 0%, 0.5 50%, 1 100%) -0.2s forwards bpFadeIn",
+      "delay": "-200ms",
+      "duration": "calc(0.2s + 100ms)",
+      "easing": "linear(0, 0.5 50%, 1)"
+    }
+  }
+]

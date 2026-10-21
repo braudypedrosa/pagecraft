@@ -1,0 +1,89 @@
+[
+  {
+    "device": "Desktop",
+    "field": "Duration",
+    "error": "Enter a duration such as 0.6s.",
+    "invalid": "true",
+    "value": "-1s"
+  },
+  {
+    "device": "Desktop",
+    "field": "Delay",
+    "error": "Enter a delay such as 0s or -0.1s.",
+    "invalid": "true",
+    "value": "banana"
+  },
+  {
+    "device": "Desktop",
+    "field": "Easing",
+    "error": "Enter a CSS easing such as ease-in-out.",
+    "invalid": "true",
+    "value": "cubic-bezier(2,0,2,1)"
+  },
+  {
+    "device": "Desktop",
+    "public": {
+      "delay": "-0.2s",
+      "duration": "1200ms",
+      "easing": "steps(2, jump-none)"
+    }
+  },
+  {
+    "device": "Tablet",
+    "field": "Duration",
+    "error": "Enter a duration such as 0.6s.",
+    "invalid": "true",
+    "value": "-1s"
+  },
+  {
+    "device": "Tablet",
+    "field": "Delay",
+    "error": "Enter a delay such as 0s or -0.1s.",
+    "invalid": "true",
+    "value": "banana"
+  },
+  {
+    "device": "Tablet",
+    "field": "Easing",
+    "error": "Enter a CSS easing such as ease-in-out.",
+    "invalid": "true",
+    "value": "cubic-bezier(2,0,2,1)"
+  },
+  {
+    "device": "Tablet",
+    "public": {
+      "delay": "-0.2s",
+      "duration": "1200ms",
+      "easing": "steps(2, jump-none)"
+    }
+  },
+  {
+    "device": "Mobile",
+    "field": "Duration",
+    "error": "Enter a duration such as 0.6s.",
+    "invalid": "true",
+    "value": "-1s"
+  },
+  {
+    "device": "Mobile",
+    "field": "Delay",
+    "error": "Enter a delay such as 0s or -0.1s.",
+    "invalid": "true",
+    "value": "banana"
+  },
+  {
+    "device": "Mobile",
+    "field": "Easing",
+    "error": "Enter a CSS easing such as ease-in-out.",
+    "invalid": "true",
+    "value": "cubic-bezier(2,0,2,1)"
+  },
+  {
+    "device": "Mobile",
+    "public": {
+      "delay": "-0.2s",
+      "duration": "1200ms",
+      "easing": "steps(2, jump-none)"
+    }
+  }
+]

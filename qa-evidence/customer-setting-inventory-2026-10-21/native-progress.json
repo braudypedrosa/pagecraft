@@ -249,5 +249,14 @@
   "accordion_motion_partial": {
     "evidence": "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json",
     "scope": "All26preset computed public animation names;transitionpresets/custom output;shared timing reloadall3;reset removes runtimeattrs. No physicaldevice/trajectory/performance/reducedmotion/scroll-onceproof. Invalidtiming silentpersist reproduced; separateMotion88candidateunaccepted."
+  },
+  "release87_accepted": {
+    "cloud": "3c30b1b8f50577a4e7fdadcd0298ad2e414af7b4",
+    "wordpress": "25797d7271651ef42334ff8a8fa5f241c8a6c528",
+    "evidence": "qa-evidence/color-picker-semantics-2026-10-22/post-deploy",
+    "scope": "Namedpicker/focus nativeD/T/M accepted; stagingHistory1089 unchanged20IDs; WordPressall133tablesexact326revisions."
+  },
+  "release88_candidate": {
+    "scope": "MotionDuration/Delay/Easing validation,draftidentity,actualUndo/Redo,validmodernCSS/reload.2620tests5skip,30interactions24zero. Localaccepted; deploymentpending."
   }
 }

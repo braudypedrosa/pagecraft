@@ -1,0 +1,25 @@
+{
+  "fields": [
+    {
+      "field": "Duration",
+      "value": "1200ms",
+      "focused": true
+    },
+    {
+      "field": "Delay",
+      "value": "-0.2s",
+      "focused": true
+    },
+    {
+      "field": "Easing",
+      "value": "steps(2, jump-none)",
+      "focused": true
+    }
+  ],
+  "public": {
+    "animation": "1.2s steps(2, jump-none) -0.2s forwards bpFadeIn",
+    "delay": "-0.2s",
+    "duration": "1200ms",
+    "easing": "steps(2, jump-none)"
+  }
+}
