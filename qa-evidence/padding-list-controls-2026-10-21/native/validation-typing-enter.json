@@ -1,0 +1,21 @@
+{
+  "typing": {
+    "alerts": 0,
+    "focused": true,
+    "invalid": null,
+    "value": "12"
+  },
+  "enter": {
+    "description": "P0-0",
+    "error": [
+      {
+        "count": 1,
+        "id": "P0-0",
+        "text": "Enter up to four sizes, such as 8px 12px."
+      }
+    ],
+    "invalid": "true",
+    "value": "12"
+  },
+  "computed": "16px 18px"
+}

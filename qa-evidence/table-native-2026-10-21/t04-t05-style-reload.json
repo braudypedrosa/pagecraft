@@ -1,0 +1,254 @@
+[
+  {
+    "device": "Desktop",
+    "caption": {
+      "color": "rgb(116, 53, 34)",
+      "text": "Workshop schedule"
+    },
+    "header": [
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Session"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Time"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Room"
+      }
+    ],
+    "rows": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Morning"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "09:00"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Garden"
+          }
+        ]
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Afternoon"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "14:00"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Studio"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "device": "Tablet",
+    "caption": {
+      "color": "rgb(116, 53, 34)",
+      "text": "Workshop schedule"
+    },
+    "header": [
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Session"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Time"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "12px",
+        "size": "18px",
+        "text": "Room"
+      }
+    ],
+    "rows": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Morning"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "09:00"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Garden"
+          }
+        ]
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Afternoon"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "14:00"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "12px",
+            "size": "18px",
+            "text": "Studio"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "device": "Mobile",
+    "caption": {
+      "color": "rgb(116, 53, 34)",
+      "text": "Workshop schedule"
+    },
+    "header": [
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "8px 10px",
+        "size": "14px",
+        "text": "Session"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "8px 10px",
+        "size": "14px",
+        "text": "Time"
+      },
+      {
+        "bg": "rgb(229, 239, 216)",
+        "color": "rgb(32, 80, 128)",
+        "padding": "8px 10px",
+        "size": "14px",
+        "text": "Room"
+      }
+    ],
+    "rows": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "Morning"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "09:00"
+          },
+          {
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "Garden"
+          }
+        ]
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "cells": [
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "Afternoon"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "14:00"
+          },
+          {
+            "bg": "rgb(245, 213, 148)",
+            "color": "rgb(36, 52, 71)",
+            "pad": "8px 10px",
+            "size": "14px",
+            "text": "Studio"
+          }
+        ]
+      }
+    ]
+  }
+]

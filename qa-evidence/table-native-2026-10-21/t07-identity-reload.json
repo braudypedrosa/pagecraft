@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Desktop",
+    "classes": "pagecraft-table-wrap pagecraft-759k81kk qa-table workshop-table",
+    "id": "table-proof",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "tableCount": 1,
+    "tag": "DIV"
+  },
+  {
+    "device": "Tablet",
+    "classes": "pagecraft-table-wrap pagecraft-759k81kk qa-table workshop-table",
+    "id": "table-proof",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "tableCount": 1,
+    "tag": "DIV"
+  },
+  {
+    "device": "Mobile",
+    "classes": "pagecraft-table-wrap pagecraft-759k81kk qa-table workshop-table",
+    "id": "table-proof",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "tableCount": 1,
+    "tag": "DIV"
+  }
+]

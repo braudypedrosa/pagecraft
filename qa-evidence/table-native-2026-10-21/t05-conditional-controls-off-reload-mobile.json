@@ -1,0 +1,23 @@
+{
+  "tableConditionalControls82": {
+    "caption": 0,
+    "header": 0,
+    "heading": 0,
+    "shading": 0
+  },
+  "tableConditionalOff82": {
+    "bodyBG": [
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)",
+      "rgba(0, 0, 0, 0)"
+    ],
+    "caption": null,
+    "headers": 0
+  }
+}

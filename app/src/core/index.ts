@@ -1051,7 +1051,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'color', c: '--cd-bg', label: 'Background', r: 1 },
         { t: 'color', c: '--cd-text', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--cd-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'unit', c: '--cd-pad', label: 'Padding', r: 1, units: U.space },
+        { t: 'lengthList', c: '--cd-pad', label: 'Padding', r: 1, units: U.space },
         { t: 'unit', c: '--cd-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'color', c: '--cd-com', label: 'Comments', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
         { t: 'color', c: '--cd-str', label: 'Strings', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
@@ -1096,7 +1096,7 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'unit', c: '--tbl-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
         { t: 'color', c: '--tbl-text', label: 'Text colour', r: 1, layout: 'inline' },
-        { t: 'unit', c: '--tbl-pad', label: 'Cell padding', layout: 'inline', r: 1, units: U.space },
+        { t: 'lengthList', c: '--tbl-pad', label: 'Cell padding', r: 1, units: U.space },
         { t: 'color', c: '--tbl-line', label: 'Line colour', r: 1, layout: 'inline' },
         { t: 'color', c: '--tbl-head-bg', label: 'Header background', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },
         { t: 'color', c: '--tbl-head-text', label: 'Heading colour', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },

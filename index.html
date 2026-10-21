@@ -5191,7 +5191,7 @@ var DEF = {
         { t: "color", c: "--cd-bg", label: "Background", r: 1 },
         { t: "color", c: "--cd-text", label: "Text colour", r: 1, layout: "inline" },
         { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-        { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
+        { t: "lengthList", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
         { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "color", c: "--cd-com", label: "Comments", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
         { t: "color", c: "--cd-str", label: "Strings", r: 1, layout: "inline", when: (n) => n.props.lang !== "text" },
@@ -5257,7 +5257,7 @@ var DEF = {
       style: [
         { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
         { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
-        { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
+        { t: "lengthList", c: "--tbl-pad", label: "Cell padding", r: 1, units: U.space },
         { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
         { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
         { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1, when: (n) => !!(n.props.head || n.props.rowhead) },
@@ -21688,6 +21688,62 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       )
     ] }) });
   }
+  var lengthToken = (value, units) => {
+    const m3 = value.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)?$/i);
+    const number = m3 ? Number(m3[1]) : NaN;
+    if (!m3 || !Number.isFinite(number) || number < 0) return false;
+    if (!m3[2]) return number === 0 && !m3[1].startsWith("-");
+    return units.includes(m3[2].toLowerCase());
+  };
+  var validLengthList = (value, units) => {
+    const trimmed = value.trim();
+    if (!trimmed) return true;
+    const parts = trimmed.split(/\s+/);
+    return parts.length <= 4 && parts.every((part) => lengthToken(part, units));
+  };
+  function LengthListCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const raw = String(valueOf(n2, c3) ?? "");
+    const scoped = c3.c ? (C2.stRead(C2.tgtObj(n2))[C2.dk()] || {})[c3.c] : void 0;
+    const key2 = [n2.id, c3.c || "", C2.dk(), C2.state.ui.st || "", C2.state.ui.target || "", raw, String(scoped ?? "")].join("|");
+    const [draft, setDraft] = d2({ key: key2, value: raw });
+    const [errorKey, setErrorKey] = d2("");
+    const errorId = g2();
+    const value = draft.key === key2 ? draft.value : raw;
+    const valid = validLengthList(value, c3.units || ["px"]);
+    const showError = errorKey === key2 && !valid;
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          class: "ctl",
+          type: "text",
+          value,
+          placeholder: "auto",
+          "aria-invalid": showError ? "true" : void 0,
+          "aria-describedby": showError ? errorId : void 0,
+          onInput: (e3) => {
+            const next = e3.target.value;
+            setDraft({ key: key2, value: next });
+            if (validLengthList(next, c3.units || ["px"])) {
+              setErrorKey("");
+              w3.live(next);
+            }
+          },
+          onKeyDown: (e3) => {
+            if (e3.key !== "Enter") return;
+            if (!valid) setErrorKey(key2);
+            w3.done();
+          },
+          onBlur: (e3) => {
+            if (!valid) setErrorKey(key2);
+            w3.done(e3);
+          }
+        }
+      ),
+      showError ? /* @__PURE__ */ u2("div", { id: errorId, class: "note", role: "alert", children: "Enter up to four sizes, such as 8px 12px." }) : null
+    ] });
+  }
   function SliderCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const raw = valueOf(n2, c3);
@@ -22739,6 +22795,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     area: AreaCtl,
     select: SelectCtl,
     unit: UnitCtl,
+    lengthList: LengthListCtl,
     slider: SliderCtl,
     color: ColorCtl,
     pick: PickCtl,
@@ -26171,7 +26228,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "color", c: "--cd-bg", label: "Background", r: 1 },
           { t: "color", c: "--cd-text", label: "Text colour", r: 1, layout: "inline" },
           { t: "unit", c: "--cd-size", label: "Text size", layout: "inline", r: 1, units: U.size },
-          { t: "unit", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
+          { t: "lengthList", c: "--cd-pad", label: "Padding", r: 1, units: U.space },
           { t: "unit", c: "--cd-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
           { t: "color", c: "--cd-com", label: "Comments", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
           { t: "color", c: "--cd-str", label: "Strings", r: 1, layout: "inline", when: (n2) => n2.props.lang !== "text" },
@@ -26237,7 +26294,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         style: [
           { t: "unit", c: "--tbl-size", label: "Text size", layout: "inline", r: 1, units: U.size },
           { t: "color", c: "--tbl-text", label: "Text colour", r: 1, layout: "inline" },
-          { t: "unit", c: "--tbl-pad", label: "Cell padding", layout: "inline", r: 1, units: U.space },
+          { t: "lengthList", c: "--tbl-pad", label: "Cell padding", r: 1, units: U.space },
           { t: "color", c: "--tbl-line", label: "Line colour", r: 1, layout: "inline" },
           { t: "color", c: "--tbl-head-bg", label: "Header background", r: 1, when: (n2) => !!(n2.props.head || n2.props.rowhead) },
           { t: "color", c: "--tbl-head-text", label: "Heading colour", r: 1, when: (n2) => !!(n2.props.head || n2.props.rowhead) },

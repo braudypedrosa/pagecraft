@@ -237,6 +237,60 @@ function UnitCtl({ n, c }: P) {
   </Field>;
 }
 
+/* A CSS length list is one to four numeric lengths, such as the shorthand padding
+   values used by Code and Table. It deliberately keeps the raw list intact: reducing
+   `16px 18px` to one number would change the published spacing. */
+const lengthToken = (value: string, units: string[]) => {
+  const m = value.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)?$/i);
+  const number = m ? Number(m[1]) : NaN;
+  if (!m || !Number.isFinite(number) || number < 0) return false;
+  if (!m[2]) return number === 0 && !m[1].startsWith('-');
+  return units.includes(m[2].toLowerCase());
+};
+
+const validLengthList = (value: string, units: string[]) => {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  const parts = trimmed.split(/\s+/);
+  return parts.length <= 4 && parts.every(part => lengthToken(part, units));
+};
+
+function LengthListCtl({ n, c }: P) {
+  const w = writer(n, c);
+  const raw = String(valueOf(n, c) ?? '');
+  const scoped = c.c ? (C.stRead(C.tgtObj(n))[C.dk()] || {})[c.c] : undefined;
+  const key = [n.id, c.c || '', C.dk(), C.state.ui.st || '', C.state.ui.target || '', raw, String(scoped ?? '')].join('|');
+  const [draft, setDraft] = useState({ key, value: raw });
+  const [errorKey, setErrorKey] = useState('');
+  const errorId = useId();
+  const value = draft.key === key ? draft.value : raw;
+  const valid = validLengthList(value, c.units || ['px']);
+  const showError = errorKey === key && !valid;
+  return <Field n={n} c={c}>
+    <input class="ctl" type="text" value={value} placeholder="auto"
+      aria-invalid={showError ? 'true' : undefined}
+      aria-describedby={showError ? errorId : undefined}
+      onInput={e => {
+        const next = (e.target as HTMLInputElement).value;
+        setDraft({ key, value: next });
+        if (validLengthList(next, c.units || ['px'])) {
+          setErrorKey('');
+          w.live(next);
+        }
+      }}
+      onKeyDown={e => {
+        if ((e as KeyboardEvent).key !== 'Enter') return;
+        if (!valid) setErrorKey(key);
+        w.done();
+      }}
+      onBlur={e => {
+        if (!valid) setErrorKey(key);
+        w.done(e);
+      }} />
+    {showError ? <div id={errorId} class="note" role="alert">Enter up to four sizes, such as 8px 12px.</div> : null}
+  </Field>;
+}
+
 function SliderCtl({ n, c }: P) {
   const w = writer(n, c);
   const raw = valueOf(n, c);
@@ -1048,7 +1102,7 @@ function ColsCtl({ n, c }: P) {
 }
 
 const KINDS: Record<string, (p: P) => any> = {
-  text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, slider: SliderCtl,
+  text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, lengthList: LengthListCtl, slider: SliderCtl,
   color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,

@@ -1,0 +1,8 @@
+{
+  "alerts": [
+    "Enter up to four sizes, such as 8px 12px."
+  ],
+  "focused": true,
+  "invalid": "true",
+  "value": "12"
+}

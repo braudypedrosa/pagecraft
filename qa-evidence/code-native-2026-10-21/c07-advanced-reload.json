@@ -1,0 +1,38 @@
+[
+  {
+    "device": "Desktop",
+    "classes": "pagecraft-code pagecraft-8771r1lu qa-code workshop-code",
+    "id": "code-proof",
+    "maxWidth": "100%",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "overflow": "visible",
+    "position": "relative",
+    "spans": 0,
+    "textColor": "rgb(244, 241, 234)",
+    "top": "3px"
+  },
+  {
+    "device": "Tablet",
+    "classes": "pagecraft-code pagecraft-8771r1lu qa-code workshop-code",
+    "id": "code-proof",
+    "maxWidth": "100%",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "overflow": "visible",
+    "position": "relative",
+    "spans": 0,
+    "textColor": "rgb(244, 241, 234)",
+    "top": "3px"
+  },
+  {
+    "device": "Mobile",
+    "classes": "pagecraft-code pagecraft-8771r1lu qa-code workshop-code",
+    "id": "code-proof",
+    "maxWidth": "100%",
+    "outline": "rgb(180, 95, 60) solid 1px",
+    "overflow": "visible",
+    "position": "relative",
+    "spans": 0,
+    "textColor": "rgb(244, 241, 234)",
+    "top": "3px"
+  }
+]

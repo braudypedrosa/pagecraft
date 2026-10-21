@@ -1,0 +1,23 @@
+[
+  {
+    "device": "Desktop",
+    "bg": "rgb(23, 32, 42)",
+    "color": "rgb(244, 241, 234)",
+    "pad": "18px",
+    "size": "16px"
+  },
+  {
+    "device": "Tablet",
+    "bg": "rgb(23, 32, 42)",
+    "color": "rgb(244, 241, 234)",
+    "pad": "18px",
+    "size": "16px"
+  },
+  {
+    "device": "Mobile",
+    "bg": "rgb(23, 32, 42)",
+    "color": "rgb(244, 241, 234)",
+    "pad": "18px",
+    "size": "16px"
+  }
+]

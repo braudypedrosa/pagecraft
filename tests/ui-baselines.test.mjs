@@ -8,3 +8,8 @@ test('PNG comparison accepts identical images and flags visible changes or resiz
  const c=await sharp({create:{width:60,height:50,channels:3,background:'#fff'}}).png().toBuffer();
  expect((await compareImages(a,a)).passed).toBe(true);expect((await compareImages(a,b)).passed).toBe(false);expect((await compareImages(a,c)).reason).toBe('Image dimensions changed');
 });
+
+test('inspector control changes require fresh visual baseline review', async () => {
+  const { sources } = await import('../tools/ui-gallery-contract.mjs');
+  expect(sources).toContain('app/src/ui/inspector/Controls.tsx');
+});

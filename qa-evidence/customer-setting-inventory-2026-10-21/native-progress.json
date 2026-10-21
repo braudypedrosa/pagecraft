@@ -1,0 +1,41 @@
+{
+  "title": "Native QA progress overlay",
+  "date": "2026-10-21",
+  "purpose": "Prevent bounded native module work from being repeated blindly while preserving the original all-unverified inventory and history.",
+  "coverage_policy": "Only named evidence records are mapped. Representative values and behavior do not promote untested controls or arbitrary values to tested.",
+  "module_progress": [
+    {"module":"Quote","case_ids":["Q01","Q02","Q03","Q04","Q05","Q06"],"status":"accepted_bounded_82","control_scope":"14 direct controls plus recorded Advanced/Visibility/condition behavior","devices":["Desktop","Tablet","Mobile"],"evidence_dir":"qa-evidence/quote-native-2026-10-21","evidence_files":["coverage.json","task-close.md"],"limits":["Representative values only; arbitrary values, all fonts/styles, Motion, Hover and Focus remain open.","Condition-control label fix still requires candidate82 native verification."]},
+    {"module":"Breadcrumb","case_ids":["B01","B02","B03","B04","B05","B06"],"status":"accepted_bounded_82","control_scope":"8 direct controls plus recorded Advanced/Visibility/condition behavior","devices":["Desktop","Tablet","Mobile"],"evidence_dir":"qa-evidence/breadcrumb-native-2026-10-21","evidence_files":["coverage.json","task-close.md"],"limits":["Four separator variants and representative responsive values are covered; arbitrary row counts/values, Motion, Hover and Focus remain open.","Condition-control label fix still requires candidate82 native verification."]},
+    {"module":"Icon","case_ids":["I01","I02","I03","I04","I05","I06","I07"],"status":"accepted_bounded_82","control_scope":"10 direct controls plus recorded Advanced/State/Visibility behavior","devices":["Desktop","Tablet","Mobile"],"evidence_dir":"qa-evidence/icon-native-2026-10-21","evidence_files":["coverage.json","task-close.md"],"limits":["All 35 exported icon choices are recorded, but link modes are not all-device reload proof and Hover/Focus proof is Desktop-specific.","Site checks recovery is separate and not Icon coverage."]},
+    {"module":"Table","case_ids":["T01","T02","T03","T04","T05","T06","T07"],"status":"candidate82_bounded_plus_candidate83_native_padding","control_scope":"14 direct controls plus recorded Advanced/Visibility/condition behavior and separate padding/layout follow-up","devices":["Desktop","Tablet","Mobile"],"evidence_dir":".codex-worktrees/condition-control-labels-609528e/qa-evidence/table-native-2026-10-21","evidence_files":["coverage.json","task-close.md","final-table-mobile.png","../padding-list-controls-2026-10-21/native/final-layout-table-acceptance.json"],"limits":["Edge rows and conditional-controls-off proof are Mobile-only.","Position, max-width, overflow, shared Motion/State and condition-label native verification remain open.","Padding evidence is bounded to the candidate83 native records and does not establish gallery/full-suite/deployment acceptance."]},
+    {"module":"Code","case_ids":["C01","C02","C03","C04-C05","C05-plain-text","C06","C07"],"status":"candidate82_bounded_plus_candidate83_native_padding","control_scope":"Recorded content/language/copy/line/wrap/style/token/responsive/Advanced/Visibility/condition cases and separate padding/layout follow-up","devices":["Desktop","Tablet","Mobile"],"evidence_dir":".codex-worktrees/condition-control-labels-609528e/qa-evidence/code-native-2026-10-21","evidence_files":["coverage.json","task-close.md","final-code-mobile.png","padding-control-blank-before.json","padding-control-blank-before.png","../padding-list-controls-2026-10-21/native/final-layout-code-acceptance.json"],"limits":["Eight languages and representative values are covered; arbitrary values/units/fonts/colors, common Motion/State/Hover/Focus and runtime-generated controls remain open.","Padding post-fix evidence is bounded to the candidate83 native records and does not establish gallery/full-suite/deployment acceptance."]}
+  ],
+  "pending_next_checks": [
+    "Broader release acceptance after the candidate83 Code/Table padding evidence: fresh gallery, final full suite, deployment and wider customer QA gates.",
+    "Candidate82 native verification of corrected condition-control accessible labels for Quote, Breadcrumb, Icon, Table and Code.",
+    "Table position, max-width and overflow controls.",
+    "Code post-fix padding input and published computed-value parity."
+  ],
+  "broad_open_areas": [
+    "All builder modules outside the five mapped modules.",
+    "Shared Style/common controls and Advanced groups across modules.",
+    "Motion, transition, animation, duration, delay, easing and once controls.",
+    "Hover and keyboard Focus state controls and state-specific DOM/computed output.",
+    "Exhaustive Desktop/Tablet/Mobile plus state combinations beyond named cases.",
+    "Arbitrary values, units, fonts, colors, token sets and named styles.",
+    "Runtime-generated and conditional inspector controls not represented by named cases.",
+    "CMS bindings, source selectors and dynamic collection-field controls.",
+    "Dynamic component properties, component instances, variants and library workflows.",
+    "Collection contexts, repeated items, pagination and CMS rendering.",
+    "Add/drag/drop/block/pattern/media insertion and selection/undo behavior.",
+    "Full create/edit/save/reload flows for every module and setting family.",
+    "Physical devices, alternate browser engines, accessibility technology and keyboard-only workflows beyond recorded cases.",
+    "External integrations, roles, publishing, production/staging and recovery workflows."
+  ],
+  "do_not_claim": [
+    "Do not convert a bounded case record into an all-values or all-controls pass.",
+    "Do not treat candidate82 Table/Code records as committed release acceptance.",
+    "Do not infer native coverage from DEF rows or unit tests alone.",
+    "Do not count the pre-fix padding blank-field observation as post-fix success."
+  ]
+}

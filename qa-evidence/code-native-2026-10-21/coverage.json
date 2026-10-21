@@ -1,0 +1,236 @@
+{
+  "title": "Code native customer QA coverage",
+  "date": "2026-10-21",
+  "status": "bounded_partial",
+  "claim": "C01-C07 are evidenced bounded cases; this is not full Code-module or full customer QA certification.",
+  "source_evidence_root": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/condition-control-labels-609528e/qa-evidence/code-native-2026-10-21",
+  "evidence_basis": "Actual native evidence JSON and final mobile PNG from candidate82 evidence directory; no inference from unit tests.",
+  "scenarios": [
+    {
+      "id": "C01",
+      "area": "Content / literal markup",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Code content"
+      ],
+      "coverage": [
+        "literal HTML-like markup and entities remain text",
+        "quotes, apostrophe, backtick, line comment, block comment, blank line, final newline",
+        "Desktop",
+        "Tablet",
+        "Mobile",
+        "reload",
+        "empty Code content with filename/Copy enabled omits wrapper, code and copy control at all 3 devices after reload"
+      ],
+      "expected_dom": "FIGURE containing escaped code markup; htmlElements=0; text equals authored source",
+      "evidence": [
+        "c01-literal-text-reload.json",
+        "c01-empty-reload.json"
+      ]
+    },
+    {
+      "id": "C02",
+      "area": "Language and syntax highlighting",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Language select"
+      ],
+      "values": [
+        "Plain text",
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "TypeScript",
+        "JSON",
+        "Shell",
+        "Python"
+      ],
+      "coverage": [
+        "all 8 available language values",
+        "syntax token classes where applicable",
+        "Mobile native render",
+        "reload"
+      ],
+      "expected_dom": "Code text remains exact; Plain text has zero token spans; highlighted languages expose expected pc-c-* token classes",
+      "evidence": "c02-language-matrix-reload-mobile.json"
+    },
+    {
+      "id": "C03",
+      "area": "Copy, line numbers and wrapping",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Copy button",
+        "Filename",
+        "Show line numbers",
+        "Wrap lines",
+        "Code content"
+      ],
+      "coverage": [
+        "clipboard exactness: 58 characters",
+        "Copied state",
+        "empty original clipboard restored as empty text",
+        "4 lines at Desktop/Tablet/Mobile after reload",
+        "long sample with blank line and final empty line",
+        "wrap off/on at all 3 devices",
+        "Mobile controls-off removes header, copy button and line spans after reload"
+      ],
+      "expected_dom": "wrap off uses white-space pre and scrolls without site overflow; wrap on uses pre-wrap; copy output equals source",
+      "evidence": [
+        "c03-copy-native.json",
+        "c03-line-numbers-reload.json",
+        "c03-long-lines-reload.json",
+        "c03-controls-off-reload-mobile.json"
+      ]
+    },
+    {
+      "id": "C04-C05",
+      "area": "Base style and syntax token colors",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Text size",
+        "Padding",
+        "Background",
+        "Text colour",
+        "Radius",
+        "Comments",
+        "Keywords",
+        "Numbers",
+        "Names",
+        "Strings"
+      ],
+      "coverage": [
+        "Desktop/Tablet/Mobile rendered values",
+        "reload",
+        "distinct five token colors",
+        "Desktop authored values: 16px, 18px, #17202a, #f4f1ea, 12px radius",
+        "Mobile authored padding observed as 12px 13px and size 13px"
+      ],
+      "expected_dom": "Figure/pre computed style and token spans match recorded colors and dimensions",
+      "evidence": "c04-c05-styles-reload.json",
+      "limitation": "Plain text token controls are absent by design and separately evidenced; arbitrary values, all units, all colors and every state are not exhausted."
+    },
+    {
+      "id": "C05-plain-text",
+      "area": "Plain text token controls",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Comments",
+        "Strings",
+        "Keywords",
+        "Numbers",
+        "Names"
+      ],
+      "coverage": [
+        "all five token controls absent/effectively unused for Plain text",
+        "Desktop/Tablet/Mobile actual render",
+        "reload"
+      ],
+      "expected_dom": "Plain text produces zero token spans",
+      "evidence": "c05-plain-text-controls.json"
+    },
+    {
+      "id": "C06",
+      "area": "Responsive style overrides and reset",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "Text size",
+        "Padding",
+        "Background",
+        "Text colour",
+        "responsive reset"
+      ],
+      "coverage": [
+        "Desktop authored: 16px / 18px / #17202a / #f4f1ea",
+        "Tablet: 14px / 12px / #203040 / #e0e8f4",
+        "Mobile: 12px / 10px / #303020 / #fff7e0",
+        "reset restores all four values to Desktop inheritance",
+        "all 3 devices after reload"
+      ],
+      "expected_dom": "Computed styles match each breakpoint, then all breakpoints inherit Desktop values after reset",
+      "evidence": [
+        "c06-responsive-reload.json",
+        "c06-reset-reload.json"
+      ],
+      "limitation": "This records the bounded values exercised; it does not prove every breakpoint/state/control combination."
+    },
+    {
+      "id": "C07",
+      "area": "Advanced, visibility and conditions",
+      "status": "pass_bounded",
+      "controls_or_behaviors": [
+        "HTML ID",
+        "Classes",
+        "Custom CSS / outline",
+        "Position top",
+        "Overflow",
+        "Max width",
+        "Hide Desktop/Tablet/Mobile",
+        "Show only if condition"
+      ],
+      "coverage": [
+        "id=code-proof",
+        "classes include qa-code and workshop-code",
+        "outline, relative position, top 3px, overflow visible, max-width 100%",
+        "each device hide switch retains code in DOM and changes display",
+        "matching condition keeps wrapper and code",
+        "nonmatching condition omits whole wrapper/code",
+        "all 3 devices after reload",
+        "Always show restored"
+      ],
+      "expected_dom": "Advanced identity and computed style values are present; visibility uses retained DOM with display none; conditions control wrapper and Code presence",
+      "evidence": [
+        "c07-advanced-reload.json",
+        "c07-visibility-matrix.json",
+        "c07-condition-reload.json"
+      ],
+      "limitation": "Only the recorded condition/visibility matrix and representative Advanced values are evidenced."
+    }
+  ],
+  "counts": {
+    "bounded_scenarios": 7,
+    "language_values": 8,
+    "responsive_devices": 3,
+    "native_evidence_json_files": 13,
+    "final_pngs": 1,
+    "direct_control_families_observed": 20
+  },
+  "unverified_gaps": [
+    "Shared/common style controls outside the recorded Code cases.",
+    "Hover and keyboard Focus state values and rendering.",
+    "Motion, transition, animation, duration, delay, easing and once behavior.",
+    "Arbitrary values, all units, all fonts and exhaustive token colors.",
+    "Every editor create/edit/save/reload path and all drag/drop or insertion paths.",
+    "CMS bindings, dynamic component properties, variants, collection contexts and integrations.",
+    "Physical devices, alternate engines and broader customer workflows.",
+    "The new shorthand padding inspector control's native post-fix acceptance remains root-owned."
+  ],
+  "pre_fix_padding_observation": {
+    "status": "observed_before_fix",
+    "evidence": [
+      "padding-control-blank-before.json",
+      "padding-control-blank-before.png"
+    ],
+    "details": "Code and Table padding inspector inputs were blank number fields while published computed values were Code 16px 18px and Table 10px 12px; values were restored after capture. Post-fix native acceptance remains root-owned."
+  },
+  "final_padding_native": {
+    "status": "bounded_native_evidence",
+    "evidence_dir": "candidate83 qa-evidence/padding-list-controls-2026-10-21/native",
+    "evidence_files": [
+      "final-layout-code-acceptance.json",
+      "final-layout-table-acceptance.json",
+      "validation-typing-enter.json",
+      "invalid-unsaved-reload.json",
+      "invalid-blur-adjacent-picker.json",
+      "code-responsive-reset-reload.json",
+      "table-responsive-reset-reload.json",
+      "table-mixed-units-reload.json",
+      "table-invalid-and-zero-reload.json"
+    ],
+    "findings": [
+      "Code and Table defaults show complete shorthand text fields with computed parity at Desktop/Mobile.",
+      "Code invalid draft remains unsaved; blur/Enter error is linked; typing stays quiet in final timing evidence.",
+      "Table full-row layout is captured at Desktop/Mobile; mixed units, zero, invalid/negative, responsive reset and reload are recorded."
+    ],
+    "limit": "This is bounded native setting/layout evidence only; gallery, full-suite, deployment and broader customer QA remain separate acceptance gates."
+  }
+}

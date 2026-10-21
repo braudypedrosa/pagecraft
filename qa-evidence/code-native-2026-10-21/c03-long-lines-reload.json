@@ -1,0 +1,77 @@
+{
+  "authored": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+  "results": [
+    {
+      "wrap": false,
+      "device": "Desktop",
+      "attribute": false,
+      "client": 1200,
+      "codeWhiteSpace": "pre",
+      "lines": 4,
+      "scroll": 3233,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre"
+    },
+    {
+      "wrap": false,
+      "device": "Tablet",
+      "attribute": false,
+      "client": 786,
+      "codeWhiteSpace": "pre",
+      "lines": 4,
+      "scroll": 3233,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre"
+    },
+    {
+      "wrap": false,
+      "device": "Mobile",
+      "attribute": false,
+      "client": 374,
+      "codeWhiteSpace": "pre",
+      "lines": 4,
+      "scroll": 2999,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre"
+    },
+    {
+      "wrap": true,
+      "device": "Desktop",
+      "attribute": true,
+      "client": 1200,
+      "codeWhiteSpace": "pre-wrap",
+      "lines": 4,
+      "scroll": 1200,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre-wrap"
+    },
+    {
+      "wrap": true,
+      "device": "Tablet",
+      "attribute": true,
+      "client": 786,
+      "codeWhiteSpace": "pre-wrap",
+      "lines": 4,
+      "scroll": 786,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre-wrap"
+    },
+    {
+      "wrap": true,
+      "device": "Mobile",
+      "attribute": true,
+      "client": 374,
+      "codeWhiteSpace": "pre-wrap",
+      "lines": 4,
+      "scroll": 374,
+      "siteOverflow": false,
+      "text": "const note = \"workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop workshop \";\n\nlast\n",
+      "whiteSpace": "pre-wrap"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "lastTableDefault83": [
+    {
+      "device": "Desktop",
+      "value": "10px 12px",
+      "computed": "10px 12px",
+      "field": {
+        "class": "f",
+        "width": 261
+      }
+    },
+    {
+      "device": "Mobile",
+      "value": "8px 10px",
+      "computed": "8px 10px",
+      "field": {
+        "class": "f",
+        "width": 261
+      }
+    }
+  ],
+  "layoutTableSaved83": {
+    "value": "8px 10px 12px 14px",
+    "computed": "8px 10px 12px 14px"
+  }
+}

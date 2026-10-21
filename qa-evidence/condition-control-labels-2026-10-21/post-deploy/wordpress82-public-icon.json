@@ -1,0 +1,20 @@
+[
+  {
+    "device": "Desktop",
+    "href": "https://example.test/qa82",
+    "label": "QA82 workshop status",
+    "overflow": false,
+    "svgHidden": "true",
+    "tag": "A",
+    "width": 1280
+  },
+  {
+    "device": "Mobile",
+    "href": "https://example.test/qa82",
+    "label": "QA82 workshop status",
+    "overflow": false,
+    "svgHidden": "true",
+    "tag": "A",
+    "width": 414
+  }
+]

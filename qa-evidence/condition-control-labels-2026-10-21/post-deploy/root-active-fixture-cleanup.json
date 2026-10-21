@@ -1,0 +1,23 @@
+[
+  {
+    "tabId": "25",
+    "cpu": {},
+    "viewport": {},
+    "media": {},
+    "neverThrottled": true
+  },
+  {
+    "tabId": "30",
+    "cpu": {},
+    "viewport": {},
+    "media": {},
+    "neverThrottled": true
+  },
+  {
+    "tabId": "4",
+    "cpu": {},
+    "viewport": {},
+    "media": {},
+    "neverThrottled": true
+  }
+]

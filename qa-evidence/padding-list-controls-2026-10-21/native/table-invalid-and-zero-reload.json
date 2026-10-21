@@ -1,0 +1,19 @@
+{
+  "invalidTable83": [
+    {
+      "value": "1px 2px 3px 4px 5px",
+      "invalid": "true",
+      "variable": "2rem 3% 4px 0"
+    },
+    {
+      "value": "-2px 3px",
+      "invalid": "true",
+      "variable": "2rem 3% 4px 0"
+    }
+  ],
+  "zeroTable83": {
+    "value": "0",
+    "computed": "0px",
+    "error": null
+  }
+}

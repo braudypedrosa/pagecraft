@@ -1,0 +1,23 @@
+[
+  {
+    "device": "Desktop",
+    "copyVisible": true,
+    "lines": 4,
+    "numbers": true,
+    "text": "# note\ndef greet(name):\n    return \"Hi \" + name\ncount = 12"
+  },
+  {
+    "device": "Tablet",
+    "copyVisible": true,
+    "lines": 4,
+    "numbers": true,
+    "text": "# note\ndef greet(name):\n    return \"Hi \" + name\ncount = 12"
+  },
+  {
+    "device": "Mobile",
+    "copyVisible": true,
+    "lines": 4,
+    "numbers": true,
+    "text": "# note\ndef greet(name):\n    return \"Hi \" + name\ncount = 12"
+  }
+]

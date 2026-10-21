@@ -1,0 +1,74 @@
+[
+  {
+    "option": "Between rows",
+    "cellBorders": [
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      },
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      },
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      }
+    ],
+    "rules": "rows"
+  },
+  {
+    "option": "Full grid",
+    "cellBorders": [
+      {
+        "bottom": "1px solid rgb(229, 225, 214)",
+        "left": "1px solid rgb(229, 225, 214)",
+        "right": "1px solid rgb(229, 225, 214)",
+        "top": "1px solid rgb(229, 225, 214)"
+      },
+      {
+        "bottom": "1px solid rgb(229, 225, 214)",
+        "left": "1px solid rgb(229, 225, 214)",
+        "right": "1px solid rgb(229, 225, 214)",
+        "top": "1px solid rgb(229, 225, 214)"
+      },
+      {
+        "bottom": "1px solid rgb(229, 225, 214)",
+        "left": "1px solid rgb(229, 225, 214)",
+        "right": "1px solid rgb(229, 225, 214)",
+        "top": "1px solid rgb(229, 225, 214)"
+      }
+    ],
+    "rules": "all"
+  },
+  {
+    "option": "None",
+    "cellBorders": [
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      },
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      },
+      {
+        "bottom": "0px none rgb(17, 19, 17)",
+        "left": "0px none rgb(17, 19, 17)",
+        "right": "0px none rgb(17, 19, 17)",
+        "top": "0px none rgb(17, 19, 17)"
+      }
+    ],
+    "rules": "none"
+  }
+]
