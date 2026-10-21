@@ -1,0 +1,497 @@
+{
+  "forms": {
+    "forms": [
+      {
+        "fields": [
+          {
+            "id": "pagecraft-form-ys93c49e-f0",
+            "name": "name"
+          },
+          {
+            "id": "pagecraft-form-ys93c49e-f1",
+            "name": "email"
+          },
+          {
+            "id": "pagecraft-form-ys93c49e-f2",
+            "name": "message"
+          },
+          {
+            "id": "",
+            "name": "_pc_trap"
+          }
+        ],
+        "id": "pagecraft-form-ys93c49e",
+        "labels": [
+          {
+            "for": "pagecraft-form-ys93c49e-f0",
+            "matches": 1
+          },
+          {
+            "for": "pagecraft-form-ys93c49e-f1",
+            "matches": 1
+          },
+          {
+            "for": "pagecraft-form-ys93c49e-f2",
+            "matches": 1
+          }
+        ]
+      },
+      {
+        "fields": [
+          {
+            "id": "pagecraft-form-ys93c49e-ys9ep57t-f0",
+            "name": "name"
+          },
+          {
+            "id": "pagecraft-form-ys93c49e-ys9ep57t-f1",
+            "name": "email"
+          },
+          {
+            "id": "pagecraft-form-ys93c49e-ys9ep57t-f2",
+            "name": "message"
+          },
+          {
+            "id": "",
+            "name": "_pc_trap"
+          }
+        ],
+        "id": "pagecraft-form-ys93c49e-ys9ep57t",
+        "labels": [
+          {
+            "for": "pagecraft-form-ys93c49e-ys9ep57t-f0",
+            "matches": 1
+          },
+          {
+            "for": "pagecraft-form-ys93c49e-ys9ep57t-f1",
+            "matches": 1
+          },
+          {
+            "for": "pagecraft-form-ys93c49e-ys9ep57t-f2",
+            "matches": 1
+          }
+        ]
+      }
+    ],
+    "ids": [
+      "pagecraft-section-yiptm1yap",
+      "pagecraft-heading-ys93c378-yiptm1yap",
+      "pagecraft-form-ys93c49e",
+      "pagecraft-form-ys93c49e-f0",
+      "pagecraft-form-ys93c49e-f1",
+      "pagecraft-form-ys93c49e-f2",
+      "pagecraft-section-ys9ep57t",
+      "pagecraft-heading-ys93c378-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t-f0",
+      "pagecraft-form-ys93c49e-ys9ep57t-f1",
+      "pagecraft-form-ys93c49e-ys9ep57t-f2"
+    ]
+  },
+  "formFocus": {
+    "active": "pagecraft-form-ys93c49e-ys9ep57t-f0",
+    "secondName": "pagecraft-form-ys93c49e-ys9ep57t-f0"
+  },
+  "formValues": [
+    "",
+    "Fictional QA guest"
+  ],
+  "tabsMouse": [
+    {
+      "id": "pagecraft-tabs-z2mk2gt",
+      "tabs": [
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-p0",
+          "id": "pagecraft-tabs-z2mk2gt-t0",
+          "selected": "true",
+          "text": "Overview"
+        },
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-p1",
+          "id": "pagecraft-tabs-z2mk2gt-t1",
+          "selected": "false",
+          "text": "Details"
+        },
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-p2",
+          "id": "pagecraft-tabs-z2mk2gt-t2",
+          "selected": "false",
+          "text": "Pricing"
+        }
+      ],
+      "visiblePanels": [
+        "pagecraft-tabs-z2mk2gt-p0",
+        "pagecraft-tabs-z2mk2gt-p1",
+        "pagecraft-tabs-z2mk2gt-p2"
+      ]
+    },
+    {
+      "id": "pagecraft-tabs-z2mk2gt-z3510hsk",
+      "tabs": [
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-z3510hsk-p0",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-t0",
+          "selected": "false",
+          "text": "Overview"
+        },
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-z3510hsk-p1",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-t1",
+          "selected": "true",
+          "text": "Details"
+        },
+        {
+          "controls": "pagecraft-tabs-z2mk2gt-z3510hsk-p2",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-t2",
+          "selected": "false",
+          "text": "Pricing"
+        }
+      ],
+      "visiblePanels": [
+        "pagecraft-tabs-z2mk2gt-z3510hsk-p0",
+        "pagecraft-tabs-z2mk2gt-z3510hsk-p1",
+        "pagecraft-tabs-z2mk2gt-z3510hsk-p2"
+      ]
+    }
+  ],
+  "tabsKeyboard": [
+    {
+      "id": "pagecraft-tabs-z2mk2gt",
+      "selected": "Overview"
+    },
+    {
+      "id": "pagecraft-tabs-z2mk2gt-z3510hsk",
+      "selected": "Pricing"
+    }
+  ],
+  "panelsComputed": [
+    {
+      "id": "pagecraft-tabs-z2mk2gt",
+      "panels": [
+        {
+          "ariaHidden": null,
+          "display": "block",
+          "id": "pagecraft-tabs-z2mk2gt-p0",
+          "rectHeight": 45.59375
+        },
+        {
+          "ariaHidden": null,
+          "display": "none",
+          "id": "pagecraft-tabs-z2mk2gt-p1",
+          "rectHeight": 0
+        },
+        {
+          "ariaHidden": null,
+          "display": "none",
+          "id": "pagecraft-tabs-z2mk2gt-p2",
+          "rectHeight": 0
+        }
+      ]
+    },
+    {
+      "id": "pagecraft-tabs-z2mk2gt-z3510hsk",
+      "panels": [
+        {
+          "ariaHidden": null,
+          "display": "none",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-p0",
+          "rectHeight": 0
+        },
+        {
+          "ariaHidden": null,
+          "display": "none",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-p1",
+          "rectHeight": 0
+        },
+        {
+          "ariaHidden": null,
+          "display": "block",
+          "id": "pagecraft-tabs-z2mk2gt-z3510hsk-p2",
+          "rectHeight": 45.59375
+        }
+      ]
+    }
+  ],
+  "accordionFirst": [
+    {
+      "groups": [
+        "pagecraft-accordion-za6rkmsq-ac",
+        "pagecraft-accordion-za6rkmsq-ac",
+        "pagecraft-accordion-za6rkmsq-ac"
+      ],
+      "id": "pagecraft-accordion-za6rkmsq",
+      "open": [
+        "What do I get?"
+      ]
+    },
+    {
+      "groups": [
+        "pagecraft-accordion-za6rkmsq-zaxfrn5f-ac",
+        "pagecraft-accordion-za6rkmsq-zaxfrn5f-ac",
+        "pagecraft-accordion-za6rkmsq-zaxfrn5f-ac"
+      ],
+      "id": "pagecraft-accordion-za6rkmsq-zaxfrn5f",
+      "open": [
+        "How long does it take?"
+      ]
+    }
+  ],
+  "accordionSecond": [
+    {
+      "id": "pagecraft-accordion-za6rkmsq",
+      "open": [
+        "What do I get?"
+      ]
+    },
+    {
+      "id": "pagecraft-accordion-za6rkmsq-zaxfrn5f",
+      "open": [
+        "What does it cost?"
+      ]
+    }
+  ],
+  "navOpen": [
+    {
+      "contentDisplay": "none",
+      "expanded": "false",
+      "id": "pagecraft-nav-menu-ze7hi15vn",
+      "target": "pagecraft-nav-menu-ze7hi15vn-menu-content",
+      "targetCount": 1
+    },
+    {
+      "contentDisplay": "block",
+      "expanded": "true",
+      "id": "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai",
+      "target": "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu-content",
+      "targetCount": 1
+    }
+  ],
+  "navEscape": [
+    {
+      "expanded": "false",
+      "id": "pagecraft-nav-menu-ze7hi15vn"
+    },
+    {
+      "expanded": "false",
+      "id": "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai"
+    }
+  ],
+  "allRelationships": {
+    "ids": [
+      "pagecraft-section-yiptm1yap",
+      "pagecraft-heading-ys93c378-yiptm1yap",
+      "pagecraft-form-ys93c49e",
+      "pagecraft-form-ys93c49e-f0",
+      "pagecraft-form-ys93c49e-f1",
+      "pagecraft-form-ys93c49e-f2",
+      "pagecraft-section-ys9ep57t",
+      "pagecraft-heading-ys93c378-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t-f0",
+      "pagecraft-form-ys93c49e-ys9ep57t-f1",
+      "pagecraft-form-ys93c49e-ys9ep57t-f2",
+      "pagecraft-section-z15mzdr1",
+      "pagecraft-row-z15mzcv7",
+      "pagecraft-column-z15mzb7l",
+      "pagecraft-tabs-z2mk2gt",
+      "pagecraft-tabs-z2mk2gt-t0",
+      "pagecraft-tabs-z2mk2gt-t1",
+      "pagecraft-tabs-z2mk2gt-t2",
+      "pagecraft-tabs-z2mk2gt-p0",
+      "pagecraft-tabs-z2mk2gt-p1",
+      "pagecraft-tabs-z2mk2gt-p2",
+      "pagecraft-column-z3510hsk",
+      "pagecraft-tabs-z2mk2gt-z3510hsk",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t0",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t1",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t2",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p0",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p1",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p2",
+      "pagecraft-column-z8x14jrn",
+      "pagecraft-accordion-za6rkmsq",
+      "pagecraft-column-zaxfrn5f",
+      "pagecraft-accordion-za6rkmsq-zaxfrn5f",
+      "pagecraft-column-zc9gopa2",
+      "pagecraft-nav-menu-ze7hi15vn",
+      "pagecraft-nav-menu-ze7hi15vn-menu",
+      "pagecraft-nav-menu-ze7hi15vn-menu-content",
+      "pagecraft-section-ze7hi15vn-mobile",
+      "pagecraft-row-zd0igynp-ze7hi15vn-mobile",
+      "pagecraft-column-zd0igxej-ze7hi15vn-mobile",
+      "pagecraft-nav-menu-zd0igw7c-ze7hi15vn-mobile",
+      "pagecraft-column-ze7sv16ai",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu-content",
+      "pagecraft-section-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-row-zd0igynp-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-column-zd0igxej-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-nav-menu-zd0igw7c-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn"
+    ],
+    "references": [
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-f0"
+      },
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-f1"
+      },
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-f2"
+      },
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-ys9ep57t-f0"
+      },
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-ys9ep57t-f1"
+      },
+      {
+        "attribute": "for",
+        "count": 1,
+        "target": "pagecraft-form-ys93c49e-ys9ep57t-f2"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-p0"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-p1"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-p2"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-t0"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-t1"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-t2"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-p0"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-p1"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-p2"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-t0"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-t1"
+      },
+      {
+        "attribute": "aria-labelledby",
+        "count": 1,
+        "target": "pagecraft-tabs-z2mk2gt-z3510hsk-t2"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-nav-menu-ze7hi15vn-menu-content"
+      },
+      {
+        "attribute": "aria-controls",
+        "count": 1,
+        "target": "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu-content"
+      }
+    ],
+    "unique": 50,
+    "width": 414
+  },
+  "savedReload": {
+    "accordions": 2,
+    "forms": 2,
+    "ids": [
+      "pagecraft-section-yiptm1yap",
+      "pagecraft-heading-ys93c378-yiptm1yap",
+      "pagecraft-form-ys93c49e",
+      "pagecraft-form-ys93c49e-f0",
+      "pagecraft-form-ys93c49e-f1",
+      "pagecraft-form-ys93c49e-f2",
+      "pagecraft-section-ys9ep57t",
+      "pagecraft-heading-ys93c378-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t",
+      "pagecraft-form-ys93c49e-ys9ep57t-f0",
+      "pagecraft-form-ys93c49e-ys9ep57t-f1",
+      "pagecraft-form-ys93c49e-ys9ep57t-f2",
+      "pagecraft-section-z15mzdr1",
+      "pagecraft-row-z15mzcv7",
+      "pagecraft-column-z15mzb7l",
+      "pagecraft-tabs-z2mk2gt",
+      "pagecraft-tabs-z2mk2gt-t0",
+      "pagecraft-tabs-z2mk2gt-t1",
+      "pagecraft-tabs-z2mk2gt-t2",
+      "pagecraft-tabs-z2mk2gt-p0",
+      "pagecraft-tabs-z2mk2gt-p1",
+      "pagecraft-tabs-z2mk2gt-p2",
+      "pagecraft-column-z3510hsk",
+      "pagecraft-tabs-z2mk2gt-z3510hsk",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t0",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t1",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-t2",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p0",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p1",
+      "pagecraft-tabs-z2mk2gt-z3510hsk-p2",
+      "pagecraft-column-z8x14jrn",
+      "pagecraft-accordion-za6rkmsq",
+      "pagecraft-column-zaxfrn5f",
+      "pagecraft-accordion-za6rkmsq-zaxfrn5f",
+      "pagecraft-column-zc9gopa2",
+      "pagecraft-nav-menu-ze7hi15vn",
+      "pagecraft-nav-menu-ze7hi15vn-menu",
+      "pagecraft-nav-menu-ze7hi15vn-menu-content",
+      "pagecraft-section-ze7hi15vn-mobile",
+      "pagecraft-row-zd0igynp-ze7hi15vn-mobile",
+      "pagecraft-column-zd0igxej-ze7hi15vn-mobile",
+      "pagecraft-nav-menu-zd0igw7c-ze7hi15vn-mobile",
+      "pagecraft-column-ze7sv16ai",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu",
+      "pagecraft-nav-menu-ze7hi15vn-ze7sv16ai-menu-content",
+      "pagecraft-section-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-row-zd0igynp-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-column-zd0igxej-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn",
+      "pagecraft-nav-menu-zd0igw7c-ze7hi15vn-mobile-ze7sv16ai-ze7hi15vn"
+    ],
+    "navs": 2,
+    "tabs": 2
+  },
+  "scope": "Nativebuildercreatednestedrepeatedform/tabs/accordion/nav incl buildermanagedmobilecontent; secondformlabel focusesownfield; no valid form submission; Tab/Arrow; exclusiveaccordion; Mobile414navowncontent/Escape; actualreload.",
+  "probeCaveat": "Initial visiblePanels used hidden attribute only; rejected visibility assertion and replaced with computed display/height. InitialbodyEscape failed toclear; used observedpageownedRowforfurtherinsertions.",
+  "openFollowup": "AddingTabsunderselectedslotlesscomponentstoresinvisiblechild; separatelyrecordeddiagnosis, outsideIDfix."
+}

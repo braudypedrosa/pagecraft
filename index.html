@@ -11803,20 +11803,21 @@ function pager(pg2, at, total, o) {
 var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
 var BOX_TAGS = ["div", "article", "aside", "nav", "header", "footer", "main", "section", "ul", "ol", "li"];
 function renderNode(n, o) {
+  if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   const d = DEF[n.type];
   if (!d) return "";
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
-    const editorPath = o.edit ? [...o.editorPath || [], n.id] : void 0;
-    const fallbackId = esc(n.id + (o.edit ? (o.editorPath || []).map((id) => "-" + id.replace(/^n/, "")).join("") : ""));
-    const fallbackHooks = (editorPath?.length || 0) > 1 ? "" : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
+    const placementPath = [...o.placementPath || [], n.id];
+    const fallbackId = esc(n.id + (o.edit ? (o.placementPath || []).map((id) => "-" + id.replace(/^n/, "")).join("") : ""));
+    const fallbackHooks = (placementPath?.length || 0) > 1 ? "" : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
     if (cd && (o.stack || []).includes(n.use)) {
       return o.edit ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">${esc(cd.name)} contains itself</div>` : "";
     }
     if (!cd) {
       return o.edit ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
     }
-    return renderNode(cd.node, { ...o, inst: n, cdef: cd, editorPath, stack: [...o.stack || [], n.use] });
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, placementPath, stack: [...o.stack || [], n.use] });
   }
   const host = o.inst && o.cdef && n === o.cdef.node ? o.inst : null;
   const inner = !!o.inst && !host;
@@ -11835,11 +11836,47 @@ function renderNode(n, o) {
     col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
-  const editorSuffix = o.edit ? (o.inst ? (o.editorPath || []).slice(0, -1) : o.editorPath || []).map((id) => "-" + id.replace(/^n/, "")).join("") : "";
-  const domId = o.edit ? esc((o.repIndex ? self.id + rep + ins : self.id + ins) + editorSuffix) : esc(domIdOf(self) + rep + ins);
+  if (!o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) return "";
+  const placementSuffix = (o.inst ? (o.placementPath || []).slice(0, -1) : o.placementPath || []).map((id) => "-" + id.replace(/^n/, "")).join("");
+  const legacyId = domIdOf(self) + rep + ins;
+  const nestedGenerated = !self.adv?.htmlId && (o.placementPath?.length || 0) > 1;
+  const publicIdFamily = (root) => {
+    const family = [root];
+    if (n.type === "nav" && !p.managedMobileLinks) {
+      family.push(root + "-menu");
+      if (p.mobileMenu !== "fullscreen" && mobileMenuDefinition({ ...n, props: p })) family.push(root + "-menu-content");
+    } else if (n.type === "tabs" && Array.isArray(p.items)) {
+      p.items.forEach((_, i) => family.push(root + "-t" + i, root + "-p" + i));
+    } else if (n.type === "form") {
+      if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + "-f" + i));
+      if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "")).action) family.push(root + "-status");
+    }
+    return family;
+  };
+  let resolvedDomId;
+  const domId = () => {
+    if (resolvedDomId !== void 0) return resolvedDomId;
+    let publicId = legacyId;
+    if (!o.edit && o.publicIds) {
+      const ids = o.publicIds;
+      if (ids.reserving) {
+        if (!nestedGenerated) publicIdFamily(legacyId).forEach((id) => ids.reserved.add(id));
+      } else {
+        const occupied = (root) => publicIdFamily(root).some((id) => ids.used.has(id) || ids.reserved.has(id));
+        if (nestedGenerated && occupied(publicId)) {
+          const base = legacyId + placementSuffix;
+          publicId = base;
+          let suffix = 2;
+          while (occupied(publicId)) publicId = base + "-" + suffix++;
+        }
+        publicIdFamily(publicId).forEach((id) => ids.used.add(id));
+      }
+    }
+    return resolvedDomId = esc(o.edit ? (o.repIndex ? self.id + rep + ins : self.id + ins) + placementSuffix : publicId);
+  };
   const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item && findItem(o2.col, o2.item.id) ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"` : "";
-  const hooks = inner || (o.editorPath?.length || 0) > 1 ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
-  const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
+  const hooks = inner || (o.placementPath?.length || 0) > 1 ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const at = () => `id="${domId()}"${o.edit ? hooks : ""}${anim.at}`;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
   const kidOpts = filled && filled.length ? {
@@ -11847,36 +11884,35 @@ function renderNode(n, o) {
     inst: null,
     cdef: null,
     /* Direct placement slots are page-owned; slots inside nested definitions are not. */
-    editorPath: (o.editorPath?.length || 0) > 1 ? o.editorPath : void 0
+    placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : void 0
   } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   const blank = p.target === "_blank" ? ' target="_blank" rel="noopener"' : "";
-  if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
-    if (!o.edit) return "";
+  if (o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
     condCls = " s-cond-off";
   }
   switch (n.type) {
     case "section": {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : "section";
       const inner2 = kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Row or component here</div>` : "");
-      return `<${tag} ${at} ${cx("pagecraft-section")}><div class="pagecraft-container${p.width === "full" ? " full" : ""}">${inner2}</div></${tag}>`;
+      return `<${tag} ${at()} ${cx("pagecraft-section")}><div class="pagecraft-container${p.width === "full" ? " full" : ""}">${inner2}</div></${tag}>`;
     }
     case "row":
-      return `<div ${at} ${cx("pagecraft-row")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column</div>` : "")}</div>`;
+      return `<div ${at()} ${cx("pagecraft-row")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column</div>` : "")}</div>`;
     case "box": {
       const mode = p.layout === "flex" || p.layout === "grid" ? " l-" + p.layout : "";
       const href = pageHref(p.link, o);
       const decorative = n.css.d?.position === "absolute" && !!(n.css.d?.["background-image"] || n.css.d?.["background-color"] || n.css.d?.background);
       const inner2 = kids || (o.edit && !decorative ? `<div class="s-empty">${svg("plus", 12)} Drop anything here</div>` : "");
       if (href) {
-        return `<a ${at} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${blank}>${inner2}</a>`;
+        return `<a ${at()} ${cx("pagecraft-box" + mode)} href="${esc(href)}"${blank}>${inner2}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : "div";
-      return `<${tag} ${at} ${cx("pagecraft-box" + mode)}>${inner2}</${tag}>`;
+      return `<${tag} ${at()} ${cx("pagecraft-box" + mode)}>${inner2}</${tag}>`;
     }
     case "slider": {
-      const track = `<div ${at} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
+      const track = `<div ${at()} ${cx("pagecraft-slider")} data-slides role="group" aria-label="${esc(String(p.aria || "Slides"))}" tabindex="0">` + (kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes a slide</div>` : "")) + "</div>";
       if (!p.arrows) return track;
       const btn = (dir, label) => `<button type="button" class="pagecraft-slide-btn ${dir}" data-slide-${dir} aria-label="${label}" hidden>${svg("caret", 15)}</button>`;
       return `<div class="pagecraft-slider-box${p.controlsPosition === "bottom" ? " controls-bottom" : ""}" data-slider>${track}` + btn("p", "Previous slides") + btn("n", "Next slides") + '<div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>';
@@ -11884,13 +11920,13 @@ function renderNode(n, o) {
     case "list": {
       const lc = n.src ? findCollection(n.src) : null;
       const kidz = n.children || [];
-      if (!lc) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Pick a collection for this list</div></div>` : "";
-      if (!kidz.length) return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes the card</div></div>` : "";
+      if (!lc) return o.edit ? `<div ${at()} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Pick a collection for this list</div></div>` : "";
+      if (!kidz.length) return o.edit ? `<div ${at()} ${cx("pagecraft-list")}><div class="s-empty">${svg("plus", 12)} Drop a Column \u2014 it becomes the card</div></div>` : "";
       const all = listItems(n, lc);
       if (!all.length) {
         const activeFilter = !!findField(lc, p.where) && FILTER_OPS.some(([op]) => op === p.op) && (p.op === "set" || p.op === "unset" || String(p.val ?? "").trim() !== "");
         const message = !lc.items.length ? `${esc(lc.name)} has no items yet` : activeFilter && published(lc).length ? "No items match these filters." : "No items to display.";
-        return o.edit ? `<div ${at} ${cx("pagecraft-list")}><div class="s-empty">${message}</div></div>` : "";
+        return o.edit ? `<div ${at()} ${cx("pagecraft-list")}><div class="s-empty">${message}</div></div>` : "";
       }
       const per = parseInt(String(p.per || ""), 10);
       const drives = per > 0 && o.pg ? paginatorOf(o.pg) : null;
@@ -11899,28 +11935,28 @@ function renderNode(n, o) {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
       const reps = rows.map((it, k) => kidz.map((c) => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join("")).join("");
-      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at} ${cx("pagecraft-list")}>${reps}</div>`;
+      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at()} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at()} ${cx("pagecraft-list")}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":
-      return `<div ${at} ${cx("pagecraft-column")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
+      return `<div ${at()} ${cx("pagecraft-column")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
     case "heading": {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
       const href = pageHref(p.link, o);
       const inner2 = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
-      return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
+      return `<${tg} ${at()} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
-      return `<div ${at} ${cx("pagecraft-wysiwyg" + (o.edit && !richTextContent(p.html) ? " s-rich-empty" : ""))}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
+      return `<div ${at()} ${cx("pagecraft-wysiwyg" + (o.edit && !richTextContent(p.html) ? " s-rich-empty" : ""))}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
     case "quote": {
       const said = `<p>${esc(p.text).replace(/\n/g, "<br>")}</p>`;
       const url = safeUrl(p.source);
       const from = url ? ` cite="${esc(url)}"` : "";
       const who = String(p.by || "").trim();
-      if (!who) return `<blockquote ${at}${from} ${cx("pagecraft-quote")}>${said}</blockquote>`;
+      if (!who) return `<blockquote ${at()}${from} ${cx("pagecraft-quote")}>${said}</blockquote>`;
       const named = url ? `<a href="${esc(url)}">${esc(who)}</a>` : esc(who);
-      return `<figure ${at} ${cx("pagecraft-quote")}><blockquote${from}>${said}</blockquote><figcaption class="pagecraft-attrib">${named}</figcaption></figure>`;
+      return `<figure ${at()} ${cx("pagecraft-quote")}><blockquote${from}>${said}</blockquote><figcaption class="pagecraft-attrib">${named}</figcaption></figure>`;
     }
     case "image": {
       const src = esc(p.src || PH);
@@ -11933,13 +11969,13 @@ function renderNode(n, o) {
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at()} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
+      if (ihref) return `<a ${at()} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
-      const box = `${at} ${cx("pagecraft-video")} style="aspect-ratio:${esc(p.ratio || "16 / 9")}"`;
+      const box = `${at()} ${cx("pagecraft-video")} style="aspect-ratio:${esc(p.ratio || "16 / 9")}"`;
       if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
       return `<div ${box} data-facade><button class="pagecraft-video-play" type="button" data-embed="${esc(embedUrl(p))}" aria-label="Play video">` + (poster ? `<img src="${esc(poster)}" alt="" loading="lazy" decoding="async">` : "") + `<span class="pagecraft-video-icon" aria-hidden="true"></span></button></div>`;
@@ -11952,13 +11988,13 @@ function renderNode(n, o) {
       if (p.target === "_blank" && !rel.includes("noopener")) rel.push("noopener");
       const attrs = bhref ? `href="${esc(bhref)}"${p.target === "_blank" ? ' target="_blank"' : ""}${rel.length ? ` rel="${esc(rel.join(" "))}"` : ""}` : 'type="button"';
       const variant = ["outline", "ghost", "link"].includes(String(p.variant)) ? String(p.variant) : "solid";
-      return `<${tag} ${at} ${cx("pagecraft-button")} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+      return `<${tag} ${at()} ${cx("pagecraft-button")} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case "nav": {
       const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === "component" && state.ui.cedit ? mobileMenuOwner(state.ui.cedit) : null;
       const items = p.managedMobileLinks ? o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner.node.props.items : []) : Array.isArray(p.items) ? p.items : [];
       const name = esc(p.aria || "Main");
-      const mid = domId + "-menu";
+      const mid = domId() + "-menu";
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || "")) ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : "";
       const keyed = new Map(items.filter((it) => it.id).map((it) => [String(it.id), it]));
       const childrenOf = (parentId, ancestry) => items.filter((it) => {
@@ -11981,7 +12017,7 @@ function renderNode(n, o) {
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || "#")}"${target}${relationship}>${esc(it.label || "")}</a>` + (nested ? `<ul class="sub-menu">${nested}</ul>` : "") + `</li>`;
       }).join("");
       if (p.managedMobileLinks) {
-        return `<div ${at} ${cx("pagecraft-nav-menu pagecraft-mobile-nav-links")}><ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf("", /* @__PURE__ */ new Set())}</ul></div>`;
+        return `<div ${at()} ${cx("pagecraft-nav-menu pagecraft-mobile-nav-links")}><ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf("", /* @__PURE__ */ new Set())}</ul></div>`;
       }
       const mobileDefinition = p.mobileMenu !== "fullscreen" ? mobileMenuDefinition({ ...n, props: p }) : null;
       const mobileInstance = mobileDefinition ? {
@@ -11994,13 +12030,13 @@ function renderNode(n, o) {
         adv: { htmlId: "", cls: "", css: "" }
       } : null;
       const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: void 0, cdef: void 0, mobileMenuItems: items })}</div>` : "";
-      return `<nav ${at} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
+      return `<nav ${at()} ${cx("pagecraft-nav-menu")} data-nav data-mobile-menu="${p.mobileMenu === "fullscreen" ? "fullscreen" : "dropdown"}"${location} aria-label="${name}"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + "-content" : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="${mid}" data-nav-l>` + childrenOf("", /* @__PURE__ */ new Set()) + `</ul>${mobileContent}</nav>`;
     }
     case "form": {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const enhancedControls = fields.some((f) => f.type === "date" || f.type === "select");
       const controlsAttr = enhancedControls ? " data-pagecraft-controls" : "";
-      const fid = (i) => domId + "-f" + i;
+      const fid = (i) => domId() + "-f" + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "");
       const handling = resolveFormHandling(p, formId);
       const act = handling.action;
@@ -12023,16 +12059,16 @@ function renderNode(n, o) {
         return `<div class="pagecraft-field${half}">${lab}<input id="${fid(i)}" name="${name}" type="${esc(f.type || "text")}"${dateAttr}${dateEdit}${req}${ph2}${disabled}></div>`;
       }).join("");
       if (!act) {
-        const status = domId + "-status";
-        return `<div ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled${controlsAttr}>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
+        const status = domId() + "-status";
+        return `<div ${at()} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} role="group" aria-label="${esc(p.aria || "Form")}" aria-describedby="${status}" data-disabled${controlsAttr}>` + body + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || "Send")}</button><p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p></div>`;
       }
       const managed2 = handling.kind === "wordpress" ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : "";
-      return `<form ${at} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}${controlsAttr}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
+      return `<form ${at()} ${cx("pagecraft-form" + (percentWidths ? " pagecraft-form-percent" : ""))} aria-label="${esc(p.aria || "Form")}" action="${esc(act)}" method="${handling.method}"${managed2}${controlsAttr}>` + getQueryFields + body + (handling.kind === "cloud" ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : "") + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || "Send")}</button></form>` + (handling.kind === "cloud" && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)<\/script>` : "");
     }
     case "crumbs": {
       const manual = p.mode === "manual";
       const trail = manual ? (Array.isArray(p.items) ? p.items : []).map((it, i, all) => ({ ...it, label: String(it.label || ""), href: i === all.length - 1 ? "" : String(it.href || "") })) : crumbTrail(o.pg, o, String(p.home == null ? "Home" : p.home));
-      if (!trail.length || !manual && o.pg && isFront(o.pg) && trail.length < 2) return o.edit ? `<nav ${at} ${cx("pagecraft-crumbs")}><div class="s-empty">${svg("crumbs", 12)}` + (manual ? " Add a crumb in the panel" : " The front page shows no trail") + "</div></nav>" : "";
+      if (!trail.length || !manual && o.pg && isFront(o.pg) && trail.length < 2) return o.edit ? `<nav ${at()} ${cx("pagecraft-crumbs")}><div class="s-empty">${svg("crumbs", 12)}` + (manual ? " Add a crumb in the panel" : " The front page shows no trail") + "</div></nav>" : "";
       const li = trail.map((c, i) => {
         const last = i === trail.length - 1;
         const label = esc(c.label);
@@ -12045,47 +12081,47 @@ function renderNode(n, o) {
         const relationship = rel.length ? ` rel="${esc(rel.join(" "))}"` : "";
         return `<li${cls}>` + (last || !href ? `<span aria-current="page">${label}</span>` : `<a href="${esc(href)}"${target}${relationship}>${label}</a>`) + "</li>";
       }).join("");
-      return `<nav ${at} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
+      return `<nav ${at()} ${cx("pagecraft-crumbs")} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || "chevron"))}"><ol>${li}</ol></nav>`;
     }
     case "code": {
       const src = String(p.body == null ? "" : p.body);
-      if (!src.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-code")}><div class="s-empty">${svg("codeblock", 12)} Paste the code in the panel</div></div>` : "";
+      if (!src.trim()) return o.edit ? `<div ${at()} ${cx("pagecraft-code")}><div class="s-empty">${svg("codeblock", 12)} Paste the code in the panel</div></div>` : "";
       const lang = String(p.lang || "text");
       let inner2 = codeSpans(src, lang);
       if (p.numbers) inner2 = inner2.split("\n").map((l) => `<span class="pagecraft-code-line">${l}</span>`).join("\n");
       const name = String(p.title == null ? "" : p.title).trim();
       const head = name || p.copy ? `<figcaption class="pagecraft-code-head">${name ? `<span>${esc(name)}</span>` : "<span></span>"}` + (p.copy ? '<button type="button" class="pagecraft-code-copy" data-copy hidden>Copy</button>' : "") + "</figcaption>" : "";
-      return `<figure ${at} ${cx("pagecraft-code")}${p.softwrap ? " data-wrap" : ""}${p.numbers ? " data-numbers" : ""}>` + head + `<pre><code class="language-${esc(lang)}">${inner2}</code></pre></figure>`;
+      return `<figure ${at()} ${cx("pagecraft-code")}${p.softwrap ? " data-wrap" : ""}${p.numbers ? " data-numbers" : ""}>` + head + `<pre><code class="language-${esc(lang)}">${inner2}</code></pre></figure>`;
     }
     case "table": {
       const grid = tableGrid(p.body);
-      if (!grid.length) return o.edit ? `<div ${at} ${cx("pagecraft-table-wrap")}><div class="s-empty">${svg("plus", 12)} Paste or type the rows in the panel</div></div>` : "";
+      if (!grid.length) return o.edit ? `<div ${at()} ${cx("pagecraft-table-wrap")}><div class="s-empty">${svg("plus", 12)} Paste or type the rows in the panel</div></div>` : "";
       const cap = String(p.caption == null ? "" : p.caption).trim();
       const head = p.head && grid.length > 1 ? grid[0] : null;
       const rows = head ? grid.slice(1) : grid;
       const cell = (v, k) => p.rowhead && k === 0 ? `<th scope="row">${esc(v)}</th>` : `<td>${esc(v)}</td>`;
       const thead = head ? `<thead><tr>${head.map((v) => `<th scope="col">${esc(v)}</th>`).join("")}</tr></thead>` : "";
       const tbody = `<tbody>${rows.map((r) => `<tr>${r.map(cell).join("")}</tr>`).join("")}</tbody>`;
-      return `<div ${at} ${cx("pagecraft-table-wrap")}><table class="pagecraft-table" data-rules="${esc(String(p.rules || "rows"))}"${p.zebra ? " data-zebra" : ""}>` + (cap ? `<caption>${esc(cap)}</caption>` : "") + thead + tbody + "</table></div>";
+      return `<div ${at()} ${cx("pagecraft-table-wrap")}><table class="pagecraft-table" data-rules="${esc(String(p.rules || "rows"))}"${p.zebra ? " data-zebra" : ""}>` + (cap ? `<caption>${esc(cap)}</caption>` : "") + thead + tbody + "</table></div>";
     }
     case "tabs": {
       const rows = Array.isArray(p.items) ? p.items : [];
-      if (!rows.length) return o.edit ? `<div ${at} ${cx("pagecraft-tabs")}><div class="s-empty">${svg("plus", 12)} Add a tab in the panel</div></div>` : "";
+      if (!rows.length) return o.edit ? `<div ${at()} ${cx("pagecraft-tabs")}><div class="s-empty">${svg("plus", 12)} Add a tab in the panel</div></div>` : "";
       const all = o.edit && state.ui.sel === n.id;
-      const tid = (k) => `${domId}-t${k}`;
-      const pid = (k) => `${domId}-p${k}`;
+      const tid = (k) => `${domId()}-t${k}`;
+      const pid = (k) => `${domId()}-p${k}`;
       const strip = rows.map(
         (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === 0 ? "true" : "false"}" tabindex="${k === 0 ? "0" : "-1"}" class="pagecraft-tab${k === 0 ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
       ).join("");
       const panels = rows.map(
         (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === 0 || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${para(it.panel)}</div>`
       ).join("");
-      return `<div ${at} ${cx("pagecraft-tabs")} data-tabs><div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
+      return `<div ${at()} ${cx("pagecraft-tabs")} data-tabs><div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
     }
     case "accordion": {
       const items = Array.isArray(p.items) ? p.items : [];
-      if (!items.length) return o.edit ? `<div ${at} ${cx("pagecraft-accordion")}><div class="s-empty">${svg("plus", 12)} Add a question in the panel</div></div>` : "";
-      const grp = p.single ? ` name="${domId}-ac"` : "";
+      if (!items.length) return o.edit ? `<div ${at()} ${cx("pagecraft-accordion")}><div class="s-empty">${svg("plus", 12)} Add a question in the panel</div></div>` : "";
+      const grp = p.single ? ` name="${domId()}-ac"` : "";
       const mark = p.marker === "none" ? "" : '<span class="pagecraft-accordion-mark" aria-hidden="true"></span>';
       const forced = o.edit && state.ui.sel === n.id;
       const body = items.map((it, k) => {
@@ -12093,34 +12129,34 @@ function renderNode(n, o) {
         const open = forced || (p.single ? wants && k === 0 : wants);
         return `<details class="pagecraft-accordion-item"${grp}${open ? " open" : ""}><summary class="pagecraft-accordion-q"><span>${esc(String(it.q == null ? "" : it.q)).replace(/\n/g, " ")}</span>${mark}</summary><div class="pagecraft-accordion-a">${para(it.a)}</div></details>`;
       }).join("");
-      return `<div ${at} ${cx("pagecraft-accordion")} data-marker="${esc(p.marker || "plus")}">${body}</div>`;
+      return `<div ${at()} ${cx("pagecraft-accordion")} data-marker="${esc(p.marker || "plus")}">${body}</div>`;
     }
     case "embed": {
       const supplied = String(p.html == null ? "" : p.html);
       const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : "";
       const ecls = "pagecraft-embed" + (p.ratio ? " pagecraft-embed-ratio" : "");
-      if (!raw.trim()) return o.edit ? `<div ${at} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
-      if (!o.edit && !o.canvas) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+      if (!raw.trim()) return o.edit ? `<div ${at()} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
+      if (!o.edit && !o.canvas) return `<div ${at()} ${cx(ecls)}${ar}>${raw}</div>`;
       if (!o.edit) {
         const frameCss = "html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}" + (p.ratio ? "html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}" : "");
         const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + "</style>" + raw + (p.ratio ? "" : `<script>${EMBED_FRAME_JS}<\/script>`);
-        return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${p.ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+        return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${p.ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
       }
       const { html, stripped } = stripScripts(raw);
       const note = stripped ? `<div class="s-held">${stripped} script${stripped === 1 ? "" : "s"} held back here \u2014 ${stripped === 1 ? "it runs" : "they run"} on the exported page</div>` : "";
-      return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
+      return `<div ${at()} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case "icon": {
       const nm = p.name && ICON_PATHS[p.name] ? p.name : "check";
       const lab = String(p.label == null ? "" : p.label).trim();
       const ihref2 = pageHref(p.link, o);
-      if (ihref2) return `<a ${at} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${blank}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
-      return iconSvg(nm, `${at} ${cx("pagecraft-icon pagecraft-icon-glyph")} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
+      if (ihref2) return `<a ${at()} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${blank}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
+      return iconSvg(nm, `${at()} ${cx("pagecraft-icon pagecraft-icon-glyph")} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case "gallery": {
       const shown = (Array.isArray(p.items) ? p.items : []).filter(Boolean);
-      if (!shown.length) return o.edit ? `<div ${at} ${cx("pagecraft-gallery")}><div class="s-empty">${svg("image", 12)} Add images in the panel</div></div>` : "";
+      if (!shown.length) return o.edit ? `<div ${at()} ${cx("pagecraft-gallery")}><div class="s-empty">${svg("image", 12)} Add images in the panel</div></div>` : "";
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : "";
       const tiles = shown.map((it, k) => {
         const dim = it.w && it.h ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : "";
@@ -12131,16 +12167,23 @@ function renderNode(n, o) {
         const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ""}</figure>`;
       }).join("");
-      return `<div ${at} ${cx("pagecraft-gallery" + (p.ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
+      return `<div ${at()} ${cx("pagecraft-gallery" + (p.ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
     }
     case "spacer":
-      return `<div ${at} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
+      return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;
     case "divider":
-      return `<hr ${at} ${cx("pagecraft-divider")}>`;
+      return `<hr ${at()} ${cx("pagecraft-divider")}>`;
   }
   return "";
 }
-var renderList = (list, o) => list.map((n) => renderNode(n, o)).join("");
+var renderList = (list, o) => !o.edit && !o.publicIds ? renderPublicLists([list], o)[0] : list.map((n) => renderNode(n, o)).join("");
+function renderPublicLists(lists, o) {
+  const publicIds = { reserving: true, reserved: /* @__PURE__ */ new Set(), used: /* @__PURE__ */ new Set() };
+  const options = { ...o, edit: false, publicIds };
+  for (const list of lists) renderList(list, options);
+  publicIds.reserving = false;
+  return lists.map((list) => renderList(list, options));
+}
 var T3 = 33.3333;
 var T6 = 66.6666;
 var LAYOUTS = {
@@ -12414,9 +12457,10 @@ function buildPage(pg2, ctx = {}) {
   eachNode(allNodes, (n) => occupied.add(domIdOf(n)));
   let mainId = "pagecraft-main";
   while (occupied.has(mainId)) mainId += "-content";
-  const header = demoteMainTags(renderList(state.header, o));
-  const pageBody = demoteMainTags(renderList(pg2.tree, o));
-  const footer = demoteMainTags(renderList(state.footer, o));
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([state.header, pg2.tree, state.footer], o);
+  const header = demoteMainTags(headerHtml);
+  const pageBody = demoteMainTags(pageHtml);
+  const footer = demoteMainTags(footerHtml);
   const main = `<main id="${mainId}" class="pagecraft-main">${pageBody}</main>`;
   const body = SHARED_HEADER_START + header + SHARED_HEADER_END + main + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
   const hasPublicSelect = /data-pagecraft-select/.test(body);
@@ -13094,6 +13138,7 @@ var __CORE = {
   relink,
   renderList,
   renderNode,
+  renderPublicLists,
   replaceAll,
   replaceMediaReferences,
   resizeCols,
@@ -29816,8 +29861,13 @@ function paint() {
   const previewMobileMenuItems = Array.isArray(previewMobileMenuOwner?.node.props.items)
     ? previewMobileMenuOwner.node.props.items : null;
 
+  const canvasRegions = regions();
+  const publicRegions = !editing ? renderPublicLists(canvasRegions.map(R => R.get()), {
+    edit: false, canvas: true, ...pageCtx(),
+    ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
+  }) : null;
   let html = '';
-  for (const R of regions()) {
+  for (const [regionIndex, R] of canvasRegions.entries()) {
     const nodes = R.get();
     const live = R.kind === scope;
     /* `pageCtx()` in preview too. Without it a detail template previewed with its
@@ -29825,10 +29875,7 @@ function paint() {
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
     if (!editing) {
-      html += renderList(nodes, {
-        edit: false, canvas: true, ...pageCtx(),
-        ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
-      });
+      html += publicRegions[regionIndex];
       continue;
     }
     if (!nodes.length && !live) continue;                 // nothing to show as context

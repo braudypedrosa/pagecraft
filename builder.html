@@ -4023,8 +4023,13 @@ function paint() {
   const previewMobileMenuItems = Array.isArray(previewMobileMenuOwner?.node.props.items)
     ? previewMobileMenuOwner.node.props.items : null;
 
+  const canvasRegions = regions();
+  const publicRegions = !editing ? renderPublicLists(canvasRegions.map(R => R.get()), {
+    edit: false, canvas: true, ...pageCtx(),
+    ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
+  }) : null;
   let html = '';
-  for (const R of regions()) {
+  for (const [regionIndex, R] of canvasRegions.entries()) {
     const nodes = R.get();
     const live = R.kind === scope;
     /* `pageCtx()` in preview too. Without it a detail template previewed with its
@@ -4032,10 +4037,7 @@ function paint() {
        which is the one page where the preview matters most. Edit mode passed it all
        along; preview was the branch that forgot. */
     if (!editing) {
-      html += renderList(nodes, {
-        edit: false, canvas: true, ...pageCtx(),
-        ...(previewMobileMenuItems !== null ? { mobileMenuItems: previewMobileMenuItems } : {})
-      });
+      html += publicRegions[regionIndex];
       continue;
     }
     if (!nodes.length && !live) continue;                 // nothing to show as context

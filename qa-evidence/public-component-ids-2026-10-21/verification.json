@@ -1,0 +1,171 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "c084430dedeeda019f662afe13b640eea07963ac",
+  "status": "isolated candidate accepted by root native and reviewed gallery; final full suite passes; root integration pending",
+  "source": [
+    "app/src/core/index.ts",
+    "app/src/core/types.ts",
+    "builder.html"
+  ],
+  "tests": [
+    "tests/public-component-ids.test.ts",
+    "tests/nested-component-owner.test.ts"
+  ],
+  "policy": [
+    "Keep first emitted generated nested ID canonical; namespace later generated nested collisions by stable enclosing placement path.",
+    "Reserve emitted authored and ordinary non-nested IDs before allocating nested names.",
+    "Reserve exact emitted nav/tabs/form relationship-ID families with their root; generated nested families move together around authored or fixed anchors. No reservation for non-emitted managed-nav menu or active-form status IDs.",
+    "Authored IDs/literal href fragments/node CSS classes/backend form IDs stay unchanged. Authored duplicates remain author data and remain a known risk.",
+    "Hidden conditions return before descendants or IDs; omitted empty widgets resolve no ID.",
+    "Each public batch has its own transient reserve/allocation context; no global state or persisted allocator.",
+    "Full page and Preview share the batch across regions; direct renderNode/List start fresh sessions."
+  ],
+  "implementation": "The same public renderer reserves emitted fixed/authored IDs, then allocates actual output in a second pure traversal. Lazy domId()/at() resolution avoids claiming IDs for omitted widgets. Placement path now applies to both modes; editor selection behavior remains unchanged.",
+  "checks": {
+    "compatibilityScan": {
+      "result": "no affected stored generated-fragment references",
+      "sourceFiles": 136,
+      "archives": 20,
+      "archiveJsonEntries": 80,
+      "evidence": "compatibility-scan.json",
+      "limits": "Local templates/fixtures only; no database/customer scan."
+    },
+    "red": {
+      "result": "four expected public identity failures, one author-ID policy test pass",
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 5,
+      "tests": 50,
+      "log": "logs/focused.log"
+    },
+    "fullBeforeGallery": {
+      "result": "sole expected builder fingerprint failure",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 236,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2554,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 99.53,
+      "maxWorkers": 2,
+      "log": "logs/full-pre-gallery.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "deterministicBuild": {
+      "result": "pass",
+      "artifacts": 11,
+      "diffBytes": 0,
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "audit": {
+      "result": "pass",
+      "allSeverities": 0,
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/demo.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "qaHarness": {
+      "result": "restarted after final builds; HTTP200; preserve for root",
+      "url": "http://localhost:4970/edit/s1",
+      "pid": 43878,
+      "sessionId": 61415,
+      "fixture": "Trusted fictional default fixture; only port changed from4964 to4970; no hidden state injection."
+    },
+    "widgetFamilyRed": {
+      "result": "five expected failures for nav menu, form field/status and tab/panel IDs colliding with later authored anchors",
+      "log": "logs/widget-family-red.log"
+    },
+    "fullFinal": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 237,
+      "filesSkipped": 2,
+      "testsPassed": 2555,
+      "testsSkipped": 5,
+      "durationSeconds": 100.36,
+      "maxWorkers": 2,
+      "log": "logs/full-final.log"
+    },
+    "native": {
+      "result": "root accepted bounded native customer flow",
+      "evidence": "native/native-acceptance.json",
+      "scope": [
+        "Builder-created repeated nested forms: second label focuses its own second field, independent entered values. No form submission performed.",
+        "Repeated tabs: second Details click and ArrowRight selects Pricing while first Overview remains selected; computed display and rectangle height verify actual panel visibility.",
+        "Repeated exclusive accordions open independently.",
+        "Repeated builder-managed mobile nav: second toggle opens its own content, controls target exactly once, Escape closes.",
+        "Saved/reloaded fixture retains 50 unique IDs and 20 relationship references resolving exactly once."
+      ],
+      "caveats": [
+        "Initial hidden-attribute-only tabs probe did not establish visible panels; computed display/height replaced that assertion.",
+        "Earlier mobile nav PNG clipped the open panel; do not use it as readable open-menu proof. Root supplied repeated-mobile-nav-keyboard-readable.png.",
+        "Gallery/slider relationships are automated structural coverage only; no native gallery/slider interaction claimed."
+      ]
+    },
+    "gallery": {
+      "result": "root accepted and recorded reviewed baseline",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "sourceFiles": 28,
+      "capture": "gallery/capture.json",
+      "behaviors": "gallery/behavior-checks.json",
+      "comparison": "gallery/diffs/results.json",
+      "cleanup": "gallery/cleanup.json",
+      "baselineCheck": "logs/baseline-final.log"
+    }
+  },
+  "frozenReference": "tests/fixtures/nested-component-public.json remains byte-identical to79. Compatibility test explicitly allows approved generated ID-attribute repair while requiring identical remaining markup and preserved first canonical names.",
+  "hashes": "source-tests-assets.sha256",
+  "remaining": [
+    "Root integration/release decision.",
+    "Separate native-discovered follow-up: adding Tabs under a selected slotless component stores an invisible child. This ID repair does not fix insertion targeting.",
+    "Authored duplicate IDs remain unchanged by policy."
+  ],
+  "limits": [
+    "No native browser interaction by this worker. Structural relationship checks do not prove native control behavior.",
+    "Authored duplicate IDs remain unchanged by policy.",
+    "Reservation adds a second pure render traversal; no global mutable registry.",
+    "No overall production-ready claim."
+  ],
+  "excludedGenerated": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4970.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "boundaries": "New isolated Cloud candidate only; no frozen79 source/assets, Main, WordPress, browser, baseline, commit or push changes.",
+  "widgetFamilyReview": "Exact emitted child IDs are part of reservation/allocation, preserving authored anchors. Numeric fallback also checks the whole family; custom mobile content, managed-nav and active-form exclusions are tested.",
+  "openFollowup": {
+    "evidence": "native/hidden-add-tabs-followup.json",
+    "screenshot": "native/hidden-add-tabs-followup.png",
+    "status": "native symptom confirmed; source inference pending independent pure Core proof",
+    "symptom": "Adding Tabs under selected slotless component stores a child not shown by definition expansion. Used observed page-owned Row to continue this acceptance."
+  },
+  "finalReceipt": "final-receipt.json"
+}

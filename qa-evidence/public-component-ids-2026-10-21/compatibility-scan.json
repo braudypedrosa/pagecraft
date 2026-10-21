@@ -1,0 +1,19 @@
+{
+  "base": "c084430dedeeda019f662afe13b640eea07963ac",
+  "scope": "Local premade template source/config/package JSON and local authored fixtures; excluded assets/evidence/direction studies. No DB/customer scan.",
+  "sourceFilesScanned": 136,
+  "archivesScanned": 20,
+  "archiveJsonEntriesScanned": 80,
+  "affectedGeneratedFragmentReferences": [],
+  "sourceSemantics": {
+    "anchorsOf": "Only authored adv.htmlId is offered by picker.",
+    "buildLink": "Stores literal page.html#fragment.",
+    "pageHref": "Sanitizes/relativizes; no target-ID mapping.",
+    "htmlIdControl": "Shows autoId as placeholder, so manually copied generated links can exist. Canonical-first preserves old first-match target."
+  },
+  "entrypoints": {
+    "buildPage": "One allocation batch across header/page/footer. Server rendering and standalone compileDocument call buildPage.",
+    "direct": "renderNode and renderList each create fresh local batch when no context is supplied.",
+    "preview": "paint calls renderPublicLists once across canvas regions."
+  }
+}

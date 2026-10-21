@@ -52,9 +52,17 @@ test('nested CMS bindings still resolve against the nested instance rather than 
  expect(inner.hasAttribute('data-id')).toBe(false);
 });
 
-test('public normal, slots and cyclic output remains byte-identical to the pre-fix snapshots',()=>{
+test('public content and first legacy anchors stay compatible while duplicate generated IDs are repaired',()=>{
  const reference=JSON.parse(readFileSync('tests/fixtures/nested-component-public.json','utf8'));
- expect(C.renderList([f.placement,f.duplicate],{edit:false})).toBe(reference.normal);
- f.nested.use='missing';expect(C.renderNode(f.placement,{edit:false})).toBe(reference.missing);
- f.nested.use=f.outer.id;expect(C.renderNode(f.placement,{edit:false})).toBe(reference.cyclic);
+ const check=(html:string,before:string)=>{
+  const identityFree=(value:string)=>value.replace(/\sid="[^"]*"/g,'');
+  expect(identityFree(html)).toBe(identityFree(before));
+  const oldIds=[...before.matchAll(/\sid="([^"]*)"/g)].map(m=>m[1]);
+  const newIds=[...html.matchAll(/\sid="([^"]*)"/g)].map(m=>m[1]);
+  expect(new Set(newIds).size).toBe(newIds.length);
+  for(const id of new Set(oldIds))expect(newIds.filter(value=>value===id)).toHaveLength(1);
+ };
+ check(C.renderList([f.placement,f.duplicate],{edit:false}),reference.normal);
+ f.nested.use='missing';check(C.renderNode(f.placement,{edit:false}),reference.missing);
+ f.nested.use=f.outer.id;check(C.renderNode(f.placement,{edit:false}),reference.cyclic);
 });

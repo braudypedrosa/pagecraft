@@ -8604,6 +8604,7 @@ const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'asid
 const BOX_TAGS = ['div', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'section', 'ul', 'ol', 'li'];
 
 function renderNode(n: PcNode, o: RenderOpts): string {
+  if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   const d = DEF[n.type];
   if (!d) return '';
   /* An instance renders its definition's tree. `o.inst` carries the instance down that render
@@ -8613,9 +8614,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      set of rules in the stylesheet serve every instance. */
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
-    const editorPath = o.edit ? [...(o.editorPath || []), n.id] : undefined;
-    const fallbackId = esc(n.id + (o.edit ? (o.editorPath || []).map(id => '-' + id.replace(/^n/, '')).join('') : ''));
-    const fallbackHooks = (editorPath?.length || 0) > 1 ? '' : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
+    const placementPath = [...(o.placementPath || []), n.id];
+    const fallbackId = esc(n.id + (o.edit ? (o.placementPath || []).map(id => '-' + id.replace(/^n/, '')).join('') : ''));
+    const fallbackHooks = (placementPath?.length || 0) > 1 ? '' : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
     if (cd && (o.stack || []).includes(n.use)) {
       /* A component that contains itself. Refused at the second turn rather than the
          thousandth, because the alternative is a page builder that can hang the tab it renders
@@ -8632,7 +8633,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">Missing component: ${esc(n.use)}</div>`
         : '';
     }
-    return renderNode(cd.node, { ...o, inst: n, cdef: cd, editorPath, stack: [...(o.stack || []), n.use] });
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, placementPath, stack: [...(o.stack || []), n.use] });
   }
   /* This node is the definition's root, rendering inside an instance: the element on the page
      is the instance's, so its id, its styling hook, its classes and its motion are the ones
@@ -8677,13 +8678,51 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     ...o, col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
-  /* Nested placements still resolve their own values, but their DOM belongs to the outer
-     placement. Only editor IDs gain its path; published anchors remain byte-for-byte stable. */
-  const editorSuffix = o.edit ? (o.inst ? (o.editorPath || []).slice(0, -1) : o.editorPath || [])
-    .map(id => '-' + id.replace(/^n/, '')).join('') : '';
-  const domId = o.edit
-    ? esc((o.repIndex ? self.id + rep + ins : self.id + ins) + editorSuffix)
-    : esc(domIdOf(self) + rep + ins);
+  // Omitted public branches must not reserve or allocate IDs for themselves or descendants.
+  if (!o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) return '';
+  /* The first generated nested ID remains a canonical anchor. Later copies gain their
+     placement path; an authored ID always keeps ownership of its explicitly chosen name. */
+  const placementSuffix = (o.inst ? (o.placementPath || []).slice(0, -1) : o.placementPath || [])
+    .map(id => '-' + id.replace(/^n/, '')).join('');
+  const legacyId = domIdOf(self) + rep + ins;
+  const nestedGenerated = !self.adv?.htmlId && (o.placementPath?.length || 0) > 1;
+  // Allocate the emitted widget family together so its labels and controls cannot collide
+  // with an authored anchor, even when the root ID itself is still available.
+  const publicIdFamily = (root: string): string[] => {
+    const family = [root];
+    if (n.type === 'nav' && !p.managedMobileLinks) {
+      family.push(root + '-menu');
+      if (p.mobileMenu !== 'fullscreen' && mobileMenuDefinition({ ...n, props: p } as PcNode)) family.push(root + '-menu-content');
+    } else if (n.type === 'tabs' && Array.isArray(p.items)) {
+      p.items.forEach((_, i) => family.push(root + '-t' + i, root + '-p' + i));
+    } else if (n.type === 'form') {
+      if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + '-f' + i));
+      if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
+    }
+    return family;
+  };
+  let resolvedDomId: string | undefined;
+  const domId = () => {
+    if (resolvedDomId !== undefined) return resolvedDomId;
+    let publicId = legacyId;
+    if (!o.edit && o.publicIds) {
+      const ids = o.publicIds;
+      if (ids.reserving) {
+        if (!nestedGenerated) publicIdFamily(legacyId).forEach(id => ids.reserved.add(id));
+      } else {
+        const occupied = (root: string) => publicIdFamily(root).some(id => ids.used.has(id) || ids.reserved.has(id));
+        if (nestedGenerated && occupied(publicId)) {
+          const base = legacyId + placementSuffix;
+          publicId = base; let suffix = 2;
+          while (occupied(publicId)) publicId = base + '-' + suffix++;
+        }
+        publicIdFamily(publicId).forEach(id => ids.used.add(id));
+      }
+    }
+    return resolvedDomId = esc(o.edit
+      ? (o.repIndex ? self.id + rep + ins : self.id + ins) + placementSuffix
+      : publicId);
+  };
   /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
      on the nearest ancestor that has one — the instance — which is the element whose panel can
      actually change anything. Its internals belong to the definition.
@@ -8697,8 +8736,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     && findItem(o2.col, o2.item.id)
     ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"`
     : '';
-  const hooks = inner || (o.editorPath?.length || 0) > 1 ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
-  const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
+  const hooks = inner || (o.placementPath?.length || 0) > 1 ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const at = () => `id="${domId()}"${o.edit ? hooks : ''}${anim.at}`;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
      page's nodes, so they render outside the instance's scope: their bindings are the page's
@@ -8709,7 +8748,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
   const kidOpts = filled && filled.length ? {
     ...o2, inst: null, cdef: null,
     /* Direct placement slots are page-owned; slots inside nested definitions are not. */
-    editorPath: (o.editorPath?.length || 0) > 1 ? o.editorPath : undefined
+    placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : undefined
   } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
@@ -8722,8 +8761,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      you cannot fix, and a condition that hid its own element would be a control you could
      switch on and never switch off. The same reasoning `hide` uses for a breakpoint, and the
      same treatment. */
-  if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
-    if (!o.edit) return '';
+  if (o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
     /* `.s-cond-off` in the editing half of `baseCss`: dimmed and dashed in blue, where `hide`
        is amber. Two different statements — "not at this width" and "not for this item" — and an
        author who cannot tell them apart cannot debug either. */
@@ -8734,10 +8772,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'section': {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : 'section';
       const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Row or component here</div>` : '');
-      return `<${tag} ${at} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
     }
     case 'row':
-      return `<div ${at} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
     case 'box': {
       /* The layout is a class, not a declaration, so it cannot be half-overwritten by an
          author editing CSS — the same reason `.pagecraft-row` carries `display:flex` rather
@@ -8751,16 +8789,16 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       if (href) {
         /* An anchor, and never a nested one: an `<a>` inside an `<a>` is invalid markup that
            browsers silently unnest, so the review flags it rather than this render guessing. */
-        return `<a ${at} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}>${inner}</a>`;
+        return `<a ${at()} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}>${inner}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : 'div';
-      return `<${tag} ${at} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
     }
     case 'slider': {
       /* `tabindex` on the track, because a scrollable region a keyboard cannot reach is a
          region a keyboard user cannot read. It costs one tab stop, which is the trade the
          guidance asks for. */
-      const track = `<div ${at} ${cx('pagecraft-slider')} data-slides role="group"`
+      const track = `<div ${at()} ${cx('pagecraft-slider')} data-slides role="group"`
         + ` aria-label="${esc(String(p.aria || 'Slides'))}" tabindex="0">`
         + (kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes a slide</div>` : ''))
         + '</div>';
@@ -8776,9 +8814,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const lc = n.src ? findCollection(n.src) : null;
       const kidz = n.children || [];
       if (!lc) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
       if (!kidz.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
       const all = listItems(n, lc);
       /* Keep true empty collections distinct from filters that exclude existing content. */
       if (!all.length) {
@@ -8791,7 +8829,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
             ? 'No items match these filters.'
             : 'No items to display.';
         return o.edit
-          ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${message}</div></div>` : '';
+          ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${message}</div></div>` : '';
       }
 
       /* Only the paginator on this page slices. A second paginated list would otherwise
@@ -8806,21 +8844,21 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const reps = rows.map((it, k) =>
         kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
       const body = p.collectionLayout === 'slider'
-        ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx('pagecraft-list pagecraft-slider')} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg('caret',15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg('caret',15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>`
-        : `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+        ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at()} ${cx('pagecraft-list pagecraft-slider')} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg('caret',15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg('caret',15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>`
+        : `<div ${at()} ${cx('pagecraft-list')}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg!, at1, total, o) : body;
     }
     case 'column':
-      return `<div ${at} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
     case 'heading': {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
       const body = esc(p.text).replace(/\n/g, '<br>');
       const href = pageHref(p.link, o);
       const inner = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
-      return `<${tg} ${at} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
+      return `<${tg} ${at()} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
     }
     case 'text':
-      return `<div ${at} ${cx('pagecraft-wysiwyg' + (o.edit && !richTextContent(p.html) ? ' s-rich-empty' : ''))}>${p.html || (o.edit ? '<p></p>' : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-wysiwyg' + (o.edit && !richTextContent(p.html) ? ' s-rich-empty' : ''))}>${p.html || (o.edit ? '<p></p>' : '')}</div>`;
     case 'quote': {
       /* the attribution decides the shape: a caption makes it a figure, its absence
          leaves a blockquote that needs no wrapper — the image widget's rule exactly */
@@ -8828,9 +8866,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const url = safeUrl(p.source);
       const from = url ? ` cite="${esc(url)}"` : '';
       const who = String(p.by || '').trim();
-      if (!who) return `<blockquote ${at}${from} ${cx('pagecraft-quote')}>${said}</blockquote>`;
+      if (!who) return `<blockquote ${at()}${from} ${cx('pagecraft-quote')}>${said}</blockquote>`;
       const named = url ? `<a href="${esc(url)}">${esc(who)}</a>` : esc(who);
-      return `<figure ${at} ${cx('pagecraft-quote')}>`
+      return `<figure ${at()} ${cx('pagecraft-quote')}>`
         + `<blockquote${from}>${said}</blockquote>`
         + `<figcaption class="pagecraft-attrib">${named}</figcaption></figure>`;
     }
@@ -8854,13 +8892,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at()} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
+      if (ihref) return `<a ${at()} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
-      const box = `${at} ${cx('pagecraft-video')} style="aspect-ratio:${esc(p.ratio || '16 / 9')}"`;
+      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(p.ratio || '16 / 9')}"`;
       if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
       return `<div ${box} data-facade>`
@@ -8878,7 +8916,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? `href="${esc(bhref)}"${p.target === '_blank' ? ' target="_blank"' : ''}${rel.length ? ` rel="${esc(rel.join(' '))}"` : ''}`
         : 'type="button"';
       const variant = ['outline', 'ghost', 'link'].includes(String(p.variant)) ? String(p.variant) : 'solid';
-      return `<${tag} ${at} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
       const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === 'component' && state.ui.cedit
@@ -8887,7 +8925,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? (o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner!.node.props.items as NavItem[] : []))
         : (Array.isArray(p.items) ? p.items as NavItem[] : []);
       const name = esc(p.aria || 'Main');
-      const mid = domId + '-menu';
+      const mid = domId() + '-menu';
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || ''))
         ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : '';
       const keyed = new Map(items.filter(it => it.id).map(it => [String(it.id), it]));
@@ -8912,7 +8950,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
           + (nested ? `<ul class="sub-menu">${nested}</ul>` : '') + `</li>`;
       }).join('');
       if (p.managedMobileLinks) {
-        return `<div ${at} ${cx('pagecraft-nav-menu pagecraft-mobile-nav-links')}>`
+        return `<div ${at()} ${cx('pagecraft-nav-menu pagecraft-mobile-nav-links')}>`
           + `<ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf('', new Set())}</ul></div>`;
       }
       /* A component-root Nav reads its definition props through `p`; the instance shell may
@@ -8924,7 +8962,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
       } : null;
       const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined, mobileMenuItems: items })}</div>` : '';
-      return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
+      return `<nav ${at()} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
         + childrenOf('', new Set())
@@ -8934,7 +8972,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const fields = Array.isArray(p.fields) ? p.fields : [];
       const enhancedControls = fields.some(f => f.type === 'date' || f.type === 'select');
       const controlsAttr = enhancedControls ? ' data-pagecraft-controls' : '';
-      const fid = (i: number) => domId + '-f' + i;
+      const fid = (i: number) => domId() + '-f' + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
       const handling = resolveFormHandling(p, formId);
       const act = handling.action;
@@ -8973,8 +9011,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
           + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${dateAttr}${dateEdit}${req}${ph}${disabled}></div>`;
       }).join('');
       if (!act) {
-        const status = domId + '-status';
-        return `<div ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled${controlsAttr}>`
+        const status = domId() + '-status';
+        return `<div ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled${controlsAttr}>`
           + body
           + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
           + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
@@ -8982,7 +9020,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       }
       const managed = handling.kind === 'wordpress'
         ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
-      return `<form ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}>`
+      return `<form ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}>`
         + getQueryFields + body
         + (handling.kind === 'cloud' ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '')
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
@@ -8998,7 +9036,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       /* Nothing on the front page. A breadcrumb there points at the page it is on, which
          is what "you are here" already says — and search engines ask for it to be left off. */
       if (!trail.length || (!manual && o.pg && isFront(o.pg) && trail.length < 2)) return o.edit
-        ? `<nav ${at} ${cx('pagecraft-crumbs')}><div class="s-empty">${svg('crumbs', 12)}`
+        ? `<nav ${at()} ${cx('pagecraft-crumbs')}><div class="s-empty">${svg('crumbs', 12)}`
           + (manual ? ' Add a crumb in the panel' : ' The front page shows no trail') + '</div></nav>' : '';
       const li = trail.map((c, i) => {
         const last = i === trail.length - 1;
@@ -9016,13 +9054,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       }).join('');
       /* The separator is a `data-sep` for CSS to draw, never a character in the markup: a
          screen reader should read the trail, not the punctuation between it. */
-      return `<nav ${at} ${cx('pagecraft-crumbs')} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || 'chevron'))}">`
+      return `<nav ${at()} ${cx('pagecraft-crumbs')} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || 'chevron'))}">`
         + `<ol>${li}</ol></nav>`;
     }
     case 'code': {
       const src = String(p.body == null ? '' : p.body);
       if (!src.trim()) return o.edit
-        ? `<div ${at} ${cx('pagecraft-code')}><div class="s-empty">${svg('codeblock', 12)} Paste the code in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-code')}><div class="s-empty">${svg('codeblock', 12)} Paste the code in the panel</div></div>` : '';
       const lang = String(p.lang || 'text');
       let inner = codeSpans(src, lang);
       /* No token straddles a newline, so numbering is a safe split — and it is only paid
@@ -9036,13 +9074,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : '';
       /* `language-x` is the class every other tool in this world reads, so a page whose
          code came from here still looks like code to whatever reads it next. */
-      return `<figure ${at} ${cx('pagecraft-code')}${p.softwrap ? ' data-wrap' : ''}${p.numbers ? ' data-numbers' : ''}>`
+      return `<figure ${at()} ${cx('pagecraft-code')}${p.softwrap ? ' data-wrap' : ''}${p.numbers ? ' data-numbers' : ''}>`
         + head + `<pre><code class="language-${esc(lang)}">${inner}</code></pre></figure>`;
     }
     case 'table': {
       const grid = tableGrid(p.body);
       if (!grid.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-table-wrap')}><div class="s-empty">${svg('plus', 12)} Paste or type the rows in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-table-wrap')}><div class="s-empty">${svg('plus', 12)} Paste or type the rows in the panel</div></div>` : '';
       const cap = String(p.caption == null ? '' : p.caption).trim();
       const head = p.head && grid.length > 1 ? grid[0] : null;
       const rows = head ? grid.slice(1) : grid;
@@ -9055,7 +9093,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const tbody = `<tbody>${rows.map(r => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody>`;
       /* A table cannot scroll — its wrapper does. Wide content that pushes the whole page
          sideways is the one layout failure a reader cannot work around. */
-      return `<div ${at} ${cx('pagecraft-table-wrap')}>`
+      return `<div ${at()} ${cx('pagecraft-table-wrap')}>`
         + `<table class="pagecraft-table" data-rules="${esc(String(p.rules || 'rows'))}"${p.zebra ? ' data-zebra' : ''}>`
         + (cap ? `<caption>${esc(cap)}</caption>` : '')
         + thead + tbody + '</table></div>';
@@ -9063,12 +9101,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'tabs': {
       const rows = Array.isArray(p.items) ? p.items as TabPanel[] : [];
       if (!rows.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
       /* While the widget is selected every panel shows, so all of them can be read and
          restyled — the same reason the accordion opens and the burger unfolds. */
       const all = o.edit && state.ui.sel === n.id;
-      const tid = (k: number) => `${domId}-t${k}`;
-      const pid = (k: number) => `${domId}-p${k}`;
+      const tid = (k: number) => `${domId()}-t${k}`;
+      const pid = (k: number) => `${domId()}-p${k}`;
       /* `role=tab` with aria-selected and aria-controls, and the panels labelled back: a tab
          strip a screen reader cannot follow is a row of unexplained links. */
       const strip = rows.map((it, k) =>
@@ -9080,17 +9118,17 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"`
         + `${(k === 0 || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${para(it.panel)}</div>`
       ).join('');
-      return `<div ${at} ${cx('pagecraft-tabs')} data-tabs>`
+      return `<div ${at()} ${cx('pagecraft-tabs')} data-tabs>`
         + `<div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
     }
     case 'accordion': {
       const items = Array.isArray(p.items) ? p.items : [];
       if (!items.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-accordion')}><div class="s-empty">${svg('plus', 12)} Add a question in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-accordion')}><div class="s-empty">${svg('plus', 12)} Add a question in the panel</div></div>` : '';
       /* One shared name is what makes exclusive opening native. It also means only
          one panel may carry `open`, so "all open" and "one at a time" cannot both
          be honoured — the toggle wins, and the first panel is the one left open. */
-      const grp = p.single ? ` name="${domId}-ac"` : '';
+      const grp = p.single ? ` name="${domId()}-ac"` : '';
       const mark = p.marker === 'none' ? '' : '<span class="pagecraft-accordion-mark" aria-hidden="true"></span>';
       /* While the accordion is selected every panel is opened, so the answers can
          be read and restyled. The same reason the burger menu unfolds when selected. */
@@ -9102,7 +9140,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
           + `<summary class="pagecraft-accordion-q"><span>${esc(String(it.q == null ? '' : it.q)).replace(/\n/g, ' ')}</span>${mark}</summary>`
           + `<div class="pagecraft-accordion-a">${para(it.a)}</div></details>`;
       }).join('');
-      return `<div ${at} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
+      return `<div ${at()} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
     }
     case 'embed': {
       /* Static markup is an owner's explicit integration. A CMS/component binding is editable
@@ -9112,8 +9150,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : '';
       const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
       if (!raw.trim()) return o.edit
-        ? `<div ${at} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
-      if (!o.edit && !o.canvas) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+        ? `<div ${at()} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
+      if (!o.edit && !o.canvas) return `<div ${at()} ${cx(ecls)}${ar}>${raw}</div>`;
       /* Preview draws on the canvas, which is the editor's origin. The embed gets a frame of its
          own there, sandboxed without allow-same-origin, so nothing in it can reach the editor,
          its session or its API. The canvas policy still holds inside the frame, so the embed's
@@ -9125,13 +9163,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
           + (p.ratio ? 'html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}' : '');
         const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + '</style>'
           + raw + (p.ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
-        return `<div ${at} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
+        return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
           + `${p.ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
       }
       const { html, stripped } = stripScripts(raw);
       const note = stripped
         ? `<div class="s-held">${stripped} script${stripped === 1 ? '' : 's'} held back here — ${stripped === 1 ? 'it runs' : 'they run'} on the exported page</div>` : '';
-      return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
+      return `<div ${at()} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case 'icon': {
       const nm = p.name && ICON_PATHS[p.name] ? p.name : 'check';
@@ -9141,14 +9179,14 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          the label becomes the link's name and the glyph goes hidden. Unlinked, the
          glyph carries the label itself — or is hidden when there is none, which is
          the right answer for an icon sitting beside text that already says it. */
-      if (ihref2) return `<a ${at} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${blank}`
+      if (ihref2) return `<a ${at()} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${blank}`
         + `${lab ? ` aria-label="${esc(lab)}"` : ''}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
-      return iconSvg(nm, `${at} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
+      return iconSvg(nm, `${at()} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case 'gallery': {
       const shown = (Array.isArray(p.items) ? p.items as GalleryTile[] : []).filter(Boolean);
       if (!shown.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : '';
       const tiles = shown.map((it, k) => {
         const dim = (it.w && it.h) ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : '';
@@ -9166,16 +9204,26 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         return `<figure class="pagecraft-gallery-item">${frame}`
           + `${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ''}</figure>`;
       }).join('');
-      return `<div ${at} ${cx('pagecraft-gallery' + (p.ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
+      return `<div ${at()} ${cx('pagecraft-gallery' + (p.ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
         + `${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
     }
-    case 'spacer': return `<div ${at} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
-    case 'divider': return `<hr ${at} ${cx('pagecraft-divider')}>`;
+    case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
+    case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
   return '';
 }
 
-const renderList = (list: PcNode[], o: RenderOpts) => list.map(n => renderNode(n, o)).join('');
+const renderList = (list: PcNode[], o: RenderOpts): string => !o.edit && !o.publicIds
+  ? renderPublicLists([list], o)[0] : list.map(n => renderNode(n, o)).join('');
+/** Render separate public regions as one page. Reservation uses the same renderer so omitted
+    branches, slots and CMS items cannot claim an anchor they never actually emit. */
+function renderPublicLists(lists: PcNode[][], o: RenderOpts): string[] {
+  const publicIds = { reserving: true, reserved: new Set<string>(), used: new Set<string>() };
+  const options = { ...o, edit: false, publicIds };
+  for (const list of lists) renderList(list, options);
+  publicIds.reserving = false;
+  return lists.map(list => renderList(list, options));
+}
 
 
 /* ============================================================== presets */
@@ -9560,9 +9608,10 @@ function buildPage(pg: Page, ctx: {
   eachNode(allNodes, n => occupied.add(domIdOf(n)));
   let mainId = 'pagecraft-main';
   while (occupied.has(mainId)) mainId += '-content';
-  const header = demoteMainTags(renderList(state.header, o));
-  const pageBody = demoteMainTags(renderList(pg.tree, o));
-  const footer = demoteMainTags(renderList(state.footer, o));
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([state.header, pg.tree, state.footer], o);
+  const header = demoteMainTags(headerHtml);
+  const pageBody = demoteMainTags(pageHtml);
+  const footer = demoteMainTags(footerHtml);
   const main = `<main id="${mainId}" class="pagecraft-main">${pageBody}</main>`;
   const body = SHARED_HEADER_START + header + SHARED_HEADER_END
     + main
@@ -9931,7 +9980,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

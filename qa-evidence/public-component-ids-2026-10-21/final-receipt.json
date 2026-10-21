@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-21T10:54:30.684646+00:00",
+  "base": "c084430dedeeda019f662afe13b640eea07963ac",
+  "frozenSourceTestsAssets": "all 9 entries unchanged",
+  "deterministicGenerated": "11/11 artifacts byte-identical across two final builds",
+  "baseline": "root recorded --reviewed; check24images/28sources pass",
+  "finalSuite": "237 files / 2555 tests pass, 2 files / 5 tests skipped",
+  "sha256": {
+    "public/internal-ui-baselines/manifest.json": "1b397a5a7cf7c5bd3c0381d4350c60d1add67520da866279ec8ade8a7c081d9f",
+    "qa-evidence/public-component-ids-2026-10-21/source-tests-assets.sha256": "17bde896337add6f77611801935c0f5ac0c0d27fe7ab190565ca9956045f9929",
+    "qa-evidence/public-component-ids-2026-10-21/generated-build-1.sha256": "7c7480dd1c56be82143ab350ee6121b69b409d03a77a4acc77dac615e03b93e0",
+    "qa-evidence/public-component-ids-2026-10-21/generated-build-2.sha256": "7c7480dd1c56be82143ab350ee6121b69b409d03a77a4acc77dac615e03b93e0",
+    "qa-evidence/public-component-ids-2026-10-21/logs/full-final.log": "18bc8f412947fa0656b1e0f650040254a9dfc60f52ae6c5791759f8805a9184d",
+    "qa-evidence/public-component-ids-2026-10-21/logs/baseline-final.log": "95c49783a43d1e1bd1a67cde78ff0bdd7e8a1e4d2acecc18b3516d47d54c9e38",
+    "qa-evidence/public-component-ids-2026-10-21/native/native-acceptance.json": "5122c9c3f41c67430be9a5b9d8f78fa978f8bda7046bd241a0f79ed41a512ccd",
+    "qa-evidence/public-component-ids-2026-10-21/gallery/capture.json": "474a1865a37682f630f5fcb645cdbba0543a18de2e9fe60b73676f1750b03b6c",
+    "qa-evidence/public-component-ids-2026-10-21/gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d"
+  }
+}

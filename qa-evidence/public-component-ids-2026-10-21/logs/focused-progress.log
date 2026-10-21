@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430
+
+ ❯ tests/public-component-ids.test.ts (10 tests | 1 failed) 138ms
+   × standalone compiler keeps the same full-page public identity map without mutating the open document 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/public-component-ids.test.ts > standalone compiler keeps the same full-page public identity map without mutating the open document
+PagecraftCompilerError: The selected fonts returned no usable font files. Retry or choose another font.
+ ❯ wordpressFontCss packages/editor/src/compiler.ts:242:11
+    240|   const faces = Core.parseFontCss(await response.text());
+    241|   if (!faces.length) {
+    242|     throw new PagecraftCompilerError('font_parse_failed', 'The selecte…
+       |           ^
+    243|   }
+    244|   return Core.fontFaceCss(faces, face => face.url) + '\n';
+ ❯ compileIsolated packages/editor/src/compiler.ts:290:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 17 passed (18)
+   Start at  15:15:21
+   Duration  951ms (transform 435ms, setup 0ms, import 516ms, tests 165ms, environment 890ms)

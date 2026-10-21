@@ -1,0 +1,39 @@
+{
+  "commit": "c084430dedeeda019f662afe13b640eea07963ac",
+  "desktop": {
+    "path": "Section\n›\nRow · 1 col\n›\nQA nested ownership staging 2026-10-21",
+    "dom": {
+      "dataId": null,
+      "height": 24,
+      "id": "nxm16k4e-ayd5k243",
+      "owner": "nayd5k243"
+    }
+  },
+  "mobile": {
+    "dataId": null,
+    "id": "nxm16k4e-xmgw5567",
+    "owner": "nxmgw5567",
+    "selected": true,
+    "width": 414
+  },
+  "editorIds": {
+    "count": 52,
+    "unique": 52
+  },
+  "savedReload": [
+    {
+      "dataId": null,
+      "id": "nxm16k4e-ayd5k243",
+      "owner": "nayd5k243"
+    },
+    {
+      "dataId": null,
+      "id": "nxm16k4e-xmgw5567",
+      "owner": "nxmgw5567"
+    }
+  ],
+  "source": "Component variant\nDefault\nSave as variant\nBack to the defaults\nOne value is set on this instance.\nRich text\nRich text\nEdit on canvas",
+  "restoredHistory": 1029,
+  "originalIdsExact": true,
+  "originalStylesExact": true
+}

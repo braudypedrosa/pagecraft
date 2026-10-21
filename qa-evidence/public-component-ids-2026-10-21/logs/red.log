@@ -1,0 +1,96 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430
+
+ ❯ tests/public-component-ids.test.ts (5 tests | 4 failed) 18ms
+   × generated nested collisions gain stable placement paths while the first legacy ID and top-level IDs stay canonical 13ms
+   × omitted outer conditions and their descendants do not consume canonical IDs or reserve authored anchors 2ms
+   × later authored anchors are reserved and literal fragment destinations keep their meaning 2ms
+   × independent renderNode and renderList calls start deterministic fresh allocation sessions 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/public-component-ids.test.ts > generated nested collisions gain stable placement paths while the first legacy ID and top-level IDs stay canonical
+AssertionError: expected 8 to be 16 // Object.is equality
+
+- Expected
++ Received
+
+- 16
++ 8
+
+ ❯ unique tests/public-component-ids.test.ts:8:76
+      6| beforeEach(()=>{f=nestedOwnerFixture();document.body.replaceChildren()…
+      7| const ids=(html:string)=>{document.body.innerHTML=html;return [...docu…
+      8| const unique=(html:string)=>{const all=ids(html);expect(new Set(all).s…
+       |                                                                            ^
+      9|
+     10| test('generated nested collisions gain stable placement paths while th…
+ ❯ tests/public-component-ids.test.ts:11:70
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/public-component-ids.test.ts > omitted outer conditions and their descendants do not consume canonical IDs or reserve authored anchors
+AssertionError: expected 7 to be 8 // Object.is equality
+
+- Expected
++ Received
+
+- 8
++ 7
+
+ ❯ unique tests/public-component-ids.test.ts:8:76
+      6| beforeEach(()=>{f=nestedOwnerFixture();document.body.replaceChildren()…
+      7| const ids=(html:string)=>{document.body.innerHTML=html;return [...docu…
+      8| const unique=(html:string)=>{const all=ids(html);expect(new Set(all).s…
+       |                                                                            ^
+      9|
+     10| test('generated nested collisions gain stable placement paths while th…
+ ❯ tests/public-component-ids.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/public-component-ids.test.ts > later authored anchors are reserved and literal fragment destinations keep their meaning
+AssertionError: expected 8 to be 10 // Object.is equality
+
+- Expected
++ Received
+
+- 10
++ 8
+
+ ❯ unique tests/public-component-ids.test.ts:8:76
+      6| beforeEach(()=>{f=nestedOwnerFixture();document.body.replaceChildren()…
+      7| const ids=(html:string)=>{document.body.innerHTML=html;return [...docu…
+      8| const unique=(html:string)=>{const all=ids(html);expect(new Set(all).s…
+       |                                                                            ^
+      9|
+     10| test('generated nested collisions gain stable placement paths while th…
+ ❯ tests/public-component-ids.test.ts:31:2
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/public-component-ids.test.ts > independent renderNode and renderList calls start deterministic fresh allocation sessions
+AssertionError: expected 7 to be 8 // Object.is equality
+
+- Expected
++ Received
+
+- 8
++ 7
+
+ ❯ unique tests/public-component-ids.test.ts:8:76
+      6| beforeEach(()=>{f=nestedOwnerFixture();document.body.replaceChildren()…
+      7| const ids=(html:string)=>{document.body.innerHTML=html;return [...docu…
+      8| const unique=(html:string)=>{const all=ids(html);expect(new Set(all).s…
+       |                                                                            ^
+      9|
+     10| test('generated nested collisions gain stable placement paths while th…
+ ❯ tests/public-component-ids.test.ts:43:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  15:07:13
+   Duration  860ms (transform 194ms, setup 0ms, import 228ms, tests 18ms, environment 509ms)

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-21T05:16:56.360Z",
+  "capturedAt": "2026-10-21T10:46:09.879Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": true,
-        "dark": false
+        "light": false,
+        "dark": true
       }
     },
     "browserCommandLine": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "7ad943c4c05d57295f50f3bc5e380ed5675fb0d328a9088bfda1e4319c7f55de",
+    "builder.html": "8c457401e379722f74fd4d0d2779213775c20f457f14b92e99d85987c6a27e81",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
