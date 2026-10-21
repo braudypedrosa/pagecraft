@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-condition-owner-1827aaf
+
+(node:76655) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76789) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:77077) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  230 passed | 2 skipped (232)
+      Tests  2503 passed | 5 skipped (2508)
+   Start at  10:14:20
+   Duration  124.22s (transform 4.38s, setup 0ms, import 40.89s, tests 149.45s, environment 26.46s)

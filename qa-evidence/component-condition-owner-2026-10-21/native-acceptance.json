@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-21",
+  "url": "http://localhost:4962/edit/s1",
+  "tabId": "2",
+  "actions": "Native builder controls only",
+  "rootCanvasSelection": true,
+  "sourceProperty": "Heading text",
+  "condition": "has a value",
+  "instanceAction": "Edit component condition",
+  "actionOpenedDefinitionRootAdvanced": true,
+  "sourcePublicId": "pagecraft-heading-iqge21yi",
+  "unconditionalInstance": {
+    "conditionAction": 0,
+    "conditionEditor": 0,
+    "visibilitySwitches": 3
+  },
+  "limitations": [
+    "Ordinary CMS controls covered by focused UI regression; further native CMS scenarios remain in wider QA queue."
+  ],
+  "cpuThrottlingUsed": false,
+  "networkThrottlingUsed": false,
+  "savedReloadPreservedSourceRoute": true,
+  "mobile": {
+    "ownerAction": true,
+    "rootCanvasSelection": true
+  }
+}

@@ -558,6 +558,27 @@ function ComponentProps({ n }: { n: PcNode }) {
    and a property of the component being edited. Both, when both apply. Nothing to offer means
    the control is not drawn: a condition with no value to test is a switch that does nothing. */
 function ShowIf({ n }: { n: PcNode }) {
+  /* An instance inherits its rendered condition from the definition root. Older documents can
+     still carry a cloned `showIf` on the placement, but editing that copy has no effect. Point
+     authors at the one condition the renderer owns, without rewriting either object. */
+  if (n.use) {
+    const definition = C.findComponent(n.use);
+    if (!definition?.node.showIf) return null;
+    const openDefinition = () => {
+      C.state.ui.stab = 'advanced';
+      L.editComponent(definition.id);
+      L.select(definition.node.id, { scroll: false });
+    };
+    return (
+      <div class="f">
+        <label>Condition</label>
+        <button type="button" class="btn block component-condition-owner"
+          title="This condition belongs to the component definition" onClick={openDefinition}>
+          Edit component condition
+        </button>
+      </div>
+    );
+  }
   const scope = C.bindScope(n.id);
   const cd = C.state.ui.mode === 'component' ? C.findComponent(C.state.ui.cedit) : null;
   const fields = scope ? C.fieldPaths(scope.col) : [];

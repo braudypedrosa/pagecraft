@@ -1,0 +1,173 @@
+{
+  "date": "2026-10-21",
+  "timezone": "Asia/Manila",
+  "status": "local candidate accepted natively and in gallery; final automated suite passes; integration pending",
+  "baseCommit": "1827aaf4201a1620a9f0f35564ed5d22f0ab645b",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-condition-owner-1827aaf",
+  "scope": {
+    "source": [
+      "app/src/ui/inspector/Inspector.tsx",
+      "app/src/core/index.ts"
+    ],
+    "tests": [
+      "tests/component-condition-owner.test.tsx",
+      "tests/component-lockbar-hit-testing.test.ts"
+    ],
+    "summary": "Route inert instance condition editing to its source definition; allow native canvas selection through the non-interactive active editing badge."
+  },
+  "behavior": [
+    "A conditioned component instance shows Condition and Edit component condition.",
+    "The action opens the referenced definition, selects its root and shows Advanced.",
+    "An instance whose definition root has no condition shows no inert condition control.",
+    "Legacy condition clones remain stored and are not edited or deleted by navigation.",
+    "Breakpoint Hide controls, definition property conditions and ordinary CMS field conditions remain available.",
+    "An active component-editing badge remains visible on hover but does not intercept root selection.",
+    "Locked region Edit controls remain interactive; public CSS has no editor lockbar rule."
+  ],
+  "checks": {
+    "redProof": {
+      "result": "failed before the fix as expected",
+      "detail": "The component instance had no source-owned condition action.",
+      "log": "logs/focused-red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "filesPassed": 5,
+      "testsPassed": 25,
+      "log": "logs/focused-combined-final.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck-combined-final.log"
+    },
+    "impeccableDetector": {
+      "result": "one unchanged false positive",
+      "findings": 1,
+      "detail": "Core line 5390 security documentation contains the literal <img onerror>; no actual img tag or changed-line finding. Inspector has no finding.",
+      "log": "logs/impeccable-detector-combined.json"
+    },
+    "fullSuiteBeforeGalleryReview": {
+      "result": "expected single gate failure",
+      "filesPassed": 231,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2505,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 125.48,
+      "onlyFailure": "tests/ui-baselines.test.mjs requires root-owned fresh review because Inspector.tsx changed",
+      "log": "logs/full-combined-max-workers-2-pre-gallery.log"
+    },
+    "deterministicBuild": {
+      "result": "pass",
+      "artifacts": 11,
+      "hashDiffBytes": 0,
+      "hashes": "generated-combined-build-2.sha256",
+      "diff": "generated-combined-determinism.diff",
+      "logs": [
+        "logs/editor-build-combined-1.log",
+        "logs/editor-build-combined-2.log"
+      ]
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/demo-combined.log"
+    },
+    "uiBaselineGate": {
+      "result": "pass after root-owned recording",
+      "images": 24,
+      "sourceFiles": 28
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check-combined.log"
+    },
+    "qaHarness": {
+      "result": "restarted with parent authorization after final builds",
+      "url": "http://localhost:4962/edit/s1",
+      "httpStatus": 200,
+      "pid": 8983,
+      "sessionId": 31230,
+      "fixture": "fictional in-memory; old tab74 fixture lost on interrupted server; root recreates through native UI",
+      "fixtureRecovery": "Earlier agent tabs, including old WordPress tab52, were absent after interruption; this continuation did not close them. Old WordPress draft remains unrecovered in root durable handoff. Root recreated disposable native fixture."
+    },
+    "nativeAcceptance": {
+      "result": "pass, root-owned built-in browser",
+      "evidence": "native-acceptance.json",
+      "screenshots": [
+        "native-definition-condition.png",
+        "native-instance-condition.png"
+      ],
+      "confirmedByRoot": [
+        "Native canvas selects the definition root through the active editing badge.",
+        "Source property condition is editable.",
+        "Instance action routes to the correct definition root in Advanced.",
+        "Unconditional instance hides both condition controls and retains three visibility switches.",
+        "Real reload preserves the source-owned route.",
+        "Mobile instance action routes to source Advanced.",
+        "Mobile native canvas click selects the source root."
+      ],
+      "limitation": "Ordinary CMS conditions remain focused-regression coverage; broader native CMS scenarios remain in the wider QA queue.",
+      "cleanup": "Root confirmed CPU rate 1 reset success on owner and gallery tabs; gallery viewport and media emulation restored."
+    },
+    "gallery": {
+      "result": "pass, root reviewed and recorded",
+      "captures": 24,
+      "behaviorChecks": 30,
+      "thresholdComparisonsPassed": 24,
+      "exactComparison": "23 byte/pixel-identical; builder-fields-1440 has 38 changed pixels at x302 y304 w2 h19, accepted as blinking caret only",
+      "evidence": [
+        "gallery/capture.json",
+        "gallery/diffs/results.json",
+        "gallery-exact-comparison.json",
+        "gallery-exact-contact-sheet.png",
+        "gallery-cleanup.json"
+      ],
+      "attemptProvenance": "Initial cloud-only behavior attempt passed 14/15: adapter lacked clickAt. Root corrected the test adapter and reran fresh, passing all 30 checks. This was harness-only; no product change."
+    },
+    "fullSuiteFinalReviewed": {
+      "result": "pass",
+      "filesPassed": 232,
+      "filesSkipped": 2,
+      "testsPassed": 2506,
+      "testsSkipped": 5,
+      "durationSeconds": 156.72,
+      "maxWorkers": 2,
+      "log": "logs/full-combined-final-reviewed.log",
+      "notes": "No rebuild or source change after root gallery recording."
+    }
+  },
+  "hashes": {
+    "app/src/ui/inspector/Inspector.tsx": "62ff5dbcb19fcab6513ec3addfe1d93b87ee349db6758d2503c83c431695ea5a",
+    "app/src/core/index.ts": "4e8c05393269b147718cfc121e0da02c0cf881d8a60e787daa69b0ea90adccf8",
+    "tests/component-condition-owner.test.tsx": "2183908ab52b52350d4bce92aff9f5ceffb8b3033100c976d35dc20322b543ba",
+    "tests/component-lockbar-hit-testing.test.ts": "1e6341711d292e69ee8309fb64c6f50afda7405097b0eaa0aa9b654b7c8ad349",
+    "index.html": "a687e3c61879252618ec168ff76f1caf48d8a65a0f3873bb4f59636232efee77",
+    "packages/editor/dist/editor.html": "d7a97649651f44eb20cfec6c64f6a7f0a38b249a3e8a3e158ede5b7ab15f3ec4",
+    "dist/core.cjs": "65b2a5f83301e655aabe80c3db2f85104119cae18944e7ebf43c30bad6a56899"
+  },
+  "generated": {
+    "deterministicSnapshot": "generated-combined-build-2.sha256",
+    "changedFromBase": [
+      "dist/core.cjs",
+      "index.html",
+      "packages/editor/dist/editor.html"
+    ],
+    "excludeFromIntegration": [
+      "dist/demo/index.html",
+      "tools/.qa-ui-4962.mjs",
+      "packages/editor/dist/compiler.js",
+      "packages/editor/dist/compiler-worker.js"
+    ]
+  },
+  "dependencies": "No install was performed. node_modules is a local symlink to an existing checkout with the identical package-lock.json SHA-256.",
+  "delivery": "Isolated local candidate. Worker did not change Main, WordPress, baseline, commit, push, deployment or database. Root performed native acceptance and reviewed/recorded the gallery baseline. Source/test/artifact hashes preserved.",
+  "remaining": [
+    "Root-owned integration and release decisions.",
+    "Wider customer QA remains open; this candidate does not establish overall production readiness."
+  ]
+}

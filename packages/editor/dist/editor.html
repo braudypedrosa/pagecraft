@@ -11126,6 +11126,8 @@ ${m.css || ""}
 }
 /* wayfinding, not furniture \u2014 revealed on hover so it stays out of the way */
 .s-region:hover>.s-lockbar{opacity:1;pointer-events:auto}
+/* the active badge names the component but has no action; let canvas clicks reach its root */
+.s-region[data-state=edit]:hover>.s-lockbar{pointer-events:none}
 /* nothing stays pinned over the canvas \u2014 the way out lives in the chrome */
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
@@ -22546,6 +22548,28 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] }) });
   }
   function ShowIf({ n: n2 }) {
+    if (n2.use) {
+      const definition = C2.findComponent(n2.use);
+      if (!definition?.node.showIf) return null;
+      const openDefinition = () => {
+        C2.state.ui.stab = "advanced";
+        L2.editComponent(definition.id);
+        L2.select(definition.node.id, { scroll: false });
+      };
+      return /* @__PURE__ */ u2("div", { class: "f", children: [
+        /* @__PURE__ */ u2("label", { children: "Condition" }),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "btn block component-condition-owner",
+            title: "This condition belongs to the component definition",
+            onClick: openDefinition,
+            children: "Edit component condition"
+          }
+        )
+      ] });
+    }
     const scope = C2.bindScope(n2.id);
     const cd = C2.state.ui.mode === "component" ? C2.findComponent(C2.state.ui.cedit) : null;
     const fields = scope ? C2.fieldPaths(scope.col) : [];

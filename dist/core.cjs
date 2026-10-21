@@ -9369,6 +9369,8 @@ ${m.css || ""}
 }
 /* wayfinding, not furniture \u2014 revealed on hover so it stays out of the way */
 .s-region:hover>.s-lockbar{opacity:1;pointer-events:auto}
+/* the active badge names the component but has no action; let canvas clicks reach its root */
+.s-region[data-state=edit]:hover>.s-lockbar{pointer-events:none}
 /* nothing stays pinned over the canvas \u2014 the way out lives in the chrome */
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
