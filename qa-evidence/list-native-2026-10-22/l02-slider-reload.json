@@ -1,0 +1,44 @@
+{
+  "listSliderControl83": {
+    "layout": "Slider",
+    "wrapCount": 0
+  },
+  "listSliderReload83": [
+    {
+      "class": "pagecraft-list pagecraft-slider pagecraft-asusy6gh",
+      "clientWidth": 1200,
+      "count": 18,
+      "device": "Desktop",
+      "overflowX": "auto",
+      "pageOverflow": false,
+      "role": "group",
+      "scrollWidth": 22008,
+      "slider": true,
+      "wrap": "nowrap"
+    },
+    {
+      "class": "pagecraft-list pagecraft-slider pagecraft-asusy6gh",
+      "clientWidth": 786,
+      "count": 18,
+      "device": "Tablet",
+      "overflowX": "auto",
+      "pageOverflow": false,
+      "role": "group",
+      "scrollWidth": 14556,
+      "slider": true,
+      "wrap": "nowrap"
+    },
+    {
+      "class": "pagecraft-list pagecraft-slider pagecraft-asusy6gh",
+      "clientWidth": 374,
+      "count": 18,
+      "device": "Mobile",
+      "overflowX": "auto",
+      "pageOverflow": false,
+      "role": "group",
+      "scrollWidth": 7072,
+      "slider": true,
+      "wrap": "nowrap"
+    }
+  ]
+}

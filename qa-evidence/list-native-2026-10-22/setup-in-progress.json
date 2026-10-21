@@ -1,0 +1,18 @@
+{
+  "status": "partial; not acceptance",
+  "fixture": "http://localhost:4976/edit/s1",
+  "nodeId": "nasusy6gh",
+  "sourceLabel": "Community workshops, events and accessibility resources · 27 items",
+  "publishedRepeatedHeadings": 18,
+  "headingId": "nb3u6i8jw",
+  "nativeFlow": [
+    "Add Collection",
+    "Select collection",
+    "Bind fields while empty shows add Heading/Image/Text guidance",
+    "Select List and Add Heading inserts into repeatable template Column"
+  ],
+  "limits": [
+    "Binding not yet completed",
+    "Remaining L01-L08 cases not tested"
+  ]
+}

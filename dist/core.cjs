@@ -4302,7 +4302,9 @@ var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
   if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
-  if (type === "list" && !leaf.children.length) leaf.children.push(N("column"));
+  if (type === "list" && !leaf.children.length) {
+    leaf.children.push(N("column", {}, { d: { "flex-basis": "280px" }, m: { "flex-basis": "100%" } }));
+  }
   if (slotlessInstance(parentNode)) return dropTree(leaf, parentNode.id);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();

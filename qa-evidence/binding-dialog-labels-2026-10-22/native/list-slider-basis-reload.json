@@ -1,0 +1,29 @@
+[
+  {
+    "cardWidth": 1200,
+    "computedBasis": "100%",
+    "device": "Desktop",
+    "items": 18,
+    "overflowX": "auto",
+    "pageOverflow": false,
+    "slider": true
+  },
+  {
+    "cardWidth": 775,
+    "computedBasis": "100%",
+    "device": "Tablet",
+    "items": 18,
+    "overflowX": "auto",
+    "pageOverflow": false,
+    "slider": true
+  },
+  {
+    "cardWidth": 363,
+    "computedBasis": "100%",
+    "device": "Mobile",
+    "items": 18,
+    "overflowX": "auto",
+    "pageOverflow": false,
+    "slider": true
+  }
+]

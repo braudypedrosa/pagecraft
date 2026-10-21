@@ -1,0 +1,85 @@
+{
+  "base": "f70e9ad7f309a1dd33323907664009bfaa99b082",
+  "protectedWorkingBytes": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "all11Preserved": true,
+  "method": "Generated8 staged index-only from reviewed candidate; no Main build or working artifact overwrite.",
+  "normalizedLogs": [
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/diff-combined.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/focused-combined.log",
+      "original": "4f0ee7a216ed300c91b5133e92282dc24079a0d5bd8f15bd4d1b805a85f517d2",
+      "normalized": "9e8bb7c43c66281dc90ba17ed6f723de45a7cc910e2e964c778e03b764a1d0d0"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/related-core.log",
+      "original": "087c0567960c4990c8887db222e19ebc7f401c2b34257875fdf321f08453640b",
+      "normalized": "7e9a59a6b5e5fe56f7081920453e4f05ced0eb146d62182e51bdf657a442779f"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/related-core-combined.log",
+      "original": "bf383d0d33251b1442b9476c213968e3fe0b45c097cc7b54b06559b5c135387f",
+      "normalized": "1c59b183ad0d149becfdff91b02ffcc1203e5134d89ee10cbc752bc901f72625"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/typecheck-combined.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/diff-final.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/focused-combined-incomplete.log",
+      "original": "36fb0e60e9d3c99ac9f1c000637f0237dc747ca09842c9e13ce3537831cce302",
+      "normalized": "d161b6a01f05674d22f0ccdc04a08f7199687d7314f5f1a69fb909fe5178c3c6"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/full-final.log",
+      "original": "8e6878686bbe2bbbc8f5d2293accf602916ceeaeddd4ed168a75218dd03404fa",
+      "normalized": "c4127eee5a999b844743873460c562edb59538b623856d867eaa7dd2383e6b2b"
+    },
+    {
+      "path": "qa-evidence/binding-dialog-labels-2026-10-22/logs/focused.log",
+      "original": "7056fd8ca2a3bdeabf9d149e59e08bc6d407e8e1378928adc3c43051514fe360",
+      "normalized": "bb2b1c19d2c92f29b9c5aa2568c2649eaedcd531f91deee922370f63a41f6022"
+    }
+  ],
+  "generatedSHA256": {
+    "index.html": "4a364e6a5c11ace8de90cd931a090a37a428efe385cf0789626d1eda98875b1b",
+    "dist/core.cjs": "0574a5a567b359916adc6bb1edfa6016de45b141a1762c85ef03d291cf9ae587",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "1fe7e85c2e3650a98a5b0676cec1454dfe480369ef0824b408bafebcca62421f",
+    "packages/editor/dist/runtime.js": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3766db06702f2281ad1d094e74716e2caabed457c544fb8c82ce9a21708dc930",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "694cac89e8a4c523cfe009cfd092d86cdf006c72640b90bcefa94b6a360a9b60"
+  }
+}

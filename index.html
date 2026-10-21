@@ -6058,7 +6058,9 @@ var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
   if (nowhere(parentNode)) return null;
   const leaf = makeFor(type);
-  if (type === "list" && !leaf.children.length) leaf.children.push(N("column"));
+  if (type === "list" && !leaf.children.length) {
+    leaf.children.push(N("column", {}, { d: { "flex-basis": "280px" }, m: { "flex-basis": "100%" } }));
+  }
   if (slotlessInstance(parentNode)) return dropTree(leaf, parentNode.id);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
@@ -33564,6 +33566,11 @@ function bindModal(rootId) {
   }
   let map = guessBindings(slots, col);
   const key = s => s.nodeId + '|' + s.key;
+  const slotLabel = (s, i) => {
+    const base = `${s.element} · ${DEF[s.type].label} · ${s.label}`;
+    const duplicate = slots.some((other, j) => j !== i && `${other.element} · ${DEF[other.type].label} · ${other.label}` === base);
+    return duplicate ? `${base} · ${i + 1}` : base;
+  };
 
   const draw = () => {
     const set = Object.values(map).filter(Boolean).length;
@@ -33575,7 +33582,7 @@ function bindModal(rootId) {
       </tr></thead><tbody>${slots.map((s, i) => `<tr>
         <td><b style="font-size:var(--fs-2)">${esc(s.element)}</b><br><small style="font-family:var(--label);font-size:var(--fs-1);color:var(--text-3)">${esc(DEF[s.type].label)}</small></td>
         <td>${esc(s.label)}</td>
-        <td><select class="ctl" data-b="${i}">
+        <td><select class="ctl" data-b="${i}" aria-label="${esc(slotLabel(s, i))}">
           <option value="">— not bound —</option>
           ${/* `fieldPaths`, so a reference can be read through here as well as in the badge —
                  a sheet that could only offer this collection's own fields would make the

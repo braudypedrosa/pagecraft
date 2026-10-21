@@ -14,16 +14,24 @@ The independent WordPress guard accepted 133 SQL tables, with 130 exact. Allowed
 
 ## Bounded module evidence
 
-Quote Q01–Q06, Breadcrumb B01–B06, and Icon I01–I07 are committed. Table T01–T07 and Code C01–C07 have native evidence in candidate 82 awaiting the next implementation commit. Code also includes an empty-content reload check at all three devices: no wrapper, code, or Copy control remains. Each coverage record lists representative values, exact breakpoint scope, corrected probes, and shared-setting limits.
+Quote Q01–Q06, Breadcrumb B01–B06, and Icon I01–I07 are committed. Table T01–T07 and Code C01–C07 bounded evidence is committed in release 83. Code also includes an empty-content reload check at all three devices: no wrapper, code, or Copy control remains. Each coverage record lists representative values, exact breakpoint scope, corrected probes, and shared-setting limits.
 
-## Candidate 83
+## Accepted release 83
 
 Code Padding and Table Cell padding previously displayed blank for saved CSS shorthands. The isolated candidate now preserves one-to-four length values, rejects invalid drafts without changing saved CSS, keeps partial typing quiet, and links blur/Enter validation errors accessibly. Table Cell padding uses a full-width inspector field.
 
-The root accepted final native desktop/mobile layout, defaults, save/reload, invalid-draft recovery, responsive inheritance/reset, mixed units, zero, and adjacent picker behavior. The refreshed gallery passed 30 interactions and 24 comparisons with zero changed pixels. The reviewed baseline now covers 29 source files, including Controls.tsx. Final full-suite and release acceptance are pending. Candidate 83 is not yet deployed or installed in WordPress.
+The root accepted final native desktop/mobile layout, defaults, save/reload, invalid-draft recovery, responsive inheritance/reset, mixed units, zero, and adjacent picker behavior. The refreshed gallery passed 30 interactions and 24 comparisons with zero changed pixels. The reviewed baseline now covers 29 source files, including Controls.tsx. The final suite passed 2,586 tests with 5 skipped. Cloud development/staging is `f70e9ad7f309a1dd33323907664009bfaa99b082`; CI 39630194634 and deployment 39630194667 passed, with an exact native marker. WordPress development is `e2bdd63301476aa3e60d50a1b08137f663eba1a0`; PHP matrix CI 39633809752 passed. Native Cloud/WordPress padding save/reload and actual WordPress frontend desktop/mobile values passed. Staging History 1066 restored all 20 editable IDs; WordPress History 65 restored all 11 IDs and is now Version 68. The independent WordPress guard accepted 133 tables, 130 exact; prior 318 revisions exact, only fixture 487 plus new revisions 602–607. Post-deployment details are in padding-list-controls-2026-10-21/post-deploy/task-close.md.
 
 ## Preserved fixtures and remaining work
 
-Keep localhost:4972/edit/s1 (tab 25, Quote/Breadcrumb/Icon), localhost:4974/edit/s1 (tab 30, Table/Code), and localhost:4976/edit/s1 (tab 35, final padding controls) running. They contain native-authored in-memory fixtures. Staging tab 4 is restored; user tab 1 is untouched. Completed gallery and WordPress tabs are closed. No CPU or network throttling was used; owned viewport/media settings were reset with receipts.
+Keep localhost:4972/edit/s1 (tab 25, Quote/Breadcrumb/Icon), localhost:4974/edit/s1 (tab 30, Table/Code), localhost:4976/edit/s1 (tab 35, broader List checks), and localhost:4978/edit/s1 (tab 40, final collection fixes) running. They contain native-authored in-memory fixtures. Staging tab 4 is restored; user tab 1 is untouched. Completed gallery and WordPress tabs are closed. No CPU or network throttling was used; owned viewport/media settings were reset with receipts.
 
 Fourteen broad QA areas remain open, as listed in `customer-setting-inventory-2026-10-21/native-progress.md`. The bounded module results do not establish exhaustive customer QA or production readiness. Production promotion remains separate.
+
+## Candidate 84 — collection setup
+
+Two native issues are fixed in the isolated binding-dialog-labels-f70e9ad worktree: binding dropdowns now have field-specific unique accessible names, and palette-created Lists seed their repeated Column with a 280px desktop basis while retaining 100% mobile basis. Existing authored/imported Lists, generic Columns, public runtime and golden fixtures are unchanged.
+
+Native reload proof covers 18 items with 4/2/1 cards per row, 1/2/4 item counts, existing basis edits and Tablet reset, Slider compatibility, and binding keyboard selection with duplicate-row labels across all three devices. A timed-out aggregate was rejected and replaced by separately saved count evidence. The final suite passed 2,591 tests with 5 skipped; gallery 30/30 and 24 screenshots with zero changed pixels passed. Integration, Cloud deployment/native acceptance and WordPress pin are pending.
+
+Broader List evidence in candidate83/list-native-2026-10-22 covers bounded source/binding, empty/no source, layout and title/CMS ordering. No Wrap mobile overflow is recorded as an unresolved concern; filtering, pagination and remaining List/shared controls are open. The manually authored 280px basis in that older fixture is setup, not proof of the new factory default.

@@ -2025,7 +2025,12 @@ function insert(type: string, parentNode: any, index: number) {
   /* The palette creates a usable Collection List: its one Column is the repeatable card.
      Keep this out of N('list') so imported data, templates and programmatic fixtures retain
      their exact shape. The no-source editor prompt still renders until a collection is chosen. */
-  if (type === 'list' && !leaf.children.length) leaf.children.push(N('column'));
+  if (type === 'list' && !leaf.children.length) {
+    /* A fresh grid needs a usable card basis. Without one, repeated Columns inherit
+       flex-basis:0% and shrink to one tiny equal-width card per item on desktop. Keep
+       this seed on palette-created Lists only: imported/authored Lists retain their CSS. */
+    leaf.children.push(N('column', {}, { d: { 'flex-basis': '280px' }, m: { 'flex-basis': '100%' } }));
+  }
   /* `takes`, not the parent's own level: a Box takes children at level 4, so a heading dropped
      into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
      row-in-a-column case needs no exception any more — a column takes 4, so `wrap` returns the
