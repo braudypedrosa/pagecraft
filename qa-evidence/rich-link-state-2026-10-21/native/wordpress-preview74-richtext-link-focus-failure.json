@@ -1,0 +1,30 @@
+{
+  "cloudCommit": "b01176d93be64ae6a357e3cf74b30870aae2fc4b",
+  "version": "Preview74",
+  "savedReload": true,
+  "authoredFocusLinkColour": "#245f2f",
+  "observed": {
+    "anchor": "rgb(0, 0, 238)",
+    "html": "<p><a href=\"#qa-wp-rich-focus\">WordPress keyboard focus stays visible.</a></p>",
+    "keyboard": true,
+    "linkVariable": "#245f2f",
+    "wrapper": "rgb(36, 95, 47)"
+  },
+  "expectedAnchorColor": "rgb(36, 95, 47)",
+  "wrapperOnlyPass": {
+    "color": "rgb(36, 95, 47)",
+    "html": "<p><a href=\"#qa-wp-rich-focus\">WordPress keyboard focus stays visible.</a></p>",
+    "keyboard": true
+  },
+  "mobileWrapperOnly": {
+    "color": "rgb(36, 95, 47)",
+    "keyboard": true,
+    "overflow": false,
+    "width": 414
+  },
+  "pointer": {
+    "color": "rgb(52, 70, 59)",
+    "keyboard": false
+  },
+  "databaseRestorePending": true
+}

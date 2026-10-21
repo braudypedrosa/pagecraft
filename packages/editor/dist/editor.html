@@ -5921,6 +5921,8 @@ var BUTTON_AUTHORED = "--pc-authored-button-";
 var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var richTextFocusSelector = (selector) => `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
+var richTextLinkSelector = (selector, state2 = "") => `${selector}:where(.pagecraft-wysiwyg)${state2} a`;
+var richTextLinkStateSelector = (selector, state2, suffix) => state2 === "focus" ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
@@ -5940,16 +5942,24 @@ function tokenCss() {
     const map = c.css && c.css[b] || {};
     const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    const linkDecls = decl({ color: map["--link"] });
+    if (linkDecls) acc[b] += `${richTextLinkSelector(`.c-${c.id}`)}{${linkDecls}}`;
     const buttonDecls = decl(buttonVariantDeclarations(map));
     if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     STATES.forEach(([k, , sel]) => {
-      const d = decl(c.st && c.st[k] && c.st[k][b] || {});
+      const stateMap = c.st && c.st[k] && c.st[k][b] || {};
+      const d = decl(stateMap);
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
         if (k === "focus") {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
+        const linkState = decl({ color: stateMap["--link"] });
+        if (linkState) {
+          const linkSelector = richTextLinkStateSelector(`.c-${c.id}`, k, sel);
+          acc[b] += `${linkSelector}{${linkState}}`;
         }
       }
     });
@@ -10552,6 +10562,13 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
     const d = decl(stateMap);
     const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
+    if (n.type === "text") {
+      const linkState = decl({ color: stateMap["--link"] });
+      if (linkState) {
+        const linkSelector = richTextLinkStateSelector(selOf(n), k, sel);
+        rules.push(`${linkSelector}{${linkState}}`);
+      }
+    }
     const imageD = decl(imageState);
     if (imageD) {
       const reset = {};
@@ -10565,7 +10582,10 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       rules.push(`${selOf(n)}${sel} .pagecraft-image{${imageD}}`);
     }
   });
-  if (n.type === "text" && map["--link"]) rules.push(`${selOf(n)} a{color:${map["--link"]}}`);
+  if (n.type === "text") {
+    const link = decl({ color: map["--link"] });
+    if (link) rules.push(`${richTextLinkSelector(selOf(n))}{${link}}`);
+  }
   return rules.join("");
 }
 function inheritedElementPriority(n, b) {
@@ -10602,7 +10622,23 @@ function inheritedElementPriority(n, b) {
   const body = decl(bridge);
   const buttonBody = decl(buttonBridge);
   const imageBody = decl(imageBridge);
-  return (body ? `${selOf(n)}{${body}}` : "") + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : "") + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : "");
+  const richLinkBody = n.type === "text" ? decl({ color: bridge["--link"] }) : "";
+  return (body ? `${selOf(n)}{${body}}` : "") + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : "") + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : "") + (richLinkBody ? `${richTextLinkSelector(selOf(n))}{${richLinkBody}}` : "");
+}
+function inheritedRichTextLinkStatePriority(n, b) {
+  if (n.type !== "text") return "";
+  return STATES.map(([state2, , suffix]) => {
+    const own = n.st && n.st[state2] && n.st[state2][b] || {};
+    const inherited = b === "t" ? { ...n.st && n.st[state2] && n.st[state2].d || {} } : { ...n.st && n.st[state2] && n.st[state2].d || {}, ...n.st && n.st[state2] && n.st[state2].t || {} };
+    const classCollision = nodeClasses(n).some((source) => {
+      const responsive = source.st && source.st[state2] && source.st[state2][b];
+      return responsive && responsive["--link"] !== void 0 && responsive["--link"] !== "";
+    });
+    const value = inherited["--link"];
+    if (!classCollision || own["--link"] !== void 0 && own["--link"] !== "" || value === void 0 || value === "") return "";
+    const link = decl({ color: value });
+    return link ? `${richTextLinkStateSelector(selOf(n), state2, suffix)}{${link}}` : "";
+  }).join("");
 }
 var navCollapse = (n) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}${selOf(n)} .pagecraft-nav-list{display:none}`;
 function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) {
@@ -10634,8 +10670,10 @@ function nodeCss(n, editing, acc, parent = null, detachedComponentRoot = false) 
   }
   acc.t += bucket(n, "t", editing, parent, detachedComponentRoot);
   acc.t += inheritedElementPriority(n, "t");
+  acc.t += inheritedRichTextLinkStatePriority(n, "t");
   acc.m += bucket(n, "m", editing, parent, detachedComponentRoot);
   acc.m += inheritedElementPriority(n, "m");
+  acc.m += inheritedRichTextLinkStatePriority(n, "m");
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
   const visibility = editing ? "opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;" : "display:none !important;";
   if (n.hide?.d) acc.vd = (acc.vd || "") + `${selOf(n)}{${visibility}}`;
@@ -12711,7 +12749,7 @@ var PC_UI = (() => {
     selectionToolbarTop: () => selectionToolbarTop
   });
 
-  // node_modules/preact/dist/preact.module.js
+  // ../dependency-audit-1f4895c/node_modules/preact/dist/preact.module.js
   var n;
   var l;
   var u;
@@ -13016,7 +13054,7 @@ var PC_UI = (() => {
     if (fn) fn();
   };
 
-  // node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
+  // ../dependency-audit-1f4895c/node_modules/preact/jsx-runtime/dist/jsxRuntime.module.js
   var f2 = 0;
   function u2(e3, t3, n2, o3, i3, u4) {
     t3 || (t3 = {});
@@ -13171,7 +13209,7 @@ var PC_UI = (() => {
     ] })) });
   }
 
-  // node_modules/preact/hooks/dist/hooks.module.js
+  // ../dependency-audit-1f4895c/node_modules/preact/hooks/dist/hooks.module.js
   var t2;
   var r2;
   var u3;

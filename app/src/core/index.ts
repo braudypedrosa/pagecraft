@@ -2444,6 +2444,13 @@ const navFocusSelector = (selector: string) =>
    the wrapper state, and a focusable Link Block ancestor is outside this descendant guard. */
 const richTextFocusSelector = (selector: string) =>
   `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
+/* Anchors carry their own UA colour, so the Rich Text --link value cannot reach them through
+   inheritance. Emit the matching descendant rule while keeping the wrapper property for the
+   existing document contract and custom CSS. */
+const richTextLinkSelector = (selector: string, state = '') =>
+  `${selector}:where(.pagecraft-wysiwyg)${state} a`;
+const richTextLinkStateSelector = (selector: string, state: StateKey, suffix: string) =>
+  state === 'focus' ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
 const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
@@ -2466,12 +2473,15 @@ function tokenCss() {
     const map = (c.css && c.css[b]) || {};
     const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    const linkDecls = decl({ color: map['--link'] });
+    if (linkDecls) acc[b] += `${richTextLinkSelector(`.c-${c.id}`)}{${linkDecls}}`;
     const buttonDecls = decl(buttonVariantDeclarations(map));
     if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     /* a class hover is the one people actually want — restyle every card's hover once. It
        still loses to an element's own hover, which has the same specificity and comes later. */
     STATES.forEach(([k, , sel]) => {
-      const d = decl((c.st && c.st[k] && c.st[k]![b]) || {});
+      const stateMap = (c.st && c.st[k] && c.st[k]![b]) || {};
+      const d = decl(stateMap);
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
         /* Keep the ordinary class selector for generic focusables and add the guarded
@@ -2480,6 +2490,11 @@ function tokenCss() {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
+        const linkState = decl({ color: stateMap['--link'] });
+        if (linkState) {
+          const linkSelector = richTextLinkStateSelector(`.c-${c.id}`, k, sel);
+          acc[b] += `${linkSelector}{${linkState}}`;
         }
       }
     });
@@ -7692,6 +7707,13 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
         : k === 'focus' && n.type === 'text'
           ? richTextFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
+    if (n.type === 'text') {
+      const linkState = decl({ color: stateMap['--link'] });
+      if (linkState) {
+        const linkSelector = richTextLinkStateSelector(selOf(n), k, sel);
+        rules.push(`${linkSelector}{${linkState}}`);
+      }
+    }
     const imageD = decl(imageState);
     if (imageD) {
       const reset: Decls = {};
@@ -7705,7 +7727,10 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
       rules.push(`${selOf(n)}${sel} .pagecraft-image{${imageD}}`);
     }
   });
-  if (n.type === 'text' && map['--link']) rules.push(`${selOf(n)} a{color:${map['--link']}}`);
+  if (n.type === 'text') {
+    const link = decl({ color: map['--link'] });
+    if (link) rules.push(`${richTextLinkSelector(selOf(n))}{${link}}`);
+  }
   return rules.join('');
 }
 
@@ -7756,9 +7781,30 @@ function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
   const body = decl(bridge);
   const buttonBody = decl(buttonBridge);
   const imageBody = decl(imageBridge);
+  const richLinkBody = n.type === 'text' ? decl({ color: bridge['--link'] }) : '';
   return (body ? `${selOf(n)}{${body}}` : '')
     + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : '')
-    + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : '');
+    + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : '')
+    + (richLinkBody ? `${richTextLinkSelector(selOf(n))}{${richLinkBody}}` : '');
+}
+
+function inheritedRichTextLinkStatePriority(n: PcNode, b: Exclude<Bp, 'd'>) {
+  if (n.type !== 'text') return '';
+  return STATES.map(([state, , suffix]) => {
+    const own = (n.st && n.st[state] && n.st[state]![b]) || {};
+    const inherited = b === 't'
+      ? { ...((n.st && n.st[state] && n.st[state]!.d) || {}) }
+      : { ...((n.st && n.st[state] && n.st[state]!.d) || {}), ...((n.st && n.st[state] && n.st[state]!.t) || {}) };
+    const classCollision = nodeClasses(n).some(source => {
+      const responsive = source.st && source.st[state] && source.st[state]![b];
+      return responsive && responsive['--link'] !== undefined && responsive['--link'] !== '';
+    });
+    const value = inherited['--link'];
+    if (!classCollision || (own['--link'] !== undefined && own['--link'] !== '')
+      || value === undefined || value === '') return '';
+    const link = decl({ color: value });
+    return link ? `${richTextLinkStateSelector(selOf(n), state, suffix)}{${link}}` : '';
+  }).join('');
 }
 
 /* Mobile lists move into a native top-layer dialog when opened. This keeps full-width
@@ -7804,8 +7850,10 @@ function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
   }
   acc.t += bucket(n, 't', editing, parent, detachedComponentRoot);
   acc.t += inheritedElementPriority(n, 't');
+  acc.t += inheritedRichTextLinkStatePriority(n, 't');
   acc.m += bucket(n, 'm', editing, parent, detachedComponentRoot);
   acc.m += inheritedElementPriority(n, 'm');
+  acc.m += inheritedRichTextLinkStatePriority(n, 'm');
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
   const visibility = editing
     ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;'
