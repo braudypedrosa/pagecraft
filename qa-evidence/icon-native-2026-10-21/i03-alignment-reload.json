@@ -1,0 +1,17 @@
+[
+  {
+    "device": "Desktop",
+    "alignSelf": "flex-end",
+    "justifySelf": "auto"
+  },
+  {
+    "device": "Tablet",
+    "alignSelf": "flex-end",
+    "justifySelf": "auto"
+  },
+  {
+    "device": "Mobile",
+    "alignSelf": "flex-end",
+    "justifySelf": "auto"
+  }
+]

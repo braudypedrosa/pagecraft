@@ -1,0 +1,68 @@
+{
+  "mechanism": "responsive CSS display:none; DOM intentionally retained, checklist omission expectation corrected",
+  "matrix": [
+    {
+      "hidden": "Desktop",
+      "reads": [
+        {
+          "display": "none",
+          "hasDOM": true,
+          "height": 0,
+          "width": 1280
+        },
+        {
+          "display": "flex",
+          "hasDOM": true,
+          "height": 130.59375,
+          "width": 834
+        },
+        {
+          "display": "flex",
+          "hasDOM": true,
+          "height": 130.59375,
+          "width": 414
+        }
+      ]
+    },
+    {
+      "hidden": "Tablet",
+      "reads": [
+        {
+          "display": "flex",
+          "height": 130.59375,
+          "width": 1280
+        },
+        {
+          "display": "none",
+          "height": 0,
+          "width": 834
+        },
+        {
+          "display": "flex",
+          "height": 130.59375,
+          "width": 414
+        }
+      ]
+    },
+    {
+      "hidden": "Mobile",
+      "reads": [
+        {
+          "display": "flex",
+          "height": 130.59375,
+          "width": 1280
+        },
+        {
+          "display": "flex",
+          "height": 130.59375,
+          "width": 834
+        },
+        {
+          "display": "none",
+          "height": 0,
+          "width": 414
+        }
+      ]
+    }
+  ]
+}

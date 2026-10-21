@@ -1,0 +1,101 @@
+[
+  {
+    "figure": {
+      "border": "5px solid rgb(180, 95, 60)",
+      "color": "rgb(36, 52, 71)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "26px",
+      "lineHeight": "41.6px",
+      "maxWidth": "542.572px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "textAlign": "center"
+    },
+    "rect": {
+      "bottom": 777.28125,
+      "height": 144.1875,
+      "left": 1009.140625,
+      "right": 1240,
+      "top": 633.09375,
+      "width": 230.859375,
+      "x": 1009.140625,
+      "y": 633.09375
+    },
+    "text": {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "26px",
+      "lineHeight": "41.6px"
+    },
+    "width": 1280
+  },
+  {
+    "figure": {
+      "border": "5px solid rgb(180, 95, 60)",
+      "color": "rgb(36, 52, 71)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "26px",
+      "lineHeight": "41.6px",
+      "maxWidth": "542.572px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "textAlign": "center"
+    },
+    "rect": {
+      "bottom": 770.984375,
+      "height": 144.1875,
+      "left": 579.140625,
+      "right": 810,
+      "top": 626.796875,
+      "width": 230.859375,
+      "x": 579.140625,
+      "y": 626.796875
+    },
+    "text": {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "26px",
+      "lineHeight": "41.6px"
+    },
+    "width": 834
+  },
+  {
+    "figure": {
+      "border": "5px solid rgb(180, 95, 60)",
+      "color": "rgb(36, 52, 71)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "20px",
+      "lineHeight": "32px",
+      "maxWidth": "417.363px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "textAlign": "center"
+    },
+    "rect": {
+      "bottom": 651.671875,
+      "height": 125,
+      "left": 163.140625,
+      "right": 394,
+      "top": 526.671875,
+      "width": 230.859375,
+      "x": 163.140625,
+      "y": 526.671875
+    },
+    "text": {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "fontSize": "20px",
+      "lineHeight": "32px"
+    },
+    "width": 414
+  }
+]

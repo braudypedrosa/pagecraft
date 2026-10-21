@@ -1,0 +1,29 @@
+{
+  "rejectedProbe": "Previous root nav fontSize16 did not measure breadcrumb text; actual text inherits ol --cb-size.",
+  "reads": [
+    {
+      "anchorSize": "18px",
+      "currentSize": "18px",
+      "rootSize": "16px",
+      "sizeVar": "18px",
+      "textSize": "18px",
+      "width": 1280
+    },
+    {
+      "anchorSize": "16px",
+      "currentSize": "16px",
+      "rootSize": "16px",
+      "sizeVar": "16px",
+      "textSize": "16px",
+      "width": 834
+    },
+    {
+      "anchorSize": "14px",
+      "currentSize": "14px",
+      "rootSize": "16px",
+      "sizeVar": "14px",
+      "textSize": "14px",
+      "width": 414
+    }
+  ]
+}

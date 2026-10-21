@@ -1,0 +1,41 @@
+[
+  {
+    "line": "34.8px",
+    "measure": "500.836px",
+    "overflow": false,
+    "padding": [
+      "12px",
+      "18px",
+      "14px",
+      "20px"
+    ],
+    "size": "24px",
+    "width": 1280
+  },
+  {
+    "line": "27px",
+    "measure": "368.262px",
+    "overflow": false,
+    "padding": [
+      "10px",
+      "14px",
+      "12px",
+      "16px"
+    ],
+    "size": "20px",
+    "width": 834
+  },
+  {
+    "line": "25.2px",
+    "measure": "100%",
+    "overflow": false,
+    "padding": [
+      "8px",
+      "12px",
+      "10px",
+      "12px"
+    ],
+    "size": "18px",
+    "width": 414
+  }
+]

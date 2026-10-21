@@ -1,0 +1,5 @@
+{
+  "expected": "Show only if",
+  "actual": "Advanced",
+  "observation": "Condition combobox receives generic parent tab label instead of visible field label; source native select has no accessible label."
+}

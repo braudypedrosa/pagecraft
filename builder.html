@@ -2570,6 +2570,9 @@ function renderPublicationPreviewFailure(host, failure) {
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
     const finding = failure.findings[+button.dataset.publicationFinding];
+    /* A finding can be opened from publication preview. Leave that view before
+       selecting the editor target so panels and canvas context are live. */
+    if (document.body.classList.contains('preview')) togglePreview();
     if (finding?.target && typeof finding.target === 'object') {
       showReviewTarget(finding.target);
       return;
@@ -4558,6 +4561,9 @@ function showReviewTarget(target) {
     || !['page', 'header', 'footer'].includes(target.scope)) {
     return unavailable('That review target is no longer available');
   }
+  /* Site checks can be opened while the editor is in Preview. Return to the editor
+     before changing page/region/item context so the recovery target is actionable. */
+  if (document.body.classList.contains('preview')) togglePreview();
   const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
   if (pageIndex < 0) return unavailable('That page is no longer in the project');
   const pg = state.pages[pageIndex];
@@ -5528,7 +5534,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    closeModal, closeReviewSurface, showReviewTarget,
+    closeModal, closeReviewSurface, exitPreview: () => { if (document.body.classList.contains('preview')) togglePreview(); }, showReviewTarget,
     newPageModal, openPages, openPage, backToBuilder, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,

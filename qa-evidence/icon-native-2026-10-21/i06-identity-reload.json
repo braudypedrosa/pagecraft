@@ -1,0 +1,23 @@
+[
+  {
+    "device": "Desktop",
+    "classes": "pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg qa-icon status-icon",
+    "display": "block",
+    "id": "icon-proof",
+    "outline": "rgb(180, 95, 60) solid 1px"
+  },
+  {
+    "device": "Tablet",
+    "classes": "pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg qa-icon status-icon",
+    "display": "block",
+    "id": "icon-proof",
+    "outline": "rgb(180, 95, 60) solid 1px"
+  },
+  {
+    "device": "Mobile",
+    "classes": "pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg qa-icon status-icon",
+    "display": "block",
+    "id": "icon-proof",
+    "outline": "rgb(180, 95, 60) solid 1px"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "editor": {
+    "html": "<nav id=\"n4pex4r9x\" data-id=\"n4pex4r9x\" data-t=\"crumbs\" class=\"pagecraft-crumbs pagecraft-4pex4r9x\" data-sel=\"\"><div class=\"s-empty\"><svg class=\"\" width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"><path d=\"M1.5 8h3.2M7.2 8h3.2M12.9 8h1.6\" stroke-linecap=\"round\"></path><path d=\"M5.6 6.4L7 8 5.6 9.6M11.3 6.4L12.7 8l-1.4 1.6\" stroke-linecap=\"round\"></path></svg> The front page shows no trail</div></nav>",
+    "rect": {
+      "bottom": 540.453125,
+      "height": 76,
+      "left": 20,
+      "right": 394,
+      "top": 464.453125,
+      "width": 374,
+      "x": 20,
+      "y": 464.453125
+    }
+  },
+  "public": [
+    {
+      "device": "Desktop",
+      "count": 0
+    },
+    {
+      "device": "Tablet",
+      "count": 0
+    },
+    {
+      "device": "Mobile",
+      "count": 0
+    }
+  ]
+}

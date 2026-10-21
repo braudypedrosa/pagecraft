@@ -23564,7 +23564,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "f", children: [
         /* @__PURE__ */ u2("label", { children: "Show only if" }),
-        /* @__PURE__ */ u2("select", { value: key2, onChange: (e3) => write(
+        /* @__PURE__ */ u2("select", { "aria-label": "Show only if", value: key2, onChange: (e3) => write(
           e3.target.value,
           cur ? cur.op : "set",
           cur && cur.value ? cur.value : ""
@@ -23575,7 +23575,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "Condition ",
           /* @__PURE__ */ u2(HelpTip, { label: "Condition", text: "Hidden items have a dashed outline in the editor and are omitted from the published page." })
         ] }),
-        /* @__PURE__ */ u2("select", { value: cur.op, onChange: (e3) => write(
+        /* @__PURE__ */ u2("select", { "aria-label": "Condition", value: cur.op, onChange: (e3) => write(
           key2,
           e3.target.value,
           cur.value || ""
@@ -23583,6 +23583,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         cur.op === "eq" || cur.op === "ne" ? /* @__PURE__ */ u2(
           "input",
           {
+            "aria-label": "Value to compare",
             class: "ctl",
             style: { marginTop: "var(--gap-1)" },
             value: cur.value || "",
@@ -24419,6 +24420,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const [open, setOpen] = d2(defaultOpen || counts.error > 0);
     const clean = !findings.length;
     const goTo = (f4) => {
+      L2.exitPreview();
       if (f4.target) {
         L2.showReviewTarget(f4.target);
         return;
@@ -28429,6 +28431,9 @@ function renderPublicationPreviewFailure(host, failure) {
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
     const finding = failure.findings[+button.dataset.publicationFinding];
+    /* A finding can be opened from publication preview. Leave that view before
+       selecting the editor target so panels and canvas context are live. */
+    if (document.body.classList.contains('preview')) togglePreview();
     if (finding?.target && typeof finding.target === 'object') {
       showReviewTarget(finding.target);
       return;
@@ -30417,6 +30422,9 @@ function showReviewTarget(target) {
     || !['page', 'header', 'footer'].includes(target.scope)) {
     return unavailable('That review target is no longer available');
   }
+  /* Site checks can be opened while the editor is in Preview. Return to the editor
+     before changing page/region/item context so the recovery target is actionable. */
+  if (document.body.classList.contains('preview')) togglePreview();
   const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
   if (pageIndex < 0) return unavailable('That page is no longer in the project');
   const pg = state.pages[pageIndex];
@@ -31387,7 +31395,7 @@ const ui = () => UI || (UI = PC_UI.mount(
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
-    closeModal, closeReviewSurface, showReviewTarget,
+    closeModal, closeReviewSurface, exitPreview: () => { if (document.body.classList.contains('preview')) togglePreview(); }, showReviewTarget,
     newPageModal, openPages, openPage, backToBuilder, renderModebar, save, writeNow, appRender: render,
     tx, endTx, paint, paintCss, repaint, repaintCss,
     layoutCanvas, positionHud, renderDim, restoreCanvasLayout, askPick, bindModal, enterEdit,

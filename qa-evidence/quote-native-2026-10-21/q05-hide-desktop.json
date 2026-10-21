@@ -1,0 +1,20 @@
+[
+  {
+    "display": "none",
+    "hasDOM": true,
+    "height": 0,
+    "width": 1280
+  },
+  {
+    "display": "flex",
+    "hasDOM": true,
+    "height": 130.59375,
+    "width": 834
+  },
+  {
+    "display": "flex",
+    "hasDOM": true,
+    "height": 130.59375,
+    "width": 414
+  }
+]

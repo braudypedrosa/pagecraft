@@ -611,7 +611,7 @@ function ShowIf({ n }: { n: PcNode }) {
     <>
       <div class="f">
         <label>Show only if</label>
-        <select value={key} onChange={e => write((e.target as HTMLSelectElement).value,
+        <select aria-label="Show only if" value={key} onChange={e => write((e.target as HTMLSelectElement).value,
           cur ? cur.op : 'set', cur && cur.value ? cur.value : '')}>
           {sources.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
         </select>
@@ -619,12 +619,12 @@ function ShowIf({ n }: { n: PcNode }) {
       {cur ? (
         <div class="f">
           <label>Condition <HelpTip label="Condition" text="Hidden items have a dashed outline in the editor and are omitted from the published page." /></label>
-          <select value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
+          <select aria-label="Condition" value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
             cur.value || '')}>
             {C.COND_OPS.map(([op, label]) => <option key={op} value={op}>{label}</option>)}
           </select>
           {cur.op === 'eq' || cur.op === 'ne' ? (
-            <input class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
+            <input aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
               placeholder="Value to compare"
               onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
           ) : null}

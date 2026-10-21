@@ -1,0 +1,62 @@
+[
+  {
+    "hidden": "Desktop",
+    "reads": [
+      {
+        "display": "none",
+        "height": 0,
+        "w": 1280
+      },
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 834
+      },
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 414
+      }
+    ]
+  },
+  {
+    "hidden": "Tablet",
+    "reads": [
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 1280
+      },
+      {
+        "display": "none",
+        "height": 0,
+        "w": 834
+      },
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 414
+      }
+    ]
+  },
+  {
+    "hidden": "Mobile",
+    "reads": [
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 1280
+      },
+      {
+        "display": "block",
+        "height": 28.796875,
+        "w": 834
+      },
+      {
+        "display": "none",
+        "height": 0,
+        "w": 414
+      }
+    ]
+  }
+]

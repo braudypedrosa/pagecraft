@@ -1,0 +1,14 @@
+[
+  {
+    "alignment": "flex-start",
+    "html": "<figure id=\"n3mc4hqj2\" data-id=\"n3mc4hqj2\" data-t=\"quote\" data-sel=\"\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>"
+  },
+  {
+    "alignment": "center",
+    "html": "<figure id=\"n3mc4hqj2\" data-id=\"n3mc4hqj2\" data-t=\"quote\" data-sel=\"\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>"
+  },
+  {
+    "alignment": "flex-end",
+    "html": "<figure id=\"n3mc4hqj2\" data-id=\"n3mc4hqj2\" data-t=\"quote\" data-sel=\"\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>"
+  }
+]

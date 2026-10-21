@@ -1,0 +1,6 @@
+{
+  "html": "<nav id=\"breadcrumb-proof\" class=\"pagecraft-crumbs pagecraft-4pex4r9x qa-breadcrumb\" aria-label=\"Breadcrumb\" data-sep=\"dash\"><ol><li class=\"crumb-source\"><a href=\"https://example.test/workshops\" target=\"_blank\" rel=\"nofollow sponsored noopener\">Workshop archive</a></li><li class=\"crumb-current\"><span aria-current=\"page\">Current workshop</span></li></ol></nav>",
+  "maxWidth": "100%",
+  "outline": "rgb(32, 80, 128) solid 1px",
+  "overflow": "visible"
+}

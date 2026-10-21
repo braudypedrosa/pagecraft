@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/condition-control-labels-609528e
+
+
+ Test Files  5 passed (5)
+      Tests  17 passed (17)
+   Start at  22:02:21
+   Duration  1.71s (transform 447ms, setup 0ms, import 1.41s, tests 312ms, environment 764ms)

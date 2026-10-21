@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-21T12:13:02.035Z",
+  "capturedAt": "2026-10-21T14:09:30.427Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,14 +95,14 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "05cf8b7a67d1a38fd7c99061ffcd21d96fc9e29005bf14f880a9a82c6e31aa46",
+    "builder.html": "513d87c92664f7e3cb83766d222857435044d43c9785e5cdff75d6087dbdd8be",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
     "app/src/ui/CmsWorkspace.tsx": "baa82c07850aaa41b571c4794aaf7dcab5a0eb32e4b41fa6726d8c6e2aed5bb5",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "894649e75b9a0c5e325de63c37c94762de7488f51182debea9029c6533ea80cf",
-    "app/src/ui/inspector/Inspector.tsx": "62ff5dbcb19fcab6513ec3addfe1d93b87ee349db6758d2503c83c431695ea5a",
+    "app/src/ui/inspector/Inspector.tsx": "e2466de86a05c39800b485e108b824f05b1e1b9685ac06cef38f877a9c2b3e0d",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "6c89b94304b156d495bb21a261e32959f64bcad816d2483c86bf0b722496fe93",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",

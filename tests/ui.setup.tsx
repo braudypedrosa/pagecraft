@@ -91,6 +91,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     writeNow: rec('writeNow'),
     closeModal: rec('closeModal'),
     closeReviewSurface: rec('closeReviewSurface'),
+    exitPreview: () => { calls.push(['exitPreview']); document.body.classList.remove('preview'); },
     tx: rec('tx'),
     endTx: rec('endTx'),
     paint: rec('paint'),

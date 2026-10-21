@@ -166,6 +166,8 @@ export interface Legacy {
   /** dismiss the surface that currently owns Review. In WordPress that is the inspector
       side panel; in the hosted editor it remains the Publish/Review dialog. */
   closeReviewSurface(): void;
+  /** leave Preview before a Review finding navigates into the editable canvas */
+  exitPreview(): void;
 
   /* History. `tx` opens a coalescing transaction keyed by field, so a run of
      keystrokes is one undo step; `endTx` closes it on blur. Anything that moves

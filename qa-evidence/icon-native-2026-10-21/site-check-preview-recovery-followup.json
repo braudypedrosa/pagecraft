@@ -1,0 +1,9 @@
+{
+  "action": "Site checks > first Show me for icon-link-no-label",
+  "after": {
+    "previewButton": "Return to editing",
+    "accessibleLabelFields": 0,
+    "visibleBody": "Pagecraft\nQA UI Foundations — community workshops and accessibility resources\n· Home\nDraft saved 21:31\nPublish\nPreview displayed."
+  },
+  "status": "Recovery leaves preview active and editable label hidden."
+}

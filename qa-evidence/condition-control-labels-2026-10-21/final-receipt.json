@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-21T14:15:03.839091+00:00",
+  "baseCommit": "609528eb25b65d42c7cb41ebfe4d7017cecd9f5a",
+  "sourceTestsAssets": "all25 original frozen entries unchanged after final full suite",
+  "determinism": "11/11 artifacts byte-identical across final two builds",
+  "finalSuite": "241 files /2578 tests pass; 2 files /5 tests skipped",
+  "baseline": "root recorded reviewed; check24images/28sources pass; baseline frozen separately",
+  "sha256": {
+    "public/internal-ui-baselines/manifest.json": "a7ddf6484af5cc4f8eb0ae337e2e86dc9140b6b36a394028c83cdb78135087e5",
+    "qa-evidence/condition-control-labels-2026-10-21/source-tests-assets.sha256": "8c3b7e617dcf58685e67c69c44771ec54716d9743aa1da80fee47752ccf572d8",
+    "qa-evidence/condition-control-labels-2026-10-21/generated-build-1.sha256": "19017988121ccfa77e4268f46929c26e1a2dd1a0869cfafc1bdcf3b96fdac175",
+    "qa-evidence/condition-control-labels-2026-10-21/generated-build-2.sha256": "19017988121ccfa77e4268f46929c26e1a2dd1a0869cfafc1bdcf3b96fdac175",
+    "qa-evidence/condition-control-labels-2026-10-21/logs/full-final.log": "e8f1b9e8d43c07b26643fb1561080c55cea137fbc9d3f520b3f996343e303363",
+    "qa-evidence/condition-control-labels-2026-10-21/logs/baseline-final.log": "95c49783a43d1e1bd1a67cde78ff0bdd7e8a1e4d2acecc18b3516d47d54c9e38",
+    "qa-evidence/condition-control-labels-2026-10-21/gallery/capture.json": "87278a955fc7a8eddc4d568ebb25ebcc65ad5038823a545e5906c46bef527fd7",
+    "qa-evidence/condition-control-labels-2026-10-21/gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "qa-evidence/condition-control-labels-2026-10-21/native/site-check-preview-recovery-pass.json": "abdacb77dcf118b165d1240c0497354ef9ba8ec66de414952bc049f87262b33f",
+    "qa-evidence/condition-control-labels-2026-10-21/native/condition-labels-native.json": "42929afbfd325c16174842226234097d3fde85891db8bad0db1bfd536a469b28",
+    "qa-evidence/condition-control-labels-2026-10-21/native/condition-match-reload.json": "73da60857f510046be252b60ea90fbf33e148f00273e9c6d317b9a5b3b567575"
+  }
+}

@@ -100,6 +100,21 @@ function reviewHarness() {
   return out;
 }
 
+function previewReviewHarness() {
+  const out = reviewHarness();
+  const { w, d } = out;
+  d.body.classList.add('preview');
+  const previewButton = d.createElement('button');
+  previewButton.id = 'previewBtn';
+  previewButton.setAttribute('aria-label', 'Return to editing');
+  d.body.append(previewButton);
+  w.togglePreview = () => {
+    d.body.classList.remove('preview');
+    previewButton.setAttribute('aria-label', 'Preview your working draft');
+  };
+  return out;
+}
+
 test('canvas pointer selection keeps the clicked filtered and sorted CMS item as UI-only context', () => {
   const { w, cd, collection, courtyard, community, selected } = harness();
   const sourceBefore = JSON.stringify({ pages: w.state.pages, meta: w.state.meta, collection });
@@ -286,6 +301,16 @@ test('a review target recomputes its paginator page and selects the exact filter
   expect(w.closeReviewSurface).toHaveBeenCalledOnce();
   expect(w.render).toHaveBeenCalledOnce();
   expect(JSON.stringify(source)).toBe(before);
+});
+
+test('a Site checks target exits Preview before restoring the editable target context', () => {
+  const { w, d, selected } = previewReviewHarness();
+  const target = { pageId: 'page-home', scope: 'page', nodeId: 'heading' };
+
+  expect(w.showReviewTarget(target)).toBe(true);
+  expect(d.body.classList.contains('preview')).toBe(false);
+  expect(d.querySelector('#previewBtn').getAttribute('aria-label')).toBe('Preview your working draft');
+  expect(selected.at(-1)).toEqual({ id: 'heading', options: { keepCanvasContext: false, scroll: true }, index: undefined });
 });
 
 test('detail or static preview context can route a placed element in a global scope', () => {

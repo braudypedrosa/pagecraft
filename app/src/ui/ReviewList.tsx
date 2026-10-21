@@ -25,6 +25,7 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
   /* Jumping to a finding may cross a page or a global region, so the scope moves first
      and the canvas is repainted before anything is selected. */
   const goTo = (f: Finding) => {
+    L.exitPreview();
     if (f.target) {
       L.showReviewTarget(f.target);
       return;

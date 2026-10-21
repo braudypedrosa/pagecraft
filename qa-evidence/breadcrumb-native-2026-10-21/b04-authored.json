@@ -1,0 +1,23 @@
+[
+  {
+    "dev": "Desktop",
+    "size": "18",
+    "gap": "12",
+    "link": "#205080",
+    "current": "#743522"
+  },
+  {
+    "dev": "Tablet",
+    "size": "16",
+    "gap": "10",
+    "link": "#304860",
+    "current": "#603020"
+  },
+  {
+    "dev": "Mobile",
+    "size": "14",
+    "gap": "6",
+    "link": "#183848",
+    "current": "#502020"
+  }
+]

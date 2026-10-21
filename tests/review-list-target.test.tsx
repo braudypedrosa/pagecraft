@@ -37,3 +37,17 @@ test('legacy findings without a structured target retain page render and node se
   expect(r.names()).toContain('appRender');
   expect(r.arg('select')).toEqual([skipped.id, { scroll: true }]);
 });
+
+test('legacy Site checks findings leave Preview before selecting the editable node', () => {
+  const first = C.N('heading', { level: 'h1', text: 'Title' });
+  const skipped = C.N('heading', { level: 'h3', text: 'Details' });
+  C.state.pages[0].tree = [first, skipped];
+  document.body.classList.add('preview');
+
+  act(() => r.draw(<ReviewList defaultOpen />));
+  act(() => r.click(r.$('.go')));
+
+  expect(document.body.classList.contains('preview')).toBe(false);
+  expect(r.names()).toContain('exitPreview');
+  expect(r.arg('select')).toEqual([skipped.id, { scroll: true }]);
+});

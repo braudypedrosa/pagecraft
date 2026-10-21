@@ -1,0 +1,34 @@
+{
+  "matchingValue": "1. Community workshop and accessibility review for local teams",
+  "matching": [
+    {
+      "device": "Desktop",
+      "count": 1
+    },
+    {
+      "device": "Tablet",
+      "count": 1
+    },
+    {
+      "device": "Mobile",
+      "count": 1
+    }
+  ],
+  "nonmatching": [
+    {
+      "device": "Desktop",
+      "count": 0,
+      "linkedCrumbs": 0
+    },
+    {
+      "device": "Tablet",
+      "count": 0,
+      "linkedCrumbs": 0
+    },
+    {
+      "device": "Mobile",
+      "count": 0,
+      "linkedCrumbs": 0
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "align": "Left",
+    "alignSelf": "flex-start",
+    "justifySelf": "auto",
+    "style": null
+  },
+  {
+    "align": "Centre",
+    "alignSelf": "center",
+    "justifySelf": "auto",
+    "style": null
+  },
+  {
+    "align": "Right",
+    "alignSelf": "flex-end",
+    "justifySelf": "auto",
+    "style": null
+  }
+]

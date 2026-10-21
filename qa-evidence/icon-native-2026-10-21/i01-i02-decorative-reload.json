@@ -1,0 +1,31 @@
+{
+  "expectedLastName": "play",
+  "expectedShape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>",
+  "shapeMatches": true,
+  "reads": [
+    {
+      "hidden": "true",
+      "html": "<svg id=\"pagecraft-icon-5bcvc5jg\" class=\"pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path></svg>",
+      "label": null,
+      "role": null,
+      "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>",
+      "w": 1280
+    },
+    {
+      "hidden": "true",
+      "html": "<svg id=\"pagecraft-icon-5bcvc5jg\" class=\"pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path></svg>",
+      "label": null,
+      "role": null,
+      "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>",
+      "w": 834
+    },
+    {
+      "hidden": "true",
+      "html": "<svg id=\"pagecraft-icon-5bcvc5jg\" class=\"pagecraft-icon pagecraft-icon-glyph pagecraft-5bcvc5jg\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path></svg>",
+      "label": null,
+      "role": null,
+      "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>",
+      "w": 414
+    }
+  ]
+}
