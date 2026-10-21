@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nested-component-owner-3782048
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  14:36:39
+   Duration  1.21s (transform 238ms, setup 0ms, import 283ms, tests 27ms, environment 782ms)

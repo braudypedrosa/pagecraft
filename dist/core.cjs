@@ -10050,13 +10050,16 @@ function renderNode(n, o) {
   if (!d) return "";
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
+    const editorPath = o.edit ? [...o.editorPath || [], n.id] : void 0;
+    const fallbackId = esc(n.id + (o.edit ? (o.editorPath || []).map((id) => "-" + id.replace(/^n/, "")).join("") : ""));
+    const fallbackHooks = (editorPath?.length || 0) > 1 ? "" : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
     if (cd && (o.stack || []).includes(n.use)) {
-      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">${esc(cd.name)} contains itself</div>` : "";
+      return o.edit ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">${esc(cd.name)} contains itself</div>` : "";
     }
     if (!cd) {
-      return o.edit ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
+      return o.edit ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">Missing component: ${esc(n.use)}</div>` : "";
     }
-    return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...o.stack || [], n.use] });
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, editorPath, stack: [...o.stack || [], n.use] });
   }
   const host = o.inst && o.cdef && n === o.cdef.node ? o.inst : null;
   const inner = !!o.inst && !host;
@@ -10075,13 +10078,20 @@ function renderNode(n, o) {
     col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
-  const domId = o.edit ? esc(o.repIndex ? self.id + rep + ins : self.id + ins) : esc(domIdOf(self) + rep + ins);
+  const editorSuffix = o.edit ? (o.inst ? (o.editorPath || []).slice(0, -1) : o.editorPath || []).map((id) => "-" + id.replace(/^n/, "")).join("") : "";
+  const domId = o.edit ? esc((o.repIndex ? self.id + rep + ins : self.id + ins) + editorSuffix) : esc(domIdOf(self) + rep + ins);
   const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item && findItem(o2.col, o2.item.id) ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"` : "";
-  const hooks = inner ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
+  const hooks = inner || (o.editorPath?.length || 0) > 1 ? "" : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? " data-sel" : ""}`;
   const at = `id="${domId}"${o.edit ? hooks : ""}${anim.at}`;
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : n.children || [];
-  const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
+  const kidOpts = filled && filled.length ? {
+    ...o2,
+    inst: null,
+    cdef: null,
+    /* Direct placement slots are page-owned; slots inside nested definitions are not. */
+    editorPath: (o.editorPath?.length || 0) > 1 ? o.editorPath : void 0
+  } : o2;
   const kids = n.type === "list" ? "" : kidList.map((c) => renderNode(c, kidOpts)).join("");
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   const blank = p.target === "_blank" ? ' target="_blank" rel="noopener"' : "";

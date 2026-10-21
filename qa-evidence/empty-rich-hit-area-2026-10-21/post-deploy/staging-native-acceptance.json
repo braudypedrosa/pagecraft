@@ -1,0 +1,22 @@
+{
+  "commit": "37820488905becc37e9870ca5d9c93fe370015ab",
+  "desktop": {
+    "root": {
+      "classes": "pagecraft-wysiwyg s-rich-empty pagecraft-cww5h2um pagecraft-cups019k ts-body s-cond-off",
+      "height": 24,
+      "html": "<p></p>"
+    },
+    "path": "Section\n›\nRow · 1 col\n›\nColumn\n›\nQA Rich CMS conditional 2026-10-21",
+    "inspector": "Component variant\nDefault\nSave as variant\nBack to the defaults\nOne value is set on this instance.\nRich text\nRich text\nEdit on canvas"
+  },
+  "mobile": {
+    "height": 24,
+    "html": "<p></p>",
+    "width": 414
+  },
+  "sourceConditionReached": true,
+  "restoredHistory": 1029,
+  "idsExact": true,
+  "stylesExact": true,
+  "nestedUseIssue": "Known separate pre-existing followup under investigation"
+}

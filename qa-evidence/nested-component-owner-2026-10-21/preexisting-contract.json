@@ -1,0 +1,9 @@
+{
+  "scope": "component expansion block before this patch",
+  "sha256": {
+    "0e808e5": "416df5e58aee361eccee1502ff2dee665b1e551fefb7cfd9507199c800d36d62",
+    "3782048": "416df5e58aee361eccee1502ff2dee665b1e551fefb7cfd9507199c800d36d62"
+  },
+  "identical": true,
+  "finding": "Nested n.use replaces o.inst, making its definition-owned host emit editor selection hooks; behavior predates empty Rich hit area."
+}

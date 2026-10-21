@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "37820488905becc37e9870ca5d9c93fe370015ab",
+  "status": "editor-only candidate native accepted; ready for root integration as79; public duplicate-ID fix separate",
+  "source": [
+    "app/src/core/index.ts",
+    "app/src/core/types.ts"
+  ],
+  "tests": [
+    "tests/nested-component-owner.test.ts",
+    "tests/fixtures/nested-component-ownership.ts",
+    "tests/fixtures/nested-component-public.json"
+  ],
+  "contract": "Definition-owned nested placements must delegate editor selection to the owning outer placement, while their actual inst/cdef still resolves values. Opening the outer definition makes its immediate placements addressable. Page-owned filled slots reset editor ownership; nested definition-owned slots retain it.",
+  "summary": "Transient editorPath tracks placement expansion only during render, suppresses invalid nested selection hooks, and namespaces editor IDs. No document or public-render shape changes.",
+  "preexistingProof": "preexisting-contract.json records identical component expansion block in 0e808e5 and 3782048.",
+  "checks": {
+    "red": {
+      "result": "five expected ownership/ID failures; two baseline/value tests pass",
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 5,
+      "tests": 23,
+      "log": "logs/focused.log"
+    },
+    "fullSuite": {
+      "result": "pass",
+      "filesPassed": 236,
+      "filesSkipped": 2,
+      "testsPassed": 2535,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 101.24,
+      "log": "logs/full-max-workers-2.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "deterministicBuild": {
+      "result": "pass",
+      "artifacts": 11,
+      "diffBytes": 0,
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "dependencyAudit": {
+      "result": "pass",
+      "allSeverities": 0,
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/demo.log"
+    },
+    "baselineGate": {
+      "result": "pass",
+      "images": 24,
+      "sourceFiles": 28,
+      "log": "logs/baseline-check.log"
+    },
+    "publicCompatibility": {
+      "result": "byte-identical for normal nested placements, filled slots, missing/cyclic references",
+      "fixture": "tests/fixtures/nested-component-public.json",
+      "historicalCopy": "public-before.json"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "qaHarness": {
+      "result": "HTTP200; preserved for root",
+      "url": "http://localhost:4968/edit/s1",
+      "pid": 56840,
+      "sessionId": 92450,
+      "fixture": "trusted fictional mock adapted only from port4964 to4968"
+    },
+    "nativeAcceptance": {
+      "result": "pass, root-owned built-in browser",
+      "evidence": "native/native-acceptance.json",
+      "screenshots": [
+        "native/outer-selected-desktop.png",
+        "native/outer-selected-mobile.png",
+        "native/public-nested-duplicates.png"
+      ],
+      "scope": [
+        "Native Rich component/property override and outer Column component creation.",
+        "Clicking nested Rich selects actual outer placement.",
+        "Library Edit outer definition makes immediate Rich child/property editable.",
+        "Duplicating outer keeps all editor IDs unique and nested values intact.",
+        "Mobile414 last copy selects its own outer owner.",
+        "Real reload preserves two copies and their values."
+      ],
+      "limitation": "Double-click did not open source; root used Library Edit. Slot/CMS/variant permutations remain automated-only."
+    },
+    "publicFollowup": {
+      "result": "confirmed native unresolved separate bug",
+      "id": "pagecraft-wysiwyg-r488o743",
+      "count": 2,
+      "evidence": "native/native-acceptance.json#publicFollowup",
+      "plan": "Public ID identity/compatibility policy to follow in a separate candidate after79 exact base."
+    }
+  },
+  "sourceHashes": "source-tests-assets.sha256",
+  "limits": [
+    "Double-click source opening did not work in the native sequence; Library Edit was used.",
+    "Slot/CMS/variant permutations remain automated-only.",
+    "Public nested duplicate IDs remain confirmed in actual Preview and must be fixed separately.",
+    "Native Nav/mobile-menu interactions under namespaced editor IDs remain broader follow-up.",
+    "No claim of overall customer QA completion or production readiness."
+  ],
+  "remaining": [
+    "Root integration/release as79.",
+    "Separate public nested-ID fix on exact79 base."
+  ],
+  "excludedGenerated": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4968.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "boundaries": "No current4966 assets, Main, shared feedback, browser, WordPress, baseline, commit or push changes. Separate isolated diagnostic package builds only."
+}

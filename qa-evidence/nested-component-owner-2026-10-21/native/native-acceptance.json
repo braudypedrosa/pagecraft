@@ -1,0 +1,85 @@
+{
+  "selection": {
+    "path": "Section\n›\nRow · 1 col\n›\nQA outer workshop",
+    "text": "State\nResting\nHover\nFocus\nShow modified settings\nIdentity & layout\nHTML id\nCSS classes\nPosition\nDefault\nTop\npx\nZ-index\n—\nOverflow\nDefault\nMax width\npx\nCustom CSS\nEffects\nOpacity\nTransform\nContent source\nCollection \n— None —\nVisibility\nHide on Desktop\nHide on Tablet\nHide on Mobile",
+    "dom": {
+      "dataId": null,
+      "html": "Instance wording",
+      "id": "",
+      "owner": "nr2zgj2ty"
+    }
+  },
+  "sourceSelection": {
+    "path": "Column\n›\nQA inner workshop",
+    "inspector": "Component variant\nDefault\nSave as variant\nBack to the defaults\nOne value is set on this instance.\nRich text\nRich text\nEdit on canvas"
+  },
+  "editor": {
+    "duplicates": [],
+    "ids": [
+      "nqytk21yxf",
+      "qa-ui-heading",
+      "qa-ui-contact",
+      "qa-ui-contact-f0",
+      "qa-ui-contact-f1",
+      "qa-ui-contact-f2",
+      "nr2zgj4zr",
+      "nr2zgj3am",
+      "nr2zgj2ty",
+      "nr488o743-r2zgj2ty",
+      "nr6a5d8mj",
+      "nr488o743-r6a5d8mj"
+    ],
+    "rich": [
+      {
+        "dataId": null,
+        "id": "nr488o743-r2zgj2ty",
+        "owner": "nr2zgj2ty",
+        "text": "Nested changed"
+      },
+      {
+        "dataId": null,
+        "id": "nr488o743-r6a5d8mj",
+        "owner": "nr6a5d8mj",
+        "text": "Nested changed"
+      }
+    ]
+  },
+  "mobile": {
+    "id": "nr488o743-r6a5d8mj",
+    "owner": "nr6a5d8mj",
+    "selected": true,
+    "width": 414
+  },
+  "savedReload": [
+    {
+      "id": "nr488o743-r2zgj2ty",
+      "owner": "nr2zgj2ty",
+      "text": "Nested changed"
+    },
+    {
+      "id": "nr488o743-r6a5d8mj",
+      "owner": "nr6a5d8mj",
+      "text": "Nested changed"
+    }
+  ],
+  "publicFollowup": {
+    "duplicates": [
+      [
+        "pagecraft-wysiwyg-r488o743",
+        2
+      ]
+    ],
+    "rich": [
+      {
+        "id": "pagecraft-wysiwyg-r488o743",
+        "text": "Nested changed"
+      },
+      {
+        "id": "pagecraft-wysiwyg-r488o743",
+        "text": "Nested changed"
+      }
+    ]
+  },
+  "scope": "NativecustomercreateRichpropertyoverride/wrapColumn/selectouter/openlibrarydefinition/editchildoverride/duplicateouter/Mobile414/reload. Doubleclickdidnotopensource; libraryEditused. Slot/CMS/variant permutations automated only.",
+  "publicDuplicateRisk": "Pre-existing duplicate public ID confirmed; separate fix required, not solved by editor-only patch."
+}

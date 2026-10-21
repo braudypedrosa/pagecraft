@@ -1,0 +1,22 @@
+{
+  "cloudCommit": "37820488905becc37e9870ca5d9c93fe370015ab",
+  "desktop": {
+    "height": 24,
+    "html": "<p></p>",
+    "id": "np3jg4173"
+  },
+  "mobile": {
+    "height": 24,
+    "html": "<p></p>",
+    "id": "np3jg4173",
+    "width": 414
+  },
+  "sourceReached": true,
+  "restoration": {
+    "originalHistory": 53,
+    "idsExact": true,
+    "stylesExact": true,
+    "saveDisabled": true
+  },
+  "scope": "empty Rich same element nativeclickD/M/source editing. Shared public markup unchanged in automated/localproof. Nesteduseownership remains separate open issue."
+}

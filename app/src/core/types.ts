@@ -812,6 +812,9 @@ export interface RenderOpts {
       of itself would otherwise render until the stack runs out, and a page builder should not
       be able to hang the tab it renders in. */
   stack?: string[];
+  /** Transient editor-only placement expansion path. Keeps definition-owned nested content
+      under its selectable outer placement; never stored in a document or used by export. */
+  editorPath?: string[];
   /** Authoritative parent Nav links while its managed mobile component renders. */
   mobileMenuItems?: NavItem[];
   /** how far this file sits from the root, e.g. '../' */

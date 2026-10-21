@@ -8613,12 +8613,15 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      set of rules in the stylesheet serve every instance. */
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
+    const editorPath = o.edit ? [...(o.editorPath || []), n.id] : undefined;
+    const fallbackId = esc(n.id + (o.edit ? (o.editorPath || []).map(id => '-' + id.replace(/^n/, '')).join('') : ''));
+    const fallbackHooks = (editorPath?.length || 0) > 1 ? '' : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
     if (cd && (o.stack || []).includes(n.use)) {
       /* A component that contains itself. Refused at the second turn rather than the
          thousandth, because the alternative is a page builder that can hang the tab it renders
          in — and the author needs to be told, not left with a blank space. */
       return o.edit
-        ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">${esc(cd.name)} contains itself</div>`
+        ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">${esc(cd.name)} contains itself</div>`
         : '';
     }
     if (!cd) {
@@ -8626,10 +8629,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          a broken one — and named in the editor, because a component nobody can find is a thing
          somebody has to fix. */
       return o.edit
-        ? `<div id="${esc(n.id)}" data-id="${esc(n.id)}" data-t="${esc(n.type)}" class="s-missing">Missing component: ${esc(n.use)}</div>`
+        ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">Missing component: ${esc(n.use)}</div>`
         : '';
     }
-    return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...(o.stack || []), n.use] });
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, editorPath, stack: [...(o.stack || []), n.use] });
   }
   /* This node is the definition's root, rendering inside an instance: the element on the page
      is the instance's, so its id, its styling hook, its classes and its motion are the ones
@@ -8674,8 +8677,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     ...o, col: sc,
     item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
   } : o;
+  /* Nested placements still resolve their own values, but their DOM belongs to the outer
+     placement. Only editor IDs gain its path; published anchors remain byte-for-byte stable. */
+  const editorSuffix = o.edit ? (o.inst ? (o.editorPath || []).slice(0, -1) : o.editorPath || [])
+    .map(id => '-' + id.replace(/^n/, '')).join('') : '';
   const domId = o.edit
-    ? esc(o.repIndex ? self.id + rep + ins : self.id + ins)
+    ? esc((o.repIndex ? self.id + rep + ins : self.id + ins) + editorSuffix)
     : esc(domIdOf(self) + rep + ins);
   /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
      on the nearest ancestor that has one — the instance — which is the element whose panel can
@@ -8690,7 +8697,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     && findItem(o2.col, o2.item.id)
     ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"`
     : '';
-  const hooks = inner ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const hooks = inner || (o.editorPath?.length || 0) > 1 ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
   const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
@@ -8699,7 +8706,11 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      sitting in. */
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : (n.children || []);
-  const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
+  const kidOpts = filled && filled.length ? {
+    ...o2, inst: null, cdef: null,
+    /* Direct placement slots are page-owned; slots inside nested definitions are not. */
+    editorPath: (o.editorPath?.length || 0) > 1 ? o.editorPath : undefined
+  } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   /* A link opens in a new tab or it does not. `target` is a prop a binding can write anything

@@ -1,0 +1,195 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nested-component-owner-3782048
+
+ ❯ tests/nested-component-owner.test.ts (7 tests | 5 failed) 31ms
+   × nested component roots delegate native selection to their actual outer placement 16ms
+   × two outer copies and repeated nested definitions have unique editor DOM IDs 4ms
+   × opening the outer definition makes its immediate nested placements selectable, without exposing their internals 3ms
+   × filled slots keep page-owned placements selectable but not definition-owned nested slot content 2ms
+   × nested missing and cyclic fallbacks keep outer selection ownership 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/nested-component-owner.test.ts > nested component roots delegate native selection to their actual outer placement
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/nested-component-owner.test.ts:12:89
+     10| test('nested component roots delegate native selection to their actual…
+     11|  const root=render();const nested=root.querySelector<HTMLElement>('.pa…
+     12|  expect(nested.textContent).toBe('Nested value');expect(nested.hasAttr…
+       |                                                                                         ^
+     13|  expect(nested.closest('[data-id]')).toBe(root);expect(root.dataset.id…
+     14|  expect(C.locate(f.nested.id)).toBeNull();expect(C.locate(root.dataset…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/nested-component-owner.test.ts > two outer copies and repeated nested definitions have unique editor DOM IDs
+AssertionError: expected 8 to be 16 // Object.is equality
+
+- Expected
++ Received
+
+- 16
++ 8
+
+ ❯ tests/nested-component-owner.test.ts:19:90
+     17| test('two outer copies and repeated nested definitions have unique edi…
+     18|  document.body.innerHTML=C.renderList([f.placement,f.duplicate],{edit:…
+     19|  const ids=[...document.querySelectorAll('[id]')].map(n=>n.id);expect(…
+       |                                                                                          ^
+     20|  expect([...document.querySelectorAll('[data-id]')].map(n=>n.getAttrib…
+     21| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/nested-component-owner.test.ts > opening the outer definition makes its immediate nested placements selectable, without exposing their internals
+AssertionError: expected <div id="nnestedleaf" …(3)>…(1)</div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  class="pagecraft-wysiwyg pagecraft-leafroot pagecraft-nestedleaf ts-body"
+  data-id="nnestedleaf"
+  data-t="text"
+  id="nnestedleaf"
+>
+  <p>
+    Nested value
+  </p>
+</div>
+
+ ❯ tests/nested-component-owner.test.ts:26:59
+     24|  expect(C.componentOpen(f.outer.id)).toBe(true);const root=render(f.ou…
+     25|  expect(root.querySelector(`[data-id="${f.first.id}"]`)).not.toBeNull(…
+     26|  expect(root.querySelector(`[data-id="${f.nested.id}"]`)).toBeNull();
+       |                                                           ^
+     27| });
+     28|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/nested-component-owner.test.ts > filled slots keep page-owned placements selectable but not definition-owned nested slot content
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/nested-component-owner.test.ts:31:45
+     29| test('filled slots keep page-owned placements selectable but not defin…
+     30|  const nestedRoot=render();const nestedSlot=[...nestedRoot.querySelect…
+     31|  expect(nestedSlot.hasAttribute('data-id')).toBe(false);expect(nestedS…
+       |                                             ^
+     32|  const direct=f.use('npageownedmiddle',f.middle),pageChild=f.use('npag…
+     33|  const directRoot=render(direct);expect(directRoot.querySelector(`[dat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/nested-component-owner.test.ts > nested missing and cyclic fallbacks keep outer selection ownership
+AssertionError: expected <div id="nnestedleaf" …(3)></div> to be <div id="nouterplacement" …(3)>…(2)</div> // Object.is equality
+
+- Expected
++ Received
+
+  <div
+-   class="pagecraft-box pagecraft-outerroot pagecraft-outerplacement"
+-   data-id="nouterplacement"
+-   data-t="box"
+-   id="nouterplacement"
+- >
+-   <div
+-     class="pagecraft-box pagecraft-middleroot pagecraft-firstmiddle"
+-     data-id="nfirstmiddle"
+-     data-t="box"
+-     id="nfirstmiddle"
+-   >
+-     <div
+-       class="s-missing"
+-       data-id="nnestedleaf"
+-       data-t="text"
+-       id="nnestedleaf"
+-     >
+-       Missing component: missing
+-     </div>
+-     <div
+-       class="pagecraft-box pagecraft-slot"
+-       id="nslot-firstmiddle"
+-     >
+-       <div
+-         class="pagecraft-wysiwyg pagecraft-leafroot pagecraft-filledleaf ts-body"
+-         data-id="nfilledleaf"
+-         data-t="text"
+-         id="nfilledleaf"
+-       >
+-         <p>
+-           Nested slot value
+-         </p>
+-       </div>
+-     </div>
+-   </div>
+-   <div
+-     class="pagecraft-box pagecraft-middleroot pagecraft-secondmiddle"
+-     data-id="nsecondmiddle"
+-     data-t="box"
+-     id="nsecondmiddle"
+-   >
+-     <div
+    class="s-missing"
+    data-id="nnestedleaf"
+    data-t="text"
+    id="nnestedleaf"
+  >
+    Missing component: missing
+-     </div>
+-     <div
+-       class="pagecraft-box pagecraft-slot"
+-       id="nslot-secondmiddle"
+-     >
+-       <div
+-         class="s-empty"
+-       >
+-         <svg
+-           class=""
+-           fill="none"
+-           height="12"
+-           stroke="currentColor"
+-           stroke-width="1.4"
+-           viewBox="0 0 16 16"
+-           width="12"
+-         >
+-           <path
+-             d="M8 3v10M3 8h10"
+-             stroke-linecap="round"
+-           />
+-         </svg>
+-          Drop anything here
+-       </div>
+-     </div>
+-   </div>
+  </div>
+
+ ❯ tests/nested-component-owner.test.ts:37:106
+     35|
+     36| test('nested missing and cyclic fallbacks keep outer selection ownersh…
+     37|  f.nested.use='missing';let root=render();expect(root.querySelector('.…
+       |                                                                                                          ^
+     38|  f.nested.use=f.outer.id;root=render();expect(root.querySelector('.s-m…
+     39| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 2 passed (7)
+   Start at  14:35:40
+   Duration  1.07s (transform 236ms, setup 0ms, import 275ms, tests 31ms, environment 647ms)

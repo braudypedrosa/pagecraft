@@ -1,0 +1,62 @@
+{
+  "nativeClickAttempts": 2,
+  "selectionOpened": false,
+  "dom": {
+    "ancestors": [
+      {
+        "class": "pagecraft-wysiwyg s-rich-empty pagecraft-posv35bk pagecraft-q4rdl7m9 ts-body",
+        "dataId": "nq4rdl7m9",
+        "id": "nq4rdl7m9",
+        "tag": "DIV",
+        "type": "text"
+      },
+      {
+        "class": "pagecraft-column pagecraft-q4rdl6ww pagecraft-pnnu622m",
+        "dataId": "npnnu622m",
+        "id": "npnnu622m",
+        "tag": "DIV",
+        "type": "column"
+      },
+      {
+        "class": "pagecraft-row pagecraft-pnnu63md",
+        "dataId": "npnnu63md",
+        "id": "npnnu63md",
+        "tag": "DIV",
+        "type": "row"
+      },
+      {
+        "class": "pagecraft-container",
+        "dataId": null,
+        "id": "",
+        "tag": "DIV",
+        "type": null
+      },
+      {
+        "class": "pagecraft-section pagecraft-pnnu6470",
+        "dataId": "npnnu6470",
+        "id": "npnnu6470",
+        "tag": "SECTION",
+        "type": "section"
+      },
+      {
+        "class": "s-rbody",
+        "dataId": null,
+        "id": "",
+        "tag": "DIV",
+        "type": null
+      }
+    ],
+    "outer": "<div id=\"nq4rdl7m9\" data-id=\"nq4rdl7m9\" data-t=\"text\" class=\"pagecraft-wysiwyg s-rich-empty pagecraft-posv35bk pagecraft-q4rdl7m9 ts-body\"><p></p></div>",
+    "rect": {
+      "bottom": 485.703125,
+      "height": 24,
+      "left": 20,
+      "right": 379,
+      "top": 461.703125,
+      "width": 359,
+      "x": 20,
+      "y": 461.703125
+    }
+  },
+  "scope": "New followup after wrapping existing Rich component in Column component; no claim fixed; current candidate only emptyhitheight"
+}
