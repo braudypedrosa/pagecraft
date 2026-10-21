@@ -1,0 +1,20 @@
+[
+  {
+    "device": "Desktop",
+    "gap": "24px",
+    "overflow": false,
+    "width": 1200
+  },
+  {
+    "device": "Tablet",
+    "gap": "16px",
+    "overflow": false,
+    "width": 775
+  },
+  {
+    "device": "Mobile",
+    "gap": "8px",
+    "overflow": false,
+    "width": 363
+  }
+]

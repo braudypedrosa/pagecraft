@@ -151,7 +151,7 @@
     }
   ],
   "pending_next_checks": [
-    "Collection list L01\u2013L08: initial source and repeated Heading binding/empty/no-source reload proof exists locally; remaining cases are open.",
+    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; L07 child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
     "Per-module condition-label checks beyond the generic accepted82 labels.",
     "Table position, max-width and overflow controls.",
     "Common Motion, Hover/Focus, dynamic component and full customer-flow combinations outside named records."
@@ -186,5 +186,14 @@
     "wordpress_ci": 39633809752,
     "evidence": "qa-evidence/padding-list-controls-2026-10-21/post-deploy/task-close.md",
     "status": "native accepted; fixtures restored; no production promotion"
+  },
+  "release84": {
+    "cloud": "0a8c0c19944c3f68898ea49e70b44825fead23f3",
+    "cloud_ci": 39641734707,
+    "cloud_deploy": 39641734532,
+    "wordpress": "3604eb74b0bc6dd6e042ecd2fc1e4c7b2657f8fb",
+    "wordpress_ci": 39646072783,
+    "evidence": "qa-evidence/binding-dialog-labels-2026-10-22/post-deploy/task-close.md",
+    "status": "accepted bounded Cloud native; WordPress source parity and native read-only provider scope; fixtures restored; no production promotion"
   }
 }

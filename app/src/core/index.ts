@@ -572,11 +572,11 @@ const DEF: Record<string, WidgetDef> = {
           }
         },
         {
-          t: 'unit', k: 'per', label: 'Items per page', units: [''], ph: 'all on one page',
+          t: 'unit', k: 'per', label: 'Items per page', integer: 1, units: [''], ph: 'all on one page',
           note: 'Turns this page into one file per page of results.'
         },
         {
-          t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all',
+          t: 'unit', k: 'limit', label: 'Show at most', integer: 1, units: [''], ph: 'all',
           note: 'Items per page wins where both are set.',
           when: n => !(parseInt(String((n.props as PropBag).per || ''), 10) > 0)
         },

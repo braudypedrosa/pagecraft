@@ -1,0 +1,114 @@
+{
+  "title": "Collection List L04-L05 native evidence summary",
+  "date": "2026-10-22",
+  "status": "bounded_partial",
+  "devices": ["Desktop", "Tablet", "Mobile"],
+  "l04_filter": {
+    "controls": ["Filter", "Test", "Value"],
+    "evidence": [
+      {"case": "category_is_accessibility", "file": "l04-category-is-reload.json", "counts": [18, 18, 18], "status": "evidenced"},
+      {"case": "category_is_not_accessibility", "file": "l04-category-not-reload.json", "counts": [0, 0, 0], "status": "evidenced"},
+      {"case": "category_contains_accessibility", "file": "l04-category-contains-reload.json", "counts": [18, 18, 18], "status": "evidenced"},
+      {"case": "category_has_any_value", "file": "l04-category-has-any-reload.json", "counts": [18, 18, 18], "status": "evidenced"},
+      {"case": "category_is_empty", "file": "l04-category-empty-reload.json", "counts": [0, 0, 0], "status": "evidenced"},
+      {"case": "category_is_design", "file": "l04-category-other-value-reload.json", "counts": [0, 0, 0], "status": "evidenced"},
+      {"case": "include_is_yes", "file": "l04-boolean-yes-reload.json", "counts": [9, 9, 9], "identity_file": "l04-boolean-yes-identities.json", "status": "evidenced"},
+      {"case": "include_is_no", "file": "l04-boolean-no-reload.json", "counts": [9, 9, 9], "identity_file": "l04-boolean-no-identities.json", "status": "evidenced"},
+      {"case": "include_has_any_value", "file": "l04-boolean-has-any-reload.json", "counts": [18, 18, 18], "status": "evidenced"},
+      {"case": "include_is_empty", "file": "l04-boolean-empty-reload.json", "counts": [0, 0, 0], "status": "evidenced"},
+      {"case": "title_contains_case_insensitive", "file": "l04-title-case-insensitive-reload.json", "counts": [18, 18, 18], "status": "evidenced"},
+      {"case": "title_is_not_substring", "file": "l04-title-exact-not-substring-reload.json", "counts": [0, 0, 0], "status": "evidenced"},
+      {"case": "filter_cleared_restores_every_item", "file": "l04-every-item-restored-reload.json", "counts": [18, 18, 18], "status": "evidenced"}
+    ],
+    "dependency_evidence": "l04-filter-dependencies.json records zero Test/value controls while no filter field is selected; dependent controls are hidden as intended.",
+    "limits": [
+      "All category values in the fixture are Accessibility; no mixed-category positive result is proven.",
+      "No numeric/date filter schema is represented.",
+      "Arbitrary values and all boolean aliases are not exhaustive."
+    ]
+  },
+  "l05_pagination": {
+    "controls": ["Items per page", "Show at most"],
+    "evidence": [
+      {"case": "limit_3", "file": "l05-limit3-reload.json", "counts": [3, 3, 3], "observed_titles": ["2", "3", "5"], "status": "evidenced_with_route_caveat"},
+      {"case": "items_per_page_1", "file": "l05-per1-reload.json", "counts": [1, 1, 1], "observed_titles": ["12"], "status": "evidenced_with_route_caveat"},
+      {"case": "items_per_page_2", "file": "l05-per2-first-page-reload.json", "counts": [2, 2, 2], "observed_titles": ["2", "3"], "status": "evidenced_with_route_caveat"},
+      {"case": "items_per_page_2_overrides_limit_3", "file": "l05-per2-overrides-limit3-reload.json", "counts": [2, 2, 2], "observed_titles": ["23", "24"], "status": "evidenced_with_route_caveat"},
+      {"case": "clear_items_per_page_restores_limit_3", "file": "l05-clear-per-restores-limit3-reload.json", "counts": [3, 3, 3], "observed_titles": ["2", "3", "5"], "status": "evidenced_with_route_caveat"}
+    ],
+    "navigation_mobile": {
+      "file": "l05-pagination-navigation-mobile.json",
+      "pages": {
+        "2": ["5", "6"],
+        "8": ["23", "24"],
+        "9": ["26", "27"]
+      },
+      "page9_next_is_span": true,
+      "overflow": false,
+      "status": "evidenced"
+    },
+    "route_caveat": "The preview route may retain a later page number during native navigation. These receipts prove recorded counts and observed titles only; they do not independently prove first-page/reset state unless titles or aria-current establish it."
+  },
+  "numeric_boundary_followup": {
+    "controls": ["Items per page", "Show at most"],
+    "evidence": [
+      {"case": "items_per_page_zero_with_limit_3", "file": "l05-per0-limit3-reload.json", "observed_count": 3, "interpretation": "per=0 is treated as disabled because renderer requires per > 0; limit 3 remains active."},
+      {"case": "items_per_page_negative_2_with_limit_3", "file": "l05-per-negative2-reload.json", "observed_count": 3, "interpretation": "UI clamps the nonnegative Unit control to 0; renderer then leaves per disabled and limit 3 remains active."},
+      {"case": "items_per_page_decimal_2_5", "file": "l05-per-decimal2point5-reload.json", "observed_count": 2, "observed_pages": 9, "interpretation": "raw decimal persists across reload, while renderer parseInt floors it to 2 for slicing/page count."},
+      {"case": "fractional_page_transition", "file": "l05-fractional-page-size-native.json", "authored_per_page": 2.5, "first_item_numbers": [2, 3], "next_item_numbers": [5, 6], "observed_pages": 9, "no_dropped_transition": true, "interpretation": "The first-to-next transition advances by the effective integer size (2) with no dropped items, while the control still displays/persists 2.5; this is additional evidence of the decimal UI/compiler inconsistency."},
+      {"case": "items_per_page_99", "file": "l05-per99-reload.json", "observed_count": 18, "interpretation": "large positive integer-like value leaves all 18 published items on one page."}
+    ],
+    "source_analysis": {
+      "control_definition": "app/src/core/index.ts:575-584 defines per/limit as unit controls with units [''], no integer flag, and the shared UnitCtl defaults to min 0 and step any.",
+      "ui_validation": "app/src/ui/inspector/Controls.tsx:164-203 clamps nonnegative values but allows decimals when integer is not set.",
+      "renderer": "app/src/core/index.ts:4665-4669 and 5030-5036 use parseInt and per > 0, so pagination is integer-only and decimals are silently truncated.",
+      "classification": "0 and negative values behave as the existing disabled/limit precedence policy; decimal persistence versus integer-only rendering is a real UI/compiler contract inconsistency."
+    },
+    "minimal_options": [
+      "Mark per and limit integer-aware in their controls while retaining zero as the disabled value, then add native coverage for decimal entry and reload.",
+      "Alternatively reject decimal drafts explicitly; do not silently persist a decimal that the renderer truncates."
+    ],
+    "status": "evidenced_boundary_with_decimal_inconsistency"
+  },
+  "l06_layout_followup": {
+    "controls": ["Gap", "Vertical align", "Wrap"],
+    "evidence": [
+      {"case": "vertical_align_all_options", "file": "l06-alignment-reload.json", "values": ["flex-start", "center", "flex-end", "baseline", "stretch"], "devices": 3, "status": "evidenced"},
+      {"case": "gap_responsive_override", "file": "l06-gap-overrides-computed.json", "computed_px": {"Desktop": 24, "Tablet": 16, "Mobile": 8}, "overflow": false, "status": "evidenced"},
+      {"case": "gap_zero", "file": "l06-gap-zero-computed.json", "computed_px": {"Desktop": 0, "Tablet": 0, "Mobile": 0}, "status": "evidenced"},
+      {"case": "gap_reset_inheritance", "file": "l06-gap-reset.json", "after_clear": {"Mobile_inherits_Tablet": 16, "Tablet_inherits_Desktop": 24}, "status": "evidenced"},
+      {"case": "responsive_list_reloads", "file": "l06-gap-overrides-count-reload.json", "published_count": [18, 18, 18], "status": "evidenced"}
+    ],
+    "status": "evidenced_with_limits",
+    "limits": ["Representative gap/alignment values and resets only; arbitrary spacing and all shared style controls remain open."]
+  },
+  "l08_advanced_visibility_condition_followup": {
+    "controls": ["Advanced identity/custom CSS", "Visibility", "Show only if condition"],
+    "evidence": [
+      {"case": "identity_and_custom_css", "file": "l08-identity-custom-css-reload.json", "devices": 3, "published_count": 18, "proof": "id qa-list-native, class qa-list-proof, outline rgb(21,85,119) solid 2px", "status": "evidenced"},
+      {"case": "hide_each_breakpoint", "file": "l08-visibility-hide-reload.json", "devices": 3, "proof": "display:none at the hidden breakpoint while 18 DOM items remain retained", "status": "evidenced"},
+      {"case": "condition_has_value", "file": "l08-condition-bool-native.json", "wrapper": 1, "published_count": 18, "devices": 3, "status": "evidenced"},
+      {"case": "condition_equals_one", "file": "l08-condition-bool-native.json", "wrapper": 0, "published_count": 0, "devices": 3, "status": "rejected_probe_onchange_value_not_committed"},
+      {"case": "condition_equals_zero", "file": "l08-condition-bool-native.json", "wrapper": 0, "published_count": 0, "devices": 3, "status": "rejected_probe_onchange_value_not_committed"},
+      {"case": "condition_restored_always_show", "file": "l08-condition-restored.json", "restored": "Always show", "devices": 3, "status": "rejected_probe_field_was_blank"},
+      {"case": "condition_category_positive", "file": "l08-condition-category-committed.json", "saved_value": "Accessibility", "wrapper": 1, "published_count": 18, "devices": 3, "status": "evidenced_saved_value_after_reload"},
+      {"case": "condition_category_negative", "file": "l08-condition-category-committed.json", "saved_value": "Design", "wrapper": 0, "published_count": 0, "devices": 3, "status": "evidenced_saved_value_after_reload"},
+      {"case": "condition_category_restored_always_show", "file": "l08-condition-category-committed.json", "restored": "Always show", "status": "evidenced"}
+    ],
+    "condition_semantics": "Source review indicates a List node condition is evaluated before its repeat loop against the selected source preview item; it controls whole-list visibility, not per-item filtering. The earlier equality receipts cannot validate this behavior because the Value input uses onChange and the automation did not commit the typed value. Per-item conditions require a repeated child/card descendant.",
+    "source_pointers": ["app/src/core/index.ts:5325-5337", "app/src/core/index.ts:5461-5478", "app/src/core/index.ts:8685-8694", "app/src/core/index.ts:8848-8856"],
+    "status": "evidenced_with_context_limits",
+    "limits": ["The earlier is=1 and is=0 equality receipts are rejected probes because the Value input remained blank after fill+Tab; they provide no condition result evidence.", "The committed Accessibility/Design cases cover category positive/negative whole-list visibility only; boolean, nested child, blank/nonempty, and legacy-invalid condition cases remain open.", "No per-item child/card condition matrix is recorded."]
+  },
+  "remaining": [
+    "Fresh first-page proof with explicit aria-current or equivalent route evidence.",
+    "Additional limit/per-page values and last partial page after a confirmed reset.",
+    "A product decision/fix for decimal per/limit values, followed by native verification.",
+    "Mixed-category, numeric/date, and larger-schema filter cases.",
+    "L07 repeated child/link edge cases and factory-default card basis.",
+    "Per-item child/card condition matrix distinct from whole-list condition.",
+    "Corrected category condition cases with pressSequentially input, picker selection, reload savedValue guard, and all-device receipts; boolean cases remain open.",
+    "Meaningful boolean true/false matches on repeated child/card controls.",
+    "Nested child conditions, blank/nonempty conditions, and legacy-invalid field/value/operator cases."
+  ]
+}

@@ -1,0 +1,97 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-integer-counts-0a8c0c1
+
+ ❯ tests/list-integer-counts.test.tsx (6 tests | 5 failed) 45ms
+   × List per rounds through the real control and persists an integer after reload 17ms
+   × List limit rounds through the real control and persists an integer after reload 2ms
+   × both List count controls preserve whole/zero/empty values and clamp negatives without fractional writes 2ms
+   × rounded per-page value agrees with compiled page/card counts while preserving a hidden limit 2ms
+   × rounded limit agrees with compiled output and zero or clearing restores every item 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/list-integer-counts.test.tsx > List per rounds through the real control and persists an integer after reload
+ FAIL  tests/list-integer-counts.test.tsx > List limit rounds through the real control and persists an integer after reload
+AssertionError: Expected values to be strictly equal:
+
+'2.5' !== '3'
+
+
+Expected: "3"
+Received: "2.5"
+
+ ❯ tests/list-integer-counts.test.tsx:54:10
+     52|   let { list } = fixture();
+     53|   const input = enter(list, key, '2.5');
+     54|   assert.equal(input.value, '3');
+       |          ^
+     55|   assert.equal(list.props[key], '3');
+     56|   assert.equal(input.step, '1');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/list-integer-counts.test.tsx > both List count controls preserve whole/zero/empty values and clamp negatives without fractional writes
+AssertionError: Expected values to be strictly equal:
+
+'2.49' !== '2'
+
+
+Expected: "2"
+Received: "2.49"
+
+ ❯ tests/list-integer-counts.test.tsx:69:14
+     67|     for (const [value, expected] of [['2.49', '2'], ['-2.5', '0'], ['0…
+     68|       const input = enter(list, key, value);
+     69|       assert.equal(input.value, expected);
+       |              ^
+     70|       assert.equal(list.props[key], expected);
+     71|       assert.equal(input.validity.valid, true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/list-integer-counts.test.tsx > rounded per-page value agrees with compiled page/card counts while preserving a hidden limit
+AssertionError: Expected values to be strictly equal:
+
+'2.5' !== '3'
+
+
+Expected: "3"
+Received: "2.5"
+
+ ❯ tests/list-integer-counts.test.tsx:82:10
+     80|   list = reload(list);
+     81|   const page = C.state.pages[0], col = C.findCollection(list.src!)!;
+     82|   assert.equal(list.props.per, '3');
+       |          ^
+     83|   assert.equal(list.props.limit, '4');
+     84|   assert.equal(C.listItems(list, col).length, 18);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/list-integer-counts.test.tsx > rounded limit agrees with compiled output and zero or clearing restores every item
+AssertionError: Expected values to be strictly equal:
+
+2 !== 3
+
+
+- Expected
++ Received
+
+- 3
++ 2
+
+ ❯ tests/list-integer-counts.test.tsx:100:10
+     98|   enter(list, 'limit', '2.5');
+     99|   list = reload(list);
+    100|   assert.equal(compiledTitles(C.buildPage(C.state.pages[0])).length, 3…
+       |          ^
+    101|   for (const value of ['0', '']) {
+    102|     enter(list, 'limit', value);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 1 passed (6)
+   Start at  01:50:38
+   Duration  942ms (transform 245ms, setup 0ms, import 294ms, tests 45ms, environment 504ms)

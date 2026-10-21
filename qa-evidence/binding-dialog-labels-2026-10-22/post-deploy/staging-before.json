@@ -1,0 +1,85 @@
+{
+  "restoreVersion": 1071,
+  "editable": [
+    {
+      "id": "cg-opening-25",
+      "type": "section"
+    },
+    {
+      "id": "cg-project-directory-24",
+      "type": "box"
+    },
+    {
+      "id": "cg-directory-20",
+      "type": "box"
+    },
+    {
+      "id": "cg-heading-15",
+      "type": "heading"
+    },
+    {
+      "id": "cg-copy-16",
+      "type": "text"
+    },
+    {
+      "id": "cg-project-index-19",
+      "type": "box"
+    },
+    {
+      "id": "cg-link-17",
+      "type": "button"
+    },
+    {
+      "id": "cg-link-18",
+      "type": "button"
+    },
+    {
+      "id": "cg-featured-project-23",
+      "type": "box"
+    },
+    {
+      "id": "cg-courtyard-house-21",
+      "type": "image"
+    },
+    {
+      "id": "cg-copy-22",
+      "type": "text"
+    },
+    {
+      "id": "cg-projects-27",
+      "type": "section"
+    },
+    {
+      "id": "cg-project-instance-26",
+      "type": "box"
+    },
+    {
+      "id": "cg-practice-30",
+      "type": "section"
+    },
+    {
+      "id": "cg-heading-28",
+      "type": "heading"
+    },
+    {
+      "id": "cg-copy-29",
+      "type": "text"
+    },
+    {
+      "id": "cg-inquiry-link-38",
+      "type": "section"
+    },
+    {
+      "id": "cg-heading-35",
+      "type": "heading"
+    },
+    {
+      "id": "cg-copy-36",
+      "type": "text"
+    },
+    {
+      "id": "cg-link-37",
+      "type": "button"
+    }
+  ]
+}

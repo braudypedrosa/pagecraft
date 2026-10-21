@@ -2798,6 +2798,7 @@ var DEF = {
           t: "unit",
           k: "per",
           label: "Items per page",
+          integer: 1,
           units: [""],
           ph: "all on one page",
           note: "Turns this page into one file per page of results."
@@ -2806,6 +2807,7 @@ var DEF = {
           t: "unit",
           k: "limit",
           label: "Show at most",
+          integer: 1,
           units: [""],
           ph: "all",
           note: "Items per page wins where both are set.",

@@ -1,0 +1,102 @@
+[
+  {
+    "setting": {
+      "name": "Top",
+      "css": "flex-start"
+    },
+    "values": [
+      {
+        "device": "Desktop",
+        "value": "flex-start"
+      },
+      {
+        "device": "Tablet",
+        "value": "flex-start"
+      },
+      {
+        "device": "Mobile",
+        "value": "flex-start"
+      }
+    ]
+  },
+  {
+    "setting": {
+      "name": "Middle",
+      "css": "center"
+    },
+    "values": [
+      {
+        "device": "Desktop",
+        "value": "center"
+      },
+      {
+        "device": "Tablet",
+        "value": "center"
+      },
+      {
+        "device": "Mobile",
+        "value": "center"
+      }
+    ]
+  },
+  {
+    "setting": {
+      "name": "Bottom",
+      "css": "flex-end"
+    },
+    "values": [
+      {
+        "device": "Desktop",
+        "value": "flex-end"
+      },
+      {
+        "device": "Tablet",
+        "value": "flex-end"
+      },
+      {
+        "device": "Mobile",
+        "value": "flex-end"
+      }
+    ]
+  },
+  {
+    "setting": {
+      "name": "Base",
+      "css": "baseline"
+    },
+    "values": [
+      {
+        "device": "Desktop",
+        "value": "baseline"
+      },
+      {
+        "device": "Tablet",
+        "value": "baseline"
+      },
+      {
+        "device": "Mobile",
+        "value": "baseline"
+      }
+    ]
+  },
+  {
+    "setting": {
+      "name": "Fill",
+      "css": "stretch"
+    },
+    "values": [
+      {
+        "device": "Desktop",
+        "value": "stretch"
+      },
+      {
+        "device": "Tablet",
+        "value": "stretch"
+      },
+      {
+        "device": "Mobile",
+        "value": "stretch"
+      }
+    ]
+  }
+]

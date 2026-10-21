@@ -1,0 +1,54 @@
+{
+  "hasValue": [
+    {
+      "device": "Desktop",
+      "count": 18,
+      "wrapper": 1
+    },
+    {
+      "device": "Tablet",
+      "count": 18,
+      "wrapper": 1
+    },
+    {
+      "device": "Mobile",
+      "count": 18,
+      "wrapper": 1
+    }
+  ],
+  "isOne": [
+    {
+      "device": "Desktop",
+      "titles": [],
+      "wrapper": 0
+    },
+    {
+      "device": "Tablet",
+      "titles": [],
+      "wrapper": 0
+    },
+    {
+      "device": "Mobile",
+      "titles": [],
+      "wrapper": 0
+    }
+  ],
+  "isZero": [
+    {
+      "device": "Desktop",
+      "count": 0,
+      "wrapper": 0
+    },
+    {
+      "device": "Tablet",
+      "count": 0,
+      "wrapper": 0
+    },
+    {
+      "device": "Mobile",
+      "count": 0,
+      "wrapper": 0
+    }
+  ],
+  "note": "Observed whole-list condition context under source review; no per-item filtering claim."
+}

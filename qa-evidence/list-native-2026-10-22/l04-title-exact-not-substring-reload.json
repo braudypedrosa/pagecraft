@@ -1,0 +1,26 @@
+{
+  "controls": "Collection list\nLayout\nGrid\nSort by\nCMS order\nDirection\nA–Z\nZ–A\nFilter\nWorkshop title shown in listings and the calendar\nTest\nis\nValue\nItems per page\n—\nShow at most\n—\nVertical align\nInherited\nBase\nFill\nGap\nOverride\npx\nCollection\nCommunity workshops, events and accessibility resources · 27 items\nBind the fields inside…\nWrap\nInherited\nWrap",
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [],
+      "count": 0,
+      "expectedCount": 0,
+      "pass": true
+    },
+    {
+      "device": "Tablet",
+      "titles": [],
+      "count": 0,
+      "expectedCount": 0,
+      "pass": true
+    },
+    {
+      "device": "Mobile",
+      "titles": [],
+      "count": 0,
+      "expectedCount": 0,
+      "pass": true
+    }
+  ]
+}

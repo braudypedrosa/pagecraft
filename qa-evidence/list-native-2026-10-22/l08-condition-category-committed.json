@@ -1,0 +1,49 @@
+{
+  "method": "Native pressSequentially then picker blur; reload savedValue guard",
+  "positive": {
+    "savedValue": "Accessibility",
+    "rows": [
+      {
+        "device": "Desktop",
+        "count": 18,
+        "wrapper": 1
+      },
+      {
+        "device": "Tablet",
+        "count": 18,
+        "wrapper": 1
+      },
+      {
+        "device": "Mobile",
+        "count": 18,
+        "wrapper": 1
+      }
+    ]
+  },
+  "negative": {
+    "savedValue": "Design",
+    "rows": [
+      {
+        "device": "Desktop",
+        "count": 0,
+        "wrapper": 0
+      },
+      {
+        "device": "Tablet",
+        "count": 0,
+        "wrapper": 0
+      },
+      {
+        "device": "Mobile",
+        "count": 0,
+        "wrapper": 0
+      }
+    ]
+  },
+  "restored": "Always show",
+  "rejectedEarlier": [
+    "l08-condition-bool-native.json equality1/0",
+    "l08-condition-restored.json equality1/0"
+  ],
+  "reason": "fill+Tab did not commit onChange comparison; actual saved value was blank. Earlier equality probes rejected, not app defect."
+}

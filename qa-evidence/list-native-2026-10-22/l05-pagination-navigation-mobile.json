@@ -1,0 +1,66 @@
+{
+  "pagerBefore83": {
+    "links": [
+      {
+        "href": "index/page-2.html",
+        "text": "2"
+      },
+      {
+        "href": "index/page-3.html",
+        "text": "3"
+      },
+      {
+        "href": "index/page-4.html",
+        "text": "4"
+      },
+      {
+        "href": "index/page-5.html",
+        "text": "5"
+      },
+      {
+        "href": "index/page-6.html",
+        "text": "6"
+      },
+      {
+        "href": "index/page-7.html",
+        "text": "7"
+      },
+      {
+        "href": "index/page-8.html",
+        "text": "8"
+      },
+      {
+        "href": "index/page-9.html",
+        "text": "9"
+      },
+      {
+        "href": "index/page-2.html",
+        "text": "Next"
+      }
+    ],
+    "text": "Previous123456789Next"
+  },
+  "page2Proof83": {
+    "current": "2",
+    "titles": [
+      "5. Community workshop and accessibility review for local teams",
+      "6. Community workshop and accessibility review for local teams"
+    ]
+  },
+  "page9Proof83": {
+    "current": "9",
+    "nextTag": "SPAN",
+    "overflow": false,
+    "titles": [
+      "26. Community workshop and accessibility review for local teams",
+      "27. Community workshop and accessibility review for local teams"
+    ]
+  },
+  "page8Proof83": {
+    "current": "8",
+    "titles": [
+      "23. Community workshop and accessibility review for local teams",
+      "24. Community workshop and accessibility review for local teams"
+    ]
+  }
+}

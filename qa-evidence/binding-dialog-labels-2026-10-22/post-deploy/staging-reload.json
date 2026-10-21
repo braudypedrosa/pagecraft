@@ -1,0 +1,59 @@
+{
+  "stageKeyboard84": "Title · text",
+  "stageBindingReload84": [
+    {
+      "label": "A headline that carries we · Heading · Heading text · 1",
+      "value": "Title · text"
+    },
+    {
+      "label": "A headline that carries we · Heading · Link · 2",
+      "value": "— not bound —"
+    },
+    {
+      "label": "A headline that carries we · Heading · Heading text · 3",
+      "value": "Title · text"
+    },
+    {
+      "label": "A headline that carries we · Heading · Link · 4",
+      "value": "— not bound —"
+    }
+  ],
+  "stageGrid84": [
+    {
+      "basis": "280px",
+      "cardWidth": 282,
+      "device": "Desktop",
+      "firstPair": [
+        "Courtyard",
+        "Courtyard"
+      ],
+      "items": 5,
+      "listWidth": 1200,
+      "overflow": false
+    },
+    {
+      "basis": "280px",
+      "cardWidth": 375.5,
+      "device": "Tablet",
+      "firstPair": [
+        "Courtyard",
+        "Courtyard"
+      ],
+      "items": 5,
+      "listWidth": 775,
+      "overflow": false
+    },
+    {
+      "basis": "100%",
+      "cardWidth": 363,
+      "device": "Mobile",
+      "firstPair": [
+        "Courtyard",
+        "Courtyard"
+      ],
+      "items": 5,
+      "listWidth": 363,
+      "overflow": false
+    }
+  ]
+}

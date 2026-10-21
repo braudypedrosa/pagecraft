@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-22",
+  "baseCommit": "0a8c0c19944c3f68898ea49e70b44825fead23f3",
+  "status": "Root native and gallery acceptance complete; ready for root integration, uncommitted and undeployed.",
+  "source": [
+    "app/src/core/index.ts"
+  ],
+  "tests": [
+    "tests/list-integer-counts.test.tsx"
+  ],
+  "scope": "Only List per and limit definitions opt into existing integer:1 UnitCtl policy. No UnitCtl, compiler or import normalization changes.",
+  "behavior": [
+    "New edits use existing nearest-integer rounding and nonnegative minimum; native step becomes1.",
+    "Zero and empty keep existing unlimited semantics. Per-page pagination still takes precedence over retained limit.",
+    "Legacy saved fractional strings remain unchanged on restore/render and keep existing parseInt output until edited."
+  ],
+  "checks": {
+    "red": {
+      "result": "5 expected failures and1 legacy preservation pass",
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 4,
+      "tests": 682,
+      "scope": [
+        "6 new real-control/persistence/compiler-output cases",
+        "existing UnitCtl validation",
+        "List default basis",
+        "existing Core tests"
+      ],
+      "log": "logs/focused.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "fullPreNative": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 245,
+      "filesSkipped": 2,
+      "testsPassed": 2597,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 97.88,
+      "log": "logs/full-pre-native.log"
+    },
+    "determinism": {
+      "result": "11/11 artifacts byte-identical twice",
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "audit": {
+      "result": "all severity counts zero",
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "1 component,6 instances,4 collection items,0 findings",
+      "log": "logs/demo.log"
+    },
+    "diff": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "outputContract": {
+      "result": "UnitCtl source, golden fixture, historical public snapshot and packaged runtime byte-identical to exact base",
+      "evidence": "output-contract-review.json"
+    },
+    "baseline": {
+      "result": "Root recorded reviewed baseline; final check passes",
+      "images": 24,
+      "sourceFiles": 29,
+      "log": "logs/baseline-final.log",
+      "receipt": "reviewed-baseline.sha256",
+      "previousReceipt": "reviewed-baseline.previous.sha256"
+    },
+    "native": {
+      "result": "accepted by root using the built-in browser",
+      "scope": [
+        "Both 2.5 count edits save and reload as 3 on Desktop, Tablet and Mobile.",
+        "Items per page produces six pages of three items; Mobile first, next and last item identities and aria-current verified.",
+        "Show at most produces three items with no pager across all three breakpoints.",
+        "Zero restores all 18 items with no pager across all three breakpoints.",
+        "Negative input clamps both fields to zero."
+      ],
+      "evidence": [
+        "native/per-decimal-reload.json",
+        "native/limit-decimal-reload.json",
+        "native/per-navigation-mobile.json",
+        "native/zero-reload.json",
+        "native/negative-clamp.json"
+      ],
+      "screenshots": [
+        "native/limit-desktop.png",
+        "native/pagination-mobile.png"
+      ],
+      "visualReview": "Root viewed both screenshots; worker also inspected the Mobile pagination screenshot."
+    },
+    "gallery": {
+      "result": "pass",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "behaviorEvidence": "gallery/behavior-checks.json",
+      "comparisonEvidence": "gallery/diffs/results.json",
+      "cleanup": {
+        "tabId": "45",
+        "cpuRate": 1,
+        "viewport": "restored",
+        "media": "restored",
+        "responseEvidence": "gallery/cleanup.json",
+        "confirmation": "Successful reset confirmed by root."
+      }
+    },
+    "freeze": {
+      "result": "All 21 source, test, reference and generated-artifact hashes match the pre-native freeze exactly. Reviewed baseline is frozen separately.",
+      "entries": 21,
+      "sourceAssetDrift": [],
+      "previousManifest": "source-tests-assets.pre-native.sha256"
+    }
+  },
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 21,
+  "dependencies": {
+    "method": "Reused existing84 dependency symlink after exact lock comparison",
+    "lockSha256": "add0b488e906c263780f73e1875f9a0ea15d22d2989e71c634c9351142190d98"
+  },
+  "harness": {
+    "url": "http://localhost:4980/edit/s1",
+    "pid": 67961,
+    "sessionId": 16218,
+    "status": "Preserved running for root; no restart or shutdown during finalization.",
+    "path": "tools/.qa-ui-4980.mjs",
+    "provenance": "Named tools/ui-harness.mjs was not present in candidate/Main/prior worktree paths. Reused trusted84 loopback harness pattern with only4978\u21924980 substitution. Fresh fictional default fixture; no hidden state injection.4972/4974/4976/4978 untouched.",
+    "sha256": "783a01ec31acb40f317cc649828c64c6533c70e8f18a8a9d262d7be79bbe04ad"
+  },
+  "remaining": [
+    "Root integration and release decision."
+  ],
+  "limits": [
+    "Native browser execution and baseline recording were performed by root; worker verified receipts and hashes.",
+    "Legacy saved fractions intentionally remain unchanged; no migration.",
+    "Broader customer QA remains open; no production-readiness claim."
+  ],
+  "boundaries": "Isolated85 only; no Main/browser/WordPress/baseline record/commit/push. All prior fixtures preserved.",
+  "integrationExclusions": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4980.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ]
+}

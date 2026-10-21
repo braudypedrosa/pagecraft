@@ -1,0 +1,83 @@
+{
+  "controls": "Collection list\nLayout\nGrid\nSort by\nCMS order\nDirection\nA–Z\nZ–A\nFilter\nWorkshop category\nTest\ncontains\nValue\nItems per page\n—\nShow at most\n—\nVertical align\nInherited\nBase\nFill\nGap\nOverride\npx\nCollection\nCommunity workshops, events and accessibility resources · 27 items\nBind the fields inside…\nWrap\nInherited\nWrap",
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams",
+        "6. Community workshop and accessibility review for local teams",
+        "8. Community workshop and accessibility review for local teams",
+        "9. Community workshop and accessibility review for local teams",
+        "11. Community workshop and accessibility review for local teams",
+        "12. Community workshop and accessibility review for local teams",
+        "14. Community workshop and accessibility review for local teams",
+        "15. Community workshop and accessibility review for local teams",
+        "17. Community workshop and accessibility review for local teams",
+        "18. Community workshop and accessibility review for local teams",
+        "20. Community workshop and accessibility review for local teams",
+        "21. Community workshop and accessibility review for local teams",
+        "23. Community workshop and accessibility review for local teams",
+        "24. Community workshop and accessibility review for local teams",
+        "26. Community workshop and accessibility review for local teams",
+        "27. Community workshop and accessibility review for local teams"
+      ],
+      "count": 18,
+      "expectedCount": 18,
+      "pass": true
+    },
+    {
+      "device": "Tablet",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams",
+        "6. Community workshop and accessibility review for local teams",
+        "8. Community workshop and accessibility review for local teams",
+        "9. Community workshop and accessibility review for local teams",
+        "11. Community workshop and accessibility review for local teams",
+        "12. Community workshop and accessibility review for local teams",
+        "14. Community workshop and accessibility review for local teams",
+        "15. Community workshop and accessibility review for local teams",
+        "17. Community workshop and accessibility review for local teams",
+        "18. Community workshop and accessibility review for local teams",
+        "20. Community workshop and accessibility review for local teams",
+        "21. Community workshop and accessibility review for local teams",
+        "23. Community workshop and accessibility review for local teams",
+        "24. Community workshop and accessibility review for local teams",
+        "26. Community workshop and accessibility review for local teams",
+        "27. Community workshop and accessibility review for local teams"
+      ],
+      "count": 18,
+      "expectedCount": 18,
+      "pass": true
+    },
+    {
+      "device": "Mobile",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams",
+        "6. Community workshop and accessibility review for local teams",
+        "8. Community workshop and accessibility review for local teams",
+        "9. Community workshop and accessibility review for local teams",
+        "11. Community workshop and accessibility review for local teams",
+        "12. Community workshop and accessibility review for local teams",
+        "14. Community workshop and accessibility review for local teams",
+        "15. Community workshop and accessibility review for local teams",
+        "17. Community workshop and accessibility review for local teams",
+        "18. Community workshop and accessibility review for local teams",
+        "20. Community workshop and accessibility review for local teams",
+        "21. Community workshop and accessibility review for local teams",
+        "23. Community workshop and accessibility review for local teams",
+        "24. Community workshop and accessibility review for local teams",
+        "26. Community workshop and accessibility review for local teams",
+        "27. Community workshop and accessibility review for local teams"
+      ],
+      "count": 18,
+      "expectedCount": 18,
+      "pass": true
+    }
+  ]
+}
