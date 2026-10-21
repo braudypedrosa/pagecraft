@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-insertion-ca2a2cf
+
+
+ Test Files  5 passed (5)
+      Tests  72 passed (72)
+   Start at  19:36:27
+   Duration  2.06s (transform 720ms, setup 0ms, import 1.87s, tests 888ms, environment 493ms)

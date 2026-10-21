@@ -4979,7 +4979,11 @@ function findDrop(x, y, type, movingId) {
   let container = null, ci = -1;
   for (let i = 0; i < chain.length; i++) {
     const n = locate(chain[i].dataset.id).node;
-    if (holds(n.type, type)) { container = n; ci = i; break; }
+    /* A slotless component instance has the root's type but no render location for
+       page-owned children. Keep the canvas destination consistent with core insertion. */
+    if (holds(n.type, type) && !(n.use && slotsOf(findComponent(n.use)).length === 0)) {
+      container = n; ci = i; break;
+    }
   }
   /* A component has one root and no page around it: a drop that found no container would land
      in a list that is thrown away, and the node with it. */

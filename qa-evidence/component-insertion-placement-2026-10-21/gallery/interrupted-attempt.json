@@ -1,0 +1,9 @@
+{
+  "tab": "26",
+  "cpu": {},
+  "viewport": {},
+  "media": {},
+  "cause": "Root passed origin instead of full gallery path; timed out checks rejected; no product failure inferred.",
+  "cpuThrottlingUsed": false,
+  "networkThrottlingUsed": false
+}

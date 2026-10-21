@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-21T12:18:36.585680+00:00",
+  "baseCommit": "ca2a2cf6338e4e824ea8a817b70b092ee089fb12",
+  "frozenManifest": "all18 source/test/assets entries unchanged after final suite",
+  "determinism": "11/11 artifacts byte-identical twice",
+  "finalSuite": "239 files /2574 tests passed; 2 files /5 tests skipped",
+  "baseline": "root recorded --reviewed; check24images/28sources passes",
+  "sha256": {
+    "public/internal-ui-baselines/manifest.json": "a57104aa059bb65d5fc832d5240b4f6f8bc6db18107e4f9610dea97ca7bb43f4",
+    "qa-evidence/component-insertion-placement-2026-10-21/source-tests-assets.sha256": "f564d9890b11931d336615d7609bab45e35065aed459bc3da78a580f5e75a423",
+    "qa-evidence/component-insertion-placement-2026-10-21/generated-build-1.sha256": "8e5a19556bac945974dba26e945d915bc40eb5df4c275028b69ff6a28ddc974a",
+    "qa-evidence/component-insertion-placement-2026-10-21/generated-build-2.sha256": "8e5a19556bac945974dba26e945d915bc40eb5df4c275028b69ff6a28ddc974a",
+    "qa-evidence/component-insertion-placement-2026-10-21/logs/full-final.log": "a6bb50d903fc441f32347dcbeb57c69aee515ac5f832824176a7f539e6f45cb5",
+    "qa-evidence/component-insertion-placement-2026-10-21/logs/baseline-final.log": "95c49783a43d1e1bd1a67cde78ff0bdd7e8a1e4d2acecc18b3516d47d54c9e38",
+    "qa-evidence/component-insertion-placement-2026-10-21/gallery/capture.json": "0e27a09b0c6471a9965fddfbfd5b8d604abe6871c0a3f9411266feaf1d818c85",
+    "qa-evidence/component-insertion-placement-2026-10-21/gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "qa-evidence/component-insertion-placement-2026-10-21/native/mobile-menu-above.json": "6c1d8265a493bf02b5b6e6a92c6a08a35cba0e998a41d790448325ddcdf822a0",
+    "qa-evidence/component-insertion-placement-2026-10-21/native/short-viewport.json": "e43c6faf54c5b1b9aecc0cd075e7767e4c5649f13ba6a84a1d99173bf0272ded",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "b10a6eed8a43a08e6b61c232a35ad3493e70ac046587ce4e79529b75b95d9a3b"
+  }
+}

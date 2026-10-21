@@ -1993,6 +1993,13 @@ const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
   return (lvl(b) > lvl(pt)) || (DEF[pt] || {}).alsoHolds?.includes(b as WidgetType) === true;
 };
+/* A component instance can have the same root type as a normal container, but its children
+   only render through declared slots. Keep that distinction at the destination boundary so
+   every insertion surface agrees about whether an instance is a real container. */
+const slotlessInstance = (n: PcNode | null | undefined) =>
+  !!n?.use && slotsOf(findComponent(n.use)).length === 0;
+const receivesInside = (n: PcNode | null | undefined, t: string) =>
+  !!n && !slotlessInstance(n) && holds(n.type, t);
 /* Can `t` be *placed* inside `pt` — wrappers allowed? `null` is the document root, which takes
    anything: a heading dropped there becomes Section > Row > Column > Heading, and `wrap` builds
    that chain.
@@ -2023,6 +2030,7 @@ function insert(type: string, parentNode: any, index: number) {
      into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
      row-in-a-column case needs no exception any more — a column takes 4, so `wrap` returns the
      row untouched. */
+  if (slotlessInstance(parentNode)) return dropTree(leaf, parentNode.id);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, packed);
@@ -2144,7 +2152,7 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
   const canHold = (pt: string | null, t: string) =>
     (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
   if (zone === 'inside') {
-    if (!canHold(h.node.type, type)) return null;
+    if (!canHold(h.node.type, type) || slotlessInstance(h.node)) return null;
     return { container: h.node, index: 0 };
   }
   const parent = h.parent || null;
@@ -4287,19 +4295,19 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      returns `fresh` rather than anything place() hands back. Annotated as boolean
      because that is what it means — the first pass typed it `PcNode | null` and then
      changed the code to suit the annotation, which is backwards. */
-  const place = (list: PcNode[], index: number, parentType: string | null): boolean => {
-    if (!fitsIn(parentType, fresh.type) || nowhere(parentType)) return false;
+  const place = (list: PcNode[], index: number, parentType: string | null, parentNode: PcNode | null): boolean => {
+    if (!fitsIn(parentType, fresh.type) || (parentNode && slotlessInstance(parentNode)) || nowhere(parentNode)) return false;
     list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
-  if (!h) return place(tree(), tree().length, null) ? fresh : null;
-  if (place(h.node.children, h.node.children.length, h.node.type)) return fresh;
-  if (place(h.list, h.i + 1, h.parent ? h.parent.type : null)) return fresh;
+  if (!h) return place(tree(), tree().length, null, null) ? fresh : null;
+  if (place(h.node.children, h.node.children.length, h.node.type, h.node)) return fresh;
+  if (place(h.list, h.i + 1, h.parent ? h.parent.type : null, h.parent)) return fresh;
   let up = h.parent, top: PcNode = h.node;
   while (up) {
     const uh = locate(up.id);
-    if (place(up.children, up.children.length, up.type)) return fresh;
+    if (place(up.children, up.children.length, up.type, up)) return fresh;
     top = up;
     up = uh ? uh.parent : null;
   }
@@ -4310,7 +4318,7 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      inside, which is where smartTarget puts one too. */
   const list = tree();
   const at = list.indexOf(top);
-  return place(list, at < 0 ? list.length : at + 1, null) ? fresh : null;
+  return place(list, at < 0 ? list.length : at + 1, null, null) ? fresh : null;
 }
 
 /* Where a new `key` should land given the current selection: inside it when it can
@@ -4333,12 +4341,12 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
     let node = s.node, parent = s.parent;
     /* A Collection List repeats its first Column as the card. Adding content while the list
        itself is selected belongs inside that card, not in a second implicit card beside it. */
-    const card = node.type === 'list' && node.children[0]?.type === 'column'
+    const card = !slotlessInstance(node) && node.type === 'list' && node.children[0]?.type === 'column'
       && holds('column', key) ? node.children[0] : null;
     if (card) { container = card; index = card.children.length; }
-    else if (holds(node.type, key)) { container = node; index = node.children.length; }
+    else if (receivesInside(node, key)) { container = node; index = node.children.length; }
     else {
-      while (parent && !holds(parent.type, key)) {
+      while (parent && !receivesInside(parent, key)) {
         node = parent;
         const up = locate(parent.id);
         parent = up ? up.parent : null;
@@ -5515,6 +5523,7 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   const fresh = reid(clone(b.node));
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
   if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(fresh, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -5941,6 +5950,7 @@ function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
   if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(fresh, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -6967,6 +6977,7 @@ function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   const node = p.build();
   if (parentNode === undefined) return dropTree(node, state.ui.sel);
   if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(node, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -8191,7 +8202,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
-.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:calc(100dvh - var(--nav-top,0px));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
+.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:var(--nav-height,calc(100dvh - var(--nav-top,0px)));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
 .pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
 .pagecraft-mobile-menu[data-layout=dropdown]::backdrop{background:transparent;pointer-events:none}
 .pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
@@ -9355,9 +9366,18 @@ var content=w.querySelector('[data-nav-content]')||list;
 var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
 function position(){
  if(!dialog)return;
- var host=w.closest('header,[data-kind="header"]')||w;
- if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
- dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+ var host=w.closest('header,[data-kind="header"]');
+ if(dialog.dataset.layout==='fullscreen'){
+  host=host||w;
+  if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
+  dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+  return;
+ }
+ var rect=(host||b).getBoundingClientRect(),height=window.innerHeight;
+ var above=Math.max(0,Math.min(height,rect.top)),below=height-Math.max(0,Math.min(height,rect.bottom));
+ var needed=dialog.scrollHeight,up=needed>below&&above>below,available=up?above:below;
+ dialog.style.setProperty('--nav-top',(up?above-Math.min(needed,available):height-below)+'px');
+ dialog.style.setProperty('--nav-height',available+'px');
 }
 function set(o,restore){
  if(o===!!dialog)return;
@@ -9373,7 +9393,7 @@ function set(o,restore){
   var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
   var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
   close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
-  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);position();
+  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);
   overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
   w.classList.add('is-open');b.setAttribute('aria-expanded','true');
   close.addEventListener('click',function(){set(false,true);});
@@ -9381,9 +9401,14 @@ function set(o,restore){
   dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
   var opened=dialog;
   dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
-  if(fullscreen){dialog.showModal();close.focus();}
-  else if(dialog.showPopover)dialog.showPopover();
-  else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
+  if(fullscreen){position();dialog.showModal();close.focus();}
+  else{
+   // Closed popovers have no layout; measure after opening without flashing at the wrong edge.
+   dialog.style.visibility='hidden';
+   if(dialog.showPopover)dialog.showPopover();
+   else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
+   position();dialog.scrollTop=0;dialog.style.removeProperty('visibility');
+  }
  }else{
   var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;if(old.dataset.layout==='fullscreen')old.close();else if(old.hidePopover)old.hidePopover();old.remove();
   document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
@@ -9405,6 +9430,7 @@ document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==
 document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
 window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
+window.addEventListener('scroll',function(){if(dialog&&dialog.dataset.layout==='dropdown')position();},{passive:true});
 });})();
 <\/script>
 `;

@@ -1,0 +1,74 @@
+{
+  "count": 2,
+  "tabs": [
+    {
+      "id": "pagecraft-tabs-1jc9t7r2",
+      "panels": [
+        {
+          "display": "block",
+          "height": 45.59375
+        },
+        {
+          "display": "none",
+          "height": 0
+        },
+        {
+          "display": "none",
+          "height": 0
+        }
+      ],
+      "refs": [
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-p0"
+        },
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-p1"
+        },
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-p2"
+        }
+      ],
+      "selected": [
+        "Overview"
+      ]
+    },
+    {
+      "id": "pagecraft-tabs-1jc9t7r2-1jclh8ln",
+      "panels": [
+        {
+          "display": "none",
+          "height": 0
+        },
+        {
+          "display": "none",
+          "height": 0
+        },
+        {
+          "display": "block",
+          "height": 45.59375
+        }
+      ],
+      "refs": [
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-1jclh8ln-p0"
+        },
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-1jclh8ln-p1"
+        },
+        {
+          "count": 1,
+          "target": "pagecraft-tabs-1jc9t7r2-1jclh8ln-p2"
+        }
+      ],
+      "selected": [
+        "Pricing"
+      ]
+    }
+  ],
+  "unique": true
+}
