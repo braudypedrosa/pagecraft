@@ -1,0 +1,315 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/color-picker-semantics-2aedc6d
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx (9 tests | 6 failed) 967ms
+   × outside Padding top keeps focus after gradient picker dismissal on desktop 271ms
+   × outside Padding right keeps focus after gradient picker dismissal on desktop 98ms
+   × outside Padding top keeps focus after gradient picker dismissal on tablet 97ms
+   × outside Padding right keeps focus after gradient picker dismissal on tablet 96ms
+   × outside Padding top keeps focus after gradient picker dismissal on mobile 98ms
+   × outside Padding right keeps focus after gradient picker dismissal on mobile 100ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding top keeps focus after gradient picker dismissal on desktop
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 5
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 5
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-label="Padding top"
+-   class="ctl"
+-   data-field-part="top"
+-   id="inspector-field-4-1-0"
+-   min="0"
+-   placeholder="0"
+-   title="top"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding right keeps focus after gradient picker dismissal on desktop
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
++     childNodes: Proxy(NodeList {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 7
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 7
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-label="Padding right"
+-   class="ctl"
+-   data-field-part="right"
+-   id="inspector-field-17-1-1"
+-   min="0"
+-   placeholder="0"
+-   title="right"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding top keeps focus after gradient picker dismissal on tablet
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
++     childNodes: Proxy(NodeList {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 9
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 9
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-describedby="inspector-field-30-scope"
+-   aria-label="Padding top"
+-   class="ctl"
+-   data-field-part="top"
+-   id="inspector-field-30-1-0"
+-   min="0"
+-   placeholder="0"
+-   title="top"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding right keeps focus after gradient picker dismissal on tablet
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
++     childNodes: Proxy(NodeList {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 11
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 11
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-describedby="inspector-field-43-scope"
+-   aria-label="Padding right"
+-   class="ctl"
+-   data-field-part="right"
+-   id="inspector-field-43-1-1"
+-   min="0"
+-   placeholder="0"
+-   title="right"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding top keeps focus after gradient picker dismissal on mobile
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
++     childNodes: Proxy(NodeList {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 13
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 13
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-describedby="inspector-field-56-scope"
+-   aria-label="Padding top"
+-   class="ctl"
+-   data-field-part="top"
+-   id="inspector-field-56-1-0"
+-   min="0"
+-   placeholder="0"
+-   title="top"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > outside Padding right keeps focus after gradient picker dismissal on mobile
+AssertionError: dismissal must not autofocus the departing picker
++ actual - expected
+
++ HTMLBodyElement {
+- HTMLInputElement {
+    Symbol(SameObject caches): [Object: null prototype] {
+      attributes: Proxy(NamedNodeMap {}),
++     childNodes: Proxy(NodeList {}),
+      classList: Proxy(DOMTokenList {})
+    },
+-   l: {
+-     blurfalse: [Function: done] {
+-       '__a0.412255650271261756': 15
+-     },
+-     inputfalse: [Function: onInput] {
+-       '__a0.412255650271261756': 15
+-     }
+-   }
+  }
+
+
+- Expected
++ Received
+
+- <input
+-   aria-describedby="inspector-field-69-scope"
+-   aria-label="Padding right"
+-   class="ctl"
+-   data-field-part="right"
+-   id="inspector-field-69-1-1"
+-   min="0"
+-   placeholder="0"
+-   title="right"
+-   type="number"
+- />
++ <body>
++   <div />
++ </body>
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:86:12
+     84|     });
+     85|     assert.equal(right.querySelector('[role="dialog"]'), null);
+     86|     assert.equal(document.activeElement, padding, 'dismissal must not …
+       |            ^
+     87|     act(() => { padding.value = '19'; padding.dispatchEvent(new Event(…
+     88|     assert.equal(section.css[C.dk()][`padding-${side}`], '19px', 'dest…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 3 passed (9)
+   Start at  04:21:32
+   Duration  1.77s (transform 385ms, setup 0ms, import 310ms, tests 967ms, environment 396ms)

@@ -17,3 +17,5 @@ The mapped cases leave fourteen broad areas open: other builder modules; shared 
 No synthetic row promotion was made. Representative values remain representative, and unlisted controls remain unverified.
 
 Collection list L01–L08 is in progress. Initial native source/binding and empty/no-source reload evidence is local; it is not full List acceptance. Release83 exact commits and evidence are recorded in native-progress.json.
+
+Release86 accepted on Cloud2aedc6d and WordPress5deb391 with exact fixture restoration; bounded native evidence is in integer-typing/post-deploy. Release87 colour dialog semantics and outside-focus fix is local verified, pending deployment acceptance. Accordion Motion now has all26 computed preset names, transition presets/custom output, shared timing reload at three breakpoints and reset proof. Silent invalid timing persistence is a reproduced open bug under separate Motion88 work. Fourteen broad QA areas remain open; no full-QA or production-readiness claim.

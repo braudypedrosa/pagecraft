@@ -151,10 +151,21 @@
     },
     {
       "module": "Accordion",
-      "case_ids": ["A01", "A02", "A03", "A04", "A05", "S01-S10"],
+      "case_ids": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "S01-S10"
+      ],
       "status": "bounded_candidate85_local_only",
       "control_scope": "4 direct Content controls plus 10 direct Style controls in the recorded native fixture",
-      "devices": ["Desktop", "Tablet", "Mobile"],
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
       "evidence_dir": "qa-evidence/accordion-native-2026-10-22",
       "evidence_files": [
         "coverage.json",
@@ -225,5 +236,18 @@
       "This overlay records release identity and bounded native continuation only; it does not promote full customer QA or production readiness.",
       "The Accordion A/S evidence is candidate85 local-only and is listed separately above."
     ]
+  },
+  "release86_accepted": {
+    "cloud": "2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49",
+    "wordpress": "5deb391f929d779e9847533019425bec0742717f",
+    "evidence": "qa-evidence/integer-typing-2026-10-22/post-deploy",
+    "scope": "Native typing/focused-selection/save-reload/responsive output accepted; exact restoration; frontend screenshot visual limit recorded."
+  },
+  "release87_candidate": {
+    "scope": "Named Colour picker dialog and outside-pointer destination focus. Local native6/6, Escape3/3, keyboard/reload;2615tests5skip;30gallery24zero. Pending staging/WP acceptance."
+  },
+  "accordion_motion_partial": {
+    "evidence": "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json",
+    "scope": "All26preset computed public animation names;transitionpresets/custom output;shared timing reloadall3;reset removes runtimeattrs. No physicaldevice/trajectory/performance/reducedmotion/scroll-onceproof. Invalidtiming silentpersist reproduced; separateMotion88candidateunaccepted."
   }
 }

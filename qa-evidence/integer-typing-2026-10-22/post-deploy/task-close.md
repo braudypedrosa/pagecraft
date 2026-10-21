@@ -1,0 +1,9 @@
+# Release86 staging acceptance
+
+Cloud development2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49 passed CI39664657836 and deployment39664657822. The built-in browser independently observed the exact deployment marker before reloading the editor.
+
+Gallery Columns actual sequential2, decimal point,5 produces3 at Desktop/Tablet/Mobile. Clicking a Heading while that edited numeric control remains focused selects the correct Heading with one inspector and matching breadcrumb. Values3 survive reload at all three breakpoints. List Items per page and Show at most actual sequential typing both produce3. Show at most is intentionally hidden while Items per page is set; the initial missing-control attempt was corrected by clearing Items per page through the UI. List limit3 survives reload and produces three repeated headings at all three breakpoints, without overflow. No captured browser errors.
+
+History1081 restored exactly20 original editable IDs, with no temporary Gallery or List. Existing CMS image-alt issue remains pre-existing. No publish action. WordPress86 native and independent SQL acceptance passed. Development5deb391f929d779e9847533019425bec0742717f passes PHP8.1/8.2/8.3 CI39668575213. History68 restored exact11 IDs at Version70;324 prior revisions exact, only new608/609 parent487. Existing two Elementor timestamp values changed as documented; design-sync row recreation documented. Actual frontend computed-grid checks pass1280/768/414, but its small screenshot does not establish readable visual acceptance. Editor Mobile screenshot independently viewed. Full release parity is bounded to this fix and broader customer QA remains open.
+
+All11 protected Main working artifact hashes remained unchanged after commit; index empty. Source was tested in the isolated candidate, never by building the dirty Main working tree.

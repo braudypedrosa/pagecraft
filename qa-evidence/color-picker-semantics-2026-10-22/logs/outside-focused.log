@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/color-picker-semantics-2aedc6d
+
+(node:1247) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  2 passed (2)
+      Tests  81 passed (81)
+   Start at  04:21:34
+   Duration  1.54s (transform 635ms, setup 0ms, import 702ms, tests 1.54s, environment 501ms)

@@ -1,0 +1,56 @@
+{
+  "transitionPresets": [
+    {
+      "preset": "None",
+      "transition": "none"
+    },
+    {
+      "preset": "Fast",
+      "transition": "0.15s"
+    },
+    {
+      "preset": "Standard",
+      "transition": "0.25s"
+    },
+    {
+      "preset": "Smooth",
+      "transition": "0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+    }
+  ],
+  "reload": [
+    {
+      "device": "Desktop",
+      "fields": {
+        "duration": "1.2s",
+        "delay": "0.2s",
+        "easing": "linear"
+      },
+      "animation": "1.2s linear 0.2s forwards bpZoomOut",
+      "once": "true",
+      "transition": "opacity 0.2s linear"
+    },
+    {
+      "device": "Tablet",
+      "fields": {
+        "duration": "1.2s",
+        "delay": "0.2s",
+        "easing": "linear"
+      },
+      "animation": "1.2s linear 0.2s forwards bpZoomOut",
+      "once": "true",
+      "transition": "opacity 0.2s linear"
+    },
+    {
+      "device": "Mobile",
+      "fields": {
+        "duration": "1.2s",
+        "delay": "0.2s",
+        "easing": "linear"
+      },
+      "animation": "1.2s linear 0.2s forwards bpZoomOut",
+      "once": "true",
+      "transition": "opacity 0.2s linear"
+    }
+  ],
+  "scope": "Alltransitionpresetsexercised; customopacity200mslinearandsharedanimationtimingspersistall3. Noresponsiveinheritanceoroverrideclaim: observedtransitionisidenticalall3. Trajectory/performance/reducedmotionunverified."
+}

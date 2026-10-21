@@ -1,0 +1,31 @@
+{
+  "accepted": true,
+  "tables": 133,
+  "exactTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "changedExistingPostIds": [
+    "487"
+  ],
+  "newRevisionIds": [
+    "608",
+    "609"
+  ],
+  "allNewRevisionParents487": true,
+  "priorRevisionsAndMetadataExact": 324,
+  "optionsTimestampOnly": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data"
+  ],
+  "documentedOptionRowIdentityChanges": {
+    "_elementor_design_system_sync_css_meta": [
+      "1957",
+      "1983"
+    ]
+  },
+  "finalSqlSHA256": "c083a6cdf20b511f24c131d47d42def78327a6ded1cb7f1dd7416e8a793dc807",
+  "native": "Gallery actual sequential2.5 produces3 across Desktop/Tablet/Mobile, focusedColumns toHeading correct breadcrumb/oneinspector. Save/reloadfield3 and actualfrontend1280/768/414 threegridtracks/twoimages/nooverflow; errors0. History68 restores11exactIDsSaveDisabled. Frontend screenshot is small and does not establish readable visual proof; editorMobile screenshot was independently viewed."
+}

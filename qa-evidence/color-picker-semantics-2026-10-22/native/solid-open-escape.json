@@ -1,0 +1,38 @@
+[
+  {
+    "device": "Desktop",
+    "opened": {
+      "focus": true,
+      "focused": "Saturation and brightness",
+      "modal": null,
+      "name": "Colour picker",
+      "role": "dialog"
+    },
+    "remaining": 0,
+    "focus": true
+  },
+  {
+    "device": "Tablet",
+    "opened": {
+      "focus": true,
+      "focused": "Saturation and brightness",
+      "modal": null,
+      "name": "Colour picker",
+      "role": "dialog"
+    },
+    "remaining": 0,
+    "focus": true
+  },
+  {
+    "device": "Mobile",
+    "opened": {
+      "focus": true,
+      "focused": "Saturation and brightness",
+      "modal": null,
+      "name": "Colour picker",
+      "role": "dialog"
+    },
+    "remaining": 0,
+    "focus": true
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "device": "Desktop",
+    "closed": true,
+    "anchorFocused": true
+  },
+  {
+    "device": "Tablet",
+    "closed": true,
+    "anchorFocused": true
+  },
+  {
+    "device": "Mobile",
+    "closed": true,
+    "anchorFocused": true
+  }
+]

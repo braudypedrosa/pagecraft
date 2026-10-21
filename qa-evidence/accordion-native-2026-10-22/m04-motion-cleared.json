@@ -1,0 +1,23 @@
+[
+  {
+    "device": "Desktop",
+    "animation": "none",
+    "class": "pagecraft-accordion pagecraft-gn4901he",
+    "motionAttributes": [],
+    "transition": "all"
+  },
+  {
+    "device": "Tablet",
+    "animation": "none",
+    "class": "pagecraft-accordion pagecraft-gn4901he",
+    "motionAttributes": [],
+    "transition": "all"
+  },
+  {
+    "device": "Mobile",
+    "animation": "none",
+    "class": "pagecraft-accordion pagecraft-gn4901he",
+    "motionAttributes": [],
+    "transition": "all"
+  }
+]

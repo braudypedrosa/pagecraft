@@ -1,0 +1,62 @@
+[
+  {
+    "device": "Desktop",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-y5zleam3",
+    "breadcrumb": "Section\n›\nRow · 1 col\n›\nColumn\n›\nSlider · 3 slides\n›\nColumn\n›\nThe coffee counter",
+    "panels": 1
+  },
+  {
+    "device": "Tablet",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-y5zleam3",
+    "breadcrumb": "Section\n›\nRow · 1 col\n›\nColumn\n›\nSlider · 3 slides\n›\nColumn\n›\nThe coffee counter",
+    "panels": 1
+  },
+  {
+    "device": "Mobile",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-y5zleam3",
+    "breadcrumb": "Section\n›\nRow · 1 col\n›\nColumn\n›\nSlider · 3 slides\n›\nColumn\n›\nThe coffee counter",
+    "panels": 1
+  }
+]

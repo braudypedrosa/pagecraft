@@ -170,7 +170,6 @@ export function ColorPop(
     window.addEventListener('resize', requestClose);
     window.addEventListener('scroll', requestClose, true);
     if (box.current) window.__pcMotion?.enter(box.current, { kind: 'popover' });
-    box.current?.querySelector<HTMLElement>('.cp-sv')?.focus();
     return () => {
       document.removeEventListener('pointerdown', away, true);
       document.removeEventListener('pagecraft:outside-pointer', requestClose);
@@ -180,6 +179,12 @@ export function ColorPop(
       window.removeEventListener('scroll', requestClose, true);
     };
   }, [anchor, onClose]);
+
+  /* Inspector commits replace the close callback while the picker is departing. Enter
+     focus only once per opening, so that repaint cannot steal an outside control's focus. */
+  useEffect(() => {
+    box.current?.querySelector<HTMLElement>('.cp-sv')?.focus();
+  }, [anchor]);
 
   /* Flipped above the anchor when there is no room below, and pinned inside the viewport
      horizontally. A colour field near the bottom of a long inspector is the common case,
@@ -214,7 +219,7 @@ export function ColorPop(
   };
 
   return (
-    <div class="cp" ref={box} style={style} onPointerDown={e => e.stopPropagation()}>
+    <div class="cp" role="dialog" aria-label="Colour picker" ref={box} style={style} onPointerDown={e => e.stopPropagation()}>
       {gradient ? <div class="cp-modes" role="tablist" aria-label="Paint type">
         <button type="button" role="tab" aria-selected={mode === 'solid'} class={mode === 'solid' ? 'on' : ''}
           onClick={() => { setMode('solid'); gradient.onDone(''); }}>Solid</button>
