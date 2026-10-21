@@ -1,0 +1,5 @@
+af5a7b47f6e50a9ff3edd2ebe01dd98a2b13c4e851eca4e14f4bb5a0ddbecfa5  app/src/core/index.ts
+abbcd4d2e9e6f60b0bfc67df48222305982ed3c51a5d9710ab535bc9a978a5a2  tests/empty-rich-hit-area.test.ts
+fbe40b8fb8cc6f21e9d924f4f9421b1f3a2890eee45e8368d8c6a72aeb1cce06  index.html
+7d9a352d0b4ec7af9c655069adc6ff626b00cd146692bff78638f4b498b256a8  dist/core.cjs
+b145d835e03aca3fd39145136051980ffe303ec34b3c513e9d9099161099f630  packages/editor/dist/editor.html

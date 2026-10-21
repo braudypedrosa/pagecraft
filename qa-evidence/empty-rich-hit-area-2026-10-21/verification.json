@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "0e808e5b2e5ea2dc90f2fae590ff44876358a78b",
+  "status": "local candidate native accepted; automated checks and deterministic assets complete; integration pending",
+  "scope": [
+    "app/src/core/index.ts",
+    "tests/empty-rich-hit-area.test.ts"
+  ],
+  "summary": "Editor-only Rich Text pseudo-element creates a 24px auto-height hit area when rich content is semantically empty; no real spacer can be serialized into inline-edited HTML.",
+  "behavior": [
+    "Ordinary empty Rich, empty component instance and definition root receive an edit-only class.",
+    "Empty false-condition content remains dimmed and addressable; populated content receives no hit class.",
+    "Nested inner content still selects the owning placement, and duplicated placements keep unique IDs.",
+    "Public empty output, false-condition omission and public CSS remain unchanged.",
+    "No root height/min-height/overflow overrides: authored fixed dimensions and clipping continue to apply."
+  ],
+  "checks": {
+    "red": {
+      "result": "expected failures before source patch",
+      "testsFailed": 5,
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 3,
+      "tests": 19,
+      "log": "logs/focused.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "packageBuild": {
+      "result": "pass",
+      "log": "logs/build-package.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "fullSuite": {
+      "result": "pass",
+      "filesPassed": 235,
+      "filesSkipped": 2,
+      "testsPassed": 2527,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 100.33,
+      "log": "logs/full-max-workers-2.log"
+    },
+    "deterministicBuild": {
+      "result": "pass",
+      "artifacts": 11,
+      "diffBytes": 0,
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "dependencyAudit": {
+      "result": "pass",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/demo.log"
+    },
+    "baselineGate": {
+      "result": "pass",
+      "images": 24,
+      "sourceFiles": 28,
+      "log": "logs/baseline-check.log",
+      "note": "Core-only change does not change fingerprinted UI sources; no gallery replacement requested or recorded."
+    },
+    "nativeAcceptance": {
+      "result": "pass, root-owned built-in browser",
+      "evidence": "native/native-acceptance.json",
+      "screenshots": [
+        "hidden-instance-selected.png",
+        "mobile-empty-selected.png"
+      ],
+      "accepted": [
+        "Ordinary empty Rich has 24px height and native click selects it.",
+        "Component instance and definition source root native clicks select empty Rich.",
+        "False condition stays hidden in public and has a selectable 24px editor hit area.",
+        "True condition and Mobile 414px native selection pass.",
+        "Public true empty Rich retains original HTML with no helper; false public is absent.",
+        "Inline text fill and real reload retain Visible workshop without serialized helper."
+      ],
+      "automatedOnly": [
+        "Nested component ownership.",
+        "Locked/global-region ownership.",
+        "Authored fixed dimensions and overflow."
+      ]
+    },
+    "qaHarness": {
+      "result": "running, preserved for root",
+      "url": "http://localhost:4966/edit/s1",
+      "pid": 40458,
+      "sessionId": 3510,
+      "source": "trusted harness adapted only from port 4964 to 4966"
+    }
+  },
+  "limits": [
+    "Explicit authored zero height plus hidden overflow remains deliberately clipped; making that target clickable would override authored geometry.",
+    "Nested/global ownership and fixed dimensions remain automated-only coverage.",
+    "Fresh checkout initially lacked ignored compiler-worker.js; package build supplied it and final focused/full tests passed."
+  ],
+  "remaining": [
+    "Root-owned integration/release decision.",
+    "Wider customer QA remains open."
+  ],
+  "dependencies": "Reused node_modules symlink after identical package-lock SHA check; no install or dependency change.",
+  "boundaries": "No Main/shared-feedback/browser/WordPress/baseline/commit/push changes. Isolated package build generated local diagnostic assets.",
+  "excludeFromIntegration": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4966.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ]
+}

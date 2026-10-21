@@ -1,0 +1,54 @@
+{
+  "ordinary": {
+    "target": "npnnu6143",
+    "inspector": "State\nResting\nHover\nFocus\nShow modified settings\nIdentity & layout\nHTML id\nCSS classes\nPosition\nDefault\nTop\npx\nZ-index\n—\nOverflow\nDefault\nMax width\npx\nCustom CSS\nEffects\nOpacity\nTransform\nVisibility\nHide on Desktop\nHide on Tablet\nHide on Mobile"
+  },
+  "hidden": {
+    "classes": "pagecraft-wysiwyg s-rich-empty pagecraft-posv35bk pagecraft-pnnu6143 ts-body s-cond-off",
+    "html": "<p></p>",
+    "id": "npnnu6143",
+    "rect": {
+      "bottom": 663.90625,
+      "height": 24,
+      "left": 60,
+      "right": 1260,
+      "top": 639.90625,
+      "width": 1200,
+      "x": 60,
+      "y": 639.90625
+    }
+  },
+  "mobile": {
+    "class": "pagecraft-wysiwyg s-rich-empty pagecraft-posv35bk pagecraft-pnnu6143 ts-body",
+    "html": "<p></p>",
+    "id": "npnnu6143",
+    "rect": {
+      "bottom": 485.703125,
+      "height": 24,
+      "left": 20,
+      "right": 379,
+      "top": 461.703125,
+      "width": 359,
+      "x": 20,
+      "y": 461.703125
+    },
+    "width": 414
+  },
+  "falsePublicAbsent": true,
+  "truePublic": {
+    "helper": 0,
+    "target": "<div id=\"pagecraft-wysiwyg-pnnu6143\" class=\"pagecraft-wysiwyg pagecraft-posv35bk pagecraft-pnnu6143 ts-body\"><p></p></div>",
+    "width": 414
+  },
+  "reedit": {
+    "classes": "pagecraft-wysiwyg pagecraft-posv35bk pagecraft-pnnu6143 ts-body s-cond-off",
+    "height": 25.5,
+    "html": "Visible workshop<p></p>"
+  },
+  "savedReload": {
+    "classes": "pagecraft-wysiwyg pagecraft-posv35bk pagecraft-pnnu6143 ts-body s-cond-off",
+    "html": "Visible workshop<p></p>"
+  },
+  "scope": "Actual native ordinary blank selection; component instance/source root selection; hidden/visible condition; Mobile414; no serialized helper after inline editing/reload. Nested/global ownership and fixed dimensions automated only.",
+  "limits": "Explicit authored zero-height + hidden overflow remains clipped."
+}

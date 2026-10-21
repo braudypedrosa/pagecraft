@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/empty-rich-hit-area-0e808e5
+
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  13:45:20
+   Duration  903ms (transform 379ms, setup 0ms, import 476ms, tests 122ms, environment 807ms)

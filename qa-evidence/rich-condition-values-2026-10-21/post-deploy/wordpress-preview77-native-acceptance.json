@@ -1,0 +1,33 @@
+{
+  "cloudCommit": "0e808e5b2e5ea2dc90f2fae590ff44876358a78b",
+  "savedEquality": {
+    "html": "<p>Seasonal workshop</p>",
+    "text": "Seasonal workshop"
+  },
+  "savedComparison": "Seasonal workshop",
+  "mobile": {
+    "rich": "<p>Seasonal workshop</p>",
+    "scroll": 399,
+    "width": 414
+  },
+  "inequalityCount": 0,
+  "emptyMarkup": "<p></p>",
+  "hasValueCount": 0,
+  "isEmptyCount": 1,
+  "propertyDialog": {
+    "dialog": {
+      "bottom": 497,
+      "height": 274,
+      "left": 430,
+      "right": 850,
+      "top": 223,
+      "width": 420,
+      "x": 430,
+      "y": 223
+    },
+    "hit": true,
+    "noticeCount": 0
+  },
+  "noticeCaveat": "Notice had expired before WordPress dialog geometry; live-notice proof is combined local1280/compact768; no WordPress live-notice overlap claim.",
+  "originalRestorationPending": true
+}

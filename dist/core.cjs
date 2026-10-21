@@ -9793,6 +9793,8 @@ ${m.css || ""}
 :where([data-id]){position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
+/* Empty rich content needs a canvas target; a pseudo-element cannot leak into inline edits. */
+.s-rich-empty::after{content:"";display:block;height:24px;pointer-events:none}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
 [data-t=column]{min-height:40px}
 [data-t=tabs] [data-tab-idle]{display:none}
@@ -10143,7 +10145,7 @@ function renderNode(n, o) {
       return `<${tg} ${at} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
-      return `<div ${at} ${cx("pagecraft-wysiwyg")}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
+      return `<div ${at} ${cx("pagecraft-wysiwyg" + (o.edit && !richTextContent(p.html) ? " s-rich-empty" : ""))}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
     case "quote": {
       const said = `<p>${esc(p.text).replace(/\n/g, "<br>")}</p>`;
       const url = safeUrl(p.source);
