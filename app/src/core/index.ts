@@ -2439,6 +2439,11 @@ const galleryFocusSelector = (selector: string) =>
    let :focus-visible contribute the same single state class as the generic selector. */
 const navFocusSelector = (selector: string) =>
   `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
+/* Rich Text keeps its authored state on the wrapper while keyboard focus lands on a link
+   inside it. Limit the bridge to links and :focus-visible: pointer focus must not activate
+   the wrapper state, and a focusable Link Block ancestor is outside this descendant guard. */
+const richTextFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
 const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
@@ -2474,6 +2479,7 @@ function tokenCss() {
         if (k === 'focus') {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
       }
     });
@@ -7682,7 +7688,9 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
     const stateSelector = k === 'focus' && n.type === 'gallery'
       ? galleryFocusSelector(selOf(n))
       : k === 'focus' && n.type === 'nav'
-        ? navFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+        ? navFocusSelector(selOf(n))
+        : k === 'focus' && n.type === 'text'
+          ? richTextFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     const imageD = decl(imageState);
     if (imageD) {

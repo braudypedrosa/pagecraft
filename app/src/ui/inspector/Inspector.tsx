@@ -172,13 +172,15 @@ function StylingTarget({ n }: { n: PcNode }) {
   return (
     <Panel title="Styling" n={n} gk={n.type + ':Styling'}>
       <div class="tgrow">
-        <button class={'tg' + (target ? '' : ' on')} title="Style this element only" onClick={() => pick('')}>This element</button>
+        <button class={'tg' + (target ? '' : ' on')} aria-pressed={target ? 'false' : 'true'}
+          title="Style this element only" onClick={() => pick('')}>This element</button>
       </div>
       {applied.map(c => {
         const uses = C.classUsage(c.id);
         return (
           <div class="tgrow" key={c.id}>
-            <button class={'tg' + (target === c.id ? ' on' : '')} title={`Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
+            <button class={'tg' + (target === c.id ? ' on' : '')} aria-pressed={target === c.id ? 'true' : 'false'}
+              title={`Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
             <small>{uses} use{uses === 1 ? '' : 's'}</small>
             <button class="tgx" title="Remove this class from the element"
               onClick={() => {

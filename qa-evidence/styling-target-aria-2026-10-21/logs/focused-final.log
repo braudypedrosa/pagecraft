@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/styling-target-aria-aa664f2
+
+
+ Test Files  4 passed (4)
+      Tests  9 passed (9)
+   Start at  07:45:45
+   Duration  1.34s (transform 845ms, setup 0ms, import 1.14s, tests 142ms, environment 2.45s)
