@@ -1,0 +1,121 @@
+{
+  "authored": {
+    "Desktop": {
+      "Row padding value": "18",
+      "Row gap value": "24",
+      "Question size value": "20",
+      "Answer size value": "18",
+      "Row radius value": "16"
+    },
+    "Tablet": {
+      "Row padding value": "12",
+      "Row gap value": "16",
+      "Question size value": "18",
+      "Answer size value": "16",
+      "Row radius value": "8"
+    },
+    "Mobile": {
+      "Row padding value": "8",
+      "Row gap value": "8",
+      "Question size value": "16",
+      "Answer size value": "14",
+      "Row radius value": "4"
+    }
+  },
+  "weight": "700",
+  "rows": [
+    {
+      "device": "Desktop",
+      "answer": {
+        "color": "rgb(68, 85, 102)",
+        "fontSize": "18px",
+        "padding": "0px 0px 18px"
+      },
+      "divider": "rgb(180, 95, 60)",
+      "gap": "24px",
+      "marker": "rgb(123, 63, 32)",
+      "overflow": false,
+      "question": {
+        "color": "rgb(36, 54, 43)",
+        "fontSize": "20px",
+        "fontWeight": "700",
+        "padding": "18px 0px"
+      },
+      "radius": "16px",
+      "vars": {
+        "--ac-a-color": "#445566",
+        "--ac-a-size": "18px",
+        "--ac-gap": "24px",
+        "--ac-line": "#b45f3c",
+        "--ac-mark": "#7b3f20",
+        "--ac-pad": "18px",
+        "--ac-q-color": "#24362b",
+        "--ac-q-size": "20px",
+        "--ac-q-weight": "700",
+        "--ac-radius": "16px"
+      }
+    },
+    {
+      "device": "Tablet",
+      "answer": {
+        "color": "rgb(68, 85, 102)",
+        "fontSize": "16px",
+        "padding": "0px 0px 12px"
+      },
+      "divider": "rgb(180, 95, 60)",
+      "gap": "16px",
+      "marker": "rgb(123, 63, 32)",
+      "overflow": false,
+      "question": {
+        "color": "rgb(36, 54, 43)",
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "padding": "12px 0px"
+      },
+      "radius": "8px",
+      "vars": {
+        "--ac-a-color": "#445566",
+        "--ac-a-size": "16px",
+        "--ac-gap": "16px",
+        "--ac-line": "#b45f3c",
+        "--ac-mark": "#7b3f20",
+        "--ac-pad": "12px",
+        "--ac-q-color": "#24362b",
+        "--ac-q-size": "18px",
+        "--ac-q-weight": "700",
+        "--ac-radius": "8px"
+      }
+    },
+    {
+      "device": "Mobile",
+      "answer": {
+        "color": "rgb(68, 85, 102)",
+        "fontSize": "14px",
+        "padding": "0px 0px 8px"
+      },
+      "divider": "rgb(180, 95, 60)",
+      "gap": "8px",
+      "marker": "rgb(123, 63, 32)",
+      "overflow": false,
+      "question": {
+        "color": "rgb(36, 54, 43)",
+        "fontSize": "16px",
+        "fontWeight": "700",
+        "padding": "8px 0px"
+      },
+      "radius": "4px",
+      "vars": {
+        "--ac-a-color": "#445566",
+        "--ac-a-size": "14px",
+        "--ac-gap": "8px",
+        "--ac-line": "#b45f3c",
+        "--ac-mark": "#7b3f20",
+        "--ac-pad": "8px",
+        "--ac-q-color": "#24362b",
+        "--ac-q-size": "16px",
+        "--ac-q-weight": "700",
+        "--ac-radius": "4px"
+      }
+    }
+  ]
+}

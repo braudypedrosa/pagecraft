@@ -1,0 +1,29 @@
+{
+  "currentIndexSha256": "7b7a7c4d7636f9ebbed10891346f6bda2b60c1d853d72e9b5047e83bf7ccdc50",
+  "previousHarnessPreserved": {
+    "port": 4982,
+    "pid": 84928
+  },
+  "freshHarness": {
+    "port": 4984,
+    "pid": 90183,
+    "sessionId": 38643
+  },
+  "method": "Read-only GET and exact prepareHostedEditor asset-map comparison; no API state injection.",
+  "rows": [
+    {
+      "port": 4982,
+      "url": "http://localhost:4982/edit/s1",
+      "assetPath": "/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js",
+      "servedSha256": "c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec",
+      "matchesCurrentIndexDerivedAsset": false
+    },
+    {
+      "port": 4984,
+      "url": "http://localhost:4984/edit/s1",
+      "assetPath": "/brand/builder-assets/f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34.js",
+      "servedSha256": "f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34",
+      "matchesCurrentIndexDerivedAsset": true
+    }
+  ]
+}

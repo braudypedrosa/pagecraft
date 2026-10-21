@@ -1,0 +1,44 @@
+[
+  {
+    "path": "app/src/core/index.ts",
+    "sha256": "eb2465500ea48ed4bcd0970e4cdc6518045f1efdddff1934e41eeb037e483472",
+    "unchanged": true,
+    "reference": "HEAD"
+  },
+  {
+    "path": "builder.html",
+    "sha256": "dc0336895294cc7825b45eead8c3dd43590dbe53aeed5103852375047bba4b99",
+    "unchanged": true,
+    "reference": "HEAD"
+  },
+  {
+    "path": "server/tests/fixtures/wordpress-artifact-v1.json",
+    "sha256": "b10a6eed8a43a08e6b61c232a35ad3493e70ac046587ce4e79529b75b95d9a3b",
+    "unchanged": true,
+    "reference": "HEAD"
+  },
+  {
+    "path": "tests/fixtures/nested-component-public.json",
+    "sha256": "0d5c6d6519d99d181a748e23d295248c3c2da1b1f33c6a0c8c362f04141ae9d7",
+    "unchanged": true,
+    "reference": "HEAD"
+  },
+  {
+    "path": "packages/editor/dist/runtime.js",
+    "sha256": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa",
+    "unchanged": true,
+    "reference": "HEAD"
+  },
+  {
+    "path": "packages/editor/dist/compiler.js",
+    "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "unchanged": true,
+    "reference": "accepted85 artifact"
+  },
+  {
+    "path": "packages/editor/dist/compiler-worker.js",
+    "sha256": "4cdfcecaee01f71a199e9e9dd4946cd815bd0a053644d913a9d09ed462a400d9",
+    "unchanged": true,
+    "reference": "accepted85 artifact"
+  }
+]

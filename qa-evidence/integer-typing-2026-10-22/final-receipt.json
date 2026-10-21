@@ -1,0 +1,26 @@
+{
+  "baseCommit": "218f11545451cbac7ad1d8ed9e08245258b57a25",
+  "status": "Root native and gallery acceptance complete; final combined checks pass. Ready for root integration, uncommitted and undeployed.",
+  "frozenEntries": 28,
+  "drift": [],
+  "hashes": {
+    "source-tests-assets.sha256": "4761a7523b805c95b9fa3fd5b6848900977967bcba13da943b9d2dfe6732e5fb",
+    "reviewed-baseline.previous.sha256": "8a171ff8783ce2ca9665dec6c885fd643f412ffad396c62326ee172c679329d6",
+    "reviewed-baseline.sha256": "dedc60e28cca1b80354a4a91c825f3688defb1901e6848524555a850d3761ed6",
+    "final-generated-build-1.sha256": "da6706662000ac0d230d0cecb4c42103c556be8abb8d1663ab27a2b350bcee2a",
+    "final-generated-build-2.sha256": "da6706662000ac0d230d0cecb4c42103c556be8abb8d1663ab27a2b350bcee2a",
+    "logs/full-final.log": "4e5f79e33af2c4a57dd80e615f1964e7185c22db10a1923913a30678f3af52f9",
+    "logs/audit-final.log": "55859f08822fae9902e90fbd4a2585b59764bd4fb29d04a039184d35b78b29db",
+    "logs/baseline-final.log": "e1635ae81d3534eb044cefffc8892dcc7645698d4b06e8b8fbe2c8d18a705522",
+    "served-ui-final-receipt.json": "9aca0b07d362e9408a0f9e3433e84f4a289d78fadf31d1ba28cc4000931bac03",
+    "core-bundle-comment-delta.json": "bd76fa8a8e91dc1bd83a3e0e9020ea6b4a902864c275adcf078c4e7d3e311458",
+    "gallery/behavior-checks.json": "2acfc7bb961337734e1a82094ba9515ed95baf374831c393d76fb16169a5932c",
+    "gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "gallery/cleanup.json": "178a755da06c161c2fb1b75588b5b81b22a88ee6dd52a2614235b8cbddd6f36c",
+    "native/selection-final-focused-field.json": "875d2377719c4982b6f941ad1e6c8a89f426890ba88daae500cdd86dd88636db",
+    "native/selection-final-edited-field.json": "d6773b568ca80818236b4846648a1c0530d7adf6a170f4924f4627204c50483e",
+    "native/final-build-persistence.json": "34662425ace63af66e8a5c2fc5180e36111c313e07682cd2b361b3e8d9365f1e"
+  },
+  "finalIndexSha256": "7b7a7c4d7636f9ebbed10891346f6bda2b60c1d853d72e9b5047e83bf7ccdc50",
+  "noMainBrowserCommitPush": true
+}

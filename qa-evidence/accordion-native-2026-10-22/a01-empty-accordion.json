@@ -1,0 +1,26 @@
+{
+  "before": [
+    "Shipping & returns?",
+    "How long does it take?",
+    "Who is it for?",
+    "What does it cost?"
+  ],
+  "editorPlaceholder": "Add a question in the panel",
+  "rows": [
+    {
+      "device": "Desktop",
+      "wrappers": 0,
+      "details": 0
+    },
+    {
+      "device": "Tablet",
+      "wrappers": 0,
+      "details": 0
+    },
+    {
+      "device": "Mobile",
+      "wrappers": 0,
+      "details": 0
+    }
+  ]
+}

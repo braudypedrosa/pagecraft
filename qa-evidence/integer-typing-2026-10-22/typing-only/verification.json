@@ -1,0 +1,81 @@
+{
+  "baseCommit": "218f11545451cbac7ad1d8ed9e08245258b57a25",
+  "status": "Historical typing-only build; root authorized sanitizer dependency patch for combined86. Harness stopped; combined build/native gates pending.",
+  "scope": "Only integer UnitCtl value write receives an equality guard. No Core/compiler/dependency policy changes.",
+  "source": [
+    "app/src/ui/inspector/Controls.tsx"
+  ],
+  "tests": [
+    "tests/integer-sequential-typing.test.tsx"
+  ],
+  "red": {
+    "failed": 3,
+    "passed": 2,
+    "evidence": "logs/red.log"
+  },
+  "focused": {
+    "files": 3,
+    "passed": 26,
+    "evidence": "logs/focused.log"
+  },
+  "fullPreNative": {
+    "exitCode": 1,
+    "filesPassed": 245,
+    "filesFailed": 1,
+    "filesSkipped": 2,
+    "testsPassed": 2601,
+    "testsFailed": 1,
+    "testsSkipped": 5,
+    "durationSeconds": 98.05,
+    "onlyFailure": "Reviewed gallery source fingerprint for Controls.tsx; native capture and root review required.",
+    "evidence": "logs/full-pre-native.log"
+  },
+  "typecheck": "Final pass, exit 0. Initial new-test callback return errors were corrected before final focused run; initial report corrected to root.",
+  "determinism": {
+    "artifacts": 11,
+    "identical": true,
+    "receipts": [
+      "generated-build-1.sha256",
+      "generated-build-2.sha256"
+    ]
+  },
+  "audit": {
+    "exitCode": 1,
+    "moderate": 1,
+    "advisory": "GHSA-c9rx-x947-fp3h",
+    "dependency": "sanitize-html 2.18.0",
+    "fixAvailable": "2.18.1",
+    "evidence": "logs/audit.log",
+    "scope": "Unchanged dependency; newly reported audit finding escalated to root, no unauthorized upgrade."
+  },
+  "demo": {
+    "components": 1,
+    "instances": 6,
+    "items": 4,
+    "findings": 0
+  },
+  "outputContracts": "Core, builder, WordPress golden, public snapshot, runtime and compiler artifacts unchanged; see output-contract-review.json.",
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 22,
+  "harness": {
+    "url": "http://localhost:4982/edit/s1",
+    "pid": 82494,
+    "sessionId": 7406,
+    "path": "tools/.qa-ui-4982.mjs",
+    "sha256": "d4d7c9ddd86296fe7059feb77f50c37eb2df6fd0f75f6d555d139bc5c7541788",
+    "provenance": "Trusted85 .qa-ui-4980.mjs copied with port-only 4980 to 4982 substitution; fictional fresh default fixture, no hidden state injection.",
+    "preserve": true,
+    "status": "Stopped at root request before native authoring; PID 82494 no listener."
+  },
+  "limits": [
+    "The jsdom sequential helper models the native hidden trailing-decimal draft boundary; it does not prove Chromium caret behavior. Actual native sequential typing is mandatory.",
+    "No browser, Main, WordPress, baseline recording, commit, push or deployment by this worker.",
+    "Legacy data and compiler rounding policy unchanged. Broader QA remains open."
+  ],
+  "remaining": [
+    "Root native actual sequential typing and responsive acceptance.",
+    "Root gallery capture, comparison and reviewed baseline record, then final full suite.",
+    "Separate sanitizer advisory disposition and integration/release by root."
+  ],
+  "manifestStatus": "Historical typing-only freeze; will refreeze combined dependency patch after review."
+}

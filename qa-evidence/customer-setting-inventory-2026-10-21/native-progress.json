@@ -148,10 +148,30 @@
         "Eight languages and representative values are covered; arbitrary values/units/fonts/colors, common Motion/State/Hover/Focus and runtime-generated controls remain open.",
         "Padding fix accepted locally and in deployed Cloud/installed WordPress; broader module/common control combinations remain open."
       ]
+    },
+    {
+      "module": "Accordion",
+      "case_ids": ["A01", "A02", "A03", "A04", "A05", "S01-S10"],
+      "status": "bounded_candidate85_local_only",
+      "control_scope": "4 direct Content controls plus 10 direct Style controls in the recorded native fixture",
+      "devices": ["Desktop", "Tablet", "Mobile"],
+      "evidence_dir": "qa-evidence/accordion-native-2026-10-22",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md",
+        "final-native-state.json",
+        "final-accordion-desktop.png",
+        "final-accordion-mobile.png"
+      ],
+      "limits": [
+        "Candidate85 local evidence only; it is not Cloud/WordPress or production acceptance.",
+        "Representative values and recorded matrices do not cover arbitrary units/values, whitespace-only answers, Hover/Focus/Motion, shared Advanced/visibility/conditions, or exhaustive keyboard parity.",
+        "Default-color reset observed currentColor/rgb(17,19,17), not restoration to an original factory token."
+      ]
     }
   ],
   "pending_next_checks": [
-    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; L07 child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
+    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; corrected L07 child/link/unsafe-URL and required-title cases are bounded but child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
     "Per-module condition-label checks beyond the generic accepted82 labels.",
     "Table position, max-width and overflow controls.",
     "Common Motion, Hover/Focus, dynamic component and full customer-flow combinations outside named records."
@@ -195,5 +215,15 @@
     "wordpress_ci": 39646072783,
     "evidence": "qa-evidence/binding-dialog-labels-2026-10-22/post-deploy/task-close.md",
     "status": "accepted bounded Cloud native; WordPress source parity and native read-only provider scope; fixtures restored; no production promotion"
+  },
+  "release85": {
+    "cloud": "218f115",
+    "wordpress": "e334d57",
+    "status": "accepted bounded Cloud/WordPress release; candidate86 local typing fix was subsequently found and remains uncommitted/local",
+    "verification": "2,606 tests passed, 5 skipped; 30 gallery interactions and 24 screenshot comparisons with zero changed pixels",
+    "limits": [
+      "This overlay records release identity and bounded native continuation only; it does not promote full customer QA or production readiness.",
+      "The Accordion A/S evidence is candidate85 local-only and is listed separately above."
+    ]
   }
 }

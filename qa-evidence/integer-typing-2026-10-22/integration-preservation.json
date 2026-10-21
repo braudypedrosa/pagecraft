@@ -1,0 +1,120 @@
+{
+  "base": "218f11545451cbac7ad1d8ed9e08245258b57a25",
+  "protectedWorkingBytes": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "all11Preserved": true,
+  "method": "Generated8 staged index-only from frozen reviewed candidate; no Main build or working artifact overwrite.",
+  "normalizedLogs": [
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/full-pre-native.log",
+      "original": "d26cbf6e9a4f6a14afbee17750f7cca50178ec7a5a602a2c9cb921cf690c9d8e",
+      "normalized": "d3c2fb3e0306dd8a9cb8578c553c32e07fd58e7aaa6fe3d1b58f42e72360ef59"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/typecheck-final.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/red.log",
+      "original": "36a263a4378df7c967a500e3f3b5cc4563e1f5c4541f1110fa7030f916169a59",
+      "normalized": "55d698341f246c7357a3fc76839647fcba06cf568faae41d4aadafd2c553a17b"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/lifecycle-focused.log",
+      "original": "d21bada941b2f65e2cf6247597336a73f88944ed5198bcb2a2817cd4ca123313",
+      "normalized": "e8b97d7febc040f7a178739411b97ddf50849699339511c013d6a07dbe1777d6"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/lifecycle-contract.log",
+      "original": "c0301a1f4856bb4120f939dcc8b32a592020f7e302b828fb84df154948877994",
+      "normalized": "e536c775dabbb340546e03bd624a83c8788150c2c0a0017e07fc9afb5db05847"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/diff-final.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/lifecycle-typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/typecheck-final-reviewed.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/full-final.log",
+      "original": "4e5f79e33af2c4a57dd80e615f1964e7185c22db10a1923913a30678f3af52f9",
+      "normalized": "6cbcdb52baca28985c28ce122c21b0d036de13a1a479c51f620e4bbeeb215c54"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/logs/focused.log",
+      "original": "18edf57d7285980635c459d408e15c8dc44a011a3037bbc323ca209198978fa5",
+      "normalized": "866d8fdb98783c34f8c2ec57b501a05ef872d18b2a0176d3abf4ad53897d1e99"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/full-pre-native.log",
+      "original": "dddd36b393a4440d107354c21347c5190164a2d4ad1e17c752447e1118efdf62",
+      "normalized": "12d7a112881710da8cffd84f44691a67a5b8c458d91d301e6582591ec50c7bc1"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/typecheck-final.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/red.log",
+      "original": "36a263a4378df7c967a500e3f3b5cc4563e1f5c4541f1110fa7030f916169a59",
+      "normalized": "55d698341f246c7357a3fc76839647fcba06cf568faae41d4aadafd2c553a17b"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/integer-typing-2026-10-22/typing-only/logs/focused.log",
+      "original": "18edf57d7285980635c459d408e15c8dc44a011a3037bbc323ca209198978fa5",
+      "normalized": "866d8fdb98783c34f8c2ec57b501a05ef872d18b2a0176d3abf4ad53897d1e99"
+    }
+  ],
+  "generatedSHA256": {
+    "index.html": "7b7a7c4d7636f9ebbed10891346f6bda2b60c1d853d72e9b5047e83bf7ccdc50",
+    "dist/core.cjs": "e3dfa39e7882bf688147dec7e7cf721a9151cfbe0dd3f3ba03703c4abc6c5a1c",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "fc7f2587cea108aa12ad01374c458aa696c3716a09392ae800dc5a6000231b0a",
+    "packages/editor/dist/runtime.js": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3766db06702f2281ad1d094e74716e2caabed457c544fb8c82ce9a21708dc930",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "694cac89e8a4c523cfe009cfd092d86cdf006c72640b90bcefa94b6a360a9b60"
+  }
+}

@@ -194,7 +194,7 @@ function UnitCtl({ n, c }: P) {
       if (max !== undefined) clamped = Math.min(max, clamped);
       if (c.integer) {
         v = cssInteger(clamped);
-        numEl.value = v;
+        if (numEl.value !== v) numEl.value = v;
       } else if (clamped !== parsed) {
         v = String(clamped);
         numEl.value = v;

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-22",
+  "scope": "sanitize-html security patch only",
+  "advisory": "GHSA-c9rx-x947-fp3h",
+  "old_version": "2.18.0",
+  "new_version": "2.18.1",
+  "before": {
+    "command": "npx vitest run tests/sanitize-html-security.test.ts",
+    "status": "failed_as_expected",
+    "failure": "Maximum call stack size exceeded on 2000 nested discarded iframe elements"
+  },
+  "after": {
+    "command": "npx vitest run tests/sanitize-html-security.test.ts",
+    "status": "passed",
+    "tests": 2
+  },
+  "audit": {
+    "command": "npm audit --audit-level=moderate",
+    "status": "passed",
+    "summary": "found 0 vulnerabilities"
+  },
+  "dependency_install": {
+    "command": "npm install --ignore-scripts",
+    "status": "passed",
+    "node_modules": "worktree-local, shared dependency symlink removed before install"
+  },
+  "files": [
+    "package.json",
+    "server/package.json",
+    "package-lock.json",
+    "tests/sanitize-html-security.test.ts",
+    "qa-evidence/sanitize-html-patch-2026-10-22/verification.json",
+    "qa-evidence/sanitize-html-patch-2026-10-22/task-close.md"
+  ],
+  "limits": [
+    "No application source, Controls, Main checkout, browser, build, or deployment changes.",
+    "Focused regression covers discarded iframe deep nesting and ordinary fallback stripping; it does not claim a full sanitizer corpus audit."
+  ]
+}

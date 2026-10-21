@@ -1,0 +1,10 @@
+{
+  "rejected": [
+    "selection-focused-field-after.json"
+  ],
+  "reason": "4982 createApp captured editorHtml at server startup; rebuilding index did not update served editor. Three additional errors came from old cached bootasset, not final lifecycle guard.",
+  "oldAsset": "c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec",
+  "newPort": 4984,
+  "expectedNewAsset": "f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34",
+  "fixtureInjection": false
+}

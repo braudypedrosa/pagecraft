@@ -100,12 +100,24 @@
     "status": "evidenced_with_context_limits",
     "limits": ["The earlier is=1 and is=0 equality receipts are rejected probes because the Value input remained blank after fill+Tab; they provide no condition result evidence.", "The committed Accessibility/Design cases cover category positive/negative whole-list visibility only; boolean, nested child, blank/nonempty, and legacy-invalid condition cases remain open.", "No per-item child/card condition matrix is recorded."]
   },
+  "l07_repeated_content_links_followup": {
+    "controls": ["Repeated child text", "Required CMS title", "Repeated external link", "Unsafe link", "Link reset"],
+    "evidence": [
+      {"case": "literal_escaped_long_title", "file": "l07-literal-long-title.json", "devices": 3, "proof": "literal <b>/&/quotes/emoji text preserved, HTML escaped, no child elements, no page overflow", "status": "evidenced"},
+      {"case": "required_empty_title_rejected", "file": "l07-required-title-rejected.json", "proof": "validation alert, aria-describedby=cms-error-title, entry editor retained", "status": "evidenced"},
+      {"case": "original_source_restored", "file": "l07-title-restored.json", "devices": 3, "published_count": 18, "unique_heading_ids": 18, "status": "evidenced"},
+      {"case": "repeated_external_links", "file": "l07-repeated-external-links.json", "devices": 3, "link_count": 18, "proof": "href query/hash retained, target=_blank, rel=noopener, no overflow", "status": "evidenced"},
+      {"case": "unsafe_url_omitted", "file": "l07-unsafe-link-omitted.json", "rendered_anchors": 0, "activated": false, "status": "evidenced"},
+      {"case": "link_reset", "file": "l07-link-restored.json", "devices": 3, "anchors": 0, "headings": 18, "status": "evidenced"}
+    ],
+    "limits": ["The restored fixture context is 27 source items with 18 published items; this receipt proves the 18-item public output only.", "Duplicate rows, missing images, unavailable references, alternate schemas, and all link edge values remain open."]
+  },
   "remaining": [
     "Fresh first-page proof with explicit aria-current or equivalent route evidence.",
     "Additional limit/per-page values and last partial page after a confirmed reset.",
     "A product decision/fix for decimal per/limit values, followed by native verification.",
     "Mixed-category, numeric/date, and larger-schema filter cases.",
-    "L07 repeated child/link edge cases and factory-default card basis.",
+    "L07 duplicate rows, missing images, unavailable references, alternate schemas, and remaining child/link edge cases.",
     "Per-item child/card condition matrix distinct from whole-list condition.",
     "Corrected category condition cases with pressSequentially input, picker selection, reload savedValue guard, and all-device receipts; boolean cases remain open.",
     "Meaningful boolean true/false matches on repeated child/card controls.",

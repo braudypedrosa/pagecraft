@@ -1,0 +1,80 @@
+[
+  {
+    "setting": "Plus / minus",
+    "rows": [
+      {
+        "device": "Desktop",
+        "hidden": true,
+        "marker": "plus",
+        "markers": 4,
+        "questions": 4
+      },
+      {
+        "device": "Tablet",
+        "hidden": true,
+        "marker": "plus",
+        "markers": 4,
+        "questions": 4
+      },
+      {
+        "device": "Mobile",
+        "hidden": true,
+        "marker": "plus",
+        "markers": 4,
+        "questions": 4
+      }
+    ]
+  },
+  {
+    "setting": "Caret",
+    "rows": [
+      {
+        "device": "Desktop",
+        "hidden": true,
+        "marker": "caret",
+        "markers": 4,
+        "questions": 4
+      },
+      {
+        "device": "Tablet",
+        "hidden": true,
+        "marker": "caret",
+        "markers": 4,
+        "questions": 4
+      },
+      {
+        "device": "Mobile",
+        "hidden": true,
+        "marker": "caret",
+        "markers": 4,
+        "questions": 4
+      }
+    ]
+  },
+  {
+    "setting": "None",
+    "rows": [
+      {
+        "device": "Desktop",
+        "hidden": true,
+        "marker": "none",
+        "markers": 0,
+        "questions": 4
+      },
+      {
+        "device": "Tablet",
+        "hidden": true,
+        "marker": "none",
+        "markers": 0,
+        "questions": 4
+      },
+      {
+        "device": "Mobile",
+        "hidden": true,
+        "marker": "none",
+        "markers": 0,
+        "questions": 4
+      }
+    ]
+  }
+]

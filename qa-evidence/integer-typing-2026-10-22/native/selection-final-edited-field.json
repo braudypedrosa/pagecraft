@@ -1,0 +1,29 @@
+{
+  "rows": [
+    {
+      "device": "Desktop",
+      "typed": "2.5",
+      "normalized": "3",
+      "breadcrumb": "Home\nSettings & SEO\nSection\n›\nCollection list\n›\nColumn\n›\nA headline that carries we\nDesktop base",
+      "inspector": "Heading\nHeading text\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nLink\nNo link",
+      "panels": 1
+    },
+    {
+      "device": "Tablet",
+      "typed": "2.5",
+      "normalized": "3",
+      "breadcrumb": "Home\nSettings & SEO\nSection\n›\nCollection list\n›\nColumn\n›\nA headline that carries we\nTablet override",
+      "inspector": "Heading\nHeading text\nShared\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nInherited\nLink\nNo link",
+      "panels": 1
+    },
+    {
+      "device": "Mobile",
+      "typed": "2.5",
+      "normalized": "3",
+      "breadcrumb": "Home\nSettings & SEO\nSection\n›\nCollection list\n›\nColumn\n›\nA headline that carries we\nMobile override",
+      "inspector": "Heading\nHeading text\nShared\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nInherited\nLink\nNo link",
+      "panels": 1
+    }
+  ],
+  "errors": []
+}
