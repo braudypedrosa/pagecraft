@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-21",
+  "status": "source/test candidate frozen for root combined build and native verification",
+  "baseCommit": "d2c2444",
+  "scope": [
+    "shared/action-feedback.js",
+    "tests/action-feedback.test.ts",
+    "tests/modal-notification-layout.test.ts"
+  ],
+  "summary": "Active-dialog notifications occupy a bounded in-flow region so they do not cover body choices or footer controls. Body/canvas notifications retain viewport popovers.",
+  "behavior": [
+    "Dialog ownership remains inside native/custom focus traps.",
+    "Existing notices reparent through nested dialogs and return to viewport placement on close.",
+    "Moving a viewport popover into a dialog closes/removes its top-layer popover state.",
+    "Dialog notice region scrolls within min(180px,30dvh), can shrink, and its scrollbar accepts pointer events.",
+    "Notification rows do not shrink; body remains scrollable and footer retains its existing non-shrinking layout.",
+    "Live roles, progress persistence, dismissal, multiple notices and destroy cleanup remain covered."
+  ],
+  "checks": {
+    "red": {
+      "result": "expected failure",
+      "detail": "Old host was fixed over dialog controls; new regression requires reserved relative layout.",
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 2,
+      "tests": 28,
+      "log": "logs/focused.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    }
+  },
+  "nativeBefore": "Root-owned proof/native subfolder preserved untouched.",
+  "sourceHashes": "source-tests.sha256",
+  "dependencies": "node_modules symlink reused after identical package-lock SHA-256 check; no install or lock edit.",
+  "remaining": [
+    "Root combined build and broader suite.",
+    "Root desktop/mobile/full-height native geometry including actual no-overlap hit testing, body scroll and reachable footer.",
+    "Root gallery review and integration/release."
+  ],
+  "boundaries": "No browser, standalone build, full suite, baseline, Main, WordPress, commit or push actions by this worker."
+}

@@ -1,0 +1,23 @@
+{
+  "status": "Interim operator acceptance; final license marker rebuild pending",
+  "sourceCore": "3ada3fc146ea5d22fdf2d9cb40dda457df7447980775ccb7ad7dd5c08c78e3b2",
+  "eq": {
+    "expected": 1,
+    "actual": 1
+  },
+  "ne": {
+    "expected": 0,
+    "actual": 0
+  },
+  "emptyMarkup": "<p></p>",
+  "set": {
+    "expected": 0,
+    "actual": 0
+  },
+  "empty": {
+    "expected": 1,
+    "actual": 1
+  },
+  "tabId": "7",
+  "usabilityObservation": "Empty Rich node has zero-height canvas rectangle; selected source through Components library instead."
+}

@@ -1,0 +1,29 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/modal-toast-d2c2444
+
+ ❯ tests/action-feedback.test.ts (25 tests | 1 failed) 132ms
+   × active shared dialogs reserve notice space rather than covering body or footer controls 27ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/action-feedback.test.ts > active shared dialogs reserve notice space rather than covering body or footer controls
+AssertionError: expected 'fixed' to be 'relative' // Object.is equality
+
+Expected: "relative"
+Received: "fixed"
+
+ ❯ tests/action-feedback.test.ts:41:45
+     39|  const notices=dialog.querySelector<HTMLElement>('#pc-notifications')!;
+     40|  expect(notices.parentElement).toBe(dialog);
+     41|  expect(getComputedStyle(notices).position).toBe('relative');
+       |                                             ^
+     42|  expect(notices.hasAttribute('popover')).toBe(false);
+     43|  expect(notices.style.bottom).toBe('');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 24 passed (25)
+   Start at  12:49:17
+   Duration  776ms (transform 27ms, setup 0ms, import 36ms, tests 132ms, environment 503ms)

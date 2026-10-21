@@ -3,7 +3,7 @@
  */
 export const ACTION_FEEDBACK_CSS = `
 .pc-notifications{position:fixed;inset:auto 20px 20px auto;z-index:20000;display:flex;flex-direction:column;gap:10px;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;pointer-events:none;margin:0;padding:0;border:0;background:transparent;color:#f5f7f8;font:500 13px/1.5 Manrope,system-ui,sans-serif}
-.pc-notifications:empty{display:none}.pc-notification{display:flex;align-items:flex-start;gap:10px;padding:14px 12px 14px 16px;background:#171a17;border-radius:8px;box-shadow:0 10px 28px -10px #0006;pointer-events:auto;overflow-wrap:anywhere}.pc-notification[data-tone="error"]{background:#752922}.pc-notification-icon{width:18px;height:18px;flex:0 0 18px;margin-top:1px}.pc-notification[data-tone="success"] .pc-notification-icon{color:#b7f34a}.pc-notification-message{flex:1;min-width:0}.pc-notification button{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;min-height:28px!important;height:28px!important;padding:5px!important;margin:-3px 0 -3px 2px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:inherit!important;cursor:pointer!important;opacity:1!important}.pc-notification button:hover{background:#ffffff1c!important}.pc-notification button:focus-visible{background:#ffffff1c!important}.pc-notification button svg{width:16px;height:16px}.pc-notification[data-tone="progress"] .pc-notification-icon,[data-pc-pending]::before{animation:pc-action-spin .8s linear infinite}[data-pc-pending]{cursor:progress!important;opacity:.85!important}[data-pc-pending]::before{content:"";display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:middle;margin-inline-end:6px}[data-pc-pending-icon]{display:grid!important;place-items:center!important;padding:0!important;overflow:hidden!important}[data-pc-pending-icon]>*{display:none!important}[data-pc-pending-icon]::before{grid-area:1 / 1;margin:0;transform-origin:center}.pc-action-status{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.pc-action-status[data-tone="success"]{color:#24543a}.pc-action-status[data-tone="error"]{color:#8f312b}.pc-action-status svg{width:16px;height:16px;flex-shrink:0}@keyframes pc-action-spin{to{transform:rotate(360deg)}}@media(max-width:560px){.pc-notifications{inset:auto 16px 16px 16px;width:auto;max-height:50dvh}}@media(prefers-reduced-motion:reduce){.pc-notification-icon,[data-pc-pending]::before{animation:none!important}}
+.pc-notifications[data-dialog]{position:relative;inset:auto;width:auto;max-height:min(180px,30dvh);min-height:0;pointer-events:auto;flex:0 1 auto;margin:var(--pc-space-3,12px)}.pc-notifications[data-dialog]>.pc-notification{flex-shrink:0}.pc-notifications:empty{display:none}.pc-notification{display:flex;align-items:flex-start;gap:10px;padding:14px 12px 14px 16px;background:#171a17;border-radius:8px;box-shadow:0 10px 28px -10px #0006;pointer-events:auto;overflow-wrap:anywhere}.pc-notification[data-tone="error"]{background:#752922}.pc-notification-icon{width:18px;height:18px;flex:0 0 18px;margin-top:1px}.pc-notification[data-tone="success"] .pc-notification-icon{color:#b7f34a}.pc-notification-message{flex:1;min-width:0}.pc-notification button{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;min-height:28px!important;height:28px!important;padding:5px!important;margin:-3px 0 -3px 2px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:inherit!important;cursor:pointer!important;opacity:1!important}.pc-notification button:hover{background:#ffffff1c!important}.pc-notification button:focus-visible{background:#ffffff1c!important}.pc-notification button svg{width:16px;height:16px}.pc-notification[data-tone="progress"] .pc-notification-icon,[data-pc-pending]::before{animation:pc-action-spin .8s linear infinite}[data-pc-pending]{cursor:progress!important;opacity:.85!important}[data-pc-pending]::before{content:"";display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:middle;margin-inline-end:6px}[data-pc-pending-icon]{display:grid!important;place-items:center!important;padding:0!important;overflow:hidden!important}[data-pc-pending-icon]>*{display:none!important}[data-pc-pending-icon]::before{grid-area:1 / 1;margin:0;transform-origin:center}.pc-action-status{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.pc-action-status[data-tone="success"]{color:#24543a}.pc-action-status[data-tone="error"]{color:#8f312b}.pc-action-status svg{width:16px;height:16px;flex-shrink:0}@keyframes pc-action-spin{to{transform:rotate(360deg)}}@media(max-width:560px){.pc-notifications{inset:auto 16px 16px 16px;width:auto;max-height:50dvh}}@media(prefers-reduced-motion:reduce){.pc-notification-icon,[data-pc-pending]::before{animation:none!important}}
 `;
 
 export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
@@ -41,22 +41,18 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if (!host) return;
     const parent=destination();
     if(host.parentElement!==parent)parent.append(host);
-    const dialog=parent.matches?.('.pc-dialog') ? parent : null;
-    const foot=dialog ? [...dialog.querySelectorAll('.pc-dialog-foot')].filter(node=>
-      !node.closest('[hidden]')&&node.getBoundingClientRect().height>0).at(-1) : null;
-    const dialogBounds=dialog?.getBoundingClientRect();
-    const footBounds=foot?.getBoundingClientRect();
-    if(dialogBounds?.width>160&&dialogBounds.height>0&&footBounds?.height){
-      const body=[...dialog.querySelectorAll('.pc-dialog-body')].find(node=>
-        !node.closest('[hidden]')&&node.getBoundingClientRect().height>0);
-      const bodyBounds=body?.getBoundingClientRect();
-      const inset=12;
-      const top=Math.max(dialogBounds.top+inset,bodyBounds?.top||dialogBounds.top+inset);
-      host.style.right=Math.max(16,window.innerWidth-dialogBounds.right+inset)+'px';
-      host.style.bottom=Math.max(16,window.innerHeight-footBounds.top+inset)+'px';
-      host.style.width=Math.min(420,dialogBounds.width-inset*2)+'px';
-      host.style.maxHeight=Math.max(0,footBounds.top-top-inset)+'px';
-    }else{
+    const inDialog=parent!==document.body;
+    host.toggleAttribute('data-dialog',inDialog);
+    if(inDialog){
+      // A notice is part of the dialog layout, not an overlay on its choices or actions.
+      // Keep it inside the focus trap while the existing body yields scrollable space.
+      if(host.hasAttribute('popover')){
+        if(host.matches(':popover-open'))host.hidePopover();
+        host.removeAttribute('popover');
+      }
+      for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
+      return;
+    }
     // Keep editor feedback in the canvas, above its zoom controls. Inspector actions
     // remain visible; other Cloud surfaces and dialogs retain their usual placement.
     const stage=parent===document.body ? document.getElementById('stage') : null;
@@ -70,7 +66,6 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
       host.style.maxHeight=Math.max(80,window.innerHeight-Math.max(52,bounds.top)-16-bottom)+'px';
     }else{
       for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
-    }
     }
     if(typeof host.showPopover==='function'&&host.childElementCount){
       host.setAttribute('popover','manual');

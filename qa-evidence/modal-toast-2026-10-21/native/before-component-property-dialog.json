@@ -1,0 +1,17 @@
+{
+  "base": "d2c244492b100450fdadd5ee66d39ffabc0da919",
+  "environment": "built-in browser, final Rich condition candidate with unchanged action-feedback source",
+  "flow": "Create component, open its definition and open property picker while success notice is present.",
+  "button": "New property from this value",
+  "buttonRect": {
+    "x": 455,
+    "y": 358,
+    "width": 370,
+    "height": 41
+  },
+  "centerHit": ".pc-notification-message",
+  "centerHitText": "QA Rich final comparison is a component - this element is the first instance",
+  "clickAttemptsWithoutEffect": 2,
+  "dismissThenButtonWorks": true,
+  "limitation": "No assertion about toast duration; this records overlap while the notification is present."
+}

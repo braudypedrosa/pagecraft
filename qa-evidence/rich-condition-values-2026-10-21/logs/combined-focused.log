@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-condition-text-d2c2444
+
+
+ Test Files  5 passed (5)
+      Tests  48 passed (48)
+   Start at  13:01:14
+   Duration  1.57s (transform 489ms, setup 0ms, import 637ms, tests 325ms, environment 1.42s)

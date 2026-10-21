@@ -1,0 +1,51 @@
+{
+  "button": {
+    "bottom": 339.5,
+    "height": 41,
+    "left": 455,
+    "right": 825,
+    "top": 298.5,
+    "width": 370,
+    "x": 455,
+    "y": 298.5
+  },
+  "dialog": {
+    "bottom": 556.5,
+    "height": 393,
+    "left": 430,
+    "right": 850,
+    "top": 163.5,
+    "width": 420,
+    "x": 430,
+    "y": 163.5
+  },
+  "footer": {
+    "bottom": 481.5,
+    "height": 73,
+    "left": 431,
+    "right": 849,
+    "top": 408.5,
+    "width": 418,
+    "x": 431,
+    "y": 408.5
+  },
+  "hitButton": true,
+  "notice": {
+    "bottom": 543.5,
+    "height": 50,
+    "left": 443,
+    "right": 837,
+    "top": 493.5,
+    "width": 394,
+    "x": 443,
+    "y": 493.5
+  },
+  "noticeMessages": [
+    "“Link” now varies between instances"
+  ],
+  "noticePosition": "relative",
+  "viewport": {
+    "height": 720,
+    "width": 1280
+  }
+}

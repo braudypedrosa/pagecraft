@@ -1,0 +1,470 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=2
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-condition-text-d2c2444/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (676 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-condition-text-d2c2444/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-condition-text-d2c2444
+
+ ❯ tests/editor-usability-feedback.test.mjs (23 tests | 7 failed) 17099ms
+   × client review opens owner workflow without outbound mutations and explains unsaved changes 1022ms
+   × mobile More tools reflects 'Cloud owner' capabilities 1014ms
+   × mobile More tools reflects 'Cloud content account' capabilities 1024ms
+   × More tools remains operable at a 601 px Cloud toolbar 1037ms
+   × More tools remains operable at a 390 px Cloud toolbar 1028ms
+   × More tools remains operable at a 320 px Cloud toolbar 1035ms
+   × mobile More tools opens real recovery surfaces with keyboard focus and no save or undo mutation 1032ms
+ ❯ tests/editor-save-recovery.test.mjs (7 tests | 5 failed) 9213ms
+   × busy saves preserve edits, wait for explicit retry, and retain real conflict protection 1174ms
+   × a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action 1087ms
+   × hosted network failure gives connection guidance and retry preserves the unsaved document 2074ms
+   × a hosted document this build cannot open is never overwritten by the demo 1016ms
+   × an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make” 1034ms
+ ❯ tests/boot.test.mjs (37 tests | 4 failed) 12798ms
+   × server mode separates draft saving from explicit release publication 3065ms
+   × WordPress mode boots the shared editor and saves a native fallback through the nonce adapter 3059ms
+   × a content collaborator is not offered the owner-only Publish action 708ms
+   × the server media picker wires trash to durable DELETE before removing the card 1008ms
+ ❯ tests/editor-settings-feedback.test.mjs (3 tests | 3 failed) 4518ms
+   × Cloud settings Close is quiet when unchanged, but preserves pending names and errors 1389ms
+   × Cloud help accurately describes private drafts and supported export shortcut 1041ms
+   × Close waits for an unsaved document and prevents duplicate processing 2088ms
+(node:91625) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91663) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:91834) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 19 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/boot.test.mjs > server mode separates draft saving from explicit release publication
+AssertionError: The input did not match the regular expression /Stored with this project/. Input:
+
+'Stored in this browser\n       \n       \n        Upload\n       Done'
+
+
+- Expected:
+/Stored with this project/
+
++ Received:
+"Stored in this browser
+
+
+        Upload
+       Done"
+
+ ❯ tests/boot.test.mjs:164:5
+    162|   if (doc.querySelector('#savedTag').textContent === '—') dom.window.b…
+    163|   dom.window.mediaModal();
+    164|   a.match(doc.querySelector('#mFoot').textContent, /Stored with this p…
+       |     ^
+    165|   doc.querySelector('#mClose').click();
+    166|   a.equal(doc.querySelector('#publishLabel').textContent.trim(), 'Publ…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯
+
+ FAIL  tests/boot.test.mjs > WordPress mode boots the shared editor and saves a native fallback through the nonce adapter
+AssertionError: The input did not match the regular expression /Stored in the WordPress media library/. Input:
+
+'Stored in this browser\n       \n       \n        Upload\n       Done'
+
+
+- Expected:
+/Stored in the WordPress media library/
+
++ Received:
+"Stored in this browser
+
+
+        Upload
+       Done"
+
+ ❯ tests/boot.test.mjs:261:5
+    259|   if (doc.querySelector('#savedTag')?.textContent === '—') dom.window.…
+    260|   dom.window.mediaModal();
+    261|   a.match(doc.querySelector('#mFoot').textContent, /Stored in the Word…
+       |     ^
+    262|   doc.querySelector('#mClose').click();
+    263|   dom.window.helpModal();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯
+
+ FAIL  tests/boot.test.mjs > a content collaborator is not offered the owner-only Publish action
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/boot.test.mjs:349:5
+    347|   await new Promise(r => setTimeout(r, 500));
+    348|   if (dom.window.document.querySelector('#savedTag').textContent === '…
+    349|   a.equal(dom.window.document.querySelector('#exportBtn').hidden, true…
+       |     ^
+    350|   a.equal(dom.window.document.querySelector('#reviewBtn').hidden, fals…
+    351|   dom.window.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯
+
+ FAIL  tests/boot.test.mjs > the server media picker wires trash to durable DELETE before removing the card
+AssertionError: the picker renders its delete action
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ tests/boot.test.mjs:883:5
+    881|   a.ok(dom.window.document.querySelector('#askBox').classList.contains…
+    882|   const trash = dom.window.document.querySelector('#askBody [data-del=…
+    883|   a.ok(trash, 'the picker renders its delete action');
+       |     ^
+    884|   trash.click();
+    885|   await new Promise(r => setTimeout(r, 50));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > busy saves preserve edits, wait for explicit retry, and retain real conflict protection
+TypeError: answer is not a function
+ ❯ tests/editor-save-recovery.test.mjs:45:5
+     43|     await tick();
+     44|     await window.writeNow(); // Queue a second call while the first is…
+     45|     answer(409, { error: 'An operation holds the write lock.', retryab…
+       |     ^
+     46|     await first;
+     47|     await tick();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action
+AssertionError: the WordPress Done action makes one save attempt
+
+0 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/editor-save-recovery.test.mjs:126:12
+    124|     document.querySelector('#exportBtn').click();
+    125|     await tick();
+    126|     assert.equal(requests.length, 1, 'the WordPress Done action makes …
+       |            ^
+    127|     assert.equal(requests[0].version, 39);
+    128|     answer(409, {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > hosted network failure gives connection guidance and retry preserves the unsaved document
+AssertionError: The input did not match the regular expression /connection to the host was lost/i. Input:
+
+''
+
+
+- Expected:
+/connection to the host was lost/i
+
++ Received:
+""
+
+ ❯ tests/editor-save-recovery.test.mjs:195:12
+    193|     window.__CORE.state.meta.name = 'Keep the offline QA draft';
+    194|     await window.writeNow();
+    195|     assert.match(document.querySelector('#mBody').textContent, /connec…
+       |            ^
+    196|     assert.match(document.querySelector('#mBody').textContent, /Check …
+    197|     assert.doesNotMatch(document.querySelector('#mBody').textContent, …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > a hosted document this build cannot open is never overwritten by the demo
+AssertionError: The input did not match the regular expression /nothing you do here will be saved/. Input:
+
+''
+
+
+- Expected:
+/nothing you do here will be saved/
+
++ Received:
+""
+
+ ❯ tests/editor-save-recovery.test.mjs:250:12
+    248|     await settle();
+    249|     const window = dom.window, document = window.document;
+    250|     assert.match(document.querySelector('#mBody').textContent, /nothin…
+       |            ^
+    251|     window.__CORE.edit(() => { window.__CORE.state.meta.name = 'Demo e…
+    252|     await new Promise(resolve => setTimeout(resolve, 700));      // pa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯
+
+ FAIL  tests/editor-save-recovery.test.mjs > an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make”
+AssertionError: refreshed once and retried
++ actual - expected
+
++ []
+- [
+-   'stale00000',
+-   'fresh00000'
+- ]
+
+
+- Expected
++ Received
+
+- [
+-   "stale00000",
+-   "fresh00000",
+- ]
++ []
+
+ ❯ tests/editor-save-recovery.test.mjs:335:12
+    333|     const window = dom.window, document = window.document;
+    334|     await window.writeNow();
+    335|     assert.deepEqual(puts, ['stale00000', 'fresh00000'], 'refreshed on…
+       |            ^
+    336|     assert.deepEqual(asked, ['http://localhost/wp-admin/admin-ajax.php…
+    337|     assert.match(document.querySelector('#savedTag').textContent, /Dra…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯
+
+ FAIL  tests/editor-settings-feedback.test.mjs > Cloud settings Close is quiet when unchanged, but preserves pending names and errors
+AssertionError: expected HTMLDivElement{ …(2) } to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  class="pc-notification"
+  data-tone="success"
+>
+  <span
+    aria-hidden="true"
+    class="pc-notification-icon"
+  >
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="1.7"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m5 12 4 4L19 6"
+      />
+    </svg>
+  </span>
+  <span
+    aria-atomic="true"
+    class="pc-notification-message"
+    role="status"
+  >
+    Changes saved.
+  </span>
+  <button
+    aria-label="Dismiss notification"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m6 6 12 12M6 18 18 6"
+      />
+    </svg>
+  </button>
+</div>
+
+ ❯ tests/editor-settings-feedback.test.mjs:38:46
+     36|  await vi.waitFor(()=>expect(d.querySelector('#modal').hidden).toBe(tr…
+     37|  expect(calls.filter(c=>c.method!=='GET')).toHaveLength(0);
+     38|  expect(d.querySelector('.pc-notification')).toBeNull();
+       |                                              ^
+     39|  w.projectModal();d.querySelector('#mName').value='Renamed Cloud QA';d…
+     40|  await vi.waitFor(()=>expect(d.querySelector('#modal').hidden).toBe(tr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯
+
+ FAIL  tests/editor-settings-feedback.test.mjs > Cloud help accurately describes private drafts and supported export shortcut
+AssertionError: expected '\n    \n      Build your first page\n…' to contain 'autosaved to your Pagecraft site draft'
+
+- Expected
++ Received
+
+- autosaved to your Pagecraft site draft
++
++
++       Build your first page
++       Add a heading, rich text or an image from Elements, or choose a ready-made section. Pagecraft creates the needed layout containers for you. Select content on the canvas to edit it.
++       From draft to finished site
++       Preview shows your working page. Site checks helps find problems. Export downloads the site; changes save only in this browser.
++
++
++     Keyboard shortcuts
++     Move through elements↑ ↓Select parent · first child← →Add to the selection⌘clickSelect a range, in the Navigator⇧clickReorder among siblings⇧↑ ⇧↓Edit text in place↵ or double-clickCopy · cut · paste⌘C · ⌘X · ⌘VCopy · paste the styling⌘⇧C · ⌘⇧VDuplicate⌘DDelete⌫Undo / redo⌘Z · ⌘⇧ZBack to one element, then the parentescFind and replace, across the project⌘FPreview⌘PExport static HTML⌘EBold / italic while editing⌘B · ⌘IInsert link while editing⌘K
++
++       Structure — Section → Row → Column → content. Missing wrappers are
++       created for you.
++       Responsive — pick Tablet or Mobile in the top bar and what you change
++       becomes an override (max-width 1024px / 767px). A green badge marks one; click it to clear.
++       Global header & footer — shared by every page, edited in place. Hover the
++       region and press Edit header or Edit footer; Done brings you back.
++       Saving — changes are stored in this browser. Export → project JSON for a backup.
++
++
+
+ ❯ tests/editor-settings-feedback.test.mjs:52:48
+     50| test('Cloud help accurately describes private drafts and supported exp…
+     51|  const {w,d}=await cloud();w.helpModal();
+     52|  expect(d.querySelector('#mBody').textContent).toContain('autosaved to…
+       |                                                ^
+     53|  expect(d.querySelector('#mBody').textContent).not.toContain('stored i…
+     54|  expect(d.querySelector('#mBody').textContent).toContain('Export stati…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/19]⎯
+
+ FAIL  tests/editor-settings-feedback.test.mjs > Close waits for an unsaved document and prevents duplicate processing
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/editor-settings-feedback.test.mjs:65:65
+     63|  input.value='https://qa.example.invalid';input.dispatchEvent(new w.Ev…
+     64|  holdSave();d.querySelector('#mDone').click();d.querySelector('#mDone'…
+     65|  await vi.waitFor(()=>expect(calls.filter(c=>c.method==='PUT')).toHave…
+       |                                                                 ^
+     66|  expect(d.querySelector('#modal').hidden).toBe(false);
+     67|  expect(d.querySelector('#mDone').disabled).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/19]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > client review opens owner workflow without outbound mutations and explains unsaved changes
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/editor-usability-feedback.test.mjs:197:54
+    195| test('client review opens owner workflow without outbound mutations an…
+    196|   const { w, d, core, calls } = await editor({});
+    197|   expect(d.querySelector('#clientReviewBtn').hidden).toBe(false);
+       |                                                      ^
+    198|   d.querySelector('#clientReviewBtn').click();
+    199|   expect(d.querySelector('#mTitle').textContent).toBe('Client review');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/19]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > mobile More tools reflects 'Cloud owner' capabilities
+AssertionError: historyBtn: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/editor-usability-feedback.test.mjs:238:41
+    236|   expect(menu.hidden).toBe(false);
+    237|   for (const target of ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'revie…
+    238|     expect(item(target).hidden, target).toBe(!available.includes(targe…
+       |                                         ^
+    239|     if (!available.includes(target)) continue;
+    240|     const source = d.getElementById(target);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/19]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > mobile More tools reflects 'Cloud content account' capabilities
+AssertionError: shareBtn: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/editor-usability-feedback.test.mjs:238:41
+    236|   expect(menu.hidden).toBe(false);
+    237|   for (const target of ['undoBtn', 'redoBtn', 'canvasFocusBtn', 'revie…
+    238|     expect(item(target).hidden, target).toBe(!available.includes(targe…
+       |                                         ^
+    239|     if (!available.includes(target)) continue;
+    240|     const source = d.getElementById(target);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/19]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > More tools remains operable at a 601 px Cloud toolbar
+ FAIL  tests/editor-usability-feedback.test.mjs > More tools remains operable at a 390 px Cloud toolbar
+ FAIL  tests/editor-usability-feedback.test.mjs > More tools remains operable at a 320 px Cloud toolbar
+AssertionError: expected 'Export' to be 'Publish' // Object.is equality
+
+Expected: "Publish"
+Received: "Export"
+
+ ❯ tests/editor-usability-feedback.test.mjs:255:56
+    253|   expect(d.querySelectorAll('#devSeg button')).toHaveLength(3);
+    254|   expect(d.querySelector('#exportBtn').hidden).toBe(false);
+    255|   expect(d.querySelector('#publishLabel').textContent).toBe('Publish');
+       |                                                        ^
+    256|   expect(errors).toEqual([]);
+    257| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/19]⎯
+
+ FAIL  tests/editor-usability-feedback.test.mjs > mobile More tools opens real recovery surfaces with keyboard focus and no save or undo mutation
+AssertionError: expected [ 'undoBtn', 'redoBtn', …(3) ] to deeply equal [ 'undoBtn', 'redoBtn', …(4) ]
+
+- Expected
++ Received
+
+  [
+    "undoBtn",
+    "redoBtn",
+    "canvasFocusBtn",
+    "reviewBtn",
+-   "historyBtn",
+    "helpBtn",
+  ]
+
+ ❯ tests/editor-usability-feedback.test.mjs:275:54
+    273|   trigger.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowDo…
+    274|   const items = Array.from(menu.querySelectorAll('[role="menuitem"]'))…
+    275|   expect(items.map(item => item.dataset.moreTarget)).toEqual(['undoBtn…
+       |                                                      ^
+    276|   const enabledItems = items.filter(item => !item.disabled);
+    277|   expect(items.map(item => item.disabled)).toEqual(items.map(item => d…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/19]⎯
+
+
+ Test Files  4 failed | 229 passed | 2 skipped (235)
+      Tests  19 failed | 2499 passed | 5 skipped (2523)
+   Start at  12:31:18
+   Duration  96.07s (transform 2.57s, setup 0ms, import 27.63s, tests 124.28s, environment 18.25s)

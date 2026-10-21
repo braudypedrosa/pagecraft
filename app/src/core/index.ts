@@ -25,7 +25,7 @@ import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
 import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
 /* `safeUrl` and the two markup cleaners live in their own module so the library import, which
    must not pull in this stateful core, shares the same answers. */
-import { safeUrl, stripScripts, cleanRich } from './safe-html.ts';
+import { safeUrl, stripScripts, cleanRich, richTextContent } from './safe-html.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
 import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
 import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
@@ -5440,18 +5440,33 @@ function condValue(c: Condition, col: Collection | null, item: Item | null,
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? '' : String(v);
 }
+/* A rich property can take a plain Text field. Its binding's terminal type takes precedence
+   over the property kind, just as it does when `boundProps` renders that value. */
+function condRich(c: Condition, col: Collection | null,
+  inst?: PcNode | null, def?: ComponentDef | null): boolean {
+  if (c.bind.src === 'field') return fieldAt(col, c.bind.path)?.type === 'rich';
+  if (!inst) return false;
+  const field = boundField(inst, VAL + c.bind.path);
+  return field && col ? fieldAt(col, field)?.type === 'rich'
+    : findProp(def || null, c.bind.path)?.t === 'rich';
+}
 /** Does this element show? Absent condition means yes, which is every element until somebody
     decides otherwise. */
 function showsNode(n: PcNode, col: Collection | null, item: Item | null,
   inst?: PcNode | null, def?: ComponentDef | null): boolean {
   const c = n.showIf;
   if (!c || !c.bind || !c.bind.path) return true;
-  const v = condValue(c, col, item, inst, def).trim();
+  const raw = condValue(c, col, item, inst, def).trim();
+  const rich = condRich(c, col, inst, def);
+  const v = rich ? richTextContent(raw) : raw;
   const want = String(c.value == null ? '' : c.value).trim();
   if (c.op === 'set') return v !== '';
   if (c.op === 'empty') return v === '';
-  if (c.op === 'eq') return v === want;
-  if (c.op === 'ne') return v !== want;
+  /* Keep existing exact-HTML comparisons working while accepting the words an author sees.
+     Plain Text values and the comparison input are never interpreted as markup. */
+  const equal = raw === want || v === (rich ? want.replace(/\s+/g, ' ') : want);
+  if (c.op === 'eq') return equal;
+  if (c.op === 'ne') return !equal;
   return true;
 }
 /** Set or clear a condition. Clearing removes the key, so a document carries none until one is

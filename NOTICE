@@ -11,3 +11,8 @@ Pagecraft's own interface embeds the Manrope and DM Sans typefaces, which are li
 under the SIL Open Font License 1.1. Those licences are in brand/licenses/. Exported
 pages link webfonts rather than embedding them, so the OFL does not travel with a site
 you publish.
+
+Pagecraft's editor and compiler bundle the entities 4.5.0 HTML character-reference
+decoder, licensed under BSD-2-Clause. Its full notice is in vendor/entities/LICENSE
+and is reproduced in each standalone bundle that contains the decoder. The decoder
+is not included in the JavaScript runtime of an exported site.

@@ -5,6 +5,7 @@
    answer. Every tag that survives is re-serialised from what was parsed here, with its values
    escaped — the browser then reads exactly what was checked, and a parsing difference between
    this tokenizer and a browser can only lose markup, never run it. */
+import { decodeHTML } from 'entities/lib/decode.js';
 
 /* Only link schemes that are safe to put in an exported href. Anything else
    (javascript:, vbscript:, data:text/html, …) becomes an empty link. */
@@ -185,4 +186,14 @@ export function cleanRich(html: unknown): string {
     open.push(name);
   }
   return out + close(0);
+}
+
+/** The words a rich-text value displays. Sanitize first so quoted delimiters and dropped code
+    have the same meaning as rendering. Inline formatting joins text; block boundaries separate
+    it. Decode only after removing tags, so escaped literal markup remains visible words. */
+export function richTextContent(html: unknown): string {
+  const text = cleanRich(html)
+    .replace(/<\/?(?:p|div|h2|h3|blockquote|ul|ol|li|br)\b[^>]*>/gi, ' ')
+    .replace(/<[^>]*>/g, '');
+  return decodeHTML(text).replace(/\s+/g, ' ').trim();
 }

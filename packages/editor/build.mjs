@@ -11,6 +11,8 @@ import { resolveEditorVersion } from './version.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
+const entitiesNotice = '/*! entities 4.5.0 (BSD-2-Clause)\n'
+  + readFileSync(join(root, 'vendor/entities/LICENSE'), 'utf8').trim() + '\n*/\n';
 const dist = join(here, 'dist');
 const editorSource = join(root, 'index.html');
 const packageJson = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8'));
@@ -98,6 +100,7 @@ buildSync({
   target: 'es2022',
   minify: true,
   legalComments: 'none',
+  banner: { js: entitiesNotice },
   define: { __PAGECRAFT_EDITOR_VERSION__: JSON.stringify(editorVersion) }
 });
 writeFileSync(

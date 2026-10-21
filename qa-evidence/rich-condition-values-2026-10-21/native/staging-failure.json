@@ -1,0 +1,23 @@
+{
+  "commit": "d2c244492b100450fdadd5ee66d39ffabc0da919",
+  "instance": "ncups019k",
+  "source": "ncww5h2um",
+  "richMarkup": "<p>Seasonal workshop</p>",
+  "persistedComparison": "Seasonal workshop",
+  "inputMethod": "Actual key typing, Tab blur, panel collapse/reopen and source reopen confirmed value persisted. Earlier fill-only comparison was empty and that attempt is rejected.",
+  "equality": {
+    "expectedVisible": 1,
+    "actualVisible": 0
+  },
+  "inequality": {
+    "expectedVisible": 0,
+    "actualVisible": 1
+  },
+  "emptyRich": {
+    "markup": "<p></p>",
+    "editorMarkedOff": false,
+    "publicWrapperCount": 1,
+    "expectedWrapperCount": 0
+  },
+  "controlLimitations": "Attempted Enter inside contenteditable timed out; readback shows a native empty paragraph and subsequent blur persisted it. Enter is not counted as successful input."
+}
