@@ -6265,6 +6265,7 @@ function smartTarget(key) {
   if (index === null) index = tree().length;
   return [container, index];
 }
+var LIST_PAGE_INPUTS = /* @__PURE__ */ new Set(["sort", "dir", "where", "op", "val", "per", "limit"]);
 function applyOne(n, c, v) {
   if (c.k === "_id") {
     n.adv.htmlId = String(v == null ? "" : v).replace(/[^\w-]/g, "");
@@ -6280,7 +6281,11 @@ function applyOne(n, c, v) {
   }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
   else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? "" : String(v));
-  else if (c.k) n.props[c.k] = v;
+  else if (c.k) {
+    const props = n.props;
+    if (n.type === "list" && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
+    props[c.k] = v;
+  }
 }
 function applyC(n, c, v) {
   const ids = selIds();
@@ -6996,7 +7001,10 @@ var boundField = (n, key) => {
   return b && b.src === "field" ? b.path : "";
 };
 function srcSet(n, colId) {
-  if (colId && findCollection(colId)) n.src = colId;
+  const next = colId && findCollection(colId) ? colId : "";
+  const current = n.src && findCollection(n.src) ? n.src : "";
+  if (n.type === "list" && current !== next) state.ui.pno = 1;
+  if (next) n.src = next;
   else delete n.src;
 }
 function bindScope(id) {

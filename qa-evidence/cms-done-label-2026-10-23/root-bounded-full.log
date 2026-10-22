@@ -1,0 +1,14 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+(node:8750) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9131) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9657) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  265 passed | 2 skipped (267)
+      Tests  2740 passed | 5 skipped (2745)
+   Start at  05:39:07
+   Duration  335.84s (transform 14.27s, setup 0ms, import 105.82s, tests 416.87s, environment 74.73s)

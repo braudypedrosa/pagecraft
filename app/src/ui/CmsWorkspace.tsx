@@ -661,7 +661,7 @@ export function CmsWorkspace({
                     if (await discard()) reset();
                   }}
                 >
-                  Cancel
+                  {dirty ? 'Cancel' : 'Done'}
                 </button>
                 {feedback}
               </div>
@@ -846,7 +846,7 @@ export function CmsWorkspace({
                     if (await discard()) reset();
                   }}
                 >
-                  Cancel
+                  {dirty ? 'Cancel' : 'Done'}
                 </button>
                 {feedback}
               </div>

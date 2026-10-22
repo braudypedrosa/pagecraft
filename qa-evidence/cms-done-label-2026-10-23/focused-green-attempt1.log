@@ -1,0 +1,32 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+ ❯ tests/cms-workspace.test.tsx (12 tests | 1 failed) 558ms
+   × entry form uses Done when pristine and keeps dirty cancellation guarded 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cms-workspace.test.tsx > entry form uses Done when pristine and keeps dirty cancellation guarded
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ tests/cms-workspace.test.tsx:176:34
+    174|   confirm.mockResolvedValueOnce(true);
+    175|   await click('Cancel');
+    176|   expect(r.$('.cms-entry-open')).toBeTruthy();
+       |                                  ^
+    177|   expect(col.items[0].values.title).toBe('Forest cabin');
+    178| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  04:59:38
+   Duration  1.35s (transform 205ms, setup 0ms, import 246ms, tests 558ms, environment 416ms)

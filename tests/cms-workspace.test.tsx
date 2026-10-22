@@ -46,8 +46,11 @@ test('entry edits stay local; successful save is one undo step and remains a dra
   expect(saved.slug).toBe('forest-cabin');
   expect(C.hist.u.length).toBe(undo + 1);
   await vi.waitFor(() => expect(r.$('.cms-save-status')?.textContent).toContain('Entry saved. Saved to the site draft.'));
+  expect(button('Saved')).toBeTruthy();
+  expect(button('Done')).toBeTruthy();
   expect(r.$('#pc-notifications')).toBeNull();
   await act(() => r.type(r.$('#cms-value-title')!, 'New name'));
+  expect(button('Cancel')).toBeTruthy();
   await act(async () => {
     r.$('form')!.dispatchEvent(
       new Event('submit', { bubbles: true, cancelable: true }),
@@ -145,6 +148,42 @@ test('cancel warns and does not add an entry', async () => {
   expect(col.items).toHaveLength(0);
 });
 
+test('entry form uses Done when pristine and keeps dirty cancellation guarded', async () => {
+  const col = C.collectionAdd('Cabins');
+  col.items.push({
+    id: 'forest-cabin',
+    slug: 'forest-cabin',
+    values: { title: 'Forest cabin' },
+  });
+  r.draw(<CmsWorkspace collectionId={col.id} close={() => {}} />);
+  const confirm = vi.spyOn(L, 'askConfirm');
+
+  await act(async () => r.click(r.$('.cms-entry-open')!));
+  expect(button('Done')).toBeTruthy();
+  await click('Done');
+  expect(confirm).not.toHaveBeenCalled();
+  expect(r.$('.cms-entry-open')).toBeTruthy();
+
+  await act(async () => r.click(r.$('.cms-entry-open')!));
+  await act(() => r.type(r.$('#cms-value-title')!, 'Changed title'));
+  expect(button('Cancel')).toBeTruthy();
+  confirm.mockResolvedValueOnce(false);
+  await click('Cancel');
+  await vi.waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(r.$('#cms-value-title')).toBeTruthy();
+  expect((r.$('#cms-value-title') as HTMLInputElement).value).toBe(
+    'Changed title',
+  );
+
+  confirm.mockResolvedValueOnce(true);
+  await click('Cancel');
+  await vi.waitFor(() => expect(r.$('#cms-value-title')).toBeNull());
+  expect(col.items[0].values.title).toBe('Forest cabin');
+});
+
 test('CMS save shortcut persists the entry and later edits replace the saved notice', async () => {
   start();
   await click('New entry');
@@ -196,8 +235,20 @@ test('rich text is read-only while an entry save is pending', async () => {
 });
 
 test('schema save announces pending and completion at the action, prevents duplicates and allows retry without losing input', async () => {
-  start(); await click('Edit collection');
+  start();
+  const confirm = vi.spyOn(L, 'askConfirm');
+  await click('Edit collection');
+  expect(button('Done')).toBeTruthy();
+  await click('Done');
+  expect(confirm).not.toHaveBeenCalled();
+  expect(button('Edit collection')).toBeTruthy();
+
+  await click('Edit collection');
   await act(()=>r.type(r.$('#cms-name')!, 'Renamed cabins'));
+  expect(button('Cancel')).toBeTruthy();
+  confirm.mockResolvedValueOnce(false);
+  await click('Cancel');
+  expect((r.$('#cms-name') as HTMLInputElement).value).toBe('Renamed cabins');
   let reject!: (e: Error)=>void;
   const commit=vi.fn(()=>new Promise<void>((_,fail)=>{reject=fail;})); L.cmsCommit=commit;
   await act(async()=>{r.$('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));r.$('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});
@@ -211,10 +262,12 @@ test('schema save announces pending and completion at the action, prevents dupli
   L.cmsCommit=async collections=>{C.edit(()=>{C.state.meta.collections=collections;});};
   await click('Try again');
   await vi.waitFor(()=>expect(button('Saved')).toBeTruthy());
+  expect(button('Done')).toBeTruthy();
   expect(r.$('.cms-form-actions [role=status]')?.textContent).toContain('Collection saved.');
   expect(C.collections()[0].name).toBe('Renamed cabins');
   await act(()=>r.type(r.$('#cms-name')!, 'Another edit'));
   expect(button('Save changes')).toBeTruthy();
+  expect(button('Cancel')).toBeTruthy();
   expect(r.$('.cms-form-actions [role=status]')).toBeNull();
 });
 

@@ -1,0 +1,52 @@
+{
+  "base": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+  "sources": {
+    "app/src/core/index.ts": "a290e6c2965f12dcc0dd22c096f9b6aa77c30ff8ee9e2871e959b06359eb04b1",
+    "app/src/ui/CmsWorkspace.tsx": "10decb141d66a986844024a3d5ade764bd1a58e5a078d0dd87cabdb5ba461a6b",
+    "tests/cms-workspace.test.tsx": "08037151a3d83b189881005eac94aba0d9dd10567aef40009c217d9877984cd5",
+    "tests/list-pagination-reset.test.ts": "731b25626644ce75622fde37864115f912ff0d4ce73d4898d5b004ab29c1ce6d",
+    "public/internal-ui-baselines/manifest.json": "92ed35d0360c8741e7ff9333d312d0b86ae76f9494629e56bf3fce801822fcea"
+  },
+  "generated8IndexOnly": true,
+  "generated10Frozen": {
+    "index.html": "364636add13a3b3de957b1b519168d8863def786039c10c5fc23c8737ef026e6",
+    "dist/core.cjs": "49a4a53325cfcf4efe08d0cac3b52c35bdf3d27803e19c79a1e52d70ba2ccbd7",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "c5cefe0debfe5f6b27be3ee1e36b6b37445170ca3de4053429baee9ff3462cba",
+    "packages/editor/dist/runtime.js": "217e1bd7a7b443817d63a2b537a78158d42c18403bf22c9ed5029ded44997997",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "f95e6a752ac23fc887d1726d69cee5cf8373586da1dc6857b68497f56e22c30e"
+  },
+  "protected11Exact": true,
+  "native30Passed": true,
+  "baseline24BytesUnchangedOnRepeat": true,
+  "nativeLocalPagination": {
+    "before": [
+      "Epsilon"
+    ],
+    "after": [
+      "Beta",
+      "Delta"
+    ],
+    "page": "1"
+  },
+  "fullQAComplete": false,
+  "rootFullTestsPassed": 2740,
+  "skipped": 5,
+  "rootFirstRun": "3 PGlite timeout failures retained; bounded maxWorkers2 complete rerun exit0",
+  "evidenceLogTrailingWhitespaceNormalized": [
+    "npm-test.log",
+    "pagination-focused-green.log",
+    "typecheck.log",
+    "root-first-full-timeouts.log",
+    "root-bounded-full.log",
+    "focused-green-attempt2.log",
+    "pagination-focused-red.log",
+    "focused-green-attempt1.log",
+    "pagination-focused-red-attempt1.log",
+    "focused-green.log"
+  ]
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "case": "option is Accessibility",
+    "editor": [
+      "Alpha",
+      "Gamma"
+    ],
+    "preview": [
+      "Alpha",
+      "Gamma"
+    ]
+  },
+  {
+    "case": "Score is 10",
+    "editor": [
+      "Beta",
+      "Epsilon"
+    ],
+    "preview": [
+      "Beta",
+      "Epsilon"
+    ]
+  },
+  {
+    "case": "Event date is empty",
+    "editor": [
+      "Gamma"
+    ],
+    "valueInputs": 0,
+    "preview": [
+      "Gamma"
+    ]
+  }
+]

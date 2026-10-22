@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-22T19:45:48.542Z",
+  "capturedAt": "2026-10-22T21:33:10.583Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -100,7 +100,7 @@
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
-    "app/src/ui/CmsWorkspace.tsx": "baa82c07850aaa41b571c4794aaf7dcab5a0eb32e4b41fa6726d8c6e2aed5bb5",
+    "app/src/ui/CmsWorkspace.tsx": "10decb141d66a986844024a3d5ade764bd1a58e5a078d0dd87cabdb5ba461a6b",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
     "app/src/ui/inspector/Controls.tsx": "bc6efd609f2610d7c6cf0000e8bbd15e37d895befcc7b6cb3f4bf4975cb1a1a5",

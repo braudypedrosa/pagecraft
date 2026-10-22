@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  05:12:50
+   Duration  1.43s (transform 414ms, setup 0ms, import 508ms, tests 641ms, environment 875ms)

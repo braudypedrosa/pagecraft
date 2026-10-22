@@ -1,0 +1,22 @@
+{
+  "scope": "CMS107 bounded mixed field filters, nested conditions and pagination",
+  "cloudBeforeSource": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+  "nativeCloudAccepted": [
+    "Category is Accessibility yields Alpha/Gamma",
+    "Score is 10 yields Beta/Epsilon",
+    "Event date empty yields Gamma and no comparison input",
+    "Nested Include=1 Alpha/Delta; Include=0 Beta/Epsilon; blank Gamma matches neither",
+    "Nested Note empty Beta/Gamma; populated Alpha/Delta/Epsilon; Always show all five",
+    "Nested comparison value1 survives reload; repeated IDs unique"
+  ],
+  "confirmedDefect": "page3 then Category not Accessibility incorrectly clamps to page2 Epsilon",
+  "isolatedCandidateAfter": "page1 Beta/Delta",
+  "cmsLabelAfter": "Pristine and saved forms Done; dirty forms Cancel, for schema and entry",
+  "sharedNativeBehaviorPassed": 30,
+  "visualStatesPassed": 24,
+  "repeatPngBytesUnchanged": 24,
+  "stagingFixRetest": "pending deployment",
+  "wordpressSync": "pending preview102",
+  "restoration": "pending native History1238 plus exact full JSON comparison",
+  "fullQAComplete": false
+}

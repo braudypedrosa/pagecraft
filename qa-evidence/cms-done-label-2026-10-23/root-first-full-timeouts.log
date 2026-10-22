@@ -1,0 +1,69 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (690 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+(node:4150) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4183) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4348) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ server/tests/connected-pg.test.ts (19 tests | 1 failed) 102058ms
+   × Postgres detects refresh-token reuse, revokes the family, and resets history on re-pair 26805ms
+ ❯ server/tests/store-pg.test.ts (34 tests | 2 failed) 129674ms
+   × the auth schema is statements too, and running it twice is fine 20546ms
+   × an account is one account however the address was typed 24371ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/connected-pg.test.ts > Postgres detects refresh-token reuse, revokes the family, and resets history on re-pair
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/connected-pg.test.ts:675:1
+    673| });
+    674|
+    675| test('Postgres detects refresh-token reuse, revokes the family, and re…
+       | ^
+    676|   const { db, auth, owner } = await rig();
+    677|   const first = hashToken('pg-family-refresh-1');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  server/tests/store-pg.test.ts > the auth schema is statements too, and running it twice is fine
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/store-pg.test.ts:338:1
+    336| /* ---------------------------------------------------------------- th…
+    337|
+    338| test('the auth schema is statements too, and running it twice is fine'…
+       | ^
+    339|   a.ok(statements(AUTH_SCHEMA).length >= 5, 'four tables and an index'…
+    340|   const { auth } = await fresh();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  server/tests/store-pg.test.ts > an account is one account however the address was typed
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/store-pg.test.ts:345:1
+    343| });
+    344|
+    345| test('an account is one account however the address was typed', async …
+       | ^
+    346|   const { auth } = await fresh();
+    347|   const first = await auth.createUser('  Client@Acme.TEST ', 'Client');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed | 263 passed | 2 skipped (267)
+      Tests  3 failed | 2737 passed | 5 skipped (2745)
+   Start at  05:35:03
+   Duration  131.29s (transform 34.84s, setup 0ms, import 309.26s, tests 732.86s, environment 310.03s)

@@ -1,0 +1,13 @@
+{
+  "entry": {
+    "pristineDone": 1,
+    "dirtyCancel": 1,
+    "savedDone": 1
+  },
+  "schema": {
+    "pristineDone": 1,
+    "dirtyCancel": 1,
+    "savedDone": 1
+  },
+  "scope": "isolated localhost candidate only"
+}

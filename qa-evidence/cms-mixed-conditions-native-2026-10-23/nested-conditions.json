@@ -1,0 +1,159 @@
+{
+  "results": [
+    {
+      "case": "Include is 1",
+      "editor": [
+        {
+          "off": false,
+          "text": "AlphaConditional marker",
+          "title": "Alpha"
+        },
+        {
+          "off": true,
+          "text": "BetaConditional marker",
+          "title": "Beta"
+        },
+        {
+          "off": true,
+          "text": "GammaConditional marker",
+          "title": "Gamma"
+        },
+        {
+          "off": false,
+          "text": "DeltaConditional marker",
+          "title": "Delta"
+        },
+        {
+          "off": true,
+          "text": "EpsilonConditional marker",
+          "title": "Epsilon"
+        }
+      ],
+      "preview": [
+        {
+          "marker": true,
+          "title": "Alpha"
+        },
+        {
+          "marker": false,
+          "title": "Beta"
+        },
+        {
+          "marker": false,
+          "title": "Gamma"
+        },
+        {
+          "marker": true,
+          "title": "Delta"
+        },
+        {
+          "marker": false,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "case": "Include is 0",
+      "preview": [
+        {
+          "marker": false,
+          "title": "Alpha"
+        },
+        {
+          "marker": true,
+          "title": "Beta"
+        },
+        {
+          "marker": false,
+          "title": "Gamma"
+        },
+        {
+          "marker": false,
+          "title": "Delta"
+        },
+        {
+          "marker": true,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "case": "Note is empty",
+      "preview": [
+        {
+          "marker": false,
+          "title": "Alpha"
+        },
+        {
+          "marker": true,
+          "title": "Beta"
+        },
+        {
+          "marker": true,
+          "title": "Gamma"
+        },
+        {
+          "marker": false,
+          "title": "Delta"
+        },
+        {
+          "marker": false,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "case": "Note has a value",
+      "valueInputs": 0,
+      "preview": [
+        {
+          "marker": true,
+          "title": "Alpha"
+        },
+        {
+          "marker": false,
+          "title": "Beta"
+        },
+        {
+          "marker": false,
+          "title": "Gamma"
+        },
+        {
+          "marker": true,
+          "title": "Delta"
+        },
+        {
+          "marker": true,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "case": "Always show",
+      "preview": [
+        {
+          "marker": true,
+          "title": "Alpha"
+        },
+        {
+          "marker": true,
+          "title": "Beta"
+        },
+        {
+          "marker": true,
+          "title": "Gamma"
+        },
+        {
+          "marker": true,
+          "title": "Delta"
+        },
+        {
+          "marker": true,
+          "title": "Epsilon"
+        }
+      ]
+    }
+  ],
+  "saveReloadValue": "1",
+  "source": "0a873d24c22323133e236ef0d4308ce7ea6b04a1"
+}

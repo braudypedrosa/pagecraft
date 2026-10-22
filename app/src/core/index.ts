@@ -4427,6 +4427,9 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
    only because that is where the fields are; it touches no DOM, and every rule below
    was previously untested. */
 
+/* These inputs can change which rows occupy every generated page. Preview must start from
+   page one instead of clamping a stale later page into the changed result set. */
+const LIST_PAGE_INPUTS = new Set(['sort', 'dir', 'where', 'op', 'val', 'per', 'limit']);
 /** Write one control's value onto one node. `_id`, `_cls` and `_css` are the Advanced
     escape hatches and land on `adv` rather than on props; everything else is either a
     CSS declaration or a prop. */
@@ -4439,7 +4442,11 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_css') { n.adv.css = v; return; }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
   else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? '' : String(v));
-  else if (c.k) (n.props as PropBag)[c.k] = v;
+  else if (c.k) {
+    const props = n.props as PropBag;
+    if (n.type === 'list' && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
+    props[c.k] = v;
+  }
 }
 
 /** One edit reaches every selected element. The exception is a class target: its
@@ -5369,7 +5376,10 @@ const boundField = (n: PcNode, key: string): string => {
   return b && b.src === 'field' ? b.path : '';
 };
 function srcSet(n: PcNode, colId: string) {
-  if (colId && findCollection(colId)) n.src = colId; else delete n.src;
+  const next = colId && findCollection(colId) ? colId : '';
+  const current = n.src && findCollection(n.src) ? n.src : '';
+  if (n.type === 'list' && current !== next) state.ui.pno = 1;
+  if (next) n.src = next; else delete n.src;
 }
 /* the nearest source above this node, itself included */
 function bindScope(id: string): { node: PcNode | null; col: Collection } | null {
