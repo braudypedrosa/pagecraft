@@ -1,0 +1,36 @@
+{
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/tabs-overflow-b8ffc02",
+  "baseCommit": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+  "correction": "Earlier receipts were captured from this same checkout. The worker then removed compiler.js and compiler-worker.js during cleanup, so the first handoff incorrectly called the ten-file receipt current. This final build pair restored both files and leaves them present.",
+  "commands": [
+    {
+      "command": "node build.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node packages/editor/build.mjs",
+      "exitCode": 0
+    }
+  ],
+  "verification": {
+    "receipt": "generated-final.sha256",
+    "comparedWith": "generated-build-2.sha256",
+    "fileCount": 10,
+    "allFilesExist": true,
+    "allHashesMatch": true,
+    "diffExitCode": 0,
+    "diffCheckExitCode": 0
+  },
+  "requiredCompilerOutputs": [
+    {
+      "path": "packages/editor/dist/compiler.js",
+      "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exists": true
+    },
+    {
+      "path": "packages/editor/dist/compiler-worker.js",
+      "sha256": "aba9f03ae410b655b1e51ec418a1e69b4215eeeda823d24f1057c115a4aec0da",
+      "exists": true
+    }
+  ]
+}

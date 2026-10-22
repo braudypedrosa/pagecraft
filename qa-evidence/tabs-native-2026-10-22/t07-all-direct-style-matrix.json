@@ -1,0 +1,56 @@
+[
+  {
+    "device": "Desktop",
+    "align": "flex-start",
+    "bodyColor": "rgb(34, 51, 68)",
+    "bodyPadding": "24px",
+    "bodySize": "17px",
+    "font": "18px",
+    "gap": "28px",
+    "labels": [
+      "Access & booking <draft>",
+      "Quiet room",
+      "Pricing",
+      "Details"
+    ],
+    "pageOverflow": false,
+    "rule": "rgb(153, 170, 187)",
+    "selectedColor": "rgb(51, 68, 85)"
+  },
+  {
+    "device": "Tablet",
+    "align": "flex-start",
+    "bodyColor": "rgb(34, 51, 68)",
+    "bodyPadding": "18px",
+    "bodySize": "16px",
+    "font": "16px",
+    "gap": "20px",
+    "labels": [
+      "Access & booking <draft>",
+      "Quiet room",
+      "Pricing",
+      "Details"
+    ],
+    "pageOverflow": false,
+    "rule": "rgb(153, 170, 187)",
+    "selectedColor": "rgb(51, 68, 85)"
+  },
+  {
+    "device": "Mobile",
+    "align": "center",
+    "bodyColor": "rgb(68, 85, 102)",
+    "bodyPadding": "10px",
+    "bodySize": "14px",
+    "font": "15px",
+    "gap": "12px",
+    "labels": [
+      "Access & booking <draft>",
+      "Quiet room",
+      "Pricing",
+      "Details"
+    ],
+    "pageOverflow": false,
+    "rule": "rgb(153, 170, 187)",
+    "selectedColor": "rgb(119, 136, 153)"
+  }
+]

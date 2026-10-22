@@ -1,0 +1,54 @@
+{
+  "panels": [
+    {
+      "height": 122,
+      "hidden": false,
+      "scroll": 363,
+      "scrollHeight": 122,
+      "w": 363
+    },
+    {
+      "height": 0,
+      "hidden": false,
+      "scroll": 0,
+      "scrollHeight": 0,
+      "w": 0
+    },
+    {
+      "height": 0,
+      "hidden": false,
+      "scroll": 0,
+      "scrollHeight": 0,
+      "w": 0
+    }
+  ],
+  "rule": true,
+  "scrollWidth": 403,
+  "tabs": [
+    {
+      "controls": "pagecraft-tabs-0dm8w1rw-p0",
+      "id": "pagecraft-tabs-0dm8w1rw-t0",
+      "scroll": 363,
+      "selected": "true",
+      "text": "AccessibilitySupportAndQuietRoomBookingInformationForEveryVisitorAtTheCommunityWorkshop",
+      "w": 363
+    },
+    {
+      "controls": "pagecraft-tabs-0dm8w1rw-p1",
+      "id": "pagecraft-tabs-0dm8w1rw-t1",
+      "scroll": 50,
+      "selected": "false",
+      "text": "Details",
+      "w": 49.84375
+    },
+    {
+      "controls": "pagecraft-tabs-0dm8w1rw-p2",
+      "id": "pagecraft-tabs-0dm8w1rw-t2",
+      "scroll": 49,
+      "selected": "false",
+      "text": "Pricing",
+      "w": 49.328125
+    }
+  ],
+  "width": 403
+}

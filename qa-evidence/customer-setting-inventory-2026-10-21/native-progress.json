@@ -294,8 +294,19 @@
     "cloud_deploy": 39712803305,
     "wordpress": "47385b0f37683fd0b5d340aab19e102ea716ba97",
     "wordpress_preview": "0.2.17-preview.20261022.89",
-    "wordpress_ci": "Pending separate receipt",
+    "wordpress_ci": 39716869821,
     "scope": "Bounded List No-wrap/Preview key ownership. Native Cloud accepted/restored; WP portableCore plus nativeSlider/Gallery/localguard accepted. Full QA open.",
     "evidence": "qa-evidence/list-nowrap-2026-10-22/post-deploy/task-close.md"
+  },
+  "release90_accepted": {
+    "cloud": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+    "ci": 39717201878,
+    "deploy": 39717201856,
+    "scope": "Dev-only Vitest security patch. Full2634pass5skip and zero all/production audit. Exact staging marker/native sanity."
+  },
+  "tabs_partial": {
+    "status": "Local bounded native acceptance, deployment pending",
+    "evidence": "qa-evidence/tabs-overflow-2026-10-22/root-acceptance.json",
+    "scope": "Direct content/history/all8Style controls on preceding fixture; current fix long labels/panels across3breakpoints, keyboard/authoredstyles/reload. FullmoduleQA remains open."
   }
 }

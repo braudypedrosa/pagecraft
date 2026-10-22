@@ -1,0 +1,9 @@
+{
+  "sourceFreezeVerified": 8,
+  "deterministicGeneratedVerified": 10,
+  "freezeSHA256": "197e4d18048fc612e082cdcd7e0a8ee1780069985d8f1044c8a81f62e721830d",
+  "nativeHarness": "http://localhost:4995/edit/s1",
+  "provenance": "Port-only fictional qa-ui harness; author through native builder only.",
+  "base": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+  "earlierRootGuard": "Failed because worker removed ignored compiler outputs after receipt capture. No native server started. Rebuilt in correct order; all10 current files now independently verified."
+}

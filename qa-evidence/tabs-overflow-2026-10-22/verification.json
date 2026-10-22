@@ -1,0 +1,86 @@
+{
+  "baseCommit": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+  "status": "Root accepted bounded native Tabs overflow fix. Staging and WordPress acceptance pending.",
+  "scope": [
+    "Tabs wrapper permits emergency wrapping for unbroken labels and panel text.",
+    "Tab buttons may shrink and cannot exceed the Tabs width.",
+    "No global clipping, runtime, selection, keyboard, editor-selected-panel or authored responsive-style behavior changed."
+  ],
+  "red": {
+    "command": "npx vitest run tests/tabs-overflow.test.ts --maxWorkers=1",
+    "exitCode": 1,
+    "testsPassed": 2,
+    "testsFailed": 2,
+    "failure": "Expected .pagecraft-tabs to contain overflow-wrap:anywhere; received .pagecraft-tabs{width:100%}."
+  },
+  "green": {
+    "focused": {
+      "command": "npx vitest run tests/tabs-overflow.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "testsPassed": 4,
+      "evidence": "logs/focused-final.log"
+    },
+    "related": {
+      "command": "npx vitest run tests/tabs-overflow.test.ts tests/text-wrapping.test.ts tests/core.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "testsPassed": 665
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    "fullSuite": {
+      "command": "npm test",
+      "exitCode": 0,
+      "filesPassed": 253,
+      "filesSkipped": 2,
+      "testsPassed": 2638,
+      "testsSkipped": 5,
+      "evidence": "logs/npm-test.log"
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  },
+  "gallerySourceGate": {
+    "result": "unchanged",
+    "reason": "No file listed by tools/ui-gallery-contract.mjs changed, so the full suite was run."
+  },
+  "designDetector": {
+    "command": "node /Users/braudypedorsa/.codex/skills/impeccable/scripts/detect.mjs --json app/src/core/index.ts tests/tabs-overflow.test.ts",
+    "exitCode": 2,
+    "result": "One pre-existing broken-image warning for the literal <img onerror> text example at app/src/core/index.ts:5416; unchanged at HEAD. No Tabs finding."
+  },
+  "wordpressGolden": {
+    "command": "PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector' --maxWorkers=1",
+    "exitCode": 0,
+    "testsPassed": 1,
+    "testsSkipped": 29,
+    "review": "golden-semantic-review.json",
+    "result": "Four route CSS payloads changed only by the two Tabs containment declarations. Route HTML, entities, schema, assets and non-route metadata are identical; source hashes and signed release/deployment fields changed derivatively."
+  },
+  "determinism": {
+    "sequence": "node build.mjs, then node packages/editor/build.mjs; repeated twice",
+    "artifacts": 10,
+    "identical": true,
+    "receipts": [
+      "generated-build-1.sha256",
+      "generated-build-2.sha256",
+      "generated-final.sha256"
+    ],
+    "receiptSha256": "c3cd03cc3ea6362b06a38d1b79f8b92f50053471b47aa0bdadf4d80b6556dbd2",
+    "finalVerification": "generated-final-verification.json",
+    "historicalCorrection": "generated-current.sha256 was captured in this checkout before compiler.js and compiler-worker.js were mistakenly removed during cleanup. Its hashes were valid, but the files were absent at the first handoff. The final build pair restored both files; generated-final.sha256 verifies all ten files exist and match."
+  },
+  "freeze": {
+    "manifest": "source-generated.sha256",
+    "entries": 8
+  },
+  "limitations": [
+    "jsdom does not provide trustworthy layout geometry; automated tests assert scoped CSS, exact content, semantic markup and editor-selected panel behavior.",
+    "Native 414px geometry, keyboard selection and final screenshots are root-owned acceptance gates and were not run in this worker.",
+    "No builder, inspector, baseline, Main, WordPress, browser, commit, push or deployment work was performed."
+  ],
+  "nativeEvidence": "../tabs-native-2026-10-22/accepted"
+}

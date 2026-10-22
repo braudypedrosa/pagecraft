@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/tabs-overflow-b8ffc02
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  11:45:16
+   Duration  377ms (transform 223ms, setup 0ms, import 260ms, tests 5ms, environment 0ms)

@@ -1,0 +1,18 @@
+{
+  "click": {
+    "selected": [
+      "Quiet room"
+    ],
+    "visible": [
+      "Step-free entry is available.Bring your booking reference and ask for the quiet room.<strong>Show this as literal text.</strong>"
+    ]
+  },
+  "arrow": {
+    "selected": [
+      "Pricing"
+    ],
+    "visible": [
+      "The number, plainly."
+    ]
+  }
+}
