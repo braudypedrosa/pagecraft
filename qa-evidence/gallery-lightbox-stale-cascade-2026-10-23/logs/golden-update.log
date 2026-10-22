@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3
+
+
+ Test Files  1 passed (1)
+      Tests  30 passed (30)
+   Start at  00:20:10
+   Duration  899ms (transform 311ms, setup 0ms, import 407ms, tests 372ms, environment 0ms)

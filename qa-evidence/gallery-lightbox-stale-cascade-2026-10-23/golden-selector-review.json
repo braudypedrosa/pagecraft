@@ -1,0 +1,51 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "replacementOccurrences": [
+        1,
+        1,
+        1
+      ],
+      "onlyExpectedCssChanges": true,
+      "sourceHashChanged": true
+    },
+    {
+      "path": "/nested/about",
+      "replacementOccurrences": [
+        1,
+        1,
+        1
+      ],
+      "onlyExpectedCssChanges": true,
+      "sourceHashChanged": true
+    },
+    {
+      "path": "/nested/about/page-2",
+      "replacementOccurrences": [
+        1,
+        1,
+        1
+      ],
+      "onlyExpectedCssChanges": true,
+      "sourceHashChanged": true
+    },
+    {
+      "path": "/nested/about/page-3",
+      "replacementOccurrences": [
+        1,
+        1,
+        1
+      ],
+      "onlyExpectedCssChanges": true,
+      "sourceHashChanged": true
+    }
+  ],
+  "allFourExpectedOnly": true,
+  "structuralSelectorsRemainBare": true,
+  "derivedSignatureLeaves": [
+    "artifact route sourceHash x4",
+    "desired deployment envelope/signature",
+    "desired release manifest/signature"
+  ]
+}
