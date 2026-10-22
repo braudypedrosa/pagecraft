@@ -1,0 +1,38 @@
+[
+  {
+    "device": "Desktop",
+    "dom": {
+      "colour": "rgb(35, 69, 103)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "line": "28.8px",
+      "link": "#345678",
+      "margin": "8px 4px 12px 2px",
+      "padding": "16px 20px 24px 12px",
+      "size": "18px"
+    }
+  },
+  {
+    "device": "Tablet",
+    "dom": {
+      "colour": "rgb(52, 86, 120)",
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "24px",
+      "link": "#456789",
+      "margin": "8px 4px 12px 2px",
+      "padding": "16px 20px 24px 12px",
+      "size": "16px"
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "colour": "rgb(69, 103, 137)",
+      "font": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      "line": "19.6px",
+      "link": "#56789a",
+      "margin": "8px 4px 12px 2px",
+      "padding": "16px 20px 24px 12px",
+      "size": "14px"
+    }
+  }
+]

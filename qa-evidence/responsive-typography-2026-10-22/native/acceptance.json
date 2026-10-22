@@ -1,0 +1,176 @@
+{
+  "before": {
+    "Desktop": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "30.6px",
+      "size": "18px"
+    },
+    "Tablet": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "27.2px",
+      "size": "16px"
+    },
+    "Mobile": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "27.2px",
+      "size": "16px"
+    }
+  },
+  "detach": {
+    "Desktop": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "30.6px",
+      "size": "18px"
+    },
+    "Tablet": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "27.2px",
+      "size": "16px"
+    },
+    "Mobile": {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "line": "27.2px",
+      "size": "16px"
+    }
+  },
+  "cancel": [
+    {
+      "id": "n4zf41111",
+      "size": "16px"
+    },
+    {
+      "id": "n576g6558",
+      "size": "15px"
+    }
+  ],
+  "updated": {
+    "Desktop": [
+      {
+        "id": "n4zf41111",
+        "line": "30.6px",
+        "size": "18px"
+      },
+      {
+        "id": "n576g6558",
+        "line": "30.6px",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "n4zf41111",
+        "line": "27.2px",
+        "size": "16px"
+      },
+      {
+        "id": "n576g6558",
+        "line": "27.2px",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "n4zf41111",
+        "line": "27.2px",
+        "size": "16px"
+      },
+      {
+        "id": "n576g6558",
+        "line": "27.2px",
+        "size": "16px"
+      }
+    ]
+  },
+  "undo": [
+    {
+      "id": "n4zf41111",
+      "size": "16px"
+    },
+    {
+      "id": "n576g6558",
+      "size": "15px"
+    }
+  ],
+  "redo": [
+    {
+      "id": "n4zf41111",
+      "size": "16px"
+    },
+    {
+      "id": "n576g6558",
+      "size": "16px"
+    }
+  ],
+  "reload": {
+    "Desktop": [
+      {
+        "id": "n4zf41111",
+        "size": "18px"
+      },
+      {
+        "id": "n576g6558",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "n4zf41111",
+        "size": "16px"
+      },
+      {
+        "id": "n576g6558",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "n4zf41111",
+        "size": "16px"
+      },
+      {
+        "id": "n576g6558",
+        "size": "16px"
+      }
+    ]
+  },
+  "preview": {
+    "Desktop": [
+      {
+        "id": "pagecraft-wysiwyg-4zf41111",
+        "size": "18px"
+      },
+      {
+        "id": "pagecraft-wysiwyg-576g6558",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "pagecraft-wysiwyg-4zf41111",
+        "size": "16px"
+      },
+      {
+        "id": "pagecraft-wysiwyg-576g6558",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "pagecraft-wysiwyg-4zf41111",
+        "size": "16px"
+      },
+      {
+        "id": "pagecraft-wysiwyg-576g6558",
+        "size": "16px"
+      }
+    ]
+  },
+  "method": "Native controls only; DOM evaluation read-only",
+  "status": "Root accepted bounded responsive typography Update, Detach, Cancel, Undo, Redo, reload and preview for two Rich text Body-style instances"
+}

@@ -1,0 +1,100 @@
+{
+  "before": [
+    {
+      "colour": "rgb(35, 69, 103)",
+      "font": "Georgia, \"Times New Roman\", serif",
+      "id": "n37ych1p7",
+      "line": "28.8px",
+      "margin": "8px 4px 12px 2px",
+      "padding": "16px 20px 24px 12px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "id": "n3wgnj5j6",
+      "line": "27.2px",
+      "margin": "0px",
+      "padding": "0px",
+      "size": "16px"
+    }
+  ],
+  "cancelExact": true,
+  "after": [
+    {
+      "device": "Desktop",
+      "pair": [
+        {
+          "align": "left",
+          "colour": "rgb(35, 69, 103)",
+          "font": "Georgia, \"Times New Roman\", serif",
+          "id": "n37ych1p7",
+          "line": "28.8px",
+          "margin": "8px 4px 12px 2px",
+          "padding": "16px 20px 24px 12px",
+          "size": "18px"
+        },
+        {
+          "align": "left",
+          "colour": "rgb(35, 69, 103)",
+          "font": "Georgia, \"Times New Roman\", serif",
+          "id": "n3wgnj5j6",
+          "line": "28.8px",
+          "margin": "0px",
+          "padding": "0px",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "device": "Tablet",
+      "pair": [
+        {
+          "align": "left",
+          "colour": "rgb(52, 86, 120)",
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "n37ych1p7",
+          "line": "24px",
+          "margin": "8px 4px 12px 2px",
+          "padding": "16px 20px 24px 12px",
+          "size": "16px"
+        },
+        {
+          "align": "left",
+          "colour": "rgb(52, 86, 120)",
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "n3wgnj5j6",
+          "line": "24px",
+          "margin": "0px",
+          "padding": "0px",
+          "size": "16px"
+        }
+      ]
+    },
+    {
+      "device": "Mobile",
+      "pair": [
+        {
+          "align": "justify",
+          "colour": "rgb(52, 86, 120)",
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "n37ych1p7",
+          "line": "22.5px",
+          "margin": "8px 4px 12px 2px",
+          "padding": "16px 20px 24px 12px",
+          "size": "15px"
+        },
+        {
+          "align": "left",
+          "colour": "rgb(52, 86, 120)",
+          "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "n3wgnj5j6",
+          "line": "22.5px",
+          "margin": "0px",
+          "padding": "0px",
+          "size": "15px"
+        }
+      ]
+    }
+  ]
+}

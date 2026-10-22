@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, test } from 'vitest';
+import { afterEach, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
@@ -10,18 +10,42 @@ import { rig, type Rig } from './ui.setup';
 const settle = () => new Promise(resolve => setTimeout(resolve, 0));
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 let r: Rig | null = null;
+const pendingFrames = new Set<number>();
 const scrollIntoView = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollIntoView');
 
-beforeEach(() => { HTMLElement.prototype.scrollIntoView = () => {}; });
+beforeEach(() => {
+  assert.equal(pendingFrames.size, 0, 'the previous fixture left no scheduled frames');
+  HTMLElement.prototype.scrollIntoView = () => {};
+  const request = requestAnimationFrame;
+  const cancel = cancelAnimationFrame;
+  vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(callback => {
+    const id = request(time => { pendingFrames.delete(id); callback(time); });
+    pendingFrames.add(id);
+    return id;
+  });
+  vi.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation(id => {
+    pendingFrames.delete(id);
+    cancel(id);
+  });
+});
 
 afterEach(async () => {
   const open = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger[aria-expanded="true"]');
   if (open) open.click();
   if (r) { act(() => r!.draw(null)); r.host.remove(); r = null; }
   document.body.replaceChildren();
-  await settle();
-  if (scrollIntoView) Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', scrollIntoView);
-  else Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView');
+  try {
+    // Preact's after-paint scheduler has a frame and a timeout fallback. A zero-delay
+    // timeout alone can finish before either, leaving them outside the jsdom lifetime.
+    await frame();
+    await settle();
+    assert.equal(pendingFrames.size, 0, 'fixture teardown drains frame callbacks before jsdom globals are removed');
+  } finally {
+    if (pendingFrames.size) { await frame(); await settle(); }
+    vi.restoreAllMocks();
+    if (scrollIntoView) Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', scrollIntoView);
+    else Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView');
+  }
 });
 
 test('the first component override does not consume the adjacent variant click', async () => {

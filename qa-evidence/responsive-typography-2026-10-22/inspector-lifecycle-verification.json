@@ -1,0 +1,70 @@
+{
+  "title": "Inspector first-click fixture animation teardown",
+  "status": "test-only lifecycle fix verified locally; root review pending",
+  "date": "2026-10-22",
+  "timezone": "Asia/Manila",
+  "changedSource": "tests/inspector-first-click-after-blur.test.tsx",
+  "sourceSha256": "6d055e68429f3d4fc121da4d786bec1fd85c53522c579ae1398699511c590b9e",
+  "scope": "Only this existing test fixture and evidence; no shared helper, runtime source, dependencies, builds, Main, WordPress, browser or deployment writes.",
+  "cause": "Preact hooks afterNextFrame schedules a frame plus a35ms fallback. The previous unmount + setTimeout0 cleanup could finish with a pending frame. Once jsdom restores globals, the fallback calls a missing cancelAnimationFrame.",
+  "originalFailure": {
+    "evidence": "logs/full-suite.log",
+    "assertionsPassed": 2668,
+    "unhandledError": "ReferenceError: cancelAnimationFrame is not defined",
+    "classification": "Not accepted as a passing full suite"
+  },
+  "boundedRed": {
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 1,
+    "result": "New teardown assertion detects1scheduled frame after the previous0ms cleanup; test-local finally drains it safely so red repro itself does not leak callbacks.",
+    "evidence": "logs/inspector-lifecycle-red.log"
+  },
+  "fix": [
+    "Track every test-local requestAnimationFrame and cancellation without suppressing or clearing callbacks.",
+    "Unmount and remove DOM, wait for an actual animation frame and the subsequent timeout turn, then assert the pending set is empty.",
+    "Restore spies and scrollIntoView only after frame callbacks finish; retain assertion failures.",
+    "Assert before the next fixture that no pending frames survived."
+  ],
+  "checks": {
+    "focused": {
+      "runs": 5,
+      "testsPerRun": 2,
+      "allExits": 0,
+      "evidence": "logs/inspector-lifecycle-focused-results.json"
+    },
+    "fullCombined": {
+      "command": "npx vitest run",
+      "attemptsAfterFix": 1,
+      "exit": 0,
+      "filesPassed": 256,
+      "filesSkipped": 2,
+      "testsPassed": 2668,
+      "testsSkipped": 5,
+      "unhandledErrors": 0,
+      "durationSeconds": 36.24,
+      "evidence": "logs/inspector-lifecycle-full-suite.log",
+      "note": "Direct Vitest only; no npm test or build-order command, to preserve frozen native acceptance assets."
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exit": 0,
+      "evidence": "logs/inspector-lifecycle-typecheck.log"
+    },
+    "freeze": {
+      "prior13SourceTestGoldenAssetsUnchanged": true,
+      "new14FileManifest": "freeze-14-with-lifecycle.sha256",
+      "exit": 0,
+      "evidence": "logs/inspector-lifecycle-freeze-check.log"
+    },
+    "diffCheck": {
+      "exit": 0,
+      "evidence": "logs/inspector-lifecycle-diff-check.log"
+    }
+  },
+  "limitations": [
+    "No new production behavior was changed or visually tested by this worker.",
+    "Five pre-existing skipped tests and Node experimental localStorage warnings remain.",
+    "This fixes the evidenced fixture lifecycle leak; it does not claim every other UI fixture has exhaustive lifecycle coverage."
+  ],
+  "delivery": "Local only; no commit or push."
+}

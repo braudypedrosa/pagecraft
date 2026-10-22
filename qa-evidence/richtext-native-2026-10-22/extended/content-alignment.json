@@ -1,0 +1,18 @@
+[
+  {
+    "control": "Left",
+    "rendered": "left"
+  },
+  {
+    "control": "Centre",
+    "rendered": "center"
+  },
+  {
+    "control": "Right",
+    "rendered": "right"
+  },
+  {
+    "control": "Justified",
+    "rendered": "justify"
+  }
+]

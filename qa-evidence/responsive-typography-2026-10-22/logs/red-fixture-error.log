@@ -1,0 +1,35 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/responsive-typography-67c6838
+
+ ❯ tests/text-style-responsive-transfer.test.ts (6 tests | 6 failed) 3ms
+   × updating heading typography keeps an inherited mobile value from the source 2ms
+   × updating text typography keeps an inherited mobile value from the source 0ms
+   × updating button typography keeps an inherited mobile value from the source 0ms
+   × base, tablet and mobile ownership clear only the affected responsive tail 0ms
+   × zero and CSS-wide values transfer while untouched typography stays intact 0ms
+   × unlink bakes the same responsive appearance when a local ancestor override wins 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating heading typography keeps an inherited mobile value from the source
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating text typography keeps an inherited mobile value from the source
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating button typography keeps an inherited mobile value from the source
+ FAIL  tests/text-style-responsive-transfer.test.ts > base, tablet and mobile ownership clear only the affected responsive tail
+ FAIL  tests/text-style-responsive-transfer.test.ts > zero and CSS-wide values transfer while untouched typography stays intact
+ FAIL  tests/text-style-responsive-transfer.test.ts > unlink bakes the same responsive appearance when a local ancestor override wins
+TypeError: Cannot set properties of null (setting 'css')
+ ❯ tests/text-style-responsive-transfer.test.ts:14:11
+     12| beforeEach(() => {
+     13|   C.blankProject('Responsive typography transfer');
+     14|   style().css = {
+       |           ^
+     15|     d: { 'font-size': '17px', 'font-weight': '400', 'line-height': '1.…
+     16|     t: { 'font-weight': '500', 'letter-spacing': '.01em' },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  13:41:08
+   Duration  375ms (transform 216ms, setup 0ms, import 255ms, tests 3ms, environment 0ms)

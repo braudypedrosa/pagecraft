@@ -4692,6 +4692,29 @@ var grabTypo = (n) => {
   }));
   return out;
 };
+var mergeResponsiveTypo = (base, own) => {
+  const bps = ["d", "t", "m"];
+  const out = {
+    d: { ...base.d || {} },
+    t: { ...base.t || {} },
+    m: { ...base.m || {} }
+  };
+  TYPO_KEYS.forEach((k) => {
+    const first = bps.findIndex((b) => {
+      const v = own[b] && own[b][k];
+      return v !== void 0 && v !== "";
+    });
+    if (first < 0) return;
+    bps.slice(first).forEach((b) => {
+      delete out[b][k];
+    });
+    bps.forEach((b) => {
+      const v = own[b] && own[b][k];
+      if (v !== void 0 && v !== "") out[b][k] = v;
+    });
+  });
+  return out;
+};
 function tsCanUpdateFrom(n) {
   if (!findStyle(n.props.ts)) return false;
   return ["d", "t", "m"].some((b) => TYPO_KEYS.some((k) => {
@@ -4709,9 +4732,14 @@ function tsApply(n, id) {
 }
 function tsUnlink(n) {
   const t = findStyle(n.props.ts);
-  if (t) ["d", "t", "m"].forEach((b) => {
-    n.css[b] = { ...t.css && t.css[b] || {}, ...n.css[b] || {} };
-  });
+  if (t) {
+    const baked = mergeResponsiveTypo(t.css, n.css);
+    stripTypo(n);
+    ["d", "t", "m"].forEach((b) => TYPO_KEYS.forEach((k) => {
+      const v = baked[b] && baked[b][k];
+      if (v !== void 0 && v !== "") n.css[b][k] = v;
+    }));
+  }
   n.props.ts = "";
   return !!t;
 }
@@ -4720,9 +4748,7 @@ function tsUpdateFrom(n) {
   const t = findStyle(n.props.ts);
   if (!t) return false;
   const got = grabTypo(n);
-  ["d", "t", "m"].forEach((b) => {
-    t.css[b] = { ...t.css[b] || {}, ...got[b] };
-  });
+  t.css = mergeResponsiveTypo(t.css, got);
   stripTypo(n);
   return true;
 }

@@ -1,0 +1,35 @@
+[
+  {
+    "device": "Desktop",
+    "dom": {
+      "emptyParagraphs": 0,
+      "height": 57.59375,
+      "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ul>",
+      "links": [],
+      "page": 1485,
+      "scroll": 1485
+    }
+  },
+  {
+    "device": "Tablet",
+    "dom": {
+      "emptyParagraphs": 0,
+      "height": 57.59375,
+      "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ul>",
+      "links": [],
+      "page": 823,
+      "scroll": 823
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "emptyParagraphs": 0,
+      "height": 54.375,
+      "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ul>",
+      "links": [],
+      "page": 403,
+      "scroll": 403
+    }
+  }
+]

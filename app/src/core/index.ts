@@ -2538,6 +2538,28 @@ const grabTypo = (n: PcNode) => {
   }));
   return out;
 };
+/* Element typography bridges its last owned breakpoint over later text-style rules. When
+   moving those values into or out of a style, clear the same property's later style values
+   or an old mobile declaration can unexpectedly replace an owned tablet value. */
+const mergeResponsiveTypo = (base: Css, own: Css) => {
+  const bps = ['d', 't', 'm'] as Bp[];
+  const out: Css = {
+    d: { ...(base.d || {}) }, t: { ...(base.t || {}) }, m: { ...(base.m || {}) }
+  };
+  TYPO_KEYS.forEach(k => {
+    const first = bps.findIndex(b => {
+      const v = own[b] && own[b][k];
+      return v !== undefined && v !== '';
+    });
+    if (first < 0) return;
+    bps.slice(first).forEach(b => { delete out[b][k]; });
+    bps.forEach(b => {
+      const v = own[b] && own[b][k];
+      if (v !== undefined && v !== '') out[b][k] = v;
+    });
+  });
+  return out;
+};
 /* Updating is meaningful only when a linked element owns typography to move. Checking
    presence rather than difference keeps an explicit value equal to the style eligible: the
    update still clears that local override, so the element follows future style changes. */
@@ -2562,9 +2584,14 @@ function tsApply(n: PcNode, id: string) {
 /* detach: bake the style's values in so nothing moves visually */
 function tsUnlink(n: PcNode) {
   const t = findStyle(n.props.ts);
-  if (t) (['d', 't', 'm'] as Bp[]).forEach(b => {
-    n.css[b] = { ...((t.css && t.css[b]) || {}), ...(n.css[b] || {}) };
-  });
+  if (t) {
+    const baked = mergeResponsiveTypo(t.css, n.css);
+    stripTypo(n);
+    (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => {
+      const v = baked[b] && baked[b][k];
+      if (v !== undefined && v !== '') n.css[b][k] = v;
+    }));
+  }
   n.props.ts = '';
   return !!t;
 }
@@ -2574,7 +2601,7 @@ function tsUpdateFrom(n: PcNode) {
   const t = findStyle(n.props.ts);
   if (!t) return false; // narrowed by tsCanUpdateFrom; keep the mutator safe in isolation
   const got = grabTypo(n);
-  (['d', 't', 'm'] as Bp[]).forEach(b => { t.css[b] = { ...(t.css[b] || {}), ...got[b] }; });
+  t.css = mergeResponsiveTypo(t.css, got);
   stripTypo(n);
   return true;
 }

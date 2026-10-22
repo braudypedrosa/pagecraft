@@ -1,0 +1,96 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/responsive-typography-67c6838
+
+ ❯ tests/text-style-responsive-transfer.test.ts (6 tests | 6 failed) 6ms
+   × updating heading typography keeps an inherited mobile value from the source 3ms
+   × updating text typography keeps an inherited mobile value from the source 0ms
+   × updating button typography keeps an inherited mobile value from the source 1ms
+   × base, tablet and mobile ownership clear only the affected responsive tail 0ms
+   × zero and CSS-wide values transfer while untouched typography stays intact 0ms
+   × unlink bakes the same responsive appearance when a local ancestor override wins 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating heading typography keeps an inherited mobile value from the source
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating text typography keeps an inherited mobile value from the source
+ FAIL  tests/text-style-responsive-transfer.test.ts > updating button typography keeps an inherited mobile value from the source
+AssertionError: expected '15px' to be undefined
+
+- Expected:
+undefined
+
++ Received:
+"15px"
+
+ ❯ tests/text-style-responsive-transfer.test.ts:37:40
+     35|     expect(style().css.d['font-size']).toBe('18px');
+     36|     expect(style().css.t['font-size']).toBe('16px');
+     37|     expect(style().css.m['font-size']).toBeUndefined();
+       |                                        ^
+     38|     expect(source.css).toEqual({
+     39|       d: { 'background-color': '#f5f1e8' },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/text-style-responsive-transfer.test.ts > base, tablet and mobile ownership clear only the affected responsive tail
+AssertionError: expected '15px' to be undefined
+
+- Expected:
+undefined
+
++ Received:
+"15px"
+
+ ❯ tests/text-style-responsive-transfer.test.ts:53:38
+     51|   expect(style().css.d['font-size']).toBe('18px');
+     52|   expect(style().css.t['font-size']).toBeUndefined();
+     53|   expect(style().css.m['font-size']).toBeUndefined();
+       |                                      ^
+     54|
+     55|   style().css.d['font-size'] = '17px';
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/text-style-responsive-transfer.test.ts > zero and CSS-wide values transfer while untouched typography stays intact
+AssertionError: expected '1.4' to be undefined
+
+- Expected:
+undefined
+
++ Received:
+"1.4"
+
+ ❯ tests/text-style-responsive-transfer.test.ts:86:40
+     84|   expect(style().css.d['text-transform']).toBe('initial');
+     85|   expect(style().css.t['line-height']).toBe('unset');
+     86|   expect(style().css.m['line-height']).toBeUndefined();
+       |                                        ^
+     87|   expect(style().css.d['font-weight']).toBe(beforeFamily.d['font-weigh…
+     88|   expect(style().css.t['font-weight']).toBe(beforeFamily.t['font-weigh…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/text-style-responsive-transfer.test.ts > unlink bakes the same responsive appearance when a local ancestor override wins
+AssertionError: expected '15px' to be undefined
+
+- Expected:
+undefined
+
++ Received:
+"15px"
+
+ ❯ tests/text-style-responsive-transfer.test.ts:105:35
+    103|   expect(node.css.d['font-size']).toBe('18px');
+    104|   expect(node.css.t['font-size']).toBe('16px');
+    105|   expect(node.css.m['font-size']).toBeUndefined();
+       |                                   ^
+    106|   expect(node.css.d['font-weight']).toBe('400');
+    107|   expect(node.css.t['font-weight']).toBe('500');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  13:41:18
+   Duration  341ms (transform 190ms, setup 0ms, import 223ms, tests 6ms, environment 0ms)

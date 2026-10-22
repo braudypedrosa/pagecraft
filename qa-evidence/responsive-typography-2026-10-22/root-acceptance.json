@@ -1,0 +1,32 @@
+{
+  "status": "Root accepted isolated candidate. Staging and WordPress rollout pending. Full QA remains open.",
+  "base": "67c6838312397200157c498a3952bb55635998b9",
+  "native": {
+    "fixture": "http://localhost:4997/edit/s1",
+    "source": "n4zf41111",
+    "peer": "n576g6558",
+    "checks": [
+      "Before source D18 T16 M16, peer M15",
+      "Detach preserves font, size, line height and colour at all three widths",
+      "Cancel unchanged; Update sets both D18 T16 M16",
+      "Undo restores peer M15; Redo restores peer M16",
+      "Saved reload and Preview three widths identical",
+      "Peer explicit M21 preserved through subsequent shared D19 update and reload Preview"
+    ]
+  },
+  "automated": {
+    "passed": 2668,
+    "skipped": 5,
+    "exit": 0,
+    "unhandledErrors": 0,
+    "typecheck": 0,
+    "golden": "unchanged"
+  },
+  "gallery": "Core-only runtime change, accepted67 gallery source contract unchanged. No new gallery run claimed.",
+  "protected11Preserved": true,
+  "limitations": [
+    "Fourteen broader QA areas remain open.",
+    "No physical touch or alternate engine proof.",
+    "WordPress and staging acceptance pending."
+  ]
+}

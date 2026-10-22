@@ -1,0 +1,52 @@
+{
+  "post": 616,
+  "editorBefore": {
+    "height": 55.78125,
+    "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings</b></li></ul>"
+  },
+  "matrix": [
+    {
+      "viewport": 1280,
+      "rendered": {
+        "emptyParagraphs": 0,
+        "height": 55.78125,
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "links": [
+          "#qa-room",
+          "#qa-room"
+        ],
+        "page": 1265,
+        "scroll": 1265
+      }
+    },
+    {
+      "viewport": 768,
+      "rendered": {
+        "emptyParagraphs": 0,
+        "height": 55.78125,
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "links": [
+          "#qa-room",
+          "#qa-room"
+        ],
+        "page": 753,
+        "scroll": 753
+      }
+    },
+    {
+      "viewport": 414,
+      "rendered": {
+        "emptyParagraphs": 0,
+        "height": 52.6875,
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "links": [
+          "#qa-room",
+          "#qa-room"
+        ],
+        "page": 399,
+        "scroll": 399
+      }
+    }
+  ],
+  "anchorClick": "#qa-room"
+}

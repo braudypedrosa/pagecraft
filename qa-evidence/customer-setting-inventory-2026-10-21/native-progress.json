@@ -326,5 +326,20 @@
   "richtext_partial": {
     "evidence": "qa-evidence/richtext-list-safety-2026-10-22/root-acceptance.json",
     "scope": "Toolbar marks, blocks, links and list structure; new URL/output safety and selection fix localaccepted.2662pass5skip,30gallery24zero. Deploymentpending; broaderRichText/14QAareasopen."
+  },
+  "release92_accepted": {
+    "cloud": "67c6838312397200157c498a3952bb55635998b9",
+    "cloudCI": 39727653731,
+    "cloudDeploy": 39727653549,
+    "wordpress": "fcc9f5efc9007d620a529710ba47ee24e5396512",
+    "wordpressPreview": "0.2.17-preview.20261022.91",
+    "wordpressCI": 39728914983,
+    "scope": "Richtextlistnormalization andstrictlink/render safety. NativeCloud3breakpoints andrestored20IDs; nativeWPfreshdraft616Save/reopen/public1280/768/414/anchor accepted. Originalallposts/meta/revisions exact; new616and617-619only. FullQAopen.",
+    "evidence": "qa-evidence/richtext-list-safety-2026-10-22/post-deploy"
+  },
+  "responsive_typography_current_failure": {
+    "status": "Reproduced on67; isolated fix93 root native accepted; rollout pending",
+    "evidence": "qa-evidence/responsive-typography-2026-10-22/root-acceptance.json",
+    "scope": "Update and Detach preserve responsive inheritance; explicit peer override retained. FullQAopen."
   }
 }
