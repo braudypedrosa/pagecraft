@@ -9967,10 +9967,20 @@ ${m.css || ""}
 }
 function vidSrc(p) {
   const src = String(p.src || "").trim();
+  if (!src) return { kind: "none", id: "" };
+  if (/^[\\/]{2}/.test(src) || /[\u0000-\u001f\u007f]/.test(src) || /^(?:%(?:0[0-9a-f]|1[0-9a-f]|7f))/i.test(src)) return { kind: "invalid", id: "" };
   const videoId = (value) => value && /^[\w-]{6,}$/.test(value) ? value : "";
-  try {
-    const url = new URL(src);
-    if ((url.protocol === "http:" || url.protocol === "https:") && !url.username && !url.password) {
+  const filePath = (value) => /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(value);
+  if (/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(src) || /^data:video\/[a-z0-9.+-]+(?:;[^,]*)?,/i.test(src)) return { kind: "file", id: src };
+  if (src.startsWith("//")) return { kind: "invalid", id: "" };
+  const scheme = /^([A-Za-z][A-Za-z0-9+.-]*):/.exec(src);
+  if (scheme && !/^https?$/i.test(scheme[1])) return { kind: "invalid", id: "" };
+  if (scheme) {
+    if (!/^https?:\/\//i.test(src)) return { kind: "invalid", id: "" };
+    try {
+      const url = new URL(src);
+      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password)
+        return { kind: "invalid", id: "" };
       const host = url.hostname.toLowerCase();
       const parts = url.pathname.split("/").filter(Boolean);
       const youtubeHosts = /* @__PURE__ */ new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"]);
@@ -9987,11 +9997,12 @@ function vidSrc(p) {
         const candidate = parts[0] === "video" ? parts[1] : host === "player.vimeo.com" ? "" : parts[0];
         if (candidate && /^\d+$/.test(candidate)) return { kind: "vimeo", id: candidate };
       }
+      return { kind: filePath(src) ? "file" : "other", id: src };
+    } catch {
+      return { kind: "invalid", id: "" };
     }
-  } catch {
   }
-  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith("data:video")) return { kind: "file", id: src };
-  return { kind: src ? "other" : "none", id: src };
+  return filePath(src) ? { kind: "file", id: src } : { kind: "invalid", id: "" };
 }
 function vidPoster(p) {
   return p.poster || "";
@@ -10015,6 +10026,7 @@ function vid(p) {
   if (source.kind === "file")
     return `<video src="${esc(source.id)}"${p.controls ? " controls" : ""}${p.autoplay ? " autoplay" : ""}${p.muted || p.autoplay ? " muted playsinline" : ""}${p.loop ? " loop" : ""}${p.poster ? ` poster="${esc(p.poster)}"` : ""}></video>`;
   if (source.kind === "none") return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
+  if (source.kind === "invalid") return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
   return `<iframe src="${esc(source.id)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 function para(str) {

@@ -1,0 +1,3 @@
+d65e10c640d1df52d1029282353055628cfb24c3b1afe5e7bde7229c460f8d16  app/src/core/index.ts
+49ecfc9c15f040e11f8b17ecaf863324d6637d675696f340364f477554d02c76  tests/video-source-safety.test.ts
+23ce61e591857a9625ecf775f7f1a1d8d751635c87d7dbe47ed4fd4831606207  server/tests/fixtures/wordpress-artifact-v1.json

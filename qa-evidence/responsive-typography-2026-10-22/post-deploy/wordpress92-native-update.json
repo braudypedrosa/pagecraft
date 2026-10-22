@@ -1,0 +1,39 @@
+{
+  "version": "0.2.17-preview.20261022.92",
+  "draft": 616,
+  "wpMobileBefore93": "16px",
+  "wpMobileDetach93": "16px",
+  "wpUpdate93": {
+    "Desktop": [
+      {
+        "id": "n4f0tt272",
+        "size": "18px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "n4f0tt272",
+        "size": "16px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "n4f0tt272",
+        "size": "16px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "16px"
+      }
+    ]
+  },
+  "saved": true
+}

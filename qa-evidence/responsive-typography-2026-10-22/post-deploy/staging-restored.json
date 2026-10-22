@@ -1,0 +1,294 @@
+{
+  "stageUndoLabels93": [
+    "Undo: Update typography (⌘Z)",
+    "Undo: Add text (⌘Z)",
+    "Undo: Change text size (⌘Z)",
+    "Undo: Change text size (⌘Z)",
+    "Undo: Add text (⌘Z)"
+  ],
+  "exact": true,
+  "before": [
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><div id=\"cg-project-directory-24\" data-id=\"cg-project-directory-24\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-directory-24\"><div id=\"cg-directory-20\" data-id=\"cg-directory-20\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-directory-20\"><h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div></div><div id=\"cg-featured-project-23\" data-id=\"cg-featured-project-23\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-featured-project-23\"><figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div></div></div></div>",
+      "id": "cg-opening-25",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div id=\"cg-directory-20\" data-id=\"cg-directory-20\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-directory-20\"><h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div></div><div id=\"cg-featured-project-23\" data-id=\"cg-featured-project-23\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-featured-project-23\"><figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div></div>",
+      "id": "cg-project-directory-24",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div>",
+      "id": "cg-directory-20",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Places shaped<br>around people.",
+      "id": "cg-heading-15",
+      "line": "53.76px",
+      "size": "48px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>An architecture practice working across homes and places shared by a neighborhood.</p>",
+      "id": "cg-copy-16",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a>",
+      "id": "cg-project-index-19",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg>",
+      "id": "cg-link-17",
+      "line": "25.6px",
+      "size": "16px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Workshop reading room</span>",
+      "id": "cg-link-18",
+      "line": "25.6px",
+      "size": "16px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div>",
+      "id": "cg-featured-project-23",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption>",
+      "id": "cg-courtyard-house-21",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>Courtyard house · Residential study</p>",
+      "id": "cg-copy-22",
+      "line": "22.4px",
+      "size": "14px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><div id=\"cg-project-instance-26\" data-id=\"cg-project-instance-26\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-record-7 pagecraft-cg-project-instance-26\"><div id=\"cg-project-facts-6-cg-project-instance-26\" class=\"pagecraft-box pagecraft-cg-project-facts-6\"><h2 id=\"cg-heading-1-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-heading-1 ts-title\">Workshop reading room</h2><p id=\"cg-copy-2-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-2 ts-small\">Adaptive reuse</p><p id=\"cg-copy-3-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-3 ts-body\">Retain the shell. Open the garden edge. Make one shared table the center of the plan.</p><a id=\"cg-link-5-cg-project-instance-26\" class=\"pagecraft-button pagecraft-cg-link-5 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Discuss a similar project</span></a></div><img id=\"cg-reading-room-4-cg-project-instance-26\" src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Fictional reading room beneath retained oak trusses\" width=\"1536\" height=\"1024\" class=\"pagecraft-image pagecraft-cg-reading-room-4\"></div></div>",
+      "id": "cg-projects-27",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div id=\"cg-project-facts-6-cg-project-instance-26\" class=\"pagecraft-box pagecraft-cg-project-facts-6\"><h2 id=\"cg-heading-1-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-heading-1 ts-title\">Workshop reading room</h2><p id=\"cg-copy-2-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-2 ts-small\">Adaptive reuse</p><p id=\"cg-copy-3-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-3 ts-body\">Retain the shell. Open the garden edge. Make one shared table the center of the plan.</p><a id=\"cg-link-5-cg-project-instance-26\" class=\"pagecraft-button pagecraft-cg-link-5 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Discuss a similar project</span></a></div><img id=\"cg-reading-room-4-cg-project-instance-26\" src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Fictional reading room beneath retained oak trusses\" width=\"1536\" height=\"1024\" class=\"pagecraft-image pagecraft-cg-reading-room-4\">",
+      "id": "cg-project-instance-26",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><h2 id=\"cg-heading-28\" data-id=\"cg-heading-28\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-28 ts-title\">Work with what is there.</h2><div id=\"cg-copy-29\" data-id=\"cg-copy-29\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-29 ts-lead\"><p>A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings.</p></div></div>",
+      "id": "cg-practice-30",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Work with what is there.",
+      "id": "cg-heading-28",
+      "line": "38.08px",
+      "size": "34px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings.</p>",
+      "id": "cg-copy-29",
+      "line": "33.6px",
+      "size": "21px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><h2 id=\"cg-heading-35\" data-id=\"cg-heading-35\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-35 ts-title\">Have a place in mind?</h2><div id=\"cg-copy-36\" data-id=\"cg-copy-36\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-36 ts-body\"><p>Tell us what is there now and what you would like to change.</p></div><a id=\"cg-link-37\" data-id=\"cg-link-37\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-37 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Start a project conversation</span></a></div>",
+      "id": "cg-inquiry-link-38",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Have a place in mind?",
+      "id": "cg-heading-35",
+      "line": "38.08px",
+      "size": "34px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>Tell us what is there now and what you would like to change.</p>",
+      "id": "cg-copy-36",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Start a project conversation</span>",
+      "id": "cg-link-37",
+      "line": "25.6px",
+      "size": "16px"
+    }
+  ],
+  "after": [
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><div id=\"cg-project-directory-24\" data-id=\"cg-project-directory-24\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-directory-24\"><div id=\"cg-directory-20\" data-id=\"cg-directory-20\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-directory-20\"><h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div></div><div id=\"cg-featured-project-23\" data-id=\"cg-featured-project-23\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-featured-project-23\"><figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div></div></div></div>",
+      "id": "cg-opening-25",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div id=\"cg-directory-20\" data-id=\"cg-directory-20\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-directory-20\"><h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div></div><div id=\"cg-featured-project-23\" data-id=\"cg-featured-project-23\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-featured-project-23\"><figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div></div>",
+      "id": "cg-project-directory-24",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<h1 id=\"cg-heading-15\" data-id=\"cg-heading-15\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-15 ts-display\">Places shaped<br>around people.</h1><div id=\"cg-copy-16\" data-id=\"cg-copy-16\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-16 ts-body\"><p>An architecture practice working across homes and places shared by a neighborhood.</p></div><div id=\"cg-project-index-19\" data-id=\"cg-project-index-19\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-index-19\"><a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a></div>",
+      "id": "cg-directory-20",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Places shaped<br>around people.",
+      "id": "cg-heading-15",
+      "line": "53.76px",
+      "size": "48px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>An architecture practice working across homes and places shared by a neighborhood.</p>",
+      "id": "cg-copy-16",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<a id=\"cg-link-17\" data-id=\"cg-link-17\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-17 ts-btn\" data-variant=\"solid\" href=\"projects.html\" target=\"_blank\" rel=\"noopener\"><span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></a><a id=\"cg-link-18\" data-id=\"cg-link-18\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-18 ts-btn\" data-variant=\"outline\" href=\"projects.html#reading-room\"><span>Workshop reading room</span></a>",
+      "id": "cg-project-index-19",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Explore our shared spaces</span><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" aria-hidden=\"true\"><path d=\"M6 3.5L10.5 8 6 12.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg>",
+      "id": "cg-link-17",
+      "line": "25.6px",
+      "size": "16px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Workshop reading room</span>",
+      "id": "cg-link-18",
+      "line": "25.6px",
+      "size": "16px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<figure id=\"cg-courtyard-house-21\" data-id=\"cg-courtyard-house-21\" data-t=\"image\" class=\"pagecraft-figure pagecraft-cg-courtyard-house-21\"><img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption></figure><div id=\"cg-copy-22\" data-id=\"cg-copy-22\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-22 ts-small\"><p>Courtyard house · Residential study</p></div>",
+      "id": "cg-featured-project-23",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<img src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Reading room with oak roof trusses and shared table\" width=\"1536\" height=\"1024\" class=\"pagecraft-image\"><figcaption class=\"pagecraft-caption\">Illustrative reading room retained for testing.</figcaption>",
+      "id": "cg-courtyard-house-21",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>Courtyard house · Residential study</p>",
+      "id": "cg-copy-22",
+      "line": "22.4px",
+      "size": "14px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><div id=\"cg-project-instance-26\" data-id=\"cg-project-instance-26\" data-t=\"box\" class=\"pagecraft-box pagecraft-cg-project-record-7 pagecraft-cg-project-instance-26\"><div id=\"cg-project-facts-6-cg-project-instance-26\" class=\"pagecraft-box pagecraft-cg-project-facts-6\"><h2 id=\"cg-heading-1-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-heading-1 ts-title\">Workshop reading room</h2><p id=\"cg-copy-2-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-2 ts-small\">Adaptive reuse</p><p id=\"cg-copy-3-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-3 ts-body\">Retain the shell. Open the garden edge. Make one shared table the center of the plan.</p><a id=\"cg-link-5-cg-project-instance-26\" class=\"pagecraft-button pagecraft-cg-link-5 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Discuss a similar project</span></a></div><img id=\"cg-reading-room-4-cg-project-instance-26\" src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Fictional reading room beneath retained oak trusses\" width=\"1536\" height=\"1024\" class=\"pagecraft-image pagecraft-cg-reading-room-4\"></div></div>",
+      "id": "cg-projects-27",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div id=\"cg-project-facts-6-cg-project-instance-26\" class=\"pagecraft-box pagecraft-cg-project-facts-6\"><h2 id=\"cg-heading-1-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-heading-1 ts-title\">Workshop reading room</h2><p id=\"cg-copy-2-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-2 ts-small\">Adaptive reuse</p><p id=\"cg-copy-3-cg-project-instance-26\" class=\"pagecraft-heading pagecraft-cg-copy-3 ts-body\">Retain the shell. Open the garden edge. Make one shared table the center of the plan.</p><a id=\"cg-link-5-cg-project-instance-26\" class=\"pagecraft-button pagecraft-cg-link-5 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Discuss a similar project</span></a></div><img id=\"cg-reading-room-4-cg-project-instance-26\" src=\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=eyJraWQiOiJlNDMzNDRiMS0xZmUyLTRjOTktYWEwZi0wODI2NTUzMmFmYmIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwYWdlY3JhZnQtYXNzZXRzL2Q3NWQ0NGM0LTAwYzItNGJkYi04MDQ1LTYzMzMwNzU4YmYwZS9jMTE0OTRlOC0zYWU1LTRiZTAtYjcwNy1lOTM3Mjc4YTcxMGEvYWZkMmFmZjM0OThjYy03ODNjZjM4YTNiNzE1ZjMxLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkyNjUwMjIzLCJleHAiOjE3OTMyNTUwMjN9.4xiJVlvd2nZ-PfS_kq-KJy1WkIYO62tRemLrVb8guZE\" alt=\"Fictional reading room beneath retained oak trusses\" width=\"1536\" height=\"1024\" class=\"pagecraft-image pagecraft-cg-reading-room-4\">",
+      "id": "cg-project-instance-26",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><h2 id=\"cg-heading-28\" data-id=\"cg-heading-28\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-28 ts-title\">Work with what is there.</h2><div id=\"cg-copy-29\" data-id=\"cg-copy-29\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-29 ts-lead\"><p>A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings.</p></div></div>",
+      "id": "cg-practice-30",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Work with what is there.",
+      "id": "cg-heading-28",
+      "line": "38.08px",
+      "size": "34px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>A useful starting point is the place itself: how daylight enters, what can be retained, and how people move through the day. This sample practice uses those observations to shape homes and shared buildings.</p>",
+      "id": "cg-copy-29",
+      "line": "33.6px",
+      "size": "21px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<div class=\"pagecraft-container\"><h2 id=\"cg-heading-35\" data-id=\"cg-heading-35\" data-t=\"heading\" class=\"pagecraft-heading pagecraft-cg-heading-35 ts-title\">Have a place in mind?</h2><div id=\"cg-copy-36\" data-id=\"cg-copy-36\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-cg-copy-36 ts-body\"><p>Tell us what is there now and what you would like to change.</p></div><a id=\"cg-link-37\" data-id=\"cg-link-37\" data-t=\"button\" class=\"pagecraft-button pagecraft-cg-link-37 ts-btn\" data-variant=\"outline\" href=\"contact.html\"><span>Start a project conversation</span></a></div>",
+      "id": "cg-inquiry-link-38",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "Have a place in mind?",
+      "id": "cg-heading-35",
+      "line": "38.08px",
+      "size": "34px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<p>Tell us what is there now and what you would like to change.</p>",
+      "id": "cg-copy-36",
+      "line": "28.8px",
+      "size": "18px"
+    },
+    {
+      "colour": "rgb(36, 44, 39)",
+      "html": "<span>Start a project conversation</span>",
+      "id": "cg-link-37",
+      "line": "25.6px",
+      "size": "16px"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "originalContentAndIdsExact": true,
+  "original": [
+    {
+      "html": "<div class=\"pagecraft-container\"><div id=\"n4f0tt4lq\" data-id=\"n4f0tt4lq\" data-t=\"row\" class=\"pagecraft-row pagecraft-4f0tt4lq\"><div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div></div></div>",
+      "id": "n4f0tt5j6"
+    },
+    {
+      "html": "<div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div>",
+      "id": "n4f0tt4lq"
+    },
+    {
+      "html": "<div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div>",
+      "id": "n4f0tt3sn"
+    },
+    {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "id": "n4f0tt272"
+    }
+  ],
+  "restored": [
+    {
+      "html": "<div class=\"pagecraft-container\"><div id=\"n4f0tt4lq\" data-id=\"n4f0tt4lq\" data-t=\"row\" class=\"pagecraft-row pagecraft-4f0tt4lq\"><div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div></div></div>",
+      "id": "n4f0tt5j6"
+    },
+    {
+      "html": "<div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div>",
+      "id": "n4f0tt4lq"
+    },
+    {
+      "html": "<div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div>",
+      "id": "n4f0tt3sn"
+    },
+    {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "id": "n4f0tt272"
+    }
+  ]
+}

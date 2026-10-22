@@ -1,0 +1,36 @@
+{
+  "stageMobileBefore93": "16px",
+  "stageMobileDetach93": "16px",
+  "stageUpdate93": {
+    "Desktop": [
+      {
+        "id": "n5onbr1b1",
+        "size": "18px"
+      },
+      {
+        "id": "n5padt5xl",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "n5onbr1b1",
+        "size": "16px"
+      },
+      {
+        "id": "n5padt5xl",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "n5onbr1b1",
+        "size": "16px"
+      },
+      {
+        "id": "n5padt5xl",
+        "size": "16px"
+      }
+    ]
+  }
+}

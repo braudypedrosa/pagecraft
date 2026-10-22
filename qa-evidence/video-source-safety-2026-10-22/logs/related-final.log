@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-source-37f65d4
+
+
+ Test Files  7 passed (7)
+      Tests  786 passed (786)
+   Start at  14:53:09
+   Duration  16.92s (transform 741ms, setup 0ms, import 2.34s, tests 13.78s, environment 0ms)

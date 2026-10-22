@@ -1,0 +1,27 @@
+{
+  "status": "Root accepted bounded Video source validation. Staging and WordPress rollout pending. Full QA remains open.",
+  "base": "37f65d4b83de12d6959bfa982c935bc945e31461",
+  "nativeEvidence": "native/acceptance.json",
+  "nativeFixture": "http://localhost:4998/edit/s1",
+  "nativeNode": "n6v0ie1cl",
+  "checks": [
+    "Malformed non-video text creates no iframe or video at all3widths edit/public",
+    "Invalid draft remains authored after reload; corrected MP4 source recovers and actually autoplays muted",
+    "Keyboard Enter activates YouTube facade iframe",
+    "Empty source has distinct guidance; Undo restores valid YouTube and Redo empty"
+  ],
+  "automated": {
+    "passed": 2701,
+    "skipped": 5,
+    "exit": 0,
+    "typecheck": 0,
+    "golden": "unchanged"
+  },
+  "gallery": "Core-only runtime change; accepted37 source contract unchanged. No new gallery run claimed.",
+  "protected11Preserved": true,
+  "limitations": [
+    "Unsafe schemes tested as strings only, not executed in browser.",
+    "Unmuted nonautoplay playsinline, provider playback and fullVideoQAremainopen.",
+    "Fourteen broader QA areas remain open."
+  ]
+}

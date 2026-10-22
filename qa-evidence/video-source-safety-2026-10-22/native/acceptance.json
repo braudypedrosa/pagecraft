@@ -1,0 +1,43 @@
+{
+  "status": "Root native bounded accepted; deployment pending",
+  "node": "n6v0ie1cl",
+  "invalidEdit": {
+    "html": "<div id=\"n6v0ie1cl\" data-id=\"n6v0ie1cl\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+    "media": 0
+  },
+  "invalidPreview": {
+    "Desktop": {
+      "html": "<div id=\"pagecraft-video-6v0ie1cl\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "media": 0,
+      "pageOverflow": false
+    },
+    "Tablet": {
+      "html": "<div id=\"pagecraft-video-6v0ie1cl\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "media": 0,
+      "pageOverflow": false
+    },
+    "Mobile": {
+      "html": "<div id=\"pagecraft-video-6v0ie1cl\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "media": 0,
+      "pageOverflow": false
+    }
+  },
+  "invalidReload": "not a video",
+  "validMp4Playback": {
+    "autoplay": true,
+    "error": null,
+    "muted": true,
+    "paused": false,
+    "ready": 4,
+    "time": 0.252739
+  },
+  "youtubeKeyboardIframe": "<iframe src=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1&amp;autoplay=1\" title=\"Video\" allow=\"accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture\" allowfullscreen=\"\"></iframe>",
+  "empty": "<div id=\"n6v0ie1cl\" data-id=\"n6v0ie1cl\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+  "undo": "<div id=\"n6v0ie1cl\" data-id=\"n6v0ie1cl\" data-t=\"video\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\" data-facade=\"\" data-sel=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+  "redo": "<div id=\"n6v0ie1cl\" data-id=\"n6v0ie1cl\" data-t=\"video\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\" data-sel=\"\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+  "limits": [
+    "Malicious schemes tested only as strings, not executed live",
+    "Third-party YouTube playback not proven, keyboard activation creates expected iframe",
+    "AllVideoControls, physicaliOS andfullQAremainopen"
+  ]
+}
