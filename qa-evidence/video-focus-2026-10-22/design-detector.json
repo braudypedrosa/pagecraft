@@ -1,0 +1,13 @@
+{
+  "exitCode": 2,
+  "findings": [
+    {
+      "antipattern": "broken-image",
+      "severity": "warning",
+      "file": "app/src/core/index.ts",
+      "line": 5460,
+      "snippet": "<img onerror>",
+      "scope": "pre-existing and unrelated to Video focus selectors"
+    }
+  ]
+}

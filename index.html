@@ -6382,6 +6382,7 @@ var BUTTON_AUTHORED = "--pc-authored-button-";
 var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var richTextFocusSelector = (selector) => `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
+var videoFocusSelector = (selector) => `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
 var richTextLinkSelector = (selector, state2 = "") => `${selector}:where(.pagecraft-wysiwyg)${state2} a`;
 var richTextLinkStateSelector = (selector, state2, suffix) => state2 === "focus" ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
@@ -6425,6 +6426,7 @@ function tokenCss() {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
         const linkState = decl({ color: stateMap["--link"] });
         if (linkState) {
@@ -11097,7 +11099,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : k === "focus" && n.type === "video" ? videoFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     if (n.type === "text") {
       const linkState = decl({ color: stateMap["--link"] });
@@ -12441,10 +12443,12 @@ var canvasCsp = (nonce) => `script-src 'nonce-${nonce}' '${EMBED_FRAME_HASH}'; o
 var FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
-var f=document.createElement('iframe');
+var k=b.matches(':focus-visible'),f=document.createElement('iframe');
 f.src=b.getAttribute('data-embed')+(b.getAttribute('data-embed').indexOf('?')<0?'?':'&')+'autoplay=1';
 f.title='Video';f.allow='accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture';
-f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
+f.setAttribute('allowfullscreen','');if(k)f.setAttribute('data-pagecraft-keyboard-focus','');
+function c(){f.removeAttribute('data-pagecraft-keyboard-focus')}f.addEventListener('blur',c);f.addEventListener('pointerdown',c);
+b.parentNode.replaceChild(f,b);if(k)f.focus();
 });});})();
 <\/script>
 `;

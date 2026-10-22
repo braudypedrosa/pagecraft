@@ -1,0 +1,12 @@
+{
+  "command": "npx vitest run",
+  "result": "pass",
+  "exitCode": 0,
+  "testFilesPassed": 259,
+  "testFilesSkipped": 2,
+  "testsPassed": 2711,
+  "testsSkipped": 5,
+  "durationSeconds": 99.34,
+  "log": "logs/full-suite-frozen-rerun.log",
+  "note": "Direct Vitest rerun avoided rebuilding the accepted frozen candidate."
+}

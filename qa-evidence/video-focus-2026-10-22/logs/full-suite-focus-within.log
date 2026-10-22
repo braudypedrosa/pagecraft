@@ -1,0 +1,32 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+ ❯ server/tests/submissions.test.ts (16 tests | 1 failed) 32420ms
+   × failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200 30041ms
+(node:31169) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31389) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31521) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/submissions.test.ts > failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/submissions.test.ts:247:1
+    245| });
+    246|
+    247| test('failed attempts never fill the inbox: only successful entries co…
+       | ^
+    248|   const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+    249|   try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 258 passed | 2 skipped (261)
+      Tests  1 failed | 2711 passed | 5 skipped (2717)
+   Start at  19:41:44
+   Duration  100.56s (transform 34.87s, setup 0ms, import 229.48s, tests 698.21s, environment 154.44s)

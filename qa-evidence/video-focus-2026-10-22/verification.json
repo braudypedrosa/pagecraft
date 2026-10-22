@@ -1,0 +1,130 @@
+{
+  "task": "Video authored Focus follows native keyboard descendants and survives facade replacement",
+  "baseCommit": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+  "scope": {
+    "source": [
+      "app/src/core/index.ts"
+    ],
+    "tests": [
+      "tests/video-focus-state.test.ts"
+    ],
+    "golden": [
+      "server/tests/fixtures/wordpress-artifact-v1.json"
+    ],
+    "nativeAcceptanceOwner": "root"
+  },
+  "behavior": {
+    "nodeFocus": "wrapper Focus declarations activate from a focus-visible facade button or native video, and from a keyboard-marked iframe while it retains focus-within",
+    "classFocus": "generic class selector retained and Video descendant bridge added at every breakpoint",
+    "pointerSemantics": "direct pointer activation creates no marker; pointerdown on a keyboard-opened iframe clears its marker when the parent document receives that event",
+    "blurSemantics": "iframe blur clears the keyboard-origin marker, so later pointer re-entry cannot reactivate authored Focus from stale keyboard state",
+    "cascade": "local Video Focus remains after reusable class Focus",
+    "editor": "uses the same generated selector; no separate state simulation exists in Core",
+    "facadeRuntime": "facade replacement records keyboard origin before replacement, focuses the iframe, and clears the marker on iframe blur or parent-visible pointerdown"
+  },
+  "checks": [
+    {
+      "name": "initial selector RED",
+      "result": "expected failure",
+      "testsFailed": 2,
+      "testsPassed": 1,
+      "log": "logs/red.log"
+    },
+    {
+      "name": "initial focus-retention RED",
+      "result": "expected failure",
+      "testsFailed": 1,
+      "log": "logs/focus-retention-red.log"
+    },
+    {
+      "name": "focus-within marker RED",
+      "result": "expected failure",
+      "testsFailed": 4,
+      "testsPassed": 1,
+      "log": "logs/focus-within-marker-red.log"
+    },
+    {
+      "name": "iframe blur cleanup RED",
+      "result": "expected failure",
+      "testsFailed": 1,
+      "testsPassed": 4,
+      "log": "logs/iframe-blur-marker-red.log"
+    },
+    {
+      "name": "final focused GREEN",
+      "result": "pass",
+      "tests": 5,
+      "log": "logs/iframe-blur-marker-green.log"
+    },
+    {
+      "name": "typecheck",
+      "result": "pass",
+      "log": "logs/typecheck-iframe-blur.log"
+    },
+    {
+      "name": "WordPress golden expected delta",
+      "result": "expected failure before update",
+      "testsFailed": 1,
+      "testsSkipped": 29,
+      "log": "logs/wordpress-golden-iframe-blur-red.log"
+    },
+    {
+      "name": "WordPress golden update",
+      "result": "pass",
+      "tests": 1,
+      "testsSkipped": 29,
+      "log": "logs/wordpress-golden-iframe-blur-update.log"
+    },
+    {
+      "name": "WordPress golden verify",
+      "result": "pass",
+      "tests": 1,
+      "testsSkipped": 29,
+      "log": "logs/wordpress-golden-iframe-blur-verify.log",
+      "delta": "golden-delta.json"
+    },
+    {
+      "name": "full suite",
+      "result": "pass",
+      "filesPassed": 259,
+      "filesSkipped": 2,
+      "testsPassed": 2712,
+      "testsSkipped": 5,
+      "log": "logs/full-suite-iframe-blur.log"
+    },
+    {
+      "name": "ordered build pair 1",
+      "result": "pass",
+      "builderExit": 0,
+      "editorExit": 0,
+      "log": "logs/build-pair-iframe-blur-1.log"
+    },
+    {
+      "name": "ordered build pair 2",
+      "result": "pass",
+      "builderExit": 0,
+      "editorExit": 0,
+      "log": "logs/build-pair-iframe-blur-2.log"
+    },
+    {
+      "name": "generated parity",
+      "result": "match",
+      "files": 10,
+      "receipts": [
+        "generated-build-iframe-blur-1.sha256",
+        "generated-build-iframe-blur-2.sha256",
+        "generated-current.sha256"
+      ]
+    },
+    {
+      "name": "design detector",
+      "result": "one unrelated existing warning",
+      "evidence": "design-detector.json"
+    }
+  ],
+  "limitations": [
+    "Root owns final native keyboard, iframe blur, pointer re-entry, and editor canvas acceptance.",
+    "Cross-origin iframe-internal pointer events do not reliably reach the parent; stale keyboard state is cleared by the iframe blur event instead.",
+    "Unmuted file-video playsinline remains separate."
+  ]
+}

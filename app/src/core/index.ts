@@ -2457,6 +2457,12 @@ const navFocusSelector = (selector: string) =>
    the wrapper state, and a focusable Link Block ancestor is outside this descendant guard. */
 const richTextFocusSelector = (selector: string) =>
   `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
+/* Video styling belongs to its wrapper, while keyboard focus belongs to the facade button,
+   native file player or embedded frame. Bridge only :focus-visible so pointer focus keeps the
+   authored resting/hover state. */
+const videoFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,` +
+  `:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
 /* Anchors carry their own UA colour, so the Rich Text --link value cannot reach them through
    inheritance. Emit the matching descendant rule while keeping the wrapper property for the
    existing document contract and custom CSS. */
@@ -2516,6 +2522,7 @@ function tokenCss() {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
         const linkState = decl({ color: stateMap['--link'] });
         if (linkState) {
@@ -7789,7 +7796,9 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
       : k === 'focus' && n.type === 'nav'
         ? navFocusSelector(selOf(n))
         : k === 'focus' && n.type === 'text'
-          ? richTextFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+          ? richTextFocusSelector(selOf(n))
+          : k === 'focus' && n.type === 'video'
+            ? videoFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     if (n.type === 'text') {
       const linkState = decl({ color: stateMap['--link'] });
@@ -9527,10 +9536,12 @@ const canvasCsp = (nonce: string) =>
 const FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
-var f=document.createElement('iframe');
+var k=b.matches(':focus-visible'),f=document.createElement('iframe');
 f.src=b.getAttribute('data-embed')+(b.getAttribute('data-embed').indexOf('?')<0?'?':'&')+'autoplay=1';
 f.title='Video';f.allow='accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture';
-f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
+f.setAttribute('allowfullscreen','');if(k)f.setAttribute('data-pagecraft-keyboard-focus','');
+function c(){f.removeAttribute('data-pagecraft-keyboard-focus')}f.addEventListener('blur',c);f.addEventListener('pointerdown',c);
+b.parentNode.replaceChild(f,b);if(k)f.focus();
 });});})();
 <\/script>
 `;

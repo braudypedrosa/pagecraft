@@ -1,0 +1,6 @@
+
+> pagecraft@0.2.0 typecheck
+> tsc --noEmit
+
+tests/video-focus-state.test.ts(98,5): error TS2322: Type '(selector: string) => boolean' is not assignable to type '{ <K extends keyof HTMLElementTagNameMap>(selectors: K): this is HTMLElementTagNameMap[K]; <K extends keyof SVGElementTagNameMap>(selectors: K): this is SVGElementTagNameMap[K]; <K extends keyof MathMLElementTagNameMap>(selectors: K): this is MathMLElementTagNameMap[K]; (selectors: string): boolean; }'.
+  Signature '(selector: string): boolean' must be a type predicate.

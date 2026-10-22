@@ -376,6 +376,36 @@
   },
   "video_focus_current_failure": {
     "status": "Nativekeyboardfailureconfirmed, separate96queued",
-    "evidence": "qa-evidence/video-focus-2026-10-22/before.json"
+    "evidence": "qa-evidence/video-focus-2026-10-22/before.json",
+    "native_keyboard_activation": {
+      "before": "Play button is keyboard focus-visible",
+      "after": "Enter replaces button with iframe, activeElement BODY and focus lost",
+      "evidence": "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-valid-keyboard.json",
+      "status": "Isolated96 candidate extended after root native confirmation. Not deployed."
+    }
+  },
+  "release95_accepted": {
+    "cloudCommit": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+    "ci": 39746421821,
+    "stagingDeployment": 39746421823,
+    "wordpressCommit": "03be088fe037e2ad9ef5a158f9b8248b05c32b79",
+    "wordpressCI": 39747848646,
+    "wordpressPreview": "0.2.17-preview.20261022.94",
+    "native": [
+      "Contextual Video invalid and empty checks, Show me exact target, valid source clears Video findings",
+      "WordPress actual Save and public preview at1280/834/414 with full-area empty and invalid placeholders and zero players",
+      "Four WordPress Saves, original4 nodes restored exactly after reload",
+      "Staging original20 restored; original WordPress487 and global design settings protected"
+    ],
+    "evidence": "qa-evidence/video-source-lint-2026-10-22/post-deploy",
+    "limits": [
+      "CMS and component contexts automated only",
+      "Core-only gallery source contract unchanged; no new gallery run claimed",
+      "Full customer QA remains open"
+    ]
+  },
+  "video_focus_candidate96": {
+    "status": "Root native accepted, rollout pending",
+    "evidence": "qa-evidence/video-focus-2026-10-22/root-acceptance.json"
   }
 }

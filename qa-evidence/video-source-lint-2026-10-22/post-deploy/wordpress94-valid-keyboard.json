@@ -1,0 +1,12 @@
+{
+  "before": {
+    "buttonFocusVisible": true,
+    "tag": "BUTTON"
+  },
+  "after": {
+    "iframeCount": 1,
+    "iframeFocusVisible": false,
+    "tag": "BODY",
+    "wrapperFocusWithin": false
+  }
+}

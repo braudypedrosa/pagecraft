@@ -1,0 +1,14 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+(node:28051) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28367) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28936) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  259 passed | 2 skipped (261)
+      Tests  2711 passed | 5 skipped (2716)
+   Start at  19:33:32
+   Duration  99.34s (transform 26.70s, setup 0ms, import 225.80s, tests 711.35s, environment 150.23s)

@@ -1,0 +1,18 @@
+{
+  "status": "Root native accepted. Staging and WordPress rollout pending. Full QA remains open.",
+  "base": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+  "checks": {
+    "automatedPass": 2712,
+    "skip": 5,
+    "typecheck": "pass",
+    "golden": "reviewed delta3 runtime routes and signing fields",
+    "buildPairs": "10files byte-identical"
+  },
+  "native": "native/final-native-acceptance.json",
+  "protected11": true,
+  "limits": [
+    "Native CMS/component contexts automated only",
+    "Provider internal keyboard navigation not certified",
+    "File video playsinline separately open"
+  ]
+}
