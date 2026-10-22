@@ -1,0 +1,18 @@
+{
+  "warning": "Delete Category and its stored values? No page field bindings were found. Check shared components and references before publishing. 1 Collection List filter will reset to show every item.",
+  "actual": {
+    "titles": [
+      "Alpha",
+      "Beta"
+    ],
+    "current": "1"
+  },
+  "expected": {
+    "titles": [
+      "Alpha",
+      "Beta"
+    ],
+    "current": "1"
+  },
+  "unrelatedImageNotWarned": true
+}

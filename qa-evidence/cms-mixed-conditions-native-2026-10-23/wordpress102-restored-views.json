@@ -1,0 +1,24 @@
+[
+  {
+    "width": 1280,
+    "view": [
+      {
+        "columns": "286.25px 286.25px 286.25px 286.25px",
+        "gap": "24px",
+        "loaded": true,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "width": 414,
+    "view": [
+      {
+        "columns": "359px",
+        "gap": "8px",
+        "loaded": true,
+        "overflow": false
+      }
+    ]
+  }
+]

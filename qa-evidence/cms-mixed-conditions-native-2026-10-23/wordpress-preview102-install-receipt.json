@@ -1,0 +1,46 @@
+{
+  "status": "installed",
+  "version": "0.2.17-preview.20261023.102",
+  "cloud": "9595855d62bc83302c19d608a16b402c450a0117",
+  "wordpress": "c1d2c7bfd17444591454f34cd5b98b3a4f4ff6a0",
+  "sourceCommittedExact": true,
+  "php97Source12PreservedExact": true,
+  "frozen10Exact": true,
+  "newEditorArchiveExact": true,
+  "builder55Exact": true,
+  "runtime100PreservedExact": true,
+  "compilerPathsVersion102Only": true,
+  "addedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.102-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.102-pagecraft-renderer-2/compiler.js"
+  ],
+  "removedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.101-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.101-pagecraft-renderer-2/compiler.js"
+  ],
+  "changedBuilderPaths": [
+    "assets/pagecraft-editor-contract.json",
+    "assets/pagecraft-editor.html"
+  ],
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical138Exact": true,
+  "packageInventory140Exact": true,
+  "new102PairHashes": {
+    "packages/pagecraft-editor-0.2.17-preview.20261023.102.source.json": "e92ee410f8e3222a8d5ca830d79c684a3e468315590b0a588b93a255b9e2aeba",
+    "packages/pagecraft-editor-0.2.17-preview.20261023.102.tgz": "62fd447dcaff1fd02b918fb7c31277a6b80d1967fc5bfecf82a3131fccdfca78"
+  },
+  "protectedSnapshotByteExact": true,
+  "revisionCount": 416,
+  "original487Version": 73,
+  "qa616DocumentVersion": 43,
+  "SQLByteExact": true,
+  "sqlSHA256": "4ddc695d5c248b0a0e6a4b19baa9c22c711a78c4636d60dca2adf54de0e70b6e",
+  "builderZipSHA256": "d9e73fab81554988608ad1d8ad4a7b21dc569a153d760da8c367598c0c5601ff",
+  "source10FreezeSHA256": "4ee14daab324c77e250fff667fe5d840bd66d456fc5ef2d447627e9943ec5a3c",
+  "php12FreezeSHA256": "8ef5e1c65cf5a94ef9015e5594286d534dc3215d74de924e02bce767a5a79074",
+  "builder101Preserved": "/private/tmp/pagecraft-preview102-guard.o00cf62g/builder101-preserved",
+  "guard": "/private/tmp/pagecraft-preview102-guard.o00cf62g",
+  "nativeAcceptance": "Pending installed builder save/reload and restoration",
+  "databaseRollbackPerformed": false
+}

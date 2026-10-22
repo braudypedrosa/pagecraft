@@ -1273,16 +1273,23 @@ function bindingImpact(collectionId: string, fieldId: string): string {
       [page.bindTitle, page.bindDesc].includes(fieldId)
     )
       affected.add(page.name + ' (SEO)');
-    C.eachNode(page.tree, (n) => {
-      if (
-        Object.values(n.bind || {}).some(
-          (b) =>
-            b.src === 'field' &&
-            (b.path === fieldId || b.path.startsWith(fieldId + '.')),
+    const visit = (nodes: typeof page.tree, inherited = page.collection || '') => {
+      for (const n of nodes) {
+        const declared = n.src || C.findComponent(n.use)?.node.src || '';
+        const source = declared && C.findCollection(declared) ? declared : inherited;
+        if (
+          source === collectionId &&
+          Object.values(n.bind || {}).some(
+            (b) =>
+              b.src === 'field' &&
+              (b.path === fieldId || b.path.startsWith(fieldId + '.')),
+          )
         )
-      )
-        affected.add(page.name + ' / ' + C.nameOf(n));
-    });
+          affected.add(page.name + ' / ' + C.nameOf(n));
+        visit(n.children || [], source);
+      }
+    };
+    visit(page.tree);
   }
   const bindings = affected.size
     ? 'Review these bindings: ' + [...affected].join(', ') + '.'

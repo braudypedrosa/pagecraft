@@ -1,0 +1,28 @@
+{
+  "scope": "ShowIf boolean CMS comparison control",
+  "base": "9595855d62bc83302c19d608a16b402c450a0117",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft-boolean-visibility",
+  "files": {
+    "app/src/ui/inspector/Inspector.tsx": "575321eb8620bc547b10726625a85a6eaaaa25c7e5b3af33d56a45b3bd10ec20",
+    "tests/show-if-boolean-value.test.tsx": "978e3c810a8dfb4c2ae6c5ea4db944eb03d9f7715b0f886a2faa0c08496cac29"
+  },
+  "checks": [
+    {
+      "name": "baseline red",
+      "command": "npx vitest run tests/show-if-boolean-value.test.tsx",
+      "result": "5 failed, 3 passed",
+      "log": "/tmp/pagecraft-boolean-red.log"
+    },
+    {
+      "name": "focused green",
+      "command": "npx vitest run tests/show-if-boolean-value.test.tsx tests/inspector-condition-labels.test.tsx",
+      "result": "2 files passed, 9 tests passed"
+    },
+    {
+      "name": "diff check",
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "dependency_note": "Tests used a temporary symlink to the existing main-checkout node_modules. No packages were installed, and the symlink was removed after verification. Main checkout was not edited."
+}

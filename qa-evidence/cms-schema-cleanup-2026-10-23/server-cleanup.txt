@@ -1,0 +1,14 @@
+checked_at_utc=2026-10-22T23:17:32Z
+before:
+COMMAND   PID          USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+Python  66452 braudypedorsa    3u  IPv4 0x8ffe2ce3b61f5b54      0t0  TCP 127.0.0.1:4944 (LISTEN)
+COMMAND   PID          USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+node    66519 braudypedorsa   12u  IPv4 0x371c7a62020f202e      0t0  TCP 127.0.0.1:4945 (LISTEN)
+commands:
+66452 66412 /opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/Resources/Python.app/Contents/MacOS/Python -m http.server 4944 --bind 127.0.0.1
+66519 66480 node qa-evidence/cms-schema-cleanup-2026-10-23/gallery-server.mjs
+ownership=verified
+static_pid=66452
+gallery_pid=66519
+after:
+cleanup=complete

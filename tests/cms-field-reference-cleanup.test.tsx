@@ -70,6 +70,37 @@ test('saving field deletion resets Collection List sort and filter in the same u
   expect(redoneList.props.where).toBe('');
 });
 
+test('field deletion warning ignores a same-id binding owned by another collection', async () => {
+  const journal = C.collectionAdd('Journal');
+  const journalCategory = C.fieldAdd(journal.id, 'Category', 'text')!;
+  const journalList = C.N('list', {}, {}, [C.N('heading', { text: 'Journal category' })]);
+  journalList.src = journal.id;
+  C.bindSet(journalList.children[0], 'text', C.bindField(journalCategory.id));
+
+  const modules = C.collectionAdd('QA Modules');
+  const moduleCategory = C.fieldAdd(modules.id, 'Category', 'image')!;
+  expect(moduleCategory.id).toBe(journalCategory.id);
+  const moduleList = C.N('list', {}, {}, [C.N('image', { src: '', alt: 'Module image' })]);
+  moduleList.src = modules.id;
+  C.bindSet(moduleList.children[0], 'src', C.bindField(moduleCategory.id));
+  C.state.pages[0].tree = [journalList, moduleList];
+
+  const confirm = vi.spyOn(L, 'askConfirm').mockResolvedValue(true);
+  r.draw(<CmsWorkspace collectionId={journal.id} close={() => {}} />);
+  await click(r.$$('button').find(button => button.textContent === 'Edit collection')!);
+  await click(r.$(`[aria-label="Delete field ${journalCategory.name}"]`)!);
+
+  const warning = String(confirm.mock.calls[0]?.[1]);
+  expect(warning).toContain('Journal category');
+  expect(warning).not.toContain('Module image');
+  await act(async () => {
+    r.$('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  });
+  await vi.waitFor(() => expect(C.findCollection(journal.id)?.fields.map(field => field.id))
+    .toEqual(['title']));
+  expect(C.bindGet(moduleList.children[0], 'src')).toEqual(C.bindField(moduleCategory.id));
+});
+
 test('the persisted document clone is reconciled without mutating the live draft', () => {
   const collection = C.collectionAdd('Journal');
   const category = C.fieldAdd(collection.id, 'Category', 'text')!;

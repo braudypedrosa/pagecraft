@@ -15,8 +15,28 @@
   "sharedNativeBehaviorPassed": 30,
   "visualStatesPassed": 24,
   "repeatPngBytesUnchanged": 24,
-  "stagingFixRetest": "pending deployment",
-  "wordpressSync": "pending preview102",
-  "restoration": "pending native History1238 plus exact full JSON comparison",
-  "fullQAComplete": false
+  "stagingFixRetest": "accepted exact9595855; apply and clear filter both reset page1; real entry/schema Saved+Done",
+  "wordpressSync": {
+    "preview": 102,
+    "source": "c1d2c7bfd17444591454f34cd5b98b3a4f4ff6a0",
+    "nativeSaveReload": "Gallery Gap25 saved and reloaded in editor/public; original24 restored via native43",
+    "postGuardPassed": 29,
+    "version": 45,
+    "revisions": 418,
+    "original8AndCompiled98Exact": true,
+    "evidence": "../cms-done-label-2026-10-23/wordpress-post-restoration-guard.json"
+  },
+  "restoration": "Native History1238 restored, full9page4collection export byte-exact SHA0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7",
+  "fullQAComplete": false,
+  "cloudCI": {
+    "test": 39860379408,
+    "deployment": 39860379385,
+    "both": "success"
+  },
+  "rootSuite": {
+    "passed": 2740,
+    "skipped": 5,
+    "exit": 0,
+    "workers": 2
+  }
 }

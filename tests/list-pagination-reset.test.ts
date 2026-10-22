@@ -99,3 +99,43 @@ test('only changed list inputs that affect result pages reset the preview page',
   C.applyC(heading, { k: 'text' } as Control, 'After');
   expect(C.state.ui.pno).toBe(3);
 });
+
+test('schema cleanup resets only when it changes the active paginator query or source', () => {
+  const { list, category } = fixture();
+  list.props.where = category.id;
+  list.props.op = 'not';
+  list.props.val = 'Accessibility';
+
+  const unrelated = C.collectionAdd('Unrelated');
+  const unrelatedField = C.fieldAdd(unrelated.id, 'Category', 'text')!;
+  C.state.ui.pno = 2;
+  const prepared = C.clone(C.doc());
+  const preparedCollections = C.clone(C.collections());
+  const preparedSource = preparedCollections.find((col) => col.id === list.src)!;
+  preparedSource.fields = preparedSource.fields.filter((field) => field.id !== category.id);
+  C.collectionsReplace(prepared, preparedCollections);
+  expect(C.state.ui.pno).toBe(2);
+
+  const noOp = C.clone(C.collections());
+  C.collectionsReplace(C.doc(), noOp);
+  expect(C.state.ui.pno).toBe(2);
+
+  const withoutUnrelatedField = C.clone(C.collections());
+  const unrelatedCopy = withoutUnrelatedField.find((col) => col.id === unrelated.id)!;
+  unrelatedCopy.fields = unrelatedCopy.fields.filter((field) => field.id !== unrelatedField.id);
+  C.collectionsReplace(C.doc(), withoutUnrelatedField);
+  expect(C.state.ui.pno).toBe(2);
+
+  const withoutFilterField = C.clone(C.collections());
+  const sourceCopy = withoutFilterField.find((col) => col.id === list.src)!;
+  sourceCopy.fields = sourceCopy.fields.filter((field) => field.id !== category.id);
+  C.collectionsReplace(C.doc(), withoutFilterField);
+  expect(list.props.where).toBe('');
+  expect(C.state.ui.pno).toBe(1);
+
+  C.state.ui.pno = 3;
+  const withoutSource = C.clone(C.collections()).filter((col) => col.id !== list.src);
+  C.collectionsReplace(C.doc(), withoutSource);
+  expect(list.src).toBeUndefined();
+  expect(C.state.ui.pno).toBe(1);
+});

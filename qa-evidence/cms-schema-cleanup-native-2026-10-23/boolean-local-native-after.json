@@ -1,0 +1,55 @@
+{
+  "legacySelection": "Custom value (Yes)",
+  "cases": [
+    {
+      "choice": "Yes",
+      "expected": [
+        "Alpha",
+        "Delta"
+      ],
+      "actual": [
+        "Alpha",
+        "Delta"
+      ]
+    },
+    {
+      "choice": "No",
+      "expected": [
+        "Beta",
+        "Epsilon"
+      ],
+      "actual": [
+        "Beta",
+        "Epsilon"
+      ]
+    },
+    {
+      "choice": "Empty value",
+      "expected": [
+        "Gamma"
+      ],
+      "actual": [
+        "Gamma"
+      ]
+    },
+    {
+      "choice": "is not Yes",
+      "expected": [
+        "Beta",
+        "Gamma",
+        "Epsilon"
+      ],
+      "actual": [
+        "Beta",
+        "Gamma",
+        "Epsilon"
+      ]
+    }
+  ],
+  "reloaded": "Yes",
+  "hasValueControls": 0,
+  "textControl": {
+    "textboxes": 1,
+    "comboboxes": 0
+  }
+}

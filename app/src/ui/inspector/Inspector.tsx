@@ -670,6 +670,9 @@ function ShowIf({ n }: { n: PcNode }) {
 
   const cur = n.showIf || null;
   const key = cur ? cur.bind.src + ':' + cur.bind.path : '';
+  const boolField = cur?.bind.src === 'field'
+    ? fields.find(f => f.path === cur.bind.path)?.type === 'bool'
+    : false;
   const sources: [string, string][] = [
     ['', '— Always show —'],
     ...fields.map(f => [`field:${f.path}`, `${f.label} · ${f.type}`] as [string, string]),
@@ -707,9 +710,24 @@ function ShowIf({ n }: { n: PcNode }) {
             {C.COND_OPS.map(([op, label]) => <option key={op} value={op}>{label}</option>)}
           </select>
           {cur.op === 'eq' || cur.op === 'ne' ? (
-            <input aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
-              placeholder="Value to compare"
-              onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
+            boolField ? (() => {
+              const currentValue = cur.value || '';
+              const options: [string, string][] = [['', 'Empty value'], ['1', 'Yes'], ['0', 'No']];
+              if (!options.some(([value]) => value === currentValue)) {
+                options.push([currentValue, `Custom value (${currentValue})`]);
+              }
+              return (
+                <select aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }}
+                  value={currentValue}
+                  onChange={e => write(key, cur.op, (e.target as HTMLSelectElement).value)}>
+                  {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              );
+            })() : (
+              <input aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
+                placeholder="Value to compare"
+                onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
+            )
           ) : null}
         </div>
       ) : null}

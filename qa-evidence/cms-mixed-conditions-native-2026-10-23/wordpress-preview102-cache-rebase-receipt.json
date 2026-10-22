@@ -1,0 +1,51 @@
+{
+  "status": "Root-reviewed exact cache-only private baseline rebase complete; stopped attempt preserved",
+  "changes": [
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2156,
+      "afterRowId": 2159,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792706819,
+      "after": 1792708680
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2157,
+      "afterRowId": 2160,
+      "autoloadExact": true,
+      "valueExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "versionAndEventIdentitiesPayloadsExact": true,
+      "changedEventTimestamps": [
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "delta": 3600,
+          "scheduledInterval": 3600
+        },
+        {
+          "hook": "elementor/tracker/send_event",
+          "delta": 86400,
+          "scheduledInterval": 86400
+        }
+      ]
+    }
+  ],
+  "originalSQLSHA256": "521e6ad0942ca58f75ec2bc42f98e7730fe573bd4ccb54321401aa0480368564",
+  "rebasedSQLSHA256": "4ddc695d5c248b0a0e6a4b19baa9c22c711a78c4636d60dca2adf54de0e70b6e",
+  "protectedSnapshotByteExact": true,
+  "all132NonOptionTablesExact": true,
+  "qa616Version": 43,
+  "revisions": 416,
+  "compiled98FixtureExact": true,
+  "installed101FilesUntouched": true,
+  "allPriorBaselineAndAttemptArtifactsPreserved": true,
+  "databaseWritesPerformed": false,
+  "installerExecuted": false
+}

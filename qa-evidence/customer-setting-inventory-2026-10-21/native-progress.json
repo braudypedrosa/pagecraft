@@ -247,11 +247,10 @@
     }
   ],
   "pending_next_checks": [
-    "Finish WordPress structural-draft Save guard, decoded runtime URL validation and rejected-Save menu isolation, then native saved/failed output proof.",
-    "Mixed Button typography/surface/component changes across Cloud and saved WordPress output, with Update/Detach and responsive overrides.",
-    "Gallery Cloud and saved WordPress host acceptance. Local nine-family coverage exists with explicit limits.",
-    "Follow remaining-native-cases-2026-10-22.json for unverified direct, shared, conditional and composite controls.",
-    "List remaining schema/nested/child conditions and provider boundaries; do not repeat accepted integer/No-wrap cases as open defects."
+    "Follow remaining-native-cases-2026-10-22.json; only named evidence counts as a native pass.",
+    "List/CMS references, deleted providers, active-filter schema removal and entry-driven pagination; do not repeat accepted CMS107 direct filter or nested Bool/Text cases.",
+    "Shared Style and Advanced, Motion and Hover/Focus combinations beyond accepted bounded cases.",
+    "Dynamic component, variant, library and insertion workflows, then full journey/recovery coverage beyond accepted records."
   ],
   "broad_open_areas": [
     "Native control branches and host workflows without named evidence across the24 canonical module types. See remaining-native-cases-2026-10-22.json; static inventory is not a pass.",
@@ -560,14 +559,14 @@
   "current_coverage_record": {
     "inventory": "remaining-native-cases-2026-10-22.json",
     "reconciliationThrough95": "coverage-reconciliation-2026-10-22.json",
-    "latestBoundedCloudAcceptance": 98,
-    "latestWordPressEditorPreview": 98,
+    "latestBoundedCloudAcceptance": 107,
+    "latestWordPressEditorPreview": 102,
     "moduleTypes": 24,
     "directDescriptors": 231,
     "sharedAndConditionalFamilies": "Recorded separately; not included as native passes.",
     "fullQAComplete": false,
-    "latestCloudCommit": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
-    "latestBoundedWordPressAcceptance": "preview98 Gallery stale-cascade bounded D/T/M native acceptance; independent29-check guard passed",
+    "latestCloudCommit": "9595855d62bc83302c19d608a16b402c450a0117",
+    "latestBoundedWordPressAcceptance": "CMS107 package sync, nativeSave/reload/restore, guard29. FullQAopen.",
     "sharedRecovery99": "deployed Cloud99, native WordPresspreview97accepted; Cloudvalidationnotindependentlyforced",
     "genericFoundationArchitecture": "OPEN"
   },
@@ -688,13 +687,70 @@
       "pageVersion34Preserved": true,
       "nextPreview100Pending": true,
       "fullQAComplete": false
+    },
+    "preview100Resolution": {
+      "status": "Bounded native accepted on unchanged WordPress616v34 before any Save",
+      "cloud": "7a996d83a131ba0151404d98a3febb234b8bac17",
+      "wordpress": "2b737d42b67e77b850551c76529aa23db937780a",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/wordpress100-no-resave-recovery.json",
+      "noResaveGuardChecks": 24,
+      "limits": "Failed exact-asset load and lightbox recovery only. Invalid upload and missing reference remain open.",
+      "fullQAComplete": false
     }
   },
   "spacer_percent_editor_preview_parity_104": {
-    "status": "OPEN-confirmed-native",
+    "status": "Bounded deployed Cloud and WordPress100 native accepted",
     "evidence": "qa-evidence/spacing-host-native-2026-10-23/open-percent-height-parity.json",
     "cloudRestoredExact": true,
-    "wordPressTested": false,
-    "fullQAComplete": false
+    "wordPressTested": true,
+    "fullQAComplete": false,
+    "cloudEvidence": "qa-evidence/spacing-host-native-2026-10-23/staging105-acceptance.json",
+    "wordpressEvidence": "qa-evidence/spacing-host-native-2026-10-23/wordpress100-fixed-parent-devices.json",
+    "guardChecks": 26
+  },
+  "custom_select_stale_option_105": {
+    "status": "Bounded native accepted both deployed hosts",
+    "cloud": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+    "rootFullTests": 2737,
+    "skipped": 5,
+    "nativeSharedInteractions": 30,
+    "baselinePng24ByteExact": true,
+    "ab24Passed": true,
+    "evidence": "qa-evidence/custom-select-stale-2026-10-23/acceptance.json",
+    "fullQAComplete": false,
+    "wordpress": "20b9e4b3531c2eb977d6244e6739ac92e6050b4e",
+    "preview": 101,
+    "wordpressGuardChecks": 27
+  },
+  "nested_layout_conditional106": {
+    "status": "Bounded native accepted, both drafts restored",
+    "evidence": "qa-evidence/nested-layout-conditional-native-2026-10-23/acceptance.json",
+    "originalCloudBaseline": "Version1199",
+    "fullQAComplete": false,
+    "wordpressGuardChecks": 28
+  },
+  "cms_mixed_conditions107": {
+    "status": "Bounded Cloud107 and WordPress102 source sync/native Save accepted; fullQA open",
+    "evidence": "qa-evidence/cms-mixed-conditions-native-2026-10-23/local-acceptance.json",
+    "source": "9595855d62bc83302c19d608a16b402c450a0117",
+    "fixes": [
+      "Reset preview page after collection result-shaping edits",
+      "Done on pristine or saved CMS entry/schema form; Cancel while dirty"
+    ],
+    "cases": [
+      "Option/Number/Date filters",
+      "Nested Bool and blank/populated Text conditions",
+      "Saved comparison reload",
+      "Unique repeated nested IDs",
+      "Page3/filter and page2/clear reset"
+    ],
+    "restoration": "All9pages4collections byte-exact native backup",
+    "fullQAComplete": false,
+    "wordpressPostGuard": {
+      "checks": 29,
+      "version": 45,
+      "revisions": 418,
+      "original8AndCompiled98Exact": true
+    }
   }
 }

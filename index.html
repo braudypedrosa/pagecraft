@@ -8173,9 +8173,14 @@ function collectionsReplace(d, next) {
   const removed = removedCollectionFields(before, next);
   const removedCollections = new Set(before.map((col) => col.id));
   next.forEach((col) => removedCollections.delete(col.id));
+  const active = d.meta === state.meta && d.pages === state.pages ? paginatorOf(page()) : null;
+  const activeFields = active ? removed.get(active.col.id) : null;
+  const resetPage = !!active && (removedCollections.has(active.col.id) || !!activeFields?.has(String(active.node.props.sort || "")) || !!activeFields?.has(String(active.node.props.where || "")));
   d.meta.collections = next;
   clearRemovedCollectionReferences(d, removedCollections);
-  return clearListFieldReferences(documentTrees(d), removed);
+  const cleared = clearListFieldReferences(documentTrees(d), removed);
+  if (resetPage) state.ui.pno = 1;
+  return cleared;
 }
 function collectionFieldSettingUsage(colId, fid) {
   let sort = 0, filter = 0;
@@ -16280,12 +16285,18 @@ var PC_UI = (() => {
     for (const page2 of C2.state.pages) {
       if (page2.collection === collectionId && [page2.bindTitle, page2.bindDesc].includes(fieldId))
         affected.add(page2.name + " (SEO)");
-      C2.eachNode(page2.tree, (n2) => {
-        if (Object.values(n2.bind || {}).some(
-          (b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + "."))
-        ))
-          affected.add(page2.name + " / " + C2.nameOf(n2));
-      });
+      const visit = (nodes, inherited = page2.collection || "") => {
+        for (const n2 of nodes) {
+          const declared = n2.src || C2.findComponent(n2.use)?.node.src || "";
+          const source = declared && C2.findCollection(declared) ? declared : inherited;
+          if (source === collectionId && Object.values(n2.bind || {}).some(
+            (b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + "."))
+          ))
+            affected.add(page2.name + " / " + C2.nameOf(n2));
+          visit(n2.children || [], source);
+        }
+      };
+      visit(page2.tree);
     }
     const bindings = affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
     const settings = C2.collectionFieldSettingUsage(collectionId, fieldId);
@@ -23830,6 +23841,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!fields.length && !props.length) return null;
     const cur = n2.showIf || null;
     const key2 = cur ? cur.bind.src + ":" + cur.bind.path : "";
+    const boolField = cur?.bind.src === "field" ? fields.find((f4) => f4.path === cur.bind.path)?.type === "bool" : false;
     const sources = [
       ["", "\u2014 Always show \u2014"],
       ...fields.map((f4) => [`field:${f4.path}`, `${f4.label} \xB7 ${f4.type}`]),
@@ -23871,7 +23883,24 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           e3.target.value,
           cur.value || ""
         ), children: C2.COND_OPS.map(([op, label]) => /* @__PURE__ */ u2("option", { value: op, children: label }, op)) }),
-        cur.op === "eq" || cur.op === "ne" ? /* @__PURE__ */ u2(
+        cur.op === "eq" || cur.op === "ne" ? boolField ? (() => {
+          const currentValue = cur.value || "";
+          const options = [["", "Empty value"], ["1", "Yes"], ["0", "No"]];
+          if (!options.some(([value]) => value === currentValue)) {
+            options.push([currentValue, `Custom value (${currentValue})`]);
+          }
+          return /* @__PURE__ */ u2(
+            "select",
+            {
+              "aria-label": "Value to compare",
+              class: "ctl",
+              style: { marginTop: "var(--gap-1)" },
+              value: currentValue,
+              onChange: (e3) => write(key2, cur.op, e3.target.value),
+              children: options.map(([value, label]) => /* @__PURE__ */ u2("option", { value, children: label }, value))
+            }
+          );
+        })() : /* @__PURE__ */ u2(
           "input",
           {
             "aria-label": "Value to compare",

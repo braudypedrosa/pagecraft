@@ -6419,9 +6419,14 @@ function collectionsReplace(d, next) {
   const removed = removedCollectionFields(before, next);
   const removedCollections = new Set(before.map((col) => col.id));
   next.forEach((col) => removedCollections.delete(col.id));
+  const active = d.meta === state.meta && d.pages === state.pages ? paginatorOf(page()) : null;
+  const activeFields = active ? removed.get(active.col.id) : null;
+  const resetPage = !!active && (removedCollections.has(active.col.id) || !!activeFields?.has(String(active.node.props.sort || "")) || !!activeFields?.has(String(active.node.props.where || "")));
   d.meta.collections = next;
   clearRemovedCollectionReferences(d, removedCollections);
-  return clearListFieldReferences(documentTrees(d), removed);
+  const cleared = clearListFieldReferences(documentTrees(d), removed);
+  if (resetPage) state.ui.pno = 1;
+  return cleared;
 }
 function collectionFieldSettingUsage(colId, fid) {
   let sort = 0, filter = 0;

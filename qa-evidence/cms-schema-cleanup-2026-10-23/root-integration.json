@@ -1,0 +1,57 @@
+{
+  "base": "9595855d62bc83302c19d608a16b402c450a0117",
+  "sources": {
+    "app/src/core/index.ts": "88edce95c8ac1594bb18b83b5584c9f7d1d914b1d7bacf74f1287c54c5efe25f",
+    "app/src/ui/CmsWorkspace.tsx": "9f03dd03116e2559c2128c965605ae2d953be645e1be8dd7520a36a05d2ad582",
+    "app/src/ui/inspector/Inspector.tsx": "575321eb8620bc547b10726625a85a6eaaaa25c7e5b3af33d56a45b3bd10ec20",
+    "tests/list-pagination-reset.test.ts": "79da4fe66e04a48c4eaabc697d1281f63496598add96d4ce09235a312f8900e5",
+    "tests/cms-field-reference-cleanup.test.tsx": "8cef7728c84ed6b306023fe29985236342169fef7de631e3cc338e66d1a8912b",
+    "tests/show-if-boolean-value.test.tsx": "978e3c810a8dfb4c2ae6c5ea4db944eb03d9f7715b0f886a2faa0c08496cac29",
+    "public/internal-ui-baselines/manifest.json": "15d060d8832deda21f2386ac578a4e3d772e7706e4754c0816109db75c570c95"
+  },
+  "generated8IndexOnly": true,
+  "generated10Frozen": {
+    "index.html": "a95ada4e00ebd8a19f74c81f9809edbe1e754daef299e0a9a78702619ecbe22c",
+    "dist/core.cjs": "0167db387d2e65cf2103c540333d4af7b216bf7e822ba5b458fda68cbc9df813",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "a984c1416e867a4da45fb17df8ba8f8473a592a923f2ceb65cabe301a879a287",
+    "packages/editor/dist/runtime.js": "217e1bd7a7b443817d63a2b537a78158d42c18403bf22c9ed5029ded44997997",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "f95e6a752ac23fc887d1726d69cee5cf8373586da1dc6857b68497f56e22c30e"
+  },
+  "protected11Exact": true,
+  "rootSuitePassed": 2750,
+  "skipped": 5,
+  "fullSuiteWorkers": 4,
+  "native30Passed": true,
+  "baseline24BytesUnchanged": true,
+  "nativeSchemaPagination": {
+    "before": [
+      "Gamma",
+      "Delta"
+    ],
+    "after": [
+      "Alpha",
+      "Beta"
+    ],
+    "page": "1"
+  },
+  "nativeBooleanChoices": [
+    "Yes",
+    "No",
+    "Empty value",
+    "is not Yes",
+    "legacy saved value",
+    "reload",
+    "nonbool unchanged"
+  ],
+  "fullQAComplete": false,
+  "independentReview": "No blocking findings; protected11 exact",
+  "knownWarningLimits": [
+    "Dotted terminal field references from another owner collection are not newly enumerated",
+    "Component-definition binding warnings remain existing generic guidance"
+  ]
+}

@@ -4595,9 +4595,20 @@ function collectionsReplace(d: Doc, next: Collection[]) {
   const removed = removedCollectionFields(before, next);
   const removedCollections = new Set(before.map(col => col.id));
   next.forEach(col => removedCollections.delete(col.id));
+  /* A persisted clone is prepared before the live edit. Only the live document owns Preview
+     state, and only cleanup of its active paginator changes which rows occupy each page. */
+  const active = d.meta === state.meta && d.pages === state.pages ? paginatorOf(page()) : null;
+  const activeFields = active ? removed.get(active.col.id) : null;
+  const resetPage = !!active && (
+    removedCollections.has(active.col.id) ||
+    !!activeFields?.has(String(active.node.props.sort || '')) ||
+    !!activeFields?.has(String(active.node.props.where || ''))
+  );
   d.meta.collections = next;
   clearRemovedCollectionReferences(d, removedCollections);
-  return clearListFieldReferences(documentTrees(d), removed);
+  const cleared = clearListFieldReferences(documentTrees(d), removed);
+  if (resetPage) state.ui.pno = 1;
+  return cleared;
 }
 
 function collectionFieldSettingUsage(colId: string, fid: string) {
