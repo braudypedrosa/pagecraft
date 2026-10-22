@@ -92,6 +92,39 @@ test.each(['different id', 'different owner'])('a repaint with a %s cannot reope
   expect(document.querySelector('.pc-custom-select-trigger')!.getAttribute('aria-expanded')).toBe('false');
 });
 
+test.each([
+  ['available', false, false, true],
+  ['disabled', true, false, false],
+  ['removed', false, true, false],
+] as const)('an open popup resolves an %s option from a rebound native select', async (_state, disabled, removed, accepted) => {
+  document.body.innerHTML = '<div><select id="variant" aria-label="Variant"><option value="default">Default</option><option value="subtle">Subtle</option></select></div>';
+  installCustomSelects();
+  await settle();
+  const original = document.querySelector('select')!;
+  const trigger = original.nextElementSibling as HTMLButtonElement;
+  trigger.click();
+  await frame();
+  const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+  const staleButton = menu.querySelector<HTMLButtonElement>('[data-value="subtle"]')!;
+
+  const replacement = original.cloneNode(true) as HTMLSelectElement;
+  const subtle = replacement.querySelector<HTMLOptionElement>('option[value="subtle"]')!;
+  if (disabled) subtle.disabled = true;
+  if (removed) subtle.remove();
+  original.replaceWith(replacement);
+  await settle();
+
+  let inputs = 0, changes = 0;
+  replacement.addEventListener('input', () => inputs++);
+  replacement.addEventListener('change', () => changes++);
+  staleButton.click();
+
+  expect(replacement.value).toBe(accepted ? 'subtle' : 'default');
+  expect([inputs, changes]).toEqual(accepted ? [1, 1] : [0, 0]);
+  expect(menu.hidden).toBe(accepted);
+  expect(trigger.getAttribute('aria-expanded')).toBe(accepted ? 'false' : 'true');
+});
+
 test('choosing a value restores focus after its change handler replaces the same native field', async () => {
   document.body.innerHTML = '<div><select id="variant" aria-label="Variant"><option>Default</option><option>Subtle</option></select></div>';
   installCustomSelects();

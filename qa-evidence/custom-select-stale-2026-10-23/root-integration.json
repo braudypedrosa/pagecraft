@@ -1,0 +1,19 @@
+{
+  "base": "7a996d83a131ba0151404d98a3febb234b8bac17",
+  "source3": {
+    "shared/custom-select.js": "24fa98ca8247ed9bea815c6f2868112e4914d0fac24f256b7f1d962fe9afdf8f",
+    "tests/custom-select-blur-lifecycle.test.ts": "9ce86d3d8a7225e5c4db51ad100e93c9ef4868bda03333bf9ce787853bdc71f4",
+    "public/internal-ui-baselines/manifest.json": "01b5f62397ecde1bf9f0d2f4a43cac0bd73a4d4eba3372152c0002fd39d55860"
+  },
+  "contextChecked": "app/src,shared,editor/src,serverfixtures and namedbuildinputs exact exceptowned",
+  "protected11Exact": true,
+  "generated8IndexOnly": true,
+  "compiler2UnchangedToFrozen7a": true,
+  "rootSuitePassed": 2737,
+  "skipped": 5,
+  "nativeBehavior30Passed": true,
+  "reference24PngBytesUnchanged": true,
+  "ab24Passed": true,
+  "scope": "Stale-select lifecycle only, full QA remains open",
+  "integrationAttempt": "Untracked compiler2 not inGitHEAD; corrected check to prior frozen10 manifest, files unmodified"
+}

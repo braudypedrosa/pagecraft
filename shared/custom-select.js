@@ -212,7 +212,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.2 2.8 2.8 6.2-6.2"/></svg>'
         : '';
       button.append(text, check);
-      button.addEventListener('click', () => choose(record, option));
+      button.addEventListener('click', () => choose(record, optionsForButton(record, button)));
       record.menu.append(button);
     }
   };

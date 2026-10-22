@@ -1,0 +1,29 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/custom-select-stale-7a996d8
+
+ ❯ tests/custom-select-blur-lifecycle.test.ts (8 tests | 1 failed) 447ms
+   × an open popup resolves an available option from a rebound native select 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/custom-select-blur-lifecycle.test.ts > an open popup resolves an available option from a rebound native select
+AssertionError: expected 'default' to be 'subtle' // Object.is equality
+
+Expected: "subtle"
+Received: "default"
+
+ ❯ tests/custom-select-blur-lifecycle.test.ts:122:29
+    120|   staleButton.click();
+    121|
+    122|   expect(replacement.value).toBe(accepted ? 'subtle' : 'default');
+       |                             ^
+    123|   expect([inputs, changes]).toEqual(accepted ? [1, 1] : [0, 0]);
+    124|   expect(menu.hidden).toBe(accepted);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  03:28:47
+   Duration  1.14s (transform 23ms, setup 0ms, import 33ms, tests 447ms, environment 543ms)
