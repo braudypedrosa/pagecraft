@@ -4633,6 +4633,13 @@ var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ 
   }
   return out;
 };
+function listWrapFallback(wrap2) {
+  const nowrap = wrap2 === "nowrap";
+  return `--pc-list-item-shrink:${nowrap ? "0" : "1"};--pc-list-overflow-x:${nowrap ? "auto" : "visible"};--pc-list-min-width:${nowrap ? "0" : "auto"};--pc-list-max-width:${nowrap ? "100%" : "none"};--pc-list-padding:${nowrap ? "8px" : "0"}`;
+}
+function listMayScroll(n) {
+  return [n, ...nodeClasses(n)].some((source) => [source.css, ...Object.values(source.st || {})].some((css) => ["d", "t", "m"].some((b) => css?.[b]?.["flex-wrap"] === "nowrap")));
+}
 function tokenCss() {
   const acc = { d: "", t: "", m: "" };
   styles().forEach((t) => ["d", "t", "m"].forEach((b) => {
@@ -4643,6 +4650,7 @@ function tokenCss() {
     const map = c.css && c.css[b] || {};
     const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    if (map["flex-wrap"]) acc[b] += `.c-${c.id}:where(.pagecraft-list){${listWrapFallback(map["flex-wrap"])}}`;
     const linkDecls = decl({ color: map["--link"] });
     if (linkDecls) acc[b] += `${richTextLinkSelector(`.c-${c.id}`)}{${linkDecls}}`;
     const buttonDecls = decl(buttonVariantDeclarations(map));
@@ -4652,6 +4660,7 @@ function tokenCss() {
       const d = decl(stateMap);
       if (d) {
         acc[b] += `.c-${c.id}${sel}{${d}}`;
+        if (stateMap["flex-wrap"]) acc[b] += `.c-${c.id}${sel}:where(.pagecraft-list){${listWrapFallback(stateMap["flex-wrap"])}}`;
         if (k === "focus") {
           acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
@@ -9263,9 +9272,11 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   }
   if ((n.type === "box" || n.type === "list") && map["flex-wrap"]) {
     rules.push(`${selOf(n)}.${n.type === "box" ? "pagecraft-box" : "pagecraft-list"}{flex-wrap:${map["flex-wrap"]}}`);
+    if (n.type === "list") rules.push(`${selOf(n)}.pagecraft-list{${listWrapFallback(map["flex-wrap"])}}`);
   }
   STATES.forEach(([k, , sel]) => {
     const stateMap = { ...n.st && n.st[k] && n.st[k][b] || {} };
+    if (n.type === "list" && stateMap["flex-wrap"]) rules.push(`${selOf(n)}${sel}{${listWrapFallback(stateMap["flex-wrap"])}}`);
     const imageState = {};
     if (imageNode) for (const prop of IMAGE_CONTENT_STYLE) {
       if (stateMap[prop] === void 0) continue;
@@ -9488,6 +9499,9 @@ img,video,svg{max-width:100%}
 .pagecraft-container.full{max-width:none}
 .pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none;--pc-list-padding:0}
+:where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none);padding:var(--pc-list-padding,0)}
+.pagecraft-list:where(:not(.pagecraft-slider))>:where(*){flex-shrink:var(--pc-list-item-shrink,1)}
 .pagecraft-box{display:block;width:100%;min-width:0;position:relative}
 .pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
 .pagecraft-box.l-grid{display:grid}
@@ -10189,7 +10203,8 @@ function renderNode(n, o) {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
       const reps = rows.map((it, k) => kidz.map((c) => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join("")).join("");
-      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at()} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at()} ${cx("pagecraft-list")}>${reps}</div>`;
+      const scrollRegion = listMayScroll(n) || host && listMayScroll(host) ? ` role="group" aria-label="${esc(lc.name)}" tabindex="0"` : "";
+      const body = p.collectionLayout === "slider" ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at()} ${cx("pagecraft-list pagecraft-slider")} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg("caret", 15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg("caret", 15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>` : `<div ${at()} ${cx("pagecraft-list")}${scrollRegion}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":

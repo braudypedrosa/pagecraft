@@ -1,0 +1,22 @@
+{
+  "position": {
+    "height": 70.375,
+    "marginTop": "0px",
+    "parent": "flex",
+    "parentDirection": "column",
+    "style": null,
+    "whiteSpace": "normal"
+  },
+  "preview": {
+    "client": 363,
+    "height": 70.375,
+    "marginTop": "0px",
+    "overflow": false,
+    "parentWidth": 363,
+    "scroll": 363,
+    "text": "Explore our community workshops and accessibility resources together",
+    "whiteSpace": "normal",
+    "width": 363
+  },
+  "scope": "No tall neighbouring content tested yet; position auto-margin configuration only."
+}

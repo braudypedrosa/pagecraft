@@ -1,0 +1,16 @@
+{
+  "before": {
+    "active": "",
+    "background": "rgb(254, 220, 186)",
+    "color": "rgb(102, 51, 68)"
+  },
+  "after": {
+    "active": "pagecraft-button-mb2wp2lg",
+    "background": "rgb(26, 43, 60)",
+    "color": "rgb(255, 255, 255)",
+    "focus": true,
+    "focusVisible": true,
+    "outline": "rgb(255, 255, 255) solid 3px"
+  },
+  "scope": "Mobile focus colours authored then reload; ArrowRight keyboard focuses Preview anchor without navigation. Hover colour authored/reloaded but actual pointer hover not yet exercised."
+}

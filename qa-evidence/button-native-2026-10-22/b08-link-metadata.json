@@ -1,0 +1,39 @@
+{
+  "rows": [
+    {
+      "kind": "email",
+      "dom": {
+        "href": "mailto:qa@example.invalid",
+        "rel": null,
+        "tag": "A",
+        "target": null
+      }
+    },
+    {
+      "kind": "phone",
+      "dom": {
+        "href": "tel:+1 202 555 0100",
+        "rel": null,
+        "tag": "A",
+        "target": null
+      }
+    },
+    {
+      "kind": "external-newtab",
+      "dom": {
+        "href": "https://example.invalid/qa?from=builder&mode=test#section",
+        "rel": "noopener",
+        "tag": "A",
+        "target": "_blank"
+      }
+    },
+    {
+      "kind": "home-top",
+      "dom": {
+        "href": "index.html",
+        "target": null
+      }
+    }
+  ],
+  "scope": "Email, phone, and external links inspected only. No external apps or pages activated. Internal navigation activation pending."
+}

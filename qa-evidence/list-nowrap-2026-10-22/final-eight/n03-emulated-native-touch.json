@@ -1,0 +1,30 @@
+{
+  "tabId": "2",
+  "before": {
+    "left": 6239,
+    "rect": {
+      "bottom": 619.734375,
+      "height": 116.03125,
+      "left": 20,
+      "right": 383,
+      "top": 503.703125,
+      "width": 363,
+      "x": 20,
+      "y": 503.703125
+    }
+  },
+  "frame": {
+    "bottom": 720,
+    "height": 668,
+    "left": 433,
+    "right": 847,
+    "top": 52,
+    "width": 414,
+    "x": 433,
+    "y": 52
+  },
+  "cleanup": {
+    "touch": {},
+    "cpu": {}
+  }
+}

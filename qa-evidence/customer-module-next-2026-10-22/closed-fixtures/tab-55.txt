@@ -1,0 +1,315 @@
+Browser tab: 55, Title: "Pagecraft Builder", URL: "http://localhost:4988/edit/s1".
+0 AXWebArea Pagecraft Builder, URL: localhost:4988/edit/s1
+	1 container app
+		2 container
+			3 link Description: Pagecraft dashboard, Value: localhost:4988/, ID: brandHome
+			4 container Help: QA UI Foundations — community workshops and accessibility resources · Home, ID: docName
+				5 text QA UI Foundations — community workshops and accessibility resources
+				6 text · Home
+			7 button Description: Sites, Help: Back to sites, ID: sitesBtn
+				8 image
+			9 container devSeg
+				10 checkbox Description: Desktop, Help: Desktop — base styles, Value: 0
+					11 image
+				12 checkbox Description: Tablet, Help: Tablet — override below 1024px, Value: 0
+					13 image
+				14 checkbox Description: Mobile, Help: Mobile — override below 767px, Value: 1
+					15 image
+			16 checkbox Description: Hide side panels, Help: Hide side panels (⌘⇧\), Value: 0, ID: canvasFocusBtn
+			17 button Description: Undo: Change section colour, Help: Undo: Change section colour (⌘Z), ID: undoBtn
+				18 image
+			19 button (disabled) Description: Redo, Help: Redo (⌘⇧Z), ID: redoBtn
+				20 image
+			21 button Description: Help & keyboard shortcuts, ID: helpBtn
+				22 image
+			23 text Draft saved 04:35
+			24 button Description: Site checks: 1 suggestion, ID: reviewBtn
+			25 button Description: Version history, ID: historyBtn
+				26 image
+			27 button Description: Preview your working draft, Help: Preview your working draft (⌘P), ID: previewBtn
+				28 image
+			29 button Description: Client review, ID: clientReviewBtn
+				30 image
+			31 button (disabled) Description: Publish the site before copying a live link, ID: shareBtn
+				32 image
+			33 button Description: Publish this draft, ID: exportBtn
+				34 image
+				35 text Publish
+		36 container Description: Tools, ID: leftRail
+			37 button Add, Help: Add elements
+				38 image
+				39 text Add
+			40 button Navigator
+				41 image
+				42 text Navigator
+			43 button Pages
+				44 image
+				45 text Pages
+			46 button CMS, Help: Content collections
+				47 image
+				48 text CMS
+			49 button Submissions
+				50 image
+				51 text Submissions
+			52 button Proposals
+				53 image
+				54 text Proposals
+			55 button Media, Help: Media library
+				56 image
+				57 text Media
+			58 button Settings, Help: Project settings
+				59 image
+				60 text Settings
+			61 button (collapsed) Account, ID: accountBtn, Secondary Actions: Expand
+		62 container stage
+			63 container modebar
+				64 combo box (collapsed) Description: Current page, Value: Home, Secondary Actions: Expand
+					65 text Home
+				66 button Settings & SEO, Help: Page settings and SEO, ID: pageSettings
+				67 container Selected element path
+					68 button Section, Help: Select Section
+				69 image
+				70 text Mobile override
+			71 container Description: Page canvas, ID: canvas
+				72 AXWebArea about:srcdoc
+					73 container
+						74 image
+						75 text Page content
+						76 container
+							77 heading Community workshops and accessibility resources, Value: 1, ID: qa-ui-heading
+								78 text Community workshops and accessibility resources
+							79 container Description: Workshop registration and accessibility support request, ID: qa-ui-contact
+								80 text Name
+								81 text field (settable) Name, ID: qa-ui-contact-f0
+								82 text Email
+								83 text field (settable) Email
+								84 text Message
+								85 text entry area (settable) Message, ID: qa-ui-contact-f2
+								86 button Send
+					87 container s-hud
+						88 container
+							89 text Section
+							90 button Drag to move
+								91 image
+							92 button Duplicate (⌘D)
+								93 image
+							94 button Delete (⌫)
+								95 image
+							96 button Everything else — or right-click the element
+								97 image
+			98 container dim
+				99 text Mobile
+				100 text 414 PX
+				101 combo box (collapsed) Description: Canvas zoom, Value: Fit · 100%, Secondary Actions: Expand
+					102 text Fit · 100%
+		103 container right
+			104 image
+			105 text Section
+			106 text #pagecraft-section-kc1ik1yer
+			107 button Copy this element's styling (⌘⇧C)
+				108 image
+			109 tab group Inspector section
+				110 tab (selectable, settable, boolean) Content, Value: 0, ID: inspector-tab-content
+				111 tab (selected, settable, boolean) Style, Value: 1, ID: inspector-tab-style
+				112 tab (selectable, settable, boolean) Advanced, Value: 0, ID: inspector-tab-advanced
+			113 container Description: Style, ID: inspector-panel
+				114 text State
+				115 checkbox Resting, Value: 1
+				116 checkbox Hover, Value: 0
+				117 checkbox Focus, Value: 0
+				118 container
+					119 checkbox (settable, integer) Description: Show modified settings, Value: 0
+					120 text Show modified settings
+				121 button Reset mobile changes
+				122 button (expanded) Styling, Secondary Actions: Collapse
+					123 image
+					124 text Styling
+				125 container pc-disclosure-19
+					126 checkbox This element, Help: Style this element only, Value: 1
+					127 combo box (collapsed) Description: Style, Value: Add a class…, Secondary Actions: Expand
+						128 text Add a class…
+				129 button (expanded) Spacing, Secondary Actions: Collapse
+					130 image
+					131 text Spacing
+				132 container pc-disclosure-20
+					133 container Padding
+						134 container
+							135 text Padding
+							136 button Clear Mobile override for Padding
+								137 image
+							138 container Description: Mobile override. Use the device badge to clear it and inherit Tablet values where set, then Desktop., ID: inspector-field-39-scope
+								139 text Override
+						140 stepper (settable, integer) Description: Padding top, Value: 48, ID: inspector-field-39-1-0
+						141 stepper (settable, integer) Description: Padding right, Value: 20, ID: inspector-field-39-1-1
+						142 stepper (settable, integer) Description: Padding bottom, Value: 48, ID: inspector-field-39-1-2
+						143 stepper (settable, integer) Description: Padding left, Value: 20, ID: inspector-field-39-1-3
+						144 combo box (collapsed) Description: Padding unit, Value: px, Secondary Actions: Expand
+							145 text px
+					146 container Margin
+						147 container
+							148 text Margin
+							149 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-40-scope
+								150 text Inherited
+						151 stepper (settable) Description: Margin top, ID: inspector-field-40-1-0
+						152 stepper (settable) Description: Margin right, ID: inspector-field-40-1-1
+						153 stepper (settable) Description: Margin bottom, ID: inspector-field-40-1-2
+						154 stepper (settable) Description: Margin left, ID: inspector-field-40-1-3
+						155 combo box (collapsed) Description: Margin unit, Value: px, Secondary Actions: Expand
+							156 text px
+				157 button (expanded) Background, Secondary Actions: Collapse
+					158 image
+					159 text Background
+				160 container pc-disclosure-21
+					161 container Colour
+						162 container
+							163 text Colour
+							164 button Clear Mobile override for Colour
+								165 image
+							166 container Description: Mobile override. Use the device badge to clear it and inherit Tablet values where set, then Desktop., ID: inspector-field-41-scope
+								167 text Override
+						168 pop up button (collapsed) Description: Pick a colour, Secondary Actions: Expand
+						169 text field (settable) Colour, Value: #3361cc, ID: inspector-field-41-0-1-0
+						170 button Clear
+							171 image
+						172 button Body text
+						173 button Page background
+						174 button Craft Green
+						175 button Ink
+						176 button Slate (on Paper)
+						177 button Slate (on Ink)
+						178 button Slate (brand)
+						179 button Hairline
+						180 button White
+						181 button Save this colour as a new token
+							182 image
+					183 container Image
+						184 container
+							185 text Image
+							186 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-42-scope
+								187 text Inherited
+						188 button Upload an image
+							189 text Drop an image here
+							190 text or choose a file
+						191 button Upload
+							192 image
+							193 text Upload
+						194 button Library, Help: Pick from the Media library
+							195 image
+							196 text Library
+					197 container Size
+						198 container
+							199 text Size
+							200 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-43-scope
+								201 text Inherited
+						202 combo box (collapsed) Description: Size, Value: Default, Secondary Actions: Expand
+							203 text Default
+					204 container Position
+						205 container
+							206 text Position
+							207 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-44-scope
+								208 text Inherited
+						209 checkbox Description: Left, Value: 0
+							210 image
+						211 checkbox Description: Centre, Value: 0
+							212 image
+						213 checkbox Description: Right, Value: 0
+							214 image
+						215 checkbox Description: Top, Value: 0
+							216 image
+						217 checkbox Description: Bottom, Value: 0
+							218 image
+					219 container Repeat
+						220 container
+							221 text Repeat
+							222 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-45-scope
+								223 text Inherited
+						224 combo box (collapsed) Description: Repeat, Value: Default, Secondary Actions: Expand
+							225 text Default
+				226 button (expanded) Border & shadow, Secondary Actions: Collapse
+					227 image
+					228 text Border & shadow
+				229 container pc-disclosure-22
+					230 container
+						231 text Border edge
+						232 button Border edge help
+					233 container Border edge
+						234 checkbox All, Value: 1
+						235 checkbox Top, Value: 0
+						236 checkbox Right, Value: 0
+						237 checkbox Bottom, Value: 0
+						238 checkbox Left, Value: 0
+					239 container All style
+						240 container
+							241 text All style
+							242 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-46-scope
+								243 text Inherited
+						244 combo box (collapsed) Description: All style, Value: Inherit, Secondary Actions: Expand
+							245 text Inherit
+					246 container All width
+						247 container
+							248 text All width
+							249 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-47-scope
+								250 text Inherited
+						251 stepper (settable) Description: All width value, ID: inspector-field-47-0-0
+						252 combo box (collapsed) Description: All width unit, Value: px, Secondary Actions: Expand
+							253 text px
+					254 container All colour
+						255 container
+							256 text All colour
+							257 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-48-scope
+								258 text Inherited
+						259 pop up button (collapsed) Description: Pick a colour, Secondary Actions: Expand
+						260 text field (settable) All colour, ID: inspector-field-48-0-1-0
+						261 button Clear
+							262 image
+						263 button Body text
+						264 button Page background
+						265 button Craft Green
+						266 button Ink
+						267 button Slate (on Paper)
+						268 button Slate (on Ink)
+						269 button Slate (brand)
+						270 button Hairline
+						271 button White
+						272 button Save this colour as a new token
+							273 image
+					274 container Radius
+						275 container
+							276 text Radius
+							277 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-49-scope
+								278 text Inherited
+						279 stepper (settable) Description: Radius value, ID: inspector-field-49-0-0
+						280 combo box (collapsed) Description: Radius unit, Value: px, Secondary Actions: Expand
+							281 text px
+					282 container Shadow
+						283 container
+							284 text Shadow
+							285 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-50-scope
+								286 text Inherited
+						287 combo box (collapsed) Description: Shadow, Value: Default, Secondary Actions: Expand
+							288 text Default
+				289 button (expanded) Motion, Secondary Actions: Collapse
+					290 image
+					291 text Motion
+				292 container pc-disclosure-23
+					293 text When it changes
+					294 container Transition
+						295 container
+							296 text Transition
+							297 button Transition help
+						298 combo box (collapsed) Description: Transition, Value: Default, Secondary Actions: Expand
+							299 text Default
+					300 text When it enters the view
+					301 container
+						302 text Animation
+						303 button Animation help
+					304 combo box (collapsed) Description: Animation, Value: — none —, Secondary Actions: Expand
+						305 text — none —
+			306 button Duplicate
+				307 image
+				308 text Duplicate
+			309 button Delete
+				310 image
+				311 text Delete
+
+The focused UI element is 68 button Section, Help: Select Section

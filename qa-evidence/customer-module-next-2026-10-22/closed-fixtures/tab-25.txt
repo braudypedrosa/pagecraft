@@ -1,0 +1,6 @@
+Browser tab: 25, Title: "Pagecraft Builder", URL: "http://localhost:4972/edit/s1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 70, 77
++									80 text “ A <sample> &
++										81 text — Current workshop
+The focused UI element is 14 checkbox Description: Mobile, Help: Mobile — override below 767px, Value: 1

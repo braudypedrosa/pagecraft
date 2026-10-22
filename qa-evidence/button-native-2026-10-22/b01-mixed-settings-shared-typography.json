@@ -1,0 +1,107 @@
+{
+  "servedBase": "33ed365 source-equivalent frozen88 preparedHTML on4991",
+  "buttons": [
+    {
+      "label": "QA action source",
+      "variant": "Solid",
+      "id": "nmb2wp2lg"
+    },
+    {
+      "label": "QA action peer",
+      "variant": "Outline",
+      "id": "nmbo6o5fc"
+    },
+    {
+      "label": "QA action override",
+      "variant": "Text link",
+      "id": "nmbou56ab"
+    },
+    {
+      "label": "QA unrelated action",
+      "variant": "Ghost",
+      "id": "nmbphg7px"
+    }
+  ],
+  "beforeShareSettled": [
+    {
+      "background": "rgb(254, 220, 186)",
+      "colour": "rgb(18, 52, 86)",
+      "id": "nmb2wp2lg",
+      "padding": "16px 24px",
+      "radius": "12px",
+      "size": "22px",
+      "weight": "700"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(17, 19, 17)",
+      "id": "nmbo6o5fc",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "weight": "600"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(17, 19, 17)",
+      "id": "nmbou56ab",
+      "padding": "0px",
+      "radius": "0px",
+      "size": "26px",
+      "weight": "600"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(17, 19, 17)",
+      "id": "nmbphg7px",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    }
+  ],
+  "afterConfirm": [
+    {
+      "background": "rgb(254, 220, 186)",
+      "colour": "rgb(18, 52, 86)",
+      "id": "nmb2wp2lg",
+      "label": "QA action source",
+      "padding": "16px 24px",
+      "radius": "12px",
+      "size": "22px",
+      "weight": "700"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(18, 52, 86)",
+      "id": "nmbo6o5fc",
+      "label": "QA action peer",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "22px",
+      "weight": "700"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(18, 52, 86)",
+      "id": "nmbou56ab",
+      "label": "QA action override",
+      "padding": "0px",
+      "radius": "0px",
+      "size": "26px",
+      "weight": "700"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "colour": "rgb(17, 19, 17)",
+      "id": "nmbphg7px",
+      "label": "QA unrelated action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    }
+  ],
+  "cancelPeersUnchanged": true,
+  "scope": "Mixed direct typography/surface edits, cancel then confirm. Explicit26pxpeer size override and unrelatedBody style negativecontrol. Sourcebackground readimmediatelybeforefirstdialog was stale; settled readshown. No componentinstance/WP/responsive/detach/linkacceptanceyet."
+}

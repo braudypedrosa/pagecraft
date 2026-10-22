@@ -230,7 +230,7 @@
   "release85": {
     "cloud": "218f115",
     "wordpress": "e334d57",
-    "status": "accepted bounded Cloud/WordPress release; candidate86 local typing fix was subsequently found and remains uncommitted/local",
+    "status": "Accepted bounded release; real character-typing regression subsequently fixed and accepted in release86.",
     "verification": "2,606 tests passed, 5 skipped; 30 gallery interactions and 24 screenshot comparisons with zero changed pixels",
     "limits": [
       "This overlay records release identity and bounded native continuation only; it does not promote full customer QA or production readiness.",
@@ -244,11 +244,12 @@
     "scope": "Native typing/focused-selection/save-reload/responsive output accepted; exact restoration; frontend screenshot visual limit recorded."
   },
   "release87_candidate": {
-    "scope": "Named Colour picker dialog and outside-pointer destination focus. Local native6/6, Escape3/3, keyboard/reload;2615tests5skip;30gallery24zero. Pending staging/WP acceptance."
+    "scope": "Named Colour picker dialog and outside-pointer destination focus. Local native6/6, Escape3/3, keyboard/reload;2615tests5skip;30gallery24zero. Pending staging/WP acceptance.",
+    "status": "Historical local checkpoint; superseded by release87_accepted."
   },
   "accordion_motion_partial": {
     "evidence": "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json",
-    "scope": "All26preset computed public animation names;transitionpresets/custom output;shared timing reloadall3;reset removes runtimeattrs. No physicaldevice/trajectory/performance/reducedmotion/scroll-onceproof. Invalidtiming silentpersist reproduced; separateMotion88candidateunaccepted."
+    "scope": "All26preset computed public animation names; transition presets/custom output; shared timing reloadall3; reset removes runtimeattrs. No physicaldevice/trajectory/performance/reducedmotion/scroll-onceproof. Invalid timing persistence reproduced here was fixed and accepted separately in release88."
   },
   "release87_accepted": {
     "cloud": "3c30b1b8f50577a4e7fdadcd0298ad2e414af7b4",
@@ -257,6 +258,34 @@
     "scope": "Namedpicker/focus nativeD/T/M accepted; stagingHistory1089 unchanged20IDs; WordPressall133tablesexact326revisions."
   },
   "release88_candidate": {
-    "scope": "MotionDuration/Delay/Easing validation,draftidentity,actualUndo/Redo,validmodernCSS/reload.2620tests5skip,30interactions24zero. Localaccepted; deploymentpending."
+    "scope": "MotionDuration/Delay/Easing validation,draftidentity,actualUndo/Redo,validmodernCSS/reload.2620tests5skip,30interactions24zero. Localaccepted; deploymentpending.",
+    "status": "Historical local checkpoint; superseded by release88_accepted."
+  },
+  "release88_accepted": {
+    "cloud": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "cloud_ci": 39677292833,
+    "cloud_deploy": 39677292780,
+    "wordpress": "71056129ace3c4055c9ab3f9cf6cf1f9883f07e1",
+    "wordpress_preview": "0.2.17-preview.20261022.88",
+    "wordpress_ci": 39680348483,
+    "evidence": "qa-evidence/motion-validation-2026-10-22/post-deploy/task-close.md",
+    "scope": "Bounded Motion draft validation, valid timing save/reload/output at three breakpoints, fixture restoration and WordPress SQL/archive guards accepted. WordPress final Version73/revisions332; six new paired revision rows610-615 all parent487. Production untouched."
+  },
+  "button_partial": {
+    "evidence": "qa-evidence/button-native-2026-10-22/task-close.md",
+    "cases": "B01-B13",
+    "scope": "Current88 local native mixed typography/local surface values; Cancel/Update, responsive clears/reload, detach/Undo/Redo,16variant/icon combinations, alignment, long label, column position, link metadata/authored anchor activation, actual focus/pointer hover, two reusable component instances. Bounded cases only; host parity and other combinations open."
+  },
+  "list_nowrap_current_failure": {
+    "source": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/before-native.json",
+    "scope": "Fresh native Collection18published items; Mobile nowrap stored in css.m, card width about1.28px, page403/405 horizontal overflow. Isolated fix and acceptance in progress.",
+    "status": "Confirmed88 defect; isolated final8px local acceptance passed, not yet deployed."
+  },
+  "release89_candidate": {
+    "status": "Local bounded accepted8px; integration and deployment pending.",
+    "scope": "List No-wrap readable local scrolling and Preview keyboard ownership.2634pass5skip;30gallery interactions and24matching captures. Fresh Desktop215/215 and Mobile101/101, no page overflow, finalcard reachable; Slider, responsive clear and authored padding pass.",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/final-eight/acceptance.json",
+    "remaining": "Cloud exact deployment/native and WordPress pin/guard acceptance. Physical touch unverified. Fourteen broad QA areas remain open."
   }
 }

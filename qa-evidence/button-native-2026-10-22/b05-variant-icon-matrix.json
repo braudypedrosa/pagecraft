@@ -1,0 +1,166 @@
+{
+  "device": "Mobile",
+  "rows": [
+    {
+      "variant": "Solid",
+      "icon": "None",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "solid",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 0,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Solid",
+      "icon": "Arrow",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "solid",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Solid",
+      "icon": "Check",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "solid",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Solid",
+      "icon": "Plus",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "solid",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Outline",
+      "icon": "None",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "outline",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 0,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Outline",
+      "icon": "Arrow",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "outline",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Outline",
+      "icon": "Check",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "outline",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Outline",
+      "icon": "Plus",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "outline",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Ghost",
+      "icon": "None",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "ghost",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 0,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Ghost",
+      "icon": "Arrow",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "ghost",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Ghost",
+      "icon": "Check",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "ghost",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Ghost",
+      "icon": "Plus",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "ghost",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Text link",
+      "icon": "None",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "link",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 0,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Text link",
+      "icon": "Arrow",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "link",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Text link",
+      "icon": "Check",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "link",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    },
+    {
+      "variant": "Text link",
+      "icon": "Plus",
+      "background": "rgb(254, 220, 186)",
+      "dataVariant": "link",
+      "iconsHidden": true,
+      "radius": "12px",
+      "svgs": 1,
+      "text": "QA action source"
+    }
+  ],
+  "scope": "All4variants×4icons editorDOM; visible name stable, customauthoredsurface retained. No claimallresponsive/state combinations."
+}

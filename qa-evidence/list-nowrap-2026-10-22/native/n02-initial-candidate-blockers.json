@@ -1,0 +1,12 @@
+{
+  "keyboard": {
+    "method": "Playwright focused group ArrowRight, then native Right key",
+    "result": 0,
+    "expected": "positive local horizontal scroll"
+  },
+  "verticalScrollbar": {
+    "clientHeight": 85,
+    "scrollHeight": 89
+  },
+  "scope": "Initial candidate is rejected pending Preview key ownership and ink padding correction."
+}

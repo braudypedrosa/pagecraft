@@ -1,0 +1,10 @@
+---
+
++++
+
+@@ -19,2 +19,2 @@
+
+-.pagecraft-root .pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none}
+-.pagecraft-root :where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none)}
++.pagecraft-root .pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none;--pc-list-padding:0}
++.pagecraft-root :where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none);padding:var(--pc-list-padding,0)}

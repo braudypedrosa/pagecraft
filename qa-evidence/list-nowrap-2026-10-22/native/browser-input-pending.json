@@ -1,0 +1,15 @@
+{
+  "status": "Native acceptance pending; browser input failure not yet classified as product vs automation",
+  "tab": "65",
+  "url": "http://localhost:4993/edit/s1",
+  "observations": [
+    "Collection/Mobile clicks via locator, native accessible and ordinary CDP pointer had no visible effect.",
+    "Deployed staging History click also opened no dialog.",
+    "Fresh Gallery66 Start processing click also had no effect.",
+    "No console errors observed.",
+    "Cua kernel reset/reinventory/reconnect and temporary browser presentation did not recover input.",
+    "Browser presentation restored to false; gallery66 closed;65 preserved."
+  ],
+  "mutations": "Search filter only; Collection was not inserted. No native final validation has passed.",
+  "performance": "No CPU throttling, network/cache/touch/media/viewport emulation enabled in this continuation."
+}

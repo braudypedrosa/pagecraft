@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "requestedWidth": 1280,
+      "animation": "1.2s steps(2) -0.1s forwards bpFadeIn",
+      "delay": "-100ms",
+      "duration": "1200ms",
+      "easing": "steps(2, end)",
+      "overflow": false,
+      "width": 1280
+    },
+    {
+      "requestedWidth": 768,
+      "animation": "1.2s steps(2) -0.1s forwards bpFadeIn",
+      "delay": "-100ms",
+      "duration": "1200ms",
+      "easing": "steps(2, end)",
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "requestedWidth": 414,
+      "animation": "1.2s steps(2) -0.1s forwards bpFadeIn",
+      "delay": "-100ms",
+      "duration": "1200ms",
+      "easing": "steps(2, end)",
+      "overflow": false,
+      "width": 414
+    }
+  ],
+  "cleanup": {
+    "tabId": "63",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "before": {
+    "client": 363,
+    "html": "<div id=\"pagecraft-collection-list-vh9vn1o3\" class=\"pagecraft-list pagecraft-slider pagecraft-vh9vn1o3\" data-slides=\"\" role=\"group\" aria-label=\"Community workshops, events and accessibility resources\" tabindex=\"0\"><div id=\"pagecraft-column-vh9vn2em-workshop-2\" class=\"pagecraft-column pagecraft-vh9vn2em\"><h2 id=\"pagecraft-heading-vhaqs4g8-workshop-2\" class=\"pagecraft-heading pagecraft-vhaqs4g8 ts-title\">2. Community workshop and accessibility review for local teams</h2></div><div id=\"pagecraft-column-vh9vn2em-workshop-3\" class=\"pagecraft-column pagecraft-vh9vn2em\"><h2 id=\"pagecraft-heading-vhaqs4g8-workshop-3\" class=\"pagecraft-heading pagecraft-vhaqs4g8 ts-title\">3. Community workshop and accessibility review for local teams</h2></div><div id=\"pagecraft-column-vh9vn2em-workshop-5\" class=\"pagecraft-column pagecraft-vh9vn2em\"><h2 id=\"pagecraft-heading-vhaqs4g8-workshop-5\" class=\"pagecraft-heading pagecraft-vhaqs4g8 ts-title\">5. Community workshop and accessibility review for local teams</h2></div><div id=\"pagecraft-column-vh9vn2em-workshop-6\" class=\"pagecraft-column pagecraft-vh9vn2em\"><h2 id=\"pagecraft-heading-vhaqs4g8-workshop-6\" class=\"pagecraft-heading pagecraft-vhaqs4g8 ts-title\">6. Community workshop and accessibility review for local teams</h2></div><div id=\"pagecraft-column-vh9vn2em-workshop-8\" class=\"pagecraft-column pagecraft-vh9vn2em\"><h2 id=\"pagecraft-heading-vhaqs4g8-workshop-8\" class=\"pagecraft-heading pagecraft-vhaqs4g8 ts-title\">8. Community workshop and accessibility review for local teams</h2></div><div id=\"pagecraft-column-vh9vn2em-workshop-9\" class=\"pagecra",
+    "overflowX": "auto",
+    "padding": "0px",
+    "pageScroll": 403,
+    "pageWidth": 403,
+    "scroll": 6874
+  },
+  "afterNext": {
+    "activeDots": [
+      {
+        "current": "true",
+        "name": "Go to carousel position 2 of 18"
+      }
+    ],
+    "first": 363,
+    "left": 383
+  },
+  "afterArrow": {
+    "left": 766,
+    "padding": "0px",
+    "pageOverflow": false
+  }
+}

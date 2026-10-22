@@ -1,0 +1,3 @@
+Browser tab: 64, Title: "Pagecraft Builder", URL: "http://localhost:4992/edit/s1".
+There has been no change in the accessibility tree.
+The focused UI element is 52 container Description: Community workshops, events and accessibility resources, ID: pagecraft-collection-list-qozl0194

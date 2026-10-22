@@ -1,0 +1,98 @@
+{
+  "method": "Read-only GET of loopback fictional server persisted document after native UI authoring. No API mutation or browser hidden state used.",
+  "version": 74,
+  "node": {
+    "id": "no4hv48d5",
+    "type": "list",
+    "props": {
+      "collectionLayout": "grid",
+      "sort": "",
+      "dir": "asc",
+      "where": "",
+      "op": "is",
+      "limit": ""
+    },
+    "css": {
+      "d": {
+        "gap": "24px",
+        "align-items": "stretch",
+        "flex-wrap": "wrap"
+      },
+      "t": {},
+      "m": {
+        "gap": "20px",
+        "flex-wrap": "wrap"
+      }
+    },
+    "hide": {},
+    "cls": [],
+    "adv": {
+      "htmlId": "",
+      "cls": "",
+      "css": ""
+    },
+    "children": [
+      {
+        "id": "no4hv49x8",
+        "type": "column",
+        "props": {},
+        "css": {
+          "d": {
+            "flex-grow": "100",
+            "--pc-column-v-align": "follow",
+            "align-items": "stretch",
+            "gap": "16px",
+            "flex-basis": "280px"
+          },
+          "t": {},
+          "m": {
+            "flex-basis": "100%"
+          }
+        },
+        "hide": {},
+        "cls": [],
+        "adv": {
+          "htmlId": "",
+          "cls": "",
+          "css": ""
+        },
+        "children": [
+          {
+            "id": "no6r0eb2n",
+            "type": "heading",
+            "props": {
+              "text": "A headline that carries weight",
+              "level": "h2",
+              "link": "",
+              "target": "",
+              "ts": "title"
+            },
+            "css": {
+              "d": {
+                "text-align": "left",
+                "margin-bottom": "0px"
+              },
+              "t": {},
+              "m": {}
+            },
+            "hide": {},
+            "cls": [],
+            "adv": {
+              "htmlId": "",
+              "cls": "",
+              "css": ""
+            },
+            "children": [],
+            "bind": {
+              "text": {
+                "src": "field",
+                "path": "title"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "src": "qa-ui-events"
+  }
+}

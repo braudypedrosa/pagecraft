@@ -1,0 +1,10 @@
+{
+  "tablet": {
+    "size": "18px"
+  },
+  "mobile": {
+    "colour": "rgb(102, 51, 68)",
+    "size": "16px"
+  },
+  "expectation": "Clearing local overrides returns named Buttonlabel responsive Tablet18/Mobile16colour663344, preserving current sharedstylevalues."
+}

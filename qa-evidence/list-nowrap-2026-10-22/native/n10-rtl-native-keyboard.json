@@ -1,0 +1,23 @@
+{
+  "initialInvalidSyntax": {
+    "input": "direction: rtl;",
+    "direction": "ltr",
+    "note": "Raw Custom CSS expects & { ... }; no mutation by evaluator."
+  },
+  "start": {
+    "client": 363,
+    "direction": "rtl",
+    "left": 0,
+    "pageOverflow": false,
+    "scroll": 6738
+  },
+  "afterArrow": {
+    "client": 363,
+    "direction": "rtl",
+    "height": 93,
+    "left": -40,
+    "pageOverflow": false,
+    "scroll": 6738,
+    "scrollHeight": 93
+  }
+}

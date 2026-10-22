@@ -1,0 +1,9 @@
+{
+  "before": 6239,
+  "after": {
+    "left": 4959,
+    "max": 6239,
+    "pageOverflow": false
+  },
+  "note": "Native horizontal wheel. Touch event dispatch unsupported by built-in browser; no touch acceptance claim."
+}

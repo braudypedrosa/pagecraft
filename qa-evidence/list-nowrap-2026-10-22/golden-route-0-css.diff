@@ -1,0 +1,9 @@
+---
+
++++
+
+@@ -18,0 +19,3 @@
+
++.pagecraft-root .pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none}
++.pagecraft-root :where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none)}
++.pagecraft-root .pagecraft-list:where(:not(.pagecraft-slider))>:where(*){flex-shrink:var(--pc-list-item-shrink,1)}

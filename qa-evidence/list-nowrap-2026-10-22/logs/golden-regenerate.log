@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365
+
+
+ Test Files  1 passed (1)
+      Tests  30 passed (30)
+   Start at  07:15:11
+   Duration  746ms (transform 261ms, setup 0ms, import 338ms, tests 288ms, environment 0ms)

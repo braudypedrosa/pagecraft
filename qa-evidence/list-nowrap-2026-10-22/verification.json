@@ -1,0 +1,246 @@
+{
+  "baseCommit": "33ed365303df0f7723de9e6c7c236f3865300145",
+  "status": "Final8px local bounded acceptance passed; Main/Cloud staging/WordPress acceptance pending. Earlier HOLD and4px records are historical.",
+  "source": [
+    "app/src/core/index.ts",
+    "builder.html"
+  ],
+  "tests": [
+    "tests/list-nowrap-scroll.test.ts",
+    "tests/preview-keyboard-scope.test.mjs"
+  ],
+  "scope": [
+    "Private CSS fallback variables mirror actual responsive/class/state flex-wrap cascade for Lists only.",
+    "Ordinary Grid Lists use low-priority local overflow/min/max and direct-child shrink fallback; authored overflow/flex/basis values retain precedence.",
+    "List defaults reset inherited private variables, avoiding nested-list policy leakage. Slider selectors are excluded.",
+    "Grid Lists with potential nowrap in node/class/definition/instance styling expose a named keyboard-focusable group; no stored-data migration."
+  ],
+  "checks": {
+    "red": {
+      "exitCode": 1,
+      "testsFailed": 6,
+      "testsPassed": 2,
+      "evidence": "logs/red.log",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "focused": {
+      "exitCode": 0,
+      "files": 4,
+      "testsPassed": 670,
+      "evidence": "logs/focused.log",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck.log"
+    },
+    "diff": "pass",
+    "designDetector": {
+      "exitCode": 2,
+      "findings": 1,
+      "classification": "Pre-existing escaped-image example in a source comment, confirmed at HEAD line5403; no new UI finding.",
+      "evidence": "logs/design-detector.json"
+    },
+    "finalTypecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck-final.log",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "failedFilesRetest": {
+      "exitCode": 0,
+      "files": 4,
+      "testsPassed": 79,
+      "evidence": "logs/failed-files-retest.log",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "fullFinalPreNative": {
+      "exitCode": 0,
+      "filesPassed": 251,
+      "filesSkipped": 2,
+      "testsPassed": 2630,
+      "testsSkipped": 5,
+      "durationSeconds": 114.21,
+      "maxWorkers": 2,
+      "evidence": "logs/full-final-pre-native.log",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "determinism": {
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "golden": {
+      "result": "Root reviewed/accepted official regeneration: List CSS changes and derived hashes/signatures only; route HTML/entities/schema/assets unchanged.",
+      "evidence": "golden-semantic-review.json",
+      "candidatePhase": "Initial candidate; historical evidence, subsequently rejected by native geometry/Preview keyboard checks."
+    },
+    "audit": {
+      "exitCode": 1,
+      "moderateEntries": 2,
+      "scope": "Unchanged development dependency Vitest4.1.11/@vitest/mocker; new advisories GHSA-qxg6-89mg-rqv8 and GHSA-xp26-3454-mjgp, fix4.1.12. Root explicitly deferred to separate item; no dependency changes here.",
+      "evidence": "logs/audit.json"
+    },
+    "combinedFull": {
+      "exitCode": 1,
+      "testsPassed": 2633,
+      "testsSkipped": 5,
+      "testsFailed": 1,
+      "filesPassed": 251,
+      "filesSkipped": 2,
+      "durationSeconds": 124.44,
+      "onlyFailure": "Expected reviewed baseline source gate for builder.html",
+      "evidence": "logs/combined-full.log",
+      "candidatePhase": "Current combined padding plus root-owned Preview keyboard guard.",
+      "result": "Not green: 2633 passed, 1 expected reviewed-builder source failure, 5 skipped. No other failures."
+    },
+    "combinedDeterminism": {
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "combined-generated-build-1.sha256",
+        "combined-generated-build-2.sha256"
+      ],
+      "buildExitCodes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "candidatePhase": "Current combined candidate; both receipts and current files verified exact during hold."
+    },
+    "finalFull": {
+      "passed": 2634,
+      "skipped": 5,
+      "exitCode": 0,
+      "evidence": "final-eight/npm-test-final.log"
+    }
+  },
+  "hashes": {
+    "app/src/core/index.ts": "196c3111e19b6461013aa1f109acb7c7dc1eb499b27626ecf1e1aede798b88f1",
+    "tests/list-nowrap-scroll.test.ts": "beb7ac3c8b54af4476fca2ee0773186c51dc75d7d87d095b690288f312e5ea52",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "d19e2d12419453a59754fa9de82fa3743d8c41bb0a8ab3ad68853bc251b61506",
+    "builder.html": "0105c182c2c585e614cc1fa892c6b80fbc8f7e853f1584f48096b731de4299f8",
+    "tests/preview-keyboard-scope.test.mjs": "95f2f9f1ce93462274f31af7bb097f0f4bbc4d3732e66264781d933725bbf90d"
+  },
+  "fixtureContract": "Factory List card retains Desktop280px/Tablet inherited basis, Mobile100% and grow100; only default shrink changes when nowrap policy is active. Authored shrink overrides win.",
+  "limits": [
+    "jsdom has no geometry or CSS-variable resolution. Tests inspect compiled active media cascade and private variables separately, not actual card widths.",
+    "Native keyboard/touch scroll, first/last card reachability, page overflow, RTL, and vertical focus/shadow clipping remain root acceptance gates.",
+    "Potential-nowrap lists may retain one keyboard stop at a wider wrapping breakpoint; no runtime media focus toggling added.",
+    "Explicit overflow visible opts out of containment; hidden/clip remain authored behavior.",
+    "Custom CSS that sets flex-wrap outside supported node/class/state model is not detected for the fallback or keyboard metadata; custom authored overflow is preserved.",
+    "No browser, Main, commits/push/deployment by worker. Fresh native geometry remains required.",
+    "Direct Wrap rule shape retained for compatibility; class-focus and component-wrapper coverage added before final builds."
+  ],
+  "remaining": [
+    "Guarded Main integration and source/index review.",
+    "Exact Cloud staging deployment and native acceptance.",
+    "WordPress portable Core pin/guard and representative native acceptance.",
+    "Fourteen broad QA areas remain open; physical touch unverified."
+  ],
+  "historicalFailures": [
+    "First full run: old exact Wrap-rule CSS assertion failed; preserved original standalone rule and emitted vars separately, focused retest passes.",
+    "First full run: expected signed WordPress golden changed after new List CSS; explicitly regenerated using official flag, semantically reviewed and accepted by root.",
+    "First full run: gateway-db beforeAll timed out at10s,14cases skipped. Failed-file retest79passes and subsequent whole suite2630passes; initial failure retained."
+  ],
+  "newCases": 10,
+  "freeze": {
+    "entries": 19,
+    "manifest": "source-tests-assets.sha256",
+    "sha256": "3b5ef1b8f7822632314d416e6fc4ce978d01283d4e4e595e46ebec9f6d6ad1ba",
+    "includes": "Core/List test/golden/root-owned builder/Preview keyboard test/source contract/baseline/lock and11generated artifacts",
+    "holdVerification": {
+      "entries": 19,
+      "sourceAndArtifactDrift": [],
+      "generatedArtifacts": 11,
+      "bothBuildReceiptsEqual": true,
+      "currentArtifactsMatchReceipts": true,
+      "sourceManifestSha256": "3b5ef1b8f7822632314d416e6fc4ce978d01283d4e4e595e46ebec9f6d6ad1ba",
+      "receipt": "hold-verification.json"
+    }
+  },
+  "harness": {
+    "url": "http://localhost:4993/edit/s1",
+    "pid": 15912,
+    "sessionId": 17568,
+    "path": "tools/.qa-ui-4993.mjs",
+    "provenance": "Committed tools/qa-ui.mjs with port-only4944\u21924993 replacement; fresh fictional fixture, no state injection, started only after final builds.",
+    "servedProof": "served-ui-combined-receipt.json",
+    "servedAsset": "28cb7e4b966868dabcaf1c080f68e9638694d9578f46f350a2082bbe2ba088aa",
+    "preserve": true,
+    "status": "Preserved on HOLD; PID15912 command and candidate cwd reverified, no restart or mutation."
+  },
+  "paddingFollowup": {
+    "scope": "Add4px all-side No-wrap fallback via fifth private variable; Wrap resets0. Zero-specificity padding preserves explicit0, individual sides and class padding.",
+    "red": {
+      "failed": 3,
+      "passed": 8,
+      "evidence": "logs/padding-red.log"
+    },
+    "focused": {
+      "files": 4,
+      "passed": 40,
+      "exitCode": 0,
+      "evidence": "logs/padding-focused.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/padding-typecheck.log"
+    },
+    "golden": {
+      "exitCode": 0,
+      "evidence": "padding-golden-semantic-review.json",
+      "cssByteDeltas": [
+        53,
+        73,
+        73,
+        73
+      ],
+      "otherArtifactFieldsUnchanged": true
+    }
+  },
+  "rootOwnedFollowup": {
+    "source": "builder.html",
+    "test": "tests/preview-keyboard-scope.test.mjs",
+    "scope": "Root-reviewed Preview key interception fix, implemented by separate worker; combined freeze must include it."
+  },
+  "harnessHistory": [
+    {
+      "url": "http://localhost:4992/edit/s1",
+      "pid": 88212,
+      "sessionId": 66551,
+      "path": "tools/.qa-ui-4992.mjs",
+      "provenance": "Committed tools/qa-ui.mjs copied with port-only4944 to4992 substitution, fresh fictional default fixture and no injected state; started only after final builds.",
+      "servedProof": "served-ui-receipt.json",
+      "preserve": true,
+      "status": "Old4992 stopped after root closed native64; PID88212 command and cwd verified before TERM, no listener. Root will author new fixture on fresh4993 after final pair."
+    }
+  ],
+  "nativeAcceptance": {
+    "initialCandidate": {
+      "result": "Rejected, not accepted.",
+      "proof": [
+        "native/n01-native-reload-output.json",
+        "native/n02-initial-candidate-blockers.json",
+        "native/initial-candidate-mobile-blockers.png"
+      ],
+      "observed": "Readable nonshrinking cards fixed the1px collapse, but heading ink produced a4px vertical overflow/scrollbar and Preview intercepted ArrowRight.",
+      "historicalReceipts": "initial-candidate/"
+    },
+    "combinedCandidate": {
+      "result": "Pending; no successful final geometry or keyboard acceptance recorded.",
+      "limitations": "Root reported automation clicks had no effect on final65 Collection/Mobile controls, deployed staging History and fresh gallery66 Start (processing), without console errors. Cua reset/reinventory did not recover input. Manual user diagnostic pending; do not classify this as a Core regression or accepted final behavior.",
+      "sourceOfStatus": "Direct root report, not worker browser execution.",
+      "actualProofAvailable": "Initial candidate only; no final accepted screenshot or gallery baseline."
+    },
+    "finalEight": {
+      "result": "Local bounded pass",
+      "evidence": "final-eight/acceptance.json"
+    }
+  },
+  "authoritativeFinal": "final-eight/acceptance.json"
+}

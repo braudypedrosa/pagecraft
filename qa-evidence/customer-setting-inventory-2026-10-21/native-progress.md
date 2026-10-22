@@ -19,3 +19,11 @@ No synthetic row promotion was made. Representative values remain representative
 Collection list L01–L08 is in progress. Initial native source/binding and empty/no-source reload evidence is local; it is not full List acceptance. Release83 exact commits and evidence are recorded in native-progress.json.
 
 Release86 accepted on Cloud2aedc6d and WordPress5deb391 with exact fixture restoration; bounded native evidence is in integer-typing/post-deploy. Release87 colour dialog semantics and outside-focus fix is local verified, pending deployment acceptance. Accordion Motion now has all26 computed preset names, transition presets/custom output, shared timing reload at three breakpoints and reset proof. Silent invalid timing persistence is a reproduced open bug under separate Motion88 work. Fourteen broad QA areas remain open; no full-QA or production-readiness claim.
+
+## Current continuation checkpoint — 22 October 2026
+
+The preceding candidate-only checkpoint is historical. Releases86,87 and88 now have bounded deployed Cloud and installed WordPress acceptance. Release88 is Cloud `33ed365` and WordPress `71056129` (preview88); see [its final acceptance record](../motion-validation-2026-10-22/post-deploy/task-close.md). Motion invalid drafts no longer persist, and accepted fixtures were restored.
+
+Button B01–B13 adds current88 local native mixed-setting, typography, responsive reset, detachment/history, variants/icons, alignment, wrapping, position, links, actual focus/hover and two-component-instance evidence. This remains bounded local coverage. Generated-ID anchor-picker labels remain an open UX inconsistency. See [current case scope](../customer-module-next-2026-10-22/continuation-coverage.md).
+
+A fresh current88 Collection List test confirms Mobile No wrap collapses18 cards to about1.28px and creates page overflow. A List-only scrolling fix is under isolated validation. None of these updates closes the fourteen broad areas above or establishes production readiness.

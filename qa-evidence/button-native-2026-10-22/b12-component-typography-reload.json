@@ -1,0 +1,248 @@
+{
+  "rows": [
+    {
+      "device": "Desktop",
+      "buttons": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "22px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-mb2wp3kw",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-mb2wp3kw",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "24px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "22px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-oxskxhvp",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-oxskxhvp",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "24px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        }
+      ],
+      "page": {
+        "scroll": 1269,
+        "width": 1269
+      }
+    },
+    {
+      "device": "Tablet",
+      "buttons": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "18px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-mb2wp3kw",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-mb2wp3kw",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "18px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "18px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-oxskxhvp",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-oxskxhvp",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "18px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        }
+      ],
+      "page": {
+        "scroll": 823,
+        "width": 823
+      }
+    },
+    {
+      "device": "Mobile",
+      "buttons": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-mb2wp3kw",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-mb2wp3kw",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "15px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-mb2wp3kw",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "19px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjd4w-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "text": "QA action peer",
+          "weight": "700"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjewp-oxskxhvp",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "text": "QA action override",
+          "weight": "500"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "id": "pagecraft-button-oxbgjfua-oxskxhvp",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "15px",
+          "text": "QA unrelated action",
+          "weight": "400"
+        },
+        {
+          "bg": "rgb(254, 220, 186)",
+          "id": "pagecraft-button-oxbgjg4f-oxskxhvp",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "19px",
+          "text": "Explore our community workshops and accessibility resources together",
+          "weight": "500"
+        }
+      ],
+      "page": {
+        "scroll": 403,
+        "width": 403
+      }
+    }
+  ],
+  "scope": "Native saved Column component + second instance, component definition source Mobile size19, shared typography2uses, Done, reload, publicall3. Definition count2 distinct styled Buttons; two renderedinstances each."
+}

@@ -1,0 +1,28 @@
+{
+  "rootVerified": true,
+  "manifestSHA256": "3b5ef1b8f7822632314d416e6fc4ce978d01283d4e4e595e46ebec9f6d6ad1ba",
+  "entries": 19,
+  "files": [
+    "app/src/core/index.ts",
+    "tests/list-nowrap-scroll.test.ts",
+    "server/tests/fixtures/wordpress-artifact-v1.json",
+    "tools/ui-gallery-contract.mjs",
+    "public/internal-ui-baselines/manifest.json",
+    "package-lock.json",
+    "builder.html",
+    "tests/preview-keyboard-scope.test.mjs",
+    "app/src/core/public-form-controls.generated.ts",
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "nativeAcceptance": "pending browser input recovery",
+  "release": "not committed, pushed or deployed"
+}

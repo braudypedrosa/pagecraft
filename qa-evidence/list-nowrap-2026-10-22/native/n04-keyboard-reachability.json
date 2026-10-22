@@ -1,0 +1,33 @@
+{
+  "rows": [
+    {
+      "action": "ArrowRight",
+      "value": {
+        "left": 40,
+        "top": 0
+      }
+    },
+    {
+      "action": "85 ArrowRight",
+      "value": {
+        "left": 3439,
+        "max": 6375,
+        "page": 0,
+        "top": 0
+      }
+    },
+    {
+      "action": "85 further ArrowRight",
+      "value": {
+        "first": "2. Community workshop and accessibility review for local teams",
+        "last": "27. Community workshop and accessibility review for local teams",
+        "lastVisible": true,
+        "left": 6375,
+        "max": 6375,
+        "page": 0,
+        "top": 0
+      }
+    }
+  ],
+  "note": "Native ArrowRight reaches middle and last card. End keeps browser default behavior; not claimed as a List-specific shortcut."
+}

@@ -1,0 +1,14 @@
+[
+  "/artifact/routes/0/css",
+  "/artifact/routes/0/sourceHash",
+  "/artifact/routes/1/css",
+  "/artifact/routes/1/sourceHash",
+  "/artifact/routes/2/css",
+  "/artifact/routes/2/sourceHash",
+  "/artifact/routes/3/css",
+  "/artifact/routes/3/sourceHash",
+  "/desired/deployment/envelope",
+  "/desired/deployment/signature",
+  "/desired/release/manifest",
+  "/desired/release/signature"
+]

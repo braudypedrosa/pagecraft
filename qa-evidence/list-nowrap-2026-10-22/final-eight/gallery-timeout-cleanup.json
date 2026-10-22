@@ -1,0 +1,7 @@
+{
+  "tabId": "3",
+  "cpu": {},
+  "viewport": {},
+  "media": {},
+  "cause": "Helper called with root URL rather than full /internal/components base; selector timeout, not product failure. No CPU throttling enabled."
+}

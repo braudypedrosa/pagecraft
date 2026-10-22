@@ -1,0 +1,75 @@
+{
+  "changedFields": [
+    "/artifact/routes/0/css",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/css",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/css",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/css",
+    "/artifact/routes/3/sourceHash",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/desired/release/manifest",
+    "/desired/release/signature"
+  ],
+  "routes": [
+    {
+      "index": 0,
+      "cssByteDelta": 53,
+      "headAndBodyHtmlUnchanged": true,
+      "diff": "padding-golden-route-0.diff"
+    },
+    {
+      "index": 1,
+      "cssByteDelta": 73,
+      "headAndBodyHtmlUnchanged": true,
+      "diff": "padding-golden-route-1.diff"
+    },
+    {
+      "index": 2,
+      "cssByteDelta": 73,
+      "headAndBodyHtmlUnchanged": true,
+      "diff": "padding-golden-route-2.diff"
+    },
+    {
+      "index": 3,
+      "cssByteDelta": 73,
+      "headAndBodyHtmlUnchanged": true,
+      "diff": "padding-golden-route-3.diff"
+    }
+  ],
+  "unchangedArtifactSections": [
+    "format",
+    "releaseId",
+    "siteId",
+    "sourceVersion",
+    "schemaVersion",
+    "rendererVersion",
+    "shared",
+    "redirects",
+    "entities",
+    "forms",
+    "cms",
+    "assets"
+  ],
+  "decodedEnvelopeChanges": {
+    "release": [
+      "/artifactBytes",
+      "/artifactHash",
+      "/files/0/bytes",
+      "/files/0/hash",
+      "/files/1/bytes",
+      "/files/1/hash",
+      "/files/2/bytes",
+      "/files/2/hash",
+      "/files/3/bytes",
+      "/files/3/hash"
+    ],
+    "deployment": [
+      "/artifactHash",
+      "/releaseManifestHash"
+    ]
+  },
+  "result": "Only the fifth No-wrap padding variable/default/consumer CSS and dependent route hashes/signatures change versus accepted first candidate."
+}

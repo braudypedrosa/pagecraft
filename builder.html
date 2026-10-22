@@ -7938,6 +7938,10 @@ function hotkey(e) {
   /* some synthetic and assistive input stacks omit `key`; `code` still names
      the physical key, which is enough for the navigation set */
   const k = (e.key || '').toLowerCase() || (e.code || '').toLowerCase();
+  /* Preview content owns its keyboard: arrows, activation, deletion, and history keys
+     must stay in the rendered page instead of mutating the hidden editor model. Keep
+     the explicit Preview/save shortcuts available to return to the editor or save. */
+  if (document.body.classList.contains('preview') && !(meta && (k === 'p' || k === 's'))) return;
   /* Native controls own activation and navigation keys. Let Enter/Space reach their
      default action instead of entering canvas text editing or moving its selection. */
   if (!meta && t.closest?.('button,summary,a[href],[role="button"],[role="combobox"],[role="listbox"]')) return;

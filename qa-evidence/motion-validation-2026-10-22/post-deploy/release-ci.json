@@ -1,0 +1,16 @@
+[
+  {
+    "conclusion": "success",
+    "databaseId": 39677292833,
+    "headSha": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "status": "completed",
+    "url": "https://github.com/braudypedrosa/pagecraft/actions/runs/39677292833"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 39677292780,
+    "headSha": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "status": "completed",
+    "url": "https://github.com/braudypedrosa/pagecraft/actions/runs/39677292780"
+  }
+]

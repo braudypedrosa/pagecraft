@@ -1,0 +1,254 @@
+Browser tab: 40, Title: "Pagecraft Builder", URL: "http://localhost:4978/edit/s1".
+1 AXWebArea Pagecraft Builder, URL: localhost:4978/edit/s1
+	2 container app
+		3 container
+			4 link Description: Pagecraft dashboard, Value: localhost:4978/, ID: brandHome
+			5 container Help: QA UI Foundations — community workshops and accessibility resources · Home, ID: docName
+				6 text QA UI Foundations — community workshops and accessibility resources
+				7 text · Home
+			8 button Description: Sites, Help: Back to sites, ID: sitesBtn
+				9 image
+			10 container devSeg
+				11 checkbox Description: Desktop, Help: Desktop — base styles, Value: 0
+					12 image
+				13 checkbox Description: Tablet, Help: Tablet — override below 1024px, Value: 0
+					14 image
+				15 checkbox Description: Mobile, Help: Mobile — override below 767px, Value: 1
+					16 image
+			17 checkbox Description: Hide side panels, Help: Hide side panels (⌘⇧\), Value: 0, ID: canvasFocusBtn
+			18 button Description: Undo: Change list content, Help: Undo: Change list content (⌘Z), ID: undoBtn
+				19 image
+			20 button (disabled) Description: Redo, Help: Redo (⌘⇧Z), ID: redoBtn
+				21 image
+			22 button Description: Help & keyboard shortcuts, ID: helpBtn
+				23 image
+			24 text Draft saved 01:00
+			25 button Description: Site checks: no problems found, ID: reviewBtn
+			26 button Description: Version history, ID: historyBtn
+				27 image
+			28 button Description: Preview your working draft, Help: Preview your working draft (⌘P), ID: previewBtn
+				29 image
+			30 button Description: Client review, ID: clientReviewBtn
+				31 image
+			32 button (disabled) Description: Publish the site before copying a live link, ID: shareBtn
+				33 image
+			34 button Description: Publish this draft, ID: exportBtn
+				35 image
+				36 text Publish
+		37 container Description: Tools, ID: leftRail
+			38 button Add, Help: Add elements
+				39 image
+				40 text Add
+			41 button Navigator
+				42 image
+				43 text Navigator
+			44 button Pages
+				45 image
+				46 text Pages
+			47 button CMS, Help: Content collections
+				48 image
+				49 text CMS
+			50 button Submissions
+				51 image
+				52 text Submissions
+			53 button Proposals
+				54 image
+				55 text Proposals
+			56 button Media, Help: Media library
+				57 image
+				58 text Media
+			59 button Settings, Help: Project settings
+				60 image
+				61 text Settings
+			62 button (collapsed) Account, ID: accountBtn, Secondary Actions: Expand
+		63 container stage
+			64 container modebar
+				65 combo box (collapsed) Description: Current page, Value: Home, Secondary Actions: Expand
+					66 text Home
+				67 button Settings & SEO, Help: Page settings and SEO, ID: pageSettings
+				68 container Selected element path
+					69 button Section, Help: Select Section
+					70 button Collection list, Help: Select Collection list
+				71 image
+				72 text Mobile override
+			73 container Description: Page canvas, ID: canvas
+				74 AXWebArea about:srcdoc
+					75 container
+						76 image
+						77 text Page content
+						78 container
+							79 heading Community workshops and accessibility resources, Value: 1, ID: qa-ui-heading
+								80 text Community workshops and accessibility resources
+							81 container Description: Workshop registration and accessibility support request, ID: qa-ui-contact
+								82 text Name
+								83 text field (settable) Name, ID: qa-ui-contact-f0
+								84 text Email
+								85 text field (settable) Email
+								86 text Message
+								87 text entry area (settable) Message, ID: qa-ui-contact-f2
+								88 button Send
+						89 container ncpbaj1xq
+							90 heading 2. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su
+								91 text 2. Community workshop and accessibility review for local teams
+							92 heading 3. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-3
+								93 text 3. Community workshop and accessibility review for local teams
+							94 heading 5. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-5
+								95 text 5. Community workshop and accessibility review for local teams
+							96 heading 6. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-6
+								97 text 6. Community workshop and accessibility review for local teams
+							98 heading 8. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-8
+								99 text 8. Community workshop and accessibility review for local teams
+							100 heading 9. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-9
+								101 text 9. Community workshop and accessibility review for local teams
+							102 heading 11. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-11
+								103 text 11. Community workshop and accessibility review for local teams
+							104 heading 12. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-12
+								105 text 12. Community workshop and accessibility review for local teams
+							106 heading 14. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-14
+								107 text 14. Community workshop and accessibility review for local teams
+							108 heading 15. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-15
+								109 text 15. Community workshop and accessibility review for local teams
+							110 heading 17. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-17
+								111 text 17. Community workshop and accessibility review for local teams
+							112 heading 18. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-18
+								113 text 18. Community workshop and accessibility review for local teams
+							114 heading 20. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-20
+								115 text 20. Community workshop and accessibility review for local teams
+							116 heading 21. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-21
+								117 text 21. Community workshop and accessibility review for local teams
+							118 heading 23. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-23
+								119 text 23. Community workshop and accessibility review for local teams
+							120 heading 24. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-24
+								121 text 24. Community workshop and accessibility review for local teams
+							122 heading 26. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-26
+								123 text 26. Community workshop and accessibility review for local teams
+							124 heading 27. Community workshop and accessibility review for local teams, Value: 2, ID: ncpc4y4su-workshop-27
+								125 text 27. Community workshop and accessibility review for local teams
+					126 container s-hud
+						127 container
+							128 text Collection list
+							129 button Drag to move
+								130 image
+							131 button Select parent (esc)
+								132 image
+							133 button Duplicate (⌘D)
+								134 image
+							135 button Delete (⌫)
+								136 image
+							137 button Everything else — or right-click the element
+								138 image
+			139 container dim
+				140 text Mobile
+				141 text 414 PX
+				142 combo box (collapsed) Description: Canvas zoom, Value: Fit · 100%, Secondary Actions: Expand
+					143 text Fit · 100%
+		144 container right
+			145 image
+			146 text Collection list
+			147 text #pagecraft-collection-list-cpbaj1xq
+			148 button Copy this element's styling (⌘⇧C)
+				149 image
+			150 button Select parent (esc)
+				151 image
+			152 tab group Inspector section
+				153 tab (selected, settable, boolean) Content, Value: 1, ID: inspector-tab-content
+				154 tab (selectable, settable, boolean) Style, Value: 0, ID: inspector-tab-style
+				155 tab (selectable, settable, boolean) Advanced, Value: 0, ID: inspector-tab-advanced
+			156 container Description: Content, ID: inspector-panel
+				157 button (expanded) Collection list, Secondary Actions: Collapse
+					158 image
+					159 text Collection list
+				160 container pc-disclosure-6
+					161 container Layout
+						162 container
+							163 text Layout
+							164 button Connect a CMS field
+								165 image
+						166 combo box (collapsed) Description: Layout, Value: Grid, Secondary Actions: Expand
+							167 text Grid
+					168 container Sort by
+						169 container
+							170 text Sort by
+							171 button Connect a CMS field
+								172 image
+						173 combo box (collapsed) Description: Sort by, Value: CMS order, Secondary Actions: Expand
+							174 text CMS order
+					175 container Direction
+						176 container
+							177 text Direction
+							178 button Connect a CMS field
+								179 image
+						180 checkbox A–Z, Value: 1
+						181 checkbox Z–A, Value: 0
+					182 container Filter
+						183 container
+							184 text Filter
+							185 button Connect a CMS field
+								186 image
+						187 combo box (collapsed) Description: Filter, Value: Every item, Secondary Actions: Expand
+							188 text Every item
+					189 container Items per page
+						190 container
+							191 text Items per page
+							192 button Items per page help
+							193 button Connect a CMS field
+								194 image
+						195 stepper (settable) Description: Items per page value, ID: inspector-field-10-0-0
+						196 combo box (collapsed) Description: Items per page unit, Value: —, Secondary Actions: Expand
+							197 text —
+					198 container Show at most
+						199 container
+							200 text Show at most
+							201 button Show at most help
+							202 button Connect a CMS field
+								203 image
+						204 stepper (settable) Description: Show at most value, ID: inspector-field-11-0-0
+						205 combo box (collapsed) Description: Show at most unit, Value: —, Secondary Actions: Expand
+							206 text —
+					207 container Vertical align
+						208 container
+							209 text Vertical align
+							210 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-12-scope
+								211 text Inherited
+						212 checkbox Description: Top, Value: 0
+							213 image
+						214 checkbox Description: Middle, Value: 0
+							215 image
+						216 checkbox Description: Bottom, Value: 0
+							217 image
+						218 checkbox Base, Value: 0
+						219 checkbox Fill, Value: 1
+					220 container Gap
+						221 container
+							222 text Gap
+							223 button Clear Mobile override for Gap
+								224 image
+							225 container Description: Mobile override. Use the device badge to clear it and inherit Tablet values where set, then Desktop., ID: inspector-field-13-scope
+								226 text Override
+						227 stepper (settable, integer) Description: Gap value, Value: 20, ID: inspector-field-13-0-0
+						228 combo box (collapsed) Description: Gap unit, Value: px, Secondary Actions: Expand
+							229 text px
+					230 container Collection
+						231 container
+							232 text Collection
+							233 button Collection help
+						234 combo box (collapsed) Description: Collection, Value: Community workshops, events and accessibility resources · 27 items, Secondary Actions: Expand
+							235 text Community workshops, events and accessibility resources · 27 items
+						236 button Bind the fields inside…
+							237 image
+							238 text Bind the fields inside…
+					239 container Wrap
+						240 container
+							241 text Wrap
+							242 container Description: Inherited from Tablet where set, then Desktop. Editing creates a Mobile override., ID: inspector-field-15-scope
+								243 text Inherited
+						244 combo box (collapsed) Description: Wrap, Secondary Actions: Expand
+							245 text Wrap
+			246 button Duplicate
+				247 image
+				248 text Duplicate
+			249 button Delete
+				250 image
+				251 text Delete
+
+The focused UI element is 1 AXWebArea Pagecraft Builder, URL: localhost:4978/edit/s1

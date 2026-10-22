@@ -1,0 +1,79 @@
+{
+  "changedFields": [
+    "/artifact/routes/0/css",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/css",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/css",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/css",
+    "/artifact/routes/3/sourceHash",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/desired/release/manifest",
+    "/desired/release/signature"
+  ],
+  "routes": [
+    {
+      "index": 0,
+      "path": "/",
+      "cssByteDelta": 440,
+      "htmlUnchanged": true,
+      "diff": "golden-route-0-css.diff"
+    },
+    {
+      "index": 1,
+      "path": "/nested/about",
+      "cssByteDelta": 599,
+      "htmlUnchanged": true,
+      "diff": "golden-route-1-css.diff"
+    },
+    {
+      "index": 2,
+      "path": "/nested/about/page-2",
+      "cssByteDelta": 599,
+      "htmlUnchanged": true,
+      "diff": "golden-route-2-css.diff"
+    },
+    {
+      "index": 3,
+      "path": "/nested/about/page-3",
+      "cssByteDelta": 599,
+      "htmlUnchanged": true,
+      "diff": "golden-route-3-css.diff"
+    }
+  ],
+  "unchangedArtifactSections": [
+    "format",
+    "releaseId",
+    "siteId",
+    "sourceVersion",
+    "schemaVersion",
+    "rendererVersion",
+    "shared",
+    "redirects",
+    "entities",
+    "forms",
+    "cms",
+    "assets"
+  ],
+  "decodedEnvelopeChanges": {
+    "release": [
+      "/artifactBytes",
+      "/artifactHash",
+      "/files/0/bytes",
+      "/files/0/hash",
+      "/files/1/bytes",
+      "/files/1/hash",
+      "/files/2/bytes",
+      "/files/2/hash",
+      "/files/3/bytes",
+      "/files/3/hash"
+    ],
+    "deployment": [
+      "/artifactHash",
+      "/releaseManifestHash"
+    ]
+  },
+  "result": "Artifact schema/document/entities/assets/HTML unchanged; route CSS List fallback additions and dependent route hashes/signed envelope fields only."
+}

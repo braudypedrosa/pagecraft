@@ -1,0 +1,35 @@
+{
+  "accepted": true,
+  "tables": 133,
+  "exactTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "changedExistingPostIds": [
+    "487"
+  ],
+  "newRevisionIds": [
+    "610",
+    "611",
+    "612",
+    "613",
+    "614",
+    "615"
+  ],
+  "allNewRevisionParents487": true,
+  "priorRevisionsAndMetadataExact": 326,
+  "optionsTimestampOnly": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data"
+  ],
+  "documentedOptionRowIdentityChanges": {
+    "_elementor_design_system_sync_css_meta": [
+      "1983",
+      "1989"
+    ]
+  },
+  "finalSqlSHA256": "28ee6aecdc945ac0421fff021a7392dc43c05f7ae7f6f9a624954302a30aab20",
+  "native": "Root WP88 Motion invalidlinkederror, Save/reloadDurationblank provesinvalidnotpersisted. Valid1200ms/-100ms/steps2end fieldsreloadDesktopTabletMobile; actualfrontend1280/768/414 attrs/computed1.2ssteps2 -0.1s/nooverflow. Readable414x900frontend andeditorMobilevalidation independentlyviewed. History70 restores11exactIDsSaveDisablederrors0. Threeversionadvances create6pairedrevisionrows610\u2013615,allparent487;prior326exact."
+}

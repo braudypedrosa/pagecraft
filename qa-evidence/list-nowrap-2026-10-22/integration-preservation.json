@@ -1,0 +1,247 @@
+{
+  "base": "33ed365303df0f7723de9e6c7c236f3865300145",
+  "protectedWorkingBytes": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "all11Preserved": true,
+  "method": "Generated8 staged index-only from final8px reviewed frozen candidate. No Main build or working artifact overwrite.",
+  "normalizedLogs": [
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/final-eight/npm-test-final.log",
+      "original": "de9aebef0ba97869988e9ae8b9193dd2fbe4bc193fcef2cf51ae29df5de84df4",
+      "normalized": "f158bb092641ef878a0465ab2f2071570f82f56941b1c462ed8babf1eeec96ba"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/full-pre-native.log",
+      "original": "372cf6cccf7312f441df176fd7559c3f9da237b7bce9954b487fda7571983311",
+      "normalized": "2a992dfff032b34f1b7095f57418bd1057f266909b38da58276431c42d590cc0"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/padding-red.log",
+      "original": "73027a97f9957d7ffa2f3f4f7406e1853cb328c7d7dd3be386dd9e6417172c6d",
+      "normalized": "9ffa3686f65be575e57f1ced46f7a6be43d9359316f7ff690935e545cfdf09ce"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/padding-golden-regenerate.log",
+      "original": "5b7f1ed6b731af03acc6532fd57fb56a04eed0e64ec83442851947183898d482",
+      "normalized": "7c9188058ce64415e9c58983e7d020fd05522f23a161cae55178635d67fed744"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/typecheck-final.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/full-final-pre-native.log",
+      "original": "7b6a046e7c5d97db3e5b57b0fbf671f9ae83fe4c43f03451abd58adf9e3961b6",
+      "normalized": "b216746231afa68f5031a7d0199ce3efc8a9582cca428a39277f6655ce533fcc"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/red.log",
+      "original": "73ed750465ab2a8385b73f7a50abcca9abb465ee8debe197cc0c77eb1473dfe2",
+      "normalized": "4412566d8d7a7d5fce6b53baa916a346541e325395df45fa9b4920e8b6d7c15c"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/padding-typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/focused-final.log",
+      "original": "d34c133f802ad0af0d36c3776ec174a6d714beab7bc49c3384ecb831919ee8d5",
+      "normalized": "b92111dd051e7483d5d72d8cd925d4a19470f22c55aedb7ca49e9ea435295b1a"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/green.log",
+      "original": "d58b5bb2a6ae0bea6b24c592d00133482bb9f98495e2188078c3eaa73b6ce4e5",
+      "normalized": "7c926e6fdb64f1c1da105aceca101621ef1c7f888ed4843870b680b911095179"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/combined-full.log",
+      "original": "633c9335b1f3781815352cb51d0debb85ec36cb380c2d289cd09b6a07008d7f1",
+      "normalized": "720e984d31b76582239280d665f3a0f43c42e57a6e397946ac18cb06716d4595"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/state-focused.log",
+      "original": "8e7ac31a6ed10e1c0dca83000a712e37c218cd26a63a77ab101124dc0f40cfca",
+      "normalized": "ac6577b15cff53b6affbcc4195c890641435ff6fe046f3a2e32de633de8120f5"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/golden-regenerate.log",
+      "original": "b466338f66d7d43e1c909720596a60ae953446626ce882651c492285e3afcb4c",
+      "normalized": "358f896786bd166217af6bb30fa82e0e20760baa0972113d65262b1b38797481"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/padding-focused.log",
+      "original": "fbb0ecbf47d22b614ee5d89c8a6759d7c3a0541c7e1857b4973c80d973b57b04",
+      "normalized": "abe196e7769725ded0ad0aaf9154d2642de7274ba1ad1c90f378cfa9f461628b"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/failed-files-retest.log",
+      "original": "dc930c234f853083764735a3cab8a08967f1e36c279ec63257ad229c97221a33",
+      "normalized": "fc430a92327ed1a127b8a96dc24f59ed61c87563df5dde258c05c498d95ee69f"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/logs/focused.log",
+      "original": "fb68e05d7a647addb24674266b73f4c0ab3b8c732a457c6cd4332bfb4df0bfd7",
+      "normalized": "bf96dfa626a0989237e8346b7043521027c7081300b2d0ab7577d948b766d0b5"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/initial-candidate/full-pre-native.log",
+      "original": "372cf6cccf7312f441df176fd7559c3f9da237b7bce9954b487fda7571983311",
+      "normalized": "2a992dfff032b34f1b7095f57418bd1057f266909b38da58276431c42d590cc0"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/initial-candidate/full-final-pre-native.log",
+      "original": "7b6a046e7c5d97db3e5b57b0fbf671f9ae83fe4c43f03451abd58adf9e3961b6",
+      "normalized": "b216746231afa68f5031a7d0199ce3efc8a9582cca428a39277f6655ce533fcc"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/logs/red.log",
+      "original": "4ed69da0d4bc3d4595a1e33e43dc6e567853d93995bf06236361d626508550f9",
+      "normalized": "67581c1ce74319dab27c9e54609fff29e7404925341dbc45ffe0e2edaaa0d1b9"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/logs/golden-regenerate.log",
+      "original": "4158efc43381bf82ae2572c5868398fbf6fd6a0daf4ada73a478a7bc937c0d92",
+      "normalized": "1574cdf4b3fedfe7a4d61e028b580b812a1af19d6e990c665c912dcec2d35c94"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/logs/focused.log",
+      "original": "6f23d993c0c7758faf05aa901ba8c9dc20cb42778b42192e613da1b3935655ed",
+      "normalized": "4bea862e2f1185e8439819bbc025054b09eefc7f7a52549440198fc6455b9e03"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/button-checklist.md",
+      "original": "564570597d6fa124f05671568d3c0d1e8349372aeb68fbee3a6049d49de01d9f",
+      "normalized": "73ccdeff08a6a0e5983e77bb856d458f1d05bc5386e3abd2973caa4697579292"
+    }
+  ],
+  "generatedSHA256": {
+    "index.html": "6c7eef68df1b95b27d6d69f3fbb7156c6f8feb931d2d89003bf181f5ced39aec",
+    "dist/core.cjs": "f665cf91d601c7cf325a4d7b7ad01c24b1b58a43477ea8ee60ed226a436764f9",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "6bb4e7c5e1c6938d285e1b6ebfbbe4457a75fca4265d3efa51a8a2c23a52529e",
+    "packages/editor/dist/runtime.js": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "e4e876037cd9e84b6624bb984d0587d5fc848956f81016e095e221054586339f",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "173e5a7af4eec7c9c939653a7557105c329965e9b608078fffaefaf4781a4f82"
+  },
+  "normalizedAdditionalText": [
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/golden-route-3-css.diff",
+      "original": "480299f920a3ca0e3db3ebd0555b0fe7d5b2e6b41bc9ee3ce7f31d0e3651f2a9",
+      "normalized": "3730cd48ff18b6c200d40e4462978b12d9d7ee88961a9d74f9834a0a75108d1c"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/golden-route-2-css.diff",
+      "original": "480299f920a3ca0e3db3ebd0555b0fe7d5b2e6b41bc9ee3ce7f31d0e3651f2a9",
+      "normalized": "3730cd48ff18b6c200d40e4462978b12d9d7ee88961a9d74f9834a0a75108d1c"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/padding-golden-route-1.diff",
+      "original": "b6de5c715923eab06bc7bd42a52a9045a0e8402e2cb5ba3f50606a96067489b7",
+      "normalized": "295a55f4a95272cda302f35d28c17fccf2ed580fad2589799f8b6a1bf75f54ce"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/padding-golden-route-0.diff",
+      "original": "deaee7ecf64529e00e49748633e01eed6cce2bade380f771685347bf4ee41042",
+      "normalized": "8a111367046be9314709b57568945fcaef13e5389c07a019bbf5ed3f25023bc3"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/padding-golden-route-3.diff",
+      "original": "b6de5c715923eab06bc7bd42a52a9045a0e8402e2cb5ba3f50606a96067489b7",
+      "normalized": "295a55f4a95272cda302f35d28c17fccf2ed580fad2589799f8b6a1bf75f54ce"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/padding-golden-route-2.diff",
+      "original": "b6de5c715923eab06bc7bd42a52a9045a0e8402e2cb5ba3f50606a96067489b7",
+      "normalized": "295a55f4a95272cda302f35d28c17fccf2ed580fad2589799f8b6a1bf75f54ce"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/golden-route-0-css.diff",
+      "original": "fe1efac86a5f1e4448c7a2f340ad30c2629547656c9d84cb9751a99e539fd24f",
+      "normalized": "101494ea8ff01a7c5c7c098443d5b4f91627c5e970f0eae2e8badaaa03eda0ef"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/golden-route-1-css.diff",
+      "original": "480299f920a3ca0e3db3ebd0555b0fe7d5b2e6b41bc9ee3ce7f31d0e3651f2a9",
+      "normalized": "3730cd48ff18b6c200d40e4462978b12d9d7ee88961a9d74f9834a0a75108d1c"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/native/browser-input-pending.txt",
+      "original": "f14bf00006baab81d6419055da6ad87328aacc2ebf19104185c70cbbe73c3fb8",
+      "normalized": "da5c8d1d61da95783e3ce6950f6cad608afc25d22ef965b371c7e04d5723a19e"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/native/initial-candidate-state.txt",
+      "original": "01b645e36416639da94a776ef77f3296dfae381b1019ad5bc9a834831ca24255",
+      "normalized": "0a2d96ee0e169cdc41c64a7f0d50f8f878809ff1b19f75653e2f96859364873d"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/golden-route-1.diff",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/golden-route-0.diff",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/golden-route-3.diff",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/desktop-padding/golden-route-2.diff",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/closed-fixtures/tab-49.txt",
+      "original": "10d8bbc260dfc287e41aed2dc8578ba810fb7a78977fb02281e8a3f891a40d29",
+      "normalized": "2d87084c5a98a880d00bce97b5ac1518d86800cd62f36330ad5f6107fbf264fa"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/closed-fixtures/tab-30.txt",
+      "original": "4c2c160d65dfd5a880283eb150f11b4956447f408c6f38cc04a05a44247bfd41",
+      "normalized": "91369dfb877492b2d4276f47a5131c1292dd1135ccc953d340de8291cdc94081"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/closed-fixtures/tab-25.txt",
+      "original": "076c34d7164f685b4ef2e7feed59e9b7ae4cb9c10c7261ee5bf2926bcd8fe242",
+      "normalized": "de2afa45f34f9d58853ecda76fb28e0564fbfba4f990dc24f99f558ba940ac0d"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/closed-fixtures/tab-55.txt",
+      "original": "4a5a0705953c656bc0cbaa9fd90720e5c117e7b3cbfe4762c255fc4289f57c39",
+      "normalized": "1479a7df30cdd03561c3cb372d2de6495acd285048f7b91a6cf953babff12491"
+    },
+    {
+      "path": "qa-evidence/customer-module-next-2026-10-22/closed-fixtures/tab-40.txt",
+      "original": "840fe73d908969df03e68fc14fdbef53abffb549eb085854d88e6efc749cbd9e",
+      "normalized": "e46a64061437e2da6acace8f662c5bf9fead2382206c2aea573ea2c27fb7586a"
+    }
+  ]
+}

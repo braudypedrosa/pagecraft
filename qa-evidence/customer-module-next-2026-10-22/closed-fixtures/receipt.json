@@ -1,0 +1,32 @@
+[
+  {
+    "tab": "40",
+    "reason": "Completed bounded acceptance, evidence captured, no unsaved changes. Server retained for later fresh-tab diagnostics.",
+    "review": "Browser tab: 40, Title: \"Pagecraft Builder\", URL: \"http://localhost:4978/edit/s1\"."
+  },
+  {
+    "tab": "49",
+    "reason": "Completed bounded acceptance, evidence captured, no unsaved changes. Server retained for later fresh-tab diagnostics.",
+    "review": "Browser tab: 49, Title: \"Pagecraft Builder\", URL: \"http://localhost:4984/edit/s1\"."
+  },
+  {
+    "tab": "55",
+    "reason": "Completed bounded acceptance, evidence captured, no unsaved changes. Server retained for later fresh-tab diagnostics.",
+    "review": "Browser tab: 55, Title: \"Pagecraft Builder\", URL: \"http://localhost:4988/edit/s1\"."
+  },
+  {
+    "tab": "25",
+    "review": "http://localhost:4972/edit/s1",
+    "reason": "Completed Quote/Icon/Breadcrumb native fixture captured and closed; server retained."
+  },
+  {
+    "tab": "30",
+    "review": "http://localhost:4974/edit/s1",
+    "reason": "Completed Table/Code native fixture captured and closed; server retained."
+  },
+  {
+    "tab": "58",
+    "review": "http://localhost:4991/edit/s1",
+    "reason": "Bounded ButtonB01–B13 evidence complete, saved. Native fixture server retains its document and two component instances for later gaps."
+  }
+]
