@@ -1,0 +1,27 @@
+{
+  "own": {
+    "columns": "433.328px 433.328px 433.344px",
+    "gap": "20px",
+    "tileRadius": "30px"
+  },
+  "reset": {
+    "columns": "438.656px 438.672px 438.656px",
+    "gap": "12px",
+    "tileRadius": "10px"
+  },
+  "badgesRemain": {
+    "gap": false,
+    "radius": false
+  },
+  "columnsOwn": {
+    "columns": "326px 326px 326px 326px",
+    "gap": "12px",
+    "tileRadius": "10px"
+  },
+  "columnsReset": {
+    "columns": "438.656px 438.672px 438.656px",
+    "gap": "12px",
+    "tileRadius": "10px"
+  },
+  "columnResetBadgeRemains": false
+}

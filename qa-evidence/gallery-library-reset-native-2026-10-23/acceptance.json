@@ -1,0 +1,95 @@
+{
+  "status": "Bounded Gallery103 library/reuse/reset slice accepted; failed-image handling OPEN",
+  "checks": {
+    "cloudLibrary2to3Undo2Redo3": true,
+    "cloudLibraryAssetIdentityPreserved": true,
+    "cloudResponsiveColumnsSeed2Clear4Then3": true,
+    "cloudGapSeed8Clear20Then12": true,
+    "cloudRadius14Own24Clear14Then10": true,
+    "cloudDesktopOwnGap20Radius30Reset12Radius10": true,
+    "cloudDesktopColumns4Reset3": true,
+    "cloudModifiedBadgesAbsentAfterReset": true,
+    "cloud0SavedReloadLoadedAndContained": true,
+    "cloud1SavedReloadLoadedAndContained": true,
+    "cloud2SavedReloadLoadedAndContained": true,
+    "wordpressLibrary2to3Undo2Redo3": true,
+    "wordpressLibraryAssetIdentityPreserved": true,
+    "wordpressResponsiveColumnsSeed2Clear4Then3": true,
+    "wordpressGapSeed8Clear20Then12": true,
+    "wordpressRadius14Own24Clear14Then10": true,
+    "wordpressDesktopOwnGap20Radius30Reset12Radius10": true,
+    "wordpressDesktopColumns4Reset3": true,
+    "wordpressModifiedBadgesAbsentAfterReset": true,
+    "wordpress0SavedReloadLoadedAndContained": true,
+    "wordpress1SavedReloadLoadedAndContained": true,
+    "wordpress2SavedReloadLoadedAndContained": true,
+    "CloudRestorationExact": true,
+    "WordPressRestorationExact": true,
+    "EvidenceSignedTokensScrubbed": true
+  },
+  "scope": [
+    "Library selection reuses existing asset identity; append2to3, Undo2, Redo3",
+    "Responsive Columns seededMobile2/Tablet4, clearMobile4 then clearTablet3",
+    "Gap Mobile8/Tablet20, clearMobile20 then clearTablet12",
+    "Radius Tablet14/Mobile14, Mobile override24, clearMobile14 then clearTablet10",
+    "Desktop ownColumns4/Gap20/Radius30 reset to base3/12/10 and modified badges removed",
+    "Saved reload and D/T/M public/preview: three loaded images and no page overflow"
+  ],
+  "restoration": {
+    "cloud": {
+      "baselineVersion": "Version 1177",
+      "nodes": 20,
+      "exact": true
+    },
+    "wordpress": {
+      "baselineVersion": 32,
+      "currentVersion": 34,
+      "nodes": 8,
+      "exact": true,
+      "method": "Independent SQL source-document and compiled-artifact equality against Row102 baseline",
+      "guard": "wordpress-post-native-guard.json"
+    },
+    "wordpressActualRevisions": 399
+  },
+  "wordpressGuard": {
+    "checksPassed": 25,
+    "failures": 0,
+    "file": "wordpress-post-native-guard.json",
+    "sha256": "84d146193e2688802abd33cea77b245bdff4893b79e62fbba049a7b4f57f6bec"
+  },
+  "failedImage": {
+    "status": "OPEN",
+    "reproduction": "Network block of one exact existing asset, not a404/missing-reference fixture",
+    "observed": "Broken grid images and lightbox show dark unreadable alt text without an accessible failure message; Next still loads the terrace.",
+    "evidence": "wordpress-failed-load.json",
+    "screenshots": [
+      "wordpress-failed-load-grid.png",
+      "wordpress-failed-load-lightbox.png"
+    ],
+    "cleanup": "Root finally reset CPU to1, blocked URLs empty, cache enabled, Network disabled; successful empty CDP responses recorded. Reload recovered all3 images; root reports tab55 closed.",
+    "coreFix": "In progress in separate worker; no pass claimed"
+  },
+  "signedAssetEvidenceReview": {
+    "tokenFieldsInspected": 10,
+    "unsanitizedValues": 0,
+    "placeholder": "[signed-asset-token]"
+  },
+  "screenshots": {
+    "cloud-desktop-preview.png": "9bc3ad74442f0a621eac08f38b75d245411bd078ef58401af46b2ffb07b87095",
+    "cloud-tablet-preview.png": "e6622b4dc21b4c04cebaf178857d9a4d451dd71ca50b3a3843177ac3a70a4f2f",
+    "cloud-mobile-preview.png": "aa2a8b33d80b8f7313fb56ad4050e8d74ddc292fe1804e6a8651d63e7bd45654",
+    "wordpress-desktop-public.png": "725054b85bd6027eb2ed5d32677731a37564db7324293c224c30d6677fb78017",
+    "wordpress-tablet-public.png": "dbebb5a97c14a923a293a4c232e1781ede63b3a8bcb0173c4bde1917acadcab0",
+    "wordpress-mobile-public.png": "eee95c643705264bfc59f63886682bb99d95569f1a6affba414509a38dd0daff"
+  },
+  "provenance": "Root performed native flows and cleanup. Worker inspected records, actual WordPress mobile and failed-lightbox screenshots, token sanitization and independent read-only DB/file guard.",
+  "fullGalleryQAComplete": false,
+  "fullQAComplete": false,
+  "limits": [
+    "Failed image grid/lightbox fallback remains OPEN; a separate Core fix is in progress and has not been accepted here.",
+    "Missing reference could not be safely created through the UI; invalid upload was not tested.",
+    "Early Cloud column-only radius reads targeted img and are excluded from radius acceptance; frame radius proof uses style captures.",
+    "Library reuse, responsive clearing and base resets only; no full Gallery, shared controls or full customer QA claim.",
+    "Physical touch, arbitrary values/combinations and generic CSS architecture remain open."
+  ]
+}

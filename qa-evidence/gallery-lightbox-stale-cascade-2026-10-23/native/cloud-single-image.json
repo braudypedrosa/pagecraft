@@ -1,0 +1,59 @@
+{
+  "buttons": [
+    {
+      "bg": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "display": "none",
+      "focus": false,
+      "height": "46px",
+      "hover": false,
+      "label": "Previous image",
+      "offset": "0px",
+      "outline": "rgb(255, 255, 255) none 3px",
+      "right": "auto",
+      "shadow": "none",
+      "top": "50%",
+      "transform": "none",
+      "width": "46px"
+    },
+    {
+      "bg": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "display": "none",
+      "focus": false,
+      "height": "46px",
+      "hover": false,
+      "label": "Next image",
+      "offset": "0px",
+      "outline": "rgb(255, 255, 255) none 3px",
+      "right": "14px",
+      "shadow": "none",
+      "top": "50%",
+      "transform": "none",
+      "width": "46px"
+    },
+    {
+      "bg": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "display": "grid",
+      "focus": false,
+      "height": "46px",
+      "hover": false,
+      "label": "Close",
+      "offset": "0px",
+      "outline": "rgb(255, 255, 255) none 3px",
+      "right": "14px",
+      "shadow": "none",
+      "top": "14px",
+      "transform": "none",
+      "width": "46px"
+    }
+  ],
+  "caption": "",
+  "image": [
+    {
+      "alt": "QA courtyard house",
+      "loaded": true
+    }
+  ]
+}

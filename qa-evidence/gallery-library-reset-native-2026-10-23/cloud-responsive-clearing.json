@@ -1,0 +1,47 @@
+{
+  "columns": {
+    "seedMobile": {
+      "columns": "183px 183px",
+      "gap": "8px",
+      "radius": "0px"
+    },
+    "clearMobile": {
+      "columns": "87.5px 87.5px 87.5px 87.5px",
+      "gap": "8px",
+      "radius": "0px"
+    },
+    "clearTablet": {
+      "columns": "254px 254px 254px",
+      "gap": "12px",
+      "radius": "0px"
+    },
+    "note": "Early radius read targeted img; tile corners apply to .pagecraft-gallery-frame. Do not credit radius in these three column-only captures."
+  },
+  "style": {
+    "seedMobile": {
+      "columns": "119.328px 119.328px 119.344px",
+      "gap": "8px",
+      "tileRadius": "14px"
+    },
+    "clearMobileGap": {
+      "columns": "111.328px 111.328px 111.344px",
+      "gap": "20px",
+      "tileRadius": "14px"
+    },
+    "ownMobileRadius": {
+      "columns": "111.328px 111.328px 111.344px",
+      "gap": "20px",
+      "tileRadius": "24px"
+    },
+    "clearMobileRadius": {
+      "columns": "111.328px 111.328px 111.344px",
+      "gap": "20px",
+      "tileRadius": "14px"
+    },
+    "clearTablet": {
+      "columns": "254px 254px 254px",
+      "gap": "12px",
+      "tileRadius": "10px"
+    }
+  }
+}

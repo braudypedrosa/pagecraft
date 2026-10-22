@@ -1,0 +1,103 @@
+{
+  "before": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "50 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 588
+      },
+      {
+        "flex": "50 1 0%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 588
+      }
+    ],
+    "distribution": "flex-start",
+    "gap": "24px",
+    "width": 1200,
+    "wrap": "wrap"
+  },
+  "cancel": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "50 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 588
+      },
+      {
+        "flex": "50 1 0%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 588
+      }
+    ],
+    "distribution": "flex-start",
+    "gap": "24px",
+    "width": 1200,
+    "wrap": "wrap"
+  },
+  "reduced": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "100 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿QA second column retained",
+        "type": "column",
+        "width": 1200
+      }
+    ],
+    "distribution": "flex-start",
+    "gap": "24px",
+    "width": 1200,
+    "wrap": "wrap"
+  },
+  "undo": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "50 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 588
+      },
+      {
+        "flex": "50 1 0%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 588
+      }
+    ],
+    "distribution": "flex-start",
+    "gap": "24px",
+    "width": 1200,
+    "wrap": "wrap"
+  },
+  "redo": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "100 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿QA second column retained",
+        "type": "column",
+        "width": 1200
+      }
+    ],
+    "distribution": "flex-start",
+    "gap": "24px",
+    "width": 1200,
+    "wrap": "wrap"
+  }
+}

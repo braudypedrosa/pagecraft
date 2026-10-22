@@ -1,0 +1,60 @@
+{
+  "tabId": "55",
+  "kind": "one-exact-asset-network-block",
+  "not404": true,
+  "grid": {
+    "images": [
+      {
+        "alt": "QA reused coffee table",
+        "complete": true,
+        "loaded": false
+      },
+      {
+        "alt": "QA reused terrace",
+        "complete": true,
+        "loaded": true
+      },
+      {
+        "alt": "QA coffee table reused again",
+        "complete": true,
+        "loaded": false
+      }
+    ],
+    "text": ""
+  },
+  "lightbox": {
+    "images": [
+      {
+        "alt": "QA reused coffee table",
+        "complete": true,
+        "loaded": false
+      }
+    ],
+    "text": "‹›×"
+  },
+  "next": {
+    "alt": "QA reused terrace",
+    "complete": true,
+    "loaded": true
+  },
+  "cleanup": {
+    "cpu": {},
+    "blockedUrls": {},
+    "cache": {},
+    "network": {}
+  },
+  "recovered": [
+    {
+      "alt": "QA reused coffee table",
+      "loaded": true
+    },
+    {
+      "alt": "QA reused terrace",
+      "loaded": true
+    },
+    {
+      "alt": "QA coffee table reused again",
+      "loaded": true
+    }
+  ]
+}

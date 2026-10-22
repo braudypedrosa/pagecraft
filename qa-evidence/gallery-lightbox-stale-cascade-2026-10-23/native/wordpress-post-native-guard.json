@@ -1,0 +1,142 @@
+{
+  "status": "Read-only Preview98 post-native guard passed",
+  "wordpressCommit": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "editorVersion": "0.2.17-preview.20261023.98",
+  "privateGuard": "/private/tmp/pagecraft-preview98-guard.28uhv4b0",
+  "tables": 133,
+  "unchangedInsertTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "baselineRevisions": 385,
+  "actualRevisions": 387,
+  "rootEstimatedRevisions": 389,
+  "countReconciliation": "Two native saves each created one revision. Actual revision increase is two, not four.",
+  "newRevisions": [
+    670,
+    671
+  ],
+  "newRevisionParent": 616,
+  "newMetaCount": 58,
+  "qa616Version": 28,
+  "qa616StoredNodes": [
+    {
+      "id": "n4f0tt5j6",
+      "type": "section"
+    },
+    {
+      "id": "n4f0tt4lq",
+      "type": "row"
+    },
+    {
+      "id": "n4f0tt3sn",
+      "type": "column"
+    },
+    {
+      "id": "n4f0tt272",
+      "type": "text"
+    },
+    {
+      "id": "np6sev4ix",
+      "type": "section"
+    },
+    {
+      "id": "np6sev3u6",
+      "type": "row"
+    },
+    {
+      "id": "np6sev2in",
+      "type": "column"
+    },
+    {
+      "id": "np6sev1et",
+      "type": "gallery"
+    }
+  ],
+  "savedSourceDocumentByteExact": true,
+  "changedExistingMetadata": [
+    {
+      "id": 11146,
+      "key": "_pagecraft_document_version"
+    },
+    {
+      "id": 11150,
+      "key": "_pagecraft_compiled_css"
+    },
+    {
+      "id": 11151,
+      "key": "_pagecraft_global_css_path"
+    },
+    {
+      "id": 11152,
+      "key": "_pagecraft_global_css_hash"
+    },
+    {
+      "id": 11153,
+      "key": "_pagecraft_page_css_path"
+    },
+    {
+      "id": 11154,
+      "key": "_pagecraft_page_css_hash"
+    },
+    {
+      "id": 11157,
+      "key": "_pagecraft_compiler_editor_version"
+    },
+    {
+      "id": 11161,
+      "key": "_pagecraft_compiled_at"
+    }
+  ],
+  "environmentalOption": {
+    "name": "_elementor_design_system_sync_css_meta",
+    "beforeRowId": 2098,
+    "afterRowId": 2109,
+    "beforeTime": 1792687638,
+    "afterTime": 1792689343,
+    "otherFieldsExact": true,
+    "autoloadExact": true
+  },
+  "checks": {
+    "tables133": true,
+    "only3ExpectedChangedTables": true,
+    "onlyExistingPost616Changed": true,
+    "twoNewRevisions670671": true,
+    "newRevisionsParent616": true,
+    "noPostOrMetaRemovals": true,
+    "58NewMetaOnlyNewRevisions": true,
+    "allPrevious385RevisionsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyOwnedExistingQA616MetaChanged": true,
+    "onlyVersionAndCompiledArtifactMetaChanged": true,
+    "qa616Version28": true,
+    "actual387Revisions": true,
+    "savedSourceDocumentByteExact": true,
+    "originalGallery8AndNoComponents": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "original487Version73": true,
+    "allOptionNamesExact": true,
+    "allPagecraftOptionsByteExact": true,
+    "environmentalOptionOnlyTimestamp": true,
+    "allAccountsAndSessionTokensExact": true,
+    "currentWPCommitD13": true,
+    "builderSourceAndInstalledExact": true,
+    "themeSourceAndInstalledExact": true,
+    "importerSourceAndInstalledExact": true,
+    "130HistoricalPackagesExact": true,
+    "132CurrentPackages": true,
+    "source10FrozenAndCommittedExact": true,
+    "PHP12FrozenExact": true
+  },
+  "failures": [],
+  "baselineSQLSHA256": "9b307ddf13158be1bb567cd3b9fd298a26d12bd598e122fae24e81db40c25858",
+  "postNativeSQLSHA256": "e303b8a9a2aa87cca1c0bfdda3c8c4e5579c29b6b0c13fe5884786f2646ff0c5",
+  "postNativeSnapshotSHA256": "2d0e660104eaac7ff1a76e9861059e5e485d82c962b8e94c7418db578e095341",
+  "workerDatabaseWrites": false,
+  "limits": [
+    "Native Gallery interaction and visual acceptance are root-owned separate evidence.",
+    "This guard does not claim full builder coverage or production readiness."
+  ]
+}

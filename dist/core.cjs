@@ -9850,6 +9850,17 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 }
 .pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
 .pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
+.pagecraft-lightbox-error{
+  max-width:64ch;margin:0;color:#f2f2ee;font:400 16px/1.5 system-ui,sans-serif;
+  text-align:center;overflow-wrap:anywhere;
+}
+.pagecraft-lightbox-error strong,.pagecraft-lightbox-error span{display:block}
+.pagecraft-lightbox-error strong{font-weight:600}
+.pagecraft-lightbox-retry{
+  min-height:44px;margin-top:12px;padding:8px 16px;border:1px solid currentColor;border-radius:6px;
+  background:transparent;color:inherit;font:600 16px/1.25 system-ui,sans-serif;cursor:pointer;
+}
+.pagecraft-lightbox-retry[aria-disabled=true]{cursor:wait;opacity:.72}
 .pagecraft-lightbox-btn{
   position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
   display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
@@ -9870,6 +9881,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-lightbox .pagecraft-lightbox-btn:focus-visible{
   outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);
 }
+.pagecraft-lightbox-retry:focus-visible{outline:2px solid #fff;outline-offset:3px}
 ${m.css || ""}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -10704,31 +10716,54 @@ var LB_JS = `<script>
 (function(){
 var gs=document.querySelectorAll('[data-lightbox]');if(!gs.length)return;
 if(typeof HTMLDialogElement!=='function')return;
-var dlg=null,imgEl,capEl,prevB,nextB,list=[],at=0;
+var dlg=null,imgEl,capEl,errorEl,errorTitle,errorDetail,retryB,prevB,nextB,closeB,list=[],at=0,request=0;
 function build(){
 dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
-dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><p class="pagecraft-lightbox-cap"></p></figure>'
+dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><div class="pagecraft-lightbox-error" hidden><div role="status" aria-live="polite"><strong></strong><span></span></div><button class="pagecraft-lightbox-retry" type="button" hidden>Try again</button></div><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203A</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-close" type="button" aria-label="Close">\xD7</button>';
 document.body.appendChild(dlg);
 imgEl=dlg.querySelector('.pagecraft-lightbox-img');capEl=dlg.querySelector('.pagecraft-lightbox-cap');
+errorEl=dlg.querySelector('.pagecraft-lightbox-error');errorTitle=errorEl.querySelector('strong');
+errorDetail=errorEl.querySelector('span');retryB=dlg.querySelector('.pagecraft-lightbox-retry');
 prevB=dlg.querySelector('.pagecraft-lightbox-prev');nextB=dlg.querySelector('.pagecraft-lightbox-next');
+closeB=dlg.querySelector('.pagecraft-lightbox-close');
 prevB.addEventListener('click',function(){go(-1);});
 nextB.addEventListener('click',function(){go(1);});
-dlg.querySelector('.pagecraft-lightbox-close').addEventListener('click',function(){dlg.close();});
+closeB.addEventListener('click',function(){dlg.close();});
+retryB.addEventListener('click',function(){if(retryB.getAttribute('aria-disabled')!=='true')load(list[at],true);});
 dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
 dlg.addEventListener('keydown',function(e){
 if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
 if(e.key==='Tab'){
-var bs=dlg.querySelectorAll('.pagecraft-lightbox-btn:not([hidden]):not(:disabled)'),first=bs[0],last=bs[bs.length-1];
+var bs=dlg.querySelectorAll('.pagecraft-lightbox-btn:not([hidden]):not(:disabled),.pagecraft-lightbox-retry:not([hidden]):not(:disabled)'),first=bs[0],last=bs[bs.length-1];
 if(first&&((e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last))){e.preventDefault();(e.shiftKey?last:first).focus();}
 }
 });
 }
-function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;
+function hideError(focus){
+if(focus&&errorEl.contains(document.activeElement))closeB.focus();
+errorEl.hidden=true;errorTitle.textContent='';errorDetail.textContent='';retryB.hidden=true;
+retryB.textContent='Try again';retryB.removeAttribute('aria-busy');retryB.removeAttribute('aria-disabled');
+}
+function load(it,retry){
+var id=++request,fresh=document.createElement('img');
+fresh.className='pagecraft-lightbox-img';fresh.alt=it.alt;fresh.hidden=true;
+imgEl.parentNode.replaceChild(fresh,imgEl);imgEl=fresh;
+if(retry){errorEl.hidden=false;errorTitle.textContent='Loading image';errorDetail.textContent=it.alt||'';retryB.hidden=false;
+retryB.textContent='Trying again\u2026';retryB.setAttribute('aria-busy','true');retryB.setAttribute('aria-disabled','true');}
+else hideError(true);
+fresh.addEventListener('load',function(){if(id!==request)return;fresh.hidden=false;hideError(true);});
+fresh.addEventListener('error',function(){if(id!==request)return;fresh.hidden=true;
+errorTitle.textContent='Image unavailable';errorDetail.textContent=it.alt||'This image could not be loaded.';
+retryB.hidden=false;retryB.textContent='Try again';retryB.removeAttribute('aria-busy');retryB.removeAttribute('aria-disabled');errorEl.hidden=false;});
+fresh.src=it.href;
+}
+function show(){var it=list[at];
 capEl.textContent=it.cap;capEl.hidden=!it.cap;
+load(it,false);
 prevB.hidden=nextB.hidden=list.length<2;}
 function go(d){at=(at+d+list.length)%list.length;show();}
 Array.prototype.forEach.call(gs,function(g){

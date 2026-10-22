@@ -1,0 +1,326 @@
+[
+  {
+    "setting": "align",
+    "choice": "Top",
+    "computed": {
+      "align": "flex-start",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "align",
+    "choice": "Middle",
+    "computed": {
+      "align": "center",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "align",
+    "choice": "Bottom",
+    "computed": {
+      "align": "flex-end",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "align",
+    "choice": "Base",
+    "computed": {
+      "align": "baseline",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "align",
+    "choice": "Fill",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "distribution",
+    "choice": "Start",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "distribution",
+    "choice": "Center",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "center",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "distribution",
+    "choice": "End",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-end",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "distribution",
+    "choice": "Space between",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "space-between",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "distribution",
+    "choice": "Space around",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "setting": "wrap",
+    "choice": "No wrap",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "nowrap"
+    }
+  },
+  {
+    "setting": "wrap",
+    "choice": "Wrap",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": "QA first column <>& \" 🌿",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": "QA second column retained",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  }
+]

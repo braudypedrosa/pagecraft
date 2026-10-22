@@ -1,0 +1,77 @@
+{
+  "buttons": [
+    {
+      "background": "rgba(255, 255, 255, 0.14)",
+      "class": "pagecraft-lightbox-btn pagecraft-lightbox-prev",
+      "color": "rgb(255, 255, 255)",
+      "display": "grid",
+      "focus": false,
+      "height": "46px",
+      "hover": false,
+      "label": "Previous image",
+      "offset": "0px",
+      "outline": "rgb(255, 255, 255) none 3px",
+      "rect": {
+        "height": 46,
+        "width": 46,
+        "x": 14,
+        "y": 337
+      },
+      "right": "1220px",
+      "shadow": "none",
+      "top": "360px",
+      "transform": "matrix(1, 0, 0, 1, 0, -23)",
+      "width": "46px"
+    },
+    {
+      "background": "rgba(255, 255, 255, 0.14)",
+      "class": "pagecraft-lightbox-btn pagecraft-lightbox-next",
+      "color": "rgb(255, 255, 255)",
+      "display": "grid",
+      "focus": true,
+      "height": "46px",
+      "hover": false,
+      "label": "Next image",
+      "offset": "3px",
+      "outline": "rgb(255, 255, 255) solid 3px",
+      "rect": {
+        "height": 46,
+        "width": 46,
+        "x": 1220,
+        "y": 337
+      },
+      "right": "14px",
+      "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+      "top": "360px",
+      "transform": "matrix(1, 0, 0, 1, 0, -23)",
+      "width": "46px"
+    },
+    {
+      "background": "rgba(255, 255, 255, 0.14)",
+      "class": "pagecraft-lightbox-btn pagecraft-lightbox-close",
+      "color": "rgb(255, 255, 255)",
+      "display": "grid",
+      "focus": false,
+      "height": "46px",
+      "hover": false,
+      "label": "Close",
+      "offset": "0px",
+      "outline": "rgb(255, 255, 255) none 3px",
+      "rect": {
+        "height": 46,
+        "width": 46,
+        "x": 1220,
+        "y": 14
+      },
+      "right": "14px",
+      "shadow": "none",
+      "top": "14px",
+      "transform": "none",
+      "width": "46px"
+    }
+  ],
+  "dialog": {
+    "height": 720,
+    "width": 1280
+  }
+}

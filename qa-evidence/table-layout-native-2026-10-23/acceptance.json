@@ -1,0 +1,101 @@
+{
+  "status": "Bounded Table101 layout native slice accepted in Cloud and WordPress",
+  "scope": {
+    "positionChoices": [
+      "Static",
+      "Relative",
+      "Absolute",
+      "Sticky",
+      "Fixed",
+      "Default"
+    ],
+    "overflowChoices": [
+      "Default",
+      "Visible",
+      "Hidden",
+      "Auto"
+    ],
+    "maxWidthCases": [
+      "0px",
+      "320.5px",
+      "20rem",
+      "50%",
+      "40ch",
+      "reset to default"
+    ],
+    "topCases": [
+      "0px",
+      "-12.5px",
+      "12px"
+    ],
+    "zIndexCases": [
+      "0",
+      "-1",
+      "5"
+    ],
+    "savedRepresentative": "Sticky, max-width320px, Top12px, z-index5, overflowAuto",
+    "responsiveWidths": [
+      1280,
+      834,
+      414
+    ]
+  },
+  "recordedEditorRowsPerHost": 26,
+  "evidenceChecks": {
+    "cloudPositionSixChoices": true,
+    "cloudOverflowFourChoices": true,
+    "cloudSixWidthRows": true,
+    "cloudSixNumericRows": true,
+    "cloudVisibleOverflowExplicitAndAutoContained": true,
+    "cloudDesktopSavedResponsiveFocusAndScroll": true,
+    "cloudTabletSavedResponsiveFocusAndScroll": true,
+    "cloudMobileSavedResponsiveFocusAndScroll": true,
+    "cloudRestorationExact": true,
+    "wordpressPositionSixChoices": true,
+    "wordpressOverflowFourChoices": true,
+    "wordpressSixWidthRows": true,
+    "wordpressSixNumericRows": true,
+    "wordpressVisibleOverflowExplicitAndAutoContained": true,
+    "wordpressdesktopSavedResponsiveFocusAndScroll": true,
+    "wordpresstabletSavedResponsiveFocusAndScroll": true,
+    "wordpressmobileSavedResponsiveFocusAndScroll": true,
+    "wordpressRestorationExact": true
+  },
+  "restoration": {
+    "cloud": {
+      "baselineVersion": "Version 1142",
+      "nodes": 20,
+      "exact": true
+    },
+    "wordpress": {
+      "baselineVersion": 28,
+      "nodes": 8,
+      "exact": true
+    },
+    "wordpressCurrentVersion": 30,
+    "wordpressActualRevisions": 391
+  },
+  "wordpressGuard": {
+    "file": "wordpress-post-native-guard.json",
+    "sha256": "59e91db438e8f2a6010dd4a856fe4f7855df50b27c32f18a50c92af147ca0040",
+    "checksPassed": 25,
+    "failures": 0
+  },
+  "screenshots": {
+    "cloud-desktop-preview.png": "70dafe1e3b5cb1727b1a7d20791d373b5c1fbf8d1a1b75b76df4ea56a6808531",
+    "cloud-tablet-preview.png": "887098596a1d4dbc5c62a2e5d0b049d89f53e4c6dbb08adfe2ae32f2ee9f084a",
+    "cloud-mobile-preview.png": "2061754d66917b4ebefc6331c0bc0212327fe8e1d890ff3a7a0060d47cd86799",
+    "wordpress-desktop-public.png": "f4a9f68f8729e8f201db15319e4484f8c06527c29a81820e4489bc6b021cfa4a",
+    "wordpress-tablet-public.png": "89f43a485465b23ce847dc5783b279247da44b2e442a2518000551256a975638",
+    "wordpress-mobile-public.png": "38064cac262dec6e583f381e9476a29e162302afffca35106f8a68c142a49212"
+  },
+  "provenance": "Root performed native builder, save/reload and public responsive flows. Evidence worker checked supplied records, reviewed actual WordPress mobile screenshot and performed independent read-only DB/file guard.",
+  "fullQAComplete": false,
+  "limits": [
+    "Actual sticky scrolling within a sufficiently tall parent was not tested. Computed position:sticky alone does not establish sticky motion.",
+    "Visible overflow intentionally expands body width; Auto kept the page contained and supported keyboard horizontal scrolling.",
+    "Representative values and reset only; arbitrary values, all units and combinations are not certified.",
+    "Physical touch devices and shared Motion/Hover/Focus/dynamic-component combinations remain open.",
+    "Generic component CSS architecture and full customer-flow QA remain open."
+  ]
+}

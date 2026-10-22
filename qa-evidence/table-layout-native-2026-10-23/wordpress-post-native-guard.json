@@ -1,0 +1,117 @@
+{
+  "status": "Read-only Table101 WordPress guard passed",
+  "wordpressCommit": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "editorVersion": "0.2.17-preview.20261023.98",
+  "baseline": "Gallery post-native Version28 /387 revisions",
+  "actualVersion": 30,
+  "actualRevisions": 391,
+  "newRevisions": [
+    {
+      "id": 672,
+      "parent": 616,
+      "storedDocumentVersion": 28
+    },
+    {
+      "id": 673,
+      "parent": 616,
+      "storedDocumentVersion": 28
+    },
+    {
+      "id": 674,
+      "parent": 616,
+      "storedDocumentVersion": 29
+    },
+    {
+      "id": 675,
+      "parent": 616,
+      "storedDocumentVersion": 29
+    }
+  ],
+  "revisionCountReconciliation": "Four actual new revisions, two with stored Version28 and two with stored Version29; two native actions (Save and History restore). No additional authoring inferred.",
+  "newMetaCount": 116,
+  "changedExistingMeta": [
+    {
+      "id": 11146,
+      "key": "_pagecraft_document_version"
+    }
+  ],
+  "tables": 133,
+  "unchangedInsertTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2109,
+      "afterRowId": 2113,
+      "autoloadExact": true,
+      "changedField": "time",
+      "before": 1792689343,
+      "after": 1792690466,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "beforeRowId": 326,
+      "afterRowId": 326,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792690161,
+      "after": 1792693786,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2107,
+      "afterRowId": 2110,
+      "autoloadExact": true,
+      "changedField": "",
+      "before": 1792690277,
+      "after": 1792692103
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2108,
+      "afterRowId": 2111,
+      "autoloadExact": true,
+      "changedField": null,
+      "valueExact": true
+    }
+  ],
+  "checks": {
+    "tables133": true,
+    "only3ExpectedChangedTables": true,
+    "onlyExistingPost616Changed": true,
+    "fourNewRevisions672675": true,
+    "allNewRevisionsParent616": true,
+    "all116NewMetaOnlyNewRevisions": true,
+    "noPostsOrMetaRemoved": true,
+    "allPrevious387RevisionsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "qa616Version30": true,
+    "actual391Revisions": true,
+    "restoredSourceDocumentAndCompiledArtifactsExact": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "original487Version73": true,
+    "allOptionNamesExact": true,
+    "allPagecraftOptionsExact": true,
+    "allAccountsSessionsExact": true,
+    "onlyFourKnownTimestampCacheOptions": true,
+    "currentWPCommitD13": true,
+    "builderInstalledSourceExact": true,
+    "themeInstalledSourceExact": true,
+    "importerInstalledSourceExact": true,
+    "historical130Exact": true,
+    "current132PackageInventory": true
+  },
+  "failures": [],
+  "baselineSQLSHA256": "e303b8a9a2aa87cca1c0bfdda3c8c4e5579c29b6b0c13fe5884786f2646ff0c5",
+  "postNativeSQLSHA256": "e5e0809ce6a45b72e502a3da3213e060acfe8dbc1f1bdae4419fb7a5186475b8",
+  "postNativeSnapshotSHA256": "309dd3e60d296f8f163b2a84a7fe7e56ec5b9aa012452fc53fd21db7131f2a86",
+  "workerDatabaseWrites": false,
+  "fullQAComplete": false
+}

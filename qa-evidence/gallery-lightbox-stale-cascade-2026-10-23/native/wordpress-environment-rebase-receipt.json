@@ -1,0 +1,167 @@
+{
+  "status": "Private baseline rebased after read-only environmental-delta verification",
+  "tables": 133,
+  "unchangedInsertTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "optionNamesExact": true,
+  "changedOptions": [
+    {
+      "name": "_site_transient_theme_roots",
+      "beforeRowId": 2009,
+      "afterRowId": 2104,
+      "autoloadExact": true,
+      "valueExact": true
+    },
+    {
+      "name": "_site_transient_timeout_theme_roots",
+      "beforeRowId": 2008,
+      "afterRowId": 2103,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792648967,
+      "after": 1792690228
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2096,
+      "afterRowId": 2107,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792688119,
+      "after": 1792690277
+    },
+    {
+      "name": "_site_transient_update_core",
+      "beforeRowId": 890,
+      "afterRowId": 890,
+      "autoloadExact": true,
+      "changedField": "last_checked",
+      "before": 1792647158,
+      "after": 1792688420,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_update_plugins",
+      "beforeRowId": 2011,
+      "afterRowId": 2106,
+      "autoloadExact": true,
+      "changedField": "last_checked",
+      "before": 1792647169,
+      "after": 1792688430,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_update_themes",
+      "beforeRowId": 2010,
+      "afterRowId": 2105,
+      "autoloadExact": true,
+      "changedField": "last_checked",
+      "before": 1792647169,
+      "after": 1792688430,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2097,
+      "afterRowId": 2108,
+      "autoloadExact": true,
+      "valueExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "events": [
+        {
+          "hook": "wp_version_check",
+          "payloadExact": true,
+          "timestampDelta": 43200
+        },
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "payloadExact": true,
+          "timestampDelta": 3600
+        },
+        {
+          "hook": "wp_update_user_counts",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_update_plugins",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_update_themes",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "elementor/tracker/send_event",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_site_health_scheduled_check",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "recovery_mode_clean_expired_keys",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_privacy_personal_data_cleanup_requests",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_scheduled_delete",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "delete_expired_transients",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_scheduled_auto_draft_delete",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_delete_temp_updater_backups",
+          "payloadExact": true,
+          "timestampDelta": 0
+        }
+      ]
+    }
+  ],
+  "originalSQLSHA256": "7e65505d7e412665f427297a8c48012eee7df3bd462d30e6b95f0a5e18dfccaf",
+  "rebasedSQLSHA256": "9b307ddf13158be1bb567cd3b9fd298a26d12bd598e122fae24e81db40c25858",
+  "protectedSnapshotByteExact": true,
+  "all31ExistingGuardChecksRevalidatedByProtectedSQLAndInstalledManifestEquality": true,
+  "runtimeBuilder55Theme19Importer16Exact": true,
+  "history130Preserved": true,
+  "backupHashesExact": true,
+  "revisionCount": 385,
+  "qa616Version": 26,
+  "qa616GalleryNodes": 8,
+  "databaseWritesPerformed": false,
+  "installerExecuted": false,
+  "limits": [
+    "Canonical source is now committed Preview98; installed runtime remains Preview97.",
+    "Only private baseline artifacts changed; historical originals retained."
+  ],
+  "evidenceCopy": {
+    "privateSourceSHA256": "ef4ead15df61137f083475369d236ad0b351bffae4d1fc8ee41faadfb66ef607",
+    "redactedPrivatePathFields": [],
+    "credentialsOrSessionDataIncluded": false
+  }
+}

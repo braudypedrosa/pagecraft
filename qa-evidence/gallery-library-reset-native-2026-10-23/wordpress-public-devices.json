@@ -1,0 +1,83 @@
+[
+  {
+    "device": {
+      "name": "desktop",
+      "width": 1280
+    },
+    "computed": {
+      "bodyClient": 1280,
+      "bodyScroll": 1280,
+      "columns": "402.656px 402.672px 402.656px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused coffee table",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused terrace",
+          "loaded": true
+        },
+        {
+          "alt": "QA coffee table reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  },
+  {
+    "device": {
+      "name": "tablet",
+      "width": 834
+    },
+    "computed": {
+      "bodyClient": 834,
+      "bodyScroll": 834,
+      "columns": "254px 254px 254px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused coffee table",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused terrace",
+          "loaded": true
+        },
+        {
+          "alt": "QA coffee table reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  },
+  {
+    "device": {
+      "name": "mobile",
+      "width": 414
+    },
+    "computed": {
+      "bodyClient": 414,
+      "bodyScroll": 414,
+      "columns": "116.656px 116.672px 116.656px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused coffee table",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused terrace",
+          "loaded": true
+        },
+        {
+          "alt": "QA coffee table reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  }
+]

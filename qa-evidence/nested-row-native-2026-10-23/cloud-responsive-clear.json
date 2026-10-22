@@ -1,0 +1,94 @@
+{
+  "inherited": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "66.6666 1 100%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 374
+      },
+      {
+        "flex": "33.3333 1 100%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 374
+      }
+    ],
+    "distribution": "space-around",
+    "gap": "20px",
+    "width": 374,
+    "wrap": "wrap"
+  },
+  "mobile": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "66.6666 1 100%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 374
+      },
+      {
+        "flex": "33.3333 1 100%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 374
+      }
+    ],
+    "distribution": "space-around",
+    "gap": "12px",
+    "width": 374,
+    "wrap": "wrap"
+  },
+  "clearMobile": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "66.6666 1 100%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 374
+      },
+      {
+        "flex": "33.3333 1 100%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 374
+      }
+    ],
+    "distribution": "space-around",
+    "gap": "36px",
+    "width": 374,
+    "wrap": "wrap"
+  },
+  "clearTablet": {
+    "align": "stretch",
+    "columns": [
+      {
+        "flex": "66.6666 1 0%",
+        "id": "nto8401ko",
+        "text": "QA first column <>& \" 🌿",
+        "type": "column",
+        "width": 508
+      },
+      {
+        "flex": "33.3333 1 0%",
+        "id": "ntq1wea8n",
+        "text": "QA second column retained",
+        "type": "column",
+        "width": 254
+      }
+    ],
+    "distribution": "space-around",
+    "gap": "24px",
+    "width": 786,
+    "wrap": "wrap"
+  }
+}

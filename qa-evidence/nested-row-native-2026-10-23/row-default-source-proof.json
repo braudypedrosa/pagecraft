@@ -1,0 +1,16 @@
+{
+  "commit": "b927f6435cb5d3a0903f386b62741ecc2376b1c5",
+  "file": "app/src/core/index.ts",
+  "fileSHA256": "44d41827c2f8a0eb0a43ddc829d2f92b66520abc13f7c1f05d62ee1f07b97d8e",
+  "rowDefinitionLines": [
+    471,
+    475
+  ],
+  "rowDefaults": "Desktop gap24px; Tablet empty; Mobile gap20px explicitly seeded",
+  "columnsInsertionLines": [
+    9378,
+    9381
+  ],
+  "columnsInsertion": "Creates row through N(row), retaining Row defaults.",
+  "captureClarification": "cloud-responsive-clear.json key inherited describes the pre-existing Mobile20 override, not inherited Tablet36. It is not an inheritance failure."
+}

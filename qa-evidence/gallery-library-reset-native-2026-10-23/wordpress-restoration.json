@@ -1,0 +1,8 @@
+{
+  "baselineVersion": 32,
+  "currentVersion": 34,
+  "nodes": 8,
+  "exact": true,
+  "method": "Independent SQL source-document and compiled-artifact equality against Row102 baseline",
+  "guard": "wordpress-post-native-guard.json"
+}

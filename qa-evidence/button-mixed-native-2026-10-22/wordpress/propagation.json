@@ -1,0 +1,232 @@
+{
+  "cancel": [
+    {
+      "bg": "rgb(232, 217, 190)",
+      "border": "2px solid rgb(34, 51, 68)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqov1n1w7",
+      "padding": "18px 30px",
+      "radius": "18px",
+      "size": "20px",
+      "text": "QA source button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqpfuw57y",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA linked peer",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqqqug7bu",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA reusable button",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqr64f9e",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA reusable button",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 51, 102)",
+      "id": "nqpg8q6ca",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "27px",
+      "text": "QA local override",
+      "weight": "400"
+    }
+  ],
+  "confirmed": [
+    {
+      "bg": "rgb(232, 217, 190)",
+      "border": "2px solid rgb(34, 51, 68)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqov1n1w7",
+      "padding": "18px 30px",
+      "radius": "18px",
+      "size": "20px",
+      "text": "QA source button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqpfuw57y",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA linked peer",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqqqug7bu",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA reusable button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqr64f9e",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA reusable button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 51, 102)",
+      "id": "nqpg8q6ca",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "27px",
+      "text": "QA local override",
+      "weight": "700"
+    }
+  ],
+  "undo": [
+    {
+      "bg": "rgb(232, 217, 190)",
+      "border": "2px solid rgb(34, 51, 68)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqov1n1w7",
+      "padding": "18px 30px",
+      "radius": "18px",
+      "size": "20px",
+      "text": "QA source button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqpfuw57y",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA linked peer",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqqqug7bu",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA reusable button",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 250, 240)",
+      "id": "nqr64f9e",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "15px",
+      "text": "QA reusable button",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 51, 102)",
+      "id": "nqpg8q6ca",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "27px",
+      "text": "QA local override",
+      "weight": "400"
+    }
+  ],
+  "redo": [
+    {
+      "bg": "rgb(232, 217, 190)",
+      "border": "2px solid rgb(34, 51, 68)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqov1n1w7",
+      "padding": "18px 30px",
+      "radius": "18px",
+      "size": "20px",
+      "text": "QA source button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqpfuw57y",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA linked peer",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqqqug7bu",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA reusable button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(18, 52, 86)",
+      "id": "nqr64f9e",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "20px",
+      "text": "QA reusable button",
+      "weight": "700"
+    },
+    {
+      "bg": "rgb(181, 86, 55)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(85, 51, 102)",
+      "id": "nqpg8q6ca",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "27px",
+      "text": "QA local override",
+      "weight": "700"
+    }
+  ],
+  "undoExact": true,
+  "redoExact": true
+}

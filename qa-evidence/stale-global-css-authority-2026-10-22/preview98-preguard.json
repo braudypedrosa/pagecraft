@@ -1,0 +1,259 @@
+{
+  "status": "Independent cleanup readback accepted; mixed Button guard closed and fresh Preview98 baseline ready",
+  "guardClosed": true,
+  "privateThemeGuard": "/private/tmp/pagecraft-theme-authority-guard.ls23r5rt",
+  "privatePreview98Guard": "/private/tmp/pagecraft-preview98-guard.28uhv4b0",
+  "currentWordPressCommit": "1207cf10c4b5a28da051611e737c10fe51d0121e",
+  "currentCoreCommit": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
+  "currentEditorVersion": "0.2.17-preview.20261022.97",
+  "tables": 133,
+  "unchangedInsertTables": 129,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts",
+    "wp_usermeta"
+  ],
+  "totalRevisionCount": 385,
+  "original487DocumentVersion": 73,
+  "qa616DocumentVersion": 26,
+  "qa616StoredNodes": [
+    {
+      "id": "n4f0tt5j6",
+      "type": "section"
+    },
+    {
+      "id": "n4f0tt4lq",
+      "type": "row"
+    },
+    {
+      "id": "n4f0tt3sn",
+      "type": "column"
+    },
+    {
+      "id": "n4f0tt272",
+      "type": "text"
+    },
+    {
+      "id": "np6sev4ix",
+      "type": "section"
+    },
+    {
+      "id": "np6sev3u6",
+      "type": "row"
+    },
+    {
+      "id": "np6sev2in",
+      "type": "column"
+    },
+    {
+      "id": "np6sev1et",
+      "type": "gallery"
+    }
+  ],
+  "oldRevisionsExact": 377,
+  "newRevisions": [
+    662,
+    663,
+    664,
+    665,
+    666,
+    667,
+    668,
+    669
+  ],
+  "newRevisionsParent": 616,
+  "newMetaCount": 232,
+  "newMetaRange": [
+    12126,
+    12357
+  ],
+  "changedExistingMeta": [
+    {
+      "id": 11146,
+      "key": "_pagecraft_document_version"
+    }
+  ],
+  "twoOptionIndependentReadback": {
+    "pagecraft_design_settings_v1": {
+      "rowByteExact": true,
+      "valueExact": true,
+      "autoloadExact": true,
+      "valueSHA256": "3dc8f5cd6ad9cba8b419eda986f86aab7eeae86fcfd4ec81b523578693c5aade",
+      "autoloadSHA256": "b4dc66dde806261bdda8607d8707aa727d308cd80272381a5583f63899918467"
+    },
+    "pagecraft_design_stylesheet_v1": {
+      "rowByteExact": true,
+      "valueExact": true,
+      "autoloadExact": true,
+      "valueSHA256": "fa179e8dc7b5ab25467f3d4c77c52abee83255e2ef07ddada4de0bf3cb800b7b",
+      "autoloadSHA256": "b4dc66dde806261bdda8607d8707aa727d308cd80272381a5583f63899918467"
+    }
+  },
+  "environmentalOptionChanges": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "timestampMaskedExact": true,
+      "autoloadExact": true
+    },
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "timestampMaskedExact": true,
+      "autoloadExact": true
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "timestampMaskedExact": true,
+      "autoloadExact": true
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "timestampMaskedExact": true,
+      "autoloadExact": true
+    },
+    {
+      "name": "cron",
+      "timestampMaskedExact": false,
+      "autoloadExact": true
+    }
+  ],
+  "cronSemanticProof": {
+    "versionExact": true,
+    "eventKeysExact": true,
+    "events": [
+      {
+        "hook": "delete_expired_transients",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "elementor/tracker/send_event",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "recovery_mode_clean_expired_keys",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_delete_temp_updater_backups",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_privacy_delete_old_export_files",
+        "shapeExact": true,
+        "timestampDelta": 3600
+      },
+      {
+        "hook": "wp_privacy_personal_data_cleanup_requests",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_scheduled_auto_draft_delete",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_scheduled_delete",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_site_health_scheduled_check",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_update_plugins",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_update_themes",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_update_user_counts",
+        "shapeExact": true,
+        "timestampDelta": 0
+      },
+      {
+        "hook": "wp_version_check",
+        "shapeExact": true,
+        "timestampDelta": 0
+      }
+    ]
+  },
+  "sessionRefresh": {
+    "userId": 1,
+    "changedMetaID": 16,
+    "metaKey": "session_tokens",
+    "observed": {
+      "sessionCount": 1,
+      "durationSeconds": [
+        7200
+      ]
+    },
+    "passwordsRolesOtherMetadataExact": true
+  },
+  "builderFiles": 55,
+  "themeFiles": 19,
+  "importerFiles": 16,
+  "historicalFiles": 130,
+  "checks": {
+    "tables133": true,
+    "onlyExpected4ChangedTables": true,
+    "onlyExistingPost616Changed": true,
+    "new8RevisionsAll616": true,
+    "all377OldRevisionsAndMetaExact": true,
+    "noPostOrMetaRemovals": true,
+    "allChangedMetaOnly616OrNewRevisions": true,
+    "menuAllPostsAndMetaByteExact": true,
+    "original487Version73": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "total385Revisions": true,
+    "qa616Version26": true,
+    "qa616Gallery8Restored": true,
+    "qa616OriginalMetaExceptVersionByteExact": true,
+    "noQAComponentDefinitions": true,
+    "globalTwoOptionsAllRowsByteExact": true,
+    "allPagecraftOptionsByteExact": true,
+    "allOtherOptionsTimestampOnly": true,
+    "optionNamesExact": true,
+    "onlyExistingAccountSessionMeta16Changed": true,
+    "usersPasswordsRolesOtherwiseExact": true,
+    "sameTwoHourSessionDuration": true,
+    "runtimeSource1207": true,
+    "builder55Exact": true,
+    "builderBackupExact": true,
+    "theme19Exact": true,
+    "themeBackupExact": true,
+    "importer16Exact": true,
+    "importerBackupExact": true,
+    "historical130Exact": true,
+    "oldStylesheetAssetPreservedExact": true
+  },
+  "failures": [],
+  "sqlSHA256": "7e65505d7e412665f427297a8c48012eee7df3bd462d30e6b95f0a5e18dfccaf",
+  "protectedSnapshotSHA256": "36476cfa4e46213965b53064e7a447e34754f4235165f00cdaba06f348fbbe00",
+  "extendedSnapshotSHA256": "1885863f67faa30ceea9664c5c420089824637a8ccf90ed273a42acc9aee7133",
+  "builderBackupSHA256": "bfa97c196188d86b125e946fc11f65d60904a718f448de534b9cc54cb4fc767f",
+  "themeBackupSHA256": "1096afbb5114ad4b128ae6d845606982fc121cfda21fe3b7986885b49dc27dc4",
+  "importerBackupSHA256": "eed40ed9d9cf982cfec6ee3198242a606ae96a435e7a9d66f60120ef520dfea8",
+  "historicalManifestSHA256": "5455e526b79078f89032f1cecc708afc981d7e29957e3c9fb20f2a0d0b25cade",
+  "restoredStylesheet": {
+    "path": "pagecraft/global-afda0680965dc80ca67471c43fe9e22ef6fb452ea8123c8e175ae4aba1c077ff.css",
+    "hash": "afda0680965dc80ca67471c43fe9e22ef6fb452ea8123c8e175ae4aba1c077ff",
+    "bytes": 7486
+  },
+  "method": "Root executed reviewed cleanup. Worker independently captured transactional SQL/read-only snapshot and verified exact two-option value/autoload/fullrows against original Theme baseline; worker performed no DB writes.",
+  "limits": [
+    "Positive native Button/public behavior remains root-owned separate evidence.",
+    "Gallery8 fixture intentionally retained for the next Theme fix.",
+    "Full customer QA and production readiness remain open."
+  ]
+}
