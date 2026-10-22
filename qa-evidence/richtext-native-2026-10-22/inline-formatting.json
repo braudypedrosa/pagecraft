@@ -1,0 +1,14 @@
+[
+  {
+    "control": "I",
+    "html": "<p><b><i>Community workshop guide</i></b></p>"
+  },
+  {
+    "control": "U",
+    "html": "<p><b><i><u>Community workshop guide</u></i></b></p>"
+  },
+  {
+    "control": "S",
+    "html": "<p><b><i><u><strike>Community workshop guide</strike></u></i></b></p>"
+  }
+]

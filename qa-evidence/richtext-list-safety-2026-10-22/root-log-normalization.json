@@ -1,0 +1,32 @@
+[
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/full-suite.log",
+    "original": "e2e0ae6c6653767ca281b4dc27ffadda7b370768694cb328bded35ec65bb4d31",
+    "normalized": "31b567ea485dd6bfd6001a7e84ada4865c14452db5daa4df9acf641056d9cd2f"
+  },
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/core-safety-red.log",
+    "original": "5875ffd4d25bfc09dae2d72a10b08c16e5ced6897e8b02faa5420ef8e5aacc50",
+    "normalized": "f6a801cebe3367a82b4bbe35dbc83c8b1ff4b089be4981955f0ebf79f1bf3a30"
+  },
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/wordpress-golden-check.log",
+    "original": "8289f78eb9f1b7bd3ef122e7ae3513017bae5268d597146a8daed9fc2afb18c4",
+    "normalized": "0603b58a6c44cd587948fe369624fb959465ea10411b2039331db18812650ca0"
+  },
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/core-safety-green.log",
+    "original": "9cd549a2dd712386ece2b04b57979a8f2e08a0d5080ee23992345fe8bdbfdade",
+    "normalized": "73891443d3e8ed4f8e161f49ae32f893c5d2a0d5a9e452d0f7aa35eb3de473a8"
+  },
+  {
+    "path": "qa-evidence/richtext-list-safety-2026-10-22/logs/related-richtext.log",
+    "original": "e366ad434a9350a31ed0c8ad8a041cc1aa4df6ffeb020e64b26d0572a6591f8b",
+    "normalized": "70f817687dc8076f368f7178d133646425c49eb633aa5b829d83174b2e7a70dc"
+  }
+]

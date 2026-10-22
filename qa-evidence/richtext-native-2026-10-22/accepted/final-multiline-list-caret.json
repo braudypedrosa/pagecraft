@@ -1,0 +1,15 @@
+{
+  "bullet": {
+    "anchor": "B",
+    "height": 54.375,
+    "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings</b></li></ul>",
+    "selected": "Community workshop guide\nQuiet room bookings"
+  },
+  "typing": {
+    "html": "<ul><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ul>",
+    "items": [
+      "Community workshop guide",
+      "Quiet room bookings available"
+    ]
+  }
+}

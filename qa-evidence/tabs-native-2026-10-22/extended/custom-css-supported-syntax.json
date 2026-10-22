@@ -1,0 +1,8 @@
+{
+  "syntax": "& { background-color: #eef3ef; outline: 2px solid #334455; }",
+  "result": {
+    "background": "rgb(238, 243, 239)",
+    "outline": "rgb(51, 68, 85) solid 2px"
+  },
+  "note": "Earlier bare declarations did not apply. Placeholder specifies a selector rule; correct documented syntax applied."
+}

@@ -1,0 +1,15 @@
+{
+  "editor": {
+    "html": "<p></p><ul><li><a href=\"javascript:alert(1)\">Community workshop guide</a></li></ul><p></p>",
+    "links": [
+      "javascript:alert(1)"
+    ]
+  },
+  "preview": {
+    "html": "<p></p><ul><li><a href=\"javascript:alert(1)\">Community workshop guide</a></li></ul><p></p>",
+    "links": [
+      "javascript:alert(1)"
+    ]
+  },
+  "note": "Confirmed unsafe href survives public local Preview. No unsafe link clicked. Root fixing renderer and toolbar validation."
+}

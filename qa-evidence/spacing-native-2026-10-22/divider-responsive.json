@@ -1,0 +1,38 @@
+[
+  {
+    "device": "Desktop",
+    "dom": {
+      "colour": "rgb(17, 19, 17)",
+      "page": 1305,
+      "parent": 1200,
+      "scroll": 1305,
+      "style": "solid",
+      "thickness": "4px",
+      "width": "720px"
+    }
+  },
+  {
+    "device": "Tablet",
+    "dom": {
+      "colour": "rgb(17, 19, 17)",
+      "page": 819,
+      "parent": 771,
+      "scroll": 819,
+      "style": "dotted",
+      "thickness": "2px",
+      "width": "385.5px"
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "colour": "rgb(183, 243, 74)",
+      "page": 399,
+      "parent": 359,
+      "scroll": 399,
+      "style": "dashed",
+      "thickness": "3px",
+      "width": "287.188px"
+    }
+  }
+]

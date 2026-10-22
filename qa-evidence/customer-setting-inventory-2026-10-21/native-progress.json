@@ -308,5 +308,23 @@
     "status": "Local bounded native acceptance, deployment pending",
     "evidence": "qa-evidence/tabs-overflow-2026-10-22/root-acceptance.json",
     "scope": "Direct content/history/all8Style controls on preceding fixture; current fix long labels/panels across3breakpoints, keyboard/authoredstyles/reload. FullmoduleQA remains open."
+  },
+  "release91_accepted": {
+    "commit": "1f4b2ccd2dcfeb5e994a17c716af6284e06fe041",
+    "ci": 39720271992,
+    "deploy": 39720271985,
+    "status": "Bothsuccess, exact marker/nativeD/T/M/keys accepted. Original20IDs restored with3Undo/reload.",
+    "wordpress": "496d7de4f1b3878671201bd569a083d4e1d6c825",
+    "wordpressPreview": "0.2.17-preview.20261022.90",
+    "wordpressCI": 39721615417,
+    "scope": "Bounded Tabs containment. Cloud native3breakpoints/keys, localWPeditornative3breakpoints, portablepublicCore. FullQAopen."
+  },
+  "spacing_partial": {
+    "evidence": "qa-evidence/spacing-native-2026-10-22/task-close.md",
+    "scope": "Native Dividerall3styles/4directfields/5widthunits/2thicknessunits/zero/responsiveclear. Spacerall5heightunits/D80T40M20/clear/zero/duplicatehistory/reloadpreview. Localonly; hostparity/commonAdvanced/Motionopen."
+  },
+  "richtext_partial": {
+    "evidence": "qa-evidence/richtext-list-safety-2026-10-22/root-acceptance.json",
+    "scope": "Toolbar marks, blocks, links and list structure; new URL/output safety and selection fix localaccepted.2662pass5skip,30gallery24zero. Deploymentpending; broaderRichText/14QAareasopen."
   }
 }

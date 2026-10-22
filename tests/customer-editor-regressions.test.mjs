@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { safeRichUrl } from '../app/src/core/safe-html.ts';
 const source = readFileSync('builder.html', 'utf8');
 const windows = [];
 afterEach(() => windows.splice(0).forEach(dom => dom.window.close()));
@@ -14,21 +15,41 @@ test('rich text link dialog keeps editing alive, restores selection and persists
   w.getSelection().addRange(range);
   let answer;
   Object.assign(w, { editing:{on:true,el:host,prompt:false}, cwin:w, cdoc:w.document,
-    askText:()=>new Promise(resolve=>{answer=resolve;}), syncEdit:vi.fn() });
-  w.document.execCommand = vi.fn(() => {
-    expect(w.getSelection().toString()).toBe('Selected words');
-    return true;
-  });
+    askText:()=>new Promise(resolve=>{answer=resolve;}), syncEdit:vi.fn(), safeRichUrl, toast:vi.fn() });
+  w.document.execCommand = vi.fn(() => true);
   w.eval(source.slice(source.indexOf('async function linkPrompt() {'),source.indexOf("\n$('#rt').addEventListener('mousedown'")));
   const pending = w.linkPrompt();
   expect(w.editing.prompt).toBe(true);
   w.document.querySelector('input').focus(); w.getSelection().removeAllRanges();
   answer('https://example.com/test'); await pending;
+  expect(w.getSelection().toString()).toBe('Selected words');
   expect(w.document.execCommand).toHaveBeenCalledWith('createLink',false,'https://example.com/test');
   expect(w.syncEdit).toHaveBeenCalledTimes(1);
   expect(w.editing.prompt).toBe(false);
+
+  for (const url of ['javascript:alert(1)', 'data:image/png;base64,AAAA', 'asset:hero', '//evil.example/path']) {
+    const unsafe = w.linkPrompt(); answer(url); await unsafe;
+    expect(w.document.execCommand).toHaveBeenCalledTimes(1);
+    expect(w.syncEdit).toHaveBeenCalledTimes(1);
+  }
+  expect(w.toast).toHaveBeenCalledTimes(4);
+  expect(w.toast).toHaveBeenLastCalledWith('Use a web, email, phone, page or anchor link.', {tone:'error'});
+
+  for (const url of ['/about', '../contact', 'mailto:team@example.com', 'tel:+6400000000', 'http://example.com', 'https://example.com/ok']) {
+    const allowed = w.linkPrompt(); answer(url); await allowed;
+    expect(w.document.execCommand).toHaveBeenLastCalledWith('createLink', false, url);
+  }
+  expect(w.syncEdit).toHaveBeenCalledTimes(7);
+
+  const collapsed = w.document.createRange(); collapsed.setStart(host.firstChild, 4); collapsed.collapse(true);
+  w.getSelection().removeAllRanges(); w.getSelection().addRange(collapsed);
+  const emptySelection = w.linkPrompt(); answer('about.html'); await emptySelection;
+  expect(w.getSelection().isCollapsed).toBe(true);
+  expect(w.document.execCommand).toHaveBeenLastCalledWith('createLink', false, 'about.html');
+  expect(w.syncEdit).toHaveBeenCalledTimes(8);
+
   const cancel = w.linkPrompt(); answer(null); await cancel;
-  expect(w.syncEdit).toHaveBeenCalledTimes(1);
+  expect(w.syncEdit).toHaveBeenCalledTimes(8);
 });
 function richBlockHarness(html, selector = '#editable') {
   const dom = new JSDOM(`<div id="editable" contenteditable>${html}</div>`, {runScripts:'outside-only'});

@@ -1,0 +1,41 @@
+[
+  {
+    "device": "Desktop",
+    "dom": {
+      "divider": {
+        "style": "solid",
+        "thickness": "4px",
+        "width": "720px"
+      },
+      "scroll": 1269,
+      "spacer": "80px",
+      "width": 1269
+    }
+  },
+  {
+    "device": "Tablet",
+    "dom": {
+      "divider": {
+        "style": "dotted",
+        "thickness": "2px",
+        "width": "387.5px"
+      },
+      "scroll": 823,
+      "spacer": "40px",
+      "width": 823
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "divider": {
+        "style": "dotted",
+        "thickness": "2px",
+        "width": "181.5px"
+      },
+      "scroll": 403,
+      "spacer": "20px",
+      "width": 403
+    }
+  }
+]

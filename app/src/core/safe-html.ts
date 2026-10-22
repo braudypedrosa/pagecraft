@@ -131,6 +131,12 @@ const richHref = (v: string) => {
   return !probe.startsWith('//') && !/^[^/?#]*:/.test(probe);       // relative, with no scheme
 };
 
+/** The rich-text toolbar uses the same link policy as rendered rich content. */
+export const safeRichUrl = (input: unknown): string => {
+  const value = String(input == null ? '' : input).trim();
+  return value && richHref(value) ? value : '';
+};
+
 export function cleanRich(html: unknown): string {
   const src = String(html == null ? '' : html);
   const lower = src.toLowerCase();

@@ -1,0 +1,6 @@
+{
+  "siteContentProblems": 0,
+  "persistentActionMessage": "Use a web, email, phone, page or anchor link.",
+  "cause": "Expected rejected unsafe test link",
+  "resolution": "Dismiss resolved test action through native Site checks"
+}

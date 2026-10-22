@@ -1,0 +1,13 @@
+{
+  "editor": {
+    "height": 54.375,
+    "html": "<ol><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ol>"
+  },
+  "mobile": {
+    "emptyParagraphs": 0,
+    "height": 51,
+    "html": "<ol><li><b>Community workshop guide</b></li><li><b>Quiet room bookings available</b></li></ol>",
+    "page": 403,
+    "scroll": 403
+  }
+}

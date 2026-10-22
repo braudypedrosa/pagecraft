@@ -1,0 +1,59 @@
+[
+  {
+    "style": "Dashed",
+    "dom": {
+      "client": 720,
+      "css": {
+        "border-bottom-width": "0px",
+        "border-top-color": "rgb(17, 19, 17)",
+        "border-top-style": "dashed",
+        "border-top-width": "4px",
+        "height": "4px",
+        "margin-left": "0px",
+        "margin-right": "0px",
+        "width": "720px"
+      },
+      "scroll": 720,
+      "tag": "HR",
+      "width": 720
+    }
+  },
+  {
+    "style": "Dotted",
+    "dom": {
+      "client": 720,
+      "css": {
+        "border-bottom-width": "0px",
+        "border-top-color": "rgb(17, 19, 17)",
+        "border-top-style": "dotted",
+        "border-top-width": "4px",
+        "height": "4px",
+        "margin-left": "0px",
+        "margin-right": "0px",
+        "width": "720px"
+      },
+      "scroll": 720,
+      "tag": "HR",
+      "width": 720
+    }
+  },
+  {
+    "style": "Solid",
+    "dom": {
+      "client": 720,
+      "css": {
+        "border-bottom-width": "0px",
+        "border-top-color": "rgb(17, 19, 17)",
+        "border-top-style": "solid",
+        "border-top-width": "4px",
+        "height": "4px",
+        "margin-left": "0px",
+        "margin-right": "0px",
+        "width": "720px"
+      },
+      "scroll": 720,
+      "tag": "HR",
+      "width": 720
+    }
+  }
+]

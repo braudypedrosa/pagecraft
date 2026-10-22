@@ -5180,7 +5180,12 @@ async function linkPrompt() {
       selection.removeAllRanges(); selection.addRange(saved);
     }
     if (!url) return;
-    cdoc.execCommand('createLink', false, url);
+    const href = safeRichUrl(url);
+    if (!href) {
+      toast('Use a web, email, phone, page or anchor link.', { tone: 'error' });
+      return;
+    }
+    cdoc.execCommand('createLink', false, href);
     // The keyboard shortcut does not pass through the toolbar's sync handler.
     syncEdit();
   } finally {
@@ -5301,10 +5306,68 @@ function formatRichBlock(tag) {
   selection.removeAllRanges(); selection.addRange(restored);
   return true;
 }
+
+/* Chromium can wrap a new list in the paragraph it replaced. HTML reparses that invalid
+   structure into empty paragraphs around the list, so editor and Preview no longer match.
+   Move only a selected direct list out of that invalid block, retaining the live child nodes
+   and restoring the range by text offsets so inline marks and nested lists stay untouched. */
+function normalizeRichListStructure() {
+  const host = editing.el;
+  const selection = cwin.getSelection();
+  if (!host || !selection || !selection.rangeCount) return false;
+  const range = selection.getRangeAt(0);
+  if (!host.contains(range.commonAncestorContainer)) return false;
+  const startContainer = range.startContainer, startAt = range.startOffset;
+  const endContainer = range.endContainer, endAt = range.endOffset;
+  const textOffset = (node, offset) => {
+    const before = cdoc.createRange(); before.setStart(host, 0); before.setEnd(node, offset);
+    return before.toString().length;
+  };
+  const startOffset = textOffset(range.startContainer, range.startOffset);
+  const endOffset = textOffset(range.endContainer, range.endOffset);
+  const malformed = [...host.querySelectorAll('p,h1,h2,h3,h4,h5,h6')].filter(block => {
+    const lists = [...block.children].filter(child => child.matches('ol,ul'));
+    return lists.some(list => {
+      try { return range.intersectsNode(list); } catch (_) { return list.contains(range.commonAncestorContainer); }
+    });
+  });
+  if (!malformed.length) return false;
+  malformed.forEach(block => {
+    const out = cdoc.createDocumentFragment(); let inline = null;
+    [...block.childNodes].forEach(child => {
+      if (child.nodeType === 1 && child.matches('ol,ul')) {
+        inline = null; out.appendChild(child); return;
+      }
+      if (!inline) { inline = cdoc.createElement(block.tagName); out.appendChild(inline); }
+      inline.appendChild(child);
+    });
+    block.replaceWith(out);
+  });
+  const pointAt = offset => {
+    const walker = cdoc.createTreeWalker(host, cwin.NodeFilter.SHOW_TEXT);
+    let left = offset, text;
+    while ((text = walker.nextNode())) {
+      if (left <= text.data.length) return [text, left];
+      left -= text.data.length;
+    }
+    return [host, host.childNodes.length];
+  };
+  const [startNode, startPoint] = host.contains(startContainer)
+    ? [startContainer, startAt] : pointAt(startOffset);
+  const [endNode, endPoint] = host.contains(endContainer)
+    ? [endContainer, endAt] : pointAt(endOffset);
+  const restored = cdoc.createRange();
+  restored.setStart(startNode, startPoint); restored.setEnd(endNode, endPoint);
+  selection.removeAllRanges(); selection.addRange(restored);
+  return true;
+}
 $('#rt').addEventListener('mousedown', async e => {
   const b = e.target.closest('button'); if (!b) return;
   e.preventDefault();
-  if (b.dataset.c) cdoc.execCommand(b.dataset.c, false, null);
+  if (b.dataset.c) {
+    cdoc.execCommand(b.dataset.c, false, null);
+    if (b.dataset.c === 'insertUnorderedList' || b.dataset.c === 'insertOrderedList') normalizeRichListStructure();
+  }
   else if (b.dataset.b) formatRichBlock(b.dataset.b);
   else if (b.dataset.link) await linkPrompt();
   syncEdit();

@@ -1,0 +1,13 @@
+{
+  "html": "<ul><li><b><a href=\"https://example.com/visit?day=1&amp;time=2#rooms\">Community workshop guide</a></b></li><li><b><a href=\"https://example.com/visit?day=1&amp;time=2#rooms\">Quiet room bookings available</a></b></li></ul>",
+  "links": [
+    {
+      "href": "https://example.com/visit?day=1&time=2#rooms",
+      "text": "Community workshop guide"
+    },
+    {
+      "href": "https://example.com/visit?day=1&time=2#rooms",
+      "text": "Quiet room bookings available"
+    }
+  ]
+}

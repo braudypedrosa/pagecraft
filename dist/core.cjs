@@ -377,6 +377,7 @@ __export(index_exports, {
   robotsTxt: () => robotsTxt,
   rowRatios: () => rowRatios,
   rowRatiosAt: () => rowRatiosAt,
+  safeRichUrl: () => safeRichUrl,
   safeUrl: () => safeUrl,
   searchAll: () => searchAll,
   searchCount: () => searchCount,
@@ -1889,6 +1890,10 @@ var richHref = (v) => {
   const probe = urlProbe(v);
   if (/^(https?:|mailto:|tel:)/.test(probe)) return true;
   return !probe.startsWith("//") && !/^[^/?#]*:/.test(probe);
+};
+var safeRichUrl = (input) => {
+  const value = String(input == null ? "" : input).trim();
+  return value && richHref(value) ? value : "";
 };
 function cleanRich(html) {
   const src = String(html == null ? "" : html);
@@ -10217,7 +10222,7 @@ function renderNode(n, o) {
       return `<${tg} ${at()} ${cx("pagecraft-heading")}>${inner2}</${tg}>`;
     }
     case "text":
-      return `<div ${at()} ${cx("pagecraft-wysiwyg" + (o.edit && !richTextContent(p.html) ? " s-rich-empty" : ""))}>${p.html || (o.edit ? "<p></p>" : "")}</div>`;
+      return `<div ${at()} ${cx("pagecraft-wysiwyg" + (o.edit && !richTextContent(p.html) ? " s-rich-empty" : ""))}>${cleanRich(p.html) || (o.edit ? "<p></p>" : "")}</div>`;
     case "quote": {
       const said = `<p>${esc(p.text).replace(/\n/g, "<br>")}</p>`;
       const url = safeUrl(p.source);
@@ -11433,6 +11438,7 @@ function proposalApply(changes, proposalId = "") {
   robotsTxt,
   rowRatios,
   rowRatiosAt,
+  safeRichUrl,
   safeUrl,
   searchAll,
   searchCount,

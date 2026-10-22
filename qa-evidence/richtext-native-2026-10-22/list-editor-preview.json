@@ -1,0 +1,21 @@
+{
+  "editor": {
+    "height": 46.5,
+    "html": "<p><ul><li>Community workshop guide</li></ul></p>"
+  },
+  "preview": {
+    "emptyParagraphs": [
+      {
+        "height": 0,
+        "margin": "0px 0px 15px"
+      },
+      {
+        "height": 0,
+        "margin": "15px 0px 0px"
+      }
+    ],
+    "height": 55.5,
+    "html": "<p></p><ul><li>Community workshop guide</li></ul><p></p>",
+    "listItems": 1
+  }
+}

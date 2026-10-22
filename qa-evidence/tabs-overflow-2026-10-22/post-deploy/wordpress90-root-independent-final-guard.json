@@ -1,0 +1,44 @@
+{
+  "version": "0.2.17-preview.20261022.90",
+  "cloud": "1f4b2ccd2dcfeb5e994a17c716af6284e06fe041",
+  "wordpress": "496d7de4f1b3878671201bd569a083d4e1d6c825",
+  "rootIndependentFrozen9": true,
+  "sourceCommittedExact": true,
+  "sealedDistExact": true,
+  "builder55Exact": true,
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical116Exact": true,
+  "SQLByteExact": true,
+  "sqlSHA256": "1029dc303325c4c043adbecdc59d712d7768116a2700b4060199b1a3d03eef69",
+  "builderZipSHA256": "ef48283ed16c356f8cdeb62769b69ee05a06bbcd3a4bb3afcf8663886709d218",
+  "guard": "/private/tmp/pagecraft-preview90-guard.1pxqk_kl",
+  "nativeAcceptance": "Bounded nativeTabs editor3breakpoints/Undo/noSave/reload11IDs, publicSlider/Gallery accepted. PublicTabs portable compiler proof only.",
+  "finalDatabaseTables": 133,
+  "unchangedTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "optionChanges": [
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "timestampMaskedValueAndAutoloadExact": true,
+      "rowIds": [
+        326,
+        326
+      ]
+    },
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "timestampMaskedValueAndAutoloadExact": true,
+      "rowIds": [
+        1999,
+        2003
+      ]
+    }
+  ],
+  "fixtureVersion": 73,
+  "totalRevisions": 332,
+  "allPostsMetaRevisionsExact": true,
+  "finalSQLSHA256": "fed5f069aba3c6aba4516ee3f9fa0872e0d8932ad68fdaa2c55f6f19ce5603b7"
+}

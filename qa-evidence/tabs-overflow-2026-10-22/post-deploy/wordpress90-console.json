@@ -1,0 +1,17 @@
+{
+  "editor": [],
+  "frontend": [
+    {
+      "level": "error",
+      "message": "Electron sandboxed_renderer.bundle.js script failed to run",
+      "timestamp": "2026-10-22T04:28:50.323Z",
+      "url": "node:electron/js2c/sandbox_bundle"
+    },
+    {
+      "level": "error",
+      "message": "TypeError: object null is not iterable (cannot read property Symbol(Symbol.iterator))\n    at Object.invokeSync (node:electron/js2c/sandbox_bundle:2:123210)\n    at node:electron/js2c/sandbox_bundle:2:161796\n    at node:electron/js2c/sandbox_bundle:2:163032\n    at ___electron_webpack_init__ (node:electron/js2c/sandbox_bundle:2:163036)\n    at node:electron/js2c/sandbox_bundle:2:163159",
+      "timestamp": "2026-10-22T04:28:50.323Z",
+      "url": "node:electron/js2c/sandbox_bundle"
+    }
+  ]
+}

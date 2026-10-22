@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/richtext-list-1f4b2cc
+
+
+ Test Files  1 passed (1)
+      Tests  20 passed (20)
+   Start at  12:59:21
+   Duration  1.11s (transform 280ms, setup 0ms, import 351ms, tests 21ms, environment 620ms)
