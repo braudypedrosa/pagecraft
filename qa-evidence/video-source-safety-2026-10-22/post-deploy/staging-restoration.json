@@ -1,0 +1,10 @@
+{
+  "recovered": "<div id=\"n7dr5d1p7\" data-id=\"n7dr5d1p7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-7dr5d1p7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+  "undo": [
+    "Undo: Change video source (⌘Z)",
+    "Undo: Change video source (⌘Z)",
+    "Undo: Add video (⌘Z)"
+  ],
+  "exact": true,
+  "count": 20
+}

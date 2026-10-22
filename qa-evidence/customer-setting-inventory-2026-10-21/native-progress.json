@@ -359,5 +359,23 @@
   "video_source_current_failure": {
     "status": "Reproduced on37f65d4; isolated fix94 root native accepted; rollout pending",
     "evidence": "qa-evidence/video-source-safety-2026-10-22/root-acceptance.json"
+  },
+  "release94_url_safety_accepted": {
+    "cloud": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+    "ci": 39737644659,
+    "deploy": 39737644520,
+    "wordpress": "ef9c7ea44b886bc99d924a785c9a0ea9b4653ad4",
+    "wordpressPreview": "0.2.17-preview.20261022.93",
+    "wordpressCI": 39738545396,
+    "evidence": "qa-evidence/video-source-safety-2026-10-22/post-deploy/task-close.md",
+    "status": "Bounded functional URL-safety accepted. Native WP placeholder layout failed and is isolated in95. FullQAopen."
+  },
+  "video_site_checks_candidate95": {
+    "status": "Root finalnativeaccepted, rolloutpending",
+    "evidence": "qa-evidence/video-source-lint-2026-10-22/root-acceptance.json"
+  },
+  "video_focus_current_failure": {
+    "status": "Nativekeyboardfailureconfirmed, separate96queued",
+    "evidence": "qa-evidence/video-focus-2026-10-22/before.json"
   }
 }

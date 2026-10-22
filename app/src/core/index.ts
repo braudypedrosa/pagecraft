@@ -3667,12 +3667,8 @@ function lint() {
         if (frag && !pageOf(target).has(frag)) add('error', 'dead-anchor', `“${h}” in the ${region} has no matching element id on ${target}.`, w, n.id);
       });
 
-      /* Images are reviewed below with the same collection/component context the renderer
-         uses. Reading `n.props` here made an authored placeholder win over its bound value:
-         a real CMS image could be reported missing, while an empty bound alt could pass. */
-      /* video */
-      if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
-        add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
+      /* Images and videos are reviewed below with the same collection/component context the
+         renderer uses. Reading `n.props` here makes an authored fallback win over a binding. */
 
       if (n.type === 'slider' && (n.children || []).length < 2)
         add('warn', 'slider-thin', `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? '' : 's'}, so there is nothing to scroll to.`, w, n.id);
@@ -3852,21 +3848,21 @@ function lint() {
     visit(pg.tree, [], 'page');
     visit(state.footer, [], 'global footer');
 
-    /* Image review is the one lint pass that needs rendered content rather than the authored
+    /* Media review is the one lint pass that needs rendered content rather than the authored
        fallback. Keep it separate from the static review above so collection repetition does
        not duplicate link, heading or contrast findings. This follows the renderer's scopes:
        lists use their filtered/sorted published rows, detail templates use every published
        item, and component properties/slots resolve exactly where the instance renders them. */
-    type ImageReview = {
+    type ContextReview = {
       level: 'error' | 'warn'; code: string; msg: string; where: any; nodeId: string;
       items: Map<string, string>; target: FindingTarget;
     };
-    const imageReviews = new Map<string, ImageReview>();
-    const queueImage = (level: 'error' | 'warn', code: string, msg: string, region: string,
-      node: PcNode, context: ImageContext) => {
+    const contextReviews = new Map<string, ContextReview>();
+    const queueContext = (level: 'error' | 'warn', code: string, msg: string, region: string,
+      node: PcNode, context: RenderContext) => {
       const nodeId = context.inst ? context.inst.id : node.id;
       const key = [code, region, nodeId, node.id].join('|');
-      let review = imageReviews.get(key);
+      let review = contextReviews.get(key);
       if (!review) {
         const target: FindingTarget = {
           pageId: pg.id, scope: context.scope, nodeId,
@@ -3875,13 +3871,13 @@ function lint() {
           ...(context.pagination ? { pagination: { ...context.pagination } } : {})
         };
         review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: new Map(), target };
-        imageReviews.set(key, review);
+        contextReviews.set(key, review);
       }
       if (context.col && context.item) {
         review.items.set(`${context.col.id}|${context.item.id}`, `“${itemTitle(context.col, context.item)}”`);
       }
     };
-    type ImageContext = {
+    type RenderContext = {
       col: Collection | null; item: Item | null; repeat: boolean;
       inst: PcNode | null; cdef: ComponentDef | null; stack: string[];
       hero: { reviewed: boolean };
@@ -3890,7 +3886,7 @@ function lint() {
       repeatPath: FindingItemTarget[];
       pagination: FindingTarget['pagination'] | null;
     };
-    const withPreviewItem = (context: ImageContext, col: Collection, item: Item | null): ImageContext => {
+    const withPreviewItem = (context: RenderContext, col: Collection, item: Item | null): RenderContext => {
       if (!item) return context;
       const previewItems = context.previewItems.filter(target => target.collectionId !== col.id);
       const target = { collectionId: col.id, itemId: item.id };
@@ -3903,12 +3899,12 @@ function lint() {
         repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
       };
     };
-    const walkImages = (list: PcNode[], chain: PcNode[], region: string, context: ImageContext): void => {
+    const walkContext = (list: PcNode[], chain: PcNode[], region: string, context: RenderContext): void => {
       list.forEach(n => {
         if (n.use) {
           const cd = findComponent(n.use);
           if (cd && !context.stack.includes(n.use)) {
-            walkImages([cd.node], chain.concat(n), `${region}, in “${cd.name}”`, {
+            walkContext([cd.node], chain.concat(n), `${region}, in “${cd.name}”`, {
               ...context, inst: n, cdef: cd, stack: context.stack.concat(n.use)
             });
           }
@@ -3927,19 +3923,19 @@ function lint() {
 
         if (n.type === 'image') {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
-          if (!p.src) queueImage('warn', 'no-image',
+          if (!p.src) queueContext('warn', 'no-image',
             `An image in the ${region} has no source and will export a placeholder.`,
             region, n, scoped);
           /* Demand alt text once there is an image to describe. Until a source is set the
              placeholder finding is the only action the author can take. */
-          if (p.src && !p.decorative && !String(p.alt || '').trim()) queueImage('error', 'no-alt',
+          if (p.src && !p.decorative && !String(p.alt || '').trim()) queueContext('error', 'no-alt',
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
             region, n, scoped);
           if (p.src && p.decorative && String(p.link || '').trim() && !String(p.label || '').trim())
-            queueImage('error', 'image-link-no-label',
+            queueContext('error', 'image-link-no-label',
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
               region, n, scoped);
-          if (p.src && !(p.w && p.h)) queueImage('warn', 'no-dimensions',
+          if (p.src && !(p.w && p.h)) queueContext('warn', 'no-dimensions',
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
             region, n, scoped);
           /* As before, only the first sourced image in the opening body section is known to be
@@ -3947,10 +3943,25 @@ function lint() {
           const inFirstSection = region.startsWith('page') && (n === pg.tree[0] || chain[0] === pg.tree[0]);
           if (!scoped.hero.reviewed && inFirstSection && p.src) {
             scoped.hero.reviewed = true;
-            if (p.lazy) queueImage('warn', 'hero-image-lazy',
+            if (p.lazy) queueContext('warn', 'hero-image-lazy',
               `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
               region, n, scoped);
           }
+        }
+
+        if (n.type === 'video') {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          const source = vidSrc(p);
+          if (source.kind === 'none') queueContext('warn', 'video-no-source',
+            `A video in the ${region} has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.`,
+            region, n, scoped);
+          else if (source.kind === 'invalid') queueContext('error', 'video-invalid-source',
+            `A video in the ${region} has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.`,
+            region, n, scoped);
+          else if (!canFacade(p) && ['youtube', 'vimeo'].includes(source.kind) && !p.autoplay)
+            queueContext('warn', 'eager-video',
+              `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`,
+              region, n, scoped);
         }
 
         /* A Collection List renders its children once for every row. `listItems` is the same
@@ -3962,7 +3973,7 @@ function lint() {
           const drives = parseInt(String(n.props.per || ''), 10) > 0
             && paginatorOf(pg)?.node.id === n.id;
           if (lc) for (const item of rows) {
-            walkImages(n.children || [], chain.concat(n), region, {
+            walkContext(n.children || [], chain.concat(n), region, {
               ...context, col: lc, item, repeat: true,
               repeatPath: [...context.repeatPath, { collectionId: lc.id, itemId: item.id }],
               pagination: drives ? { listNodeId: n.id, itemId: item.id } : context.pagination
@@ -3976,7 +3987,7 @@ function lint() {
         const childContext = filled && filled.length
           ? { ...scoped, inst: null, cdef: null }
           : scoped;
-        walkImages(kids, chain.concat(n), region, childContext);
+        walkContext(kids, chain.concat(n), region, childContext);
       });
     };
     const contexts: { col: Collection | null; item: Item | null }[] = [];
@@ -3984,18 +3995,18 @@ function lint() {
     if (detailCollection) published(detailCollection).forEach(item => contexts.push({ col: detailCollection, item }));
     else contexts.push({ col: null, item: null });
     for (const context of contexts) {
-      const imageContext: ImageContext = {
+      const renderContext: RenderContext = {
         ...context, repeat: false, inst: null, cdef: null, stack: [], hero: { reviewed: false },
         scope: 'page',
         previewItems: context.col && context.item
           ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
         repeatPath: [], pagination: null
       };
-      walkImages(state.header, [], 'global header', { ...imageContext, scope: 'header' });
-      walkImages(pg.tree, [], 'page', imageContext);
-      walkImages(state.footer, [], 'global footer', { ...imageContext, scope: 'footer' });
+      walkContext(state.header, [], 'global header', { ...renderContext, scope: 'header' });
+      walkContext(pg.tree, [], 'page', renderContext);
+      walkContext(state.footer, [], 'global footer', { ...renderContext, scope: 'footer' });
     }
-    for (const review of imageReviews.values()) {
+    for (const review of contextReviews.values()) {
       const labels = [...review.items.values()];
       const shown = labels.slice(0, 3).join(', ');
       const affected = labels.length
@@ -8577,8 +8588,8 @@ function vid(p: any) {
   if (source.kind === 'vimeo') return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
   if (source.kind === 'file')
     return `<video src="${esc(source.id)}"${p.controls ? ' controls' : ''}${p.autoplay ? ' autoplay' : ''}${p.muted || p.autoplay ? ' muted playsinline' : ''}${p.loop ? ' loop' : ''}${p.poster ? ` poster="${esc(p.poster)}"` : ''}></video>`;
-  if (source.kind === 'none') return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
-  if (source.kind === 'invalid') return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
+  if (source.kind === 'none') return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
+  if (source.kind === 'invalid') return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
   return `<iframe src="${esc(source.id)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 

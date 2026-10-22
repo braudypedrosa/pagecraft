@@ -1,0 +1,29 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-lint-5d80a75
+
+ ❯ tests/video-source-lint.test.ts (6 tests | 1 failed | 5 skipped) 5ms
+   × empty and invalid video placeholders use WordPress-safe physical edges 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/video-source-lint.test.ts > empty and invalid video placeholders use WordPress-safe physical edges
+AssertionError: expected '<div style="position:absolute;inset:0…' to contain 'position:absolute;top:0;right:0;botto…'
+
+Expected: "position:absolute;top:0;right:0;bottom:0;left:0;display:flex"
+Received: "<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>"
+
+ ❯ tests/video-source-lint.test.ts:37:18
+     35|   for (const src of ['', 'not a video']) {
+     36|     const html = C.vid({ src });
+     37|     expect(html).toContain('position:absolute;top:0;right:0;bottom:0;l…
+       |                  ^
+     38|     expect(html).not.toContain('inset:0');
+     39|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 skipped (6)
+   Start at  15:29:39
+   Duration  409ms (transform 221ms, setup 0ms, import 260ms, tests 5ms, environment 0ms)

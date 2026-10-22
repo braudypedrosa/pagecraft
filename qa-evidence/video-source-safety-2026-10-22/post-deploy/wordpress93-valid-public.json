@@ -1,0 +1,49 @@
+{
+  "views": {
+    "414": {
+      "autoplay": true,
+      "controls": true,
+      "error": null,
+      "height": 540,
+      "muted": true,
+      "pageOverflow": false,
+      "paused": true,
+      "ready": 4,
+      "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "time": 5.055,
+      "width": 960
+    },
+    "834": {
+      "autoplay": true,
+      "controls": true,
+      "error": null,
+      "height": 540,
+      "muted": true,
+      "pageOverflow": false,
+      "paused": true,
+      "ready": 4,
+      "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "time": 5.055,
+      "width": 960
+    },
+    "1280": {
+      "autoplay": true,
+      "controls": true,
+      "error": null,
+      "height": 540,
+      "muted": true,
+      "pageOverflow": false,
+      "paused": true,
+      "ready": 4,
+      "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "time": 5.055,
+      "width": 960
+    }
+  },
+  "cleanup": {
+    "tab": "30",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "task": "video source site-check lint",
+  "baseCommit": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+  "scope": {
+    "source": ["app/src/core/index.ts"],
+    "tests": ["tests/video-source-lint.test.ts"],
+    "nativeAcceptanceOwner": "root"
+  },
+  "behavior": {
+    "invalidResolvedSource": "error: video-invalid-source",
+    "emptyResolvedSource": "warning: video-no-source",
+    "validResolvedSource": "no source finding",
+    "contextResolution": ["page", "header", "collection rows", "component instance properties", "CMS instance overrides"],
+    "existingEagerWarning": "preserved and evaluated from resolved properties",
+    "wordpressPlaceholderLayout": "empty and invalid placeholders use physical top, right, bottom and left edges"
+  },
+  "checks": [
+    {"name": "red", "result": "expected failure", "tests": 5, "failed": 4, "log": "logs/red.log"},
+    {"name": "focused green", "result": "pass", "tests": 5, "log": "logs/green-focused-final.log"},
+    {"name": "related", "result": "pass", "files": 9, "tests": 762, "log": "logs/related.log"},
+    {"name": "typecheck", "result": "pass", "log": "logs/typecheck.log"},
+    {"name": "WordPress golden check", "result": "pass unchanged", "tests": 1, "skipped": 29, "log": "logs/wordpress-golden-check.log"},
+    {"name": "full suite", "result": "pass", "filesPassed": 258, "filesSkipped": 2, "testsPassed": 2706, "testsSkipped": 5, "log": "logs/full-suite.log"},
+    {"name": "ordered build pair 1", "result": "pass", "builderExit": 0, "editorExit": 0, "log": "logs/build-pair-1.log"},
+    {"name": "ordered build pair 2", "result": "pass", "builderExit": 0, "editorExit": 0, "log": "logs/build-pair-2.log"},
+    {"name": "WordPress placeholder RED", "result": "expected failure", "testsFailed": 1, "testsSkipped": 5, "log": "logs/wp-placeholder-red.log"},
+    {"name": "WordPress placeholder GREEN", "result": "pass", "files": 2, "tests": 39, "log": "logs/wp-placeholder-green.log"},
+    {"name": "final typecheck", "result": "pass", "log": "logs/typecheck-final.log"},
+    {"name": "final WordPress golden check", "result": "pass unchanged", "tests": 1, "skipped": 29, "log": "logs/wordpress-golden-check-final.log"},
+    {"name": "final full suite first run", "result": "unrelated timeout", "testsPassed": 2706, "testsFailed": 1, "testsSkipped": 5, "log": "logs/full-suite-final.log"},
+    {"name": "timed-out server test isolated", "result": "pass", "tests": 1, "skipped": 15, "log": "logs/submissions-timeout-isolation.log"},
+    {"name": "final full suite retry", "result": "pass", "filesPassed": 258, "filesSkipped": 2, "testsPassed": 2707, "testsSkipped": 5, "log": "logs/full-suite-final-retry.log"},
+    {"name": "final ordered build pair 1", "result": "pass", "builderExit": 0, "editorExit": 0, "log": "logs/build-pair-final-1.log"},
+    {"name": "final ordered build pair 2", "result": "pass", "builderExit": 0, "editorExit": 0, "log": "logs/build-pair-final-2.log"},
+    {"name": "generated parity", "result": "match", "files": 10, "receipts": ["generated-build-final-1.sha256", "generated-build-final-2.sha256", "generated-current.sha256"]},
+    {"name": "final freeze", "result": "recorded", "files": 13, "receipt": "final-freeze.sha256"}
+  ],
+  "limitations": [
+    "Native Site checks targeting and recovery remain for root acceptance.",
+    "Video focus ownership and unmuted file-video playsinline are separate unresolved issues."
+  ]
+}

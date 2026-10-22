@@ -5595,8 +5595,6 @@ function lint() {
         }
         if (frag && !pageOf(target).has(frag)) add("error", "dead-anchor", `\u201C${h}\u201D in the ${region} has no matching element id on ${target}.`, w, n.id);
       });
-      if (n.type === "video" && !canFacade(n.props) && ["youtube", "vimeo"].includes(vidSrc(n.props).kind) && !n.props.autoplay)
-        add("warn", "eager-video", `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`, w, n.id);
       if (n.type === "slider" && (n.children || []).length < 2)
         add("warn", "slider-thin", `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? "" : "s"}, so there is nothing to scroll to.`, w, n.id);
       if (n.type === "crumbs" && n.props.mode === "manual" && !(Array.isArray(n.props.items) ? n.props.items : []).length)
@@ -5743,11 +5741,11 @@ function lint() {
     visit(state.header, [], "global header");
     visit(pg2.tree, [], "page");
     visit(state.footer, [], "global footer");
-    const imageReviews = /* @__PURE__ */ new Map();
-    const queueImage = (level, code, msg, region, node, context) => {
+    const contextReviews = /* @__PURE__ */ new Map();
+    const queueContext = (level, code, msg, region, node, context) => {
       const nodeId = context.inst ? context.inst.id : node.id;
       const key = [code, region, nodeId, node.id].join("|");
-      let review = imageReviews.get(key);
+      let review = contextReviews.get(key);
       if (!review) {
         const target = {
           pageId: pg2.id,
@@ -5758,7 +5756,7 @@ function lint() {
           ...context.pagination ? { pagination: { ...context.pagination } } : {}
         };
         review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map(), target };
-        imageReviews.set(key, review);
+        contextReviews.set(key, review);
       }
       if (context.col && context.item) {
         review.items.set(`${context.col.id}|${context.item.id}`, `\u201C${itemTitle(context.col, context.item)}\u201D`);
@@ -5775,12 +5773,12 @@ function lint() {
         repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
       };
     };
-    const walkImages = (list, chain, region, context) => {
+    const walkContext = (list, chain, region, context) => {
       list.forEach((n) => {
         if (n.use) {
           const cd = findComponent(n.use);
           if (cd && !context.stack.includes(n.use)) {
-            walkImages([cd.node], chain.concat(n), `${region}, in \u201C${cd.name}\u201D`, {
+            walkContext([cd.node], chain.concat(n), `${region}, in \u201C${cd.name}\u201D`, {
               ...context,
               inst: n,
               cdef: cd,
@@ -5800,7 +5798,7 @@ function lint() {
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
         if (n.type === "image") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
-          if (!p.src) queueImage(
+          if (!p.src) queueContext(
             "warn",
             "no-image",
             `An image in the ${region} has no source and will export a placeholder.`,
@@ -5808,7 +5806,7 @@ function lint() {
             n,
             scoped
           );
-          if (p.src && !p.decorative && !String(p.alt || "").trim()) queueImage(
+          if (p.src && !p.decorative && !String(p.alt || "").trim()) queueContext(
             "error",
             "no-alt",
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
@@ -5817,7 +5815,7 @@ function lint() {
             scoped
           );
           if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim())
-            queueImage(
+            queueContext(
               "error",
               "image-link-no-label",
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
@@ -5825,7 +5823,7 @@ function lint() {
               n,
               scoped
             );
-          if (p.src && !(p.w && p.h)) queueImage(
+          if (p.src && !(p.w && p.h)) queueContext(
             "warn",
             "no-dimensions",
             `An image in the ${region} has no width/height, so the page will shift as it loads.`,
@@ -5836,7 +5834,7 @@ function lint() {
           const inFirstSection = region.startsWith("page") && (n === pg2.tree[0] || chain[0] === pg2.tree[0]);
           if (!scoped.hero.reviewed && inFirstSection && p.src) {
             scoped.hero.reviewed = true;
-            if (p.lazy) queueImage(
+            if (p.lazy) queueContext(
               "warn",
               "hero-image-lazy",
               `The first image in \u201C${pg2.name}\u201D is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
@@ -5846,12 +5844,41 @@ function lint() {
             );
           }
         }
+        if (n.type === "video") {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          const source2 = vidSrc(p);
+          if (source2.kind === "none") queueContext(
+            "warn",
+            "video-no-source",
+            `A video in the ${region} has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.`,
+            region,
+            n,
+            scoped
+          );
+          else if (source2.kind === "invalid") queueContext(
+            "error",
+            "video-invalid-source",
+            `A video in the ${region} has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.`,
+            region,
+            n,
+            scoped
+          );
+          else if (!canFacade(p) && ["youtube", "vimeo"].includes(source2.kind) && !p.autoplay)
+            queueContext(
+              "warn",
+              "eager-video",
+              `A video in the ${region} loads its player on page load. Turn on \u201CLoad on click\u201D to defer it.`,
+              region,
+              n,
+              scoped
+            );
+        }
         if (n.type === "list") {
           const lc = n.src ? findCollection(n.src) : null;
           const rows = lc ? listItems(n, lc) : [];
           const drives = parseInt(String(n.props.per || ""), 10) > 0 && paginatorOf(pg2)?.node.id === n.id;
           if (lc) for (const item of rows) {
-            walkImages(n.children || [], chain.concat(n), region, {
+            walkContext(n.children || [], chain.concat(n), region, {
               ...context,
               col: lc,
               item,
@@ -5865,7 +5892,7 @@ function lint() {
         const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
         const kids = filled && filled.length ? filled : n.children || [];
         const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null } : scoped;
-        walkImages(kids, chain.concat(n), region, childContext);
+        walkContext(kids, chain.concat(n), region, childContext);
       });
     };
     const contexts = [];
@@ -5873,7 +5900,7 @@ function lint() {
     if (detailCollection) published(detailCollection).forEach((item) => contexts.push({ col: detailCollection, item }));
     else contexts.push({ col: null, item: null });
     for (const context of contexts) {
-      const imageContext = {
+      const renderContext = {
         ...context,
         repeat: false,
         inst: null,
@@ -5885,11 +5912,11 @@ function lint() {
         repeatPath: [],
         pagination: null
       };
-      walkImages(state.header, [], "global header", { ...imageContext, scope: "header" });
-      walkImages(pg2.tree, [], "page", imageContext);
-      walkImages(state.footer, [], "global footer", { ...imageContext, scope: "footer" });
+      walkContext(state.header, [], "global header", { ...renderContext, scope: "header" });
+      walkContext(pg2.tree, [], "page", renderContext);
+      walkContext(state.footer, [], "global footer", { ...renderContext, scope: "footer" });
     }
-    for (const review of imageReviews.values()) {
+    for (const review of contextReviews.values()) {
       const labels = [...review.items.values()];
       const shown = labels.slice(0, 3).join(", ");
       const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
@@ -10025,8 +10052,8 @@ function vid(p) {
   if (source.kind === "vimeo") return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
   if (source.kind === "file")
     return `<video src="${esc(source.id)}"${p.controls ? " controls" : ""}${p.autoplay ? " autoplay" : ""}${p.muted || p.autoplay ? " muted playsinline" : ""}${p.loop ? " loop" : ""}${p.poster ? ` poster="${esc(p.poster)}"` : ""}></video>`;
-  if (source.kind === "none") return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
-  if (source.kind === "invalid") return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
+  if (source.kind === "none") return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
+  if (source.kind === "invalid") return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
   return `<iframe src="${esc(source.id)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 function para(str) {

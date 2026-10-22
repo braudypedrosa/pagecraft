@@ -1,0 +1,28 @@
+{
+  "status": "Root final local native accepted; staging and WordPress rollout pending. FullQAopen.",
+  "base": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+  "nativeEvidence": "native/final-acceptance.json",
+  "nativeNode": "n9h7sl1qt",
+  "checks": [
+    "Invalid source yields1actionable problem; Showme selects exactVideo",
+    "Empty source yields1suggestion; correction clearsproblem",
+    "Saved correctedreload passes; earlier exactsame lint implementation Undo/Redo passes",
+    "Final physicaledge placeholder fills entireVideo box atD/T/M for invalidandempty",
+    "Actual localWordPress safecss_filter_attr preserves finalphysicaledges"
+  ],
+  "automated": {
+    "passed": 2707,
+    "skipped": 5,
+    "exit": 0,
+    "typecheck": 0,
+    "golden": "unchanged"
+  },
+  "gallery": "Core-only change; accepted5d source contract unchanged. No new gallery run claimed.",
+  "protected11Preserved": true,
+  "limits": [
+    "NativeCMS/component/context paths automatedonly",
+    "InstalledWPphysicaledgeproofpending newpin",
+    "VideoFocusownership96 andunmutedplaysinline remainopen",
+    "Fourteen broader QA areas remainopen"
+  ]
+}

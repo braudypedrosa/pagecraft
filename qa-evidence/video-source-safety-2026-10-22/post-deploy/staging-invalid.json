@@ -1,0 +1,21 @@
+{
+  "edit": {
+    "html": "<div id=\"n7dr5d1p7\" data-id=\"n7dr5d1p7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-7dr5d1p7\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+    "id": "n7dr5d1p7",
+    "media": 0
+  },
+  "preview": {
+    "Desktop": {
+      "players": 0,
+      "text": "Unsupported video URL"
+    },
+    "Tablet": {
+      "players": 0,
+      "text": "Unsupported video URL"
+    },
+    "Mobile": {
+      "players": 0,
+      "text": "Unsupported video URL"
+    }
+  }
+}
