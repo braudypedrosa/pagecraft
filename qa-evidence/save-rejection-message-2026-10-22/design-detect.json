@@ -1,0 +1,22 @@
+[
+  {
+    "antipattern": "layout-transition",
+    "name": "Layout property animation",
+    "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "/private/tmp/pagecraft-save-error-contract.dxjdy1wr/builder.html",
+    "line": 785,
+    "snippet": "transition: height, padding-bottom"
+  },
+  {
+    "antipattern": "marquee",
+    "name": "Auto-scrolling marquee",
+    "description": "Continuously auto-scrolling content demands attention it has not earned and hides half its content at any moment. Reserve motion for content that changes; let readers move at their own pace.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/private/tmp/pagecraft-save-error-contract.dxjdy1wr/builder.html",
+    "line": 0,
+    "snippet": ".boot-progress::after — infinite horizontal loop animation \"boot-progress\""
+  }
+]

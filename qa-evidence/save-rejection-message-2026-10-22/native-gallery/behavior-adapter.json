@@ -1,0 +1,18 @@
+{
+  "browser": "Codex In-app Browser",
+  "tab": "51",
+  "pressKey": "provided tab.pressKey(null,key)",
+  "type": "provided tab.typeText(null,text)",
+  "clickAt": "provided tab.click([x,y])",
+  "initialAdapterMissingMethods": [
+    "type",
+    "clickAt"
+  ],
+  "finalChecksPassed": 30,
+  "cleanup": {
+    "tab": "51",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

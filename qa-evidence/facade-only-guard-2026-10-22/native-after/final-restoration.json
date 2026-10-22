@@ -1,0 +1,7 @@
+{
+  "nodes": 4,
+  "exactOriginal": true,
+  "compare": "innerHTML by data-id; selection-only data-sel excluded",
+  "freshEditorTab": "50",
+  "scope": "original rich text and layout restored, global settings unchanged per final DB guard"
+}

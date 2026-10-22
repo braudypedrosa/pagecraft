@@ -1,0 +1,11 @@
+# Canonical-depth generated handoff
+
+Final source is unchanged from the old private candidate. The sibling checkout at `/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3` is detached at c20caf3096ca7e11cec39edc17fee000994c0582 and uses the existing verified dependency tree via `../vitest-patch-33ed365/node_modules`.
+
+Only the frozen builder source, new focused test and root-reviewed baseline manifest were copied. Existing evidence was retained. Two ordered `node packages/editor/build.mjs` builds produced matching hashes for all ten artifacts, recorded in `generated-canonical-pair1.sha256` and `generated-canonical-pair2.sha256`. No generated comments were edited manually. Dependency comments in both generated HTML files exactly match HEAD. All six tracked non-UI generated artifacts remain byte-identical to HEAD. The two untracked retained compiler files match the old candidate byte for byte. The tracked generated changes are exclusively `index.html` and `packages/editor/dist/editor.html`, carrying the intended shared UI changes.
+
+`canonical-path-source-freeze.json` includes exact source, test and reviewed manifest hashes. The original private candidate, its captured screenshots, source files, generated outputs and logs remain unchanged.
+
+Root completed actual built-in-browser review before this handoff: two runs of 30/30 behavior checks, 24/24 images matching the reference and 24/24 A/B matches, with all 24 baseline PNG bytes unchanged. Root recorded the reviewed baseline manifest. A local `node tools/ui-baselines.mjs check` verifies all 24 images and 30 source fingerprints in this new checkout. Root's full test log reports 2,724 passed and five skipped; 261 files passed and two skipped. The evidence copy `full-including-reviewed-visual-gate.log` normalizes trailing whitespace only; the original remains at `/private/tmp/pagecraft-save-error-final-all.log`. Earlier failure logs are retained as provenance, not the final status.
+
+No full-suite rerun was performed in this sibling checkout because no semantic source changed. No Main edits, commits, pushes, browser actions, database actions, installation or WordPress pin changes were performed by this worker. Root owns integration and actual WordPress save/recovery acceptance.

@@ -28334,7 +28334,7 @@ async function historyPanel() {
         await HOST.revisions.restore(version, SRV.version);
         action.success('Version restored. Opening the restored draft…');
         feedback().flash('Version restored to the site draft.');
-        location.reload();
+        reloadDiscardingChanges();
       } catch (error) {
         action.error(error.message || 'Could not restore this version. Try again.');
       }
@@ -28377,7 +28377,7 @@ async function historyModal() {
         await HOST.revisions.restore(version, SRV.version);
         action.success('Version restored. Opening the restored draft…');
         feedback().flash('Version restored to the site draft.');
-        location.reload();
+        reloadDiscardingChanges();
       } catch (error) {
         action.error(error.message || 'Could not restore this version. Try again.');
       }
@@ -29249,8 +29249,8 @@ function warnSessionExpired() {
   $('#seBackup').addEventListener('click', event => backupJson(event));
   $('#seReload').addEventListener('click', reloadDiscardingChanges);
 }
-/* Recovery dialogs are the one place where leaving is an explicit decision to discard this
-   tab's failed draft. Cancel its queued debounce and suppress both unload guards before asking
+/* Explicit recovery and confirmed history restoration discard this tab's failed draft.
+   Cancel its queued debounce and suppress both unload guards before asking
    the browser to reload; otherwise beforeunload keeps the stale tab in place and pagehide can
    immediately retry the write the person just chose to abandon. */
 function reloadDiscardingChanges() {
@@ -29270,20 +29270,39 @@ const saveSoon = () => {
 const save = () => { dirty = true; saveSoon(); };
 
 /* A failed write must never be a whisper — it means work is being lost. */
+/* Only known, customer-facing validation reasons are displayed. Never render arbitrary
+   host diagnostics: they can contain credentials, paths, response HTML or authored content. */
+function saveValidationReason(err) {
+  const reason = err?.payload?.error ?? err?.payload?.message ?? err?.payload?.detail;
+  const known = {
+    'The compiled Pagecraft page contains unsupported executable markup.': 'Embedded HTML contains unsupported executable markup. Remove scripts or other active content, then save again.',
+    'The compiled Pagecraft page contains an unsafe inline style.': 'Embedded HTML contains an unsafe inline style. Remove that style, then save again.',
+    'The compiled Pagecraft stylesheet contains an unsupported executable or parser directive.': 'Custom CSS contains an unsupported directive. Remove that directive, then save again.',
+    'Pagecraft runtime video embeds must use a credential-free absolute HTTPS URL.': 'A video embed needs an absolute HTTPS URL without a username or password. Correct its URL, then save again.',
+    'Pagecraft iframe embeds must use an absolute HTTPS URL.': 'An iframe embed needs an absolute HTTPS URL. Correct its URL, then save again.',
+    'Pagecraft form actions must use an absolute HTTPS URL.': 'A form action needs an absolute HTTPS URL. Correct its URL, then save again.'
+  };
+  return typeof reason === 'string' && Object.hasOwn(known, reason) ? known[reason] : '';
+}
 function warnSaveFailed(err) {
-  rememberSaveProblem('Your latest changes were not saved. Keep this tab open, download a backup, and try saving again.', () => warnSaveFailed(err));
+  const rejected = SRV && (err?.status === 400 || err?.status === 422);
+  rememberSaveProblem(rejected
+    ? 'The host rejected this save. Your changes are still in this tab. Correct the content, then try saving again.'
+    : 'Your latest changes were not saved. Keep this tab open, download a backup, and try saving again.', () => warnSaveFailed(err));
   if (saveWarned) return;
   saveWarned = true;
   const quota = err && /quota|exceed/i.test(err.name + ' ' + err.message);
   const connectionLost = SRV && (navigator.onLine === false || /failed to fetch|networkerror|network request failed|load failed/i.test(err?.message || ''));
-  openModal('Your work is no longer being saved', `
+  const reason = rejected ? saveValidationReason(err) : '';
+  openModal(rejected ? 'This draft could not be saved' : 'Your work is no longer being saved', `
     <div class="alert">
-      <b>${quota ? 'This browser is out of local storage space.' : (connectionLost ? 'The connection to the host was lost. The editor could not confirm whether this page was saved.' : (SRV ? 'The host could not confirm this save.' : 'This browser refused to save the project.'))}</b>
-      <span>Your latest changes are still in this tab. Closing or reloading can lose changes the host did not receive.</span>
+      <b>${rejected ? 'The host rejected this save.' : (quota ? 'This browser is out of local storage space.' : (connectionLost ? 'The connection to the host was lost. The editor could not confirm whether this page was saved.' : (SRV ? 'The host could not confirm this save.' : 'This browser refused to save the project.')))}</b>
+      <span>${rejected ? 'Your changes have not been saved. They are still here in this tab.' : 'Your latest changes are still in this tab. Closing or reloading can lose changes the host did not receive.'}</span>
     </div>
+    ${reason ? `<p class="note">${esc(reason)}</p>` : ''}
     <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
       <b>Download backup now</b> keeps a project file of your current draft.
-      ${quota ? 'Then free space by removing unused images from <b>Project → Images</b>, or by clearing other sites’ data.' : (SRV ? 'Check your connection, reconnect if needed, then choose <b>Try saving again</b>. Keep this tab open until the draft is saved.' : 'Check this browser’s storage permissions. Private-browsing windows and blocked cookies can prevent local saves.')}
+      ${rejected ? 'Close this message and correct the content you just changed, then choose <b>Try saving again</b> or <b>Save</b>. Keep this tab open until the draft is saved.' : (quota ? 'Then free space by removing unused images from <b>Project → Images</b>, or by clearing other sites’ data.' : (SRV ? 'Check your connection, reconnect if needed, then choose <b>Try saving again</b>. Keep this tab open until the draft is saved.' : 'Check this browser’s storage permissions. Private-browsing windows and blocked cookies can prevent local saves.'))}
     </div>`, `
     <button class="btn" id="svRetry">Try saving again</button>
     <span style="flex:1"></span>

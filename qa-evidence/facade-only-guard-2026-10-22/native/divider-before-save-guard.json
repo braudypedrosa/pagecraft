@@ -1,0 +1,28 @@
+{
+  "requestReachedServer": true,
+  "saveFailed": true,
+  "toolbar": "NOT SAVED",
+  "documentAndRevisionsUnchanged": true,
+  "menuDateSideEffectIds": [
+    23,
+    264,
+    265,
+    266,
+    267,
+    300,
+    301,
+    302
+  ],
+  "newOldDateMetaIds": [
+    11626,
+    11627,
+    11628,
+    11629,
+    11630,
+    11631,
+    11632,
+    11633
+  ],
+  "restoredPostAndPostmetaRowsExact": true,
+  "autoIncrementCounters": "Consumed test metadata IDs remain advanced. Counters were not reset."
+}

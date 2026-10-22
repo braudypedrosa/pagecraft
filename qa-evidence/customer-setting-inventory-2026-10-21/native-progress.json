@@ -461,6 +461,46 @@
     "moduleTypes": 24,
     "directDescriptors": 231,
     "sharedAndConditionalFamilies": "Recorded separately; not included as native passes.",
-    "fullQAComplete": false
+    "fullQAComplete": false,
+    "latestCloudCommit": "c20caf3096ca7e11cec39edc17fee000994c0582"
+  },
+  "release98_accepted": {
+    "cloudCommit": "c20caf3096ca7e11cec39edc17fee000994c0582",
+    "cloudStagingCI": "success39789997545",
+    "stagingDeploy": "success39789997616",
+    "localGalleryControls": "desktop/tablet/mobile passed",
+    "cloudGalleryControls": "desktop/tablet/mobile Enter/open/Next/hover/Escape/opener-focus passed",
+    "cloudOriginalDraft": "20 authored nodes exact after five Undo and reload; signed tokens/selection-only attribute excluded",
+    "wordpressGallery": "pending preview96 pin",
+    "evidence": "qa-evidence/gallery-lightbox-contrast-2026-10-22/post-deploy/staging-acceptance.json"
+  },
+  "wordpress_php97": {
+    "commit": "08686905d90b6a790369ec29e8f66349a2c39f4c",
+    "CI39792717483": "success PHP8.1/8.2/8.3",
+    "fixes": [
+      "allow preserved structural and blank drafts",
+      "validate decoded runtime video URLs",
+      "validate page/global payload before menu mutations",
+      "rollback only touched menus"
+    ],
+    "rootCombinedChecks": "158 real-core page/global cases and34 security assertions on WP6.6+7.1.3; Node62/PHP contracts/quality pass",
+    "nativeAfter": {
+      "videoOnly": "Save/reopen/public pass",
+      "dividerOnly": "Save/reopen/public pass",
+      "freshInertScriptRejection": "all133 table INSERT data unchanged",
+      "menuPostsAndAllMeta": "exact to baseline",
+      "originalDraft": "restored four authored nodes exact after fresh reopen",
+      "revisionDelta": "12 authorized QA616 revisions",
+      "rootGuard": "qa-evidence/facade-only-guard-2026-10-22/root-native-review.json"
+    }
+  },
+  "save_recovery_ui99": {
+    "status": "local native-gallery accepted, source integration pending",
+    "fixes": [
+      "400/422 save validation guidance with allowlisted safe reason",
+      "confirmed history restore clears stale failed-tab unload guard"
+    ],
+    "rootChecks": "30 gallery interactions per run, two runs;24reference and24A/B image comparisons pass; baseline PNG bytes unchanged;2724full tests passed5skipped",
+    "consumerNative": "pending next editor pin and native WordPress invalid-Embed/recovery retest"
   }
 }

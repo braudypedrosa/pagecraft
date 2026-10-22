@@ -1,0 +1,42 @@
+
+ RUN  v4.1.12 /private/tmp/pagecraft-save-error-contract.dxjdy1wr
+
+ ❯ tests/editor-save-rejection.test.mjs (5 tests | 5 failed) 5925ms
+   × WordPress 400 rejection explains correction and preserves explicit retry (The compiled Pagecraft page contains unsuppor) 1478ms
+   × WordPress 422 rejection explains correction and preserves explicit retry (The compiled Pagecraft page contains an unsaf) 1187ms
+   × WordPress 400 rejection explains correction and preserves explicit retry (Pagecraft iframe embeds must use an absolute ) 1095ms
+   × WordPress 422 rejection explains correction and preserves explicit retry (<img src=x onerror=alert(1)> token=secret htt) 1089ms
+   × WordPress 400 rejection explains correction and preserves explicit retry ([object Object]) 1075ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-save-rejection.test.mjs > WordPress 400 rejection explains correction and preserves explicit retry (The compiled Pagecraft page contains unsuppor)
+ FAIL  tests/editor-save-rejection.test.mjs > WordPress 422 rejection explains correction and preserves explicit retry (The compiled Pagecraft page contains an unsaf)
+ FAIL  tests/editor-save-rejection.test.mjs > WordPress 400 rejection explains correction and preserves explicit retry (Pagecraft iframe embeds must use an absolute )
+ FAIL  tests/editor-save-rejection.test.mjs > WordPress 422 rejection explains correction and preserves explicit retry (<img src=x onerror=alert(1)> token=secret htt)
+ FAIL  tests/editor-save-rejection.test.mjs > WordPress 400 rejection explains correction and preserves explicit retry ([object Object])
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'Your work is no longer being saved'
+- 'This draft could not be saved'
+
+
+Expected: "This draft could not be saved"
+Received: "Your work is no longer being saved"
+
+ ❯ tests/editor-save-rejection.test.mjs:43:14
+     41|       window.__CORE.state.meta.name = 'Keep this rejected draft';
+     42|       await window.writeNow();
+     43|       assert.equal(document.querySelector('#mTitle').textContent, 'Thi…
+       |              ^
+     44|       const body = document.querySelector('#mBody').textContent;
+     45|       assert.match(body, /host rejected this save/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  22:38:57
+   Duration  6.88s (transform 22ms, setup 0ms, import 758ms, tests 5.92s, environment 0ms)

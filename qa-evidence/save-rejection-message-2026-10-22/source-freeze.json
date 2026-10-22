@@ -1,0 +1,7 @@
+{
+  "base": "c20caf3096ca7e11cec39edc17fee000994c0582",
+  "files": {
+    "builder.html": "f9d9b32e66d288d486aea3a64926a08cd1f6c2188779ecd1edf7205b22a549a1",
+    "tests/editor-save-rejection.test.mjs": "a5183cd989715e4a0a59b949defdf320eb39832f0b7fa2e51935aeac44f41cf0"
+  }
+}

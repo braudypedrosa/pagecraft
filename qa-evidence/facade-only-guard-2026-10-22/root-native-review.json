@@ -1,0 +1,18 @@
+{
+  "reviewedBy": "root",
+  "php97NativeAcceptance": "passed",
+  "source": "08686905d90b6a790369ec29e8f66349a2c39f4c",
+  "environmentalOptionDeltasAccepted": [
+    "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+    "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+    "cron"
+  ],
+  "basis": "Two WordPress theme-pattern caches changed timestamp only with identical payload/autoload; cron kept event identities, schedule, interval and args, with one hourly privacy-cleanup timestamp advancing3600seconds. These are measured background/cache updates, not an allowance for arbitrary option changes.",
+  "originalSavedDraftExact": true,
+  "freshRejectedSaveAll133InsertTablesExact": true,
+  "uiRecoveryIssuesStillOpen": [
+    "400 validation shown as connection failure",
+    "confirmed history restoration retains stale failed tab due unload guard"
+  ],
+  "fullQAComplete": false
+}

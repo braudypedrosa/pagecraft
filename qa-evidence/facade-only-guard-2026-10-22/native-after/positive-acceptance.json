@@ -1,0 +1,102 @@
+{
+  "wordpress": "08686905d90b6a790369ec29e8f66349a2c39f4c",
+  "video": {
+    "save": true,
+    "reopened": [
+      {
+        "id": "n4f0tt5j6",
+        "type": "section"
+      },
+      {
+        "id": "n4f0tt4lq",
+        "type": "row"
+      },
+      {
+        "id": "n4f0tt3sn",
+        "type": "column"
+      },
+      {
+        "id": "nmoi8b4go",
+        "type": "section"
+      },
+      {
+        "id": "nmoi8b3xm",
+        "type": "row"
+      },
+      {
+        "id": "nmoi8b2vx",
+        "type": "column"
+      },
+      {
+        "id": "nmoi8b18c",
+        "type": "video"
+      }
+    ],
+    "public": {
+      "embedIsHttps": true,
+      "playButtons": 1,
+      "richText": 0,
+      "videoFacades": 1
+    }
+  },
+  "divider": {
+    "save": true,
+    "reopened": [
+      {
+        "id": "n4f0tt5j6",
+        "type": "section"
+      },
+      {
+        "id": "n4f0tt4lq",
+        "type": "row"
+      },
+      {
+        "id": "n4f0tt3sn",
+        "type": "column"
+      },
+      {
+        "id": "nmrtx94tm",
+        "type": "section"
+      },
+      {
+        "id": "nmrtx93rq",
+        "type": "row"
+      },
+      {
+        "id": "nmrtx92jn",
+        "type": "column"
+      },
+      {
+        "id": "nmrtx91oy",
+        "type": "divider"
+      }
+    ],
+    "public": {
+      "dividers": 1,
+      "html": "<section id=\"pagecraft-section-4f0tt5j6\" class=\"pagecraft-section pagecraft-4f0tt5j6\"><div class=\"pagecraft-container\"><div id=\"pagecraft-row-4f0tt4lq\" class=\"pagecraft-row pagecraft-4f0tt4lq\"><div id=\"pagecraft-column-4f0tt3sn\" class=\"pagecraft-column pagecraft-4f0tt3sn\"></div></div></div></section><section id=\"pagecraft-section-mrtx94tm\" class=\"pagecraft-section pagecraft-mrtx94tm\"><div class=\"pagecraft-container\"><div id=\"pagecraft-row-mrtx93rq\" class=\"pagecraft-row pagecraft-mrtx93rq\"><div id=\"pagecraft-column-mrtx92jn\" class=\"pagecraft-column pagecraft-mrtx92jn\"><hr id=\"pagecraft-divider-mrtx91oy\" class=\"pagecraft-divider pagecraft-mrtx91oy\"></div></div></div></section>",
+      "richText": 0
+    }
+  },
+  "restoreViaNativeHistory": [
+    13,
+    15
+  ],
+  "original": [
+    {
+      "html": "<div class=\"pagecraft-container\"><div id=\"n4f0tt4lq\" data-id=\"n4f0tt4lq\" data-t=\"row\" class=\"pagecraft-row pagecraft-4f0tt4lq\"><div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div></div></div>",
+      "id": "n4f0tt5j6"
+    },
+    {
+      "html": "<div id=\"n4f0tt3sn\" data-id=\"n4f0tt3sn\" data-t=\"column\" class=\"pagecraft-column pagecraft-4f0tt3sn\"><div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div></div>",
+      "id": "n4f0tt4lq"
+    },
+    {
+      "html": "<div id=\"n4f0tt272\" data-id=\"n4f0tt272\" data-t=\"text\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-body\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div>",
+      "id": "n4f0tt3sn"
+    },
+    {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "id": "n4f0tt272"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+
+ RUN  v4.1.12 /private/tmp/pagecraft-save-error-contract.dxjdy1wr
+
+ ❯ tests/editor-save-rejection.test.mjs (9 tests | 2 failed) 12469ms
+   × historyModal: only confirmed restore releases failed-save unload and replay guards (true) 1441ms
+   × historyPanel: only confirmed restore releases failed-save unload and replay guards (true) 1437ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-save-rejection.test.mjs > historyModal: only confirmed restore releases failed-save unload and replay guards (true)
+ FAIL  tests/editor-save-rejection.test.mjs > historyPanel: only confirmed restore releases failed-save unload and replay guards (true)
+AssertionError: failed restore must keep draft protection; successful restore owns the reload
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/editor-save-rejection.test.mjs:104:16
+    102|         const unload = new window.Event('beforeunload', { cancelable: …
+    103|         window.dispatchEvent(unload);
+    104|         assert.equal(unload.defaultPrevented, !success, 'failed restor…
+       |                ^
+    105|         if (success) {
+    106|           window.dispatchEvent(new window.Event('pagehide'));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 7 passed (9)
+   Start at  22:43:05
+   Duration  13.31s (transform 17ms, setup 0ms, import 671ms, tests 12.47s, environment 0ms)
