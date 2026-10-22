@@ -1,0 +1,12 @@
+{
+  "index.html": "e32dfb8e80f7b8137d65c19ac69db8a94cbc13d056b7aca81529bff355aedb22",
+  "dist/core.cjs": "2cbf3fbb2ba9d7a90ba0d1d711bf2f6a912bad0de0870c730c8c928a07f8391e",
+  "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+  "packages/editor/dist/editor.html": "c4d833729408b135c1b680acaa2634ffbc332099c558dc3904dbf3fc90114395",
+  "packages/editor/dist/runtime.js": "217e1bd7a7b443817d63a2b537a78158d42c18403bf22c9ed5029ded44997997",
+  "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+  "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+  "packages/editor/dist/fixtures/site.pagecraft-site.zip": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+  "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+  "packages/editor/dist/compiler-worker.js": "f95e6a752ac23fc887d1726d69cee5cf8373586da1dc6857b68497f56e22c30e"
+}

@@ -1,0 +1,55 @@
+{
+  "status": "installed",
+  "version": "0.2.17-preview.20261023.99",
+  "cloud": "0328cd0976f9bb90c7eb95a4882c6898b9f9df09",
+  "wordpress": "150998dd4a878a3171c72a35c34c176966eff23e",
+  "sourceCommittedExact": true,
+  "php97Source12PreservedExact": true,
+  "frozen10Exact": true,
+  "newEditorArchiveExact": true,
+  "builder55Exact": true,
+  "runtimeChangedForGalleryLoadRecovery": true,
+  "compilerPathsVersion99Only": true,
+  "addedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.99-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.99-pagecraft-renderer-2/compiler.js"
+  ],
+  "removedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.98-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.98-pagecraft-renderer-2/compiler.js"
+  ],
+  "changedBuilderPaths": [
+    "assets/pagecraft-editor-contract.json",
+    "assets/pagecraft-editor.html",
+    "assets/pagecraft-runtime.js"
+  ],
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical132Exact": true,
+  "packageInventory134Exact": true,
+  "new99PairHashes": {
+    "packages/pagecraft-editor-0.2.17-preview.20261023.99.source.json": "c696fb5b57fc15be943a66a6af6b11409b5e529e9277746e06a30022d36898eb",
+    "packages/pagecraft-editor-0.2.17-preview.20261023.99.tgz": "e19647d9265c3a0b3c980325666710412d054deb52b7e79e86eb01b15252c0f7"
+  },
+  "protectedSnapshotByteExact": true,
+  "revisionCount": 399,
+  "original487Version": 73,
+  "qa616DocumentVersion": 34,
+  "SQLByteExact": true,
+  "sqlSHA256": "45908ac2c80a6d55d6ac5ba45ced02ac504b19147982670c259268995bb7dd5f",
+  "builderZipSHA256": "b550b4a206b92216ee71ca1508cdbbeb45ee8d3ffac9f524868e3ae10fbb7d53",
+  "source10FreezeSHA256": "ccef606febc00728c9d443eb3cc409883af5dcc2208fa1e5642679e0af1c624a",
+  "php12FreezeSHA256": "8ef5e1c65cf5a94ef9015e5594286d534dc3215d74de924e02bce767a5a79074",
+  "builder98Preserved": "[private path omitted]",
+  "guard": "[private path omitted]",
+  "nativeAcceptance": "Pending root verification",
+  "databaseRollbackPerformed": false,
+  "evidenceCopy": {
+    "privateSourceSHA256": "3de65901ac3d5236deec59f14401b5ac1828256aec883780849614098ed731d5",
+    "redactedPrivatePathFields": [
+      "guard",
+      "builder98Preserved"
+    ],
+    "credentialsOrSessionsIncluded": false
+  }
+}

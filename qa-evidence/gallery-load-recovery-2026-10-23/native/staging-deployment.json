@@ -1,0 +1,5 @@
+{
+  "commit": "0328cd0976f9bb90c7eb95a4882c6898b9f9df09",
+  "branch": "development",
+  "marker": "Browser tab: 56, Title: \"staging.itspagecraft.com/__deployment\", URL: \"https://staging.itspagecraft.com/__deployment\".\n0 AXWebArea staging.itspagecraft.com/__deployment\n\t1 text {\"commit\":\"0328cd0976f9bb90c7eb95a4882c6898b9f9df09\",\"branch\":\"development\"}\n\t2 container\n\t\t3 checkbox 0\n\nThe focused UI element is 0 AXWebArea staging.itspagecraft.com/__deployment"
+}

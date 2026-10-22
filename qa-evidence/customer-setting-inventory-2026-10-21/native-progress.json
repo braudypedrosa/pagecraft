@@ -541,6 +541,14 @@
         "Library reuse, responsive clearing and base resets only; no full Gallery, shared controls or full customer QA claim.",
         "Physical touch, arbitrary values/combinations and generic CSS architecture remain open."
       ]
+    },
+    "load_recovery_preview99": {
+      "status": "WordPress existing-page CSS compatibility FAILED; OPEN",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/preview99-acceptance-status.json",
+      "cloudBoundedAccepted": true,
+      "wordpressBoundedAccepted": false,
+      "fullGalleryQAComplete": false,
+      "fullQAComplete": false
     }
   },
   "historical_pending_next_checks": [
@@ -673,6 +681,20 @@
     "testCleanup": "Recorded successful CDP reset/reload and test tab closed by root",
     "missingReference": "Not safely authored through UI",
     "invalidUpload": "Not tested",
+    "fullQAComplete": false,
+    "preview99Compatibility": {
+      "status": "OPEN: Cloud bounded passed, existing saved WordPress page CSS failed before resave",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/preview99-acceptance-status.json",
+      "pageVersion34Preserved": true,
+      "nextPreview100Pending": true,
+      "fullQAComplete": false
+    }
+  },
+  "spacer_percent_editor_preview_parity_104": {
+    "status": "OPEN-confirmed-native",
+    "evidence": "qa-evidence/spacing-host-native-2026-10-23/open-percent-height-parity.json",
+    "cloudRestoredExact": true,
+    "wordPressTested": false,
     "fullQAComplete": false
   }
 }

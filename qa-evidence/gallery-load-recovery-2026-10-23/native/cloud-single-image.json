@@ -1,0 +1,67 @@
+{
+  "tabId": "57",
+  "forward": {
+    "close": {
+      "right": "14px",
+      "top": "14px",
+      "transform": "none"
+    },
+    "errorColor": "rgb(242, 242, 238)",
+    "errorSize": "16px",
+    "errorText": "Image unavailableQA reused courtyardTry again",
+    "errorVisible": true,
+    "errorWrap": "anywhere",
+    "focused": "pagecraft-lightbox-retry",
+    "image": {
+      "alt": "QA reused courtyard",
+      "hidden": true,
+      "loaded": false
+    },
+    "retryBusy": null,
+    "retryDisabled": null,
+    "retryHidden": false,
+    "scrollWidth": 414,
+    "width": 414
+  },
+  "arrows": [
+    {
+      "display": "none",
+      "hidden": true,
+      "label": "Previous image"
+    },
+    {
+      "display": "none",
+      "hidden": true,
+      "label": "Next image"
+    }
+  ],
+  "backward": {
+    "close": {
+      "right": "14px",
+      "top": "14px",
+      "transform": "none"
+    },
+    "errorColor": "rgb(242, 242, 238)",
+    "errorSize": "16px",
+    "errorText": "Image unavailableQA reused courtyardTry again",
+    "errorVisible": true,
+    "errorWrap": "anywhere",
+    "focused": "pagecraft-lightbox-btn pagecraft-lightbox-close",
+    "image": {
+      "alt": "QA reused courtyard",
+      "hidden": true,
+      "loaded": false
+    },
+    "retryBusy": null,
+    "retryDisabled": null,
+    "retryHidden": false,
+    "scrollWidth": 414,
+    "width": 414
+  },
+  "cleanup": {
+    "cpu": {},
+    "blockedUrls": {},
+    "cache": {},
+    "network": {}
+  }
+}

@@ -1,0 +1,502 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --reporter=dot
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (689 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328
+
+······························································stderr | server/tests/gateway-db.test.ts > a site with signed releases is refused cleanly and keeps its history
+Error: this site has signed WordPress releases, which are kept permanently
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:438:13
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  status: 409,
+  code: 'SITE_HAS_RELEASES'
+}
+
+·····stderr | server/tests/gateway-db.test.ts > a failed site delete rolls back as a whole and keeps the stored media
+PostgresError: could not serialize access due to concurrent update
+    at tag (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:96:29)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:453:26
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  severity: 'ERROR',
+  code: '40001',
+  detail: 'Key (secret_column)=(private-value) is locked.'
+}
+
+stderr | server/tests/gateway-db.test.ts > site and library storage clamp caller limits to the locked database plan
+Error: account media storage limit reached
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:2451:15
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  status: 409,
+  code: 'STORAGE_LIMIT'
+}
+
+··stderr | server/tests/gateway-db.test.ts > site and library storage clamp caller limits to the locked database plan
+Error: account media storage limit reached
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:2817:15
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  status: 409,
+  code: 'STORAGE_LIMIT',
+  usedBytes: 104857568,
+  limitBytes: 104857600
+}
+
+stderr | server/tests/gateway-db.test.ts > a failed asset upload never removes a file it did not write, and hides the database text
+PostgresError: could not serialize access due to concurrent update
+    at tag (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:96:29)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:2500:59
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  severity: 'ERROR',
+  code: '40001',
+  detail: 'Key (secret_column)=(private-value) is locked.'
+}
+
+stderr | server/tests/gateway-db.test.ts > a library upload fences on the owner row before the library row, like site uploads
+Error: account media storage limit reached
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:2817:15
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  status: 409,
+  code: 'STORAGE_LIMIT',
+  usedBytes: 128,
+  limitBytes: 160
+}
+
+stderr | server/tests/gateway-db.test.ts > database errors reach the caller as a stable code, with only a unique constraint name
+PostgresError: duplicate key value violates unique constraint "sites_slug_key"
+    at asPostgresError (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:69:44)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:101:77
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:336:11
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (slug)=(taken) already exists.',
+  constraint_name: 'sites_slug_key',
+  table_name: 'sites',
+  schema_name: 'public'
+}
+
+stderr | server/tests/gateway-db.test.ts > database errors reach the caller as a stable code, with only a unique constraint name
+PostgresError: new row for relation "sites" violates check constraint "sites_doc_schema_version_check"
+    at asPostgresError (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:69:44)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:101:77
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:336:11
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@electric-sql/pglite/dist/chunk-JDT7TZ73.js:8:1744 {
+  severity: 'ERROR',
+  code: '23514',
+  detail: 'Failing row contains (broken, broken.example.test, Broken, {"meta": {}, "pages": [], "footer": [], "header": [], "schemaVer..., 1, 2026-10-23 03:05:58.141+08, broken, 1, null, 0, null).',
+  constraint_name: 'sites_doc_schema_version_check',
+  table_name: 'sites',
+  schema_name: 'public'
+}
+
+stderr | server/tests/gateway-db.test.ts > database errors reach the caller as a stable code, with only a unique constraint name
+Error: unknown gateway operation
+    at dispatch (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:3529:27)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/supabase/functions/pagecraft-db/index.ts:3556:23
+    at call (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:150:20)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/gateway-db.test.ts:598:19
+    at file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20 {
+  status: 400,
+  code: 'UNKNOWN_OPERATION'
+}
+
+································stderr | tests/component-gallery.test.mjs > all specimens use the current host cascade and contain no submitting forms
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+
+············stderr | tests/component-gallery.test.mjs > every family includes a real-component long-content or recovery fixture
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+
+······stderr | tests/component-gallery.test.mjs > builder actions expose production inspector disclosures and synchronize accessible state
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+Could not parse CSS stylesheet
+
+········(node:63709) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·······················································stderr | server/tests/accounts.test.ts > a failed concurrent template install waits for every asset and leaves no partial site
+site template asset installation failed Error: simulated asset failure
+    at FailingConcurrentAssetStore.put (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/accounts.test.ts:185:60)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at processTimers (node:internal/timers:541:7)
+    at async Promise.allSettled (index 1)
+    at create (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:4123:23)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:606:7
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:579:5
+
+·······························································································································································(node:63844) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+···································stderr | server/tests/app.test.ts > hosted addresses move immediately and deleting the site revokes both public routes
+Error: fixture database failure
+    at MemoryStore.store.delete (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/app.test.ts:275:38)
+    at remove (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:2890:26)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:2920:17
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:579:5
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at editorOnly (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:494:5)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+
+·····stderr | server/tests/app.test.ts > an unrenderable save is rejected before it can advance or corrupt the stored document
+invalid Pagecraft document rejected: Cannot read properties of undefined (reading 'forEach')
+
+stderr | server/tests/app.test.ts > an unrenderable create is rejected before a site or revision is inserted
+invalid Pagecraft document rejected: Cannot read properties of undefined (reading 'forEach')
+
+····························································································stderr | server/tests/template-install-storage.test.ts > a prepared template asset write failure rolls back the site and completed media
+site template asset installation failed Error: simulated gateway write failure
+    at StorageCompatibleAssetStore.put (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/tests/template-install-storage.test.ts:40:49)
+    at async Promise.allSettled (index 1)
+    at create (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:4123:23)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:606:7
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:579:5
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at dispatch (file:///Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules/hono/dist/compose.js:35:11)
+    at editorOnly (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/server/src/app.ts:494:5)
+
+················stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+··stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback http://pagecraft-wordpress-qa.local/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+···stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/connected-app.test.ts > manual WordPress import preserves PKCE and ownership for callback https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+···························stderr | server/tests/connected-app.test.ts > late-paired production polling recovers failed promotion from the current staging release
+WordPress deployment follow-up is pending: injected late production issuance failure
+
+············stderr | server/tests/connected-app.test.ts > a committed Publish survives a target queue failure and pull retries repair delivery
+WordPress release delivery is pending: injected queue event write failure
+
+·stderr | server/tests/connected-app.test.ts > staging live remains committed while failed production issuance reconciles through polling and duplicate ACK
+WordPress deployment follow-up is pending: injected production target issuance failure
+
+·······························································································································································································································································································································································································································································································································································································································································································································stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+········stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an assistant reads one site and files proposals; it cannot change anything itself
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > a token is for its own site, and stops working when its maker is no longer the owner
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·······stderr | server/tests/assistants.test.ts > a token is for its own site, and stops working when its maker is no longer the owner
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·······stderr | server/tests/assistants.test.ts > a token is for its own site, and stops working when its maker is no longer the owner
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > a token is for its own site, and stops working when its maker is no longer the owner
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+··stderr | server/tests/assistants.test.ts > a token is for its own site, and stops working when its maker is no longer the owner
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+····stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > an authenticated assistant request is bounded before a proposal tool can run
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+············stderr | server/tests/assistants.test.ts > the editor lists proposals with previews, and each is decided once
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > the editor lists proposals with previews, and each is decided once
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·stderr | server/tests/assistants.test.ts > the editor lists proposals with previews, and each is decided once
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > the editor lists proposals with previews, and each is decided once
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·········stderr | server/tests/assistants.test.ts > the editor claims a proposal before applying it, once, and an abandoned claim can be taken again
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > the editor claims a proposal before applying it, once, and an abandoned claim can be taken again
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > the editor claims a proposal before applying it, once, and an abandoned claim can be taken again
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistants.test.ts > the editor claims a proposal before applying it, once, and an abandoned claim can be taken again
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·····stderr | server/tests/assistant-oauth.test.ts > the owner picks one of their own sites, and the app gets a token for that site only
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the owner picks one of their own sites, and the app gets a token for that site only
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the owner picks one of their own sites, and the app gets a token for that site only
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+··stderr | server/tests/assistant-oauth.test.ts > the owner picks one of their own sites, and the app gets a token for that site only
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the MCP SDK’s own client signs in end to end, the way Claude Desktop and Code do
+[mcp-sdk] OAuthClientProvider does not implement saveDiscoveryState()/discoveryState(); the SEP-2352 callback-leg authorization-server binding cannot be checked. Implement discoveryState (persist alongside codeVerifier) — see docs/migration/upgrade-to-v2.md §SEP-2352.
+
+stderr | server/tests/assistant-oauth.test.ts > the MCP SDK’s own client signs in end to end, the way Claude Desktop and Code do
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the MCP SDK’s own client signs in end to end, the way Claude Desktop and Code do
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the MCP SDK’s own client signs in end to end, the way Claude Desktop and Code do
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/assistant-oauth.test.ts > the MCP SDK’s own client signs in end to end, the way Claude Desktop and Code do
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+·················································································································stdout | server/tests/hosted-styles.test.ts > Stillwood ships its fonts and foundation once, without reordering any page cascade
+Stillwood index.html: 564405 -> 95534 bytes (14382 gzipped); shared CSS 25885 bytes (5882 gzipped), once per site
+
+·········································································································································································································································································································stderr | tests/site-previews.test.ts > dashboard image cache > keeps the existing image while preparing the next version and removes failed renderers
+Pagecraft preview capture failed: Error: Preview unavailable
+    at eval (eval at rig (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/tests/site-previews.test.ts:19:23), <anonymous>:55:78)
+
+stderr | tests/site-previews.test.ts > dashboard image cache > rejects pixels from an older generation after a newer save is observed
+Pagecraft preview capture failed: Error: Preview unavailable
+    at eval (eval at rig (/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328/tests/site-previews.test.ts:19:23), <anonymous>:55:78)
+
+·················································································································(node:63998) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+············································································································································································stderr | server/tests/mail.test.ts > a mail server that refuses says so rather than pretending the link was sent
+the login link could not be sent: connection refused
+
+·········stderr | server/tests/mcp-server-security-compatibility.test.ts > MCP 2.3 keeps same-id HTTP clients isolated and accepts later requests
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/mcp-server-security-compatibility.test.ts > MCP 2.3 keeps same-id HTTP clients isolated and accepts later requests
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+stderr | server/tests/mcp-server-security-compatibility.test.ts > MCP 2.3 rejects an invalid JSON-RPC batch before dispatch
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+············stderr | server/tests/mcp-server-security-compatibility.test.ts > both authenticated MCP handlers reject a streamed UTF-8 body over 1 MB before tool dispatch
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+····stderr | server/tests/mcp-server-security-compatibility.test.ts > both MCP handlers reject excessive argument elements before calling a tool
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.
+
+····································································································································································································································································stderr | server/tests/full-customer-roundtrip.test.ts > save errors refuse stale, newer and unrenderable documents without changing stored state
+invalid Pagecraft document rejected: Cannot read properties of undefined (reading 'forEach')
+
+·······························································································································································································································································································································································································································································-----·····
+
+ Test Files  264 passed | 2 skipped (266)
+      Tests  2734 passed | 5 skipped (2739)
+   Start at  03:05:49
+   Duration  39.62s (transform 10.43s, setup 0ms, import 87.04s, tests 298.56s, environment 57.03s)

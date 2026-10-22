@@ -1,0 +1,23 @@
+{
+  "tabId": "58",
+  "documentVersionBeforeNativeResave": 34,
+  "state": {
+    "errorColor": "rgb(0, 0, 0)",
+    "errorSize": "18px",
+    "errorText": "Image unavailableQA cafe table with coffee and pastryTry again",
+    "errorVisible": true,
+    "errorWrap": "normal",
+    "hasNewErrorCss": false,
+    "retryColor": "rgb(0, 0, 0)",
+    "retrySize": "13.3333px",
+    "runtimeScript": [
+      "http://pagecraft-wordpress-qa.local/wp-content/plugins/pagecraft-builder/assets/pagecraft-runtime.js?ver=59683f04dff1"
+    ]
+  },
+  "cleanup": {
+    "cpu": {},
+    "blockedUrls": {},
+    "cache": {},
+    "network": {}
+  }
+}

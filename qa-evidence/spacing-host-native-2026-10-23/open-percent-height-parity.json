@@ -1,0 +1,32 @@
+{
+  "id": "spacer-percent-editor-preview-parity",
+  "status": "OPEN",
+  "priority": "P2",
+  "host": "Cloud staging b927f64",
+  "nativeEvidence": "cloud-spacer-percent-context.json",
+  "reproduction": [
+    "Add Spacer at page root through builder.",
+    "Set Desktop Height25%.",
+    "Editor child10px with generated Column min-height40px.",
+    "Working Preview child0px with indefinite auto-height parent."
+  ],
+  "sourceDiagnosis": {
+    "editorColumnMinHeight": "app/src/core/index.ts:8428",
+    "columnFlex": "app/src/core/index.ts:8095",
+    "spacerDefinition": "app/src/core/index.ts:961",
+    "spacerPublicBaseCss": "app/src/core/index.ts:8315"
+  },
+  "scope": "Editor-only Column selection scaffold changes percentage containing-block context. Authored25% is retained. Other px/rem/vw/vh/zero/negative-clamp/decimal checks pass their recorded values.",
+  "rejectedQuickFixes": [
+    "Do not remove supported% values or alter public CSS.",
+    "Do not blanket-override Spacer height or remove all editable Column hit areas.",
+    "Do not add explanatory notes as substitute for resolving misleading preview."
+  ],
+  "nextProof": [
+    "Auto Column and auto Box.",
+    "Authored definite200px parent should keep25%=50px.",
+    "Responsive node/class parents, sibling content, component/slot/list/slider parents.",
+    "Preserve editor selection and hit area."
+  ],
+  "fullQAComplete": false
+}

@@ -1,0 +1,52 @@
+{
+  "status": "Preview99 compatibility acceptance FAILED for existing saved WordPress page; OPEN",
+  "cloud": {
+    "status": "Bounded native D/T/M and single-image failure/retry acceptance passed by root",
+    "commit": "0328cd0976f9bb90c7eb95a4882c6898b9f9df09",
+    "restoration": {
+      "baselineVersion": "Version 1196",
+      "nodes": 20,
+      "exact": true
+    },
+    "evidence": [
+      "cloud-recovery.json",
+      "cloud-single-image.json"
+    ]
+  },
+  "wordpress": {
+    "commit": "150998dd4a878a3171c72a35c34c176966eff23e",
+    "preview": "0.2.17-preview.20261023.99",
+    "result": "FAILED existing-page CSS compatibility before resave",
+    "storedPageCompilerVersion": "0.2.17-preview.20261023.98",
+    "documentVersion": 34,
+    "revisions": 399,
+    "noPageResavePerformed": true,
+    "newRuntimeActive": true,
+    "observed": {
+      "errorColor": "rgb(0, 0, 0)",
+      "errorSize": "18px",
+      "errorText": "Image unavailableQA cafe table with coffee and pastryTry again",
+      "errorVisible": true,
+      "errorWrap": "normal",
+      "hasNewErrorCss": false,
+      "retryColor": "rgb(0, 0, 0)",
+      "retrySize": "13.3333px",
+      "runtimeScript": [
+        "http://pagecraft-wordpress-qa.local/wp-content/plugins/pagecraft-builder/assets/pagecraft-runtime.js?ver=59683f04dff1"
+      ]
+    },
+    "evidence": "wordpress-existing-page-before-resave.json",
+    "screenshot": "wordpress-existing-page-before-resave.png",
+    "cleanup": "Root finally CPU1, blocked URLs empty, cache enabled, Network disabled; all successful empty CDP responses recorded. Root reports reload restored three loaded images and closed tab58."
+  },
+  "dataGuard": {
+    "checksPassed": 22,
+    "failures": 0,
+    "evidence": "wordpress-preview99-post-native-guard.json"
+  },
+  "nextStep": "Separate CSS compatibility fix and fresh preview100 existing-page acceptance before any Save.",
+  "fullGalleryQAComplete": false,
+  "fullQAComplete": false,
+  "productionReady": false,
+  "provenance": "Root performed native browser tests. Worker reviewed supplied screenshot/records and independently captured read-only SQL/file guard and next baseline."
+}

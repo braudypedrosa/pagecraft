@@ -1,0 +1,68 @@
+{
+  "status": "Preview99 post-native read-only guard passed; compatibility acceptance failed separately",
+  "baseline": "Preview99 installer post.sql",
+  "checks": {
+    "tables133": true,
+    "onlyKnownCacheTableChanged": true,
+    "allAccountSessionMetaExact": true,
+    "usersPasswordsRolesExact": true,
+    "onlyElementorCacheTimeChanged": true,
+    "allPostsAndMetaExact": true,
+    "allProtectedSnapshotExact": true,
+    "total399Revisions": true,
+    "original487Version73": true,
+    "qa616Version34": true,
+    "qa616Gallery8NoComponents": true,
+    "sourceHEAD150998": true,
+    "sameAccountTwoHourSession": true,
+    "builderSourceAndInstalledExact": true,
+    "builderBackupExact": true,
+    "themeSourceAndInstalledExact": true,
+    "themeBackupExact": true,
+    "importerSourceAndInstalledExact": true,
+    "importerBackupExact": true,
+    "historical134Files": true,
+    "old132Exact": true,
+    "PHP12Exact": true
+  },
+  "checksPassed": 22,
+  "failures": [],
+  "totalRevisionCount": 399,
+  "qa616DocumentVersion": 34,
+  "sourceDocumentAndCompiledArtifactsByteExact": true,
+  "allPostsMetaAccountsSessionsPagecraftOptionsExact": true,
+  "environmentalOptionChanges": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2127,
+      "afterRowId": 2132,
+      "beforeTime": 1792692446,
+      "afterTime": 1792694985,
+      "otherFieldsExact": true,
+      "autoloadExact": true
+    }
+  ],
+  "baselineSQLSHA256": "45908ac2c80a6d55d6ac5ba45ced02ac504b19147982670c259268995bb7dd5f",
+  "postNativeSQLSHA256": "bd5abcf6ce4d1981b332f345f337c22e6d0b902b0d659ffb949154f91a66bbf7",
+  "preservedCompiled98Fixture": {
+    "documentVersion": 34,
+    "compilerEditorVersion": "0.2.17-preview.20261023.98",
+    "sourceDocumentSHA256": "3b71c89d73e8ad2b1ddb34420e9daa75e04165e1f2fca26f5d7ab343670b9526",
+    "compiledMetadataValueHashes": {
+      "_pagecraft_compiled_hash": "e44be855271ccb674f1704a227f383e63cdfb767b5ed890dc461e13d39d2615b",
+      "_pagecraft_compiled_css": "a840d6fb0ab6a3b31e5e3d636cd29f712c38a18275d308ba1b14897a1dd29f38",
+      "_pagecraft_global_css_path": "ed36b975eb45eeddc716dcecc42e542cd240ad89a8f592699bfa38cff75a78b0",
+      "_pagecraft_global_css_hash": "005513812612788467af9f48382b2f61b795f711c34b246a8afbb9cd488bdea0",
+      "_pagecraft_page_css_path": "5f60dddd1bb3ac0efdde9a74cd2e174e7b5e114c57f8259fe9cc6b02d25e1725",
+      "_pagecraft_page_css_hash": "23b74507aadf6895ef44b56949ea041c43d6c9380c3a06411707957322efe7d9",
+      "_pagecraft_compiler_editor_version": "26d2e67784bad398e5aea87da10fb94b4b513b8decca212833e97e62e82ce086",
+      "_pagecraft_compiler_renderer_revision": "8dc09c1d40c550d620beb712052fc0f7540d118cfcdd65fd629854fe58a0fba1",
+      "_pagecraft_compiler_document_sha256": "e638298791fa7707cfc87e8f6cbc039fb61731f2b793252394e4eb969c11f7fe",
+      "_pagecraft_compiler_render_context_sha256": "467f1924845ef051c76671f2a12f92c88a8d9918bd1eae3542d5d5b33864ec75",
+      "_pagecraft_compiled_at": "a5cc32dd465596bee9dea98c19b9f277815720d8b0aa4a3d88696e84fbdf78c5"
+    },
+    "mustRemainBeforeResave": true
+  },
+  "nextPreview100Baseline": "../preview100-preguard.json",
+  "databaseWritesPerformed": false
+}

@@ -74,6 +74,7 @@ __export(index_exports, {
   LANGS: () => LANGS,
   LAYOUTS: () => LAYOUTS,
   LB_JS: () => LB_JS,
+  LIGHTBOX_FAILURE_CSS: () => LIGHTBOX_FAILURE_CSS,
   MIN_COL: () => MIN_COL,
   MQ: () => MQ,
   N: () => N,
@@ -9495,6 +9496,18 @@ function foundationCss(editing) {
   const tk = tokenCss();
   return baseCss(editing) + tk.d + (tk.t ? `${MQ.t}{${tk.t}}` : "") + (tk.m ? `${MQ.m}{${tk.m}}` : "");
 }
+var LIGHTBOX_FAILURE_CSS = `.pagecraft-lightbox .pagecraft-lightbox-error{
+  max-width:64ch;margin:0;color:#f2f2ee;font:400 16px/1.5 system-ui,sans-serif;
+  text-align:center;overflow-wrap:anywhere;
+}
+.pagecraft-lightbox .pagecraft-lightbox-error strong,.pagecraft-lightbox .pagecraft-lightbox-error span{display:block}
+.pagecraft-lightbox .pagecraft-lightbox-error strong{font-weight:600}
+.pagecraft-lightbox .pagecraft-lightbox-retry{
+  min-height:44px;margin-top:12px;padding:8px 16px;border:1px solid currentColor;border-radius:6px;
+  background:transparent;color:inherit;font:600 16px/1.25 system-ui,sans-serif;cursor:pointer;
+}
+.pagecraft-lightbox .pagecraft-lightbox-retry[aria-disabled=true]{cursor:wait;opacity:.72}
+.pagecraft-lightbox .pagecraft-lightbox-retry:focus-visible{outline:2px solid #fff;outline-offset:3px}`;
 function treeCss(lists, editing) {
   const acc = ruleBuckets();
   usedComponents(lists).forEach((cd) => nodeCss(cd.node, editing, acc, null, true));
@@ -9850,17 +9863,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 }
 .pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
 .pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
-.pagecraft-lightbox-error{
-  max-width:64ch;margin:0;color:#f2f2ee;font:400 16px/1.5 system-ui,sans-serif;
-  text-align:center;overflow-wrap:anywhere;
-}
-.pagecraft-lightbox-error strong,.pagecraft-lightbox-error span{display:block}
-.pagecraft-lightbox-error strong{font-weight:600}
-.pagecraft-lightbox-retry{
-  min-height:44px;margin-top:12px;padding:8px 16px;border:1px solid currentColor;border-radius:6px;
-  background:transparent;color:inherit;font:600 16px/1.25 system-ui,sans-serif;cursor:pointer;
-}
-.pagecraft-lightbox-retry[aria-disabled=true]{cursor:wait;opacity:.72}
+${LIGHTBOX_FAILURE_CSS}
 .pagecraft-lightbox-btn{
   position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
   display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
@@ -9881,7 +9884,6 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-lightbox .pagecraft-lightbox-btn:focus-visible{
   outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);
 }
-.pagecraft-lightbox-retry:focus-visible{outline:2px solid #fff;outline-offset:3px}
 ${m.css || ""}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -9896,7 +9898,9 @@ ${m.css || ""}
 /* Empty rich content needs a canvas target; a pseudo-element cannot leak into inline edits. */
 .s-rich-empty::after{content:"";display:block;height:24px;pointer-events:none}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
-[data-t=column]{min-height:40px}
+/* Keep an empty Column available as a drop target without giving real content an editor-only
+   containing-block height. Percentage children must see the same layout context as Preview. */
+.s-column-empty{min-height:40px}
 [data-t=tabs] [data-tab-idle]{display:none}
 .pagecraft-video>iframe,.pagecraft-video>video{pointer-events:none}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
@@ -10295,7 +10299,7 @@ function renderNode(n, o) {
       return mine && total > 1 ? body + pager(o.pg, at1, total, o) : body;
     }
     case "column":
-      return `<div ${at()} ${cx("pagecraft-column")}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
+      return `<div ${at()} ${cx("pagecraft-column" + (o.edit && !kids ? " s-column-empty" : ""))}>${kids || (o.edit ? `<div class="s-empty">${svg("plus", 12)} Drop a component</div>` : "")}</div>`;
     case "heading": {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : "h2";
       const body = esc(p.text).replace(/\n/g, "<br>");
@@ -10712,12 +10716,22 @@ b.parentNode.replaceChild(f,b);if(k)f.focus();
 });});})();
 </script>
 `;
-var LB_JS = `<script>
+function lightboxRuntime() {
+  return `<script>
 (function(){
 var gs=document.querySelectorAll('[data-lightbox]');if(!gs.length)return;
 if(typeof HTMLDialogElement!=='function')return;
+var ownScript=document.currentScript,styleNonce=ownScript&&(ownScript.nonce||ownScript.getAttribute('nonce'))||'';
+var failureCss=${JSON.stringify(LIGHTBOX_FAILURE_CSS)};
 var dlg=null,imgEl,capEl,errorEl,errorTitle,errorDetail,retryB,prevB,nextB,closeB,list=[],at=0,request=0;
+function ensureFailureCss(){
+var style=document.querySelector('style[data-pagecraft-lightbox-failure]');if(style)return;
+style=document.createElement('style');style.setAttribute('data-pagecraft-lightbox-failure','');
+if(styleNonce)style.setAttribute('nonce',styleNonce);style.textContent=failureCss;
+(document.head||document.documentElement).appendChild(style);
+}
 function build(){
+ensureFailureCss();
 dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
 dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><div class="pagecraft-lightbox-error" hidden><div role="status" aria-live="polite"><strong></strong><span></span></div><button class="pagecraft-lightbox-retry" type="button" hidden>Try again</button></div><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
@@ -10784,6 +10798,8 @@ at=i;show();dlg.showModal();
 })();
 </script>
 `;
+}
+var LB_JS = /* @__PURE__ */ lightboxRuntime();
 var tidy = (css) => css.replace(/\}/g, "}\n").replace(/\n{2,}/g, "\n").replace(/^\s+|\s+$/g, "");
 function jsonLdGraph(pg2, ctx = {}) {
   const m = state.meta;
@@ -11242,6 +11258,7 @@ function proposalApply(changes, proposalId = "") {
   LANGS,
   LAYOUTS,
   LB_JS,
+  LIGHTBOX_FAILURE_CSS,
   MIN_COL,
   MQ,
   N,

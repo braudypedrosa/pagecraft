@@ -1,0 +1,102 @@
+{
+  "status": "Fresh Preview100 private preguard ready; no install performed",
+  "currentWordPressCommit": "150998dd4a878a3171c72a35c34c176966eff23e",
+  "currentCloudCommit": "0328cd0976f9bb90c7eb95a4882c6898b9f9df09",
+  "currentEditorVersion": "0.2.17-preview.20261023.99",
+  "totalRevisionCount": 399,
+  "original487DocumentVersion": 73,
+  "qa616DocumentVersion": 34,
+  "qa616StoredNodes": [
+    {
+      "id": "n4f0tt5j6",
+      "type": "section"
+    },
+    {
+      "id": "n4f0tt4lq",
+      "type": "row"
+    },
+    {
+      "id": "n4f0tt3sn",
+      "type": "column"
+    },
+    {
+      "id": "n4f0tt272",
+      "type": "text"
+    },
+    {
+      "id": "np6sev4ix",
+      "type": "section"
+    },
+    {
+      "id": "np6sev3u6",
+      "type": "row"
+    },
+    {
+      "id": "np6sev2in",
+      "type": "column"
+    },
+    {
+      "id": "np6sev1et",
+      "type": "gallery"
+    }
+  ],
+  "tables": 133,
+  "unchangedInsertTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "environmentalOptionChanges": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2127,
+      "afterRowId": 2132,
+      "beforeTime": 1792692446,
+      "afterTime": 1792694985,
+      "otherFieldsExact": true,
+      "autoloadExact": true
+    }
+  ],
+  "sessionState": {
+    "allAccountSessionRowsExact": true,
+    "durations": [
+      7200,
+      7200
+    ]
+  },
+  "checks": {
+    "tables133": true,
+    "onlyKnownCacheTableChanged": true,
+    "allAccountSessionMetaExact": true,
+    "usersPasswordsRolesExact": true,
+    "onlyElementorCacheTimeChanged": true,
+    "allPostsAndMetaExact": true,
+    "allProtectedSnapshotExact": true,
+    "total399Revisions": true,
+    "original487Version73": true,
+    "qa616Version34": true,
+    "qa616Gallery8NoComponents": true,
+    "sourceHEAD150998": true,
+    "sameAccountTwoHourSession": true,
+    "builderSourceAndInstalledExact": true,
+    "builderBackupExact": true,
+    "themeSourceAndInstalledExact": true,
+    "themeBackupExact": true,
+    "importerSourceAndInstalledExact": true,
+    "importerBackupExact": true,
+    "historical134Files": true,
+    "old132Exact": true,
+    "PHP12Exact": true
+  },
+  "failures": [],
+  "sqlSHA256": "bd5abcf6ce4d1981b332f345f337c22e6d0b902b0d659ffb949154f91a66bbf7",
+  "protectedSnapshotSHA256": "211c67c292cd25327c4d306c82b20e34538045d6bcb0e0b2f77dc53406e94d99",
+  "extendedSnapshotSHA256": "e32cea2ffc8273e198f6249e494aced66c6f699621a0059540b4597369bf888a",
+  "builderBackupSHA256": "11369ee0c7b5f5a62fb45631845a3e62edb4bd5ece513f8d909a752f7e1c66c3",
+  "themeBackupSHA256": "36817be5a33e765a130a6862611c2765992bf33cf67fd57d6e955a3dea29e1f8",
+  "importerBackupSHA256": "6a1b9444f7579f51282f72ebe40c02f6308a4c37c6686f861ebbfec1c76b9ecc",
+  "historicalManifestSHA256": "e27b017b9b667cad7ea59cfbb10a469396661b5da69f494efcaa1a84de3172d4",
+  "targetCloudCommit": "Pending compatibility fix commit",
+  "targetVersion": "0.2.17-preview.20261023.100",
+  "databaseWritesPerformed": false,
+  "installerExecuted": false
+}

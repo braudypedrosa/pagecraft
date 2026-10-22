@@ -1,0 +1,27 @@
+[
+  {
+    "file": "qa-evidence/gallery-legacy-css-2026-10-23/root-gallery-only-full-green.log",
+    "before": "b147480a5dae260f8dafe2924b7af0342b30a0a3b2ddbf74eabee29a70f6f833",
+    "after": "324635676f89b3cc9a5cf1a8e3a25292cd7ddf0cfd5132b717e4e4c938351ace"
+  },
+  {
+    "file": "qa-evidence/gallery-legacy-css-2026-10-23/root-combined-full.log",
+    "before": "19f4c7f635265749ddb9936c49d82cf0595bd6afe0dc1c6514fbc5601b5fbc8f",
+    "after": "4cdf0a43a2d1443abd8bb7bbbaa2336f709abcf7dac1a576c53ad65d8a23bc14"
+  },
+  {
+    "file": "qa-evidence/gallery-legacy-css-2026-10-23/typecheck-green.log",
+    "before": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "after": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "file": "qa-evidence/gallery-legacy-css-2026-10-23/golden-green.log",
+    "before": "7d8e1062cf02117e11489abd2378c26a3a11abde4c19f0a00e918432b0a85c66",
+    "after": "d1ef66bc424077476b6b3f469371da57997939349c753d420f145b6cba5891b6"
+  },
+  {
+    "file": "qa-evidence/gallery-legacy-css-2026-10-23/focused-green.log",
+    "before": "28c875231cc28318d144f13fb37ad22d1ea72d14af06a5b7d38880a5fcff897a",
+    "after": "ed76285a8203f83f1ce7bba2be168e14b8721fcc145f2ccb1790b18f74714508"
+  }
+]
