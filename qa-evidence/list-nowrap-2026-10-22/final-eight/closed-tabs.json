@@ -1,0 +1,26 @@
+{
+  "closed": [
+    {
+      "id": "1",
+      "url": "http://localhost:4993/edit/s1",
+      "reason": "Rejected4px fixture proof saved;8px replacement now verified."
+    },
+    {
+      "id": "3",
+      "url": "http://localhost:4994/internal/components",
+      "reason": "30behavior checks and24captures saved; CPU/viewport/media reset receipts recorded."
+    }
+  ],
+  "keep": [
+    {
+      "id": "2",
+      "url": "http://localhost:4994/edit/s1",
+      "reason": "Final accepted local fixture still used for release reference."
+    },
+    {
+      "id": "4",
+      "url": "https://staging.itspagecraft.com/edit/c11494e8-3ae5-4be0-b707-e937278a710a",
+      "reason": "Staging native acceptance pending."
+    }
+  ]
+}

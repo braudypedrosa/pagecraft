@@ -1,0 +1,42 @@
+{
+  "acceptedCommit": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+  "copiedSources": [
+    {
+      "path": "app/src/core/index.ts",
+      "sha256": "196c3111e19b6461013aa1f109acb7c7dc1eb499b27626ecf1e1aede798b88f1",
+      "equalsAcceptedCommit": true
+    },
+    {
+      "path": "builder.html",
+      "sha256": "0105c182c2c585e614cc1fa892c6b80fbc8f7e853f1584f48096b731de4299f8",
+      "equalsAcceptedCommit": true
+    },
+    {
+      "path": "tests/list-nowrap-scroll.test.ts",
+      "sha256": "beb7ac3c8b54af4476fca2ee0773186c51dc75d7d87d095b690288f312e5ea52",
+      "equalsAcceptedCommit": true
+    },
+    {
+      "path": "tests/preview-keyboard-scope.test.mjs",
+      "sha256": "95f2f9f1ce93462274f31af7bb097f0f4bbc4d3732e66264781d933725bbf90d",
+      "equalsAcceptedCommit": true
+    },
+    {
+      "path": "server/tests/fixtures/wordpress-artifact-v1.json",
+      "sha256": "d19e2d12419453a59754fa9de82fa3743d8c41bb0a8ab3ad68853bc251b61506",
+      "equalsAcceptedCommit": true
+    },
+    {
+      "path": "public/internal-ui-baselines/manifest.json",
+      "sha256": "cf9a5ecea0152a38375389a06d1da0dd76480364f3967625339ff6bf0afb0ace",
+      "equalsAcceptedCommit": true
+    }
+  ],
+  "dependencyHashesPreserved": {
+    "package.json": "53178c6d2aeba5fb91b7c34b2dcd0ae578ffa7f02138466d814cee88427209ca",
+    "package-lock.json": "928cd274831b30951f784e36fca7c844b8325f6b89aa7140f5f775a41cedeecd"
+  },
+  "privateNodeModules": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules",
+  "unrelatedSourceDrift": [],
+  "nonEvidenceTrackedPathsCompared": 1954
+}

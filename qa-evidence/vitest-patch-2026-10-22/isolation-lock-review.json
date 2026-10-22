@@ -1,0 +1,64 @@
+{
+  "head": "33ed365303df0f7723de9e6c7c236f3865300145",
+  "nodeModules": {
+    "symlink": false,
+    "realpath": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/vitest-patch-33ed365/node_modules"
+  },
+  "changes": [
+    {
+      "package": "",
+      "from": "0.2.0",
+      "to": "0.2.0"
+    },
+    {
+      "package": "node_modules/@vitest/expect",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/mocker",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/pretty-format",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/runner",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/snapshot",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/spy",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/@vitest/utils",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    },
+    {
+      "package": "node_modules/chai",
+      "from": "6.2.2",
+      "to": "6.3.0"
+    },
+    {
+      "package": "node_modules/tinyrainbow",
+      "from": "3.1.1",
+      "to": "3.2.0"
+    },
+    {
+      "package": "node_modules/vitest",
+      "from": "4.1.11",
+      "to": "4.1.12"
+    }
+  ]
+}

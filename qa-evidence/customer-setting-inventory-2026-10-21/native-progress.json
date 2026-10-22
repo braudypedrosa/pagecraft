@@ -280,12 +280,22 @@
     "source": "33ed365303df0f7723de9e6c7c236f3865300145",
     "evidence": "qa-evidence/list-nowrap-2026-10-22/before-native.json",
     "scope": "Fresh native Collection18published items; Mobile nowrap stored in css.m, card width about1.28px, page403/405 horizontal overflow. Isolated fix and acceptance in progress.",
-    "status": "Confirmed88 defect; isolated final8px local acceptance passed, not yet deployed."
+    "status": "Historical88 reproduction; bounded89 fix accepted in Cloud staging and WP portableCore/local native regression. Physical touch remains open."
   },
   "release89_candidate": {
-    "status": "Local bounded accepted8px; integration and deployment pending.",
+    "status": "Historical local checkpoint, superseded by release89_accepted.",
     "scope": "List No-wrap readable local scrolling and Preview keyboard ownership.2634pass5skip;30gallery interactions and24matching captures. Fresh Desktop215/215 and Mobile101/101, no page overflow, finalcard reachable; Slider, responsive clear and authored padding pass.",
     "evidence": "qa-evidence/list-nowrap-2026-10-22/final-eight/acceptance.json",
     "remaining": "Cloud exact deployment/native and WordPress pin/guard acceptance. Physical touch unverified. Fourteen broad QA areas remain open."
+  },
+  "release89_accepted": {
+    "cloud": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+    "cloud_ci": 39712803307,
+    "cloud_deploy": 39712803305,
+    "wordpress": "47385b0f37683fd0b5d340aab19e102ea716ba97",
+    "wordpress_preview": "0.2.17-preview.20261022.89",
+    "wordpress_ci": "Pending separate receipt",
+    "scope": "Bounded List No-wrap/Preview key ownership. Native Cloud accepted/restored; WP portableCore plus nativeSlider/Gallery/localguard accepted. Full QA open.",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/post-deploy/task-close.md"
   }
 }
