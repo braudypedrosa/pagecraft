@@ -28,7 +28,7 @@
       ],
       "limits": [
         "Representative values only; arbitrary values, all fonts/styles, Motion, Hover and Focus remain open.",
-        "Condition-control label fix still requires candidate82 native verification."
+        "Generic condition-label recovery passed in82; per-module condition combinations remain partial."
       ]
     },
     {
@@ -55,7 +55,7 @@
       ],
       "limits": [
         "Four separator variants and representative responsive values are covered; arbitrary row counts/values, Motion, Hover and Focus remain open.",
-        "Condition-control label fix still requires candidate82 native verification."
+        "Generic condition-label recovery passed in82; per-module condition combinations remain partial."
       ]
     },
     {
@@ -113,7 +113,7 @@
       ],
       "limits": [
         "Edge rows and conditional-controls-off proof are Mobile-only.",
-        "Position, max-width, overflow, shared Motion/State and condition-label native verification remain open.",
+        "Position, max-width, overflow and shared Motion/State combinations remain open. Generic condition labels passed82; per-module behavior still needs named evidence.",
         "Padding fix accepted locally and in deployed Cloud/installed WordPress; broader module/common control combinations remain open."
       ]
     },
@@ -182,13 +182,14 @@
     }
   ],
   "pending_next_checks": [
-    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; corrected L07 child/link/unsafe-URL and required-title cases are bounded but child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
-    "Per-module condition-label checks beyond the generic accepted82 labels.",
-    "Table position, max-width and overflow controls.",
-    "Common Motion, Hover/Focus, dynamic component and full customer-flow combinations outside named records."
+    "Finish WordPress structural-draft Save guard, decoded runtime URL validation and rejected-Save menu isolation, then native saved/failed output proof.",
+    "Mixed Button typography/surface/component changes across Cloud and saved WordPress output, with Update/Detach and responsive overrides.",
+    "Gallery Cloud and saved WordPress host acceptance. Local nine-family coverage exists with explicit limits.",
+    "Follow remaining-native-cases-2026-10-22.json for unverified direct, shared, conditional and composite controls.",
+    "List remaining schema/nested/child conditions and provider boundaries; do not repeat accepted integer/No-wrap cases as open defects."
   ],
   "broad_open_areas": [
-    "All builder modules outside the five mapped modules.",
+    "Native control branches and host workflows without named evidence across the24 canonical module types. See remaining-native-cases-2026-10-22.json; static inventory is not a pass.",
     "Shared Style/common controls and Advanced groups across modules.",
     "Motion, transition, animation, duration, delay, easing and once controls.",
     "Hover and keyboard Focus state controls and state-specific DOM/computed output.",
@@ -407,5 +408,59 @@
   "video_focus_candidate96": {
     "status": "Root native accepted, rollout pending",
     "evidence": "qa-evidence/video-focus-2026-10-22/root-acceptance.json"
+  },
+  "release96_accepted": {
+    "cloud": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+    "cloudCI": 39775381935,
+    "stagingDeploy": 39775381846,
+    "wordpress": "62636ace3c3ac1cd57f766ee549fa9363388fbde",
+    "wordpressCI": 39777439076,
+    "wordpressPreview": "0.2.17-preview.20261022.95",
+    "evidence": "qa-evidence/video-focus-2026-10-22/post-deploy",
+    "native": "Node Focus40 persists across keyboard player activation in builder, actualexport andsavedWP at D/T/M; blurclearsmarker; pointeropenremainsResting; contentrestored",
+    "limits": [
+      "Class/localprecedence automatedonly",
+      "Provider internalTabnavigation notcertified",
+      "FullQA remainsopen"
+    ]
+  },
+  "wordpress_facade_only_current_failure": {
+    "nativeConfirmed": true,
+    "evidence": "qa-evidence/facade-only-guard-2026-10-22/native",
+    "facadeSave": "Valid no-poster facade-onlymain rejected",
+    "rollback": "Failure rewrites dates of unrelated assigned menu items; exact test effects restored fromprivatebaseline",
+    "candidateStatus": "Separate isolated Fallback guard and menu preflight fixes underway"
+  },
+  "gallery_partial": {
+    "scope": "All nine direct control families with bounded values; local only",
+    "evidence": "qa-evidence/gallery-native-2026-10-22",
+    "passed": [
+      "Upload3images/alt/captions/order/removeUndo/emptyUndo",
+      "All6tileshapes,bothFitmodes,lightbox/caption/lazy togglesbothdirections",
+      "D4/T2/M1columns,gap24 with existingM8,radius20",
+      "Columns0/-2clamp1 and2.5rounds3",
+      "KeyboardLightboxOpen/Next/Escape/openerrestoration",
+      "Imagespersistandreloadfullyloaded"
+    ],
+    "limits": [
+      "Cloud/WordPress not covered",
+      "SharedAdvanced/Motion/states,libraryreuse,arbitraryvaluesandunits remainopen"
+    ]
+  },
+  "historical_pending_next_checks": [
+    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; corrected L07 child/link/unsafe-URL and required-title cases are bounded but child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
+    "Per-module condition-label checks beyond the generic accepted82 labels.",
+    "Table position, max-width and overflow controls.",
+    "Common Motion, Hover/Focus, dynamic component and full customer-flow combinations outside named records."
+  ],
+  "current_coverage_record": {
+    "inventory": "remaining-native-cases-2026-10-22.json",
+    "reconciliationThrough95": "coverage-reconciliation-2026-10-22.json",
+    "latestBoundedCloudAcceptance": 96,
+    "latestWordPressEditorPreview": 95,
+    "moduleTypes": 24,
+    "directDescriptors": 231,
+    "sharedAndConditionalFamilies": "Recorded separately; not included as native passes.",
+    "fullQAComplete": false
   }
 }

@@ -1,0 +1,40 @@
+{
+  "mobileKeyboard": {
+    "background": "rgba(10, 12, 10, 0.72)",
+    "boxShadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+    "color": "rgb(255, 255, 255)",
+    "focusVisible": true,
+    "height": 46,
+    "outline": "rgb(255, 255, 255) solid 2px",
+    "width": 46
+  },
+  "pointerHover": {
+    "background": "rgba(10, 12, 10, 0.88)",
+    "focusVisible": false,
+    "hover": true
+  },
+  "nextImage": {
+    "alt": "Library reading tables",
+    "loaded": true
+  },
+  "views": [
+    {
+      "device": "Desktop",
+      "background": "rgba(10, 12, 10, 0.72)",
+      "focusVisible": true,
+      "height": 46,
+      "width": 46
+    },
+    {
+      "device": "Tablet",
+      "background": "rgba(10, 12, 10, 0.72)",
+      "focusVisible": true,
+      "height": 46,
+      "width": 46
+    }
+  ],
+  "keyboardEscape": "closes and restores opener",
+  "limits": [
+    "Local native only; deployed Cloud and saved WordPress output pending."
+  ]
+}

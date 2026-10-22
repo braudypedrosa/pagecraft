@@ -1,0 +1,68 @@
+{
+  "status": "Local native partial only. Cloud and WordPress not covered.",
+  "candidate": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+  "node": "nhxjlq1vlr",
+  "checks": [
+    "Native Gallery insert and three-file upload",
+    "Three alt texts and captions authored",
+    "Show captions enabled, Square shape, contain fit, image3movedup",
+    "Lazy load disabled, Desktop4/Tablet2/Mobile1 columns, desktopgap24 inherited Tablet and existingMobile8, tileRadius20",
+    "Keyboard Enter opens lightbox; Next selectsLibrary; Escape closes and restoresopener",
+    "Saved reload preserves3 images withmatchingalt andfullyloaded"
+  ],
+  "views": [
+    {
+      "alt": [
+        "Work table by a sunny window",
+        "Library reading tables",
+        "People collaborating in a workshop"
+      ],
+      "columns": "282px 282px 282px 282px",
+      "gap": "24px",
+      "overflow": false,
+      "radius": "20px",
+      "shape": "1 / 1",
+      "width": 1320
+    },
+    {
+      "alt": [
+        "Work table by a sunny window",
+        "Library reading tables",
+        "People collaborating in a workshop"
+      ],
+      "columns": "373.5px 373.5px",
+      "gap": "24px",
+      "overflow": false,
+      "radius": "20px",
+      "shape": "1 / 1",
+      "width": 834
+    },
+    {
+      "alt": [
+        "Work table by a sunny window",
+        "Library reading tables",
+        "People collaborating in a workshop"
+      ],
+      "columns": "359px",
+      "gap": "8px",
+      "overflow": false,
+      "radius": "20px",
+      "shape": "1 / 1",
+      "width": 414
+    }
+  ],
+  "lightbox": {
+    "active": "Next image",
+    "alt": "Library reading tables",
+    "open": true
+  },
+  "close": {
+    "activeHref": "blob:http://localhost:5010/ab18dfb3-135d-499d-ba89-77992e0bbbc4",
+    "activeLabel": "Work table by a sunny window",
+    "dialogOpen": false
+  },
+  "limits": [
+    "Other shapes,fitreverse,loadingreverse,remove/undo,libraryreuse,emptyedge,sharedAdvanced/Motion/state andhostsremainopen",
+    "Caption currentDOMusesp class notfigcaption; no standalone caption assertion in thisrecord"
+  ]
+}

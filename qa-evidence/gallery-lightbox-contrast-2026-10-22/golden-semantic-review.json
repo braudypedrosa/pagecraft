@@ -1,0 +1,105 @@
+{
+  "format": "pagecraft.qa.golden-semantic-review.v1",
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "changedLeafPaths": [
+    "/artifact/routes/0/css",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/css",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/css",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/css",
+    "/artifact/routes/3/sourceHash",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/desired/release/manifest",
+    "/desired/release/signature"
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "cssDelta": [
+        "-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "-}",
+        "-.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}",
+        "+  background:rgba(10,12,10,.72);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "+}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}",
+        "-.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible,.pagecraft-root .pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:focus-visible{",
+        "+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);",
+        "+}"
+      ],
+      "nonCssAndHashFieldsUnchanged": true,
+      "sourceHashBefore": "80d7ff5eaf56569e10648eedcdca4a3cca566aa692cc0d1d401848ccadd0c37f",
+      "sourceHashAfter": "59d09495a0d8fd60cd81a096c1bbb876ecd4b7e61e7e6e513551d0771f190ca3"
+    },
+    {
+      "path": "/nested/about",
+      "cssDelta": [
+        "-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "-}",
+        "-.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}",
+        "+  background:rgba(10,12,10,.72);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "+}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}",
+        "-.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible,.pagecraft-root .pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:focus-visible{",
+        "+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);",
+        "+}"
+      ],
+      "nonCssAndHashFieldsUnchanged": true,
+      "sourceHashBefore": "963c4f4822c0a41e0e099c06f02db0eb869deba022036477d8fdf47b7cb98b7c",
+      "sourceHashAfter": "a8cf4503ea3a3f1dd7b1e2c5db7a28097c304295009152c74606185e1f8bb46c"
+    },
+    {
+      "path": "/nested/about/page-2",
+      "cssDelta": [
+        "-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "-}",
+        "-.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}",
+        "+  background:rgba(10,12,10,.72);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "+}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}",
+        "-.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible,.pagecraft-root .pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:focus-visible{",
+        "+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);",
+        "+}"
+      ],
+      "nonCssAndHashFieldsUnchanged": true,
+      "sourceHashBefore": "c5ea9acbb26a96bd15ce58e9b545a91b558c4468d4bbe97caadd107936a20def",
+      "sourceHashAfter": "2e4158f4f81f27b08b40abb0b06668437fe6085f2ddd56befd59a407108b7622"
+    },
+    {
+      "path": "/nested/about/page-3",
+      "cssDelta": [
+        "-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "-}",
+        "-.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}",
+        "+  background:rgba(10,12,10,.72);color:#fff;font:400 22px/1 system-ui,sans-serif;",
+        "+}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}",
+        "-.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible,.pagecraft-root .pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-button:focus-visible,.pagecraft-root .pagecraft-form-button:focus-visible,.pagecraft-root .pagecraft-nav-list a:focus-visible,.pagecraft-root .pagecraft-nav-toggle:focus-visible,.pagecraft-root .pagecraft-heading a:focus-visible,.pagecraft-root .pagecraft-wysiwyg a:focus-visible,.pagecraft-root .pagecraft-figure:focus-visible,.pagecraft-root .pagecraft-icon:focus-visible,.pagecraft-root .pagecraft-gallery-frame:focus-visible,.pagecraft-root .pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}",
+        "+.pagecraft-root .pagecraft-lightbox-btn:focus-visible{",
+        "+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);",
+        "+}"
+      ],
+      "nonCssAndHashFieldsUnchanged": true,
+      "sourceHashBefore": "ff58afd67108172cab3d4aace0ee4942ed919e7b79fb784c38b17d3f21254808",
+      "sourceHashAfter": "134800b887820fcee3960f242d70c5d51f36f86bcc0fbb852dec37fb45711f3e"
+    }
+  ],
+  "artifactFieldsOutsideRoutesUnchanged": true,
+  "trustAndKeysetUnchanged": true,
+  "expectedDerivedEnvelopeFields": [
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/desired/release/manifest",
+    "/desired/release/signature"
+  ],
+  "unexpectedLeafPaths": []
+}

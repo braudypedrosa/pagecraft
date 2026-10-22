@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-lightbox-2c0d4b4
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 29 skipped (30)
+   Start at  21:25:50
+   Duration  2.33s (transform 1.08s, setup 0ms, import 1.43s, tests 495ms, environment 0ms)

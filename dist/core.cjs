@@ -9853,9 +9853,9 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-lightbox-btn{
   position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
   display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;
+  background:rgba(10,12,10,.72);color:#fff;font:400 22px/1 system-ui,sans-serif;
 }
-.pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}
 .pagecraft-lightbox-prev{left:14px}
 .pagecraft-lightbox-next{right:14px}
 .pagecraft-lightbox-close{position:absolute;top:14px;right:14px;transform:none}
@@ -9865,8 +9865,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a:focus-visible,.pagecraft-nav-toggle:focus-visible,
 .pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
 .pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
-.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
-.pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-lightbox-btn:focus-visible{
+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);
+}
 ${m.css || ""}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
