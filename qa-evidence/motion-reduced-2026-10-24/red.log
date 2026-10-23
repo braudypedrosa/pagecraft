@@ -1,0 +1,109 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/motion-reduced-8f1a3b1
+
+ ❯ tests/animation-runtime.test.ts (16 tests | 5 failed) 350ms
+     × reduced initial entry settles without animation or a completion listener and does not replay on restore 11ms
+     × Once reduced entry stays settled while repeat re-arms only after leaving 6ms
+     × a media change cancels the owned end handler and timing, ignoring late completion after preference restore 7ms
+     × manual and dynamic entry obey reduced motion without arming deferred animations 6ms
+     × legacy media listeners settle completed Fade out when reduction is requested 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/animation-runtime.test.ts > reduced-motion animation lifecycle > reduced initial entry settles without animation or a completion listener and does not replay on restore
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/animation-runtime.test.ts:222:64
+    220|     observer.enter(element);
+    221|     expect(element.classList.contains('bp-is-visible')).toBe(true);
+    222|     expect(element.classList.contains('bp-is-done-animating')).toBe(tr…
+       |                                                                ^
+    223|     expect(element.classList.contains('bp-is-animating')).toBe(false);
+    224|     expect(add.mock.calls.filter(([type]) => type === 'animationend'))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/animation-runtime.test.ts > reduced-motion animation lifecycle > Once reduced entry stays settled while repeat re-arms only after leaving
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/animation-runtime.test.ts:236:64
+    234|     expect(once.observer.unobserved).toEqual([once.element]);
+    235|     once.setReduced(false);
+    236|     expect(once.element.classList.contains('bp-is-animating')).toBe(fa…
+       |                                                                ^
+    237|     const repeat = await runtime('fade-up', {}, '', { reduced: true });
+    238|     repeat.observer.enter(repeat.element); repeat.setReduced(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/animation-runtime.test.ts > reduced-motion animation lifecycle > a media change cancels the owned end handler and timing, ignoring late completion after preference restore
+AssertionError: expected "removeEventListener" to be called with arguments: [ 'animationend', …(1) ]
+
+Number of calls: 0
+
+ ❯ tests/animation-runtime.test.ts:255:20
+    253|     expect(element.classList.contains('bp-is-animating')).toBe(true);
+    254|     setReduced(true);
+    255|     expect(remove).toHaveBeenCalledWith('animationend', handler);
+       |                    ^
+    256|     expect(element.classList.contains('bp-is-animating')).toBe(false);
+    257|     expect(element.classList.contains('bp-is-done-animating')).toBe(tr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/animation-runtime.test.ts > reduced-motion animation lifecycle > manual and dynamic entry obey reduced motion without arming deferred animations
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/animation-runtime.test.ts:268:64
+    266|     const { dom, element, observer, setReduced } = await runtime('fade…
+    267|     expect(dom.window.bpAnimate.trigger(element)).toBe(true);
+    268|     expect(element.classList.contains('bp-is-done-animating')).toBe(tr…
+       |                                                                ^
+    269|     expect(element.classList.contains('bp-is-animating')).toBe(false);
+    270|     const dynamic = dom.window.document.createElement('div'); dynamic.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/animation-runtime.test.ts > reduced-motion animation lifecycle > legacy media listeners settle completed Fade out when reduction is requested
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/animation-runtime.test.ts:287:59
+    285|     expect(element.classList.contains('bp-is-animating')).toBe(true);
+    286|     setReduced(true);
+    287|     expect(element.classList.contains('bp-is-animating')).toBe(false);
+       |                                                           ^
+    288|     expect(element.classList.contains('bp-is-done-animating')).toBe(tr…
+    289|     setReduced(false); expect(element.classList.contains('bp-is-animat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 11 passed (16)
+   Start at  03:50:21
+   Duration  1.02s (transform 28ms, setup 0ms, import 35ms, tests 350ms, environment 516ms)
+

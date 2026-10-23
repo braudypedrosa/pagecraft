@@ -1,0 +1,109 @@
+{
+  "release": {
+    "deltas": [
+      {
+        "path": "/scripts/7/hash",
+        "before": "fe3b6b7b68717af542cc2f152329386e07531dc3532a61e9bb9aec8cdf132391",
+        "after": "b543cfd2439a456eb58470af20c4e7979f22472cd0e7255fa3c6ea11e7d0904f"
+      },
+      {
+        "path": "/scripts/7/token",
+        "before": "%%PAGECRAFT_RUNTIME:script-0d9f5f6ec750de93d27315a035cd37e2%%",
+        "after": "%%PAGECRAFT_RUNTIME:script-da99cc72a30e73c21e71bca70b1c0339%%"
+      },
+      {
+        "path": "/scripts/7/occurrenceId",
+        "before": "script-0d9f5f6ec750de93d27315a035cd37e2",
+        "after": "script-da99cc72a30e73c21e71bca70b1c0339"
+      },
+      {
+        "path": "/scripts/15/hash",
+        "before": "fe3b6b7b68717af542cc2f152329386e07531dc3532a61e9bb9aec8cdf132391",
+        "after": "b543cfd2439a456eb58470af20c4e7979f22472cd0e7255fa3c6ea11e7d0904f"
+      },
+      {
+        "path": "/scripts/15/token",
+        "before": "%%PAGECRAFT_RUNTIME:script-129ef68b8a6b9f51ff32a833df93fc9f%%",
+        "after": "%%PAGECRAFT_RUNTIME:script-34473ba6bb809b932ed041eb309a1243%%"
+      },
+      {
+        "path": "/scripts/15/occurrenceId",
+        "before": "script-129ef68b8a6b9f51ff32a833df93fc9f",
+        "after": "script-34473ba6bb809b932ed041eb309a1243"
+      },
+      {
+        "path": "/scripts/23/hash",
+        "before": "fe3b6b7b68717af542cc2f152329386e07531dc3532a61e9bb9aec8cdf132391",
+        "after": "b543cfd2439a456eb58470af20c4e7979f22472cd0e7255fa3c6ea11e7d0904f"
+      },
+      {
+        "path": "/scripts/23/token",
+        "before": "%%PAGECRAFT_RUNTIME:script-5c82e2fd5f904b2f0c8cf9d39766a811%%",
+        "after": "%%PAGECRAFT_RUNTIME:script-042dc239903e6eb9f4781c67e2d7472b%%"
+      },
+      {
+        "path": "/scripts/23/occurrenceId",
+        "before": "script-5c82e2fd5f904b2f0c8cf9d39766a811",
+        "after": "script-042dc239903e6eb9f4781c67e2d7472b"
+      },
+      {
+        "path": "/artifactHash",
+        "before": "50cf4e9b3201385cc44c5ed9a1f69c5e2f6a9b7168fd646e2132b2283db605a9",
+        "after": "352ac53f0dd5ac68978cc4c4c519fe4cc1de56ecc3ce8a6f7056ecd32cc3d40b"
+      },
+      {
+        "path": "/files/1/bytes",
+        "before": 114072,
+        "after": 114564
+      },
+      {
+        "path": "/files/1/hash",
+        "before": "d2596d44d67875a3d663461745d28cdf59a55138431f59d8b6ff35fa1d8ddc0c",
+        "after": "d9e896d1a53fcf4692813f1ac7d0d89eb6e4279c9f275e6302d7675568708383"
+      },
+      {
+        "path": "/files/2/bytes",
+        "before": 114350,
+        "after": 114842
+      },
+      {
+        "path": "/files/2/hash",
+        "before": "54b49da3fb36dad3a10c0ced1794332c9e67af137a2761180a30385d44022cf6",
+        "after": "30b5fc0cf0ae649e70d623389499f34a7d4ef7363cedd406b43939b717b4e51a"
+      },
+      {
+        "path": "/files/3/bytes",
+        "before": 114350,
+        "after": 114842
+      },
+      {
+        "path": "/files/3/hash",
+        "before": "a227dc491ad2e50d9c78586cd2298cc585b56a4d180db30f8f3687e9ae34e521",
+        "after": "8fc425932f6c05d33410adda37b9c197a3c48ba584606e27bfbf44e9a7cbf240"
+      },
+      {
+        "path": "/artifactBytes",
+        "before": 383301,
+        "after": 384777
+      }
+    ],
+    "beforeSourceVersion": 7,
+    "afterSourceVersion": 7
+  },
+  "deployment": {
+    "deltas": [
+      {
+        "path": "/releaseManifestHash",
+        "before": "dbe3914c1f84832b52e21c5bccf176248eeb7e33458a2fe28f67634b318e383e",
+        "after": "f5c5f08539473c5718158ab55e097a84e932e8b8a4ab031e4affbb9cadb1e295"
+      },
+      {
+        "path": "/artifactHash",
+        "before": "50cf4e9b3201385cc44c5ed9a1f69c5e2f6a9b7168fd646e2132b2283db605a9",
+        "after": "352ac53f0dd5ac68978cc4c4c519fe4cc1de56ecc3ce8a6f7056ecd32cc3d40b"
+      }
+    ],
+    "beforeSourceVersion": null,
+    "afterSourceVersion": null
+  }
+}

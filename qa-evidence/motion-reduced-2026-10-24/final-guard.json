@@ -1,0 +1,35 @@
+{
+  "base": "8f1a3b1e9064f5f2a2806c8658e0dc9ca2717511",
+  "source3": {
+    "app/src/core/anim.ts": "86463d8b68956807eb52dafd831483005c94af2205b956cda45d82943ba8036f",
+    "tests/animation-runtime.test.ts": "6bf2ca90c1a7326550f902520b1e96aea75087b40742b9ba86339f6ec90ab085",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430"
+  },
+  "generated10": {
+    "index.html": "74ba0f66407156eaa0dd087a6115d7e8a6b82f510aec36746185415d7bfd388f",
+    "dist/core.cjs": "71e1f328ba4b4845fcbf3129e8f126a3cd9cf78013bfa82e0baf5cd02876cccb",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "ee0e8104956c8dbb664db96092c550a8d749e5ddf1d86c6cce8c9473df08a037",
+    "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "c0d23a56c1b5242d6007adfac4066477d7ca1b6048b7f44b7c0d92b43a925d79"
+  },
+  "CoreSourceSchemaAndGalleryExact": true,
+  "runtimeAndGoldenIntentionallyChanged": true,
+  "goldenOldSha256": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343",
+  "MainProtected11AndIndexExact": true,
+  "PHP12ReadOnlyExact": true,
+  "full": {
+    "passed": 2810,
+    "skipped": 5,
+    "filesPassed": 274,
+    "filesSkipped": 2,
+    "exit": 0
+  },
+  "focused": 17,
+  "nativeAcceptance": "Pending root; worker did not use browser",
+  "audits": "No dependency changes or audit gate in Cloud npm test. WordPress packaging/audits outside this task."
+}

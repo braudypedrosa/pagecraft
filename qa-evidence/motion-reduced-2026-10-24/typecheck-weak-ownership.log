@@ -1,0 +1,1 @@
+tests/animation-runtime.test.ts(302,41): error TS7031: Binding element 'type' implicitly has an 'any' type.

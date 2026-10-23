@@ -1,0 +1,38 @@
+{
+  "signedFixtureLeafDeltas": 19,
+  "routeProof": [
+    {
+      "path": "/",
+      "runtimeScriptCount": 0,
+      "changedScriptIndices": [],
+      "htmlHeadAndCssExact": true
+    },
+    {
+      "path": "/nested/about",
+      "runtimeScriptCount": 8,
+      "changedScriptIndices": [
+        7
+      ],
+      "htmlHeadAndCssExact": true
+    },
+    {
+      "path": "/nested/about/page-2",
+      "runtimeScriptCount": 8,
+      "changedScriptIndices": [
+        7
+      ],
+      "htmlHeadAndCssExact": true
+    },
+    {
+      "path": "/nested/about/page-3",
+      "runtimeScriptCount": 8,
+      "changedScriptIndices": [
+        7
+      ],
+      "htmlHeadAndCssExact": true
+    }
+  ],
+  "animationCssExact": true,
+  "threeRuntimeChangesAreOnlyExactAnimJsReplacement": true,
+  "sourceVersion": 7
+}

@@ -687,6 +687,39 @@ var ANIM_JS = `/**
 (function() {
     'use strict';
 
+    const reducedMotion = typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const animationEndHandlers = new WeakMap();
+
+    function removeAnimationEnd(element) {
+        const handler = animationEndHandlers.get(element);
+        if (!handler) return;
+        element.removeEventListener('animationend', handler);
+        animationEndHandlers.delete(element);
+    }
+
+    function settleReducedMotion(element) {
+        removeAnimationEnd(element);
+        element.classList.remove('bp-is-hidden', 'bp-is-animating');
+        element.classList.add('bp-is-visible', 'bp-is-done-animating');
+        element.style.animation = '';
+        element.style.animationDuration = '';
+        element.style.animationDelay = '';
+        element.style.animationTimingFunction = '';
+    }
+
+    function startAnimation(element) {
+        if (reducedMotion && reducedMotion.matches) {
+            settleReducedMotion(element);
+            return;
+        }
+        const attributes = getAnimationAttributes(element);
+        if (attributes !== null) applyAnimationStyles(element, attributes);
+        element.classList.remove('bp-is-done-animating');
+        element.classList.add('bp-is-animating');
+        handleAnimationComplete(element);
+    }
+
     /**
      * Get animation attributes from element
      * 
@@ -919,13 +952,14 @@ var ANIM_JS = `/**
      */
     function handleAnimationComplete(element) {
         const keyframeName = getKeyframeName(element);
+        removeAnimationEnd(element);
 
         function onAnimationEnd(event) {
             // Ignore child animations and unrelated animations on the same element.
             if (event.target !== element || event.animationName !== keyframeName) {
                 return;
             }
-            element.removeEventListener('animationend', onAnimationEnd);
+            removeAnimationEnd(element);
             element.classList.add('bp-is-done-animating');
             // Entrance keyframes must release transform and opacity so authored
             // Hover and Focus styles can own those properties after completion.
@@ -935,6 +969,7 @@ var ANIM_JS = `/**
             }
         }
 
+        animationEndHandlers.set(element, onAnimationEnd);
         element.addEventListener('animationend', onAnimationEnd);
     }
 
@@ -999,23 +1034,7 @@ var ANIM_JS = `/**
                         const hasAnimationClass = getKeyframeName(element) !== null;
                         
                         if (hasAnimationClass) {
-                            // Get animation attributes (duration, delay, easing)
-                            // Returns null if no custom attributes are provided
-                            const attributes = getAnimationAttributes(element);
-                            
-                            // Apply animation styles only if custom attributes are provided
-                            if (attributes !== null) {
-                                applyAnimationStyles(element, attributes);
-                            }
-                            
-                            // Remove done class if it exists (for re-animations)
-                            element.classList.remove('bp-is-done-animating');
-                            
-                            // Add the bp-is-animating class to trigger the animation
-                            element.classList.add('bp-is-animating');
-                            
-                            // Set up listeners to detect when animation completes
-                            handleAnimationComplete(element);
+                            startAnimation(element);
                             
                             // Check if animation should only run once
                             const animationOnce = element.getAttribute('bp-animation-once');
@@ -1034,6 +1053,7 @@ var ANIM_JS = `/**
                     }
                 } else {
                     const element = entry.target;
+                    removeAnimationEnd(element);
                     // Remove all state classes when element leaves viewport
                     element.classList.remove('bp-is-animating');
                     element.classList.remove('bp-is-visible');
@@ -1193,22 +1213,7 @@ var ANIM_JS = `/**
             const hasAnimationClass = getKeyframeName(element) !== null;
             
             if (hasAnimationClass) {
-                // Get animation attributes
-                const attributes = getAnimationAttributes(element);
-                
-                // Apply animation styles if custom attributes provided
-                if (attributes !== null) {
-                    applyAnimationStyles(element, attributes);
-                }
-                
-                // Remove done class if it exists (for re-animations)
-                element.classList.remove('bp-is-done-animating');
-                
-                // Add the bp-is-animating class to trigger the animation
-                element.classList.add('bp-is-animating');
-                
-                // Set up listeners to detect when animation completes
-                handleAnimationComplete(element);
+                startAnimation(element);
             }
             
             return true;
@@ -1283,6 +1288,22 @@ var ANIM_JS = `/**
                 attributeFilter: ['class', 'style']
             });
         });
+    }
+
+    // CSS cancels animations without animationend under reduced motion. Settle the
+    // runtime state too, so restoring the preference cannot start a deferred entrance.
+    if (reducedMotion) {
+        const onMotionChange = function(event) {
+            if (!event.matches) return;
+            document.querySelectorAll('.bp-animate.bp-is-visible, .bp-animate.bp-is-animating').forEach(function(element) {
+                if (getKeyframeName(element) !== null) settleReducedMotion(element);
+            });
+        };
+        if (typeof reducedMotion.addEventListener === 'function') {
+            reducedMotion.addEventListener('change', onMotionChange);
+        } else if (typeof reducedMotion.addListener === 'function') {
+            reducedMotion.addListener(onMotionChange);
+        }
     }
 
     /**
