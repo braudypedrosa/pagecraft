@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f
+
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  07:21:41
+   Duration  499ms (transform 62ms, setup 0ms, import 85ms, tests 210ms, environment 0ms)
+

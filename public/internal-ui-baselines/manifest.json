@@ -106,7 +106,7 @@
     "app/src/ui/inspector/Controls.tsx": "f0a57512c9b5fee7179bb2a64efe83bce36336c5eff360929e67851211feb8ea",
     "app/src/ui/inspector/Inspector.tsx": "575321eb8620bc547b10726625a85a6eaaaa25c7e5b3af33d56a45b3bd10ec20",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
-    "app/src/ui/inspector/Lists.tsx": "3a3712bec348643f706874097b47c3bf1ec3a5f42500b19d577b0c3cebad3a41",
+    "app/src/ui/inspector/Lists.tsx": "d8db605a72e08c3cff82253c2dd1ed0459a0b86f61e9c36db2e4932eda3825a6",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",

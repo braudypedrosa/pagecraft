@@ -1,0 +1,46 @@
+{
+  "format": "pagecraft.nav-page-provenance.final.v1",
+  "base": "b45d98fb66415dfd1d7319c60996657b8090874e",
+  "source5": {
+    "app/src/core/index.ts": "277124c3e068e49781351d76502d2c6f0a4048d870f772be96918a0a1ea2cc7b",
+    "app/src/core/types.ts": "7079eb130f90a49d3102b591babc77d88149deae0921a967f004b14985d8cd4a",
+    "app/src/ui/inspector/Lists.tsx": "d8db605a72e08c3cff82253c2dd1ed0459a0b86f61e9c36db2e4932eda3825a6",
+    "tests/nav-page-destination-provenance.test.tsx": "336d78f8c58db3476f9ffcb0a19ed8ef5538fe82b2aa8c110add0b8beb262277",
+    "public/internal-ui-baselines/manifest.json": "8dfd68f22832af7cb0705740fda9b3b383d9f9b703c95325f8a0761167061241"
+  },
+  "generated10": {
+    "index.html": "7eb3eaae94cf9328a94484ced3fe3eb9e0484209b83fe93741a852c2b38042c3",
+    "dist/core.cjs": "80670073861f77f2df28b351755ce7181d2f6491af4178637f47b91d479867eb",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "b5a14240bba229bbf50911a00c2b6eddef733865436ad1088437cd0c22f14be3",
+    "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "edd6fcd9913da2b0d00b576a132adb36aeb030b31a21effbef2d0702f0fa155a"
+  },
+  "generatedPairsExact": true,
+  "checks": {
+    "focused": "5 files, 744 passed",
+    "typecheck": "exit 0",
+    "fullFinal": "278 files passed, 2 skipped; 2830 tests passed, 5 skipped; exit 0",
+    "orderedBuildPairs": "four commands exit 0",
+    "galleryHtml": "12 of 12 byte-exact",
+    "galleryCapture": "24 of 24 zero changed pixels",
+    "galleryBehavior": "30 accepted checks reused because all 12 rendered gallery HTML outputs are byte-exact",
+    "diffCheck": "exit 0"
+  },
+  "unchanged": {
+    "runtime": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "wordpressGolden": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430",
+    "editorContract": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "galleryPngs": 24,
+    "galleryOtherSourceFingerprints": 29
+  },
+  "knownFirstRunFailures": [
+    "Expected gallery source fingerprint mismatch before root-approved manifest refresh",
+    "Unrelated analytics SIGTERM 50ms timing miss; isolated 16 of 16 rerun passed"
+  ],
+  "nativeAcceptance": "root-owned; pending"
+}

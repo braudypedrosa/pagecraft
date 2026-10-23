@@ -4446,6 +4446,15 @@ function pageDup(i) {
 }
 function pageDelete(i) {
   if (state.pages.length < 2 || !state.pages[i]) return false;
+  const removed = state.pages[i];
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    if (node.type !== "nav" || !Array.isArray(node.props.items)) return;
+    node.props.items.forEach((item) => {
+      if (item.pageId || item.objectType || item.objectId || item.anchor) return;
+      const match = String(item.href || "").match(/^([\w-]+)\.html(?:#[\w-]+)?$/);
+      if (match?.[1] === removed.slug) item.pageId = removed.id;
+    });
+  }));
   state.pages.splice(i, 1);
   state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
   selSet([]);

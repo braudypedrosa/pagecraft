@@ -1,0 +1,11 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f
+
+(node:11546) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  5 passed (5)
+      Tests  744 passed (744)
+   Start at  07:17:27
+   Duration  3.69s (transform 1.62s, setup 0ms, import 2.05s, tests 1.98s, environment 2.01s)
+

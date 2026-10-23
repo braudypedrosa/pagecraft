@@ -1,0 +1,4 @@
+{
+  "reusedFrom": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078/qa-evidence/component-rename-2026-10-24/gallery-native-final/behavior-checks.detail.json",
+  "reason": "All12 actual generated gallery HTML outputs byte-exact against b45; source change outside gallery. Root freshly captures24 images. Initial timing failure and isolated recheck retained in original evidence."
+}

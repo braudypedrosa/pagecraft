@@ -1,0 +1,8 @@
+277124c3e068e49781351d76502d2c6f0a4048d870f772be96918a0a1ea2cc7b  app/src/core/index.ts
+7079eb130f90a49d3102b591babc77d88149deae0921a967f004b14985d8cd4a  app/src/core/types.ts
+d8db605a72e08c3cff82253c2dd1ed0459a0b86f61e9c36db2e4932eda3825a6  app/src/ui/inspector/Lists.tsx
+55eca7e8b092e243357f564b9d5e70314d5d2d11226fe97e2f13f24eb5fbe657  tests/nav-page-destination-provenance.test.tsx
+38bb12da436571988a64dbb5476df64185308e61bd62843677b1053f6c34fb41  qa-evidence/nav-page-provenance-2026-10-24/red.log
+4c8d967a48f7aa719b448f45b273eb925c279ac5a9ceef52bcf34d473fd9ee6e  qa-evidence/nav-page-provenance-2026-10-24/focused.log
+d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68  qa-evidence/nav-page-provenance-2026-10-24/typecheck.log
+a599d2669ea8f0e257b6d3f7e667bfd4d8b2887e7e1fbf4c4dfc1d8cce342176  qa-evidence/nav-page-provenance-2026-10-24/review-ready.md

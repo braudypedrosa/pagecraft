@@ -97,18 +97,34 @@ export function ItemsCtl({ n, c }: P) {
     items.forEach((item, index) => { if (String(item.id || '') !== itemIds[index]) item.id = itemIds[index]; });
     items[k].parentId = value;
   });
-  const commitDestination = (k: number, value: string) => C.edit(() => {
+  const commitDestination = (k: number, value: string, pageId?: string) => C.edit(() => {
     const row = rows(n, c)[k];
     row.href = value;
+    if (pageId) row.pageId = pageId; else delete row.pageId;
     delete row.objectId;
     delete row.objectType;
     delete row.anchor;
   });
   const parsed = (it: any) => C.parseLink(it.href, C.page().slug) as any;
-  const pageName = (slug: string) => C.state.pages.find(p => p.slug === slug)?.name || 'Missing page';
-  const summary = (it: any) => {
+  const pageDestination = (it: any) => {
     const link = parsed(it);
-    if (link.mode === 'page') return `Page · ${pageName(link.page || C.page().slug)}`;
+    const storedId = String(it.pageId || '');
+    const storedPage = storedId ? C.state.pages.find(p => p.id === storedId) : null;
+    const legacyPage = !storedId && link.mode === 'page'
+      ? C.state.pages.find(p => p.slug === (link.page || C.page().slug)) : null;
+    const portable = storedId ? String(it.href || '').match(/^([\w-]+)\.html(?:#([\w-]+))?$/) : null;
+    const page = storedPage || legacyPage || null;
+    return {
+      link, storedId, page,
+      pageId: page?.id || storedId,
+      slug: page?.slug || portable?.[1] || link.page || C.page().slug,
+      frag: link.mode === 'page' ? link.frag || '' : portable?.[2] || '',
+      mode: !!storedId || link.mode === 'page'
+    };
+  };
+  const summary = (it: any) => {
+    const destination = pageDestination(it);
+    if (destination.mode) return `Page · ${destination.page?.name || 'Missing page'}`;
     const wordpress = wordpressDestinationForValue(it.href);
     if (wordpress) return `WordPress · ${wordpress.item.objectType === 'post' ? 'Post' : 'Page'} · ${wordpress.path}`;
     return String(it.href || '').trim() || 'Custom URL not set';
@@ -143,11 +159,11 @@ export function ItemsCtl({ n, c }: P) {
       Content syncs to Appearance → Menus; Pagecraft controls styling.
     </div> : null}
     {arr.map((it, k) => {
-      const link = parsed(it);
+      const destination = pageDestination(it);
       const wordpress = wordpressDestinationForValue(it.href);
-      const mode = link.mode === 'page' ? 'page' : wordpress ? 'wordpress' : 'custom';
-      const page = link.page || C.page().slug;
-      const anchors = mode === 'page' ? C.anchorsOf(page) : [];
+      const mode = destination.mode ? 'page' : wordpress ? 'wordpress' : 'custom';
+      const page = destination.slug;
+      const anchors = mode === 'page' && destination.page ? C.anchorsOf(page) : [];
       const isDragging = dragging === k;
       const itemContext = `${it.label || 'untitled link'}, item ${k + 1}`;
       return <div class={'navitem' + (open === k ? ' on' : '') + (isDragging ? ' dragging' : '') + (dragOver === k && !isDragging ? ' dragover' : '')}
@@ -187,9 +203,10 @@ export function ItemsCtl({ n, c }: P) {
             text="Custom destinations accept URLs, email, phone, and section links." /></div>
           <select class="ctl" value={mode} aria-label={`Destination for ${itemContext}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
+            const current = C.page();
             commitDestination(k, next === 'page'
-              ? C.buildLink({ mode: 'page', page: C.page().slug, frag: '' })
-              : next === 'wordpress' ? firstWordPressReference : '');
+              ? C.buildLink({ mode: 'page', page: current.slug, frag: '' })
+              : next === 'wordpress' ? firstWordPressReference : '', next === 'page' ? current.id : undefined);
           }}>
             <option value="page">A Pagecraft page</option>
             {firstWordPress ? <option value="wordpress">WordPress content</option> : null}
@@ -197,18 +214,21 @@ export function ItemsCtl({ n, c }: P) {
           </select>
 
           {mode === 'page' ? <>
-            <select class="ctl" value={page} aria-label={`Destination page for ${itemContext}`} onChange={e => {
-              commitDestination(k, C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
+            <select class="ctl" value={destination.pageId} aria-label={`Destination page for ${itemContext}`} onChange={e => {
+              const selected = C.state.pages.find(p => p.id === (e.target as HTMLSelectElement).value);
+              if (selected) commitDestination(k, C.buildLink({ mode: 'page', page: selected.slug, frag: '' }), selected.id);
             }}>
-              {C.state.pages.map(p => <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
+              {!destination.page && destination.storedId
+                ? <option value={destination.storedId} disabled>Missing page · {String(it.href || '')}</option> : null}
+              {C.state.pages.map(p => <option key={p.id} value={p.id}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
-            <select class="ctl" value={link.frag || ''} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
-              commit(k, 'href', C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }));
+            <select class="ctl" value={destination.frag} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
+              commitDestination(k, C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }), destination.pageId);
             }}>
               <option value="">Top of the page</option>
               {anchors.map(id => <option key={id} value={id}>#{id}</option>)}
-              {link.frag && !anchors.includes(link.frag)
-                ? <option value={link.frag}>#{link.frag} — missing</option> : null}
+              {destination.frag && !anchors.includes(destination.frag)
+                ? <option value={destination.frag}>#{destination.frag} — missing</option> : null}
             </select>
           </> : mode === 'wordpress' ? (
             <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />

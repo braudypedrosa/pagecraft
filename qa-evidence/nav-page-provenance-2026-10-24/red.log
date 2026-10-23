@@ -1,0 +1,70 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f
+
+ ❯ tests/nav-page-destination-provenance.test.tsx (4 tests | 3 failed) 58ms
+     × page and anchor choices persist page identity and survive project JSON round trips 43ms
+     × deleting a known target stamps legacy navigation rows and Undo and Redo stay atomic 4ms
+     × a deleted Pagecraft target stays a missing page until a live page is chosen 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/nav-page-destination-provenance.test.tsx > Pagecraft navigation page provenance > page and anchor choices persist page identity and survive project JSON round trips
+TypeError: Cannot set properties of null (setting 'value')
+ ❯ Object.pick tests/ui.setup.tsx:171:54
+    169|     type: (el, value) => { (el as HTMLInputElement).value = value; fir…
+    170|     click: el => { if (el) el.dispatchEvent(new window.MouseEvent('cli…
+    171|     pick: (el, value) => { (el as HTMLSelectElement).value = value; fi…
+       |                                                      ^
+    172|   };
+    173| }
+ ❯ tests/nav-page-destination-provenance.test.tsx:37:17
+ ❯ cb ../vitest-patch-33ed365/node_modules/preact/test-utils/src/index.js:92:11
+ ❯ tests/nav-page-destination-provenance.test.tsx:37:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/nav-page-destination-provenance.test.tsx > Pagecraft navigation page provenance > deleting a known target stamps legacy navigation rows and Undo and Redo stay atomic
+AssertionError: expected [ undefined, undefined, …(2) ] to deeply equal [ 'nl126g3sle', 'nl126g3sle', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "nl126g3sle",
+-   "nl126g3sle",
+-   "nl126g3sle",
+-   "nl126g3sle",
++   undefined,
++   undefined,
++   undefined,
++   undefined,
+  ]
+
+ ❯ tests/nav-page-destination-provenance.test.tsx:71:45
+     69|     C.edit(() => { C.pageDelete(1); }, 'Delete page');
+     70|
+     71|     expect(rows().map(item => item.pageId)).toEqual(Array(4).fill(targ…
+       |                                             ^
+     72|     const controls = pageNav.props.items as NavItem[];
+     73|     expect(controls[0].href).toBe('qa-menu-target.html#qa-menu-anchor'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/nav-page-destination-provenance.test.tsx > Pagecraft navigation page provenance > a deleted Pagecraft target stays a missing page until a live page is chosen
+TypeError: Cannot read properties of null (reading 'options')
+ ❯ tests/nav-page-destination-provenance.test.tsx:98:32
+     96|     const destination = r.$('select[aria-label^="Destination for"]') a…
+     97|     const picker = r.$('select[aria-label^="Destination page for"]') a…
+     98|     const missing = [...picker.options].find(option => option.value ==…
+       |                                ^
+     99|     expect(destination.value).toBe('page');
+    100|     expect(r.$('.navitem-main small')?.textContent).toBe('Page · Missi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  07:09:32
+   Duration  1.46s (transform 366ms, setup 0ms, import 441ms, tests 58ms, environment 775ms)
+

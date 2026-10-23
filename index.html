@@ -6200,6 +6200,15 @@ function pageDup(i) {
 }
 function pageDelete(i) {
   if (state.pages.length < 2 || !state.pages[i]) return false;
+  const removed = state.pages[i];
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    if (node.type !== "nav" || !Array.isArray(node.props.items)) return;
+    node.props.items.forEach((item) => {
+      if (item.pageId || item.objectType || item.objectId || item.anchor) return;
+      const match = String(item.href || "").match(/^([\w-]+)\.html(?:#[\w-]+)?$/);
+      if (match?.[1] === removed.slug) item.pageId = removed.id;
+    });
+  }));
   state.pages.splice(i, 1);
   state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
   selSet([]);
@@ -20846,18 +20855,36 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       });
       items[k3].parentId = value;
     });
-    const commitDestination = (k3, value) => C2.edit(() => {
+    const commitDestination = (k3, value, pageId) => C2.edit(() => {
       const row = rows(n2, c3)[k3];
       row.href = value;
+      if (pageId) row.pageId = pageId;
+      else delete row.pageId;
       delete row.objectId;
       delete row.objectType;
       delete row.anchor;
     });
     const parsed = (it) => C2.parseLink(it.href, C2.page().slug);
-    const pageName = (slug) => C2.state.pages.find((p3) => p3.slug === slug)?.name || "Missing page";
-    const summary = (it) => {
+    const pageDestination = (it) => {
       const link = parsed(it);
-      if (link.mode === "page") return `Page \xB7 ${pageName(link.page || C2.page().slug)}`;
+      const storedId = String(it.pageId || "");
+      const storedPage = storedId ? C2.state.pages.find((p3) => p3.id === storedId) : null;
+      const legacyPage = !storedId && link.mode === "page" ? C2.state.pages.find((p3) => p3.slug === (link.page || C2.page().slug)) : null;
+      const portable = storedId ? String(it.href || "").match(/^([\w-]+)\.html(?:#([\w-]+))?$/) : null;
+      const page2 = storedPage || legacyPage || null;
+      return {
+        link,
+        storedId,
+        page: page2,
+        pageId: page2?.id || storedId,
+        slug: page2?.slug || portable?.[1] || link.page || C2.page().slug,
+        frag: link.mode === "page" ? link.frag || "" : portable?.[2] || "",
+        mode: !!storedId || link.mode === "page"
+      };
+    };
+    const summary = (it) => {
+      const destination = pageDestination(it);
+      if (destination.mode) return `Page \xB7 ${destination.page?.name || "Missing page"}`;
       const wordpress = wordpressDestinationForValue(it.href);
       if (wordpress) return `WordPress \xB7 ${wordpress.item.objectType === "post" ? "Post" : "Page"} \xB7 ${wordpress.path}`;
       return String(it.href || "").trim() || "Custom URL not set";
@@ -20892,11 +20919,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         " navigation. Content syncs to Appearance \u2192 Menus; Pagecraft controls styling."
       ] }) : null,
       arr.map((it, k3) => {
-        const link = parsed(it);
+        const destination = pageDestination(it);
         const wordpress = wordpressDestinationForValue(it.href);
-        const mode = link.mode === "page" ? "page" : wordpress ? "wordpress" : "custom";
-        const page2 = link.page || C2.page().slug;
-        const anchors = mode === "page" ? C2.anchorsOf(page2) : [];
+        const mode = destination.mode ? "page" : wordpress ? "wordpress" : "custom";
+        const page2 = destination.slug;
+        const anchors = mode === "page" && destination.page ? C2.anchorsOf(page2) : [];
         const isDragging = dragging === k3;
         const itemContext = `${it.label || "untitled link"}, item ${k3 + 1}`;
         return /* @__PURE__ */ u2(
@@ -20981,31 +21008,39 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 ] }),
                 /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${itemContext}`, onChange: (e3) => {
                   const next = e3.target.value;
-                  commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: C2.page().slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "");
+                  const current = C2.page();
+                  commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: current.slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "", next === "page" ? current.id : void 0);
                 }, children: [
                   /* @__PURE__ */ u2("option", { value: "page", children: "A Pagecraft page" }),
                   firstWordPress ? /* @__PURE__ */ u2("option", { value: "wordpress", children: "WordPress content" }) : null,
                   /* @__PURE__ */ u2("option", { value: "custom", children: "Custom URL" })
                 ] }),
                 mode === "page" ? /* @__PURE__ */ u2(S, { children: [
-                  /* @__PURE__ */ u2("select", { class: "ctl", value: page2, "aria-label": `Destination page for ${itemContext}`, onChange: (e3) => {
-                    commitDestination(k3, C2.buildLink({ mode: "page", page: e3.target.value, frag: "" }));
-                  }, children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
-                    p3.name,
-                    " \xB7 ",
-                    p3.slug === "index" ? "/" : "/" + p3.slug
-                  ] }, p3.id)) }),
-                  /* @__PURE__ */ u2("select", { class: "ctl", value: link.frag || "", "aria-label": `Destination section/anchor for ${itemContext}`, onChange: (e3) => {
-                    commit2(k3, "href", C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }));
+                  /* @__PURE__ */ u2("select", { class: "ctl", value: destination.pageId, "aria-label": `Destination page for ${itemContext}`, onChange: (e3) => {
+                    const selected = C2.state.pages.find((p3) => p3.id === e3.target.value);
+                    if (selected) commitDestination(k3, C2.buildLink({ mode: "page", page: selected.slug, frag: "" }), selected.id);
+                  }, children: [
+                    !destination.page && destination.storedId ? /* @__PURE__ */ u2("option", { value: destination.storedId, disabled: true, children: [
+                      "Missing page \xB7 ",
+                      String(it.href || "")
+                    ] }) : null,
+                    C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.id, children: [
+                      p3.name,
+                      " \xB7 ",
+                      p3.slug === "index" ? "/" : "/" + p3.slug
+                    ] }, p3.id))
+                  ] }),
+                  /* @__PURE__ */ u2("select", { class: "ctl", value: destination.frag, "aria-label": `Destination section/anchor for ${itemContext}`, onChange: (e3) => {
+                    commitDestination(k3, C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }), destination.pageId);
                   }, children: [
                     /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
                     anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
                       "#",
                       id
                     ] }, id)),
-                    link.frag && !anchors.includes(link.frag) ? /* @__PURE__ */ u2("option", { value: link.frag, children: [
+                    destination.frag && !anchors.includes(destination.frag) ? /* @__PURE__ */ u2("option", { value: destination.frag, children: [
                       "#",
-                      link.frag,
+                      destination.frag,
                       " \u2014 missing"
                     ] }) : null
                   ] })

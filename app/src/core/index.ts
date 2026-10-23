@@ -2213,6 +2213,18 @@ function pageDup(i: number) {
     both used to be the same off-by-one waiting to happen. */
 function pageDelete(i: number) {
   if (state.pages.length < 2 || !state.pages[i]) return false;
+  const removed = state.pages[i];
+  /* Old navigation rows only stored the exported path. While the target still exists that
+     path is unambiguously a project page, so retain its identity before removing it. A
+     WordPress-native row owns separate object metadata and must not be reclassified here. */
+  allTrees().forEach(list => eachNode(list, node => {
+    if (node.type !== 'nav' || !Array.isArray(node.props.items)) return;
+    (node.props.items as NavItem[]).forEach(item => {
+      if (item.pageId || item.objectType || item.objectId || item.anchor) return;
+      const match = String(item.href || '').match(/^([\w-]+)\.html(?:#[\w-]+)?$/);
+      if (match?.[1] === removed.slug) item.pageId = removed.id;
+    });
+  }));
   state.pages.splice(i, 1);
   state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
   selSet([]);

@@ -141,6 +141,8 @@ export interface NavItem {
   id?: string;
   label?: string;
   href?: string;
+  /** Stable Pagecraft page identity. The href remains the portable exported path. */
+  pageId?: string;
   /** Stable item identity, not an array index, so nesting survives reordering. */
   parentId?: string;
   /** Custom classes belong to the menu item (`li`), matching the WordPress menu model. */

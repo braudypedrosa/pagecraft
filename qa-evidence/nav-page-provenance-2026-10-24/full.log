@@ -1,0 +1,68 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (692 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-page-provenance-b45d98f
+
+(node:16054) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16234) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/ui-baselines.test.mjs (4 tests | 1 failed) 36ms
+   × reviewed gallery baselines match the current shared UI sources 12ms
+ ❯ server/tests/analytics.test.ts (16 tests | 1 failed) 1816ms
+   × on SIGTERM the counts are flushed and the signal raised again, so the process still exits 118ms
+(node:17772) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+app/src/ui/inspector/Lists.tsx
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  server/tests/analytics.test.ts > on SIGTERM the counts are flushed and the signal raised again, so the process still exits
+AssertionError: the default exit still happens
++ actual - expected
+
++ []
+- [
+-   'SIGTERM'
+- ]
+
+
+- Expected
++ Received
+
+- [
+-   "SIGTERM",
+- ]
++ []
+
+ ❯ server/tests/analytics.test.ts:192:7
+    190|     (added[0] as () => void)();
+    191|     await new Promise(resolve => setTimeout(resolve, 50));
+    192|     a.deepEqual(raised, ['SIGTERM'], 'the default exit still happens');
+       |       ^
+    193|     a.equal((await store.read('s1', '2026-10-02', '2026-10-02'))[0].to…
+    194|   } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 276 passed | 2 skipped (280)
+      Tests  2 failed | 2828 passed | 5 skipped (2835)
+   Start at  07:18:38
+   Duration  175.98s (transform 11.17s, setup 0ms, import 117.05s, tests 416.25s, environment 88.78s)
+
