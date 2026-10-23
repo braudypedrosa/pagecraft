@@ -1,0 +1,7 @@
+Root final verification
+Full suite with 2 workers: exit 0, 2769 passed, 5 skipped.
+Built-in browser gallery: 30/30 behavior checks passed after adapter; 24/24 captures byte-exact.
+Browser tab closed after CPU rate 1 and temporary metrics/media settings restored.
+Source freeze receipt: qa-evidence/wp-anchor-ui-2026-10-23/source-freeze-3.sha256
+Generated freeze receipt: qa-evidence/wp-anchor-ui-2026-10-23/generated-reviewed-current.sha256
+Owned gallery server PID 90998 stopped after command and CWD verification; port 4948 health endpoint closed.

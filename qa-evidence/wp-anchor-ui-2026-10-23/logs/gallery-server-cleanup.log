@@ -1,0 +1,5 @@
+pid=90998
+command=node qa-evidence/wp-anchor-ui-2026-10-23/gallery-server.mjs
+cwd=/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-anchor-ui-693cb90
+stopped=true
+health_closed=true

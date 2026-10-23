@@ -870,11 +870,17 @@ function OptCtl({ n, c }: P) {
 
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
-  const link = C.linkOf(n, c.k!, here) as any;
   const key = n.id + '|' + (c.c || c.k || c.t);
   const rawLink = String(C.propVal(n, c.k) || '').trim();
   const storedLink = C.parseLink(rawLink, here) as any;
   const nativeSource = L.nativePageSource();
+  /* A bare fragment belongs to the current WordPress page. Keep it in the exact URL
+     editor instead of presenting it as a portable project page that needs replacement. */
+  const samePageAnchor = !!nativeSource && rawLink.startsWith('#');
+  const explicitMode = C.state.ui.lmode?.key === key ? C.state.ui.lmode.mode : null;
+  let link = C.linkOf(n, c.k!, here) as any;
+  if (samePageAnchor && (!explicitMode || explicitMode === 'url')) link = { mode: 'url', value: rawLink };
+  else if (samePageAnchor && explicitMode !== 'page') link = { mode: explicitMode, value: '' };
   const nativePages = useNativePages(nativeSource);
   const [nativePendingKey, setNativePendingKey] = useState<string | null>(null);
   const nativeMatch = link.mode === 'url'
@@ -886,7 +892,8 @@ function LinkCtl({ n, c }: P) {
   const savedProjectMatch = nativeSource
     ? rawLink.match(/^([\w-]+)\.html(?:#([\w-]+))?$/)
     : null;
-  const savedProjectLink = !!nativeSource && (storedLink.mode === 'page' || !!savedProjectMatch);
+  const savedProjectLink = !!nativeSource && !samePageAnchor
+    && (storedLink.mode === 'page' || !!savedProjectMatch);
   const nativePageMode = !!nativeSource
     && (nativePendingKey === key || savedProjectLink || !!nativeMatch);
   const shownMode = nativePageMode ? 'page' : link.mode;
@@ -939,7 +946,9 @@ function LinkCtl({ n, c }: P) {
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
         C.state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
-        commit(mode === 'page' ? { mode, page: here, frag: '' } : { mode });
+        commit(mode === 'page' ? { mode, page: here, frag: '' }
+          : mode === 'url' && samePageAnchor ? { mode, value: rawLink }
+            : { mode });
         if (mode === 'item') C.state.ui.lmode = null;   // it stores a real value at once
       }}>
       {MODES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
