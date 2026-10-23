@@ -5421,12 +5421,26 @@ function checkpointInlineEdit(label) {
   paintHistory();
 }
 
-function enterEdit(id) {
+function enterEdit(id, propertyKey) {
   const h = locate(id); if (!h) return;
-  const n = h.node, d = DEF[n.type];
+  const n = h.node, definition = findComponent(n.use);
+  let editNode = n;
+  let property;
+  if (n.use && propertyKey?.startsWith(VAL)) {
+    const path = propertyKey.slice(VAL.length);
+    if (findProp(definition, path)?.t !== 'rich') return;
+    editNode = null;
+    eachNode([definition.node], node => {
+      if (!editNode && DEF[node.type]?.edit === 'rich'
+        && node.bind?.html?.src === 'prop' && node.bind.html.path === path) editNode = node;
+    });
+    if (!editNode) return;
+    property = { src: 'prop', path };
+  }
+  const d = DEF[editNode.type];
   if (!d.edit) return;
   const key = d.edit === 'rich' ? 'html' : 'text';
-  const property = findComponent(n.use)?.node.bind?.[key];
+  property = property || definition?.node.bind?.[key];
   const bindingKey = property?.src === 'prop' ? VAL + property.path : key;
   if (boundField(n, bindingKey)) {
     toast('This value comes from CMS. Edit the CMS entry or disconnect the field.');
@@ -5441,21 +5455,25 @@ function enterEdit(id) {
   if (editing.on) exitEdit();
   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
 
-  const host = cdoc.getElementById(id); if (!host) return;
-  const target = editTarget(n, host);
+  const root = selectedCanvasElement(id); if (!root) return;
+  const className = nodeClass(editNode);
+  const host = editNode === n || root.classList.contains(className)
+    ? root : root.getElementsByClassName(className)[0];
+  if (!host) return;
+  const target = editTarget(editNode, host);
 
-  editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
+  editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit; editing.node = editNode;
   editing.prop = n.use ? property.path : null;
   editing.changed = false; editing.label = 'Change ' + kindOf(n).toLowerCase() + ' text';
   /* The browser may normalize equivalent rich markup while painting it. Comparing later edits
      with this rendered value keeps entry/exit read-only while the deferred checkpoint still
      preserves the original stored bytes. */
-  editing.value = inlineEditValue(n, host);
+  editing.value = inlineEditValue(editNode, host);
   target.contentEditable = 'true';
   host.setAttribute('data-editing', '');
   if (d.edit === 'rich') target.style.outline = 'none';
   target.focus();
-  if (n.type !== 'text') {
+  if (editNode.type !== 'text') {
     const rg = cdoc.createRange(); rg.selectNodeContents(target);
     const s = cwin.getSelection(); s.removeAllRanges(); s.addRange(rg);
   }
@@ -5466,8 +5484,8 @@ function enterEdit(id) {
     cdoc.execCommand('insertText', false, txt);
   };
   const onKey = ev => {
-    if (ev.key === 'Enter' && n.type !== 'text') { ev.preventDefault(); exitEdit(); }
-    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && n.type === 'text') {
+    if (ev.key === 'Enter' && editNode.type !== 'text') { ev.preventDefault(); exitEdit(); }
+    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && editNode.type === 'text') {
       ev.preventDefault(); linkPrompt();
     }
   };
@@ -5489,7 +5507,7 @@ function syncEdit() {
   const h = locate(editing.id); if (!h) return;
   const n = h.node, host = editing.el;
   const key = n.type === 'text' ? 'html' : 'text';
-  const value = inlineEditValue(n, host);
+  const value = inlineEditValue(editing.node || n, host);
   if (value === editing.value) return false;
   if (!editing.changed) {
     checkpointInlineEdit(editing.label);
@@ -5501,7 +5519,7 @@ function syncEdit() {
   /* keep the inspector honest while typing on the canvas — a full re-render
      would steal focus, so the bound field is updated in place */
   const field = $('#right [data-x="v"]');
-  if (field && n.type !== 'text' && field.value !== value) field.value = value;
+  if (field && editing.kind !== 'rich' && field.value !== value) field.value = value;
   save();
   renderLayers();
   return true;
@@ -5512,7 +5530,7 @@ function exitEdit() {
   syncEdit();
   editing.off.forEach(f => f());
   if (editing.el) editing.el.removeAttribute('data-editing');
-  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.prop = null; editing.off = [];
+  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.node = null; editing.prop = null; editing.off = [];
   editing.changed = false; editing.label = ''; editing.value = null;
   $('#rt').classList.remove('show');
   paint(); renderRight();

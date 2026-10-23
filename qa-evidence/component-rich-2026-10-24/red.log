@@ -1,0 +1,75 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996
+
+ ❯ tests/component-rich-editing.test.tsx (3 tests | 3 failed) 63ms
+   × actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings 34ms
+   × variant rich default remains inherited until a real edit and reset restores it 11ms
+   × CMS-bound instance rich value stays inert and ordinary rich editing keeps markup 17ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings
+AssertionError: expected null to be undefined // Object.is equality
+
+- Expected:
+undefined
+
++ Received:
+null
+
+ ❯ tests/component-rich-editing.test.tsx:67:60
+     65|   const before = JSON.stringify(C.doc()), history = C.hist.u.length;
+     66|   open();
+     67|   expect(canvas.querySelector('[contenteditable="true"]')).toBe(richHo…
+       |                                                            ^
+     68|   act(() => api.exitEdit());
+     69|   expect(JSON.stringify(C.doc())).toBe(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > variant rich default remains inherited until a real edit and reset restores it
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ input tests/component-rich-editing.test.tsx:59:14
+     57| function input(html: string) {
+     58|   const el = canvas.querySelector('[contenteditable="true"]')!;
+     59|   expect(el).toBeTruthy(); el.innerHTML = html;
+       |              ^
+     60|   act(() => el.dispatchEvent(new frame.contentWindow!.Event('input', {…
+     61| }
+ ❯ tests/component-rich-editing.test.tsx:95:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > CMS-bound instance rich value stays inert and ordinary rich editing keeps markup
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ input tests/component-rich-editing.test.tsx:59:14
+     57| function input(html: string) {
+     58|   const el = canvas.querySelector('[contenteditable="true"]')!;
+     59|   expect(el).toBeTruthy(); el.innerHTML = html;
+       |              ^
+     60|   act(() => el.dispatchEvent(new frame.contentWindow!.Event('input', {…
+     61| }
+ ❯ tests/component-rich-editing.test.tsx:111:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  00:29:52
+   Duration  1.12s (transform 322ms, setup 0ms, import 387ms, tests 63ms, environment 548ms)
+

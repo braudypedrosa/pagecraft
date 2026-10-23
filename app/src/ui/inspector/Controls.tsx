@@ -774,7 +774,7 @@ function RichCtl({ n, c }: P) {
       ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
       : <>
         <button class="btn block" title="Edit text here, or double-click it on the canvas"
-          onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
+          onClick={() => L.enterEdit(n.id, c.k)}><Icon name="edit" size={13} /> Edit on canvas</button>
       </>}
   </Field>;
 }

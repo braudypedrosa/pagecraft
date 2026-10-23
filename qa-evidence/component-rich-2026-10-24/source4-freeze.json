@@ -1,0 +1,6 @@
+{
+  "builder.html": "ee1b97183bd383ca557ac2e97685ec8c869792242dea90ac1194c6f8d508b1b9",
+  "app/src/ui/ctx.ts": "b58c448bce1978ac91ae5c503445f5948240e94df56dd11fe7a095cfdb61ef09",
+  "app/src/ui/inspector/Controls.tsx": "f0a57512c9b5fee7179bb2a64efe83bce36336c5eff360929e67851211feb8ea",
+  "tests/component-rich-editing.test.tsx": "0188cdc75fee764a11df846db107339010dd6cd6b0c9962abe7c80fb323d2151"
+}

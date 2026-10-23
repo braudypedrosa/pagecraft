@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996
+
+
+ Test Files  4 passed (4)
+      Tests  33 passed (33)
+   Start at  00:34:28
+   Duration  1.13s (transform 822ms, setup 0ms, import 1.44s, tests 545ms, environment 1.51s)
+

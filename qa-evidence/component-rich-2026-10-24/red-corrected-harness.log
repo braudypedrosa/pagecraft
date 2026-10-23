@@ -1,0 +1,64 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996
+
+ ❯ tests/component-rich-editing.test.tsx (3 tests | 2 failed) 89ms
+   × actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings 58ms
+   × variant rich default remains inherited until a real edit and reset restores it 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings
+AssertionError: expected null to be HTMLDivElement{ …(2) } // Object.is equality
+
+- Expected:
+<div
+  class="pagecraft-wysiwyg pagecraft-6sbzx1zym ts-body"
+  id="n6sbzx1zym-6sbzx21o"
+>
+  <p>
+    Original 
+    <b>
+      coffee
+    </b>
+  </p>
+</div>
+
++ Received:
+null
+
+ ❯ tests/component-rich-editing.test.tsx:72:60
+     70|   const before = JSON.stringify(C.doc()), history = C.hist.u.length;
+     71|   open();
+     72|   expect(canvas.querySelector('[contenteditable="true"]')).toBe(richHo…
+       |                                                            ^
+     73|   act(() => api.exitEdit());
+     74|   expect(JSON.stringify(C.doc())).toBe(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > variant rich default remains inherited until a real edit and reset restores it
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ input tests/component-rich-editing.test.tsx:64:14
+     62| function input(html: string) {
+     63|   const el = canvas.querySelector('[contenteditable="true"]')!;
+     64|   expect(el).toBeTruthy(); el.innerHTML = html;
+       |              ^
+     65|   act(() => el.dispatchEvent(new frame.contentWindow!.Event('input', {…
+     66| }
+ ❯ tests/component-rich-editing.test.tsx:100:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  00:30:50
+   Duration  1.10s (transform 359ms, setup 0ms, import 429ms, tests 89ms, environment 468ms)
+

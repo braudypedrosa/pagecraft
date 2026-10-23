@@ -1,0 +1,49 @@
+{
+  "base": "0e24996e4d58f72dfcf9316b0e7c1f185485f166",
+  "source5": {
+    "builder.html": "ee1b97183bd383ca557ac2e97685ec8c869792242dea90ac1194c6f8d508b1b9",
+    "app/src/ui/ctx.ts": "b58c448bce1978ac91ae5c503445f5948240e94df56dd11fe7a095cfdb61ef09",
+    "app/src/ui/inspector/Controls.tsx": "f0a57512c9b5fee7179bb2a64efe83bce36336c5eff360929e67851211feb8ea",
+    "tests/component-rich-editing.test.tsx": "0188cdc75fee764a11df846db107339010dd6cd6b0c9962abe7c80fb323d2151",
+    "public/internal-ui-baselines/manifest.json": "f392a0852ce820c98df726456d93c00719ebda79f8f65900ba91c26ff457c268"
+  },
+  "generated10": {
+    "index.html": "1e7b1d62633bf581acd4fa36af1f2832aeb008203aa4677317194944b278520d",
+    "dist/core.cjs": "24e750ede40cf3927065ac6eea113442ed2828e15d48023311548e67db7d2f63",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "88395d9927e8cd6d143a86689e870da7e33b32d29066b50bc8bd569545400b0f",
+    "packages/editor/dist/runtime.js": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "98890cc675a0644d929accd70e0f41af8bab7b3fdac9bebdc7805b76439a8294"
+  },
+  "immutable": {
+    "app/src/core/index.ts": "7b68e0eb09f0fad11f1bcd43c945f6b32ee1b50f7d2946cd6111a9dd2896d4cf",
+    "packages/editor/dist/runtime.js": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343"
+  },
+  "fullTests": {
+    "passed": 2803,
+    "skipped": 5,
+    "filesPassed": 274,
+    "filesSkipped": 2,
+    "exit": 0
+  },
+  "focused": {
+    "passed": 33,
+    "files": 4
+  },
+  "firstFull": {
+    "passed": 2802,
+    "skipped": 5,
+    "failed": 1,
+    "reason": "Only reviewed-gallery source fingerprint guard, retained before authorized two-source update"
+  },
+  "mainProtected11AndIndexExact": true,
+  "twoOrderedPairsExact": true,
+  "galleryPngs24AndProvenanceExact": true,
+  "nativeFeatureAcceptance": "Pending root, no browser actions by worker",
+  "writes": "Isolated candidate only. No Main/canonical WP/DB/runtime/commit/push."
+}

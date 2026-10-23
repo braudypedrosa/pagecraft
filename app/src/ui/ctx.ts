@@ -192,7 +192,7 @@ export interface Legacy {
   /** the bind-every-field-inside dialog */
   bindModal(nodeId: string): void;
   /** put the canvas into rich-text editing on this node */
-  enterEdit(nodeId: string): void;
+  enterEdit(nodeId: string, propertyKey?: string): void;
 
   /* The media library, still legacy: IndexedDB behind an in-memory map. */
   /** one asset's metadata, or null */
