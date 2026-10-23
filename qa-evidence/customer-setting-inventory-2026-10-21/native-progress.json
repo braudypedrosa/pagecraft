@@ -830,5 +830,48 @@
     "wordpressRevisions": 424,
     "wordpressPostGuard": 31,
     "fullQAComplete": false
+  },
+  "motion_interaction110": {
+    "status": "complete for bounded motion interaction regression",
+    "cloud": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+    "wordpress": "6602337dc8477a48c41f1058c7b2b7addd286a75",
+    "wordpressEditor": "0.2.17-preview.20261023.104",
+    "nativeHosts": [
+      "Cloud Preview",
+      "WordPress saved public page"
+    ],
+    "viewports": [
+      1280,
+      834,
+      414
+    ],
+    "focusTransform": "translateX(8px)",
+    "hoverOpacity": 0.5,
+    "completedAnimation": "none",
+    "horizontalOverflow": false,
+    "cloudRestoredByteExact": true,
+    "wordpressRestoredVersion": 51,
+    "wordpressRevisionCount": 428,
+    "postRestorationChecks": 31,
+    "fullCustomerQA": "OPEN",
+    "productionReadiness": "unconfirmed"
+  },
+  "inspector_input111112": {
+    "status": "Local native candidate accepted; staging deployment and WordPress105 pending",
+    "issues": [
+      "First inspector button click lost after text blur",
+      "Custom URL disappears after first hash character"
+    ],
+    "candidate": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451",
+    "rootNativeCases": [
+      "First Hover click after HTML id edit",
+      "Held pointer survives blur until release",
+      "Held Space200ms activates focused State button",
+      "Sequential #qa-link112-native retains focus and complete href",
+      "First Style click after URL commit works"
+    ],
+    "sharedBehaviors": 30,
+    "visual24ByteExact": true,
+    "fullQAComplete": false
   }
 }

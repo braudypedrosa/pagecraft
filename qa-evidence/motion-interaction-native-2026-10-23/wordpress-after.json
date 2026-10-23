@@ -1,0 +1,76 @@
+{
+  "desktop": {
+    "focus": {
+      "animation": "none",
+      "classes": "pagecraft-button pagecraft-bgvha1tx ts-btn bp-animate pc-fade-up bp-is-visible bp-is-done-animating",
+      "focusVisible": true,
+      "focused": true,
+      "images": [
+        true,
+        true,
+        true
+      ],
+      "opacity": "1",
+      "overflow": false,
+      "transform": "matrix(1, 0, 0, 1, 8, 0)",
+      "viewport": 1280
+    },
+    "hover": {
+      "animation": "none",
+      "hover": true,
+      "opacity": "0.5",
+      "transform": "matrix(1, 0, 0, 1, 8, 0)"
+    }
+  },
+  "tablet": {
+    "focus": {
+      "animation": "none",
+      "focusVisible": true,
+      "focused": true,
+      "images": [
+        true,
+        true,
+        true
+      ],
+      "opacity": "1",
+      "overflow": false,
+      "transform": "matrix(1, 0, 0, 1, 8, 0)",
+      "viewport": 834
+    },
+    "hover": {
+      "animation": "none",
+      "hover": true,
+      "opacity": "0.5",
+      "transform": "matrix(1, 0, 0, 1, 8, 0)"
+    }
+  },
+  "mobile": {
+    "focus": {
+      "animation": "none",
+      "focusVisible": true,
+      "focused": true,
+      "images": [
+        true,
+        true,
+        true
+      ],
+      "opacity": "1",
+      "overflow": false,
+      "transform": "matrix(1, 0, 0, 1, 8, 0)",
+      "viewport": 414
+    },
+    "hover": {
+      "animation": "none",
+      "hover": true,
+      "opacity": "0.5",
+      "transform": "matrix(1, 0, 0, 1, 8, 0)"
+    }
+  },
+  "cleanup": {
+    "tab": 53,
+    "cpu": {},
+    "viewport": {},
+    "media": {},
+    "pointer": {}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "base": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+  "source5Exact": true,
+  "generated8IndexOnly": {
+    "index.html": "200dadd649119d4ca769a9993110462f77cfeaee",
+    "dist/core.cjs": "5d7335e070c5910d492bf747bc10a5d8f21e4b64",
+    "packages/editor/dist/contract.json": "d1cb5d10251e58e1b80e20b7263644beb7de4597",
+    "packages/editor/dist/editor.html": "df1eb4e945dc13ef924ee7027067a1761d05b2c3",
+    "packages/editor/dist/runtime.js": "11144cc1212bac2ce0e521f627f07e780df56de1",
+    "packages/editor/dist/templates.json": "80b867b0c1d1bc51c0d6d20b0d6086669cb63bfc",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4a7c6332cffdc393a37bb363380ce54e91c2ae3e",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "5bf91e15c2f2e1ca4563c78fb308b3533ee4fff2"
+  },
+  "protected11BeforeAfterExact": true,
+  "fullTests": 2766,
+  "skipped": 5,
+  "typecheck": "pass",
+  "sharedNative30": true,
+  "visual24ByteExact": true,
+  "PNGFilesChanged": 0,
+  "runtime80eUnchanged": true
+}

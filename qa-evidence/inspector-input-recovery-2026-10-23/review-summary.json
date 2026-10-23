@@ -1,0 +1,26 @@
+{
+  "sharedBehaviors": {
+    "passed": 30,
+    "total": 30
+  },
+  "visualComparison": {
+    "passed": 24,
+    "total": 24,
+    "byteExact": 24,
+    "pngFilesChanged": 0,
+    "sourceFingerprintReviewed": true
+  },
+  "firstFullRun": {
+    "functionalPassed": 2765,
+    "skipped": 5,
+    "failure": "UI baseline source fingerprint required fresh review"
+  },
+  "rootReview": {
+    "source": "approved by independent reviewer",
+    "initialWorker111PatchRejected": true,
+    "rootAddedHeldSpaceAndInterruptionRegressions": true,
+    "initialWorker112PatchFailedExactSequentialHrefTest": true,
+    "rootCorrectedCapturedLinkModeAndBlurClickIntegration": true
+  },
+  "wrongGalleryBaseFailurePreserved": true
+}

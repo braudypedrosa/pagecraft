@@ -984,13 +984,18 @@ function LinkCtl({ n, c }: P) {
         onInput={e => {
           const value = (e.target as HTMLInputElement).value.trim();
           L.tx(key);
-          C.applyC(n, c, C.buildLink({ ...C.linkOf(n, c.k!, here), value }));
+          C.applyC(n, c, C.buildLink({ ...link, value }));
           L.repaint();
           if (link.mode === 'url') {
             C.state.ui.lmode = value ? null : { key: n.id + '|' + c.k, mode: 'url' };
-            repaint('right');
           }
-        }} onBlur={L.endTx} /> : null}
+        }} onBlur={event => {
+          /* Keep the URL editor stable while its value is being typed. A leading hash is
+             a valid page-anchor shape, but reclassifying on that first character would
+             unmount the focused URL input before the user can finish it. */
+          if (link.mode === 'url') writer(n, c).done(event);
+          else L.endTx();
+        }} /> : null}
     </> : null}
 
     {link.mode === 'item' && scope ? (

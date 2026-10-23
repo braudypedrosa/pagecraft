@@ -1,0 +1,106 @@
+{
+  "status": "passed",
+  "checks": {
+    "133Tables": true,
+    "onlyExpectedTablesChanged": true,
+    "onlyExistingPost616Changed": true,
+    "post616OnlyTimestampsChanged": true,
+    "noPostsOrMetaRemoved": true,
+    "expectedFourSpecificNewRevisions709to712": true,
+    "newRevisionsOnly616": true,
+    "116NewMetaOnlySpecificNewRevisions": true,
+    "all424PreviousRevisionRowsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "restoredDocumentAndAllCompiledArtifactsExact": true,
+    "qa616Version51": true,
+    "total428Revisions": true,
+    "storedCompiler98Exact": true,
+    "protectedSnapshotExactExceptCount": true,
+    "original487Version73": true,
+    "allAccountsAndSessionsExact": true,
+    "allPagecraftGlobalOptionsExact": true,
+    "approvedSavedSubtreeExact": true,
+    "newRevisionSourcesExactApprovedNativeDocuments": true,
+    "eachRevisionExact29SourceContractKeys": true,
+    "exactMetadataPairs709710and711712": true,
+    "exactPostContentPairs709712and710711": true,
+    "matchingSnapshots709711AndTransitionOnly710712": true,
+    "builderInstalled104Exact": true,
+    "themeInstalled104Exact": true,
+    "importerInstalled104Exact": true,
+    "historical144Exact": true,
+    "runtime80eExact": true,
+    "PHP12Exact": true
+  },
+  "failures": [],
+  "actualVersion": 51,
+  "actualRevisions": 428,
+  "newRevisions": [
+    {
+      "id": 709,
+      "version": "49",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes",
+      "kind": "verified safety snapshot"
+    },
+    {
+      "id": 710,
+      "version": "49",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes",
+      "kind": "WordPress post-content transition revision; excluded by EditorRevisionSnapshots compiled hash check"
+    },
+    {
+      "id": 711,
+      "version": "50",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Row/Column/Button subtree",
+      "kind": "verified safety snapshot"
+    },
+    {
+      "id": 712,
+      "version": "50",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Row/Column/Button subtree",
+      "kind": "WordPress post-content transition revision; excluded by EditorRevisionSnapshots compiled hash check"
+    }
+  ],
+  "newMetaCount": 116,
+  "changedExistingMetaIds": [
+    11146
+  ],
+  "changedPost616Fields": [
+    "post_date",
+    "post_modified",
+    "post_modified_gmt"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2177,
+      "afterRowId": 2187,
+      "autoloadExact": true,
+      "field": "time",
+      "before": 1792715311,
+      "after": 1792721248,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "timestampChanges": [
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "deltaSeconds": 3600,
+          "payloadExact": true
+        }
+      ]
+    }
+  ],
+  "baselineSQLSHA256": "fc250cde0c5e38b4ac7cec34fdde0f24a671ab1dd5960ebe0e6d2df77a299e49",
+  "postSQLSHA256": "f7898a10a6bdc557581ba712f8d66d21b598616e9874a0f87a4c747528a67ccd",
+  "workerDatabaseWrites": false
+}

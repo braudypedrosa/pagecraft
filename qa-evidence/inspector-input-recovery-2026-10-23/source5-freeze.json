@@ -1,0 +1,7 @@
+{
+  "app/src/ui/inspector/ctl.ts": "05fdb376c8fc873df2a3100133390990d8710f174b91aebd142a5270c0264329",
+  "app/src/ui/inspector/Controls.tsx": "fdd539f0c74a0c34796f5b155c070d6f985ae0527c16b3e049a05d5925ec1f03",
+  "tests/inspector-blur-button-click.test.tsx": "408dea216cc9e8eec4bddb2c2007e525092d7d6bb4c8948f42a77f1e9919dbf7",
+  "tests/link-input-editing.test.tsx": "b6eb84dcd27400068b202a0c01aaec77b6da896d72b807c6a9c613e4feaaeb98",
+  "public/internal-ui-baselines/manifest.json": "2b3e53cee65f33a69529374461ab650338d8def9e4aa340bcf7a02ee33f236e1"
+}

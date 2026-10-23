@@ -1,0 +1,10 @@
+{
+  "commit": "6602337dc8477a48c41f1058c7b2b7addd286a75",
+  "runId": 39885672687,
+  "conclusion": "success",
+  "jobs": [
+    "verify (8.1)",
+    "verify (8.3)"
+  ],
+  "url": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/39885672687"
+}

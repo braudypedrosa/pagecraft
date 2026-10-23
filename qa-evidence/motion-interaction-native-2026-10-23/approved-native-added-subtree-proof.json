@@ -1,0 +1,178 @@
+{
+  "status": "Exact native saved subtree independently inspected",
+  "savedVersion": 50,
+  "baselineVersion": 49,
+  "baselineNodeCount": 8,
+  "savedNodeCount": 12,
+  "addedRootIndex": 2,
+  "addedRootId": "nbgvha43v",
+  "addedButtonId": "nbgvha1tx",
+  "addedNodes": [
+    {
+      "id": "nbgvha43v",
+      "type": "section"
+    },
+    {
+      "id": "nbgvha3d3",
+      "type": "row"
+    },
+    {
+      "id": "nbgvha2qs",
+      "type": "column"
+    },
+    {
+      "id": "nbgvha1tx",
+      "type": "button"
+    }
+  ],
+  "addedRootSubtree": {
+    "adv": {
+      "cls": "",
+      "css": "",
+      "htmlId": ""
+    },
+    "children": [
+      {
+        "adv": {
+          "cls": "",
+          "css": "",
+          "htmlId": ""
+        },
+        "children": [
+          {
+            "adv": {
+              "cls": "",
+              "css": "",
+              "htmlId": ""
+            },
+            "children": [
+              {
+                "adv": {
+                  "cls": "",
+                  "css": "",
+                  "htmlId": "qa-motion-110-wp"
+                },
+                "anim": {
+                  "delay": "0s",
+                  "dur": "0.2s",
+                  "ease": "ease-out",
+                  "name": "fade-up",
+                  "once": 1
+                },
+                "children": [],
+                "cls": [],
+                "css": {
+                  "d": {
+                    "--pc-solid-fg": "var(--c-paper)",
+                    "align-self": "flex-start",
+                    "background-color": "var(--c-brand)",
+                    "border-radius": "8px",
+                    "padding-bottom": "13px",
+                    "padding-left": "26px",
+                    "padding-right": "26px",
+                    "padding-top": "13px",
+                    "transition": "all .25s ease"
+                  },
+                  "m": {},
+                  "t": {}
+                },
+                "hide": {},
+                "id": "nbgvha1tx",
+                "props": {
+                  "align": "flex-start",
+                  "icon": "none",
+                  "link": "#qa-motion-110-wp",
+                  "target": "",
+                  "text": "QA Motion 110",
+                  "ts": "btn",
+                  "variant": "solid",
+                  "wrap": "inline-flex"
+                },
+                "st": {
+                  "focus": {
+                    "d": {
+                      "transform": "translateX(8px)"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hover": {
+                    "d": {
+                      "opacity": "0.5"
+                    },
+                    "m": {},
+                    "t": {}
+                  }
+                },
+                "type": "button"
+              }
+            ],
+            "cls": [],
+            "css": {
+              "d": {
+                "--pc-column-v-align": "follow",
+                "align-items": "stretch",
+                "flex-grow": "100",
+                "gap": "16px"
+              },
+              "m": {
+                "flex-basis": "100%"
+              },
+              "t": {}
+            },
+            "hide": {},
+            "id": "nbgvha2qs",
+            "props": {},
+            "type": "column"
+          }
+        ],
+        "cls": [],
+        "css": {
+          "d": {
+            "align-items": "stretch",
+            "gap": "24px",
+            "justify-content": "flex-start"
+          },
+          "m": {
+            "gap": "20px"
+          },
+          "t": {}
+        },
+        "hide": {},
+        "id": "nbgvha3d3",
+        "props": {},
+        "type": "row"
+      }
+    ],
+    "cls": [],
+    "css": {
+      "d": {
+        "padding-bottom": "72px",
+        "padding-left": "24px",
+        "padding-right": "24px",
+        "padding-top": "72px"
+      },
+      "m": {
+        "padding-bottom": "48px",
+        "padding-left": "20px",
+        "padding-right": "20px",
+        "padding-top": "48px"
+      },
+      "t": {}
+    },
+    "hide": {},
+    "id": "nbgvha43v",
+    "props": {
+      "inner": "",
+      "tag": "section",
+      "width": "boxed"
+    },
+    "type": "section"
+  },
+  "removingOnlyAddedSectionRestoresEntireBaselineDocument": true,
+  "original8NodesAndAllProjectMetadataExact": true,
+  "savedRawCaptureSHA256": "128dbe8588645e368539db6f46baa78e2b47d0cbad690020df93fac0261c0c42",
+  "baselineDocumentSHA256": "3b71c89d73e8ad2b1ddb34420e9daa75e04165e1f2fca26f5d7ab343670b9526",
+  "compilerEditorVersion": "0.2.17-preview.20261023.104",
+  "databaseWritesPerformed": false
+}

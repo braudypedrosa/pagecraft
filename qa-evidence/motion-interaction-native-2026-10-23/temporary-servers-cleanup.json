@@ -1,0 +1,16 @@
+{
+  "ports": [
+    4946,
+    4947
+  ],
+  "pids": [
+    86794,
+    91092
+  ],
+  "pidCommandAndCwdVerified": true,
+  "tabsClosed": [
+    72,
+    73
+  ],
+  "termination": "SIGTERM"
+}

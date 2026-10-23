@@ -1,0 +1,17 @@
+# Task close: entrance animation and interaction styles110
+
+23 October 2026, Asia/Manila. Pagecraft staging and local WordPress. This bounded regression is complete. Full customer QA remains open. No production promotion or external form submission occurred.
+
+Completed entrance animations retained their forwards opacity and transform, blocking authored Hover and Focus. Cloud2451da8 gates all26 entrance initial selectors after completion and releases the running animation after its own matching animationend. Child and unrelated animation events are ignored. Legacy Fade out retains its intended filled ending. WordPress6602337 packages the same runtime in preview104.
+
+Native before proof demonstrates Fade up blocking Hover0.5 and Focus8px; disabling animation restores both. Native after proof passes Desktop1280, Tablet834 and Mobile414 on Cloud Preview and the saved WordPress public page. Keyboard Focus moves8px, actual pointer Hover appliesopacity0.5, completed animation is none, images load and no horizontal overflow occurs. WordPress saved Duration0.2s, Delay0s, ease-out and Once true survive editor reload. Local native tests additionally verify replay, Once and reduced motion. These local cases do not promote every animation combination on both hosts.
+
+Root Cloud full tests:2755 passed,5 skipped, exit0. Shared native behaviors30/30. Visual first capture23/24; feedback768 lacked its notification. A separate native Show error retry matches the existing baseline byte-for-byte. The original failed capture and differences remain preserved; no baseline images changed. Cloud CI39882879307/deployment39882879139 passed. WordPress CI39885672687 passed on PHP8.1 and8.3. Independent package tests also passed against WordPress7.1.3.
+
+The first strict WordPress installation aborted before the plugin swap because two theme-pattern cache rows renewed. All132 other tables and the protected snapshot were exact. The failed guard is preserved. A new reviewed guard retained strict SQL equality and the retry installed104 with database bytes unchanged. Theme19, Importer16, Builder55, PHP12, historical142 archives plus the new104 pair144 remain verified.
+
+Cloud History1312 restored the whole project byte-for-byte, SHA0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7. WordPress History49 restored original8 nodes and all compiled98 artifacts, finalVersion51/428. The31-check postguard passed. All424 prior revisions/meta, accounts/sessions, unrelated page487, global data and installed104 files remain exact. Four new709-712 revisions are the approved original/saved safety and transition pairs, with116 metadata rows and exact29-key contracts. A private manifest naming failure was resolved with byte-exact aliases; the same immutable auditor then passed the same captured SQL. No database rollback or rewrite occurred.
+
+Actual saved-page screenshots, computed receipts, restoration receipts and package links are in this folder. Temporary tabs72/73 closed after evidence capture; owned4946/4947 servers stopped after PID/command/CWD verification. CPU1, viewport and media resets succeeded. User QA/review tabs remain available. Main generated working bytes were preserved. Time and billing were not tracked or submitted.
+
+Next: Image15 and Form18 finite native journeys remain open. A newly observed inspector blur/click issue is under investigation in a separate candidate. Neither this fix nor package success establishes full production readiness.

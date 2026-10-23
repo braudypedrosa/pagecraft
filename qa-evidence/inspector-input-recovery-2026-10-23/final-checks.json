@@ -1,0 +1,17 @@
+{
+  "fullTests": {
+    "passed": 2766,
+    "skipped": 5,
+    "exitCode": 0
+  },
+  "typecheck": "passed",
+  "focused": {
+    "passed": 12,
+    "files": 3
+  },
+  "orderedGenerated10ExactTwice": true,
+  "runtime80eUnchanged": true,
+  "sharedNative": 30,
+  "visualByteExact": 24,
+  "productionPromotion": false
+}
