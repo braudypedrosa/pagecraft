@@ -1,0 +1,25 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-45d
+
+ ❯ tests/component-bool-authoring.test.tsx (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-bool-authoring.test.tsx [ tests/component-bool-authoring.test.tsx ]
+TypeError: The URL must be of scheme file
+ ❯ tests/component-bool-authoring.test.tsx:13:16
+     11|
+     12| let r: Rig, ask: HTMLElement;
+     13| const source = readFileSync(new URL('../builder.html', import.meta.url…
+       |                ^
+     14| const settle = () => act(async () => { await Promise.resolve(); });
+     15|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  22:08:20
+   Duration  1.07s (transform 329ms, setup 0ms, import 0ms, tests 0ms, environment 560ms)
+

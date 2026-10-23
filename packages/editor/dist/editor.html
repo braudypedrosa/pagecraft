@@ -22228,6 +22228,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const w3 = writer(n2, c3);
     const on = !["", "0", "false"].includes(String(valueOf(n2, c3) ?? ""));
     const helpId = g2();
+    const useField = !!c3.k?.startsWith(C2.VAL) || C2.state.ui.mode === "component" && !!C2.state.ui.cedit && !!c3.k;
     const toggle = /* @__PURE__ */ u2(
       "button",
       {
@@ -22235,14 +22236,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         role: "switch",
         "aria-checked": on ? "true" : "false",
         "aria-label": c3.label || "Toggle",
-        "aria-describedby": c3.note && !c3.k?.startsWith(C2.VAL) ? helpId : void 0,
+        "aria-describedby": c3.note && !useField ? helpId : void 0,
         class: "sw-tog" + (on ? " on" : ""),
         disabled: inert(n2, c3),
         onClick: () => w3.hard(on ? 0 : 1),
         children: /* @__PURE__ */ u2("i", {})
       }
     );
-    return c3.k?.startsWith(C2.VAL) ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+    return useField ? /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "tog-row", children: toggle }) }) : /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
       /* @__PURE__ */ u2("span", { children: [
         c3.label,
         c3.note ? /* @__PURE__ */ u2(HelpTip, { label: c3.label || "Field", text: c3.note, id: helpId }) : null

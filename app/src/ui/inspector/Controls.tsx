@@ -465,16 +465,18 @@ const PICK_TIP: Record<string, string> = {
   vTop: 'Top', vMid: 'Middle', vBot: 'Bottom',
 };
 
-/* A toggle carries its label inside the row, so it is the one control that does not
-   use Field — there is no separate <label> to hang the badges off. */
+/* Ordinary toggles carry their label inline. Definition and instance properties use Field
+   so boolean values have the same authoring badges and labels as other property kinds. */
 function ToggleCtl({ n, c }: P) {
   const w = writer(n, c);
   const on = !['', '0', 'false'].includes(String(valueOf(n, c) ?? ''));
   const helpId = useId();
+  const useField = !!c.k?.startsWith(C.VAL)
+    || (C.state.ui.mode === 'component' && !!C.state.ui.cedit && !!c.k);
   const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
-    aria-describedby={c.note && !c.k?.startsWith(C.VAL) ? helpId : undefined}
+    aria-describedby={c.note && !useField ? helpId : undefined}
     class={'sw-tog' + (on ? ' on' : '')} disabled={inert(n, c)} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
-  return c.k?.startsWith(C.VAL)
+  return useField
     ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
     : <div class="f">
         <div class="tog-row"><span>{c.label}{c.note ? <HelpTip label={c.label || 'Field'} text={c.note} id={helpId} /> : null}</span>{toggle}</div>

@@ -1,0 +1,15 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-45d
+
+(node:26690) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26775) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26980) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  272 passed | 2 skipped (274)
+      Tests  2788 passed | 5 skipped (2793)
+   Start at  22:36:49
+   Duration  120.31s (transform 3.07s, setup 0ms, import 34.29s, tests 152.61s, environment 25.85s)
+

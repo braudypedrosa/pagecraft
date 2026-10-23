@@ -1,0 +1,16 @@
+{
+  "authorization": "Root explicit source-entry-only exception, no fresh captures",
+  "reason": "All24 scenes are static host specimen markup from componentGalleryPage. None mounts Inspector/ToggleCtl or enters component-definition mode. fields scene contains text/select/textarea/CMS checkbox specimens only.",
+  "productDiff": "Two comment lines, one definingProperty declaration, one return condition only; no CSS or global rendering changes.",
+  "changedEntry": "app/src/ui/inspector/Controls.tsx",
+  "before": "17b6b9d1ecc08618e73af8a7a263b20c8ba93d9513ec8d408442e2fd24bd1cd9",
+  "after": "8977812b09c873d1103e9a3aa997ba4a1b83bd922a85884e70ad8a33bf5c70fb",
+  "otherSourceHashesUnchanged": 29,
+  "all24PngBytesAndDimensionsUnchanged": true,
+  "imageEntriesAndProvenanceUnchanged": true,
+  "captureTimestampUnchanged": true,
+  "behaviorChecksUnchanged": true,
+  "behaviorRecords": 30,
+  "freshNativeCaptureClaimed": false,
+  "requiredFollowup": "Root native actual definition bool badge/dialog workflow after deployment."
+}

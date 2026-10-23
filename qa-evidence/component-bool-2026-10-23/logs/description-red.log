@@ -1,0 +1,35 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-45d
+
+ ❯ tests/component-bool-authoring.test.tsx (2 tests | 1 failed) 141ms
+   × Image boolean property is authored through the real badge/dialog and remains isolated through variants and reload 88ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-bool-authoring.test.tsx > Image boolean property is authored through the real badge/dialog and remains isolated through variants and reload
+AssertionError: definition switch description resolves to rendered help
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ tests/component-bool-authoring.test.tsx:65:9
+     63|   r.$$('[role="switch"][aria-describedby]').forEach(toggle => {
+     64|     toggle.getAttribute('aria-describedby')!.split(/\s+/).forEach(id =>
+     65|       a.ok(document.getElementById(id), 'definition switch description…
+       |         ^
+     66|   });
+     67|   await chooseNewProperty('Decorative image');
+ ❯ tests/component-bool-authoring.test.tsx:64:59
+ ❯ tests/component-bool-authoring.test.tsx:63:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  22:34:55
+   Duration  1.13s (transform 302ms, setup 0ms, import 365ms, tests 141ms, environment 515ms)
+

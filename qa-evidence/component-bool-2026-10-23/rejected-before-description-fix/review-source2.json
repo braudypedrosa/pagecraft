@@ -1,0 +1,11 @@
+{
+  "base": "45d01dc24650eb388668d69f1b57c125bdadbbe2",
+  "files": {
+    "app/src/ui/inspector/Controls.tsx": "8977812b09c873d1103e9a3aa997ba4a1b83bd922a85884e70ad8a33bf5c70fb",
+    "tests/component-bool-authoring.test.tsx": "20910e4fbb2e26ba9cd98aa3ec9396b65d20528329dd65df735b842d020e702a"
+  },
+  "productScope": "ToggleCtl definition-mode uses existingField; ordinary and already-instanced controls preserved",
+  "generatedBuilt": false,
+  "nativeAcceptance": "Pending root",
+  "fullSuite": "Running, source-fingerprint gate not modified"
+}

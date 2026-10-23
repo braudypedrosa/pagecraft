@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-45d
+
+
+ Test Files  4 passed (4)
+      Tests  20 passed (20)
+   Start at  22:36:11
+   Duration  1.07s (transform 974ms, setup 0ms, import 1.19s, tests 268ms, environment 1.46s)
+
