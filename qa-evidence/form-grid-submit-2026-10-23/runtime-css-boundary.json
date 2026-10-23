@@ -1,0 +1,6 @@
+{
+  "runtimeSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+  "runtimeByteExactHead": true,
+  "reason": "Shared Core baseCss declaration changes compiled page styles rather than standalone behavior runtime.js",
+  "goldenUpdatePendingApproval": true
+}

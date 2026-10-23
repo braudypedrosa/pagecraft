@@ -1,0 +1,31 @@
+{
+  "typedAt": 1792737111242,
+  "beforeBlur": {
+    "focused": true,
+    "value": "<redacted>"
+  },
+  "pauseMilliseconds": 32139,
+  "firstStyleClick": "true",
+  "fieldValueReadback": "Browser redacts this field; verify nonsensitive compiled field names instead.",
+  "compiledBeforeReload": [
+    "name",
+    "email",
+    "message",
+    "email-2",
+    "qa-party-size",
+    "qa-visit-date",
+    "qa-visit-reason",
+    "qa-agree-to-the-demo-terms"
+  ],
+  "compiledAfterReload": [
+    "name",
+    "email",
+    "message",
+    "email-2",
+    "qa-party-size",
+    "qa-visit-date",
+    "qa-visit-reason",
+    "qa-agree-to-the-demo-terms"
+  ],
+  "savedReloadPass": true
+}

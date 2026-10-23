@@ -1,0 +1,29 @@
+[
+  {
+    "device": "desktop",
+    "buttonWidth": 1199.984375,
+    "columns": "386.656px 386.672px 386.656px",
+    "overflow": false,
+    "span": "1 / -1",
+    "viewport": 1440,
+    "width": 1200
+  },
+  {
+    "device": "tablet",
+    "buttonWidth": 775,
+    "columns": "377.5px 377.5px",
+    "overflow": false,
+    "span": "1 / -1",
+    "viewport": 834,
+    "width": 775
+  },
+  {
+    "device": "mobile",
+    "buttonWidth": 363,
+    "columns": "363px",
+    "overflow": false,
+    "span": "1 / -1",
+    "viewport": 414,
+    "width": 363
+  }
+]

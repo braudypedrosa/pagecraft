@@ -28,8 +28,8 @@ const list = (n: PcNode, c: Control): any[] => {
 
 /** A text input bound to one property of one row. Typing coalesces into a single undo
     step per field, which is what `tx` keyed on the control gives us. */
-function RowInput({ n, c, k, prop, onCommit, ...rest }: P & {
-  k: number; prop: string; onCommit?: () => void;
+function RowInput({ n, c, k, prop, beforeCommit, onCommit, ...rest }: P & {
+  k: number; prop: string; beforeCommit?: () => boolean; onCommit?: () => void;
 } & Record<string, any>) {
   const key = n.id + '|' + (c.c || c.k || c.t);
   const changed = useRef(false);
@@ -40,6 +40,8 @@ function RowInput({ n, c, k, prop, onCommit, ...rest }: P & {
       rows(n, c)[k][prop] = (e.target as HTMLInputElement).value;
       L.repaint();
     }} onBlur={() => {
+      const repaired = changed.current && beforeCommit?.();
+      if (repaired) L.repaint();
       L.endTx();
       if (!changed.current) return;
       changed.current = false;
@@ -266,6 +268,21 @@ export function ItemsCtl({ n, c }: P) {
 const FIELD_TYPES: string[][] = [['text', 'Text'], ['email', 'Email'], ['tel', 'Phone'],
   ['number', 'Number'], ['date', 'Date'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['checkbox', 'Checkbox']];
 
+/** A manually authored submission key follows the same suffix contract as Duplicate. Only
+    the row that just committed is repaired, so merely opening an older document cannot
+    rewrite a key or change what an existing integration receives. */
+function keepFormFieldNameUnique(n: PcNode, c: Control, k: number) {
+  const fields = rows(n, c);
+  const base = C.formFieldName(fields[k], k);
+  const existing = new Set(fields.flatMap((field, index) =>
+    index === k ? [] : [C.formFieldName(field, index)]));
+  if (!existing.has(base)) return false;
+  let suffix = 2;
+  while (existing.has(base + '-' + suffix)) suffix++;
+  fields[k].name = base + '-' + suffix;
+  return true;
+}
+
 /** Shared disclosure for text repeaters. Only the active item occupies editing space. */
 function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
   k: number; title: string; open: number | null; setOpen: (k: number | null) => void; children: any;
@@ -318,7 +335,9 @@ export function FieldsCtl({ n, c }: P) {
           <button type="button" aria-pressed={advanced} onClick={() => setAdvanced(true)}>Advanced</button>
         </div>
         {advanced ? <label class="frow-control"><span>Field name</span>
-          <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'} />
+          <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'}
+            beforeCommit={() => keepFormFieldNameUnique(n, c, k)}
+            onCommit={() => setLabelRevision(revision => revision + 1)} />
         </label> : <>
           <label class="frow-control"><span>Type</span>
             <select class="ctl" aria-label="Field type" value={f.type || 'text'}

@@ -9784,6 +9784,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
+  grid-column:1 / -1;
   font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;

@@ -1,0 +1,75 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/form-field-name-2d79f4b
+
+ ❯ tests/form-field-name-uniqueness.test.tsx (4 tests | 3 failed) 608ms
+   × manual duplicate field names repair on blur and the first Style click still lands 513ms
+   × Tab commits a duplicate, while unique raw and blank fallback names stay authored 24ms
+   × a colliding cleared fallback repairs once and survives UI type and reorder actions 26ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > manual duplicate field names repair on blur and the first Style click still lands
+AssertionError: expected { type: 'tel', label: 'Phone', …(3) } to deeply equal { type: 'tel', label: 'Phone', …(3) }
+
+- Expected
++ Received
+
+  {
+    "label": "Phone",
+-   "name": "email-3",
++   "name": "email",
+    "ph": "Mobile",
+    "required": 0,
+    "type": "tel",
+  }
+
+ ❯ tests/form-field-name-uniqueness.test.tsx:72:21
+     70|   });
+     71|
+     72|   expect(fields[2]).toEqual({ ...before[2], name: 'email-3' });
+       |                     ^
+     73|   expect(C.state.ui.stab).toBe('style');
+     74|   expect(C.hist.u).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > Tab commits a duplicate, while unique raw and blank fallback names stay authored
+AssertionError: expected 'email' to be 'email-3' // Object.is equality
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  14:10:25
+   Duration  4.03s (transform 1.33s, setup 0ms, import 1.53s, tests 608ms, environment 1.39s)
+
+
+Expected: "email-3"
+Received: "email"
+
+ ❯ tests/form-field-name-uniqueness.test.tsx:87:26
+     85|   input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbl…
+     86|   act(() => (r.$('#inspector-tab-style') as HTMLButtonElement).focus()…
+     87|   expect(fields[2].name).toBe('email-3');
+       |                          ^
+     88|
+     89|   C.state.ui.stab = 'content';
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > a colliding cleared fallback repairs once and survives UI type and reorder actions
+AssertionError: expected '' to be 'email-3' // Object.is equality
+
+- Expected
++ Received
+
+- email-3
+
+ ❯ tests/form-field-name-uniqueness.test.tsx:114:26
+    112|   r.type(input, '');
+    113|   act(() => input.blur());
+    114|   expect(fields[2].name).toBe('email-3');
+       |                          ^
+    115|
+    116|   const row = r.$$('.repeater-row')[2];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+

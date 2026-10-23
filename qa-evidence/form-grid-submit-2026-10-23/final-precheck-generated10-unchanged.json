@@ -1,0 +1,6 @@
+{
+  "generated10Unchanged": true,
+  "comparedTo": "generated-build-2.sha256",
+  "afterManifestOnlySourceUpdate": true,
+  "sourceManifestDoesNotChangeCompiledEditorBytes": true
+}

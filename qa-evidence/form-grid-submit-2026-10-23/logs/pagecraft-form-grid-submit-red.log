@@ -1,0 +1,47 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/form-grid-contract-2d79f4b
+
+ ❯ tests/form-grid-submit.test.ts (9 tests | 8 failed) 444ms
+   × Grid 1 keeps the submit and disabled status across the row (editing=false) 219ms
+   × Grid 2 keeps the submit and disabled status across the row (editing=false) 33ms
+   × Grid 3 keeps the submit and disabled status across the row (editing=false) 29ms
+   × Grid 4 keeps the submit and disabled status across the row (editing=false) 22ms
+   × Grid 1 keeps the submit and disabled status across the row (editing=true) 52ms
+   × Grid 2 keeps the submit and disabled status across the row (editing=true) 34ms
+   × Grid 3 keeps the submit and disabled status across the row (editing=true) 26ms
+   × Grid 4 keeps the submit and disabled status across the row (editing=true) 23ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/form-grid-submit.test.ts > Grid 1 keeps the submit and disabled status across the row (editing=false)
+ FAIL  tests/form-grid-submit.test.ts > Grid 2 keeps the submit and disabled status across the row (editing=false)
+ FAIL  tests/form-grid-submit.test.ts > Grid 3 keeps the submit and disabled status across the row (editing=false)
+ FAIL  tests/form-grid-submit.test.ts > Grid 4 keeps the submit and disabled status across the row (editing=false)
+ FAIL  tests/form-grid-submit.test.ts > Grid 1 keeps the submit and disabled status across the row (editing=true)
+ FAIL  tests/form-grid-submit.test.ts > Grid 2 keeps the submit and disabled status across the row (editing=true)
+ FAIL  tests/form-grid-submit.test.ts > Grid 3 keeps the submit and disabled status across the row (editing=true)
+ FAIL  tests/form-grid-submit.test.ts > Grid 4 keeps the submit and disabled status across the row (editing=true)
+AssertionError: expected '' to match /^1\s*\/\s*-1$/\s*-1$
+
+- Expected:
+/^1\s*\/\s*-1$/
+
++ Received:
+""
+
+ ❯ tests/form-grid-submit.test.ts:26:60
+     24|     expect(root.style.getPropertyValue('--f-columns') || css).toContai…
+     25|     expect(root.querySelectorAll('.pagecraft-field')).toHaveLength(5);
+     26|     expect(dom.window.getComputedStyle(button).gridColumn).toMatch(/^1…
+       |                                                            ^
+     27|     expect(dom.window.getComputedStyle(status).gridColumn).toMatch(/^1…
+     28|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 1 passed (9)
+   Start at  13:44:32
+   Duration  2.02s (transform 395ms, setup 0ms, import 1.36s, tests 444ms, environment 0ms)
+

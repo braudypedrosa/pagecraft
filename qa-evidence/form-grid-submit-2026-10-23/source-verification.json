@@ -1,0 +1,33 @@
+{
+  "status": "source-ready; final builds deferred for combined Lists change",
+  "base": "2d79f4b3811edd749d62a53edca52b6e22f144d1",
+  "source3": {
+    "app/src/core/index.ts": "ac0222e8466438851ef2907873f5a0830265b5cc0e7992fbf2fe580f17c24bff",
+    "tests/form-grid-submit.test.ts": "104acab600a2796373515c2c4923d8e14c4f28cf6d10bd0b34d9d09e10ac2445",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343"
+  },
+  "fullSuite": {
+    "passed": 2778,
+    "skipped": 5,
+    "filesPassed": 270,
+    "filesSkipped": 2,
+    "exit": 0
+  },
+  "firstFailurePreserved": "logs/full-before-golden.log",
+  "goldenStructuralDiff": "golden-structural-diff.json",
+  "goldenDecodedDiff": "golden-decoded-diff.json",
+  "runtimeSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+  "runtimeUnchanged": true,
+  "finalOrderedBuildsStarted": false,
+  "server": {
+    "url": "http://127.0.0.1:4948/index.html",
+    "ownerSession": 29651,
+    "purpose": "root native geometry; preserve until root releases"
+  },
+  "limits": [
+    "No native geometry acceptance claimed.",
+    "No Main source/generated mutation, PHP, WordPress, database, commit or push.",
+    "Grid field percentages were a false positive: independent Grid columns control owns them.",
+    "No mobile stacking or Grid unset-label changes."
+  ]
+}

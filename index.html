@@ -11538,6 +11538,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
+  grid-column:1 / -1;
   font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
@@ -20695,7 +20696,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const v3 = valueOf(n2, c3);
     return Array.isArray(v3) ? v3 : [];
   };
-  function RowInput({ n: n2, c: c3, k: k3, prop, onCommit, ...rest }) {
+  function RowInput({ n: n2, c: c3, k: k3, prop, beforeCommit, onCommit, ...rest }) {
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const changed = A2(false);
     return /* @__PURE__ */ u2(
@@ -20711,6 +20712,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           L2.repaint();
         },
         onBlur: () => {
+          const repaired = changed.current && beforeCommit?.();
+          if (repaired) L2.repaint();
           L2.endTx();
           if (!changed.current) return;
           changed.current = false;
@@ -21062,6 +21065,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ["select", "Dropdown"],
     ["checkbox", "Checkbox"]
   ];
+  function keepFormFieldNameUnique(n2, c3, k3) {
+    const fields = rows(n2, c3);
+    const base = C2.formFieldName(fields[k3], k3);
+    const existing = new Set(fields.flatMap((field, index) => index === k3 ? [] : [C2.formFieldName(field, index)]));
+    if (!existing.has(base)) return false;
+    let suffix = 2;
+    while (existing.has(base + "-" + suffix)) suffix++;
+    fields[k3].name = base + "-" + suffix;
+    return true;
+  }
   function RepeaterRow({ n: n2, c: c3, k: k3, title, open, setOpen, children }) {
     const expanded = open === k3;
     return /* @__PURE__ */ u2("div", { class: "frow repeater-row" + (expanded ? " on" : ""), children: [
@@ -21146,7 +21159,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ] }),
             advanced ? /* @__PURE__ */ u2("label", { class: "frow-control", children: [
               /* @__PURE__ */ u2("span", { children: "Field name" }),
-              /* @__PURE__ */ u2(RowInput, { n: n2, c: c3, k: k3, prop: "name", placeholder: C2.slugify(f4.label) || "field-name" })
+              /* @__PURE__ */ u2(
+                RowInput,
+                {
+                  n: n2,
+                  c: c3,
+                  k: k3,
+                  prop: "name",
+                  placeholder: C2.slugify(f4.label) || "field-name",
+                  beforeCommit: () => keepFormFieldNameUnique(n2, c3, k3),
+                  onCommit: () => setLabelRevision((revision) => revision + 1)
+                }
+              )
             ] }) : /* @__PURE__ */ u2(S, { children: [
               /* @__PURE__ */ u2("label", { class: "frow-control", children: [
                 /* @__PURE__ */ u2("span", { children: "Type" }),
