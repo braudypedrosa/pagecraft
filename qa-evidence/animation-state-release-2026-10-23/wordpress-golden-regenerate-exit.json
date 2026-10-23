@@ -1,0 +1,1 @@
+{"command":"PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts --maxWorkers=4","exit":0}

@@ -1,0 +1,32 @@
+{
+  "status": "Bounded shared Style/Advanced matrix accepted on both hosts",
+  "cloud": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+  "wordpress": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+  "preview": 103,
+  "scope": [
+    "Nested Box/Heading insertion",
+    "Desktop padding/background/overflow/max-width",
+    "Tablet/Mobile own padding and max-width",
+    "Modified-only Style and Advanced filtering",
+    "Independent Hover/Focus declarations",
+    "Reset Tablet Hover preserves Focus and Resting",
+    "Reset Tablet Resting preserves Mobile override",
+    "Reset Mobile Resting inherits Desktop",
+    "Keyboard focus at1280/834/414",
+    "Actual pointer hover after responsive reset",
+    "Editor reload and public saved rendering",
+    "Native history restoration and exact source guards"
+  ],
+  "controlsNotCovered": [
+    "All other Style/Advanced fields",
+    "Class-target bulk reset",
+    "Multi-selection",
+    "Motion entrance animation and transition interaction under separate110"
+  ],
+  "cloudRestored": true,
+  "wordpressRestored": true,
+  "wordpressFinalVersion": 49,
+  "wordpressRevisions": 424,
+  "wordpressPostGuard": 31,
+  "fullQAComplete": false
+}

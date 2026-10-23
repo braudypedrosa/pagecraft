@@ -1,0 +1,105 @@
+{
+  "legacy": "Custom value (Yes)",
+  "cases": [
+    {
+      "value": "Yes",
+      "actual": [
+        {
+          "marker": true,
+          "title": "Alpha"
+        },
+        {
+          "marker": false,
+          "title": "Beta"
+        },
+        {
+          "marker": false,
+          "title": "Gamma"
+        },
+        {
+          "marker": true,
+          "title": "Delta"
+        },
+        {
+          "marker": false,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "value": "No",
+      "actual": [
+        {
+          "marker": false,
+          "title": "Alpha"
+        },
+        {
+          "marker": true,
+          "title": "Beta"
+        },
+        {
+          "marker": false,
+          "title": "Gamma"
+        },
+        {
+          "marker": false,
+          "title": "Delta"
+        },
+        {
+          "marker": true,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "value": "Empty value",
+      "actual": [
+        {
+          "marker": false,
+          "title": "Alpha"
+        },
+        {
+          "marker": false,
+          "title": "Beta"
+        },
+        {
+          "marker": true,
+          "title": "Gamma"
+        },
+        {
+          "marker": false,
+          "title": "Delta"
+        },
+        {
+          "marker": false,
+          "title": "Epsilon"
+        }
+      ]
+    },
+    {
+      "value": "is not Yes",
+      "actual": [
+        {
+          "marker": false,
+          "title": "Alpha"
+        },
+        {
+          "marker": true,
+          "title": "Beta"
+        },
+        {
+          "marker": true,
+          "title": "Gamma"
+        },
+        {
+          "marker": false,
+          "title": "Delta"
+        },
+        {
+          "marker": true,
+          "title": "Epsilon"
+        }
+      ]
+    }
+  ]
+}

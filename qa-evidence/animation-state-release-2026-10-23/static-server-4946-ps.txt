@@ -1,0 +1,1 @@
+86794 22770 /opt/homebrew/Cellar/python@3.15/3.15.0/Frameworks/Python.framework/Versions/3.15/Resources/Python.app/Contents/MacOS/Python -m http.server 4946 --bind 127.0.0.1

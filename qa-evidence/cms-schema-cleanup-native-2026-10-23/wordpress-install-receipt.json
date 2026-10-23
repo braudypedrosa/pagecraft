@@ -1,0 +1,44 @@
+{
+  "status": "installed",
+  "version": "0.2.17-preview.20261023.103",
+  "cloud": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+  "wordpress": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+  "sourceCommittedExact": true,
+  "php97Source12PreservedExact": true,
+  "frozen10Exact": true,
+  "newEditorArchiveExact": true,
+  "builder55Exact": true,
+  "runtime100PreservedExact": true,
+  "compilerPathsVersion103Only": true,
+  "addedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.103-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.103-pagecraft-renderer-2/compiler.js"
+  ],
+  "removedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.102-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.102-pagecraft-renderer-2/compiler.js"
+  ],
+  "changedBuilderPaths": [
+    "assets/pagecraft-editor-contract.json",
+    "assets/pagecraft-editor.html"
+  ],
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical140Exact": true,
+  "packageInventory142Exact": true,
+  "new103PairHashes": {
+    "packages/pagecraft-editor-0.2.17-preview.20261023.103.source.json": "35992f0f0574d1f7fcfc95cd30ea476e1dac6e0f09a00a739af7541e501cc0e3",
+    "packages/pagecraft-editor-0.2.17-preview.20261023.103.tgz": "863950e9e35840224224353e213672b2364a8eec3f8b4d37ed32081cf2af6271"
+  },
+  "protectedSnapshotByteExact": true,
+  "revisionCount": 418,
+  "original487Version": 73,
+  "qa616DocumentVersion": 45,
+  "SQLByteExact": true,
+  "sqlSHA256": "632a4e887f0aa3e3a659625c9e54f82ec4983a2e8537897bfb58b0b076209fc5",
+  "builderZipSHA256": "b6748af18666b0e40c2556f23c3f0011dd9250e476ba14be9458ffd8af5086ed",
+  "source10FreezeSHA256": "013229cbcca6c52b8b664248e5055d5cc0d361bd9b6e848d2d6f2d4bc23f1348",
+  "php12FreezeSHA256": "8ef5e1c65cf5a94ef9015e5594286d534dc3215d74de924e02bce767a5a79074",
+  "nativeAcceptance": "Pending root verification",
+  "databaseRollbackPerformed": false
+}

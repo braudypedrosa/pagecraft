@@ -2,14 +2,14 @@
 import { afterEach, describe, expect, test } from 'vitest';
 // @ts-expect-error jsdom has no bundled declarations in this workspace.
 import { JSDOM } from 'jsdom';
-import { ANIM_CSS, ANIM_JS } from '../app/src/core/anim';
+import { ANIM_CSS, ANIM_JS, ANIM_NAMES } from '../app/src/core/anim';
 
 const windows: Window[] = [];
 afterEach(() => { for (const window of windows.splice(0)) window.close(); });
 
-async function runtime(name: string, attrs: Record<string, string> = {}) {
+async function runtime(name: string, attrs: Record<string, string> = {}, beforeCss = '') {
   const attributes = Object.entries(attrs).map(([key, value]) => ` ${key}="${value}"`).join('');
-  const dom = new JSDOM(`<style>${ANIM_CSS}</style><div class="bp-animate pc-${name}"${attributes}></div>`, {
+  const dom = new JSDOM(`<style>${beforeCss}</style><style>${ANIM_CSS}</style><div class="bp-animate pc-${name}"${attributes}></div>`, {
     runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/'
   });
   windows.push(dom.window as unknown as Window);
@@ -36,6 +36,12 @@ async function runtime(name: string, attrs: Record<string, string> = {}) {
   expect(observer).toBeTruthy();
   expect(observer.observed.has(element)).toBe(true);
   return { dom, element, observer };
+}
+
+function dispatchAnimationEnd(dom: JSDOM, target: Element, animationName: string) {
+  const event = new dom.window.Event('animationend', { bubbles: true });
+  Object.defineProperty(event, 'animationName', { value: animationName });
+  target.dispatchEvent(event);
 }
 
 describe('exported animation runtime timing overrides', () => {
@@ -115,5 +121,82 @@ describe('exported animation runtime timing overrides', () => {
     expect(element.style.animationDuration).toBe('1.3s');
     expect(element.style.animationDelay).toBe('0.2s');
     expect(element.style.animationTimingFunction).toBe('linear');
+  });
+});
+
+describe('exported animation runtime completion', () => {
+  test('all 26 entrance presets release authored opacity and transform', async () => {
+    for (const name of ANIM_NAMES.filter(name => name !== 'fade-out')) {
+      const { dom, element, observer } = await runtime(
+        name,
+        {},
+        '.authored-state{opacity:.5;transform:translateX(8px)}'
+      );
+      element.classList.add('authored-state');
+      observer.enter(element);
+      const animationName = dom.window.getComputedStyle(element).animation.split(/\s+/)[0];
+
+      dispatchAnimationEnd(dom, element, animationName);
+
+      expect(element.classList.contains('bp-is-animating'), name).toBe(false);
+      expect(element.classList.contains('bp-is-done-animating'), name).toBe(true);
+      expect(dom.window.getComputedStyle(element).opacity, name).toBe('0.5');
+      expect(dom.window.getComputedStyle(element).transform, name).toBe('translateX(8px)');
+    }
+  });
+
+  test('ignores child and unrelated completion events until its own preset ends', async () => {
+    const { dom, element, observer } = await runtime('fade-up');
+    const child = dom.window.document.createElement('span');
+    element.append(child);
+    observer.enter(element);
+
+    dispatchAnimationEnd(dom, child, 'childAnimation');
+    dispatchAnimationEnd(dom, element, 'unrelatedAnimation');
+    expect(element.classList.contains('bp-is-animating')).toBe(true);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(false);
+
+    dispatchAnimationEnd(dom, element, 'bpFadeUp');
+    expect(element.classList.contains('bp-is-animating')).toBe(false);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(true);
+  });
+
+  test('does not treat an authored transition as entrance completion', async () => {
+    const { dom, element, observer } = await runtime('fade-up');
+    observer.enter(element);
+
+    element.dispatchEvent(new dom.window.Event('transitionend', { bubbles: true }));
+    expect(element.classList.contains('bp-is-animating')).toBe(true);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(false);
+
+    dispatchAnimationEnd(dom, element, 'bpFadeUp');
+    expect(element.classList.contains('bp-is-animating')).toBe(false);
+  });
+
+  test('legacy fade-out keeps its forwards-filled hidden state', async () => {
+    const { dom, element, observer } = await runtime('fade-out');
+    observer.enter(element);
+
+    dispatchAnimationEnd(dom, element, 'bpFadeOut');
+
+    expect(element.classList.contains('bp-is-animating')).toBe(true);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(true);
+  });
+
+  test('repeat mode re-arms after leaving and releases authored state again', async () => {
+    const { dom, element, observer } = await runtime('fade-up');
+    observer.enter(element);
+    dispatchAnimationEnd(dom, element, 'bpFadeUp');
+    expect(element.classList.contains('bp-is-animating')).toBe(false);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(true);
+
+    observer.leave(element);
+    observer.enter(element);
+    expect(element.classList.contains('bp-is-animating')).toBe(true);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(false);
+
+    dispatchAnimationEnd(dom, element, 'bpFadeUp');
+    expect(element.classList.contains('bp-is-animating')).toBe(false);
+    expect(element.classList.contains('bp-is-done-animating')).toBe(true);
   });
 });

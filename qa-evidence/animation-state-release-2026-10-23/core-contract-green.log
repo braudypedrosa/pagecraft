@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/animation-state-release-fbb5f50
+
+
+ Test Files  1 passed (1)
+      Tests  658 passed (658)
+   Start at  08:54:16
+   Duration  976ms (transform 461ms, setup 0ms, import 527ms, tests 278ms, environment 0ms)

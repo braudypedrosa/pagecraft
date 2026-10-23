@@ -1,0 +1,35 @@
+{
+  "reason": "First capture omitted the error notification; native Show error reissued and visible alert verified",
+  "initialPreserved": true,
+  "captureParameters": {
+    "metricsOverride": {
+      "width": 768,
+      "height": 900,
+      "deviceScaleFactor": 1,
+      "mobile": false,
+      "scale": 1
+    },
+    "screenshot": {
+      "format": "png",
+      "fromSurface": true,
+      "captureBeyondViewport": false,
+      "optimizeForSpeed": false,
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 900,
+        "scale": 1
+      }
+    }
+  },
+  "provenance": {
+    "path": "direct",
+    "directAttempt": {
+      "outcome": "success"
+    },
+    "axFallback": {
+      "used": false
+    }
+  }
+}

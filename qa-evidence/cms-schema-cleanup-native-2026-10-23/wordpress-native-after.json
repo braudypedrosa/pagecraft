@@ -1,0 +1,63 @@
+{
+  "editorVersion": "0.2.17-preview.20261023.103",
+  "gapAfterReload": "25",
+  "nativeSaveNotice": "Page saved",
+  "publicAfterSave": {
+    "gap": "25px",
+    "images": [
+      {
+        "alt": "QA cafe table with coffee and pastry",
+        "loaded": true
+      },
+      {
+        "alt": "QA cafe terrace",
+        "loaded": true
+      },
+      {
+        "alt": "QA cafe counter",
+        "loaded": true
+      }
+    ]
+  },
+  "publicAfterRestore": {
+    "gap": "24px",
+    "images": [
+      {
+        "alt": "QA cafe table with coffee and pastry",
+        "loaded": true
+      },
+      {
+        "alt": "QA cafe terrace",
+        "loaded": true
+      },
+      {
+        "alt": "QA cafe counter",
+        "loaded": true
+      }
+    ]
+  },
+  "responsive": [
+    {
+      "columns": "286.25px 286.25px 286.25px 286.25px",
+      "gap": "24px",
+      "loaded": true,
+      "overflow": false,
+      "width": 1280
+    },
+    {
+      "columns": "359px",
+      "gap": "8px",
+      "loaded": true,
+      "overflow": false,
+      "width": 414
+    }
+  ],
+  "cleanup": [
+    {
+      "cpu": {},
+      "viewport": {},
+      "media": {},
+      "tab": "53"
+    }
+  ]
+}

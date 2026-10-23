@@ -1,0 +1,15 @@
+{
+  "firstPass": {
+    "passed": 23,
+    "total": 24,
+    "failed": "builder-feedback-768.png",
+    "causeObserved": "Missing error notification, while remaining UI pixels match"
+  },
+  "targetedRetry": {
+    "passed": true,
+    "byteExactBaseline": true,
+    "nativeShowErrorActionAndVisibleAlertVerified": true,
+    "initialEvidencePreserved": true
+  },
+  "baselineImagesChanged": false
+}

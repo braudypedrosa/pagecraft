@@ -1,0 +1,45 @@
+{
+  "status": "Exact known-cache private baseline rebase complete; first installer attempt preserved",
+  "changes": [
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "beforeRowId": 326,
+      "afterRowId": 326,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792712096,
+      "after": 1792715742,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2167,
+      "afterRowId": 2169,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792712321,
+      "after": 1792714181
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2168,
+      "afterRowId": 2170,
+      "autoloadExact": true,
+      "valueExact": true
+    }
+  ],
+  "originalSQLSHA256": "0407aeb358bfe2b054813b63320a2076bea92b1add40fddc0992b6f165ede03e",
+  "rebasedSQLSHA256": "632a4e887f0aa3e3a659625c9e54f82ec4983a2e8537897bfb58b0b076209fc5",
+  "protectedSnapshotByteExact": true,
+  "all132NonOptionTablesExact": true,
+  "qa616Version": 45,
+  "revisions": 418,
+  "compiled98FixturePreserved": true,
+  "installed102Builder55Theme19Importer16Unchanged": true,
+  "PHP12Exact": true,
+  "stage103ManifestPreservedExact": true,
+  "canonicalCandidateCommit": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+  "databaseWritesPerformed": false,
+  "pluginFilesChanged": false,
+  "installerExecuted": false
+}

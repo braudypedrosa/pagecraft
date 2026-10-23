@@ -1,0 +1,56 @@
+{
+  "all10Exist": true,
+  "exactPair": true,
+  "files": {
+    "index.html": {
+      "build1": "6b0fbebfbc1475ec01d41fb80da62aec593b7472a8d560a95c077c82a7940588",
+      "build2": "6b0fbebfbc1475ec01d41fb80da62aec593b7472a8d560a95c077c82a7940588",
+      "match": true
+    },
+    "dist/core.cjs": {
+      "build1": "21f4fe7a00f5a53193579aa433e7fc191baac08fbac748c6b377f8d2c2ac63de",
+      "build2": "21f4fe7a00f5a53193579aa433e7fc191baac08fbac748c6b377f8d2c2ac63de",
+      "match": true
+    },
+    "packages/editor/dist/contract.json": {
+      "build1": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "build2": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "match": true
+    },
+    "packages/editor/dist/editor.html": {
+      "build1": "662ccc4d1e20ecf05180d2b62e2d83b4f4279400fa4d36ffe61d7aae9fd91351",
+      "build2": "662ccc4d1e20ecf05180d2b62e2d83b4f4279400fa4d36ffe61d7aae9fd91351",
+      "match": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "build1": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+      "build2": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+      "match": true
+    },
+    "packages/editor/dist/templates.json": {
+      "build1": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "build2": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "match": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "build1": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+      "build2": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+      "match": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "build1": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+      "build2": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+      "match": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "build1": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "build2": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "match": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "build1": "5a363598735cf29c03c8c265905fa6210f4ea3ad3d0badacbfe06509549934fd",
+      "build2": "5a363598735cf29c03c8c265905fa6210f4ea3ad3d0badacbfe06509549934fd",
+      "match": true
+    }
+  }
+}

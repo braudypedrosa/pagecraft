@@ -1,0 +1,54 @@
+{
+  "baselineHistory": 1312,
+  "id": [
+    "n8jund1s2"
+  ],
+  "cases": [
+    {
+      "scope": "focus after entrance",
+      "actual": {
+        "animation": "0.2s ease-out forwards bpFadeUp",
+        "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating",
+        "duration": "0.2s",
+        "focus": true,
+        "opacity": "0.99836",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0492128)",
+        "transition": "0.25s"
+      }
+    },
+    {
+      "scope": "focus after entrance completed",
+      "actual": {
+        "animation": "0.2s ease-out forwards bpFadeUp",
+        "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating bp-is-done-animating",
+        "focus": true,
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)"
+      }
+    },
+    {
+      "scope": "hover after entrance completed",
+      "actual": {
+        "animation": "0.2s ease-out forwards bpFadeUp",
+        "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating bp-is-done-animating",
+        "focus": false,
+        "hover": true,
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)"
+      }
+    }
+  ],
+  "noAnimationControl": {
+    "focus": {
+      "animation": "none",
+      "focus": true,
+      "transform": "matrix(1, 0, 0, 1, 8, 0)"
+    },
+    "hover": {
+      "animation": "none",
+      "focus": false,
+      "hover": true,
+      "opacity": "0.5"
+    }
+  }
+}

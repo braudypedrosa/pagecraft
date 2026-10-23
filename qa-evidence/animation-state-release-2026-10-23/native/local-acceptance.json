@@ -1,0 +1,73 @@
+{
+  "focus": {
+    "animationName": "none",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-done-animating",
+    "focus": true,
+    "opacity": "1",
+    "transform": "matrix(1, 0, 0, 1, 8, 0)"
+  },
+  "afterLeave": {
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-done-animating",
+    "rect": {
+      "bottom": 2170.640625,
+      "height": 51.59375,
+      "left": 34.5,
+      "right": 191.15625,
+      "top": 2119.046875,
+      "width": 156.65625,
+      "x": 34.5,
+      "y": 2119.046875
+    },
+    "viewport": 668
+  },
+  "repeatStart": {
+    "animation": "bpFadeUp",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating",
+    "duration": "1s"
+  },
+  "repeatFirstComplete": {
+    "animation": "none",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-done-animating",
+    "transform": "matrix(1, 0, 0, 1, 8, 0)"
+  },
+  "repeatReentry": {
+    "animation": "bpFadeUp",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating",
+    "duration": "1s"
+  },
+  "onceFirstStart": {
+    "animation": "bpFadeUp",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-animating",
+    "once": "true"
+  },
+  "onceComplete": {
+    "animation": "none",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-done-animating",
+    "transform": "matrix(1, 0, 0, 1, 8, 0)"
+  },
+  "onceReentry": {
+    "animation": "none",
+    "classes": "pagecraft-button pagecraft-8jund1s2 ts-btn bp-animate pc-fade-up bp-is-visible bp-is-done-animating",
+    "once": "true",
+    "transform": "matrix(1, 0, 0, 1, 8, 0)"
+  },
+  "hoverAfterComplete": {
+    "animation": "none",
+    "hover": true,
+    "opacity": "0.5"
+  },
+  "reducedMotion": {
+    "animation": "none",
+    "focus": true,
+    "opacity": "1",
+    "outline": "solid",
+    "transform": "none",
+    "visible": true
+  },
+  "cleanup": {
+    "tab": "72",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

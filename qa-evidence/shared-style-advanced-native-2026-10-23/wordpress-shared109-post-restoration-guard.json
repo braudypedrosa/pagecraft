@@ -1,0 +1,90 @@
+{
+  "status": "FAILED: audit requires root review",
+  "checks": {
+    "133Tables": true,
+    "onlyExpectedTablesChanged": true,
+    "onlyExistingPost616Changed": true,
+    "post616OnlyTimestampsChanged": true,
+    "noPostsOrMetaRemoved": true,
+    "expectedTwoNewRevisions705706": false,
+    "newRevisionsOnly616": true,
+    "58NewMetaOnlyNewRevisions": false,
+    "all420PreviousRevisionRowsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "restoredDocumentAndAllCompiledArtifactsExact": true,
+    "qa616Version49": true,
+    "total422Revisions": false,
+    "storedCompiler98Exact": true,
+    "protectedSnapshotExactExceptCount": true,
+    "original487Version73": true,
+    "allAccountsAndSessionsExact": true,
+    "allPagecraftGlobalOptionsExact": true,
+    "approvedSavedSubtreeExact": true,
+    "newRevisionSourcesExactApprovedNativeDocuments": false,
+    "builderInstalled103Exact": true,
+    "themeInstalled103Exact": true,
+    "importerInstalled103Exact": true,
+    "historical142Exact": true,
+    "runtime217eExact": true,
+    "PHP12Exact": true
+  },
+  "failures": [
+    "expectedTwoNewRevisions705706",
+    "58NewMetaOnlyNewRevisions",
+    "total422Revisions",
+    "newRevisionSourcesExactApprovedNativeDocuments"
+  ],
+  "actualVersion": 49,
+  "actualRevisions": 424,
+  "newRevisions": [
+    {
+      "id": 705,
+      "version": "47",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes"
+    },
+    {
+      "id": 706,
+      "version": "47",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes"
+    },
+    {
+      "id": 707,
+      "version": "48",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Box/Heading subtree"
+    },
+    {
+      "id": 708,
+      "version": "48",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Box/Heading subtree"
+    }
+  ],
+  "newMetaCount": 116,
+  "changedExistingMetaIds": [
+    11146
+  ],
+  "changedPost616Fields": [
+    "post_date",
+    "post_modified",
+    "post_modified_gmt"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2173,
+      "afterRowId": 2177,
+      "autoloadExact": true,
+      "field": "time",
+      "before": 1792713700,
+      "after": 1792715311,
+      "otherFieldsExact": true
+    }
+  ],
+  "baselineSQLSHA256": "c969be087876938b3fe02b9e83e41f77fd669e622863d15f1b9180900bcb6ad2",
+  "postSQLSHA256": "99401d4efa8cf150994eb1abd2047ed13ab05cb5c6b7892c4b3075443d86aa50",
+  "workerDatabaseWrites": false
+}

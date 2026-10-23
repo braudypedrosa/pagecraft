@@ -1,0 +1,169 @@
+{
+  "baseline": 47,
+  "box": "n876261mx",
+  "heading": "n87pn93yi",
+  "cases": [
+    {
+      "scope": "desktop resting",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "760px",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px"
+      }
+    },
+    {
+      "scope": "tablet resting modified Style",
+      "panel": "State\nResting\nHover\nFocus\nShow modified settings\nReset tablet changes\nStyling\nThis element\nAdd a class…\nSpacing\nPadding\nOverride\ntop\nright\nbottom\nleft\nunit\npx",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "620px",
+        "overflow": "hidden",
+        "padding": "16px 20px 24px 28px"
+      }
+    },
+    {
+      "scope": "tablet resting modified Advanced",
+      "panel": "State\nResting\nHover\nFocus\nShow modified settings\nReset tablet changes\nIdentity & layout\nMax width\nOverride\npx"
+    },
+    {
+      "scope": "mobile own resting",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "300px",
+        "overflow": "hidden",
+        "padding": "8px 12px 16px 20px"
+      }
+    },
+    {
+      "scope": "tablet hover before reset",
+      "value": "0.7"
+    },
+    {
+      "scope": "tablet focus modified Style",
+      "panel": "State\nResting\nHover\nFocus\nShow modified settings\nReset tablet changes\nStyling\nThis element\nAdd a class…\nNo modified settings in this scope."
+    },
+    {
+      "scope": "tablet focus modified Advanced",
+      "panel": "State\nResting\nHover\nFocus\nShow modified settings\nReset tablet changes\nEffects\nTransform\nOverride"
+    },
+    {
+      "scope": "tablet hover reset",
+      "value": "0.5"
+    },
+    {
+      "scope": "tablet focus preserved",
+      "value": "translateX(8px)"
+    },
+    {
+      "scope": "tablet resting preserved",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "620px",
+        "overflow": "hidden",
+        "padding": "16px 20px 24px 28px"
+      }
+    },
+    {
+      "scope": "tablet resting reset",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "760px",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px"
+      }
+    },
+    {
+      "scope": "mobile resting still own",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "300px",
+        "overflow": "hidden",
+        "padding": "8px 12px 16px 20px"
+      }
+    },
+    {
+      "scope": "mobile resting reset",
+      "actual": {
+        "bg": "rgb(227, 233, 223)",
+        "max": "760px",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px"
+      }
+    }
+  ],
+  "public": [
+    {
+      "device": "desktop",
+      "focus": {
+        "documentOverflow": false,
+        "focus": true,
+        "max": "760px",
+        "opacity": "1",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px",
+        "transform": "none",
+        "viewport": 1280
+      },
+      "hover": {
+        "focus": false,
+        "hover": true,
+        "opacity": "0.5",
+        "transform": "none"
+      }
+    },
+    {
+      "device": "tablet",
+      "focus": {
+        "documentOverflow": false,
+        "focus": true,
+        "max": "760px",
+        "opacity": "1",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px",
+        "transform": "matrix(1, 0, 0, 1, 8, 0)",
+        "viewport": 834
+      },
+      "hover": {
+        "focus": false,
+        "hover": true,
+        "opacity": "0.5",
+        "transform": "none"
+      }
+    },
+    {
+      "device": "mobile",
+      "focus": {
+        "documentOverflow": false,
+        "focus": true,
+        "max": "760px",
+        "opacity": "1",
+        "overflow": "hidden",
+        "padding": "24px 28px 32px 36px",
+        "transform": "matrix(1, 0, 0, 1, 8, 0)",
+        "viewport": 414
+      },
+      "hover": {
+        "focus": false,
+        "hover": true,
+        "opacity": "0.5",
+        "transform": "none"
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "tab": "53",
+      "cpu": {},
+      "viewport": {},
+      "media": {}
+    },
+    {
+      "tab": "53",
+      "cpu": {},
+      "viewport": {},
+      "media": {}
+    }
+  ],
+  "focusAfterEditorReload": "translateX(8px)"
+}

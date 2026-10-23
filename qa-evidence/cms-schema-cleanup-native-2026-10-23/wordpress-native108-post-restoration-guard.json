@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "checks": {
+    "133Tables": true,
+    "onlyExpectedTablesChanged": true,
+    "onlyExistingPost616Changed": true,
+    "post616OnlyTimestampsChanged": true,
+    "noPostsOrMetaRemoved": true,
+    "expectedTwoNewRevisions703704": true,
+    "newRevisionsOnly616": true,
+    "58NewMetaOnlyNewRevisions": true,
+    "all418PreviousRevisionRowsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "restoredDocumentAndAllCompiledArtifactsExact": true,
+    "qa616Version47": true,
+    "total420Revisions": true,
+    "storedCompiler98Exact": true,
+    "protectedSnapshotExactExceptCount": true,
+    "original487Version73": true,
+    "allAccountsAndSessionsExact": true,
+    "allPagecraftGlobalOptionsExact": true,
+    "newRevisionSourceOnlyGap24to25": true,
+    "builderInstalled103Exact": true,
+    "themeInstalled103Exact": true,
+    "importerInstalled103Exact": true,
+    "historical142Exact": true,
+    "runtime217eExact": true,
+    "PHP12Exact": true
+  },
+  "failures": [],
+  "actualVersion": 47,
+  "actualRevisions": 420,
+  "newRevisions": [
+    {
+      "id": 703,
+      "version": "45",
+      "onlyAuthorizedGalleryGapChange": true,
+      "changedPaths": []
+    },
+    {
+      "id": 704,
+      "version": "46",
+      "onlyAuthorizedGalleryGapChange": true,
+      "changedPaths": [
+        "/pages/0/tree/1/children/0/children/0/children/0/css/d/--g-gap"
+      ]
+    }
+  ],
+  "newMetaCount": 58,
+  "changedExistingMetaIds": [
+    11146
+  ],
+  "changedPost616Fields": [
+    "post_date",
+    "post_modified",
+    "post_modified_gmt"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2165,
+      "afterRowId": 2173,
+      "autoloadExact": true,
+      "field": "time",
+      "before": 1792708831,
+      "after": 1792713700,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "timestampChanges": [
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "deltaSeconds": 3600,
+          "payloadExact": true
+        }
+      ]
+    }
+  ],
+  "baselineSQLSHA256": "632a4e887f0aa3e3a659625c9e54f82ec4983a2e8537897bfb58b0b076209fc5",
+  "postSQLSHA256": "f3186beae4243cc97a7b154a98287435bc13f0c379b8e90709fda5c4afc13a21",
+  "workerDatabaseWrites": false
+}

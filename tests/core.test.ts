@@ -1031,7 +1031,12 @@ test('the animation classes are prefixed, so a customer CSS cannot collide', () 
   n.anim = { name: 'fade-in' };
   const html = C.buildPage(C.state.pages[0]);
   const sheet = must(html.match(/<style>([\s\S]*?)<\/style>/), 'stylesheet')[1];
-  a.match(sheet, /\.pc-fade-in\{/);
+  a.match(sheet, /\.pc-fade-in:where\(:not\(\.bp-is-done-animating\)\)\{opacity:0\}/,
+    'entrance initial state is released after its animation completes');
+  a.match(sheet, /\.pc-fade-out\{opacity:1\}/,
+    'legacy fade-out keeps its forwards-filled terminal state');
+  a.doesNotMatch(sheet, /\.pc-fade-out:where\(:not\(\.bp-is-done-animating\)\)/,
+    'legacy fade-out is not released back to visible');
   a.equal(/(^|[},])\.fade-in[.{]/.test(sheet), false, 'nothing bare survived the vendoring');
   C.ANIM_NAMES.forEach(x => a.equal(new RegExp(`(^|[},])\\.${x}[.{]`).test(sheet), false, x));
 });
