@@ -36,7 +36,8 @@ export interface Writer {
 
 let pointerActivationTarget: HTMLElement | null = null;
 let pointerActivationId: number | null = null;
-if (typeof document !== 'undefined') {
+if (typeof document !== 'undefined' && typeof window !== 'undefined'
+  && typeof document.addEventListener === 'function' && typeof window.addEventListener === 'function') {
   document.addEventListener('pointerdown', event => {
     const raw = event.target;
     const target = raw instanceof Element ? raw.closest('button, [role="button"]') : null;

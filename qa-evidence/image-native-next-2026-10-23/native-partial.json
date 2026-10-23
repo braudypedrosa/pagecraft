@@ -1,0 +1,43 @@
+{
+  "status": "partial native Cloud slice only",
+  "cloud": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+  "temporaryNode": "nc13u01hk",
+  "finalNativeExportSHA256": "5a75397ac54b383aff63d6d6ba5a49e5712174dd63b8499fd31e443bf230e844",
+  "sourceLifecycle": [
+    "upload table-1.png via Media upload dialog",
+    "replace with terrace.png",
+    "choose table-1.webp from library",
+    "remove image shows placeholder",
+    "restore table-1.webp from library"
+  ],
+  "metadata": [
+    "Alt and Caption retained after source replacement",
+    "Decorative on renders empty alt",
+    "Decorative link label renders aria-label",
+    "Manual intrinsic640x480 then Detect restores1536x1024"
+  ],
+  "observedUploadOutputs": {
+    "table-1.webp": "137 KB,1536x1024",
+    "terrace.webp": "393 KB,1536x1024"
+  },
+  "renderedSourceLoadedBeforeRemoval": true,
+  "decorativeLinkedOutput": {
+    "alt": "",
+    "ariaLabel": "Jump to the QA image",
+    "caption": "QA Image lifecycle 111"
+  },
+  "discoveredBugs": [
+    "111 text blur drops first inspector button click",
+    "112 custom URL disappears on first hash"
+  ],
+  "restoredOriginalProjectByteExact": true,
+  "notChecked": [
+    "saved editor reload",
+    "all Fit/filter choices",
+    "responsive sizes/alignment/opacity/reset",
+    "lazy loading toggles",
+    "missing asset recovery",
+    "WordPress native Image15"
+  ],
+  "fullModuleAccepted": false
+}

@@ -1,0 +1,13 @@
+{
+  "base": "d20540bd22ae5c733a332851fc9cfe49215df09e",
+  "rootFullPass": 2767,
+  "skipped": 5,
+  "focusedPass": 13,
+  "typecheck": "passed",
+  "generated10ExactTwice": true,
+  "runtime80eUnchanged": true,
+  "protected11Exact": true,
+  "guardReason": "Core-only WordPress VM has partial DOM stubs; require callable browser event APIs before installing UI listeners",
+  "PHP12Changes": 0,
+  "rejectedD205WordPress105NotInstalled": true
+}
