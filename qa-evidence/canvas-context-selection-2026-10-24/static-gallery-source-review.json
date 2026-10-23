@@ -1,0 +1,8 @@
+{
+  "styleBlocks": 6,
+  "styleBlocksExact": true,
+  "builderNonscriptMarkupExact": true,
+  "galleryManifestAnd24PngsExact": true,
+  "galleryFingerprintGate": "Unresolved builder.html source hash; no baseline refresh performed. Root review required.",
+  "freshCaptureClaimed": false
+}

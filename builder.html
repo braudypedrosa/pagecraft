@@ -4761,11 +4761,13 @@ function bindCanvas() {
     const hit = canvasPointerHit(e);
     if (!hit) { select(null); return; }
     if (editing.on) exitEdit();
+    /* contextmenu preserves selected targets; its preceding secondary press must too. */
+    if (e.button === 2 && selIds().includes(hit.dataset.id)) return;
     /* Both modifiers add here. A range needs a flat list to sweep, and the canvas
        has depth instead — shift-clicking two headings would otherwise drag in
        every row and column that happens to sit between them. The Navigator, which
        does present a list, is where shift takes a range. */
-    const add = e.metaKey || e.ctrlKey || e.shiftKey;
+    const add = e.button !== 2 && (e.metaKey || e.ctrlKey || e.shiftKey);
     /* A modifier click is a selection gesture, not a text one. Without this the
        browser also extends a native text selection across the canvas, so adding
        three cards leaves everything between them highlighted blue. */

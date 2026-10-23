@@ -1,0 +1,69 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/canvas-context-selection-cfa3ca3
+
+ ❯ tests/canvas-context-selection.test.mjs (4 tests | 4 failed) 84ms
+   × right-clicking each selected member preserves all three targets and actual multi-action menu 56ms
+   × right-clicking an unselected member selects it and offers single actions 11ms
+   × ordinary left clicks and Shift, Ctrl and Meta multi-selection retain their behavior 10ms
+   × secondary clicks with modifiers preserve selected members and select unselected members singly 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > right-clicking each selected member preserves all three targets and actual multi-action menu
+TypeError: Cannot set property document of [object Window] which has only a getter
+ ❯ harness tests/canvas-context-selection.test.mjs:22:10
+     20|   cdoc.body.innerHTML = C.renderList(nodes, { edit: true });
+     21|   const runAct = vi.fn();
+     22|   Object.assign(w, { state: C.state, DEF: C.DEF, selSet: C.selSet, sel…
+       |          ^
+     23|     multiOn: C.multiOn, locate: C.locate, menuFor: C.menuFor, esc: C.e…
+     24|     document: w.document, cdoc, cwin: frame.contentWindow, editing: { …
+ ❯ tests/canvas-context-selection.test.mjs:46:54
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > right-clicking an unselected member selects it and offers single actions
+TypeError: Cannot set property document of [object Window] which has only a getter
+ ❯ harness tests/canvas-context-selection.test.mjs:22:10
+     20|   cdoc.body.innerHTML = C.renderList(nodes, { edit: true });
+     21|   const runAct = vi.fn();
+     22|   Object.assign(w, { state: C.state, DEF: C.DEF, selSet: C.selSet, sel…
+       |          ^
+     23|     multiOn: C.multiOn, locate: C.locate, menuFor: C.menuFor, esc: C.e…
+     24|     document: w.document, cdoc, cwin: frame.contentWindow, editing: { …
+ ❯ tests/canvas-context-selection.test.mjs:59:46
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > ordinary left clicks and Shift, Ctrl and Meta multi-selection retain their behavior
+TypeError: Cannot set property document of [object Window] which has only a getter
+ ❯ harness tests/canvas-context-selection.test.mjs:22:10
+     20|   cdoc.body.innerHTML = C.renderList(nodes, { edit: true });
+     21|   const runAct = vi.fn();
+     22|   Object.assign(w, { state: C.state, DEF: C.DEF, selSet: C.selSet, sel…
+       |          ^
+     23|     multiOn: C.multiOn, locate: C.locate, menuFor: C.menuFor, esc: C.e…
+     24|     document: w.document, cdoc, cwin: frame.contentWindow, editing: { …
+ ❯ tests/canvas-context-selection.test.mjs:68:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > secondary clicks with modifiers preserve selected members and select unselected members singly
+TypeError: Cannot set property document of [object Window] which has only a getter
+ ❯ harness tests/canvas-context-selection.test.mjs:22:10
+     20|   cdoc.body.innerHTML = C.renderList(nodes, { edit: true });
+     21|   const runAct = vi.fn();
+     22|   Object.assign(w, { state: C.state, DEF: C.DEF, selSet: C.selSet, sel…
+       |          ^
+     23|     multiOn: C.multiOn, locate: C.locate, menuFor: C.menuFor, esc: C.e…
+     24|     document: w.document, cdoc, cwin: frame.contentWindow, editing: { …
+ ❯ tests/canvas-context-selection.test.mjs:76:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  04:48:42
+   Duration  951ms (transform 236ms, setup 0ms, import 753ms, tests 84ms, environment 0ms)
+
