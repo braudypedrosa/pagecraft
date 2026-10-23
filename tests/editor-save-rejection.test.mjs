@@ -65,6 +65,74 @@ for (const [status, payload, reason] of [
   });
 }
 
+test('editing a rejected Embed shows the new save reason and recompiles the corrected draft', async () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,
+    `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
+  const requests = [];
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+    beforeParse(window) {
+      window.fetch = async (url, options = {}) => {
+        if (String(url).endsWith('/document') && options.method === 'PUT') {
+          requests.push(JSON.parse(options.body));
+          if (requests.length === 1) return {
+            ok: false, status: 400,
+            json: async () => ({ error: 'The compiled Pagecraft page contains unsupported executable markup.' })
+          };
+          if (requests.length < 4) return {
+            ok: false, status: 400,
+            json: async () => ({ error: 'Pagecraft iframe embeds must use an absolute HTTPS URL.' })
+          };
+          return { ok: true, status: 200, json: async () => ({ version: 3 }) };
+        }
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await wait(800);
+    const { window } = dom, document = window.document, core = window.__CORE;
+    const embed = core.insert('embed', null, core.tree().length);
+    embed.props.html = '<iframe title="Unsafe preview" srcdoc="<p>Unsafe</p>"></iframe>';
+    window.select(embed.id);
+
+    await window.writeNow();
+    assert.match(document.querySelector('#mBody').textContent, /unsupported executable markup/i);
+    document.querySelector('#mClose').click();
+    await wait(100);
+
+    let control = document.querySelector('#inspector-panel textarea');
+    assert.ok(control, 'the selected Embed exposes its real HTML control');
+    control.value = '<iframe title="Local image" src="http://pagecraft-wordpress-qa.local/table-1.png"></iframe>';
+    control.dispatchEvent(new window.Event('input', { bubbles: true }));
+    control.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+    await wait(700);
+
+    assert.equal(requests.length, 2);
+    assert.match(requests[1].compiled.html, /src="http:\/\/pagecraft-wordpress-qa\.local\/table-1\.png"/);
+    assert.doesNotMatch(requests[1].compiled.html, /srcdoc=/i, 'the new save recompiles public output instead of reusing canvas preview markup');
+    assert.equal(document.querySelector('#modal').hidden, false, 'a changed rejected draft explains its current failure');
+    assert.match(document.querySelector('#mBody').textContent, /absolute HTTPS URL/i);
+
+    document.querySelector('#mClose').click();
+    await wait(100);
+    document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 's', ctrlKey: true, bubbles: true }));
+    await wait(100);
+    assert.equal(requests.length, 3, 'an explicit unchanged save still reaches the host');
+    assert.equal(document.querySelector('#modal').hidden, true, 'the same unchanged rejection stays deduplicated');
+
+    control = document.querySelector('#inspector-panel textarea');
+    control.value = '<iframe title="Public image" src="https://example.com/table-1.png"></iframe>';
+    control.dispatchEvent(new window.Event('input', { bubbles: true }));
+    control.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
+    await wait(700);
+    assert.equal(requests.length, 4);
+    assert.match(requests[3].compiled.html, /src="https:\/\/example\.com\/table-1\.png"/);
+    assert.match(document.querySelector('#savedTag').textContent, /Draft saved/);
+    assert.equal(window.PC_WORDPRESS.version, 3);
+  } finally { dom.window.close(); }
+});
+
 for (const surface of ['historyModal', 'historyPanel']) {
   for (const success of [true, false]) {
     test(`${surface}: only confirmed restore releases failed-save unload and replay guards (${success})`, async () => {

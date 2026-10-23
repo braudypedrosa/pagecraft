@@ -1,0 +1,4 @@
+025b98a4bdb826110713d56f0e3300c9ff12a29812dd689589a915fce1f32df8  builder.html
+7c3b451a23d2be1358781f3ad54775f97b6a894ce25647e028465f83ad0de7e5  tests/editor-save-rejection.test.mjs
+c3b3bcb9d1d3fd5a78d9098aea55ba208292f36d9857b6b7c4df0c8e4a126b62  public/internal-ui-baselines/manifest.json
+90ce0c6c4c7479d1df1964df926d66f8c8d29d2c3a232972950e15719a0e4c0a  qa-evidence/save-recovery-2026-10-23/root-review.md

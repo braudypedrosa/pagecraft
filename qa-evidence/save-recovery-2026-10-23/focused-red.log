@@ -1,0 +1,36 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-recovery-de06424
+
+ ❯ tests/editor-save-rejection.test.mjs (10 tests | 1 failed) 14078ms
+   × editing a rejected Embed shows the new save reason and recompiles the corrected draft 1898ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-save-rejection.test.mjs > editing a rejected Embed shows the new save reason and recompiles the corrected draft
+AssertionError: a changed rejected draft explains its current failure
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/editor-save-rejection.test.mjs:114:12
+    112|     assert.match(requests[1].compiled.html, /src="http:\/\/pagecraft-w…
+    113|     assert.doesNotMatch(requests[1].compiled.html, /srcdoc=/i, 'the ne…
+    114|     assert.equal(document.querySelector('#modal').hidden, false, 'a ch…
+       |            ^
+    115|     assert.match(document.querySelector('#mBody').textContent, /absolu…
+    116|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 passed (10)
+   Start at  19:30:45
+   Duration  14.77s (transform 16ms, setup 0ms, import 563ms, tests 14.08s, environment 0ms)
+

@@ -29454,7 +29454,12 @@ const saveSoon = () => {
 };
 /* Dirty from the moment a save is scheduled, not from when it runs: closing the tab inside that
    half-second is a change the page has to know it has not written yet. */
-const save = () => { dirty = true; saveSoon(); };
+const save = () => {
+  // A changed draft can fail for a different actionable reason. Explain that next rejection;
+  // repeated attempts of the unchanged failed draft remain deduplicated.
+  if (saveState === 'failed') saveWarned = false;
+  dirty = true; saveSoon();
+};
 
 /* A failed write must never be a whisper — it means work is being lost. */
 /* Only known, customer-facing validation reasons are displayed. Never render arbitrary
