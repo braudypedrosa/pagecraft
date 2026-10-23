@@ -1,0 +1,28 @@
+{
+  "editor": {
+    "alt": "",
+    "caption": "Read about our garden terrace",
+    "captionId": "nc13u01hk-caption",
+    "label": null,
+    "labelledby": "nc13u01hk-caption",
+    "loaded": true
+  },
+  "preview": {
+    "alt": "",
+    "caption": "Read about our garden terrace",
+    "captionId": "qa-image-113-caption",
+    "label": null,
+    "labelledby": "qa-image-113-caption",
+    "loaded": true
+  },
+  "explicit": {
+    "alt": "",
+    "label": "Open our terrace story",
+    "labelledby": null
+  },
+  "reload": {
+    "alt": "",
+    "label": "Open our terrace story",
+    "loaded": true
+  }
+}

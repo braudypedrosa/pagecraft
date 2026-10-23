@@ -7560,7 +7560,7 @@ function lint() {
             n,
             scoped
           );
-          if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim())
+          if (p.src && p.decorative && String(p.link || "").trim() && !String(p.label || "").trim() && !String(p.caption || "").trim())
             queueContext(
               "error",
               "image-link-no-label",
@@ -8296,6 +8296,9 @@ function pageHref(link, o) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+function captionNamesImageLink(p, o) {
+  return !!p.decorative && !!pageHref(p.link, o) && !String(p.label || "").trim() && !!String(p.caption || "").trim();
 }
 var animOf = (n) => {
   const a = n.anim;
@@ -11966,6 +11969,8 @@ function renderNode(n, o) {
     } else if (n.type === "form") {
       if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + "-f" + i));
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, "")).action) family.push(root + "-status");
+    } else if (n.type === "image" && captionNamesImageLink(p, o)) {
+      family.push(root + "-caption");
     }
     return family;
   };
@@ -12081,12 +12086,15 @@ function renderNode(n, o) {
       const dim = p.w && p.h ? ` width="${parseInt(p.w, 10)}" height="${parseInt(p.h, 10)}"` : !p.src ? ' width="800" height="500"' : "";
       const alt = ` alt="${p.decorative ? "" : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
-      const linkLabel = p.decorative && String(p.label || "").trim() ? ` aria-label="${esc(String(p.label).trim())}"` : "";
+      const authoredLinkLabel = String(p.label || "").trim();
+      const captionNamesLink = captionNamesImageLink(p, o);
+      const captionId = captionNamesLink ? domId() + "-caption" : "";
+      const linkLabel = p.decorative && authoredLinkLabel ? ` aria-label="${esc(authoredLinkLabel)}"` : captionId ? ` aria-labelledby="${captionId}"` : "";
       const set = o.variants && !o.edit && /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(String(p.src || "")) ? imageWidths(p.w).map((w) => `${p.src}@${w} ${w}w`) : [];
       const ss = set.length ? ` srcset="${esc(set.join(", "))}" sizes="${esc(sizesFor(n.id))}"` : "";
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at()} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at()} ${cx("pagecraft-figure")}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption${captionId ? ` id="${captionId}"` : ""} class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
       if (ihref) return `<a ${at()} ${cx("pagecraft-figure")} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;

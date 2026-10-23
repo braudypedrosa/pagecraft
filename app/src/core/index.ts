@@ -3938,7 +3938,8 @@ function lint() {
           if (p.src && !p.decorative && !String(p.alt || '').trim()) queueContext('error', 'no-alt',
             `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
             region, n, scoped);
-          if (p.src && p.decorative && String(p.link || '').trim() && !String(p.label || '').trim())
+          if (p.src && p.decorative && String(p.link || '').trim()
+            && !String(p.label || '').trim() && !String(p.caption || '').trim())
             queueContext('error', 'image-link-no-label',
               `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
               region, n, scoped);
@@ -4768,6 +4769,14 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+
+/** A decorative image contributes no name of its own. Its visible caption can name the
+    wrapping link only while no explicit link label overrides it. Keep ID reservation and
+    emitted markup on this one predicate so an unused caption ID never displaces a widget. */
+function captionNamesImageLink(p: PropBag, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
+  return !!p.decorative && !!pageHref(p.link, o)
+    && !String(p.label || '').trim() && !!String(p.caption || '').trim();
 }
 
 /* ---- scroll-triggered motion ------------------------------------------
@@ -8835,6 +8844,8 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     } else if (n.type === 'form') {
       if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + '-f' + i));
       if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
+    } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
+      family.push(root + '-caption');
     }
     return family;
   };
@@ -9019,8 +9030,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : (!p.src ? ' width="800" height="500"' : '');
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
-      const linkLabel = p.decorative && String(p.label || '').trim()
-        ? ` aria-label="${esc(String(p.label).trim())}"` : '';
+      const authoredLinkLabel = String(p.label || '').trim();
+      const captionNamesLink = captionNamesImageLink(p, o);
+      const captionId = captionNamesLink ? domId() + '-caption' : '';
+      const linkLabel = p.decorative && authoredLinkLabel
+        ? ` aria-label="${esc(authoredLinkLabel)}"`
+        : (captionId ? ` aria-labelledby="${captionId}"` : '');
       /* `asset:<id>@<w>` is a variant of the same asset. The export rewrites every asset
          token to a path once the whole page is rendered, so a width marker rides along in
          the token rather than needing the renderer to know where files land. Only for a
@@ -9031,7 +9046,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at()} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at()} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption${captionId ? ` id="${captionId}"` : ''} class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
       if (ihref) return `<a ${at()} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
       return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
