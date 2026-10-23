@@ -1,0 +1,7 @@
+{
+  "sourceURL": "https://api.iconify.design/lucide/text-cursor-input.svg",
+  "downloadSha256": "658696c663b8cebdca2c799688e2cb289421b4a3acca1a1e289f6244ed0788b4",
+  "pathAndViewBoxExact": true,
+  "integration": "inline11px SVG in Add only; no Core icon/runtime changes",
+  "correction": "Prior report incorrectly called legacy edit Icon Iconify-backed; rename now uses fetched official Iconify SVG."
+}

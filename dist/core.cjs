@@ -7703,6 +7703,16 @@ function componentDelete(cid) {
     });
     n++;
   }
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    if (node.type !== "nav") return;
+    const custom = node.props.mobileMenuComponent === cid;
+    const follow = node.props.mobileMenuFollowComponent === cid;
+    if (!custom && !follow) return;
+    const mode = mobileMenuMode(node);
+    if (custom) delete node.props.mobileMenuComponent;
+    if (follow) delete node.props.mobileMenuFollowComponent;
+    if (custom && mode === "custom") node.props.mobileMenuMode = "follow";
+  }));
   state.meta.components = components().filter((c) => c.id !== cid);
   return n;
 }

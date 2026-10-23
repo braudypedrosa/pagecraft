@@ -1,0 +1,32 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+(node:75229) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/component-rename.test.tsx (7 tests | 1 failed) 411ms
+   × mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit 53ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rename.test.tsx > mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit
+AssertionError: expected '1 mobile menu · no properties yet' to contain '1 instance'
+
+Expected: "1 instance"
+Received: "1 mobile menu · no properties yet"
+
+ ❯ tests/component-rename.test.tsx:181:20
+    179|   const before = C.clone(C.doc());
+    180|   const metadata = row(definition.name).querySelector('small')!.textCo…
+    181|   expect(metadata).toContain('1 instance'); expect(metadata).toContain…
+       |                    ^
+    182|   const message = remove(definition.name);
+    183|   expect(message).toContain('one place using it keep what they show, a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 39 passed (40)
+   Start at  06:19:56
+   Duration  1.59s (transform 1.25s, setup 0ms, import 1.63s, tests 786ms, environment 2.84s)
+

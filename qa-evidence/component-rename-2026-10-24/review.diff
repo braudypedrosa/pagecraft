@@ -1,0 +1,43 @@
+diff --git a/app/src/ui/Add.tsx b/app/src/ui/Add.tsx
+index 948a793..1043df5 100644
+--- a/app/src/ui/Add.tsx
++++ b/app/src/ui/Add.tsx
+@@ -453,8 +453,8 @@ function Blocks() {
+    are different answers and the panel says which is which, and the plan says what happens to
+    blocks once components can do everything they can.
+ 
+-   Every row does three things, because a component is three things: place one, edit the
+-   definition, or delete it. Delete says how many places it would change. */
++   Each row can place an instance, edit or rename the definition, or delete it.
++   Delete says how many places it would change. */
+ function Components() {
+   const sel = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
+   const list = C.components();
+@@ -473,6 +473,17 @@ function Components() {
+     L.editComponent(id);
+   };
+ 
++  const rename = async (e: MouseEvent, id: string) => {
++    e.stopPropagation();
++    const cd = C.findComponent(id);
++    if (!cd) return;
++    const name = (await L.askText('Rename component', 'Name', cd.name))?.trim();
++    if (!name || name === cd.name) return;
++    C.edit(() => { C.componentRename(id, name); });
++    repaint('add');
++    repaint('right');
++  };
++
+   const remove = async (e: MouseEvent, id: string) => {
+     e.stopPropagation();
+     const cd = C.findComponent(id);
+@@ -530,6 +541,9 @@ function Components() {
+             <button class="bx" title="Edit this component" onClick={e => open(e, cd.id)}>
+               <Icon name="edit" size={11} />
+             </button>
++            <button class="bx" title="Rename this component" aria-label="Rename this component" onClick={e => rename(e, cd.id)}>
++              <Icon name="edit" size={11} />
++            </button>
+             <LibraryAdd kind="component" id={cd.id} />
+             <button class="bx danger" title="Delete this component" onClick={e => remove(e, cd.id)}>
+               <Icon name="trash" size={11} />

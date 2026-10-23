@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  05:53:35
+   Duration  1.08s (transform 557ms, setup 0ms, import 666ms, tests 276ms, environment 895ms)
+

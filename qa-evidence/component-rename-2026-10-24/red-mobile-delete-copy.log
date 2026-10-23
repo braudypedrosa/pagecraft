@@ -1,0 +1,47 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+ ❯ tests/component-rename.test.tsx (7 tests | 2 failed) 402ms
+   × managed layout confirmation counts navigation owners and Cancel preserves their definitions and refs 50ms
+   × mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rename.test.tsx > managed layout confirmation counts navigation owners and Cancel preserves their definitions and refs
+AssertionError: expected '2 instances · no properties yet' to contain '2 mobile menus'
+
+Expected: "2 mobile menus"
+Received: "2 instances · no properties yet"
+
+ ❯ tests/component-rename.test.tsx:159:68
+    157|   C.hist.u.length = 0; C.hist.r.length = 0; draw();
+    158|   const before = C.clone(C.doc());
+    159|   expect(row(definition.name).querySelector('small')!.textContent).toC…
+       |                                                                    ^
+    160|   expect(row(definition.name).querySelector('small')!.textContent).not…
+    161|   const message = remove(definition.name);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/component-rename.test.tsx > mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit
+AssertionError: expected '1 instance · no properties yet' to contain '1 mobile menu'
+
+Expected: "1 mobile menu"
+Received: "1 instance · no properties yet"
+
+ ❯ tests/component-rename.test.tsx:181:62
+    179|   const before = C.clone(C.doc());
+    180|   const metadata = row(definition.name).querySelector('small')!.textCo…
+    181|   expect(metadata).toContain('1 instance'); expect(metadata).toContain…
+       |                                                              ^
+    182|   const message = remove(definition.name);
+    183|   expect(message).toContain('one place using it keep what they show, a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed (7)
+   Start at  06:17:55
+   Duration  1.42s (transform 267ms, setup 0ms, import 322ms, tests 402ms, environment 574ms)
+

@@ -6200,6 +6200,20 @@ function componentDelete(cid: string) {
     kept.forEach(c => { delete c.slot; });
     n++;
   }
+  /* A Nav points at its mobile layout without placing an ordinary `use` instance. There is no
+     Nav field that can own an arbitrary section/row/column tree after its definition is gone,
+     so deleting the active Custom layout returns that Nav to Follow rather than leaving a stale
+     id that only happens to render the fallback links. Dormant and unrelated layouts stay put. */
+  allTrees().forEach(list => eachNode(list, node => {
+    if (node.type !== 'nav') return;
+    const custom = node.props.mobileMenuComponent === cid;
+    const follow = node.props.mobileMenuFollowComponent === cid;
+    if (!custom && !follow) return;
+    const mode = mobileMenuMode(node);
+    if (custom) delete node.props.mobileMenuComponent;
+    if (follow) delete node.props.mobileMenuFollowComponent;
+    if (custom && mode === 'custom') node.props.mobileMenuMode = 'follow';
+  }));
   state.meta.components = components().filter(c => c.id !== cid);
   return n;
 }

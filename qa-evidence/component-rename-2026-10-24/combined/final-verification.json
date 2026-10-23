@@ -1,0 +1,23 @@
+{
+  "base": "6a4207870262a5a33322228f8030b992cf8ea3f4",
+  "source5Exact": true,
+  "generated10OrderedAndAfterFullExact": true,
+  "main11AndIndexExact": true,
+  "finalFull": {
+    "exit": 0,
+    "passed": 2825,
+    "skipped": 5,
+    "filesPassed": 277,
+    "filesSkipped": 2,
+    "logSha256": "ccbf2fe011ebd5f1004ea178c54b65ca51a5355926401c854a7bdee7c641c1ea"
+  },
+  "galleryManifestOnlyAddFingerprint": true,
+  "CoreChangeIntentional": true,
+  "publicRuntimeUnchanged": true,
+  "nativeFeatureAcceptance": "pending root deployment/native",
+  "galleryProcess": {
+    "pid": 84813,
+    "session": 98965,
+    "port": 4953
+  }
+}

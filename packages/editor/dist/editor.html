@@ -9457,6 +9457,16 @@ function componentDelete(cid) {
     });
     n++;
   }
+  allTrees().forEach((list) => eachNode(list, (node) => {
+    if (node.type !== "nav") return;
+    const custom = node.props.mobileMenuComponent === cid;
+    const follow = node.props.mobileMenuFollowComponent === cid;
+    if (!custom && !follow) return;
+    const mode = mobileMenuMode(node);
+    if (custom) delete node.props.mobileMenuComponent;
+    if (follow) delete node.props.mobileMenuFollowComponent;
+    if (custom && mode === "custom") node.props.mobileMenuMode = "follow";
+  }));
   state.meta.components = components().filter((c) => c.id !== cid);
   return n;
 }
@@ -19128,21 +19138,34 @@ var PC_UI = (() => {
       e3.stopPropagation();
       L2.editComponent(id);
     };
+    const rename2 = async (e3, id) => {
+      e3.stopPropagation();
+      const cd = C2.findComponent(id);
+      if (!cd) return;
+      const name = (await L2.askText("Rename component", "Name", cd.name))?.trim().slice(0, 40);
+      if (!name || name === cd.name) return;
+      C2.edit(() => {
+        C2.componentRename(id, name);
+      });
+      repaint("add");
+      repaint("right");
+    };
     const remove = async (e3, id) => {
       e3.stopPropagation();
       const cd = C2.findComponent(id);
       if (!cd) return;
-      const n2 = C2.componentUsage(id);
+      const n2 = C2.instances(id).length;
+      const menuUses = C2.componentUsage(id) - n2;
       const ok = await L2.askConfirm(
         "Delete this component?",
-        `<b>${esc4(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : `Nothing is using it.`),
+        `<b>${esc4(cd.name)}</b> stops being a component. ` + (n2 ? `The ${n2 === 1 ? "one place" : n2 + " places"} using it keep what they show, as ordinary elements \u2014 they simply stop changing together.` : menuUses ? "" : `Nothing is using it.`) + (menuUses ? `${n2 ? " " : ""}${menuUses} mobile ${menuUses === 1 ? "menu references" : "menus reference"} this layout. These references will be removed. If this layout is active, the menu will use its navigation links or existing Follow layout instead. Other layouts are kept.` : ""),
         { ok: "Delete component" }
       );
       if (!ok) return;
       C2.edit(() => {
         C2.componentDelete(id);
       });
-      L2.toast("Component deleted. Existing instances are now ordinary elements.");
+      L2.toast(menuUses ? "Component deleted. Mobile menu references removed." : "Component deleted. Existing instances are now ordinary elements.");
       if (editing === id) L2.editComponent(null);
       else L2.setMode(C2.state.ui.mode);
     };
@@ -19160,7 +19183,9 @@ var PC_UI = (() => {
     return /* @__PURE__ */ u2(S, { children: [
       list2.length ? list2.map((cd) => {
         const def = C2.DEF[cd.node.type];
-        const used = C2.componentUsage(cd.id);
+        const used = C2.instances(cd.id).length;
+        const menuUses = C2.componentUsage(cd.id) - used;
+        const usage = (used || !menuUses ? `${used} ${used === 1 ? "instance" : "instances"}` : "") + (menuUses ? `${used ? " \xB7 " : ""}${menuUses} mobile ${menuUses === 1 ? "menu" : "menus"}` : "");
         const props = (cd.props || []).length;
         return /* @__PURE__ */ u2(
           "div",
@@ -19183,12 +19208,23 @@ var PC_UI = (() => {
               /* @__PURE__ */ u2("span", { class: "bn", children: [
                 /* @__PURE__ */ u2("b", { children: cd.name }),
                 /* @__PURE__ */ u2("small", { children: [
-                  used === 1 ? "1 instance" : `${used} instances`,
+                  usage,
                   props ? ` \xB7 ${props === 1 ? "1 property" : props + " properties"}` : " \xB7 no properties yet"
                 ] }),
                 /* @__PURE__ */ u2(LibraryFrom, { kind: "component", id: cd.id })
               ] }),
               /* @__PURE__ */ u2("button", { class: "bx", title: "Edit this component", onClick: (e3) => open(e3, cd.id), children: /* @__PURE__ */ u2(Icon, { name: "edit", size: 11 }) }),
+              /* @__PURE__ */ u2("button", { class: "bx", title: "Rename this component", "aria-label": "Rename this component", onClick: (e3) => rename2(e3, cd.id), children: /* @__PURE__ */ u2("svg", { width: "11", height: "11", viewBox: "0 0 24 24", "aria-hidden": "true", children: /* @__PURE__ */ u2(
+                "path",
+                {
+                  fill: "none",
+                  stroke: "currentColor",
+                  "stroke-linecap": "round",
+                  "stroke-linejoin": "round",
+                  "stroke-width": "2",
+                  d: "M12 20h-1a2 2 0 0 1-2-2a2 2 0 0 1-2 2H6m7-12h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7m-8 0H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1m1-4h1a2 2 0 0 1 2 2a2 2 0 0 1 2-2h1M9 6v12"
+                }
+              ) }) }),
               /* @__PURE__ */ u2(LibraryAdd, { kind: "component", id: cd.id }),
               /* @__PURE__ */ u2("button", { class: "bx danger", title: "Delete this component", onClick: (e3) => remove(e3, cd.id), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
             ]
