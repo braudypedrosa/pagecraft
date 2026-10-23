@@ -1,0 +1,22 @@
+{
+  "MainHEAD": "ff23f77d1050ea53eb12863a7de9a78c1815cd98",
+  "candidateBase": "cfa3ca348ea7a0b15e2327cdefa7a348a4c7d2ad",
+  "source4Exact": true,
+  "generated10Exact": true,
+  "Main11AndIndexExact": true,
+  "immutableCoreSchemaGoldenControlsAnd24PNGsExact": true,
+  "manifestOnlyBuilderFingerprint": true,
+  "rootReportedFinalFull": {
+    "exit": 0,
+    "passed": 2816,
+    "skipped": 5,
+    "filesPassed": 275,
+    "filesSkipped": 2
+  },
+  "finalLogSha256": "4432275bc47b897403c8459f204f1098ec8e7f25fe1a90cc158529185eeaeb9d",
+  "galleryProcessStopped": {
+    "pid": 50160,
+    "session": 63920,
+    "exit": 130
+  }
+}

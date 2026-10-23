@@ -1,0 +1,35 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/canvas-context-selection-cfa3ca3
+
+ ❯ tests/builder-cms-selection.test.mjs (11 tests | 2 failed) 186ms
+   × selected secondary press refreshes repeated CMS row context without collapsing single selection 13ms
+   × selected secondary press refreshes repeated CMS row context without collapsing multiple selections 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/builder-cms-selection.test.mjs > selected secondary press refreshes repeated CMS row context without collapsing single selection
+ FAIL  tests/builder-cms-selection.test.mjs > selected secondary press refreshes repeated CMS row context without collapsing multiple selections
+AssertionError: expected 2 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 2
+
+ ❯ tests/builder-cms-selection.test.mjs:410:34
+    408|   community.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbl…
+    409|
+    410|   expect(w.state.ui.item.places).toBe(0);
+       |                                  ^
+    411|   expect(w.selectedCanvasElement('heading')).toBe(community);
+    412|   expect(w.selIds()).toEqual(ids);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  05:11:07
+   Duration  701ms (transform 16ms, setup 0ms, import 404ms, tests 186ms, environment 0ms)
+

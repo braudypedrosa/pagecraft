@@ -4762,7 +4762,12 @@ function bindCanvas() {
     if (!hit) { select(null); return; }
     if (editing.on) exitEdit();
     /* contextmenu preserves selected targets; its preceding secondary press must too. */
-    if (e.button === 2 && selIds().includes(hit.dataset.id)) return;
+    if (e.button === 2 && selIds().includes(hit.dataset.id)) {
+      rememberCanvasItem(hit);
+      paintSel();
+      renderRight();
+      return;
+    }
     /* Both modifiers add here. A range needs a flat list to sweep, and the canvas
        has depth instead — shift-clicking two headings would otherwise drag in
        every row and column that happens to sit between them. The Navigator, which

@@ -385,3 +385,42 @@ test('a stale or filtered review target never falls back to the first repeated c
   expect(deleted.w.closeReviewSurface).not.toHaveBeenCalled();
   expect(deleted.w.render).not.toHaveBeenCalled();
 });
+
+for (const many of [false, true]) test(`selected secondary press refreshes repeated CMS row context without collapsing ${many ? 'multiple selections' : 'single selection'}`, () => {
+  const { w, d, cd, collection, courtyard, community } = harness();
+  let ids = ['heading'];
+  const expectedIds = many ? ['heading', 'card'] : ['heading'];
+  w.selIds = () => [...ids];
+  w.selSet = next => { ids = [...next]; w.state.ui.sel = ids[0] || null; };
+  w.state.ui.collapsed = {};
+  Object.assign(w, { renderModebar: () => {}, renderLayers: () => {}, drawBlocks: () => {}, revealSelection: () => {} });
+  w.eval(between('function selectsCanvasAncestor(id)', '// Panel changes can reflow the canvas.'));
+  const inspector = d.createElement('output');
+  d.body.append(inspector);
+  const refreshInspector = vi.fn(() => {
+    inspector.textContent = collection.items[w.state.ui.item.places].values.title;
+  });
+  Object.assign(w, { renderRight: refreshInspector });
+  w.eval(between('function positionHud()', '/* A grip per gutter'));
+  w.eval(between('function paintSel()', '/* ---- element clipboard identity'));
+  courtyard.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true }));
+  ids = [...expectedIds];
+  w.paintSel(); refreshInspector();
+  expect(w.selectedCanvasElement('heading')).toBe(courtyard);
+  expect(inspector.textContent).toBe('Courtyard');
+  const before = JSON.stringify({ pages: w.state.pages, collection });
+  refreshInspector.mockClear();
+
+  community.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true, button: 2, buttons: 2 }));
+
+  expect(w.state.ui.item.places).toBe(0);
+  expect(w.selectedCanvasElement('heading')).toBe(community);
+  expect(w.selIds()).toEqual(expectedIds);
+  expect(community.hasAttribute('data-sel')).toBe(true);
+  expect(courtyard.hasAttribute('data-sel')).toBe(false);
+  expect(cd.querySelector('#s-hud .frame:not(.alt)').style.top).toBe('120px');
+  expect(cd.querySelector('#s-hud .nm').textContent).toBe(many ? '2 selected' : 'Heading');
+  expect(refreshInspector).toHaveBeenCalledOnce();
+  expect(inspector.textContent).toBe('Community Garden');
+  expect(JSON.stringify({ pages: w.state.pages, collection })).toBe(before);
+});
