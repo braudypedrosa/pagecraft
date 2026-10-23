@@ -1,0 +1,19 @@
+{
+  "canonicalHead": "a54981bf6685431b24c4942c3f975d646ca9ea8b",
+  "files": {
+    "pagecraft-builder/includes/FallbackCompiler.php": "418ffaf5e39aef911860148ff44c1bfd14e62452c925424aa356bd0e1ef4274c",
+    "tests/facade-only-generated-output.php": "338cca947de9e239f5bfc0524ea2cf68d478792a802316793aec9ce8a8b8cb9c",
+    "tests/wordpress-core-sanitizer.sh": "681f8d6fbc3f7a153655e8de4a06d291667a7e6c176dbccd9aaaba9f96690cba",
+    "tests/fixtures/sealed95-structural-drafts.json": "76f210686ba71e380fda921dd1e8bfd764a90cb31967934436e94655da9c5a81",
+    ".github/workflows/ci.yml": "f250a4a23812f3cd882c574ee82d35bdf8e1b89c5be305e8d25fde0908a27267",
+    "tests/wordpress-html-api.php": "ddba26f8e2990edd5777d5fce9aab1927835aaf4a63d6d08889deae64c32b8e6",
+    "tests/wp-full-journey-roundtrip.test.mjs": "82accd65cd3c3410a719481c271f76e9f573c3a150046bc625833793fc9a2de6",
+    "tests/README.md": "78912224bc3ef1f406264889d9e1044b9542ead1166c6d76bce257e3a0542a3c",
+    "pagecraft-builder/includes/PageEditor.php": "93ff9b00f0986c0dbcda73b4af6f14e7e01f455e1e36cb3ad43e9c65f83e2ec8",
+    "pagecraft-builder/includes/GlobalElementEditor.php": "81f9f4309db22031af2463199a381d05051ba1b5f7c4df4f351295fadd56e53b",
+    "pagecraft-builder/includes/NativeMenu.php": "cee91816b4995dbab9cb85bb0132caf7e4d46b8cf2e81cee336ae67bd3abd90d",
+    "tests/native-menus.php": "70cda4e9a049d187ec246e7e0037d822b841943c8ff9ac85371a56b17883e881"
+  },
+  "databaseAccess": false,
+  "writes": false
+}

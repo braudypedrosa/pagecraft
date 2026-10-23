@@ -1,0 +1,114 @@
+diff --git a/app/src/ui/inspector/cms-source-change.ts b/app/src/ui/inspector/cms-source-change.ts
+index 662252f..0732a94 100644
+--- a/app/src/ui/inspector/cms-source-change.ts
++++ b/app/src/ui/inspector/cms-source-change.ts
+@@ -15,6 +15,7 @@ export type ContentSourceChange = {
+   blocked?: {
+     component: string;
+     additional: number;
++    disconnected?: boolean;
+   };
+ };
+ 
+@@ -142,7 +143,8 @@ function blockedDefinitions(nodes: PcNode[], before: Collection | null,
+ 
+   for (const node of nodes) if (node.use) scanDefinition(node.use, new Set());
+   const entries = [...blocked.entries()];
+-  return entries.length ? { component: entries[0][1], additional: entries.length - 1 } : undefined;
++  return entries.length ? { component: entries[0][1], additional: entries.length - 1,
++    ...(!before ? { disconnected: true } : {}) } : undefined;
+ }
+ 
+ /** Nodes which will inherit this source. An explicit source on a nested node or component starts
+@@ -266,7 +268,8 @@ export function sourceChangeSuffix(result: ContentSourceChange): string {
+ }
+ 
+ export function sourceChangeBlocked(result: ContentSourceChange): string {
+-  return result.blocked
+-    ? `Content source unchanged · “${result.blocked.component}” needs its CMS fields connected through component properties first.`
+-    : '';
++  if (!result.blocked) return '';
++  if (result.blocked.disconnected) return 'Content source unchanged · Use Undo or version history to restore the previous source. '
++    + `To use a new source, connect the CMS fields in “${result.blocked.component}” through component properties first.`;
++  return `Content source unchanged · “${result.blocked.component}” needs its CMS fields connected through component properties first.`;
+ }
+diff --git a/tests/cms-source-change.test.tsx b/tests/cms-source-change.test.tsx
+index 5b71976..9bacb64 100644
+--- a/tests/cms-source-change.test.tsx
++++ b/tests/cms-source-change.test.tsx
+@@ -6,7 +6,7 @@ import * as C from '../app/src/core/index';
+ import type { Collection, Field, FieldType, Node as PcNode } from '../app/src/core/types';
+ import { Inspector } from '../app/src/ui/inspector/Inspector';
+ import { Ctl } from '../app/src/ui/inspector/Controls';
+-import { changeContentSource } from '../app/src/ui/inspector/cms-source-change';
++import { changeContentSource, sourceChangeBlocked } from '../app/src/ui/inspector/cms-source-change';
+ import { rig, type Rig } from './ui.setup';
+ 
+ let r: Rig;
+@@ -221,7 +221,9 @@ test('an incompatible inherited component field blocks the whole source change b
+   const definitionBefore = JSON.stringify(C.findComponent(componentId));
+   const documentBefore = JSON.stringify(C.doc());
+   const historyBefore = C.hist.u.length;
+-  assert.deepEqual(changeContentSource(root, next.id).blocked, { component: 'Card', additional: 1 });
++  const blocked = changeContentSource(root, next.id);
++  assert.deepEqual(blocked.blocked, { component: 'Card', additional: 1 });
++  assert.equal(sourceChangeBlocked(blocked), 'Content source unchanged · “Card” needs its CMS fields connected through component properties first.');
+ 
+   r.draw(() => <Inspector />, 'right');
+   const select = r.$('select[aria-label="Content source collection"]') as HTMLSelectElement;
+@@ -360,7 +362,7 @@ test('component cycles terminate and a true None source keeps direct bindings as
+   assert.equal(C.hist.u.length, depth + 1);
+   const reselectDepth = C.hist.u.length;
+   const reselect = changeContentSource(root, next.id);
+-  assert.deepEqual(reselect.blocked, { component: 'Cycle A', additional: 0 },
++  assert.deepEqual(reselect.blocked, { component: 'Cycle A', additional: 0, disconnected: true },
+     'without a before source, a stored definition path is not guessed from a reused id');
+   assert.equal(root.src, undefined);
+   assert.equal(C.hist.u.length, reselectDepth, 'blocked reselection is atomic');
+@@ -409,3 +411,46 @@ test('adding or removing a redundant instance override preserves same-effective
+   assert.equal(JSON.stringify(list.props), settingsBefore);
+   assert.equal(JSON.stringify(C.findComponent(componentId)), definitionBefore);
+ });
++
++
++test('reselecting a disconnected inherited component source explains safe recovery without mutating history', () => {
++  const collection = C.collectionAdd('Photo collection')!;
++  const photo = firstField(collection, 'photo', 'Photo', 'image');
++  const image = C.N('image', { src: 'asset:fallback' });
++  C.bindSet(image, 'src', C.bindField(photo.id));
++  const card = C.N('box', {}, {}, [image]);
++  const root = C.N('section', {}, {}, [card]);
++  C.srcSet(root, collection.id); put(root);
++  const cid = C.componentFromNode(card.id, 'Photo card')!;
++  const definitionBefore = JSON.stringify(C.findComponent(cid));
++  const connectedBefore = JSON.stringify(C.doc());
++  const depth = C.hist.u.length;
++  assert.equal(changeContentSource(root, '').changed, true);
++  assert.equal(root.src, undefined);
++  assert.equal(C.hist.u.length, depth + 1, 'disconnect is one reversible edit');
++  assert.equal(JSON.stringify(C.findComponent(cid)), definitionBefore);
++  const disconnectedBefore = JSON.stringify(C.doc()), disconnectedDepth = C.hist.u.length;
++  const blocked = changeContentSource(root, collection.id);
++  assert.deepEqual(blocked, { changed: false, cleared: 0, remapped: 0,
++    blocked: { component: 'Photo card', additional: 0, disconnected: true } });
++  assert.equal(JSON.stringify(C.doc()), disconnectedBefore, 'blocked reselect preserves all document bytes');
++  assert.equal(C.hist.u.length, disconnectedDepth, 'blocked reselect makes no checkpoint');
++  assert.equal(JSON.stringify(C.findComponent(cid)), definitionBefore);
++
++  r.draw(() => <Inspector />, 'right');
++  const select = r.$('select[aria-label="Content source collection"]') as HTMLSelectElement;
++  r.pick(select, collection.id);
++  assert.equal(select.value, '');
++  const message = String(r.arg('toast')?.[0]);
++  assert.match(message, /Use Undo or version history to restore the previous source/);
++  assert.match(message, /CMS fields.*Photo card.*component properties/);
++  assert.equal(message, sourceChangeBlocked(blocked));
++  assert.equal(JSON.stringify(C.doc()), disconnectedBefore);
++  assert.equal(C.hist.u.length, disconnectedDepth);
++
++  const invalid = changeContentSource(root, 'missing-untrusted-collection');
++  assert.deepEqual(invalid, { changed: false, cleared: 0, remapped: 0 });
++  assert.equal(sourceChangeBlocked(invalid), '', 'an invalid request does not invent a blocked recovery reason');
++  C.undo();
++  assert.equal(JSON.stringify(C.doc()), connectedBefore, 'Undo can recover the exact connected document');
++});

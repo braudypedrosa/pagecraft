@@ -1,0 +1,85 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-source-recovery-371dcb6
+
+ ❯ tests/cms-source-change.test.tsx (14 tests | 2 failed) 51ms
+   × component cycles terminate and a true None source keeps direct bindings as recovery data 5ms
+   × reselecting a disconnected inherited component source explains safe recovery without mutating history 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cms-source-change.test.tsx > component cycles terminate and a true None source keeps direct bindings as recovery data
+AssertionError: without a before source, a stored definition path is not guessed from a reused id
++ actual - expected
+
+  {
+    additional: 0,
+    component: 'Cycle A',
+-   disconnected: true
+  }
+
+
+- Expected
++ Received
+
+  {
+    "additional": 0,
+    "component": "Cycle A",
+-   "disconnected": true,
+  }
+
+ ❯ tests/cms-source-change.test.tsx:365:10
+    363|   const reselectDepth = C.hist.u.length;
+    364|   const reselect = changeContentSource(root, next.id);
+    365|   assert.deepEqual(reselect.blocked, { component: 'Cycle A', additiona…
+       |          ^
+    366|     'without a before source, a stored definition path is not guessed …
+    367|   assert.equal(root.src, undefined);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/cms-source-change.test.tsx > reselecting a disconnected inherited component source explains safe recovery without mutating history
+AssertionError: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    blocked: {
+      additional: 0,
+      component: 'Photo card',
+-     disconnected: true
+    },
+    changed: false,
+    cleared: 0,
+    remapped: 0
+  }
+
+
+- Expected
++ Received
+
+  {
+    "blocked": {
+      "additional": 0,
+      "component": "Photo card",
+-     "disconnected": true,
+    },
+    "changed": false,
+    "cleared": 0,
+    "remapped": 0,
+  }
+
+ ❯ tests/cms-source-change.test.tsx:434:10
+    432|   const disconnectedBefore = JSON.stringify(C.doc()), disconnectedDept…
+    433|   const blocked = changeContentSource(root, collection.id);
+    434|   assert.deepEqual(blocked, { changed: false, cleared: 0, remapped: 0,
+       |          ^
+    435|     blocked: { component: 'Photo card', additional: 0, disconnected: t…
+    436|   assert.equal(JSON.stringify(C.doc()), disconnectedBefore, 'blocked r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 12 passed (14)
+   Start at  02:57:25
+   Duration  1.03s (transform 296ms, setup 0ms, import 353ms, tests 51ms, environment 517ms)
+

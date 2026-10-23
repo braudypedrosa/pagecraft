@@ -15,6 +15,7 @@ export type ContentSourceChange = {
   blocked?: {
     component: string;
     additional: number;
+    disconnected?: boolean;
   };
 };
 
@@ -142,7 +143,8 @@ function blockedDefinitions(nodes: PcNode[], before: Collection | null,
 
   for (const node of nodes) if (node.use) scanDefinition(node.use, new Set());
   const entries = [...blocked.entries()];
-  return entries.length ? { component: entries[0][1], additional: entries.length - 1 } : undefined;
+  return entries.length ? { component: entries[0][1], additional: entries.length - 1,
+    ...(!before ? { disconnected: true } : {}) } : undefined;
 }
 
 /** Nodes which will inherit this source. An explicit source on a nested node or component starts
@@ -266,7 +268,8 @@ export function sourceChangeSuffix(result: ContentSourceChange): string {
 }
 
 export function sourceChangeBlocked(result: ContentSourceChange): string {
-  return result.blocked
-    ? `Content source unchanged · “${result.blocked.component}” needs its CMS fields connected through component properties first.`
-    : '';
+  if (!result.blocked) return '';
+  if (result.blocked.disconnected) return 'Content source unchanged · Use Undo or version history to restore the previous source. '
+    + `To use a new source, connect the CMS fields in “${result.blocked.component}” through component properties first.`;
+  return `Content source unchanged · “${result.blocked.component}” needs its CMS fields connected through component properties first.`;
 }

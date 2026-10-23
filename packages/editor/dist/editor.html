@@ -21610,7 +21610,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     for (const node of nodes) if (node.use) scanDefinition(node.use, /* @__PURE__ */ new Set());
     const entries = [...blocked.entries()];
-    return entries.length ? { component: entries[0][1], additional: entries.length - 1 } : void 0;
+    return entries.length ? {
+      component: entries[0][1],
+      additional: entries.length - 1,
+      ...!before ? { disconnected: true } : {}
+    } : void 0;
   }
   function scopedNodes(root) {
     const out = [];
@@ -21714,7 +21718,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return ` \xB7 ${result.cleared} incompatible ${result.cleared === 1 ? "connection or setting" : "connections or settings"} cleared`;
   }
   function sourceChangeBlocked(result) {
-    return result.blocked ? `Content source unchanged \xB7 \u201C${result.blocked.component}\u201D needs its CMS fields connected through component properties first.` : "";
+    if (!result.blocked) return "";
+    if (result.blocked.disconnected) return `Content source unchanged \xB7 Use Undo or version history to restore the previous source. To use a new source, connect the CMS fields in \u201C${result.blocked.component}\u201D through component properties first.`;
+    return `Content source unchanged \xB7 \u201C${result.blocked.component}\u201D needs its CMS fields connected through component properties first.`;
   }
 
   // app/src/ui/inspector/Controls.tsx
