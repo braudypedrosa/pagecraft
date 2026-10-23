@@ -1,0 +1,39 @@
+{
+  "status": "Locally verified, root native acceptance pending",
+  "base": "00b641ab163ece574c10dfd0e4f826bbf79d2fd7",
+  "source2": {
+    "app/src/core/index.ts": "7b68e0eb09f0fad11f1bcd43c945f6b32ee1b50f7d2946cd6111a9dd2896d4cf",
+    "tests/component-bool-rendering.test.ts": "f673ffe6eef41a29f219169fbd8b9e7afb7c773cb955fc92e8c1b5ae6250a148"
+  },
+  "coreSourceIntentionallyChanged": true,
+  "typedDestination": "DEF content toggle controls only; both property and field binding branches",
+  "focusedFiles": 4,
+  "focusedTestsPassed": 24,
+  "newTests": 10,
+  "toggleDestinationsResolverCovered": 18,
+  "actualRenderedDOMModules": [
+    "image",
+    "video",
+    "slider",
+    "accordion"
+  ],
+  "fullFilesPassed": 273,
+  "fullTestsPassed": 2798,
+  "fullTestsSkipped": 5,
+  "typecheckExit": 0,
+  "buildOrderExit": 0,
+  "twoOrderedGenerated10PairsExact": true,
+  "runtimeSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+  "goldenSha256": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343",
+  "schemaUiBuilderUnchanged": true,
+  "entireGalleryManifestAnd24PngsUnchanged": true,
+  "mainProtected11AndIndexExact": true,
+  "storageUnchangedByRendering": true,
+  "initialFailuresRetained": [
+    "8tests rendering RED",
+    "test dynamic-index TypeScript correction",
+    "2first-full ENOENT untracked compiler files before build"
+  ],
+  "nativeBrowserPerformed": false,
+  "noMainCanonicalWPSealed110DatabaseCommitPush": true
+}

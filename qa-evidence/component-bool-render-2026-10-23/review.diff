@@ -1,0 +1,33 @@
+diff --git a/app/src/core/index.ts b/app/src/core/index.ts
+index f196f05..6a60efc 100644
+--- a/app/src/core/index.ts
++++ b/app/src/core/index.ts
+@@ -5500,6 +5500,11 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
+   inst?: PcNode | null, def?: ComponentDef | null) {
+   if (!n.bind) return n.props;
+   const out = { ...n.props };
++  /* Component and CMS values are strings; a toggle's "0" must not become a truthy
++     widget flag. Resolve by destination control, leaving text/select values untouched. */
++  const boundValue = (key: string, value: unknown) =>
++    (DEF[n.type]?.controls.content || []).some(c => c.k === key && c.t === 'toggle')
++      ? Number(!['', '0', 'false'].includes(String(value ?? ''))) : value;
+   for (const [k, b] of Object.entries(n.bind)) {
+     const rich = richProp(n.type, k);
+     /* A property, when this node is being rendered inside an instance. Outside one there is no
+@@ -5511,14 +5516,14 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
+       /* In a rich slot: a CMS field the placement binds is treated as above; a value the
+          instance holds is markup only when the property is rich text. */
+       const field = col ? boundField(inst, VAL + b.path) : '';
+-      (out as PropBag)[k] = !rich ? v
++      (out as PropBag)[k] = !rich ? boundValue(k, v)
+         : field ? cmsRich(v, fieldAt(col, field))
+           : (findProp(def || null, b.path) || { t: '' }).t === 'rich' ? v : para(v);
+       continue;
+     }
+     if (b.src !== 'field' || !col || !item) continue;
+     const v = fieldValue(col, item, b.path);
+-    (out as PropBag)[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : v;
++    (out as PropBag)[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
+   }
+   return out;
+ }

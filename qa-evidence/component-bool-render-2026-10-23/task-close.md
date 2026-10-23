@@ -1,0 +1,13 @@
+# Bound boolean rendering repair
+
+- Date:23 October2026, Asia/Manila. Pagecraft Cloud isolated candidate based00b641ab163ece574c10dfd0e4f826bbf79d2fd7.
+- Status: locally repaired and sealed, root integration/deployment/native acceptance pending. No production or exhaustive QA claim.
+- Root native defect: a component Image Informative variant stored Decorative image0 but rendered empty alt in both instances. The earlier boolean-authoring regression checked switch/storage state and missed actual rendering.
+- Change: boundProps normalizes only destinations declared as toggle controls to numeric0/1 using the same false set as ToggleCtl. Applies to component and CMS bindings. Text/select literal0, property resolution precedence, storage/schema and all unbound props remain unchanged. No broad renderer truthiness rewrite.
+- Regression: rendered editor/public Image alt/lazy across default/local/variant/reset/migrate restore; five Video flags; direct CMS bool bindings and instance-property mappings; numeric/false/null robustness and undefined fallback; literal text/select0 preserved; all18 toggle destinations0/1; actual Slider arrow and Accordion exclusive-group output. Stored document remains exact through render.
+- Checks: four focused files24tests pass. Final full273files2798tests pass,5tests and2files remain existing skips. Typecheck and official build-order guard pass. Two ordered builder/editor generated10 pairs byte-exact; final generated10 unchanged after full and build-order guard.
+- Preservation: full baseline manifest including30source hashes/30behavior records/provenance and all24PNG bytes unchanged. Schema/types, UI source, builder source and signed WordPress golden0e387 unchanged. Runtime80e unchanged. Main protected11 bytes and index exact. Core source/hash intentionally changed.
+- Failures retained: initial8-rendering-test RED, one test dynamic-index typecheck error corrected without product changes, first full suite two ENOENT failures because fresh checkout lacked untracked compiler files. Package build materialized them; final full is green. No gate or golden edits.
+- Boundaries: no Main/canonicalWP/sealed110 changes, database, browser, commit, push or deployment by worker. Root owns real UI and backend host acceptance. WordPress111 packaging is separate and awaits exact accepted Cloud commit. Held110 candidate remains outside canonical history.
+- Next: independent review and canonical integration proposal, exact deployed marker, native alt/lazy and variant/reset/save/reload acceptance, then distinct111package.
+- Time/billing: unknown, not prepared.

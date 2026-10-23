@@ -8817,18 +8817,19 @@ var cmsRich = (v, f) => f && f.type === "rich" ? cleanRich(v) : para(v);
 function boundProps(n, col, item, inst, def) {
   if (!n.bind) return n.props;
   const out = { ...n.props };
+  const boundValue = (key, value) => (DEF[n.type]?.controls.content || []).some((c) => c.k === key && c.t === "toggle") ? Number(!["", "0", "false"].includes(String(value ?? ""))) : value;
   for (const [k, b] of Object.entries(n.bind)) {
     const rich = richProp(n.type, k);
     if (b.src === "prop") {
       if (!inst) continue;
       const v2 = instValue(inst, def || null, b.path, col, item);
       const field = col ? boundField(inst, VAL + b.path) : "";
-      out[k] = !rich ? v2 : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
+      out[k] = !rich ? boundValue(k, v2) : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
       continue;
     }
     if (b.src !== "field" || !col || !item) continue;
     const v = fieldValue(col, item, b.path);
-    out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : v;
+    out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
   }
   return out;
 }

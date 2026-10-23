@@ -1,0 +1,213 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-render-00b641a
+
+ ❯ tests/component-bool-rendering.test.ts (8 tests | 8 failed) 40ms
+   × Image default, local false, variant false, reset and restore render distinct alt/lazy semantics 17ms
+   × Video controls binding renders actual false/true DOM in editor and public output 8ms
+   × Video autoplay binding renders actual false/true DOM in editor and public output 4ms
+   × Video muted binding renders actual false/true DOM in editor and public output 3ms
+   × Video loop binding renders actual false/true DOM in editor and public output 2ms
+   × Video facade binding renders actual false/true DOM in editor and public output 2ms
+   × CMS bool false reaches both direct toggle bindings and component-property mappings 3ms
+   × binding normalization follows toggle destinations and preserves text/select zero and raw storage 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Image default, local false, variant false, reset and restore render distinct alt/lazy semantics
+AssertionError: edit=true, image1 alt
++ actual - expected
+
++ ''
+- 'QA informative coffee table'
+
+
+- Expected
++ Received
+
+- QA informative coffee table
+
+ ❯ tests/component-bool-rendering.test.ts:26:9
+     24|     a.equal(images.length, decorative.length);
+     25|     images.forEach((image, i) => {
+     26|       a.equal(image.getAttribute('alt'), decorative[i] ? '' : 'QA info…
+       |         ^
+     27|       a.equal(image.hasAttribute('loading'), !edit && lazy[i], `edit=$…
+     28|     });
+ ❯ checkImages tests/component-bool-rendering.test.ts:25:12
+ ❯ tests/component-bool-rendering.test.ts:40:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Video controls binding renders actual false/true DOM in editor and public output
+AssertionError: edit=true controls1
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/component-bool-rendering.test.ts:68:15
+     66|         rows.forEach((row, i) => flag === 'facade'
+     67|           ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${…
+     68|           : a.equal(row.querySelector('video')!.hasAttribute(flag), i …
+       |               ^
+     69|       }
+     70|     };
+ ❯ check tests/component-bool-rendering.test.ts:66:14
+ ❯ tests/component-bool-rendering.test.ts:71:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Video autoplay binding renders actual false/true DOM in editor and public output
+AssertionError: edit=true autoplay1
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/component-bool-rendering.test.ts:68:15
+     66|         rows.forEach((row, i) => flag === 'facade'
+     67|           ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${…
+     68|           : a.equal(row.querySelector('video')!.hasAttribute(flag), i …
+       |               ^
+     69|       }
+     70|     };
+ ❯ check tests/component-bool-rendering.test.ts:66:14
+ ❯ tests/component-bool-rendering.test.ts:71:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Video muted binding renders actual false/true DOM in editor and public output
+AssertionError: edit=true muted1
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/component-bool-rendering.test.ts:68:15
+     66|         rows.forEach((row, i) => flag === 'facade'
+     67|           ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${…
+     68|           : a.equal(row.querySelector('video')!.hasAttribute(flag), i …
+       |               ^
+     69|       }
+     70|     };
+ ❯ check tests/component-bool-rendering.test.ts:66:14
+ ❯ tests/component-bool-rendering.test.ts:71:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Video loop binding renders actual false/true DOM in editor and public output
+AssertionError: edit=true loop1
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/component-bool-rendering.test.ts:68:15
+     66|         rows.forEach((row, i) => flag === 'facade'
+     67|           ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${…
+     68|           : a.equal(row.querySelector('video')!.hasAttribute(flag), i …
+       |               ^
+     69|       }
+     70|     };
+ ❯ check tests/component-bool-rendering.test.ts:66:14
+ ❯ tests/component-bool-rendering.test.ts:71:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > Video facade binding renders actual false/true DOM in editor and public output
+AssertionError: edit=true facade1
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/component-bool-rendering.test.ts:67:15
+     65|         a.equal(rows.length, 2);
+     66|         rows.forEach((row, i) => flag === 'facade'
+     67|           ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${…
+       |               ^
+     68|           : a.equal(row.querySelector('video')!.hasAttribute(flag), i …
+     69|       }
+ ❯ check tests/component-bool-rendering.test.ts:66:14
+ ❯ tests/component-bool-rendering.test.ts:71:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > CMS bool false reaches both direct toggle bindings and component-property mappings
+AssertionError: edit=true, image0 alt
++ actual - expected
+
++ ''
+- 'QA informative coffee table'
+
+
+- Expected
++ Received
+
+- QA informative coffee table
+
+ ❯ tests/component-bool-rendering.test.ts:26:9
+     24|     a.equal(images.length, decorative.length);
+     25|     images.forEach((image, i) => {
+     26|       a.equal(image.getAttribute('alt'), decorative[i] ? '' : 'QA info…
+       |         ^
+     27|       a.equal(image.hasAttribute('loading'), !edit && lazy[i], `edit=$…
+     28|     });
+ ❯ checkImages tests/component-bool-rendering.test.ts:25:12
+ ❯ tests/component-bool-rendering.test.ts:100:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  tests/component-bool-rendering.test.ts > binding normalization follows toggle destinations and preserves text/select zero and raw storage
+AssertionError: Expected values to be strictly equal:
+
+'' !== 0
+
+
+- Expected:
+0
+
++ Received:
+""
+
+ ❯ tests/component-bool-rendering.test.ts:113:7
+    111|     const before = structuredClone(C.doc());
+    112|     const expected = !['', '0', 'false'].includes(String(value ?? ''));
+    113|     a.equal(C.boundProps(definition.node, null, null, image, definitio…
+       |       ^
+    114|     a.deepEqual(C.doc(), before);
+    115|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed (8)
+   Start at  23:13:00
+   Duration  1.02s (transform 243ms, setup 0ms, import 288ms, tests 40ms, environment 573ms)
+

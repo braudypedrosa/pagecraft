@@ -1,0 +1,46 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-render-00b641a
+
+(node:49837) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49877) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:50035) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/rich-condition-values.test.ts (12 tests | 1 failed) 28ms
+   × standalone editor, Core and compiler bundles retain the decoder notice without an external runtime import 18ms
+ ❯ tests/editor-package.test.ts (2 tests | 1 failed) 9ms
+     × bundles the WordPress host seam and a contract matching the canonical schema 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-package.test.ts > @pagecraft/editor package > bundles the WordPress host seam and a contract matching the canonical schema
+Error: ENOENT: no such file or directory, open '/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-render-00b641a/packages/editor/dist/compiler.js'
+ ❯ tests/editor-package.test.ts:16:22
+     14|     const contract = JSON.parse(readFileSync(resolve(root, 'packages/e…
+     15|     const catalog = JSON.parse(readFileSync(resolve(root, 'packages/ed…
+     16|     const compiler = readFileSync(resolve(root, 'packages/editor/dist/…
+       |                      ^
+     17|     const compilerWorker = readFileSync(resolve(root, 'packages/editor…
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > standalone editor, Core and compiler bundles retain the decoder notice without an external runtime import
+Error: ENOENT: no such file or directory, open '/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-render-00b641a/packages/editor/dist/compiler-worker.js'
+ ❯ tests/rich-condition-values.test.ts:154:21
+    152|   assert.doesNotMatch(license, /\*\/|<\/script/i, 'the retained notice…
+    153|   for (const file of ['index.html', 'dist/core.cjs', 'packages/editor/…
+    154|     const bundled = readFileSync(new URL('../' + file, import.meta.url…
+       |                     ^
+    155|     assert.ok(bundled.includes(license), `${file} retains the full BSD…
+    156|     assert.doesNotMatch(bundled, /(?:from\s*|require\s*\()\s*["']entit…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 271 passed | 2 skipped (275)
+      Tests  2 failed | 2796 passed | 5 skipped (2803)
+   Start at  23:19:17
+   Duration  138.96s (transform 3.67s, setup 0ms, import 41.62s, tests 172.05s, environment 30.95s)
+
