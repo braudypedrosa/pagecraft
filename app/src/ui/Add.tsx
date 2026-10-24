@@ -542,8 +542,9 @@ function Components() {
             <span class="bn">
               <b>{cd.name}</b>
               <small>
+                {cd.mobileMenu && `${cd.mobileMenuSource === 'follow' ? 'Follow navigation' : 'Custom content'} · `}
                 {usage}
-                {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : ' · no properties yet'}
+                {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : cd.mobileMenu ? '' : ' · no properties yet'}
               </small>
               <LibraryFrom kind="component" id={cd.id} />
             </span>

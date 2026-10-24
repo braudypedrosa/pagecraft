@@ -19217,8 +19217,9 @@ var PC_UI = (() => {
               /* @__PURE__ */ u2("span", { class: "bn", children: [
                 /* @__PURE__ */ u2("b", { children: cd.name }),
                 /* @__PURE__ */ u2("small", { children: [
+                  cd.mobileMenu && `${cd.mobileMenuSource === "follow" ? "Follow navigation" : "Custom content"} \xB7 `,
                   usage,
-                  props ? ` \xB7 ${props === 1 ? "1 property" : props + " properties"}` : " \xB7 no properties yet"
+                  props ? ` \xB7 ${props === 1 ? "1 property" : props + " properties"}` : cd.mobileMenu ? "" : " \xB7 no properties yet"
                 ] }),
                 /* @__PURE__ */ u2(LibraryFrom, { kind: "component", id: cd.id })
               ] }),
