@@ -8045,6 +8045,9 @@ function hotkey(e) {
     if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
     return;
   }
+  /* The loading shell makes the app inert, but this listener lives on document and can
+     otherwise run against the empty core state before the hosted document is hydrated. */
+  if ($('#app')?.getAttribute('aria-busy') === 'true') return;
   if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t.isContentEditable && !editing.on)) return;
   const meta = e.metaKey || e.ctrlKey;
   /* some synthetic and assistive input stacks omit `key`; `code` still names

@@ -1,0 +1,58 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/startup-shortcuts-55daf13
+
+ ❯ tests/preview-keyboard-scope.test.mjs (3 tests | 3 failed) 164ms
+   × Preview leaves List group arrow keys to the rendered page 111ms
+   × editor List group arrows retain canvas selection behavior 28ms
+   × Preview content owns navigation, activation, deletion, and history keys while Cmd-P/S remain editor shortcuts 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/preview-keyboard-scope.test.mjs > Preview leaves List group arrow keys to the rendered page
+TypeError: Cannot read properties of null (reading 'getAttribute')
+ ❯ hotkey tests/preview-keyboard-scope.test.mjs:31:5
+     29|   expect(start).toBeGreaterThan(-1);
+     30|   expect(end).toBeGreaterThan(start);
+     31|   w.eval(source.slice(start, end));
+       |     ^
+     32|   const invoke = event => { Object.defineProperty(event, 'target', { c…
+     33|   return { w, group, select, edit, togglePreview, saveExplicitly, undo…
+ ❯ invoke tests/preview-keyboard-scope.test.mjs:32:109
+ ❯ tests/preview-keyboard-scope.test.mjs:39:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/preview-keyboard-scope.test.mjs > editor List group arrows retain canvas selection behavior
+TypeError: Cannot read properties of null (reading 'getAttribute')
+ ❯ hotkey tests/preview-keyboard-scope.test.mjs:31:5
+     29|   expect(start).toBeGreaterThan(-1);
+     30|   expect(end).toBeGreaterThan(start);
+     31|   w.eval(source.slice(start, end));
+       |     ^
+     32|   const invoke = event => { Object.defineProperty(event, 'target', { c…
+     33|   return { w, group, select, edit, togglePreview, saveExplicitly, undo…
+ ❯ invoke tests/preview-keyboard-scope.test.mjs:32:109
+ ❯ tests/preview-keyboard-scope.test.mjs:47:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/preview-keyboard-scope.test.mjs > Preview content owns navigation, activation, deletion, and history keys while Cmd-P/S remain editor shortcuts
+TypeError: Cannot read properties of null (reading 'getAttribute')
+ ❯ hotkey tests/preview-keyboard-scope.test.mjs:31:5
+     29|   expect(start).toBeGreaterThan(-1);
+     30|   expect(end).toBeGreaterThan(start);
+     31|   w.eval(source.slice(start, end));
+       |     ^
+     32|   const invoke = event => { Object.defineProperty(event, 'target', { c…
+     33|   return { w, group, select, edit, togglePreview, saveExplicitly, undo…
+ ❯ invoke tests/preview-keyboard-scope.test.mjs:32:109
+ ❯ tests/preview-keyboard-scope.test.mjs:57:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  3 failed | 5 passed (8)
+   Start at  09:14:12
+   Duration  1.70s (transform 60ms, setup 0ms, import 2.41s, tests 968ms, environment 0ms)
+

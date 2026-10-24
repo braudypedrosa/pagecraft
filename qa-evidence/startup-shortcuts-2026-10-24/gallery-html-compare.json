@@ -1,0 +1,90 @@
+{
+  "exact": true,
+  "count": 12,
+  "records": [
+    {
+      "host": "cloud",
+      "section": "fields",
+      "exact": true,
+      "before": "19b3e80361bc81a21a4076921b5519d36ee0e86d92b154c2b89a73cdd845cb01",
+      "after": "19b3e80361bc81a21a4076921b5519d36ee0e86d92b154c2b89a73cdd845cb01"
+    },
+    {
+      "host": "cloud",
+      "section": "actions",
+      "exact": true,
+      "before": "835c28a18aee4c013282e8e9d7a47e76d0e2fcf332d0221ad33793e1ab34b10b",
+      "after": "835c28a18aee4c013282e8e9d7a47e76d0e2fcf332d0221ad33793e1ab34b10b"
+    },
+    {
+      "host": "cloud",
+      "section": "tables",
+      "exact": true,
+      "before": "e7b04f6fd11a6a15de50a997fabaf86b05dfd29a87ea9757d0fdbe5efc5d591b",
+      "after": "e7b04f6fd11a6a15de50a997fabaf86b05dfd29a87ea9757d0fdbe5efc5d591b"
+    },
+    {
+      "host": "cloud",
+      "section": "menus",
+      "exact": true,
+      "before": "602aa4cd3a7e7588b5169344b46bd348409ac1ec5401c35b286a3281ac6b065d",
+      "after": "602aa4cd3a7e7588b5169344b46bd348409ac1ec5401c35b286a3281ac6b065d"
+    },
+    {
+      "host": "cloud",
+      "section": "dialogs",
+      "exact": true,
+      "before": "b802403e11b3de3fe8e70d636407e9a89825c0182450832252b4cc15026c792f",
+      "after": "b802403e11b3de3fe8e70d636407e9a89825c0182450832252b4cc15026c792f"
+    },
+    {
+      "host": "cloud",
+      "section": "feedback",
+      "exact": true,
+      "before": "c5c28b79306d8425e03464971025a68eb2caa0d75deda296498aee273297873b",
+      "after": "c5c28b79306d8425e03464971025a68eb2caa0d75deda296498aee273297873b"
+    },
+    {
+      "host": "builder",
+      "section": "fields",
+      "exact": true,
+      "before": "4f8de2deb4b386e286f159205d09c6921785fb081c07ed3cf04f663f7fecbf45",
+      "after": "4f8de2deb4b386e286f159205d09c6921785fb081c07ed3cf04f663f7fecbf45"
+    },
+    {
+      "host": "builder",
+      "section": "actions",
+      "exact": true,
+      "before": "ef47a14287d2e0bec20cae78d79790974a00f69d8e668bccb4d192bf2e05264e",
+      "after": "ef47a14287d2e0bec20cae78d79790974a00f69d8e668bccb4d192bf2e05264e"
+    },
+    {
+      "host": "builder",
+      "section": "tables",
+      "exact": true,
+      "before": "8adb61c5f1985b3d7a1224b39c56abd716a30ee624164f5509295d51c5394567",
+      "after": "8adb61c5f1985b3d7a1224b39c56abd716a30ee624164f5509295d51c5394567"
+    },
+    {
+      "host": "builder",
+      "section": "menus",
+      "exact": true,
+      "before": "f829aa4a40dd8af37b0cab9b47adaea4067231c15f9af72483bf9fb7b203cc34",
+      "after": "f829aa4a40dd8af37b0cab9b47adaea4067231c15f9af72483bf9fb7b203cc34"
+    },
+    {
+      "host": "builder",
+      "section": "dialogs",
+      "exact": true,
+      "before": "30668d7fba0712c30a7cd37aa24fb6181c789cd2a94948ce1c51d00b79a93ac7",
+      "after": "30668d7fba0712c30a7cd37aa24fb6181c789cd2a94948ce1c51d00b79a93ac7"
+    },
+    {
+      "host": "builder",
+      "section": "feedback",
+      "exact": true,
+      "before": "aea363fd57fc0ed6b5b8292f3d1c68cd33c37fde9055744b45afd1b03cc5e15e",
+      "after": "aea363fd57fc0ed6b5b8292f3d1c68cd33c37fde9055744b45afd1b03cc5e15e"
+    }
+  ]
+}

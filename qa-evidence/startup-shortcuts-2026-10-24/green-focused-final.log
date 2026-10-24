@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/startup-shortcuts-55daf13
+
+
+ Test Files  3 passed (3)
+      Tests  8 passed (8)
+   Start at  09:14:21
+   Duration  1.52s (transform 68ms, setup 0ms, import 1.89s, tests 980ms, environment 0ms)
+

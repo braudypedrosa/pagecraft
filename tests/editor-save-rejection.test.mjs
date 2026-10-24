@@ -92,6 +92,20 @@ test('editing a rejected Embed shows the new save reason and recompiles the corr
   try {
     await wait(800);
     const { window } = dom, document = window.document, core = window.__CORE;
+    /* jsdom does not navigate iframe.srcdoc, so hosted boot can remain paused at the
+       canvas load boundary even though Core and the inspector are available. Complete
+       the same load event a browser supplies before exercising a document shortcut. */
+    if (document.querySelector('#app').getAttribute('aria-busy') === 'true') {
+      const frame = document.querySelector('#canvas');
+      const initial = frame.srcdoc;
+      frame.contentDocument.open();
+      frame.contentDocument.write(initial);
+      frame.contentDocument.close();
+      frame.dispatchEvent(new window.Event('load'));
+      const readyUntil = Date.now() + 1200;
+      while (document.querySelector('#app').getAttribute('aria-busy') === 'true' && Date.now() < readyUntil) await wait(20);
+    }
+    assert.equal(document.querySelector('#app').getAttribute('aria-busy'), 'false', 'fixture reached the real shortcut-ready state');
     const embed = core.insert('embed', null, core.tree().length);
     embed.props.html = '<iframe title="Unsafe preview" srcdoc="<p>Unsafe</p>"></iframe>';
     window.select(embed.id);

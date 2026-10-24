@@ -1,0 +1,14 @@
+{
+  "base": "55daf136a9e109afa04f1c931c9c7a60152d1f5c",
+  "files": {
+    "builder.html": "2d103a960e4d93ce6edfff676e60da3c1fa0ca7aa0393b57fed12bd0003d6623",
+    "tests/startup-shortcut-readiness.test.mjs": "f461db95dc34c5532dc45765846e914376872d5c0572657395fc43c40a34f65c"
+  },
+  "checks": {
+    "red": { "files": 1, "failed": 1, "passed": 1, "exit": 1 },
+    "focused": { "files": 3, "passed": 8, "exit": 0 },
+    "typecheck": { "exit": 0 }
+  },
+  "generated": false,
+  "nativeAcceptance": false
+}
