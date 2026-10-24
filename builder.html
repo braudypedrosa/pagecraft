@@ -3912,6 +3912,7 @@ function runPreviewRuntime(html, editing = false) {
   previewDispose = () => {};
   if (!cdoc) return;
 
+  const runtimeOverflow = cdoc.documentElement.style.overflow;
   const runtimeDisposers = [];
   cwin.__pagecraftRegisterPreviewDispose = cleanup => {
     if (typeof cleanup === 'function') runtimeDisposers.push(cleanup);
@@ -3984,6 +3985,7 @@ function runPreviewRuntime(html, editing = false) {
     $$('.pagecraft-lightbox', cdoc).forEach(el => el.remove());
     $$('[data-pagecraft-select-popover]', cdoc).forEach(el => el.remove());
     $$('[data-pagecraft-date-popover]', cdoc).forEach(el => el.remove());
+    cdoc.documentElement.style.overflow = runtimeOverflow;
     try { delete cwin.__pagecraftRegisterPreviewDispose; } catch (e) { }
     try { delete cwin.bpAnimate; } catch (e) { }
   };

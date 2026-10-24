@@ -43,13 +43,13 @@
     "echarts": "6.1.0",
     "entities": "4.5.0",
     "hono": "4.13.11",
-    "nodemailer": "10.0.9",
+    "nodemailer": "10.1.4",
     "pg": "8.23.0",
     "preact": "^10.29.8",
     "sanitize-html": "2.18.1",
     "sharp": "0.35.5",
     "svgo": "4.1.0",
-    "zod": "^4.5.4"
+    "zod": "^4.6.6"
   },
   "type": "module",
   "workspaces": [

@@ -10,6 +10,10 @@ const config = {
   capabilities: ['edit_document', 'edit_structure']
 };
 const wait = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms));
+const waitUntil = async (condition, timeout = 3000) => {
+  const until = Date.now() + timeout;
+  while (!condition() && Date.now() < until) await wait(20);
+};
 
 for (const [status, payload, reason] of [
   [400, { error: 'The compiled Pagecraft page contains unsupported executable markup.' }, /unsupported executable markup/],
@@ -120,7 +124,7 @@ test('editing a rejected Embed shows the new save reason and recompiles the corr
     control.value = '<iframe title="Local image" src="http://pagecraft-wordpress-qa.local/table-1.png"></iframe>';
     control.dispatchEvent(new window.Event('input', { bubbles: true }));
     control.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
-    await wait(700);
+    await waitUntil(() => requests.length >= 2 && document.querySelector('#modal').hidden === false);
 
     assert.equal(requests.length, 2);
     assert.match(requests[1].compiled.html, /src="http:\/\/pagecraft-wordpress-qa\.local\/table-1\.png"/);
@@ -139,7 +143,7 @@ test('editing a rejected Embed shows the new save reason and recompiles the corr
     control.value = '<iframe title="Public image" src="https://example.com/table-1.png"></iframe>';
     control.dispatchEvent(new window.Event('input', { bubbles: true }));
     control.dispatchEvent(new window.FocusEvent('blur', { bubbles: true }));
-    await wait(700);
+    await waitUntil(() => requests.length >= 4 && /Draft saved/.test(document.querySelector('#savedTag').textContent));
     assert.equal(requests.length, 4);
     assert.match(requests[3].compiled.html, /src="https:\/\/example\.com\/table-1\.png"/);
     assert.match(document.querySelector('#savedTag').textContent, /Draft saved/);
