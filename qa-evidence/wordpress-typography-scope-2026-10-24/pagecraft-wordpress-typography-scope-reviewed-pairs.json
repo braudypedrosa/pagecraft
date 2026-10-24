@@ -1,0 +1,102 @@
+{
+  "base": "1767ce3a4078eed1c2d3ef76a0645cff689e796a",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wordpress-typography-scope-1767",
+  "source3": {
+    "app/src/ui/inspector/Controls.tsx": "7bae481f59e49ba30823ea5278f504b11c09986d347579eb54631cdf97122fac",
+    "tests/text-style-wordpress-scope-ui.test.tsx": "d06a656df79fb496365e6d5cab8783c6819b895bfbb4803ff6e42667d27d18c2",
+    "public/internal-ui-baselines/manifest.json": "5cc79e5e82ee26a0c133eb896831f6b47e429d47085d8ce6174a488641d2ed88"
+  },
+  "checks": {
+    "TwoOrderedPairsGenerated10Exact": true,
+    "ExactFirstBuild10": true,
+    "CoreUnchanged": true,
+    "RuntimeUnchanged": true,
+    "CompilerUnchanged": true,
+    "Schema13": true,
+    "GoldenUnchanged": true
+  },
+  "pairs": [
+    {
+      "label": "reviewed-one",
+      "steps": [
+        {
+          "command": "build",
+          "exit": 0,
+          "log": "/private/tmp/pagecraft-wordpress-typography-scope-reviewed-one-build.log",
+          "logSHA256": "560709f509605ecc8b9ff2c967416ebcdd4f05cefd55411eacfef233d7f6f1ab"
+        },
+        {
+          "command": "build:editor-package",
+          "exit": 0,
+          "log": "/private/tmp/pagecraft-wordpress-typography-scope-reviewed-one-editor-build.log",
+          "logSHA256": "7152fab9b9f3227023b292d8df837d06759e8387f546f4ad1464dba90bc3384a"
+        }
+      ],
+      "generated10": {
+        "dist/core.cjs": "f3880a51d536f01b4dfcdcf9934feb90077fc42faa1cd3179ed1505b3dfa8344",
+        "index.html": "831a43cf2bbd7e6898415b40940d8f519ec5a1235010f29f2e243dcb46b4ac01",
+        "packages/editor/dist/compiler-worker.js": "c1433b2d333b2ece27ceb75fa13dab9359b967830003fec07d952f8aca7bd222",
+        "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "packages/editor/dist/editor.html": "5f10e86403daa3c5ab18c5bfc70b1172f369976522b35a28d54c107fc3bc68b8",
+        "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+        "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+        "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+        "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+      }
+    },
+    {
+      "label": "reviewed-two",
+      "steps": [
+        {
+          "command": "build",
+          "exit": 0,
+          "log": "/private/tmp/pagecraft-wordpress-typography-scope-reviewed-two-build.log",
+          "logSHA256": "560709f509605ecc8b9ff2c967416ebcdd4f05cefd55411eacfef233d7f6f1ab"
+        },
+        {
+          "command": "build:editor-package",
+          "exit": 0,
+          "log": "/private/tmp/pagecraft-wordpress-typography-scope-reviewed-two-editor-build.log",
+          "logSHA256": "7152fab9b9f3227023b292d8df837d06759e8387f546f4ad1464dba90bc3384a"
+        }
+      ],
+      "generated10": {
+        "dist/core.cjs": "f3880a51d536f01b4dfcdcf9934feb90077fc42faa1cd3179ed1505b3dfa8344",
+        "index.html": "831a43cf2bbd7e6898415b40940d8f519ec5a1235010f29f2e243dcb46b4ac01",
+        "packages/editor/dist/compiler-worker.js": "c1433b2d333b2ece27ceb75fa13dab9359b967830003fec07d952f8aca7bd222",
+        "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "packages/editor/dist/editor.html": "5f10e86403daa3c5ab18c5bfc70b1172f369976522b35a28d54c107fc3bc68b8",
+        "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+        "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+        "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+        "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+      }
+    }
+  ],
+  "fullDefault": {
+    "exit": 1,
+    "passed": 2857,
+    "failed": 1,
+    "skipped": 5,
+    "failure": "existing editor-save-rejection fixed700ms wait: requests.length expected4 received3 at line143",
+    "logSHA256": "0c2cb44dbc72f2062bf7a3bc7523a7708a8a96e8cd3d8ac5e1239eba70e6cdad"
+  },
+  "fullBounded": {
+    "command": "npm test -- --maxWorkers=2",
+    "passed": 2858,
+    "failed": 0,
+    "skipped": 5,
+    "passedFiles": 283,
+    "skippedFiles": 2,
+    "logSHA256": "c31cc0e7ffe12ba887b8a01b82c4c05c185a28bbbf6dbbbc370a242d3ba77ef4"
+  },
+  "detector": {
+    "exit": 0,
+    "findings": 0,
+    "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "nativeWordPressReviewPending": true,
+  "noMainIntegrationCommitOrWordPressPackaging": true
+}

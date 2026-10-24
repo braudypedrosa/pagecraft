@@ -22768,14 +22768,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function TstyleCtl({ n: n2, c: c3 }) {
     const cur = C2.findStyle(String(valueOf(n2, c3) || ""));
     const used = cur ? C2.tsUsage(cur.id) : 0;
+    const sitewide = L2.nativePageSource() !== null;
     const canUpdate = C2.tsCanUpdateFrom(n2);
     const push = async () => {
       if (!C2.tsCanUpdateFrom(n2)) return;
       const t3 = C2.findStyle(n2.props.ts);
       const k3 = t3 ? C2.tsUsage(t3.id) : 0;
-      if (k3 > 1 && !await L2.askConfirm(
-        "Update typography everywhere?",
-        `Share this element's typography through <b>${esc6(t3.name)}</b> (${k3} uses)? Spacing, backgrounds and borders stay local; other elements keep their overrides.`,
+      if ((sitewide || k3 > 1) && !await L2.askConfirm(
+        sitewide ? "Update typography across this site?" : "Update typography everywhere?",
+        (sitewide ? `Update <b>${esc6(t3.name)}</b> wherever it is used on this WordPress site? ` : `Share this element's typography through <b>${esc6(t3.name)}</b> (${k3} uses)? `) + `Spacing, backgrounds and borders stay local; other elements keep their overrides.`,
         { ok: "Update typography", danger: false }
       )) return;
       if (!C2.tsCanUpdateFrom(n2)) return;
@@ -22825,7 +22826,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             onClick: push,
             children: [
               "Update typography",
-              used > 1 ? ` \xB7 ${used} uses` : ""
+              !sitewide && used > 1 ? ` \xB7 ${used} uses` : ""
             ]
           }
         ),
