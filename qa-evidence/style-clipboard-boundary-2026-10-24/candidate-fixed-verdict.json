@@ -1,0 +1,109 @@
+{
+  "status": "BOUNDED_NATIVE_CANDIDATE_ACCEPTED",
+  "assertionsPassed": 20,
+  "checks": [
+    {
+      "check": "Imported copy source uses the named class",
+      "passed": true
+    },
+    {
+      "check": "One native Undo is semantically exact original after-class-delete project",
+      "passed": true
+    },
+    {
+      "check": "One native Redo is semantically exact fixed pasted project",
+      "passed": true
+    },
+    {
+      "check": "Target retains exact ID content props visibility advanced fields and children",
+      "passed": true
+    },
+    {
+      "check": "Paste changes only target styling across whole project",
+      "passed": true
+    },
+    {
+      "check": "Source remains exactly its native post-deletion node",
+      "passed": true
+    },
+    {
+      "check": "Catalogue and every metadata field remain exact",
+      "passed": true
+    },
+    {
+      "check": "Deleted class is absent from catalogue",
+      "passed": true
+    },
+    {
+      "check": "Target and source have no orphan class IDs",
+      "passed": true
+    },
+    {
+      "check": "Every breakpoint of target CSS matches preserved source",
+      "passed": true
+    },
+    {
+      "check": "Target copied Ink resting background and18px radius",
+      "passed": true
+    },
+    {
+      "check": "Target copied direct7px margin",
+      "passed": true
+    },
+    {
+      "check": "Target copied entire authored source interaction state",
+      "passed": true
+    },
+    {
+      "check": "Target includes green Hover and24px radius",
+      "passed": true
+    },
+    {
+      "check": "All node identity lists remain unchanged",
+      "passed": true
+    },
+    {
+      "check": "Native DOM source and target both have Ink background",
+      "passed": true
+    },
+    {
+      "check": "Native DOM source and target both have18px radius",
+      "passed": true
+    },
+    {
+      "check": "Native DOM source and target both have7px top margin",
+      "passed": true
+    },
+    {
+      "check": "Native DOM source and target retain distinct labels",
+      "passed": true
+    },
+    {
+      "check": "Viewed actual candidate screenshot is a JPEG",
+      "passed": true
+    }
+  ],
+  "nativeScope": "One copied class deleted before one button paste, Cloud-shaped standalone candidate desktop editor.",
+  "undoRawBytesExactOldDeletion": true,
+  "redoRawBytesExactPaste": true,
+  "inputs": {
+    "before-class-delete.json": "8b0364d409f763f59a5c3c5aef976867cfd96e05bdc5664feb21d752352559e5",
+    "after-class-delete.json": "7a57b90e0771fbc6995897fa37a2ff0c8340b42e9d9960338dae5ae00bbe3638",
+    "candidate-fixed-paste.json": "99c97379378729b8e0336763b6adc7284fdf8e6491b8d020c339cc64824a7104",
+    "candidate-fixed-undo.json": "7a57b90e0771fbc6995897fa37a2ff0c8340b42e9d9960338dae5ae00bbe3638",
+    "candidate-fixed-redo.json": "99c97379378729b8e0336763b6adc7284fdf8e6491b8d020c339cc64824a7104",
+    "candidate-fixed-dom.json": "271bef0c0a8f45e0cb0cc806350d5b45b50da6acf4e3a0689ee222e77891564d"
+  },
+  "screenshot": {
+    "file": "candidate-fixed-native.jpg",
+    "sha256": "7c38633c3ad930fcdafd06efa60f9b192165baec9af94b54e5a6a3248d38b642",
+    "manuallyViewedByIndependentAuditor": true,
+    "observed": "Source and selected target both dark and rounded. Styles copied, Class deleted looks kept, and Styles pasted feedback visible."
+  },
+  "limits": [
+    "Native hovered rendering was not supplied; Hover acceptance here is authored-state equality only.",
+    "No save/reload, mobile, WordPress, multi-target or surviving-class mutation acceptance is established by these files.",
+    "No deployment or production acceptance is claimed.",
+    "Independent auditor performed no browser actions or source modifications."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "base": "a18219eaa9debae0eec5d0434b1f44ece8241a33",
+  "allOtherTrackedWorkingBytesPreserved": true,
+  "trackedFilesChecked": 7342,
+  "generatedFilesStagedIndexOnly": [
+    "dist/core.cjs",
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "fullSuite": "2850 passed, 5 skipped with maxWorkers=2",
+  "scope": "Deleted-class style clipboard repair; unlike WP119 saved journey accepted independently",
+  "ignoredCompilerFilesRemainUntracked": true
+}

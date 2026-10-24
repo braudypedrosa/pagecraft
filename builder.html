@@ -4391,6 +4391,8 @@ function runAct(act, ids) {
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
+      const check = stylePasteCheck();
+      if (!check.ok) { toast(check.reason); break; }
       let k = 0;
       edit(() => { k = pasteStylesMany(list); });
       toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
@@ -8087,6 +8089,8 @@ function hotkey(e) {
     const ids = selIds();
     if (!ids.length) return;
     e.preventDefault();
+    const check = stylePasteCheck();
+    if (!check.ok) { toast(check.reason); return; }
     let n = 0;
     edit(() => { n = pasteStylesMany(ids); });
     toast(n > 1 ? `Styles pasted onto ${n} elements` : n ? 'Styles pasted' : 'Nothing to paste onto');

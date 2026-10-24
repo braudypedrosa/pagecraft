@@ -1,0 +1,106 @@
+{
+  "status": "first build ready for root native review; full suite not yet green",
+  "generated10": {
+    "dist/core.cjs": {
+      "before": "80670073861f77f2df28b351755ce7181d2f6491af4178637f47b91d479867eb",
+      "after": "f3880a51d536f01b4dfcdcf9934feb90077fc42faa1cd3179ed1505b3dfa8344",
+      "changed": true
+    },
+    "index.html": {
+      "before": "9a56d3de4b1d7252eddf4efa281a8ac12474f2c891d730c71b3e9bfeb743b141",
+      "after": "a62f61b78b0b3ff61736a1db079c1b61fdb852de1d9d9a59cfa0bc44740631ed",
+      "changed": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "before": "3f75e48c22dd4aaf4c0f753fde712623bae8b831e8a2cf4d298e3e2202047bb2",
+      "after": "c1433b2d333b2ece27ceb75fa13dab9359b967830003fec07d952f8aca7bd222",
+      "changed": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "before": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "after": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "changed": false
+    },
+    "packages/editor/dist/contract.json": {
+      "before": "503f0cbaa2263b798e50cc26cd7b94fb1b76b2d5980e299ca50b18e069112630",
+      "after": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "changed": true
+    },
+    "packages/editor/dist/editor.html": {
+      "before": "daeb2d8ae3a7c3d2eb54ed3cf668cff17965368956ff137f61017135da7593d9",
+      "after": "e4e64036c910118a03173f979d1853b6304db1759bbae98d5690d8f508114b1e",
+      "changed": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "before": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+      "after": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+      "changed": false
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "before": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+      "after": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+      "changed": false
+    },
+    "packages/editor/dist/runtime.js": {
+      "before": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+      "after": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+      "changed": false
+    },
+    "packages/editor/dist/templates.json": {
+      "before": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "after": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "changed": false
+    }
+  },
+  "schemaVersion": 13,
+  "runtimeSHA256": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+  "goldenSHA256": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430",
+  "buildLogSHA256": {
+    "pagecraft-deleted-class-build-one.log": "abb4816eaf1e06cc1487fc206b211936dffff50480e233397cc4ea4550b831a7",
+    "pagecraft-deleted-class-editor-one.log": "6d200844e5b1aed68fcdb53f6257b39e4eed8b51b1b922fc7c266ceec459d847",
+    "pagecraft-deleted-class-full-first.log": "84d525aabb880c1f66f6be3b1b535850eb057f5d3bccb49f026495ad80a924ff",
+    "pagecraft-deleted-class-save-rejection-recheck.log": "a78c1848cca77a27c2ff6f9bc2142ca943fc6fa2b4a0891d22e763b04a231e2c",
+    "pagecraft-deleted-class-impeccable-detector.json": "d4ffd393e6642190173dbce6456244f695219ca4c16fdeeb7a24775d0ddd0608"
+  },
+  "fullFirst": {
+    "passed": 2848,
+    "skipped": 5,
+    "failed": 2,
+    "failures": [
+      "UI baseline fingerprint pending native review: builder.html, Inspector.tsx",
+      "editor-save-rejection fixed700ms wait observed1 request instead of2 under full load"
+    ],
+    "isolatedSaveRecheck": "10/10 pass without changes"
+  },
+  "detector": {
+    "exitCode": 2,
+    "findings": [
+      {
+        "antipattern": "layout-transition",
+        "name": "Layout property animation",
+        "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/deleted-class-clipboard-a18219e/builder.html",
+        "line": 785,
+        "snippet": "transition: height, padding-bottom"
+      },
+      {
+        "antipattern": "marquee",
+        "name": "Auto-scrolling marquee",
+        "description": "Continuously auto-scrolling content demands attention it has not earned and hides half its content at any moment. Reserve motion for content that changes; let readers move at their own pace.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/deleted-class-clipboard-a18219e/builder.html",
+        "line": 0,
+        "snippet": ".boot-progress::after \u2014 infinite horizontal loop animation \"boot-progress\""
+      }
+    ],
+    "findingsInheritedFromHEAD": true,
+    "noBroadCleanup": true
+  },
+  "fingerprintsUpdated": false,
+  "secondBuildPerformed": false,
+  "MainEdited": false,
+  "WordPressEdited": false
+}

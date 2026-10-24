@@ -6661,10 +6661,9 @@ var classUsage = (id) => {
   return k;
 };
 var CLASS_DELETE_COMPOUND_REASON = "This class combines Hover and Focus styles in a way Pagecraft cannot preserve yet. Remove it from those elements first.";
-function classDeletePlan(id) {
-  const c = findClass(id);
+function classRemovalPlan(id, ordered, trees) {
+  const c = ordered.find((c2) => c2.id === id);
   if (!c) return { ok: false, reason: "This class no longer exists." };
-  const ordered = classes();
   const at = (o, stateKey) => stateKey ? o.st && o.st[stateKey] : o.css;
   const quad = {
     padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
@@ -6791,7 +6790,7 @@ function classDeletePlan(id) {
   });
   const plans = [];
   const seen = /* @__PURE__ */ new Set();
-  allTrees().forEach((l) => eachNode(l, (node) => {
+  trees.forEach((l) => eachNode(l, (node) => {
     if (seen.has(node) || !(node.cls || []).includes(id)) return;
     seen.add(node);
     const next = clone(node);
@@ -6804,6 +6803,9 @@ function classDeletePlan(id) {
     return { ok: false, reason: CLASS_DELETE_COMPOUND_REASON };
   }
   return { ok: true, nodes: plans };
+}
+function classDeletePlan(id) {
+  return classRemovalPlan(id, classes(), allTrees());
 }
 function classDeleteCheck(id) {
   const plan = classDeletePlan(id);
@@ -7728,6 +7730,8 @@ var lintCounts = (findings) => ({
   warn: findings.filter((f) => f.level === "warn").length
 });
 var styleClip = { css: null, st: null, cls: null, ts: "", adv: "", from: "" };
+var styleClipSource = null;
+var styleClipClasses = [];
 function copyStyles(id) {
   const h = locate(id);
   if (!h) return false;
@@ -7738,22 +7742,75 @@ function copyStyles(id) {
   styleClip.ts = String(n.props && n.props.ts || "");
   styleClip.adv = n.adv && n.adv.css || "";
   styleClip.from = String(nameOf(n));
+  styleClipSource = clone({
+    id: n.id,
+    type: n.type,
+    props: {},
+    css: n.css,
+    st: n.st,
+    cls: n.cls,
+    hide: {},
+    adv: { htmlId: "", cls: "", css: "" },
+    children: []
+  });
+  styleClipClasses = clone(classes().filter((c) => (n.cls || []).includes(c.id)));
   return true;
 }
-function pasteStyles(id) {
-  if (!styleClip.css) return false;
+var STYLE_PASTE_DELETED_CLASS_REASON = "Copied styles use a deleted class. Copy the source styles again.";
+function preparedStylePaste() {
+  if (!styleClip.css) return null;
+  const ids = styleClip.cls || [];
+  const missing = ids.filter((id) => !findClass(id));
+  if (!missing.length) return { css: styleClip.css, st: styleClip.st, cls: ids.filter(findClass) };
+  if (!styleClipSource) return null;
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st);
+  else delete source.st;
+  source.cls = [...ids];
+  let ordered = clone(classes().filter((c) => ids.includes(c.id)));
+  const copied = styleClipClasses.filter((c) => ids.includes(c.id));
+  for (let i = 0; i < copied.length; i++) {
+    const c = copied[i];
+    if (!missing.includes(c.id)) continue;
+    const positions = (items) => items.map((c2) => ordered.findIndex((x) => x.id === c2.id)).filter((i2) => i2 >= 0);
+    const left = positions(copied.slice(0, i)), right = positions(copied.slice(i + 1));
+    const li = left.length ? Math.max(...left) : -1;
+    const ri = right.length ? Math.min(...right) : -1;
+    if (li >= 0 && ri >= 0 && li > ri) return null;
+    ordered.splice(ri >= 0 ? ri : li >= 0 ? li + 1 : ordered.length, 0, clone(c));
+  }
+  for (const id of missing) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length !== 1) return null;
+    source = plan.nodes[0].next;
+    ordered = ordered.filter((c) => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: source.cls || [] };
+}
+function stylePasteCheck() {
+  return preparedStylePaste() ? { ok: true } : { ok: false, reason: STYLE_PASTE_DELETED_CLASS_REASON };
+}
+function applyPastedStyle(id, prepared) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(styleClip.css);
-  if (styleClip.st) n.st = clone(styleClip.st);
+  n.css = clone(prepared.css);
+  if (prepared.st) n.st = clone(prepared.st);
   else delete n.st;
-  n.cls = (styleClip.cls || []).filter(findClass);
+  n.cls = [...prepared.cls];
   if (n.adv) n.adv.css = styleClip.adv;
   if (ctlKeys(n.type).has("ts")) n.props.ts = styleClip.ts;
   return true;
 }
-var pasteStylesMany = (ids) => ids.filter(pasteStyles).length;
+function pasteStyles(id) {
+  const prepared = preparedStylePaste();
+  return prepared ? applyPastedStyle(id, prepared) : false;
+}
+function pasteStylesMany(ids) {
+  const prepared = preparedStylePaste();
+  return prepared ? ids.filter((id) => applyPastedStyle(id, prepared)).length : 0;
+}
 var TEXT_SLOTS = {
   heading: ["text"],
   button: ["text"],
@@ -13410,6 +13467,7 @@ var __CORE = {
   styleAdd,
   styleClip,
   styleDelete,
+  stylePasteCheck,
   styleSeen,
   styles,
   tableGrid,
@@ -23408,6 +23466,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!C2.styleClip.css) return null;
     const ids = C2.selIds(), many = ids.length > 1;
     const paste = () => {
+      const check = C2.stylePasteCheck();
+      if (!check.ok) {
+        L2.toast(check.reason);
+        return;
+      }
       let k3 = 0;
       C2.edit(() => {
         k3 = C2.pasteStylesMany(C2.selIds());
@@ -30785,6 +30848,8 @@ function runAct(act, ids) {
     case 'stcopy': copyStyles(id); toast('Styles copied from ' + styleClip.from); renderRight(); break;
     case 'stpaste': {
       if (!styleClip.css) { toast('No styles copied yet'); break; }
+      const check = stylePasteCheck();
+      if (!check.ok) { toast(check.reason); break; }
       let k = 0;
       edit(() => { k = pasteStylesMany(list); });
       toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
@@ -34481,6 +34546,8 @@ function hotkey(e) {
     const ids = selIds();
     if (!ids.length) return;
     e.preventDefault();
+    const check = stylePasteCheck();
+    if (!check.ok) { toast(check.reason); return; }
     let n = 0;
     edit(() => { n = pasteStylesMany(ids); });
     toast(n > 1 ? `Styles pasted onto ${n} elements` : n ? 'Styles pasted' : 'Nothing to paste onto');

@@ -1,0 +1,14 @@
+{
+  "status": "root reviewed exact preguard differences",
+  "reviewedProofSHA256": "52b7c131d3a51e736fcec384c9d08f2e5ee7c011366e71255736e6b437a743ca",
+  "approvedBaselineSQLSHA256": "4b150cdfe26a6dbdbbbbc504262785e8e20dcbd4820c72a3a435c6a60ffd8395",
+  "approvedOnlyTheseChanges": [
+    "same named pattern TTL/value row renewal",
+    "privacy cleanup hourly event advanced7200 with identical payload",
+    "options allocator2441to2449",
+    "same user1 session meta16 exactly7200 replacement; all other account rows exact"
+  ],
+  "projectAndGlobalDesignExact": true,
+  "snapshotSHA256": "2bc24efc9eec7c7102cb263f89fdd67df8dd14be9d0f78ee5d4694243be5dd38",
+  "noGenericFutureAllowance": true
+}

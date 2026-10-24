@@ -1,0 +1,220 @@
+{
+  "status": "PENDING root exact source review. Saved intermediate state only; restoration/public acceptance pending.",
+  "checks": {
+    "ExactlyFourSourceScaffoldNodes": true,
+    "SourceDirectCSSAndLocalStatesExact": true,
+    "SourceDistinctIdentityOrdinaryClassAndMobileHide": true,
+    "BothTargetsExactPastedCSSAndLocalStates": true,
+    "RichtextOnlyTextStylePropertyChangedToButton": true,
+    "GalleryAllPropertiesItemsAltAndOrderExact": true,
+    "TargetIDOrdinaryClassesHideAndSharedMembershipPreserved": true,
+    "SavedPageClassesExactlyCurrentPreGlobalCatalogue": true,
+    "WholeDocumentOnlyFourNodesTwoTargetsAndExactGlobalClassHydration": true,
+    "AllGlobalPagecraftOptionRowsByteExact": true,
+    "Old546RevisionsAndAllMetadataExact": true,
+    "OnlyQA616AndTwoNewRevisionsChanged": true,
+    "OnlyQAContentAndDateFieldsChanged": true,
+    "AllOldMetadataOutsideQAExact": true,
+    "New58MetadataExact29BaselineKeyCopies": true,
+    "Recoverable833AndExcludedTransition834SourceExact": true,
+    "Saved111Compiled119HashValid": true,
+    "AllOtherTablesExceptPostsMetaOptionsExact": true,
+    "AccountsSessionsExact": true,
+    "Old363UploadsExactOnlyOneReferencedCSS": true
+  },
+  "failures": [],
+  "sourceNewNodes": [
+    {
+      "id": "n9hurh4gb",
+      "type": "section"
+    },
+    {
+      "id": "n9hurh3pt",
+      "type": "row"
+    },
+    {
+      "id": "n9hurh2tt",
+      "type": "column"
+    },
+    {
+      "id": "n9hurh1vb",
+      "type": "button"
+    }
+  ],
+  "targetChangedPaths": {
+    "n4f0tt272": [
+      "/adv/css",
+      "/css/d/--pc-solid-fg",
+      "/css/d/align-self",
+      "/css/d/background-color",
+      "/css/d/border-radius",
+      "/css/d/color",
+      "/css/d/padding-bottom",
+      "/css/d/padding-left",
+      "/css/d/padding-right",
+      "/css/d/padding-top",
+      "/css/d/text-align",
+      "/css/m/opacity",
+      "/css/t/padding-bottom",
+      "/css/t/padding-left",
+      "/css/t/padding-right",
+      "/css/t/padding-top",
+      "/props/ts",
+      "/st"
+    ],
+    "np6sev1et": [
+      "/adv/css",
+      "/css/d/--g-cols",
+      "/css/d/--g-gap",
+      "/css/d/--g-radius",
+      "/css/d/--pc-solid-fg",
+      "/css/d/align-self",
+      "/css/d/background-color",
+      "/css/d/border-radius",
+      "/css/d/color",
+      "/css/d/padding-bottom",
+      "/css/d/padding-left",
+      "/css/d/padding-right",
+      "/css/d/padding-top",
+      "/css/d/width",
+      "/css/m/--g-cols",
+      "/css/m/--g-gap",
+      "/css/m/opacity",
+      "/css/t/--g-cols",
+      "/css/t/padding-bottom",
+      "/css/t/padding-left",
+      "/css/t/padding-right",
+      "/css/t/padding-top",
+      "/st/focus/d/--g-radius",
+      "/st/focus/d/border-radius",
+      "/st/hover"
+    ]
+  },
+  "globalClassHydrationChangedPaths": [
+    ""
+  ],
+  "hydrationBoundary": "Saved page classes match the pre-existing global catalogue after explicit PHP-empty-map conversion; global Pagecraft option raw rows remain byte-exact. Not a target-only document change claim.",
+  "newRevisionIDs": [
+    833,
+    834
+  ],
+  "recoverableRevisionIDs": [
+    833
+  ],
+  "excludedTransitionRevisionIDs": [
+    834
+  ],
+  "revisionMetadataKeys": [
+    "_pagecraft_absent_from_latest_import",
+    "_pagecraft_compiled_at",
+    "_pagecraft_compiled_css",
+    "_pagecraft_compiled_hash",
+    "_pagecraft_compiler_document_sha256",
+    "_pagecraft_compiler_editor_version",
+    "_pagecraft_compiler_render_context_sha256",
+    "_pagecraft_compiler_renderer_revision",
+    "_pagecraft_conversion_revision",
+    "_pagecraft_document",
+    "_pagecraft_document_version",
+    "_pagecraft_global_css_hash",
+    "_pagecraft_global_css_path",
+    "_pagecraft_import_job_id",
+    "_pagecraft_imported_at",
+    "_pagecraft_media_attachments",
+    "_pagecraft_package_hash",
+    "_pagecraft_page_css_hash",
+    "_pagecraft_page_css_path",
+    "_pagecraft_provenance",
+    "_pagecraft_renderer_version",
+    "_pagecraft_runtime_hash",
+    "_pagecraft_runtime_path",
+    "_pagecraft_schema_version",
+    "_pagecraft_source_origin",
+    "_pagecraft_source_page_id",
+    "_pagecraft_source_project_id",
+    "_pagecraft_source_version",
+    "_pagecraft_use_page_document"
+  ],
+  "newCSS": [
+    {
+      "path": "pagecraft/page-6b570b3ed08bae8fe3ea22a794b244304fefc0b43316e72114cbe8e1109b5b1e.css",
+      "sha256": "6b570b3ed08bae8fe3ea22a794b244304fefc0b43316e72114cbe8e1109b5b1e"
+    }
+  ],
+  "savedVersion": 111,
+  "savedRevisions": 548,
+  "savedUploads": 364,
+  "SQLSHA256": {
+    "pre": "4b150cdfe26a6dbdbbbbc504262785e8e20dcbd4820c72a3a435c6a60ffd8395",
+    "saved-1": "f2cdf4b5d8a0fee892ba502df86841e2a1af2166b0c85c68a906c67eda051f06"
+  },
+  "noWPCalls": true,
+  "fullQAComplete": false,
+  "globalClassHydrationDetail": {
+    "beforeIDs": [
+      "qa-cross-page",
+      "qa-revision-delete-guard"
+    ],
+    "afterIDs": [
+      "qa-cross-page",
+      "qa-revision-delete-guard",
+      "qa-saved-style"
+    ],
+    "existingClassChangedPaths": {
+      "qa-revision-delete-guard": [
+        "/st"
+      ]
+    },
+    "addedAlreadyGlobalClass": {
+      "css": {
+        "d": {
+          "--pc-solid-fg": "var(--c-paper)",
+          "align-self": "flex-start",
+          "background-color": "var(--c-ink)",
+          "border-radius": "18px",
+          "padding-bottom": "20px",
+          "padding-left": "32px",
+          "padding-right": "32px",
+          "padding-top": "20px"
+        },
+        "m": {
+          "opacity": "0.65"
+        },
+        "t": {}
+      },
+      "id": "qa-saved-style",
+      "name": "qa-saved-style",
+      "st": {
+        "focus": {
+          "d": {
+            "border-radius": "30px"
+          },
+          "m": {},
+          "t": {}
+        },
+        "hover": {
+          "d": {
+            "background-color": "#31513d",
+            "border-radius": "24px"
+          },
+          "m": {},
+          "t": {}
+        }
+      }
+    },
+    "existingEmptyOverlay": {
+      "focus": {
+        "d": {},
+        "m": {},
+        "t": {}
+      },
+      "hover": {
+        "d": {},
+        "m": {},
+        "t": {}
+      }
+    },
+    "globalDesignOptionRawRowExact": true,
+    "existingClassMembershipUnchanged": true
+  }
+}

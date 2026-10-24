@@ -128,6 +128,8 @@ function ClipStrip() {
   if (!C.styleClip.css) return null;
   const ids = C.selIds(), many = ids.length > 1;
   const paste = () => {
+    const check = C.stylePasteCheck();
+    if (!check.ok) { L.toast(check.reason); return; }
     let k = 0;
     C.edit(() => { k = C.pasteStylesMany(C.selIds()); });
     L.toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');

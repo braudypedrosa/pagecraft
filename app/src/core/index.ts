@@ -2793,10 +2793,9 @@ const CLASS_DELETE_COMPOUND_REASON = 'This class combines Hover and Focus styles
    state comes after every reusable class. When hover and focus-visible are active together,
    that move can change the winner. Pagecraft has no compound-state storage, so reject that
    deletion instead of silently changing the page. */
-function classDeletePlan(id: string): ClassDeletePlan {
-  const c = findClass(id);
+function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]): ClassDeletePlan {
+  const c = ordered.find(c => c.id === id);
   if (!c) return { ok: false, reason: 'This class no longer exists.' };
-  const ordered = classes();
   const at = (o: { css?: Css; st?: States }, stateKey?: StateKey) =>
     stateKey ? o.st && o.st[stateKey] : o.css;
   const quad: Record<string, string[]> = {
@@ -2922,7 +2921,7 @@ function classDeletePlan(id: string): ClassDeletePlan {
   });
   const plans: Array<{ node: PcNode; next: PcNode }> = [];
   const seen = new Set<PcNode>();
-  allTrees().forEach(l => eachNode(l, node => {
+  trees.forEach(l => eachNode(l, node => {
     if (seen.has(node) || !(node.cls || []).includes(id)) return;
     seen.add(node);
     const next = clone(node);
@@ -2935,6 +2934,9 @@ function classDeletePlan(id: string): ClassDeletePlan {
     return { ok: false, reason: CLASS_DELETE_COMPOUND_REASON };
   }
   return { ok: true, nodes: plans };
+}
+function classDeletePlan(id: string): ClassDeletePlan {
+  return classRemovalPlan(id, classes(), allTrees());
 }
 function classDeleteCheck(id: string): ClassDeleteCheck {
   const plan = classDeletePlan(id);
@@ -4073,6 +4075,8 @@ const lintCounts = (findings: Finding[]) => ({
    to make one element look like another was to rebuild it control by control. */
 const styleClip: { css: Css | null; st: States | null; cls: string[] | null; ts: string; adv: string; from: string } =
   { css: null, st: null, cls: null, ts: '', adv: '', from: '' };
+let styleClipSource: PcNode | null = null;
+let styleClipClasses: StyleClass[] = [];
 
 function copyStyles(id: string) {
   const h = locate(id);
@@ -4086,6 +4090,11 @@ function copyStyles(id: string) {
   styleClip.ts = String((n.props && n.props.ts) || '');
   styleClip.adv = (n.adv && n.adv.css) || '';
   styleClip.from = String(nameOf(n));
+  styleClipSource = clone({
+    id: n.id, type: n.type, props: {}, css: n.css, st: n.st, cls: n.cls,
+    hide: {}, adv: { htmlId: '', cls: '', css: '' }, children: []
+  });
+  styleClipClasses = clone(classes().filter(c => (n.cls || []).includes(c.id)));
   return true;
 }
 
@@ -4099,23 +4108,67 @@ function copyStyles(id: string) {
    multi-select — a CSS property goes everywhere, a content prop only where the
    target declares that control. So `ts` reaches a Heading from a WYSIWYG and stops
    at an Image, which has no text style to set. */
-function pasteStyles(id: string) {
-  if (!styleClip.css) return false;
+const STYLE_PASTE_DELETED_CLASS_REASON = 'Copied styles use a deleted class. Copy the source styles again.';
+
+/* Resolve only missing references. Existing classes stay live, including edits and precedence
+   changes made since Copy. The source envelope and missing definitions are copy-time snapshots;
+   deleting or editing the live source cannot change what the clipboard holds. */
+function preparedStylePaste(): { css: Css; st: States | null; cls: string[] } | null {
+  if (!styleClip.css) return null;
+  const ids = styleClip.cls || [];
+  const missing = ids.filter(id => !findClass(id));
+  if (!missing.length) return { css: styleClip.css, st: styleClip.st, cls: ids.filter(findClass) };
+  if (!styleClipSource) return null;
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st); else delete source.st;
+  source.cls = [...ids];
+  let ordered = clone(classes().filter(c => ids.includes(c.id)));
+  const copied = styleClipClasses.filter(c => ids.includes(c.id));
+  for (let i = 0; i < copied.length; i++) {
+    const c = copied[i];
+    if (!missing.includes(c.id)) continue;
+    const positions = (items: StyleClass[]) => items.map(c => ordered.findIndex(x => x.id === c.id)).filter(i => i >= 0);
+    const left = positions(copied.slice(0, i)), right = positions(copied.slice(i + 1));
+    const li = left.length ? Math.max(...left) : -1;
+    const ri = right.length ? Math.min(...right) : -1;
+    // Reordered surviving anchors can make the deleted class's old position ambiguous.
+    if (li >= 0 && ri >= 0 && li > ri) return null;
+    ordered.splice(ri >= 0 ? ri : li >= 0 ? li + 1 : ordered.length, 0, clone(c));
+  }
+  for (const id of missing) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length !== 1) return null;
+    source = plan.nodes[0].next;
+    ordered = ordered.filter(c => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: source.cls || [] };
+}
+
+/* Call before edit(): rejection must not create a checkpoint or clear Redo. The same check
+   guards pasteStylesMany itself, so direct callers cannot partially change a target set. */
+function stylePasteCheck(): ClassDeleteCheck {
+  return preparedStylePaste() ? { ok: true } : { ok: false, reason: STYLE_PASTE_DELETED_CLASS_REASON };
+}
+function applyPastedStyle(id: string, prepared: NonNullable<ReturnType<typeof preparedStylePaste>>) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(styleClip.css) as Css;
-  /* replaced, not merged, like `css` — and deleted outright when the source had none, so a
-     paste cannot leave a hover behind that the thing being copied did not have */
-  if (styleClip.st) n.st = clone(styleClip.st) as States; else delete n.st;
-  /* a class deleted between the copy and the paste is dropped rather than carried
-     as a dangling id */
-  n.cls = (styleClip.cls || []).filter(findClass);
+  n.css = clone(prepared.css);
+  if (prepared.st) n.st = clone(prepared.st); else delete n.st;
+  n.cls = [...prepared.cls];
   if (n.adv) n.adv.css = styleClip.adv;
   if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
   return true;
 }
-const pasteStylesMany = (ids: string[]) => ids.filter(pasteStyles).length;
+function pasteStyles(id: string) {
+  const prepared = preparedStylePaste();
+  return prepared ? applyPastedStyle(id, prepared) : false;
+}
+function pasteStylesMany(ids: string[]) {
+  const prepared = preparedStylePaste();
+  return prepared ? ids.filter(id => applyPastedStyle(id, prepared)).length : 0;
+}
 
 /* ---- finding things -------------------------------------------------
    Nothing could find a word across a project. With twelve pages, two global regions
@@ -10217,7 +10270,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

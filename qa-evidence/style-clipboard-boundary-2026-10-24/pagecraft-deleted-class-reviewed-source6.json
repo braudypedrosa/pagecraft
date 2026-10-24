@@ -1,0 +1,35 @@
+{
+  "base": "a18219eaa9debae0eec5d0434b1f44ece8241a33",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/deleted-class-clipboard-a18219e",
+  "source6": {
+    "app/src/core/index.ts": "141ec22d73db7f586bad89131ff91f659c4e8e156b35bb541e82d79925d3962c",
+    "app/src/ui/inspector/Inspector.tsx": "d88eac02883818ea629cb195a532e851ddc86786f8e6b402676a7d4ad24e127c",
+    "builder.html": "5baf3444e5988dd23d71c5b39389094daee1cf80c2821bec653fabf7c58022d1",
+    "tests/style-clipboard-deleted-class.test.ts": "4bf078a373c4cd273b52c864db7bc4d63310919fcb9fdd384e884d6e17ed3cc1",
+    "tests/style-clipboard-preflight-ui.test.tsx": "2e27c85f506ca9c7381269b90adca21c2ad101f82a2fc56048e3c3d056e73df2",
+    "public/internal-ui-baselines/manifest.json": "995e7b7805be28f3a3272f1bcfe84d7fd024e7e20c20dd5eee1de4e4cf8578c1"
+  },
+  "publicCoreAPIAdded": [
+    "stylePasteCheck"
+  ],
+  "publicStyleClipShapeUnchanged": true,
+  "fullSuiteCommand": "npm test -- --maxWorkers=2",
+  "fullSuite": {
+    "passed": 2850,
+    "skipped": 5,
+    "failed": 0,
+    "passedFiles": 282,
+    "skippedFiles": 2
+  },
+  "fullLogSHA256": "301b70407318f1fa24b8fd85080e1cd74925aed6f0cd4b811ecdbc39a5b64cf3",
+  "orderedBuildProofSHA256": "7ec5e7a034255fe391ca17f4e66cf88c4474dba6024d625fe8503e054acb60ec",
+  "rootApprovedFingerprintKeysOnly": [
+    "builder.html",
+    "app/src/ui/inspector/Inspector.tsx"
+  ],
+  "limitations": [
+    "Prior default-parallel full runs expose existing fixed700ms Embed-save harness timing; preserved logs, no assertion changes",
+    "Native acceptance and independent export audit owned by root",
+    "No commit/push/Main integration/WordPress packaging performed"
+  ]
+}

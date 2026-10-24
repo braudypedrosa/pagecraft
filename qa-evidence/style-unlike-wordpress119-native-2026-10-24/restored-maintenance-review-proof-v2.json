@@ -1,0 +1,142 @@
+{
+  "status": "PENDING exact root review; no automatic maintenance/counter allowance",
+  "boundaries": [
+    {
+      "boundary": "preToSaved111",
+      "beforeSQLSHA256": "4b150cdfe26a6dbdbbbbc504262785e8e20dcbd4820c72a3a435c6a60ffd8395",
+      "afterSQLSHA256": "f2cdf4b5d8a0fee892ba502df86841e2a1af2166b0c85c68a906c67eda051f06",
+      "tableCount": 133,
+      "changedTables": [
+        "wp_options",
+        "wp_postmeta",
+        "wp_posts"
+      ],
+      "options": [
+        {
+          "name": "_elementor_pro_free_trial_data",
+          "beforeRowSHA256": "f699ab7bb8039633a0a1f06ba7df30dc6030280c6e8e6f535bfeb0f86c07b4dc",
+          "afterRowSHA256": "1d410dc3c98d39213dff094a62d0051a10d3377b7d391c391a788207067be817",
+          "beforeID": 326,
+          "afterID": 326,
+          "valueByteExact": false,
+          "beforeValueSHA256": "10a86d18e521899d636d45396274bc43da11e20b8dd9186289d95affb6d75951",
+          "afterValueSHA256": "3895f0ff6b00323780ea457a288b9a1683c3343bd8e3b1c015d6444cf87034f8",
+          "autoloadByteExact": true,
+          "decodedDeltas": [
+            {
+              "path": "/timeout",
+              "before": 1792834638,
+              "after": 1792841336
+            }
+          ]
+        }
+      ],
+      "exactDDLChanges": [
+        {
+          "table": "wp_postmeta",
+          "beforeAutoIncrement": 17031,
+          "afterAutoIncrement": 17089,
+          "onlyAutoIncrementChanged": true
+        },
+        {
+          "table": "wp_posts",
+          "beforeAutoIncrement": 833,
+          "afterAutoIncrement": 835,
+          "onlyAutoIncrementChanged": true
+        }
+      ]
+    },
+    {
+      "boundary": "saved111ToRestored112",
+      "beforeSQLSHA256": "f2cdf4b5d8a0fee892ba502df86841e2a1af2166b0c85c68a906c67eda051f06",
+      "afterSQLSHA256": "1d9b65c3221f0a4a0b2122f7843c5c6248a770315ab181d34e67da20ef37a601",
+      "tableCount": 133,
+      "changedTables": [
+        "wp_options",
+        "wp_postmeta",
+        "wp_posts"
+      ],
+      "options": [
+        {
+          "name": "_elementor_design_system_sync_css_meta",
+          "beforeRowSHA256": "b1b3830e2f7f94950200b7f8799025e7ce8a734691c8b208c42aae42c12950ae",
+          "afterRowSHA256": "4873c589a6555f5e7ed93cb6b0a07e85b256f2d8dc2674c50fa6956a6d20a8a5",
+          "beforeID": 2438,
+          "afterID": 2451,
+          "valueByteExact": false,
+          "beforeValueSHA256": "0a7516265f4fce3dab74d29fa2390645c1f76c068d0683078e8243976cebb766",
+          "afterValueSHA256": "a7887993ad73a66046c1888a5d7a413e3498400ac0f05eec2c47e09e96adc124",
+          "autoloadByteExact": true,
+          "decodedDeltas": [
+            {
+              "path": "/time",
+              "before": 1792831106,
+              "after": 1792838500
+            }
+          ]
+        },
+        {
+          "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+          "beforeRowSHA256": "11f0f59bb80dcbbc917d450e43ec524018f92c640b63f28894bea05e98f90dcf",
+          "afterRowSHA256": "384ed4af6ad6611bae042bf2eb014862f6c16d4bce2e71186865bb56f139c25a",
+          "beforeID": 2447,
+          "afterID": 2449,
+          "valueByteExact": false,
+          "beforeValueSHA256": "2a3d8d30ed51f718c8697ea2b4b231422bc199963f2edfb2800dafbe596d63fd",
+          "afterValueSHA256": "e55197fe2f8f27741e442a8f6e228049d2499669b5583125e19674df2479952a",
+          "autoloadByteExact": true,
+          "decodedDeltas": [
+            {
+              "path": "",
+              "before": {
+                "type": "str",
+                "length": 10,
+                "sha256": "82e7214b942b4fe42bbe078e12b7f2fb82ae4bdb35ea2e0688844c46750143f7"
+              },
+              "after": {
+                "type": "str",
+                "length": 10,
+                "sha256": "85e97d22fc115bfce16b48c4f8329b61b161d65803e702f786afc1da0ca61c5b"
+              }
+            }
+          ],
+          "expirationBefore": 1792838499,
+          "expirationAfter": 1792840300,
+          "expirationDeltaSeconds": 1801
+        },
+        {
+          "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+          "beforeRowSHA256": "8bfe22339a492db79cf7cd34c214e939ae28e9791d4abe7a6f00fa9de0dfad95",
+          "afterRowSHA256": "f40df75bc75c7c22dc1523de5ab2e1502c2fc7269d39c13ff3c369b462fb6c7e",
+          "beforeID": 2448,
+          "afterID": 2450,
+          "valueByteExact": true,
+          "beforeValueSHA256": "3add6fef82363d113bcc301ea52d39657935648802d193e2aad28cfc53613f55",
+          "afterValueSHA256": "3add6fef82363d113bcc301ea52d39657935648802d193e2aad28cfc53613f55",
+          "autoloadByteExact": true
+        }
+      ],
+      "exactDDLChanges": [
+        {
+          "table": "wp_postmeta",
+          "beforeAutoIncrement": 17089,
+          "afterAutoIncrement": 17147,
+          "onlyAutoIncrementChanged": true
+        },
+        {
+          "table": "wp_posts",
+          "beforeAutoIncrement": 835,
+          "afterAutoIncrement": 837,
+          "onlyAutoIncrementChanged": true
+        },
+        {
+          "table": "wp_options",
+          "beforeAutoIncrement": 2449,
+          "afterAutoIncrement": 2452,
+          "onlyAutoIncrementChanged": true
+        }
+      ]
+    }
+  ],
+  "noWPCalls": true
+}
