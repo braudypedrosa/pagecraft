@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import {
   extractLibraryBundle, importAssetsNeeded, importCustomCode, isFoundation, itemHash, planLibraryImport, planLibraryUpdate,
+  previewLibraryImportReadability,
   previewLibraryUpdate, LibraryError,
   type LibraryBundle, type LibraryCustomCode, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
 } from '../core/libraries';
@@ -305,6 +306,11 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
     if (!await allowCustomCode(library, importCustomCode(bundle, chosen), 'Import with custom code')) return;
     setBusy(true);
     try {
+      const readability = previewLibraryImportReadability(C.doc(), bundle, source, chosen,
+        { parse: C.parseColor, contrast: C.contrast });
+      if (readability && !await L.askConfirm('Check button readability',
+        `${plural(readability.items, 'imported item has', 'imported items have')} a Button that may be hard to read with this site’s colours (${readability.minRatio.toFixed(2)}:1).`,
+        { ok: 'Import anyway' })) return;
       const needed = importAssetsNeeded(bundle, chosen);
       const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
       if (needed.length) await L.assetsReload();

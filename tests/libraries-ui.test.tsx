@@ -30,11 +30,25 @@ const card = (title: string): ComponentDef => ({
     children: [node('c2', 'heading', { props: { text: title } as never })],
   }),
 });
+const contrastCard = () => {
+  const def = card('Contrast');
+  def.node.children.push(node('c3', 'button', {
+    props: { text: 'Visit', variant: 'solid', ts: 'btn' } as never,
+    css: { d: { '--pc-solid-fg': 'var(--c-paper)', 'background-color': 'var(--c-brand)' } } as never,
+  }));
+  return def;
+};
 /** A site other than the one open, holding `components`, to publish from. */
 function authorDoc(components: ComponentDef[]): Doc {
   const doc = clone(C.doc());
   doc.meta.tokens!.colors.push({ id: 'accent', name: 'Accent', value: '#c05621' });
   doc.meta.components = components;
+  return doc;
+}
+function contrastAuthorDoc(): Doc {
+  const doc = authorDoc([contrastCard()]);
+  doc.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  doc.meta.tokens!.colors.push({ id: 'paper', name: 'Paper', value: '#faf9f6' });
   return doc;
 }
 
@@ -176,6 +190,8 @@ test('the category exists only where libraries do', async () => {
 test('importing copies the images first and lands as one undo step with links', async () => {
   const lib = await fake.adapter.create('Brand kit');
   fake.publishFrom(lib.id, authorDoc([card('From the library')]), [{ kind: 'component', id: 'card' }]);
+  const asked: string[] = [];
+  L.askConfirm = async (title: string) => { asked.push(title); return true; };
   await openLibrary('Brand kit');
   expect(r.$('.lib-head b')?.textContent).toBe('Brand kit');
   await tick('Card');
@@ -183,6 +199,7 @@ test('importing copies the images first and lands as one undo step with links', 
   const ui = C.state.ui, currentPage = C.state.cur;
   await click(button('Import 1 item'));
 
+  expect(asked).toEqual([]); // a safe import keeps the one-click flow
   expect(fake.sent.copied).toEqual([['aauthorimage1']]);
   expect(r.calls.some(c => c[0] === 'assetsReload')).toBe(true);
   const imported = C.findComponent('card')!;
@@ -219,6 +236,34 @@ test('an import that meets a different item of the same id renames it', async ()
   await click(button('Import 1 item'));
   expect(C.components().map(c => c.id)).toEqual(['card', 'card-2']);
   expect(toasts().at(-1)).toMatch(/1 was renamed to avoid a clash/);
+});
+
+test('a cross-theme Button asks before copying and keeps one Undo step when accepted', async () => {
+  C.state.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const lib = await fake.adapter.create('Contrast kit');
+  fake.publishFrom(lib.id, contrastAuthorDoc(), [{ kind: 'component', id: 'card' }]);
+  const asked: Array<[string, string, unknown]> = [];
+  let answer = false;
+  L.askConfirm = async (title: string, html: string, options: unknown) => { asked.push([title, html, options]); return answer; };
+  await openLibrary('Contrast kit');
+  await tick('Card');
+
+  await click(button('Import 1 item'));
+  expect(asked[0][0]).toBe('Check button readability');
+  expect(asked[0][1]).toMatch(/1 imported item has a Button.*1\.25:1/);
+  expect(asked[0][2]).toEqual({ ok: 'Import anyway' });
+  expect(fake.sent.copied).toEqual([]);
+  expect(C.findComponent('card')).toBeFalsy();
+  expect(C.hist.u).toHaveLength(0);
+
+  answer = true;
+  await click(button('Import 1 item'));
+  expect(fake.sent.copied).toEqual([['aauthorimage1']]);
+  expect(C.hist.u).toHaveLength(1);
+  expect(C.historyLabel('undo')).toBe('Import library items');
+  expect(C.findColor('brand')!.value).toBe('#b7f34a');
+  expect(C.findColor('paper')!.value).toBe('#faf9f6');
+  expect((C.findComponent('card')!.node.children[1].css.d || {})['--pc-solid-fg']).toBe('var(--c-paper)');
 });
 
 test('“Add to library…” on a component picks a library, then publishes the saved draft', async () => {

@@ -17812,6 +17812,58 @@ var PC_UI = (() => {
     const landed = items.filter((i3) => i3.how === "added" || i3.how === "renamed").map((i3) => ({ kind: i3.kind, id: i3.sourceId }));
     return { doc: next, items, assets: needed, customCode: customCodeOf(bundle, landed) };
   }
+  function previewLibraryImportReadability(doc, bundle, source, chosen, color) {
+    const assets = Object.fromEntries(importAssetsNeeded(bundle, chosen).map((id) => [id, id]));
+    let seq = 0;
+    const plan = planLibraryImport(doc, bundle, source, chosen, { assets, newId: () => `preview-${++seq}` });
+    const affected = /* @__PURE__ */ new Set();
+    let minRatio = Infinity;
+    const colors2 = plan.doc.meta.tokens?.colors || [];
+    const textStyles = plan.doc.meta.tokens?.text || [];
+    const resolved = (value) => {
+      const text = String(value || "").trim();
+      const match = /^var\(--c-([\w-]+)\)$/.exec(text);
+      if (!match) return text;
+      const token = colors2.find((color2) => color2.id === match[1]);
+      return String(token?.value || "").trim();
+    };
+    for (const entry of plan.items) {
+      if (entry.kind !== "component" && entry.kind !== "block" || entry.how !== "added" && entry.how !== "renamed") continue;
+      const item = find(listsOf(plan.doc), entry.kind, entry.localId);
+      const root = item?.node;
+      if (!root) continue;
+      eachNode(root, (button) => {
+        if (button.type !== "button" || String(button.props.variant || "solid") !== "solid") return;
+        if ((button.cls || []).length) return;
+        const responsive = ["--pc-solid-fg", "background-color", "font-size", "font-weight"];
+        if (responsive.some((prop) => (button.css.t || {})[prop] || (button.css.m || {})[prop])) return;
+        if (button.st && JSON.stringify(button.st).match(/--pc-solid-fg|background-color|font-size|font-weight/)) return;
+        const foreground = String((button.css.d || {})["--pc-solid-fg"] || "");
+        const background = String((button.css.d || {})["background-color"] || "");
+        const refs = [foreground, background].map((value) => /^var\(--c-([\w-]+)\)$/.exec(value)?.[1] || "");
+        if (!refs.some((id) => isFoundation("color", id))) return;
+        const fg = resolved(foreground), bg = resolved(background);
+        if (!fg || !bg) return;
+        const fgColor = color.parse(fg), bgColor = color.parse(bg);
+        if (!fgColor || !bgColor || fgColor.a !== 1 || bgColor.a !== 1) return;
+        const styleId = String(button.props.ts || "");
+        const textStyle = styleId ? textStyles.find((style) => style.id === styleId) : null;
+        if (!textStyle) return;
+        if (responsive.some((prop) => (textStyle.css.t || {})[prop] || (textStyle.css.m || {})[prop])) return;
+        const sizeText = String((button.css.d || {})["font-size"] || (textStyle.css.d || {})["font-size"] || "").trim();
+        const weightText = String((button.css.d || {})["font-weight"] || (textStyle.css.d || {})["font-weight"] || "").trim();
+        if (!/^[\d.]+(?:px)?$/.test(sizeText) || !/^(?:[1-9]00|normal|bold)$/.test(weightText)) return;
+        const size = parseFloat(sizeText), weight = weightText === "bold" ? 700 : weightText === "normal" ? 400 : parseInt(weightText, 10);
+        if (size >= 24 || size >= 18.66 && weight >= 700) return;
+        const ratio = color.contrast(fg, bg);
+        if (ratio != null && Number.isFinite(ratio) && ratio < 4.5) {
+          affected.add(`${entry.kind}:${entry.localId}`);
+          minRatio = Math.min(minRatio, ratio);
+        }
+      });
+    }
+    return affected.size ? { items: affected.size, minRatio } : null;
+  }
   function instancesOf(doc, id) {
     const found = [];
     const visit = (node) => eachNode(node, (n2) => {
@@ -18198,6 +18250,18 @@ var PC_UI = (() => {
       if (!await allowCustomCode(library, importCustomCode(bundle, chosen), "Import with custom code")) return;
       setBusy(true);
       try {
+        const readability = previewLibraryImportReadability(
+          C2.doc(),
+          bundle,
+          source,
+          chosen,
+          { parse: C2.parseColor, contrast: C2.contrast }
+        );
+        if (readability && !await L2.askConfirm(
+          "Check button readability",
+          `${plural(readability.items, "imported item has", "imported items have")} a Button that may be hard to read with this site\u2019s colours (${readability.minRatio.toFixed(2)}:1).`,
+          { ok: "Import anyway" }
+        )) return;
         const needed = importAssetsNeeded(bundle, chosen);
         const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
         if (needed.length) await L2.assetsReload();

@@ -368,6 +368,16 @@ export interface LibraryImportOptions {
   newId?: () => string;
 }
 
+export interface LibraryReadabilityPreview {
+  items: number;
+  minRatio: number;
+}
+export interface LibraryReadabilityColorTools {
+  /** The editor's canonical parser. Alpha below 1 is not confidently composited here. */
+  parse: (value: string) => { a: number } | null;
+  contrast: (foreground: string, background: string) => number | null;
+}
+
 let fallbackSeq = 0;
 const fallbackId = () => `l${Date.now().toString(36).slice(-5)}${(fallbackSeq++).toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
 const KINDS_IN_ORDER: LibraryItemKind[] = ['color', 'textStyle', 'class', 'component', 'block'];
@@ -486,6 +496,66 @@ export function planLibraryImport(
   next.meta.libraryLinks = links;
   const landed = items.filter(i => i.how === 'added' || i.how === 'renamed').map(i => ({ kind: i.kind, id: i.sourceId }));
   return { doc: next, items, assets: needed, customCode: customCodeOf(bundle, landed) };
+}
+
+/** A deliberately bounded preflight for the direct solid-Button pair the editor authors.
+    Site checks remain the complete review after placement: inherited colours, classes, alpha
+    colours and unresolved values are skipped here rather than reported as safe. */
+export function previewLibraryImportReadability(
+  doc: Doc, bundle: LibraryBundle, source: LibrarySource, chosen: LibraryItemRef[],
+  color: LibraryReadabilityColorTools,
+): LibraryReadabilityPreview | null {
+  const assets = Object.fromEntries(importAssetsNeeded(bundle, chosen).map(id => [id, id]));
+  let seq = 0;
+  const plan = planLibraryImport(doc, bundle, source, chosen, { assets, newId: () => `preview-${++seq}` });
+  const affected = new Set<string>();
+  let minRatio = Infinity;
+  const colors = plan.doc.meta.tokens?.colors || [];
+  const textStyles = plan.doc.meta.tokens?.text || [];
+  const resolved = (value: unknown) => {
+    const text = String(value || '').trim();
+    const match = /^var\(--c-([\w-]+)\)$/.exec(text);
+    if (!match) return text;
+    const token = colors.find(color => color.id === match[1]);
+    return String(token?.value || '').trim();
+  };
+  for (const entry of plan.items) {
+    if ((entry.kind !== 'component' && entry.kind !== 'block')
+      || (entry.how !== 'added' && entry.how !== 'renamed')) continue;
+    const item = find(listsOf(plan.doc), entry.kind, entry.localId) as ComponentDef | SavedBlock | undefined;
+    const root = item?.node;
+    if (!root) continue;
+    eachNode(root, button => {
+      if (button.type !== 'button' || String(button.props.variant || 'solid') !== 'solid') return;
+      if ((button.cls || []).length) return;
+      const responsive = ['--pc-solid-fg', 'background-color', 'font-size', 'font-weight'];
+      if (responsive.some(prop => (button.css.t || {})[prop] || (button.css.m || {})[prop])) return;
+      if (button.st && JSON.stringify(button.st).match(/--pc-solid-fg|background-color|font-size|font-weight/)) return;
+      const foreground = String((button.css.d || {})['--pc-solid-fg'] || '');
+      const background = String((button.css.d || {})['background-color'] || '');
+      const refs = [foreground, background].map(value => /^var\(--c-([\w-]+)\)$/.exec(value)?.[1] || '');
+      if (!refs.some(id => isFoundation('color', id))) return;
+      const fg = resolved(foreground), bg = resolved(background);
+      if (!fg || !bg) return;
+      const fgColor = color.parse(fg), bgColor = color.parse(bg);
+      if (!fgColor || !bgColor || fgColor.a !== 1 || bgColor.a !== 1) return;
+      const styleId = String(button.props.ts || '');
+      const textStyle = styleId ? textStyles.find(style => style.id === styleId) : null;
+      if (!textStyle) return;
+      if (responsive.some(prop => (textStyle.css.t || {})[prop] || (textStyle.css.m || {})[prop])) return;
+      const sizeText = String((button.css.d || {})['font-size'] || (textStyle.css.d || {})['font-size'] || '').trim();
+      const weightText = String((button.css.d || {})['font-weight'] || (textStyle.css.d || {})['font-weight'] || '').trim();
+      if (!/^[\d.]+(?:px)?$/.test(sizeText) || !/^(?:[1-9]00|normal|bold)$/.test(weightText)) return;
+      const size = parseFloat(sizeText), weight = weightText === 'bold' ? 700 : weightText === 'normal' ? 400 : parseInt(weightText, 10);
+      if (size >= 24 || (size >= 18.66 && weight >= 700)) return;
+      const ratio = color.contrast(fg, bg);
+      if (ratio != null && Number.isFinite(ratio) && ratio < 4.5) {
+        affected.add(`${entry.kind}:${entry.localId}`);
+        minRatio = Math.min(minRatio, ratio);
+      }
+    });
+  }
+  return affected.size ? { items: affected.size, minRatio } : null;
 }
 
 /* ---- updates ------------------------------------------------------------- */

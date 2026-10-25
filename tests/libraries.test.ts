@@ -3,6 +3,7 @@ import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import {
   LibraryError, bundleItemCount, extractLibraryBundle, importCustomCode, itemHash, planLibraryImport, planLibraryUpdate,
+  previewLibraryImportReadability,
   previewLibraryUpdate, remapBundleAssets, sha256,
   type LibraryBundle,
 } from '../app/src/core/libraries';
@@ -53,6 +54,7 @@ function authorSite() {
 }
 const bundleOf = (doc = authorSite()) => extractLibraryBundle(doc, [{ kind: 'component', id: 'card' }], C.SCHEMA);
 const assets = { a0123456789ab: 'a9999999999ff' };
+const colorTools = { parse: C.parseColor, contrast: C.contrast };
 
 test('sha256 matches the published test vectors', () => {
   a.equal(sha256(''), 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
@@ -134,6 +136,100 @@ test('importing again keeps the site copy and its link untouched', () => {
   a.equal(again.items.find(i => i.sourceId === 'card')!.how, 'linked');
   a.deepEqual(again.doc.meta.libraryLinks, before);
   a.equal(again.doc.meta.components!.filter(c => c.name.startsWith('Card')).length, 1);
+});
+
+function buttonBundle(foreground = 'var(--c-paper)', background = 'var(--c-brand)') {
+  const author = blankSite('Button author');
+  author.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  author.meta.tokens!.colors.push({ id: 'paper', name: 'Paper', value: '#faf9f6' });
+  const action: ComponentDef = { id: 'action', name: 'Action', props: [], node: node('a1', 'button', {
+    props: { text: 'Visit', variant: 'solid', ts: 'btn' } as never,
+    css: { d: { '--pc-solid-fg': foreground, 'background-color': background } } as never,
+  }) };
+  const card: ComponentDef = { id: 'button-card', name: 'Button card', props: [], node: node('bc1', 'box', {
+    children: [node('bc2', 'box', { use: 'action' }), node('bc3', 'box', { use: 'action' })],
+  }) };
+  author.meta.components = [action, card];
+  return extractLibraryBundle(author, [{ kind: 'component', id: 'button-card' }], C.SCHEMA);
+}
+
+test('import readability preview uses the receiving foundation and counts nested definitions once', () => {
+  const site = blankSite('Bright recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const preview = previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools);
+  a.equal(preview?.items, 1, 'the nested Action definition is counted once even when used twice');
+  a.equal(preview?.minRatio.toFixed(2), '1.25');
+
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  a.equal(previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+});
+
+test('readability preview follows portable colour collision and linked ownership', () => {
+  const site = blankSite('Bright recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  site.meta.tokens!.colors.push({ id: 'paper', name: 'Local paper', value: '#111311' });
+  const collision = previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools);
+  a.equal(collision?.minRatio.toFixed(2), '1.25', 'a renamed incoming Paper keeps its authored value');
+
+  site.meta.libraryLinks = [{ libraryId: 'lib-1', version: 1, kind: 'color', sourceId: 'paper', localId: 'paper', sourceHash: 'old', localHash: 'old' }];
+  a.equal(previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null,
+  'an already-linked portable colour keeps the readable local value');
+});
+
+test('readability preview skips unresolved alpha pairs instead of reporting a false pass', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  for (const foreground of ['#fff8', '#ffffff80', 'rgb(255 255 255 / .8)']) {
+    a.equal(previewLibraryImportReadability(site, buttonBundle(foreground), source(1),
+      [{ kind: 'component', id: 'button-card' }], colorTools), null, foreground);
+  }
+  const missing = buttonBundle();
+  missing.components.find(component => component.id === 'action')!.node.css.d['--pc-solid-fg'] = 'var(--c-missing)';
+  a.equal(previewLibraryImportReadability(site, missing, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+});
+
+test('readability preview skips cascade and large-text cases it does not fully evaluate without mutating input', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const cases = [buttonBundle(), buttonBundle(), buttonBundle()];
+  const buttons = cases.map(bundle => bundle.components.find(component => component.id === 'action')!.node);
+  buttons[0].cls = ['authored-class'];
+  buttons[1].css.t = { '--pc-solid-fg': '#111311' } as never;
+  buttons[2].css.d['font-size'] = '26px';
+  for (const bundle of cases) {
+    const beforeSite = JSON.stringify(site), beforeBundle = JSON.stringify(bundle);
+    a.equal(previewLibraryImportReadability(site, bundle, source(1),
+      [{ kind: 'component', id: 'button-card' }], colorTools), null);
+    a.equal(JSON.stringify(site), beforeSite);
+    a.equal(JSON.stringify(bundle), beforeBundle);
+  }
+});
+
+test('readability preview resolves small and large metrics through the planned text style', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const small = buttonBundle(), large = buttonBundle(), missing = buttonBundle();
+  missing.components.find(component => component.id === 'action')!.node.props.ts = 'missing-style';
+  const largeSite = clone(site);
+  largeSite.meta.tokens!.text.find(style => style.id === 'btn')!.css.d = { 'font-size': '19px', 'font-weight': '700' } as never;
+
+  a.equal(previewLibraryImportReadability(site, small, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools)?.minRatio.toFixed(2), '1.25');
+  a.equal(previewLibraryImportReadability(largeSite, large, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+  a.equal(previewLibraryImportReadability(site, missing, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+
+  const responsive = buttonBundle();
+  const responsiveSite = clone(site);
+  responsiveSite.meta.tokens!.text.find(style => style.id === 'btn')!.css.m = { 'font-size': '19px', 'font-weight': '700' } as never;
+  a.equal(previewLibraryImportReadability(responsiveSite, responsive, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
 });
 
 /* ---- updates ---- */
