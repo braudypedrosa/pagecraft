@@ -36,6 +36,61 @@ test.each([
   expect(L.mediaPicker).toHaveBeenLastCalledWith({title:'Replace image'});
 });
 
+test('component image property library choices change only the local value and undo atomically', async () => {
+  activeRig = rig({asset: id => asset(id)});
+  C.seed(); C.blankProject('Component image property QA');
+  const box = C.insert('box', null, 0)!;
+  const componentId = C.componentFromNode(box.id, 'Image card')!;
+  const property = C.propAdd(componentId, 'Photo', 'img', 'asset:old')!;
+  const instanceId = box.id;
+  const instance = C.locate(instanceId)!.node;
+  instance.props.w = '777'; instance.props.h = '333';
+  const control = C.instControls(instance).find(item => item.k === C.VAL + property)!;
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  L.mediaPicker = vi.fn(async () => 'new');
+
+  activeRig.draw(<Ctl n={instance} c={control} />);
+  await act(async () => activeRig!.click(activeRig!.$$('button').find(button => button.textContent?.includes('Library'))!));
+
+  expect(C.locate(instanceId)!.node.vals).toEqual({[property]:'asset:new'});
+  expect(C.locate(instanceId)!.node.props).toMatchObject({w:'777', h:'333'});
+  expect(C.hist.u).toHaveLength(1);
+  C.undo();
+  expect(C.locate(instanceId)!.node.vals).toBeUndefined();
+  expect(C.locate(instanceId)!.node.props).toMatchObject({w:'777', h:'333'});
+  C.redo();
+  expect(C.locate(instanceId)!.node.vals).toEqual({[property]:'asset:new'});
+  expect(C.locate(instanceId)!.node.props).toMatchObject({w:'777', h:'333'});
+});
+
+test('direct image library choices still adopt intrinsic dimensions', async () => {
+  activeRig = rig({asset: id => asset(id)});
+  C.seed(); C.blankProject('Direct image dimensions QA');
+  const image = C.insert('image', null, 0)!;
+  image.props.src = 'asset:old';
+  L.mediaPicker = vi.fn(async () => 'new');
+
+  activeRig.draw(<Ctl n={image} c={{t:'img', k:'src', label:'Image'}} />);
+  await act(async () => activeRig!.click(activeRig!.$$('button').find(button => button.textContent?.includes('Library'))!));
+
+  expect(image.props).toMatchObject({src:'asset:new', w:'640', h:'480'});
+});
+
+test('background image library choices remain dimensionless', async () => {
+  activeRig = rig({asset: id => asset(id)});
+  C.seed(); C.blankProject('Background image dimensions QA');
+  const box = C.insert('box', null, 0)!;
+  box.css.d['background-image'] = 'url("asset:old")';
+  box.props.w = '777'; box.props.h = '333';
+  L.mediaPicker = vi.fn(async () => 'new');
+
+  activeRig.draw(<Ctl n={box} c={{t:'img', c:'background-image', label:'Background image', bg:1}} />);
+  await act(async () => activeRig!.click(activeRig!.$$('button').find(button => button.textContent?.includes('Library'))!));
+
+  expect(box.css.d['background-image']).toBe('url("asset:new")');
+  expect(box.props).toMatchObject({w:'777', h:'333'});
+});
+
 test('an empty field names its picker Choose image and disabled fields ignore upload gestures', async () => {
   activeRig = rig({asset: id => asset(id)});
   L.mediaPicker = vi.fn(async () => null);

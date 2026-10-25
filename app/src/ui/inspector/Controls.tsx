@@ -678,7 +678,9 @@ function ImgCtl({ n, c }: P) {
       C.applyC(n, c, wrap('asset:' + id));
       /* an image's intrinsic size comes along once, so the export can write
          width/height and the review stops asking for them */
-      if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
+      if (!c.bg && !c.k?.startsWith(C.VAL) && got.w) {
+        n.props.w = String(got.w); n.props.h = String(got.h);
+      }
     });
   };
   const pickerTitle = assetValue ? 'Replace image' : 'Choose image';

@@ -22610,7 +22610,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!got) return;
       C2.edit(() => {
         C2.applyC(n2, c3, wrap("asset:" + id));
-        if (!c3.bg && got.w) {
+        if (!c3.bg && !c3.k?.startsWith(C2.VAL) && got.w) {
           n2.props.w = String(got.w);
           n2.props.h = String(got.h);
         }
