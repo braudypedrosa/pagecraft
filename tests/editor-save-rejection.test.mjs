@@ -14,11 +14,11 @@ const waitUntil = async (condition, timeout = 3000) => {
   const until = Date.now() + timeout;
   while (!condition() && Date.now() < until) await wait(20);
 };
-
 for (const [status, payload, reason] of [
   [400, { error: 'The compiled Pagecraft page contains unsupported executable markup.' }, /unsupported executable markup/],
   [422, { error: 'The compiled Pagecraft page contains an unsafe inline style.' }, /unsafe inline style/],
   [400, { message: 'Pagecraft iframe embeds must use an absolute HTTPS URL.' }, /absolute HTTPS URL/],
+  [400, { error: 'The sealed Pagecraft editor/compiler schema version is unsupported. ' }, null],
   [422, { error: '<img src=x onerror=alert(1)> token=secret https://user:pass@example.test/private' }, null],
   [400, { error: { token: 'secret' } }, null]
 ]) {
@@ -68,6 +68,41 @@ for (const [status, payload, reason] of [
     } finally { dom.window.close(); }
   });
 }
+
+test('the exact WordPress schema rejection requires reload without replaying the unsaved draft', async () => {
+  const payload = { error: 'The sealed Pagecraft editor/compiler schema version is unsupported.' };
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,
+    `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
+  const requests = [];
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+    beforeParse(window) {
+      window.fetch = async (url, options = {}) => {
+        if (String(url).endsWith('/document') && options.method === 'PUT') {
+          requests.push(JSON.parse(options.body));
+          return { ok: false, status: 400, json: async () => payload };
+        }
+        return { ok: true, status: 200, json: async () => [] };
+      };
+    }
+  });
+  try {
+    await wait(800);
+    const { window } = dom, document = window.document;
+    window.__CORE.state.meta.name = 'Keep schema rejected draft';
+    await window.writeNow();
+    assert.equal(document.querySelector('#mTitle').textContent, 'Reload Pagecraft to keep editing');
+    assert.match(document.querySelector('#mBody').textContent, /updated while this editor was open/i);
+    assert.ok(document.querySelector('#compilerBackup'));
+    assert.ok(document.querySelector('#compilerReload'));
+    assert.equal(window.__CORE.state.meta.name, 'Keep schema rejected draft');
+    const unload = new window.Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(unload);
+    assert.ok(unload.defaultPrevented);
+    await wait(100);
+    assert.equal(requests.length, 1, 'schema rejection is never replayed automatically');
+  } finally { dom.window.close(); }
+});
 
 test('editing a rejected Embed shows the new save reason and recompiles the corrected draft', async () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,

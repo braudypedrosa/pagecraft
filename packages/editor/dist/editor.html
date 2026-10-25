@@ -29740,6 +29740,11 @@ function saveValidationReason(err) {
   return typeof reason === 'string' && Object.hasOwn(known, reason) ? known[reason] : '';
 }
 function warnSaveFailed(err) {
+  if (IS_WORDPRESS && err?.status === 400
+      && err?.payload?.error === 'The sealed Pagecraft editor/compiler schema version is unsupported.') {
+    warnCompilerReload(err.payload);
+    return;
+  }
   const rejected = SRV && (err?.status === 400 || err?.status === 422);
   rememberSaveProblem(rejected
     ? 'The host rejected this save. Your changes are still in this tab. Correct the content, then try saving again.'

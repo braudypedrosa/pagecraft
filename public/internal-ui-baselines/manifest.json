@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "45a0c4314890c2bd8115b0e4711a8aff0dd3c6c0eb946e1e8a5ccfa8c885f4e7",
+    "builder.html": "84b3f61911c5832e415844d994c91683fa2de956e7f54ed943f182df6b25a0df",
     "app/src/ui/index.tsx": "a44a95bebb09c322c9c141d8a3d5e0a8eb78338ffd6e7a66f54494d5375eed7a",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
