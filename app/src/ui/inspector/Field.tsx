@@ -99,6 +99,7 @@ function ResetBadge({ n, c }: { n: PcNode; c: Control }) {
 function BindBadge({ n, c }: { n: PcNode; c: Control }) {
   const scope = C.bindScope(n.id);
   const fid = C.boundField(n, c.k!);
+  if (L.dynamicContentProvider() !== 'pagecraft' && !fid) return null;
   if (!L.canStructure() || (!scope && !fid && !n.use)) return null;
   const paths = C.fieldPaths(scope?.col || null).filter(field => C.cmsFieldTypes(c).includes(field.type));
   const shown = paths.find(x => x.path === fid);

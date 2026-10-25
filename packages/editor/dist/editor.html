@@ -20656,6 +20656,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function BindBadge({ n: n2, c: c3 }) {
     const scope = C2.bindScope(n2.id);
     const fid = C2.boundField(n2, c3.k);
+    if (L2.dynamicContentProvider() !== "pagecraft" && !fid) return null;
     if (!L2.canStructure() || !scope && !fid && !n2.use) return null;
     const paths = C2.fieldPaths(scope?.col || null).filter((field) => C2.cmsFieldTypes(c3).includes(field.type));
     const shown2 = paths.find((x2) => x2.path === fid);
