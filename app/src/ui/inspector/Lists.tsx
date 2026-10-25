@@ -14,6 +14,7 @@ import {
   WordPressContentPicker, wordpressContentTargets, wordpressDestinationForValue,
   wordpressReferenceForItem
 } from '../WordPressContentPicker';
+import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
 import { HelpTip } from '../HelpTip';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useRef, useState } from 'preact/hooks';
@@ -72,6 +73,7 @@ export function ItemsCtl({ n, c }: P) {
   const [, setLabelRevision] = useState(0);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
+  const [nativePendingId, setNativePendingId] = useState<string | null>(null);
   const dragFrom = useRef<number | null>(null);
   const legacyIds = useRef(new WeakMap<object, string>());
   const usedIds = new Set<string>();
@@ -85,6 +87,25 @@ export function ItemsCtl({ n, c }: P) {
     return id;
   });
   const wordpressTargets = wordpressContentTargets();
+  const nativeSource = L.nativePageSource();
+  const nativePages = useNativePages(nativeSource);
+  const nativePageForItem = (it: any) => {
+    const byIdentity = nativePages.pages.find(page => page.id === String(it.objectId || ''));
+    if (byIdentity) return byIdentity;
+    const byUrl = nativePageForValue(nativePages.pages, it.href, window.location.origin);
+    if (byUrl) return byUrl;
+    const reference = C.parseWordPressContentReference(it.href);
+    if (!reference || reference.objectType !== 'page') return null;
+    const paths = nativePages.pages.map(page => {
+      try {
+        return { page, path: new URL(page.url).pathname };
+      } catch { return null; }
+    }).filter((entry): entry is { page: typeof nativePages.pages[number]; path: string } => !!entry);
+    const exact = paths.find(entry => entry.path === reference.path);
+    if (exact) return exact.page;
+    const suffixes = paths.filter(entry => entry.path.endsWith(reference.path));
+    return suffixes.length === 1 ? suffixes[0].page : null;
+  };
   const firstWordPressTarget = wordpressTargets.find(target => target.items.some(item =>
     !!wordpressReferenceForItem(target, item))) || null;
   const firstWordPress = firstWordPressTarget?.items.find(item =>
@@ -97,12 +118,19 @@ export function ItemsCtl({ n, c }: P) {
     items.forEach((item, index) => { if (String(item.id || '') !== itemIds[index]) item.id = itemIds[index]; });
     items[k].parentId = value;
   });
-  const commitDestination = (k: number, value: string, pageId?: string) => C.edit(() => {
+  const commitDestination = (k: number, value: string, identity?: {
+    pageId?: string; objectType?: string; objectId?: string;
+  }) => C.edit(() => {
     const row = rows(n, c)[k];
     row.href = value;
-    if (pageId) row.pageId = pageId; else delete row.pageId;
-    delete row.objectId;
-    delete row.objectType;
+    if (identity?.pageId) row.pageId = identity.pageId; else delete row.pageId;
+    if (identity?.objectType && identity.objectId) {
+      row.objectType = identity.objectType;
+      row.objectId = identity.objectId;
+    } else {
+      delete row.objectId;
+      delete row.objectType;
+    }
     delete row.anchor;
   });
   const parsed = (it: any) => C.parseLink(it.href, C.page().slug) as any;
@@ -110,7 +138,8 @@ export function ItemsCtl({ n, c }: P) {
     const link = parsed(it);
     const storedId = String(it.pageId || '');
     const storedPage = storedId ? C.state.pages.find(p => p.id === storedId) : null;
-    const legacyPage = !storedId && link.mode === 'page'
+    const nativeIdentity = !!it.objectId && ['page', 'post'].includes(String(it.objectType || ''));
+    const legacyPage = !storedId && !nativeIdentity && link.mode === 'page'
       ? C.state.pages.find(p => p.slug === (link.page || C.page().slug)) : null;
     const portable = storedId ? String(it.href || '').match(/^([\w-]+)\.html(?:#([\w-]+))?$/) : null;
     const page = storedPage || legacyPage || null;
@@ -119,14 +148,21 @@ export function ItemsCtl({ n, c }: P) {
       pageId: page?.id || storedId,
       slug: page?.slug || portable?.[1] || link.page || C.page().slug,
       frag: link.mode === 'page' ? link.frag || '' : portable?.[2] || '',
-      mode: !!storedId || link.mode === 'page'
+      mode: !!storedId || (!nativeIdentity && link.mode === 'page')
     };
   };
   const summary = (it: any) => {
     const destination = pageDestination(it);
     if (destination.mode) return `Page · ${destination.page?.name || 'Missing page'}`;
+    const native = nativePageForItem(it);
+    const reference = C.parseWordPressContentReference(it.href);
+    if (nativeSource && ((String(it.objectType || '') === 'page' && it.objectId)
+      || reference?.objectType === 'page' || native)) {
+      return `WordPress · Page · ${native?.title || reference?.path || 'Missing page'}`;
+    }
     const wordpress = wordpressDestinationForValue(it.href);
     if (wordpress) return `WordPress · ${wordpress.item.objectType === 'post' ? 'Post' : 'Page'} · ${wordpress.path}`;
+    if (reference) return `WordPress · ${reference.objectType === 'post' ? 'Post' : 'Page'} · ${reference.path}`;
     return String(it.href || '').trim() || 'Custom URL not set';
   };
   const finishDrag = (to: number) => {
@@ -161,7 +197,15 @@ export function ItemsCtl({ n, c }: P) {
     {arr.map((it, k) => {
       const destination = pageDestination(it);
       const wordpress = wordpressDestinationForValue(it.href);
-      const mode = destination.mode ? 'page' : wordpress ? 'wordpress' : 'custom';
+      const reference = C.parseWordPressContentReference(it.href);
+      const native = nativePageForItem(it);
+      const nativePending = !!nativeSource && nativePendingId === itemIds[k];
+      const nativeMode = !!nativeSource
+        && ((String(it.objectType || '') === 'page' && !!it.objectId)
+          || reference?.objectType === 'page' || !!native);
+      const mode = nativePending ? 'native'
+        : destination.mode ? 'page' : nativeMode ? 'native'
+          : wordpress || reference ? 'wordpress' : 'custom';
       const page = destination.slug;
       const anchors = mode === 'page' && destination.page ? C.anchorsOf(page) : [];
       const isDragging = dragging === k;
@@ -204,34 +248,55 @@ export function ItemsCtl({ n, c }: P) {
           <select class="ctl" value={mode} aria-label={`Destination for ${itemContext}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
             const current = C.page();
-            commitDestination(k, next === 'page'
-              ? C.buildLink({ mode: 'page', page: current.slug, frag: '' })
-              : next === 'wordpress' ? firstWordPressReference : '', next === 'page' ? current.id : undefined);
+            if (next === 'native') { setNativePendingId(itemIds[k]); return; }
+            setNativePendingId(null);
+            if (next === 'wordpress') {
+              const selected = wordpressDestinationForValue(firstWordPressReference);
+              commitDestination(k, firstWordPressReference, selected ? {
+                objectType: selected.item.objectType, objectId: selected.item.id
+              } : undefined);
+            } else commitDestination(k, next === 'page'
+              ? C.buildLink({ mode: 'page', page: current.slug, frag: '' }) : '',
+            next === 'page' ? { pageId: current.id } : undefined);
           }}>
             <option value="page">A Pagecraft page</option>
-            {firstWordPress ? <option value="wordpress">WordPress content</option> : null}
+            {nativeSource ? <option value="native">A WordPress page</option> : null}
+            {firstWordPress || reference ? <option value="wordpress">WordPress content</option> : null}
             <option value="custom">Custom URL</option>
           </select>
 
           {mode === 'page' ? <>
             <select class="ctl" value={destination.pageId} aria-label={`Destination page for ${itemContext}`} onChange={e => {
               const selected = C.state.pages.find(p => p.id === (e.target as HTMLSelectElement).value);
-              if (selected) commitDestination(k, C.buildLink({ mode: 'page', page: selected.slug, frag: '' }), selected.id);
+              if (selected) commitDestination(k, C.buildLink({ mode: 'page', page: selected.slug, frag: '' }), { pageId: selected.id });
             }}>
               {!destination.page && destination.storedId
                 ? <option value={destination.storedId} disabled>Missing page · {String(it.href || '')}</option> : null}
               {C.state.pages.map(p => <option key={p.id} value={p.id}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
             <select class="ctl" value={destination.frag} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
-              commitDestination(k, C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }), destination.pageId);
+              commitDestination(k, C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }), { pageId: destination.pageId });
             }}>
               <option value="">Top of the page</option>
               {anchors.map(id => <option key={id} value={id}>#{id}</option>)}
               {destination.frag && !anchors.includes(destination.frag)
                 ? <option value={destination.frag}>#{destination.frag} — missing</option> : null}
             </select>
-          </> : mode === 'wordpress' ? (
-            <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />
+          </> : mode === 'native' ? (
+            <NativePagePicker state={nativePages} value={native?.url || it.href}
+              savedLabel={reference ? `Saved WordPress page · ${reference.path}` : undefined}
+              onChange={(url, selected) => {
+                setNativePendingId(null);
+                commitDestination(k, url, { objectType: 'page', objectId: selected.id });
+              }} />
+          ) : mode === 'wordpress' ? (
+            firstWordPress ? <WordPressContentPicker value={it.href} onChange={url => {
+                const selected = wordpressDestinationForValue(url);
+                commitDestination(k, url, selected ? {
+                  objectType: selected.item.objectType, objectId: selected.item.id
+                } : undefined);
+              }} />
+              : <div class="note">Saved WordPress {reference?.objectType === 'post' ? 'post' : 'page'} · {reference?.path}</div>
           ) : <>
             <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section"
               aria-label={`Custom URL or section for ${itemContext}`} />

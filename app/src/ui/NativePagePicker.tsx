@@ -84,20 +84,21 @@ const statusLabel = (page: NativePageChoice) => page.status === 'publish'
   ? ''
   : ` · ${page.status === 'private' ? 'Private' : 'Draft'}`;
 
-export function NativePagePicker({ state, value, savedProjectPath, onChange }: {
+export function NativePagePicker({ state, value, savedProjectPath, savedLabel, onChange }: {
   state: NativePageState & { retry(): void };
   value: unknown;
   savedProjectPath?: string;
-  onChange(url: string): void;
+  savedLabel?: string;
+  onChange(url: string, page: NativePageChoice): void;
 }) {
   const selectId = useId();
   const exact = nativePageForValue(state.pages, value, window.location.origin);
   const raw = String(value == null ? '' : value).trim();
   const savedValue = raw && !exact ? '__saved' : '';
   const selected = exact?.url || savedValue;
-  const savedLabel = savedProjectPath
+  const fallbackLabel = savedLabel || (savedProjectPath
     ? `Saved project link · ${savedProjectPath}`
-    : `Saved URL · ${raw}`;
+    : `Saved URL · ${raw}`);
 
   return <div class="native-page-picker" style={{ marginTop: 'var(--gap-1)' }}>
     <label htmlFor={selectId}>WordPress page</label>
@@ -106,9 +107,10 @@ export function NativePagePicker({ state, value, savedProjectPath, onChange }: {
       disabled={state.status !== 'ready' || !state.pages.length}
       onChange={event => {
         const next = (event.target as HTMLSelectElement).value;
-        if (next && next !== '__saved') onChange(next);
+        const page = state.pages.find(choice => choice.url === next);
+        if (next && next !== '__saved' && page) onChange(next, page);
       }}>
-      {savedValue ? <option value="__saved">{savedLabel}</option> : null}
+      {savedValue ? <option value="__saved">{fallbackLabel}</option> : null}
       {!selected ? <option value="">{state.status === 'loading'
         ? 'Loading WordPress pages…'
         : state.status === 'error'

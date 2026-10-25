@@ -21186,6 +21186,109 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
 
+  // app/src/ui/NativePagePicker.tsx
+  function nativePageChoices(pages, currentPageId, origin) {
+    if (!Array.isArray(pages)) throw new TypeError("WordPress page catalogue must be an array");
+    const seen = /* @__PURE__ */ new Set();
+    const choices = [];
+    for (const row of pages) {
+      if (!row || typeof row !== "object") continue;
+      const page2 = row;
+      if (typeof page2.id !== "string" || typeof page2.title !== "string" || typeof page2.url !== "string" || !["draft", "publish", "private", "trash"].includes(String(page2.status))) continue;
+      const id = page2.id.trim();
+      const title = page2.title.trim();
+      if (!id || !title || page2.status === "trash" || !page2.url) continue;
+      try {
+        const url = new URL(page2.url, origin);
+        if (!["http:", "https:"].includes(url.protocol) || url.origin !== origin || url.username || url.password) continue;
+        const href = url.href;
+        if (seen.has(href)) continue;
+        seen.add(href);
+        choices.push({ id, title, status: page2.status, url: href, current: id === currentPageId });
+      } catch {
+      }
+    }
+    return choices;
+  }
+  function nativePageForValue(pages, value, origin) {
+    const exact = String(value == null ? "" : value).trim();
+    if (!exact) return null;
+    try {
+      const url = new URL(exact, origin);
+      if (!["http:", "https:"].includes(url.protocol) || url.origin !== origin) return null;
+      return pages.find((page2) => page2.url === url.href) || null;
+    } catch {
+      return null;
+    }
+  }
+  function useNativePages(source) {
+    const [attempt, setAttempt] = d2(0);
+    const [state2, setState] = d2(() => source ? { status: "loading", pages: [] } : { status: "absent", pages: [] });
+    h2(() => {
+      let live = true;
+      if (!source) {
+        setState({ status: "absent", pages: [] });
+        return () => {
+          live = false;
+        };
+      }
+      setState({ status: "loading", pages: [] });
+      Promise.resolve().then(() => source.list()).then((pages) => {
+        const choices = nativePageChoices(pages, source.currentPageId, window.location.origin);
+        if (live) setState({ status: "ready", pages: choices });
+      }).catch(() => {
+        if (live) setState({ status: "error", pages: [] });
+      });
+      return () => {
+        live = false;
+      };
+    }, [source, attempt]);
+    return { ...state2, retry: () => setAttempt((value) => value + 1) };
+  }
+  var statusLabel = (page2) => page2.status === "publish" ? "" : ` \xB7 ${page2.status === "private" ? "Private" : "Draft"}`;
+  function NativePagePicker({ state: state2, value, savedProjectPath, savedLabel, onChange }) {
+    const selectId = g2();
+    const exact = nativePageForValue(state2.pages, value, window.location.origin);
+    const raw = String(value == null ? "" : value).trim();
+    const savedValue = raw && !exact ? "__saved" : "";
+    const selected = exact?.url || savedValue;
+    const fallbackLabel = savedLabel || (savedProjectPath ? `Saved project link \xB7 ${savedProjectPath}` : `Saved URL \xB7 ${raw}`);
+    return /* @__PURE__ */ u2("div", { class: "native-page-picker", style: { marginTop: "var(--gap-1)" }, children: [
+      /* @__PURE__ */ u2("label", { htmlFor: selectId, children: "WordPress page" }),
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          id: selectId,
+          "data-field-part": "wordpress-page",
+          class: "ctl",
+          value: selected,
+          "aria-busy": state2.status === "loading",
+          disabled: state2.status !== "ready" || !state2.pages.length,
+          onChange: (event) => {
+            const next = event.target.value;
+            const page2 = state2.pages.find((choice) => choice.url === next);
+            if (next && next !== "__saved" && page2) onChange(next, page2);
+          },
+          children: [
+            savedValue ? /* @__PURE__ */ u2("option", { value: "__saved", children: fallbackLabel }) : null,
+            !selected ? /* @__PURE__ */ u2("option", { value: "", children: state2.status === "loading" ? "Loading WordPress pages\u2026" : state2.status === "error" ? "WordPress pages unavailable" : state2.status === "ready" && !state2.pages.length ? "No WordPress pages available" : "Choose a WordPress page" }) : null,
+            state2.pages.map((page2) => /* @__PURE__ */ u2("option", { value: page2.url, children: [
+              page2.title,
+              page2.current ? " \xB7 Current page" : "",
+              statusLabel(page2)
+            ] }, page2.id))
+          ]
+        }
+      ),
+      state2.status === "ready" && !state2.pages.length ? /* @__PURE__ */ u2("div", { class: "note", children: "No readable WordPress pages are available." }) : null,
+      savedProjectPath ? /* @__PURE__ */ u2("div", { class: "note", children: "Choose a WordPress page to replace this saved project link." }) : null,
+      state2.status === "error" ? /* @__PURE__ */ u2("div", { class: "note", role: "alert", children: [
+        "Could not load WordPress pages. ",
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", onClick: state2.retry, children: "Retry" })
+      ] }) : null
+    ] });
+  }
+
   // app/src/ui/inspector/Lists.tsx
   var list = (n2, c3) => {
     const v3 = valueOf(n2, c3);
@@ -21244,6 +21347,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const [, setLabelRevision] = d2(0);
     const [dragging, setDragging] = d2(null);
     const [dragOver, setDragOver] = d2(null);
+    const [nativePendingId, setNativePendingId] = d2(null);
     const dragFrom = A2(null);
     const legacyIds = A2(/* @__PURE__ */ new WeakMap());
     const usedIds = /* @__PURE__ */ new Set();
@@ -21262,6 +21366,27 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       return id;
     });
     const wordpressTargets = wordpressContentTargets();
+    const nativeSource = L2.nativePageSource();
+    const nativePages = useNativePages(nativeSource);
+    const nativePageForItem = (it) => {
+      const byIdentity = nativePages.pages.find((page2) => page2.id === String(it.objectId || ""));
+      if (byIdentity) return byIdentity;
+      const byUrl = nativePageForValue(nativePages.pages, it.href, window.location.origin);
+      if (byUrl) return byUrl;
+      const reference = C2.parseWordPressContentReference(it.href);
+      if (!reference || reference.objectType !== "page") return null;
+      const paths = nativePages.pages.map((page2) => {
+        try {
+          return { page: page2, path: new URL(page2.url).pathname };
+        } catch {
+          return null;
+        }
+      }).filter((entry) => !!entry);
+      const exact = paths.find((entry) => entry.path === reference.path);
+      if (exact) return exact.page;
+      const suffixes = paths.filter((entry) => entry.path.endsWith(reference.path));
+      return suffixes.length === 1 ? suffixes[0].page : null;
+    };
     const firstWordPressTarget = wordpressTargets.find((target) => target.items.some((item) => !!wordpressReferenceForItem(target, item))) || null;
     const firstWordPress = firstWordPressTarget?.items.find((item) => !!wordpressReferenceForItem(firstWordPressTarget, item)) || null;
     const firstWordPressReference = firstWordPressTarget && firstWordPress ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || "" : "";
@@ -21275,13 +21400,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       });
       items[k3].parentId = value;
     });
-    const commitDestination = (k3, value, pageId) => C2.edit(() => {
+    const commitDestination = (k3, value, identity) => C2.edit(() => {
       const row = rows(n2, c3)[k3];
       row.href = value;
-      if (pageId) row.pageId = pageId;
+      if (identity?.pageId) row.pageId = identity.pageId;
       else delete row.pageId;
-      delete row.objectId;
-      delete row.objectType;
+      if (identity?.objectType && identity.objectId) {
+        row.objectType = identity.objectType;
+        row.objectId = identity.objectId;
+      } else {
+        delete row.objectId;
+        delete row.objectType;
+      }
       delete row.anchor;
     });
     const parsed = (it) => C2.parseLink(it.href, C2.page().slug);
@@ -21289,7 +21419,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const link = parsed(it);
       const storedId = String(it.pageId || "");
       const storedPage = storedId ? C2.state.pages.find((p3) => p3.id === storedId) : null;
-      const legacyPage = !storedId && link.mode === "page" ? C2.state.pages.find((p3) => p3.slug === (link.page || C2.page().slug)) : null;
+      const nativeIdentity = !!it.objectId && ["page", "post"].includes(String(it.objectType || ""));
+      const legacyPage = !storedId && !nativeIdentity && link.mode === "page" ? C2.state.pages.find((p3) => p3.slug === (link.page || C2.page().slug)) : null;
       const portable = storedId ? String(it.href || "").match(/^([\w-]+)\.html(?:#([\w-]+))?$/) : null;
       const page2 = storedPage || legacyPage || null;
       return {
@@ -21299,14 +21430,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         pageId: page2?.id || storedId,
         slug: page2?.slug || portable?.[1] || link.page || C2.page().slug,
         frag: link.mode === "page" ? link.frag || "" : portable?.[2] || "",
-        mode: !!storedId || link.mode === "page"
+        mode: !!storedId || !nativeIdentity && link.mode === "page"
       };
     };
     const summary = (it) => {
       const destination = pageDestination(it);
       if (destination.mode) return `Page \xB7 ${destination.page?.name || "Missing page"}`;
+      const native = nativePageForItem(it);
+      const reference = C2.parseWordPressContentReference(it.href);
+      if (nativeSource && (String(it.objectType || "") === "page" && it.objectId || reference?.objectType === "page" || native)) {
+        return `WordPress \xB7 Page \xB7 ${native?.title || reference?.path || "Missing page"}`;
+      }
       const wordpress = wordpressDestinationForValue(it.href);
       if (wordpress) return `WordPress \xB7 ${wordpress.item.objectType === "post" ? "Post" : "Page"} \xB7 ${wordpress.path}`;
+      if (reference) return `WordPress \xB7 ${reference.objectType === "post" ? "Post" : "Page"} \xB7 ${reference.path}`;
       return String(it.href || "").trim() || "Custom URL not set";
     };
     const finishDrag = (to) => {
@@ -21341,7 +21478,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       arr.map((it, k3) => {
         const destination = pageDestination(it);
         const wordpress = wordpressDestinationForValue(it.href);
-        const mode = destination.mode ? "page" : wordpress ? "wordpress" : "custom";
+        const reference = C2.parseWordPressContentReference(it.href);
+        const native = nativePageForItem(it);
+        const nativePending = !!nativeSource && nativePendingId === itemIds[k3];
+        const nativeMode = !!nativeSource && (String(it.objectType || "") === "page" && !!it.objectId || reference?.objectType === "page" || !!native);
+        const mode = nativePending ? "native" : destination.mode ? "page" : nativeMode ? "native" : wordpress || reference ? "wordpress" : "custom";
         const page2 = destination.slug;
         const anchors = mode === "page" && destination.page ? C2.anchorsOf(page2) : [];
         const isDragging = dragging === k3;
@@ -21429,16 +21570,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${itemContext}`, onChange: (e3) => {
                   const next = e3.target.value;
                   const current = C2.page();
-                  commitDestination(k3, next === "page" ? C2.buildLink({ mode: "page", page: current.slug, frag: "" }) : next === "wordpress" ? firstWordPressReference : "", next === "page" ? current.id : void 0);
+                  if (next === "native") {
+                    setNativePendingId(itemIds[k3]);
+                    return;
+                  }
+                  setNativePendingId(null);
+                  if (next === "wordpress") {
+                    const selected = wordpressDestinationForValue(firstWordPressReference);
+                    commitDestination(k3, firstWordPressReference, selected ? {
+                      objectType: selected.item.objectType,
+                      objectId: selected.item.id
+                    } : void 0);
+                  } else commitDestination(
+                    k3,
+                    next === "page" ? C2.buildLink({ mode: "page", page: current.slug, frag: "" }) : "",
+                    next === "page" ? { pageId: current.id } : void 0
+                  );
                 }, children: [
                   /* @__PURE__ */ u2("option", { value: "page", children: "A Pagecraft page" }),
-                  firstWordPress ? /* @__PURE__ */ u2("option", { value: "wordpress", children: "WordPress content" }) : null,
+                  nativeSource ? /* @__PURE__ */ u2("option", { value: "native", children: "A WordPress page" }) : null,
+                  firstWordPress || reference ? /* @__PURE__ */ u2("option", { value: "wordpress", children: "WordPress content" }) : null,
                   /* @__PURE__ */ u2("option", { value: "custom", children: "Custom URL" })
                 ] }),
                 mode === "page" ? /* @__PURE__ */ u2(S, { children: [
                   /* @__PURE__ */ u2("select", { class: "ctl", value: destination.pageId, "aria-label": `Destination page for ${itemContext}`, onChange: (e3) => {
                     const selected = C2.state.pages.find((p3) => p3.id === e3.target.value);
-                    if (selected) commitDestination(k3, C2.buildLink({ mode: "page", page: selected.slug, frag: "" }), selected.id);
+                    if (selected) commitDestination(k3, C2.buildLink({ mode: "page", page: selected.slug, frag: "" }), { pageId: selected.id });
                   }, children: [
                     !destination.page && destination.storedId ? /* @__PURE__ */ u2("option", { value: destination.storedId, disabled: true, children: [
                       "Missing page \xB7 ",
@@ -21451,7 +21608,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     ] }, p3.id))
                   ] }),
                   /* @__PURE__ */ u2("select", { class: "ctl", value: destination.frag, "aria-label": `Destination section/anchor for ${itemContext}`, onChange: (e3) => {
-                    commitDestination(k3, C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }), destination.pageId);
+                    commitDestination(k3, C2.buildLink({ mode: "page", page: page2, frag: e3.target.value }), { pageId: destination.pageId });
                   }, children: [
                     /* @__PURE__ */ u2("option", { value: "", children: "Top of the page" }),
                     anchors.map((id) => /* @__PURE__ */ u2("option", { value: id, children: [
@@ -21464,7 +21621,29 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                       " \u2014 missing"
                     ] }) : null
                   ] })
-                ] }) : mode === "wordpress" ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => commitDestination(k3, url) }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(
+                ] }) : mode === "native" ? /* @__PURE__ */ u2(
+                  NativePagePicker,
+                  {
+                    state: nativePages,
+                    value: native?.url || it.href,
+                    savedLabel: reference ? `Saved WordPress page \xB7 ${reference.path}` : void 0,
+                    onChange: (url, selected) => {
+                      setNativePendingId(null);
+                      commitDestination(k3, url, { objectType: "page", objectId: selected.id });
+                    }
+                  }
+                ) : mode === "wordpress" ? firstWordPress ? /* @__PURE__ */ u2(WordPressContentPicker, { value: it.href, onChange: (url) => {
+                  const selected = wordpressDestinationForValue(url);
+                  commitDestination(k3, url, selected ? {
+                    objectType: selected.item.objectType,
+                    objectId: selected.item.id
+                  } : void 0);
+                } }) : /* @__PURE__ */ u2("div", { class: "note", children: [
+                  "Saved WordPress ",
+                  reference?.objectType === "post" ? "post" : "page",
+                  " \xB7 ",
+                  reference?.path
+                ] }) : /* @__PURE__ */ u2(S, { children: /* @__PURE__ */ u2(
                   RowInput,
                   {
                     n: n2,
@@ -21909,108 +22088,6 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ) : null
       ] }),
       /* @__PURE__ */ u2(HelpTip, { label: "Gallery alt text", text: "Describe each image for screen readers." })
-    ] });
-  }
-
-  // app/src/ui/NativePagePicker.tsx
-  function nativePageChoices(pages, currentPageId, origin) {
-    if (!Array.isArray(pages)) throw new TypeError("WordPress page catalogue must be an array");
-    const seen = /* @__PURE__ */ new Set();
-    const choices = [];
-    for (const row of pages) {
-      if (!row || typeof row !== "object") continue;
-      const page2 = row;
-      if (typeof page2.id !== "string" || typeof page2.title !== "string" || typeof page2.url !== "string" || !["draft", "publish", "private", "trash"].includes(String(page2.status))) continue;
-      const id = page2.id.trim();
-      const title = page2.title.trim();
-      if (!id || !title || page2.status === "trash" || !page2.url) continue;
-      try {
-        const url = new URL(page2.url, origin);
-        if (!["http:", "https:"].includes(url.protocol) || url.origin !== origin || url.username || url.password) continue;
-        const href = url.href;
-        if (seen.has(href)) continue;
-        seen.add(href);
-        choices.push({ id, title, status: page2.status, url: href, current: id === currentPageId });
-      } catch {
-      }
-    }
-    return choices;
-  }
-  function nativePageForValue(pages, value, origin) {
-    const exact = String(value == null ? "" : value).trim();
-    if (!exact) return null;
-    try {
-      const url = new URL(exact, origin);
-      if (!["http:", "https:"].includes(url.protocol) || url.origin !== origin) return null;
-      return pages.find((page2) => page2.url === url.href) || null;
-    } catch {
-      return null;
-    }
-  }
-  function useNativePages(source) {
-    const [attempt, setAttempt] = d2(0);
-    const [state2, setState] = d2(() => source ? { status: "loading", pages: [] } : { status: "absent", pages: [] });
-    h2(() => {
-      let live = true;
-      if (!source) {
-        setState({ status: "absent", pages: [] });
-        return () => {
-          live = false;
-        };
-      }
-      setState({ status: "loading", pages: [] });
-      Promise.resolve().then(() => source.list()).then((pages) => {
-        const choices = nativePageChoices(pages, source.currentPageId, window.location.origin);
-        if (live) setState({ status: "ready", pages: choices });
-      }).catch(() => {
-        if (live) setState({ status: "error", pages: [] });
-      });
-      return () => {
-        live = false;
-      };
-    }, [source, attempt]);
-    return { ...state2, retry: () => setAttempt((value) => value + 1) };
-  }
-  var statusLabel = (page2) => page2.status === "publish" ? "" : ` \xB7 ${page2.status === "private" ? "Private" : "Draft"}`;
-  function NativePagePicker({ state: state2, value, savedProjectPath, onChange }) {
-    const selectId = g2();
-    const exact = nativePageForValue(state2.pages, value, window.location.origin);
-    const raw = String(value == null ? "" : value).trim();
-    const savedValue = raw && !exact ? "__saved" : "";
-    const selected = exact?.url || savedValue;
-    const savedLabel = savedProjectPath ? `Saved project link \xB7 ${savedProjectPath}` : `Saved URL \xB7 ${raw}`;
-    return /* @__PURE__ */ u2("div", { class: "native-page-picker", style: { marginTop: "var(--gap-1)" }, children: [
-      /* @__PURE__ */ u2("label", { htmlFor: selectId, children: "WordPress page" }),
-      /* @__PURE__ */ u2(
-        "select",
-        {
-          id: selectId,
-          "data-field-part": "wordpress-page",
-          class: "ctl",
-          value: selected,
-          "aria-busy": state2.status === "loading",
-          disabled: state2.status !== "ready" || !state2.pages.length,
-          onChange: (event) => {
-            const next = event.target.value;
-            if (next && next !== "__saved") onChange(next);
-          },
-          children: [
-            savedValue ? /* @__PURE__ */ u2("option", { value: "__saved", children: savedLabel }) : null,
-            !selected ? /* @__PURE__ */ u2("option", { value: "", children: state2.status === "loading" ? "Loading WordPress pages\u2026" : state2.status === "error" ? "WordPress pages unavailable" : state2.status === "ready" && !state2.pages.length ? "No WordPress pages available" : "Choose a WordPress page" }) : null,
-            state2.pages.map((page2) => /* @__PURE__ */ u2("option", { value: page2.url, children: [
-              page2.title,
-              page2.current ? " \xB7 Current page" : "",
-              statusLabel(page2)
-            ] }, page2.id))
-          ]
-        }
-      ),
-      state2.status === "ready" && !state2.pages.length ? /* @__PURE__ */ u2("div", { class: "note", children: "No readable WordPress pages are available." }) : null,
-      savedProjectPath ? /* @__PURE__ */ u2("div", { class: "note", children: "Choose a WordPress page to replace this saved project link." }) : null,
-      state2.status === "error" ? /* @__PURE__ */ u2("div", { class: "note", role: "alert", children: [
-        "Could not load WordPress pages. ",
-        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", onClick: state2.retry, children: "Retry" })
-      ] }) : null
     ] });
   }
 
