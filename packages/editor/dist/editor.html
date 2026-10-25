@@ -18044,9 +18044,11 @@ var PC_UI = (() => {
     return { ...state2, reload: () => setNonce((n2) => n2 + 1) };
   }
   function commit(doc, label) {
-    const meta = doc.meta;
     C2.edit(() => {
-      C2.state.meta = meta;
+      C2.state.meta = doc.meta;
+      C2.state.header = doc.header;
+      C2.state.footer = doc.footer;
+      C2.state.pages = doc.pages;
     }, label);
     L2.appRender();
   }

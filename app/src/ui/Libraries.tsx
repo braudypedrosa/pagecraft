@@ -130,12 +130,17 @@ function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
   return { ...state, reload: () => setNonce(n => n + 1) };
 }
 
-/* Applying a plan: the whole meta at once, in one edit(), computed from the document as it is at
-   that moment rather than when the review was drawn. Then the full render cycle, because the
-   canvas, the layers and every panel may now show something new. */
+/* Applying a plan: the whole document at once, in one edit(), computed from the document as it
+   is at that moment rather than when the review was drawn. Keep the live UI and current page;
+   library plans own document data only. Then run the full render cycle, because the canvas, the
+   layers and every panel may now show something new. */
 function commit(doc: Doc, label: string) {
-  const meta = doc.meta;
-  C.edit(() => { C.state.meta = meta; }, label);
+  C.edit(() => {
+    C.state.meta = doc.meta;
+    C.state.header = doc.header;
+    C.state.footer = doc.footer;
+    C.state.pages = doc.pages;
+  }, label);
   L.appRender();
 }
 

@@ -179,6 +179,8 @@ test('importing copies the images first and lands as one undo step with links', 
   await openLibrary('Brand kit');
   expect(r.$('.lib-head b')?.textContent).toBe('Brand kit');
   await tick('Card');
+  const documentTrees = clone({ pages: C.state.pages, header: C.state.header, footer: C.state.footer });
+  const ui = C.state.ui, currentPage = C.state.cur;
   await click(button('Import 1 item'));
 
   expect(fake.sent.copied).toEqual([['aauthorimage1']]);
@@ -190,6 +192,9 @@ test('importing copies the images first and lands as one undo step with links', 
     .toEqual(['color:accent@1', 'component:card@1']);
   expect(C.hist.u.length).toBe(1);
   expect(C.historyLabel('undo')).toBe('Import library items');
+  expect({ pages: C.state.pages, header: C.state.header, footer: C.state.footer }).toEqual(documentTrees);
+  expect(C.state.ui).toBe(ui);
+  expect(C.state.cur).toBe(currentPage);
   expect(toasts().at(-1)).toMatch(/Imported 2 items from Brand kit/);
   // The row now says it is here, and is no longer offered.
   const row = r.$$('label.lib-item').find(l => l.querySelector('b')?.textContent === 'Card')!;
@@ -308,6 +313,59 @@ test('an update asks about each conflict, then applies as one undo step', async 
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Version two');
 });
 
+test('applying an update commits placement cleanup across the whole document and Undo restores it', async () => {
+  const v1 = card('Version one');
+  v1.props = [{ k: 'gone', label: 'Gone', t: 'link', def: '/old' }];
+  v1.variants = [{ id: 'old', name: 'Old', values: { gone: '/variant', '@link-target:gone': '_blank' } }];
+  const lib = await fake.adapter.create('Placement kit');
+  fake.publishFrom(lib.id, authorDoc([v1]), [{ kind: 'component', id: 'card' }]);
+  await openLibrary('Placement kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+
+  const placement = (id: string) => node(id, 'box', {
+    use: 'card', variant: 'old', vals: { gone: '/local', '@link-target:gone': '_blank' },
+  });
+  const pageIndex = C.state.pages.length;
+  C.state.pages.push({ ...clone(C.state.pages[0]), id: 'page-two', name: 'Two', slug: 'two', tree: [placement('page-use')] });
+  C.state.header = [placement('header-use')];
+  C.state.footer = [placement('footer-use')];
+  C.state.cur = pageIndex;
+  const ui = C.state.ui;
+
+  const v2 = card('Version two');
+  fake.publishFrom(lib.id, authorDoc([v2]), [{ kind: 'component', id: 'card' }]);
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  expect(C.state.pages[pageIndex].tree[0].vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+  C.hist.u.length = 0;
+  await click(button('Apply update'));
+
+  const uses = [C.state.pages[pageIndex].tree[0], C.state.header[0], C.state.footer[0]];
+  for (const use of uses) {
+    expect(use.vals).toBeUndefined();
+    expect(use.variant).toBeUndefined();
+  }
+  expect(C.state.cur).toBe(pageIndex);
+  expect(C.state.ui).toBe(ui);
+  expect(C.findComponent('card')!.node.children[0].props.text).toBe('Version two');
+  expect(C.hist.u).toHaveLength(1);
+  expect(C.hist.u[0].pages[pageIndex].tree[0].vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+  expect(C.historyLabel('undo')).toBe('Update library');
+
+  C.undo();
+  for (const use of [C.state.pages[pageIndex].tree[0], C.state.header[0], C.state.footer[0]]) {
+    expect(use.vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+    expect(use.variant).toBe('old');
+  }
+  expect(C.findComponent('card')!.node.children[0].props.text).toBe('Version one');
+  C.redo();
+  expect(C.state.pages[pageIndex].tree[0].vals).toBeUndefined();
+  expect(C.state.header[0].vals).toBeUndefined();
+  expect(C.state.footer[0].vals).toBeUndefined();
+});
+
 test('keeping a local library item labels its metadata-only update for Undo and Redo', async () => {
   const lib = await fake.adapter.create('Brand kit');
   fake.publishFrom(lib.id, authorDoc([card('Version one')]), [{ kind: 'component', id: 'card' }]);
@@ -315,6 +373,7 @@ test('keeping a local library item labels its metadata-only update for Undo and 
   await tick('Card');
   await click(button('Import 1 item'));
   C.findComponent('card')!.node.children[0].props.text = 'Changed here';
+  const documentTrees = clone({ pages: C.state.pages, header: C.state.header, footer: C.state.footer });
   fake.publishFrom(lib.id, authorDoc([card('Version two')]), [{ kind: 'component', id: 'card' }]);
 
   await click(r.$('.lib-back'));
@@ -328,6 +387,7 @@ test('keeping a local library item labels its metadata-only update for Undo and 
 
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
   expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
+  expect({ pages: C.state.pages, header: C.state.header, footer: C.state.footer }).toEqual(documentTrees);
   expect(C.historyLabel('undo')).toBe('Update library');
   C.undo();
   expect(C.historyLabel('redo')).toBe('Update library');
