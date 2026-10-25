@@ -284,6 +284,7 @@ const cleanHref = (v: unknown) => {
   return s === 'cms:item' || s.startsWith('pagecraft:wordpress-content:') ? s : safeUrl(s);
 };
 const cleanTarget = (v: unknown) => (v === '_blank' ? '_blank' : '');
+const LINK_TARGET = '@link-target:';
 
 /** One item as a site may hold it. `components` is the bundle's, so a nested instance's values
     can be cleaned by the kind its own definition gives them. */
@@ -291,7 +292,13 @@ function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]
   const byKind = (def: ComponentDef | undefined, k: string) => def?.props.find(p => p.k === k)?.t;
   const cleanValue = (t: string | undefined, v: string) => (t === 'rich' ? cleanRich(v) : t === 'link' ? cleanHref(v) : v);
   const cleanValues = (def: ComponentDef | undefined, values: Record<string, string> | undefined) => {
-    for (const k of Object.keys(values || {})) values![k] = cleanValue(byKind(def, k), values![k]);
+    for (const k of Object.keys(values || {})) {
+      if (k.startsWith(LINK_TARGET)) {
+        const property = k.slice(LINK_TARGET.length);
+        if (byKind(def, property) === 'link') values![k] = cleanTarget(values![k]);
+        else delete values![k];
+      } else values![k] = cleanValue(byKind(def, k), values![k]);
+    }
   };
   const cleanNode = (n: Node) => {
     const p = (n.props || {}) as Record<string, unknown>;
@@ -526,7 +533,7 @@ function componentWarnings(doc: Doc, localId: string, before: ComponentDef, afte
   const warnings: string[] = [];
   const instances = instancesOf(doc, localId);
   const variants = new Set((after.variants || []).map(v => v.id));
-  const props = new Set(after.props.map(p => p.k));
+  const props = new Set(after.props.flatMap(p => p.t === 'link' ? [p.k, LINK_TARGET + p.k] : [p.k]));
   const slots = slotNames(after);
   const firstSlot = [...slotNames(before)][0];
   const lostVariant = instances.filter(n => n.variant && !variants.has(n.variant)).length;

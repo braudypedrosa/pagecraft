@@ -8110,8 +8110,11 @@ function applyOne(n, c, v) {
     return;
   }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
-  else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? "" : String(v));
-  else if (c.k) {
+  else if (c.k && c.k.startsWith(VAL)) {
+    const key = c.k.slice(VAL.length);
+    if (key.startsWith(LINK_TARGET)) instLinkTargetSet(n, key.slice(LINK_TARGET.length), v);
+    else instSet(n, key, v == null ? "" : String(v));
+  } else if (c.k) {
     const props = n.props;
     if (n.type === "list" && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
     props[c.k] = v;
@@ -8912,6 +8915,8 @@ function boundProps(n, col, item, inst, def) {
       const v2 = instValue(inst, def || null, b.path, col, item);
       const field = col ? boundField(inst, VAL + b.path) : "";
       out[k] = !rich ? boundValue(k, v2) : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
+      const linked = linkControl(n, k);
+      if (linked) out[linked.tk || "target"] = instLinkTarget(inst, def || null, b.path, n);
       continue;
     }
     if (b.src !== "field" || !col || !item) continue;
@@ -9173,7 +9178,54 @@ function setMobileMenuMode(n, mode) {
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
+var LINK_TARGET = "@link-target:";
+var linkTargetKey = (k) => LINK_TARGET + k;
+var ownsKey = (value, key) => !!value && Object.prototype.hasOwnProperty.call(value, key);
+var linkControl = (n, key) => (DEF[n.type]?.controls.content || []).find((c) => c.k === key && c.t === "link") || null;
+var propertyLinkDestinations = (def, k) => {
+  const out = [];
+  if (!def) return out;
+  eachNode([def.node], (node) => Object.entries(node.bind || {}).forEach(([key, binding]) => {
+    const ctl = linkControl(node, key);
+    if (ctl && binding.src === "prop" && binding.path === k) {
+      out.push({ node, target: ctl.tk || "target" });
+    }
+  }));
+  return out;
+};
+var unambiguousLegacyLinkTarget = (inst, def, k) => {
+  if (!def || (def.props || []).filter((prop) => prop.t === "link").length !== 1) return "";
+  if (!propertyLinkDestinations(def, k).length) return "";
+  const rootLinks = (DEF[def.node.type]?.controls.content || []).filter((c) => c.t === "link" && c.k);
+  const independentRootLink = rootLinks.some((control) => {
+    const binding = bindGet(def.node, control.k);
+    if (binding) return binding.src !== "prop" || binding.path !== k;
+    return !!String(def.node.props[control.k] || "").trim() || !!String(inst.props[control.k] || "").trim();
+  });
+  if (independentRootLink) return "";
+  const definitionTarget = String(def.node.props.target || "");
+  return inst.props.target === "_blank" && definitionTarget !== "_blank" ? "_blank" : "";
+};
+function instLinkTarget(inst, def, k, destination) {
+  const sidecar = linkTargetKey(k);
+  const ownValue = inst.vals && ownsKey(inst.vals, sidecar) ? inst.vals[sidecar] : void 0;
+  if (ownValue !== void 0) return ownValue === "_blank" ? "_blank" : "";
+  const variant = findVariant(def, inst.variant);
+  const variantValue = variant && ownsKey(variant.values, sidecar) ? variant.values[sidecar] : void 0;
+  if (variantValue !== void 0) return variantValue === "_blank" ? "_blank" : "";
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  if (legacy) return legacy;
+  const destinationEntry = propertyLinkDestinations(def, k).find((entry) => !destination || entry.node === destination) || propertyLinkDestinations(def, k)[0];
+  return destinationEntry && destinationEntry.node.props[destinationEntry.target] === "_blank" ? "_blank" : "";
+}
+function instLinkTargetSet(inst, k, value) {
+  const def = findComponent(inst.use);
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  instSet(inst, linkTargetKey(k), value === "_blank" ? "_blank" : "");
+  if (legacy) delete inst.props.target;
+}
 function instValue(inst, def, k, col, item) {
+  if (k.startsWith(LINK_TARGET)) return instLinkTarget(inst, def, k.slice(LINK_TARGET.length));
   const field = boundField(inst, VAL + k);
   if (field && col) return fieldValue(col, item || null, field);
   const own = inst.vals ? inst.vals[k] : void 0;
@@ -9183,7 +9235,11 @@ function instValue(inst, def, k, col, item) {
   const p = findProp(def, k);
   return p ? p.def : "";
 }
-var instOwn = (inst) => Object.keys(inst.vals || {});
+var instOwn = (inst) => {
+  const def = findComponent(inst.use);
+  if (!def) return Object.keys(inst.vals || {});
+  return (def.props || []).filter((prop) => ownsKey(inst.vals, prop.k) || prop.t === "link" && (ownsKey(inst.vals, linkTargetKey(prop.k)) || !!unambiguousLegacyLinkTarget(inst, def, prop.k))).map((prop) => prop.k);
+};
 function variantSet(inst, vid2) {
   const def = findComponent(inst.use);
   if (vid2 && findVariant(def, vid2)) inst.variant = vid2;
@@ -9199,9 +9255,19 @@ function variantFromInstance(inst, name) {
   const from = findVariant(def, inst.variant);
   if (from) Object.assign(values, from.values);
   Object.assign(values, inst.vals || {});
+  const recovered = [];
+  (def.props || []).forEach((prop) => {
+    if (prop.t !== "link") return;
+    const legacy = unambiguousLegacyLinkTarget(inst, def, prop.k);
+    if (legacy && !ownsKey(values, linkTargetKey(prop.k))) {
+      values[linkTargetKey(prop.k)] = legacy;
+      recovered.push(prop.k);
+    }
+  });
   def.variants = def.variants || [];
   def.variants.push({ id, name: String(name || "Variant").slice(0, 40), values });
   delete inst.vals;
+  if (recovered.length) delete inst.props.target;
   inst.variant = id;
   return id;
 }
@@ -9227,10 +9293,13 @@ var variantRename = (cid, vid2, name) => {
 };
 function instSet(inst, k, v) {
   if (v === void 0) {
+    const def = findComponent(inst.use);
     if (inst.vals) {
       delete inst.vals[k];
+      if (findProp(def, k)?.t === "link") delete inst.vals[linkTargetKey(k)];
       if (!Object.keys(inst.vals).length) delete inst.vals;
     }
+    if (findProp(def, k)?.t === "link" && unambiguousLegacyLinkTarget(inst, def, k)) delete inst.props.target;
     return;
   }
   inst.vals = inst.vals || {};
@@ -9284,6 +9353,7 @@ function instControls(n) {
     t: PROP_CTL[pr.t],
     k: VAL + pr.k,
     label: pr.label,
+    tk: pr.t === "link" ? VAL + linkTargetKey(pr.k) : void 0,
     opts: pr.t === "select" ? pr.opts || [] : void 0
   }));
 }
@@ -9433,6 +9503,9 @@ function propMove(cid, k, dir) {
 function propDelete(cid, k) {
   const c = findComponent(cid);
   if (!c) return 0;
+  const target = linkTargetKey(k);
+  const uses = instances(cid);
+  const legacyOwners = new Set(uses.filter(({ node }) => !!unambiguousLegacyLinkTarget(node, c, k)).map(({ node }) => node));
   c.props = (c.props || []).filter((x) => x.k !== k);
   let n = 0;
   eachNode([c.node], (x) => {
@@ -9443,9 +9516,18 @@ function propDelete(cid, k) {
       }
     });
   });
-  instances(cid).forEach(({ node }) => {
-    instSet(node, k, void 0);
+  uses.forEach(({ node }) => {
+    if (node.vals) {
+      delete node.vals[k];
+      delete node.vals[target];
+      if (!Object.keys(node.vals).length) delete node.vals;
+    }
+    if (legacyOwners.has(node)) delete node.props.target;
     bindSet(node, VAL + k, null);
+  });
+  variantsOf(c).forEach((variant) => {
+    delete variant.values[k];
+    delete variant.values[target];
   });
   return n;
 }
@@ -9457,12 +9539,14 @@ function componentDelete(cid) {
     const copy = reid(clone(def.node));
     const kept = node.children || [];
     const placed = /* @__PURE__ */ new Set();
-    const settle = (x) => {
+    const settle = (x, source) => {
       if (x !== copy && x.use) return;
       Object.entries(x.bind || {}).forEach(([key, b]) => {
         if (b.src !== "prop") return;
         const field = boundField(node, VAL + b.path);
         x.props[key] = instValue(node, def, b.path);
+        const linked = linkControl(x, key);
+        if (linked) x.props[linked.tk || "target"] = instLinkTarget(node, def, b.path, source);
         bindSet(x, key, field ? bindField(field) : null);
       });
       const c = x.showIf;
@@ -9481,9 +9565,9 @@ function componentDelete(cid) {
         x.children = filled;
         return;
       }
-      (x.children || []).forEach(settle);
+      (x.children || []).forEach((child, i) => settle(child, (source.children || [])[i] || child));
     };
-    settle(copy);
+    settle(copy, def.node);
     const over = (a, b) => ({ d: { ...a?.d, ...b?.d }, t: { ...a?.t, ...b?.t }, m: { ...a?.m, ...b?.m } });
     const st = {};
     STATES.forEach(([k]) => {
@@ -9633,7 +9717,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 13;
+var SCHEMA = 14;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const schemaVersion = d.schemaVersion;
@@ -13122,6 +13206,7 @@ var __CORE = {
   LAYOUTS,
   LB_JS,
   LIGHTBOX_FAILURE_CSS,
+  LINK_TARGET,
   MIN_COL,
   MQ,
   N,
@@ -13314,6 +13399,8 @@ var __CORE = {
   initUi,
   insert,
   instControls,
+  instLinkTarget,
+  instLinkTargetSet,
   instOwn,
   instSet,
   instValue,
@@ -13338,6 +13425,7 @@ var __CORE = {
   labelOf,
   layerTarget,
   linkOf,
+  linkTargetKey,
   lint,
   lintCounts,
   listItems,
@@ -17556,11 +17644,18 @@ var PC_UI = (() => {
     return s3 === "cms:item" || s3.startsWith("pagecraft:wordpress-content:") ? s3 : safeUrl(s3);
   };
   var cleanTarget = (v3) => v3 === "_blank" ? "_blank" : "";
+  var LINK_TARGET = "@link-target:";
   function cleanItem(kind, item, components2) {
     const byKind = (def, k3) => def?.props.find((p3) => p3.k === k3)?.t;
     const cleanValue = (t3, v3) => t3 === "rich" ? cleanRich(v3) : t3 === "link" ? cleanHref(v3) : v3;
     const cleanValues = (def, values) => {
-      for (const k3 of Object.keys(values || {})) values[k3] = cleanValue(byKind(def, k3), values[k3]);
+      for (const k3 of Object.keys(values || {})) {
+        if (k3.startsWith(LINK_TARGET)) {
+          const property = k3.slice(LINK_TARGET.length);
+          if (byKind(def, property) === "link") values[k3] = cleanTarget(values[k3]);
+          else delete values[k3];
+        } else values[k3] = cleanValue(byKind(def, k3), values[k3]);
+      }
     };
     const cleanNode = (n2) => {
       const p3 = n2.props || {};
@@ -17740,7 +17835,7 @@ var PC_UI = (() => {
     const warnings = [];
     const instances = instancesOf(doc, localId);
     const variants = new Set((after.variants || []).map((v3) => v3.id));
-    const props = new Set(after.props.map((p3) => p3.k));
+    const props = new Set(after.props.flatMap((p3) => p3.t === "link" ? [p3.k, LINK_TARGET + p3.k] : [p3.k]));
     const slots = slotNames(after);
     const firstSlot = [...slotNames(before)][0];
     const lostVariant = instances.filter((n2) => n2.variant && !variants.has(n2.variant)).length;
@@ -22902,6 +22997,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ) : null
     ] });
   }
+  function LinkTargetToggle({ n: n2, c: c3 }) {
+    const tkey = c3.tk || "target";
+    const blank = C2.propVal(n2, tkey) === "_blank";
+    return /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginTop: "var(--gap-1)" }, children: [
+      /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": blank ? "true" : "false",
+          "aria-label": "Open in a new tab",
+          class: "sw-tog" + (blank ? " on" : ""),
+          onClick: () => {
+            L2.tx(n2.id + "|" + tkey);
+            C2.applyC(n2, { k: tkey }, blank ? "" : "_blank");
+            L2.endTx();
+            L2.paint();
+            L2.save();
+            repaint("right");
+          },
+          children: /* @__PURE__ */ u2("i", {})
+        }
+      )
+    ] });
+  }
   function LinkCtl({ n: n2, c: c3 }) {
     const here = C2.page().slug;
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
@@ -22933,9 +23054,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ["email", "Email address"],
       ["phone", "Phone number"]
     ];
-    const commit2 = (o3) => {
+    const commit2 = (o3, clearTarget = false) => {
       L2.tx(key2);
       C2.applyC(n2, c3, C2.buildLink(o3));
+      if (clearTarget) C2.applyC(n2, { k: tkey }, "");
       L2.endTx();
       L2.paint();
       L2.save();
@@ -22967,9 +23089,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               return;
             }
             setNativePendingKey(null);
-            if (mode === "none") n2.props[tkey] = "";
             C2.state.ui.lmode = mode === "none" ? null : { key: n2.id + "|" + c3.k, mode };
-            commit2(mode === "page" ? { mode, page: here, frag: "" } : mode === "url" && samePageAnchor ? { mode, value: rawLink } : { mode });
+            commit2(mode === "page" ? { mode, page: here, frag: "" } : mode === "url" && samePageAnchor ? { mode, value: rawLink } : { mode }, mode === "none");
             if (mode === "item") C2.state.ui.lmode = null;
           },
           children: MODES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
@@ -23056,28 +23177,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         scope.col.slug,
         "/<slug>"
       ] }) : null,
-      shownMode !== "none" ? /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginTop: "var(--gap-1)" }, children: [
-        /* @__PURE__ */ u2("span", { children: "Open in a new tab" }),
-        /* @__PURE__ */ u2(
-          "button",
-          {
-            type: "button",
-            role: "switch",
-            "aria-checked": C2.propVal(n2, tkey) === "_blank" ? "true" : "false",
-            "aria-label": "Open in a new tab",
-            class: "sw-tog" + (C2.propVal(n2, tkey) === "_blank" ? " on" : ""),
-            onClick: () => {
-              L2.tx(key2);
-              n2.props[tkey] = C2.propVal(n2, tkey) === "_blank" ? "" : "_blank";
-              L2.endTx();
-              L2.paint();
-              L2.save();
-              repaint("right");
-            },
-            children: /* @__PURE__ */ u2("i", {})
-          }
-        )
-      ] }) : null
+      shownMode !== "none" ? /* @__PURE__ */ u2(LinkTargetToggle, { n: n2, c: c3 }) : null
     ] });
   }
   function DimsCtl({ n: n2, c: c3 }) {
@@ -23242,6 +23342,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!Cmp) return null;
     if (c3.k?.startsWith(C2.VAL) && bound(n2, c3).fid) {
       const value = String(valueOf(n2, c3) ?? "");
+      if (c3.t === "link") return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+        /* @__PURE__ */ u2("input", { class: "ctl", value, disabled: true, "aria-label": c3.label || "CMS value" }),
+        /* @__PURE__ */ u2(LinkTargetToggle, { n: n2, c: c3 })
+      ] });
       const shown2 = c3.t === "toggle" ? ["", "0", "false"].includes(value) ? "No" : "Yes" : c3.t === "rich" ? value.replace(/<[^>]*>/g, "").slice(0, 180) : value;
       return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("input", { class: "ctl", value: shown2, disabled: true, "aria-label": c3.label || "CMS value" }) });
     }
@@ -27354,7 +27458,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const h3 = locate(id);
     return h3 && h3.parent ? h3.parent.id : null;
   };
-  var SCHEMA = 13;
+  var SCHEMA = 14;
   function migrate(d3) {
     if (!d3 || !d3.pages || !d3.pages.length) return null;
     const schemaVersion = d3.schemaVersion;
@@ -28355,7 +28459,7 @@ const IS_WORDPRESS = !!WP;
 /* The package build replaces only this marked literal. Saved output must identify
    the renderer that actually produced it, never the server version that requested it. */
 const BUNDLED_COMPILER_CONTRACT = Object.freeze(
-  /*PAGECRAFT_COMPILER_DESCRIPTOR_START*/ {"format":"pagecraft.editor-contract.v1","editorVersion":"0.2.17","schemaVersion":13,"rendererVersion":"pagecraft-core-13","rendererRevision":"pagecraft-renderer-2"} /*PAGECRAFT_COMPILER_DESCRIPTOR_END*/
+  /*PAGECRAFT_COMPILER_DESCRIPTOR_START*/ {"format":"pagecraft.editor-contract.v1","editorVersion":"0.2.17","schemaVersion":14,"rendererVersion":"pagecraft-core-14","rendererRevision":"pagecraft-renderer-2"} /*PAGECRAFT_COMPILER_DESCRIPTOR_END*/
 );
 if (SRV && !IS_WORDPRESS) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));

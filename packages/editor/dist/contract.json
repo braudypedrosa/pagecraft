@@ -1,8 +1,8 @@
 {
   "format": "pagecraft.editor-contract.v1",
   "editorVersion": "0.2.17",
-  "schemaVersion": 13,
-  "rendererVersion": "pagecraft-core-13",
+  "schemaVersion": 14,
+  "rendererVersion": "pagecraft-core-14",
   "rendererRevision": "pagecraft-renderer-2",
   "hosts": {
     "wordpress": "explicit-feature-contract",

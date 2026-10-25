@@ -331,9 +331,9 @@ export interface Node {
       same shape `adv.block` had, back when a global block tagged its copies — which is what
       this replaced. */
   use?: string;
-  /** An instance's property values, by property key. Absent keys take the variant's value if
-      it names one, then the definition's default — so changing a default moves every instance
-      that never overrode it. */
+  /** An instance's property values, by property key. Link targets use the reserved companion
+      key `@link-target:<property>` so the href remains a backward-compatible string. Absent
+      keys take the variant's value if it names one, then the definition's default. */
   vals?: Record<string, string>;
   /** which variant of the component this instance is, if any */
   variant?: string;

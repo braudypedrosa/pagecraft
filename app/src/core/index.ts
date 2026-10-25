@@ -4507,7 +4507,11 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_cls') { n.adv.cls = v; return; }
   if (c.k === '_css') { n.adv.css = v; return; }
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
-  else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? '' : String(v));
+  else if (c.k && c.k.startsWith(VAL)) {
+    const key = c.k.slice(VAL.length);
+    if (key.startsWith(LINK_TARGET)) instLinkTargetSet(n, key.slice(LINK_TARGET.length), v);
+    else instSet(n, key, v == null ? '' : String(v));
+  }
   else if (c.k) {
     const props = n.props as PropBag;
     if (n.type === 'list' && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
@@ -5584,6 +5588,8 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
       (out as PropBag)[k] = !rich ? boundValue(k, v)
         : field ? cmsRich(v, fieldAt(col, field))
           : (findProp(def || null, b.path) || { t: '' }).t === 'rich' ? v : para(v);
+      const linked = linkControl(n, k);
+      if (linked) (out as PropBag)[linked.tk || 'target'] = instLinkTarget(inst, def || null, b.path, n);
       continue;
     }
     if (b.src !== 'field' || !col || !item) continue;
@@ -5869,12 +5875,68 @@ const variantsOf = (def: ComponentDef | null) => (def && def.variants) || [];
 const findVariant = (def: ComponentDef | null, id?: string | null) =>
   (id ? variantsOf(def).find(v => v.id === id) || null : null);
 
+/* A link property's target is one value, but it is not part of the href. Keep it in the same
+   string maps as the href under a key a declared property can never receive: tokenId strips
+   both `@` and `:`. Old href strings therefore stay byte-for-byte compatible. */
+const LINK_TARGET = '@link-target:';
+const linkTargetKey = (k: string) => LINK_TARGET + k;
+const ownsKey = (value: object | null | undefined, key: string) =>
+  !!value && Object.prototype.hasOwnProperty.call(value, key);
+const linkControl = (n: PcNode, key: string) =>
+  (DEF[n.type]?.controls.content || []).find(c => c.k === key && c.t === 'link') || null;
+const propertyLinkDestinations = (def: ComponentDef | null, k: string) => {
+  const out: { node: PcNode; target: string }[] = [];
+  if (!def) return out;
+  eachNode([def.node], node => Object.entries(node.bind || {}).forEach(([key, binding]) => {
+    const ctl = linkControl(node, key);
+    if (ctl && binding.src === 'prop' && binding.path === k) {
+      out.push({ node, target: ctl.tk || 'target' });
+    }
+  }));
+  return out;
+};
+const unambiguousLegacyLinkTarget = (inst: PcNode, def: ComponentDef | null, k: string) => {
+  if (!def || (def.props || []).filter(prop => prop.t === 'link').length !== 1) return '';
+  if (!propertyLinkDestinations(def, k).length) return '';
+  const rootLinks = (DEF[def.node.type]?.controls.content || []).filter(c => c.t === 'link' && c.k);
+  const independentRootLink = rootLinks.some(control => {
+    const binding = bindGet(def.node, control.k!);
+    if (binding) return binding.src !== 'prop' || binding.path !== k;
+    return !!String((def.node.props as PropBag)[control.k!] || '').trim()
+      || !!String((inst.props as PropBag)[control.k!] || '').trim();
+  });
+  if (independentRootLink) return '';
+  const definitionTarget = String((def.node.props as PropBag).target || '');
+  return inst.props.target === '_blank' && definitionTarget !== '_blank' ? '_blank' : '';
+};
+function instLinkTarget(inst: PcNode, def: ComponentDef | null, k: string, destination?: PcNode | null) {
+  const sidecar = linkTargetKey(k);
+  const ownValue = inst.vals && ownsKey(inst.vals, sidecar) ? inst.vals[sidecar] : undefined;
+  if (ownValue !== undefined) return ownValue === '_blank' ? '_blank' : '';
+  const variant = findVariant(def, inst.variant);
+  const variantValue = variant && ownsKey(variant.values, sidecar) ? variant.values[sidecar] : undefined;
+  if (variantValue !== undefined) return variantValue === '_blank' ? '_blank' : '';
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  if (legacy) return legacy;
+  const destinationEntry = propertyLinkDestinations(def, k).find(entry => !destination || entry.node === destination)
+    || propertyLinkDestinations(def, k)[0];
+  return destinationEntry && (destinationEntry.node.props as PropBag)[destinationEntry.target] === '_blank'
+    ? '_blank' : '';
+}
+function instLinkTargetSet(inst: PcNode, k: string, value: unknown) {
+  const def = findComponent(inst.use);
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  instSet(inst, linkTargetKey(k), value === '_blank' ? '_blank' : '');
+  if (legacy) delete inst.props.target;
+}
+
 /** What an instance shows for one property, and the only place that question is answered.
     Its own value, then its variant's, then the definition's default — so changing a default
     moves every instance that never set its own, and an empty string is a value somebody chose
     rather than an absence. */
 function instValue(inst: PcNode, def: ComponentDef | null, k: string,
   col?: Collection | null, item?: Item | null): string {
+  if (k.startsWith(LINK_TARGET)) return instLinkTarget(inst, def, k.slice(LINK_TARGET.length));
   // Bindings belong to this placement, never to the shared definition or variant.
   // Empty CMS values remain empty; only the absence of a source uses saved values.
   const field = boundField(inst, VAL + k);
@@ -5888,7 +5950,13 @@ function instValue(inst: PcNode, def: ComponentDef | null, k: string,
 }
 /** Which values this instance decides for itself, rather than taking from its variant or the
     definition. What the panel's "back to the variant" affordance needs to know. */
-const instOwn = (inst: PcNode) => Object.keys(inst.vals || {});
+const instOwn = (inst: PcNode) => {
+  const def = findComponent(inst.use);
+  if (!def) return Object.keys(inst.vals || {});
+  return (def.props || []).filter(prop => ownsKey(inst.vals, prop.k)
+    || (prop.t === 'link' && (ownsKey(inst.vals, linkTargetKey(prop.k))
+      || !!unambiguousLegacyLinkTarget(inst, def, prop.k)))).map(prop => prop.k);
+};
 
 /** Put an instance on a variant, or take it off one. */
 function variantSet(inst: PcNode, vid: string | null) {
@@ -5915,11 +5983,21 @@ function variantFromInstance(inst: PcNode, name: string) {
   const from = findVariant(def, inst.variant);
   if (from) Object.assign(values, from.values);
   Object.assign(values, inst.vals || {});
+  const recovered: string[] = [];
+  (def.props || []).forEach(prop => {
+    if (prop.t !== 'link') return;
+    const legacy = unambiguousLegacyLinkTarget(inst, def, prop.k);
+    if (legacy && !ownsKey(values, linkTargetKey(prop.k))) {
+      values[linkTargetKey(prop.k)] = legacy;
+      recovered.push(prop.k);
+    }
+  });
   def.variants = def.variants || [];
   def.variants.push({ id, name: String(name || 'Variant').slice(0, 40), values });
   /* and this instance becomes an instance *of* it: its own values are the variant's now, so
      keeping both would mean an override of itself that nothing could clear */
   delete inst.vals;
+  if (recovered.length) delete inst.props.target;
   inst.variant = id;
   return id;
 }
@@ -5951,7 +6029,13 @@ const variantRename = (cid: string, vid: string, name: string) => {
     which is a different state from an empty string and reads differently on the panel. */
 function instSet(inst: PcNode, k: string, v: string | undefined) {
   if (v === undefined) {
-    if (inst.vals) { delete inst.vals[k]; if (!Object.keys(inst.vals).length) delete inst.vals; }
+    const def = findComponent(inst.use);
+    if (inst.vals) {
+      delete inst.vals[k];
+      if (findProp(def, k)?.t === 'link') delete inst.vals[linkTargetKey(k)];
+      if (!Object.keys(inst.vals).length) delete inst.vals;
+    }
+    if (findProp(def, k)?.t === 'link' && unambiguousLegacyLinkTarget(inst, def, k)) delete inst.props.target;
     return;
   }
   inst.vals = inst.vals || {};
@@ -6003,6 +6087,7 @@ function instControls(n: PcNode): Control[] {
   if (!def) return [];
   return (def.props || []).map(pr => ({
     t: PROP_CTL[pr.t] as Control['t'], k: VAL + pr.k, label: pr.label,
+    tk: pr.t === 'link' ? VAL + linkTargetKey(pr.k) : undefined,
     opts: pr.t === 'select' ? (pr.opts || []) : undefined
   })) as Control[];
 }
@@ -6183,6 +6268,10 @@ function propMove(cid: string, k: string, dir: number) {
 function propDelete(cid: string, k: string) {
   const c = findComponent(cid);
   if (!c) return 0;
+  const target = linkTargetKey(k);
+  const uses = instances(cid);
+  const legacyOwners = new Set(uses.filter(({ node }) => !!unambiguousLegacyLinkTarget(node, c, k))
+    .map(({ node }) => node));
   c.props = (c.props || []).filter(x => x.k !== k);
   let n = 0;
   eachNode([c.node], x => {
@@ -6190,7 +6279,15 @@ function propDelete(cid: string, k: string) {
       if (b.src === 'prop' && b.path === k) { bindSet(x, key, null); n++; }
     });
   });
-  instances(cid).forEach(({ node }) => { instSet(node, k, undefined); bindSet(node, VAL + k, null); });
+  uses.forEach(({ node }) => {
+    if (node.vals) {
+      delete node.vals[k]; delete node.vals[target];
+      if (!Object.keys(node.vals).length) delete node.vals;
+    }
+    if (legacyOwners.has(node)) delete node.props.target;
+    bindSet(node, VAL + k, null);
+  });
+  variantsOf(c).forEach(variant => { delete variant.values[k]; delete variant.values[target]; });
   return n;
 }
 /** Delete a definition, and put every instance back to being an ordinary node — its own tree,
@@ -6208,12 +6305,14 @@ function componentDelete(cid: string) {
        the instance's value (or the CMS field the instance bound it to), a condition on a property
        is answered now, and a slot holds what the page put in it. A nested instance is left
        alone — its insides answer to its own definition, not to this one. */
-    const settle = (x: PcNode) => {
+    const settle = (x: PcNode, source: PcNode) => {
       if (x !== copy && x.use) return;
       Object.entries(x.bind || {}).forEach(([key, b]) => {
         if (b.src !== 'prop') return;
         const field = boundField(node, VAL + b.path);
         (x.props as PropBag)[key] = instValue(node, def, b.path);
+        const linked = linkControl(x, key);
+        if (linked) (x.props as PropBag)[linked.tk || 'target'] = instLinkTarget(node, def, b.path, source);
         bindSet(x, key, field ? bindField(field) : null);
       });
       const c = x.showIf;
@@ -6230,9 +6329,9 @@ function componentDelete(cid: string) {
       const filled = x.slot && DEF[x.type].level < 4 ? slotKids(node, def, x.slot) : [];
       delete x.slot;                                  // not a definition any more
       if (filled.length) { filled.forEach(k => placed.add(k)); x.children = filled; return; }
-      (x.children || []).forEach(settle);
+      (x.children || []).forEach((child, i) => settle(child, (source.children || [])[i] || child));
     };
-    settle(copy);
+    settle(copy, def.node);
     /* The root's styling reached the page through the definition's class, written before the
        instance's own rules — so the instance's win, declaration by declaration, and the element
        keeps both. Its id, its extra classes and its motion were always the instance's own. */
@@ -6396,7 +6495,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 13;                       // bump when the stored shape changes
+const SCHEMA = 14;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   /* `v` was the editor-backup marker before the document schema became an explicit part of
@@ -6610,6 +6709,9 @@ function migrate(d: any) {
     n.props = n.props || {};
     if (n.props.mode !== 'wordpress') n.props.mode = 'external';
   });
+  /* v13 -> v14: a component link property may carry its own target beside its href. Existing
+     documents have no companion values, so their authored behaviour is already the correct
+     default. The migration is markers-only; new edits add the reserved string-map key. */
   /* `v` is an input compatibility marker, not part of `Doc`. Adding it to an already-current
      document makes the public save/load contract oscillate: `migrate()` adds `v`, then
      `restore()` + `doc()` drops it because state stores only the typed document fields. Keep
@@ -10274,6 +10376,7 @@ export {
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };
+export { LINK_TARGET, linkTargetKey, instLinkTarget, instLinkTargetSet };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
 export type { ProposalChange, ProposalInput };

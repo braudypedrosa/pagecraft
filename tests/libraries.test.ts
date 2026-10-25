@@ -294,7 +294,10 @@ function hostileBundle(withEmbed = true) {
   const promo: ComponentDef = {
     id: 'promo', name: XSS,
     props: [{ k: 'body', label: 'Body', t: 'rich', def: `<p>Hi</p>${XSS}` }, { k: 'go', label: 'Go', t: 'link', def: 'javascript:alert(1)' }],
-    variants: [{ id: 'loud', name: 'Loud', values: { body: `<p>Loud</p>${XSS}`, go: 'javascript:alert(2)' } }],
+    variants: [{ id: 'loud', name: 'Loud', values: {
+      body: `<p>Loud</p>${XSS}`, go: 'javascript:alert(2)',
+      '@link-target:go': '" onmouseover="alert(3)', '@link-target:missing': '_blank',
+    } }],
     node: node('r', 'box', {
       cls: [BAD_CLASS],
       props: { link: 'javascript:alert(1)', target: '" onmouseover="alert(1)' } as never,
@@ -325,7 +328,7 @@ test('an import cleans what becomes markup: rich text, links, targets and unsafe
   a.equal((text.props as { html: string }).html, '<p>Words</p>');
   a.equal(promo.props[0].def, '<p>Hi</p>');
   a.equal(promo.props[1].def, '');
-  a.deepEqual(promo.variants![0].values, { body: '<p>Loud</p>', go: '' });
+  a.deepEqual(promo.variants![0].values, { body: '<p>Loud</p>', go: '', '@link-target:go': '' });
   a.deepEqual(promo.node.props, { link: '', target: '' });
   a.deepEqual((crumbs.props as { items: unknown[] }).items[0], { label: 'Home', href: '', target: '' });
   a.equal(promo.name, XSS, 'a name stays plain text; everything that shows one escapes it');

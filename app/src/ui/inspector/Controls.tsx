@@ -17,7 +17,7 @@ import { HelpTip } from '../HelpTip';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
 import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
-import type { Control, Node as PcNode, PropBag } from '../../core/types';
+import type { Control, Node as PcNode } from '../../core/types';
 import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
 import { cmsChoices } from '../../core/cms-validation';
 
@@ -876,6 +876,21 @@ function OptCtl({ n, c }: P) {
   </Field>;
 }
 
+function LinkTargetToggle({ n, c }: P) {
+  const tkey = c.tk || 'target';
+  const blank = C.propVal(n, tkey) === '_blank';
+  return <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
+    <span>Open in a new tab</span>
+    <button type="button" role="switch" aria-checked={blank ? 'true' : 'false'}
+      aria-label="Open in a new tab" class={'sw-tog' + (blank ? ' on' : '')}
+      onClick={() => {
+        L.tx(n.id + '|' + tkey);
+        C.applyC(n, { k: tkey }, blank ? '' : '_blank');
+        L.endTx(); L.paint(); L.save(); repaint('right');
+      }}><i /></button>
+  </div>;
+}
+
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
   const key = n.id + '|' + (c.c || c.k || c.t);
@@ -917,8 +932,9 @@ function LinkCtl({ n, c }: P) {
     ...(hasDetail ? [['item', 'This item’s own page']] : []),
     ['url', 'External URL'], ['email', 'Email address'], ['phone', 'Phone number']];
 
-  const commit = (o: any) => {
+  const commit = (o: any, clearTarget = false) => {
     L.tx(key); C.applyC(n, c, C.buildLink(o));
+    if (clearTarget) C.applyC(n, { k: tkey }, '');
     L.endTx(); L.paint(); L.save(); repaint('right');
   };
   const chooseWordPress = (url: string) => {
@@ -950,13 +966,12 @@ function LinkCtl({ n, c }: P) {
           return;
         }
         setNativePendingKey(null);
-        if (mode === 'none') (n.props as PropBag)[tkey] = '';
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
         C.state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
         commit(mode === 'page' ? { mode, page: here, frag: '' }
           : mode === 'url' && samePageAnchor ? { mode, value: rawLink }
-            : { mode });
+            : { mode }, mode === 'none');
         if (mode === 'item') C.state.ui.lmode = null;   // it stores a real value at once
       }}>
       {MODES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -1020,18 +1035,7 @@ function LinkCtl({ n, c }: P) {
     ) : null}
 
     {shownMode !== 'none' ? (
-      <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
-        <span>Open in a new tab</span>
-        <button type="button" role="switch"
-          aria-checked={C.propVal(n, tkey) === '_blank' ? 'true' : 'false'}
-          aria-label="Open in a new tab"
-          class={'sw-tog' + (C.propVal(n, tkey) === '_blank' ? ' on' : '')}
-          onClick={() => {
-            L.tx(key);
-            (n.props as PropBag)[tkey] = C.propVal(n, tkey) === '_blank' ? '' : '_blank';
-            L.endTx(); L.paint(); L.save(); repaint('right');
-          }}><i /></button>
-      </div>
+      <LinkTargetToggle n={n} c={c} />
     ) : null}
   </Field>;
 }
@@ -1141,6 +1145,10 @@ export function Ctl({ n, c }: P) {
   if (!Cmp) return null;
   if (c.k?.startsWith(C.VAL) && bound(n, c).fid) {
     const value = String(valueOf(n, c) ?? '');
+    if (c.t === 'link') return <Field n={n} c={c}>
+      <input class="ctl" value={value} disabled aria-label={c.label || 'CMS value'} />
+      <LinkTargetToggle n={n} c={c} />
+    </Field>;
     const shown = c.t === 'toggle' ? (['', '0', 'false'].includes(value) ? 'No' : 'Yes')
       : c.t === 'rich' ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
     return <Field n={n} c={c}>

@@ -43,7 +43,8 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
   manifest.rendererRevision = 'pagecraft-renderer-3';
   files.set('manifest.json', json(manifest));
   const unsupported = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
-  a.throws(() => validatePortablePackage(unsupported), /unsupported renderer pagecraft-core-13 \/ pagecraft-renderer-3/);
+  a.throws(() => validatePortablePackage(unsupported),
+    new RegExp(`unsupported renderer pagecraft-core-${Core.SCHEMA} / pagecraft-renderer-3`));
 });
 
 test('released checks preserve immutable legacy archives while drafts stay reproducible', async () => {

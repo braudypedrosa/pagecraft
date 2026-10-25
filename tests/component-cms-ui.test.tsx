@@ -58,7 +58,13 @@ for (const [kind, type] of [['text','text'], ['rich','rich'], ['img','image'], [
     await act(async () => r.click(r.$('.bnd')));
     r.draw(<Ctl n={node} c={control} />);
     a.equal((r.$('input') as HTMLInputElement).disabled, true);
-    a.equal(r.$$('button:not(.bnd)').length, 0, 'no upload, link editor or token picker can overwrite a bound field');
+    const actions = r.$$('button:not(.bnd)');
+    if (kind === 'link') {
+      a.equal(actions.length, 1, 'a bound href keeps its independently owned target switch');
+      a.equal(actions[0].getAttribute('role'), 'switch');
+    } else {
+      a.equal(actions.length, 0, 'no upload, editor or token picker can overwrite a bound field');
+    }
   });
 }
 
