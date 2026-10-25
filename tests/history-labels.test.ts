@@ -176,3 +176,21 @@ test('history still caps undo at 80 and new edits clear redo', () => {
   C.edit(() => { C.state.meta.lang = 'mi'; });
   expect(C.hist.r).toHaveLength(0);
 });
+
+
+test('Button variant intent names the chosen control instead of internal surface markers', () => {
+  const button = C.insert('button', null, 0)!;
+  button.css.d['background-color'] = '#b55637';
+  button.css.d['border-width'] = '0';
+  C.hist.u.length = 0;
+  C.edit(() => C.applyC(button, { k: 'variant' }, 'outline'));
+  expect(button.css.d['--pc-button-variant-owns-border-width']).toBe('1');
+  expect(C.historyLabel('undo')).toBe('Change button variant');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Change button variant');
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Change button variant');
+
+  C.edit(() => C.setCss(C.locate(button.id)!.node, 'width', '240px'));
+  expect(C.historyLabel('undo')).toBe('Change button size');
+});

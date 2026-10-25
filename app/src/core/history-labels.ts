@@ -49,7 +49,8 @@ function changedLeafKeys(before: unknown, after: unknown): string[] {
 }
 
 function cssChange(before: PcNode, after: PcNode): string | null {
-  const changed = changedLeafKeys({ css: before.css, st: before.st }, { css: after.css, st: after.st });
+  const changed = changedLeafKeys({ css: before.css, st: before.st }, { css: after.css, st: after.st })
+    .filter(key => !key.startsWith('--pc-button-variant-owns-'));
   if (!changed.length) return null;
   if (changed.some(key => /^(padding|margin)(-|$)|^gap$/.test(key))) return 'spacing';
   if (changed.some(key => /font-size|width|height|max-width|min-height|flex-(?:grow|basis)/.test(key))) return 'size';
@@ -69,6 +70,7 @@ function propChange(before: PcNode, after: PcNode): string | null {
   const changed = [...keys].filter(key => !same((before.props as any)[key], (after.props as any)[key]));
   if (!changed.length && !same(before.vals, after.vals)) return 'content';
   if (!changed.length) return null;
+  if (after.type === 'button' && changed.length === 1 && changed[0] === 'variant') return 'variant';
   if (changed.some(key => /link|href|target|url|src/.test(key))) return changed.some(key => /src/.test(key)) ? 'source' : 'link';
   if (changed.some(key => /text|html|label|caption|alt|title|by|source/.test(key))) return 'text';
   return 'content';
