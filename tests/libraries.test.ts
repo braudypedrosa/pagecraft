@@ -241,6 +241,82 @@ test('an update warns before it drops a variant, a property or slot content', ()
   a.match(card.warnings.join(' '), /variant.*property.*slot/s);
 });
 
+test('taking a component update prunes removed placement values and stale variants everywhere', () => {
+  const v1 = authorSite();
+  const card = v1.meta.components!.find(c => c.id === 'card')!;
+  card.props.push(
+    { k: 'image-a', label: 'Image A', t: 'img', def: 'asset:a0123456789ab' },
+    { k: 'image-b', label: 'Image B', t: 'img', def: 'asset:a0123456789ab' },
+    { k: 'link-a', label: 'Link A', t: 'link', def: '/a' },
+    { k: 'link-b', label: 'Link B', t: 'link', def: '/b' },
+  );
+  card.variants = [{ id: 'combo', name: 'Combo', values: {
+    'image-a': 'asset:a0123456789ab', 'image-b': 'asset:a0123456789ab',
+    'link-a': '/variant-a', '@link-target:link-a': '_blank',
+    'link-b': '/variant-b', '@link-target:link-b': '_blank',
+  } }, { id: 'steady', name: 'Steady', values: { 'image-a': 'asset:a0123456789ab' } }];
+  const first = planLibraryImport(blankSite(), bundleOf(v1), source(1), [{ kind: 'component', id: 'card' }], { assets, newId }).doc;
+  const placement = (id: string) => node(id, 'box', {
+    use: 'card', variant: 'combo',
+    vals: {
+      'image-a': 'asset:a9999999999ff', 'image-b': '',
+      'link-a': '/local-a', '@link-target:link-a': '_blank',
+      'link-b': '/local-b', '@link-target:link-b': '',
+    },
+    bind: {
+      'val:link-a': { src: 'field', path: 'destination' },
+      'val:link-b': { src: 'field', path: 'old-destination' },
+    },
+    children: [node(id + '-slot', 'text', { slot: 'body' })],
+  });
+  first.pages[0].tree.push(placement('page-placement'));
+  first.header.push(placement('header-placement'));
+  first.footer.push(placement('footer-placement'));
+  first.meta.components!.find(c => c.id === 'badge')!.node.children = [placement('nested-placement')];
+  first.meta.blocks.push({ id: 'consumer-block', name: 'Consumer block', node: placement('block-placement') });
+  first.pages[0].tree.push(node('removed-only', 'box', {
+    use: 'card', variant: 'steady', vals: {
+      'image-b': '', 'link-b': '/old', '@link-target:link-b': '_blank',
+    }, bind: { 'val:link-b': { src: 'field', path: 'old-destination' } },
+  }));
+
+  const v2 = clone(v1);
+  const nextCard = v2.meta.components!.find(c => c.id === 'card')!;
+  nextCard.props = nextCard.props.filter(p => !['image-b', 'link-b'].includes(p.k));
+  nextCard.props.find(p => p.k === 'link-a')!.t = 'text';
+  nextCard.variants = nextCard.variants!.filter(v => v.id === 'steady');
+  nextCard.name = 'Card v2';
+  const unchanged = planLibraryUpdate(first, bundleOf(v1), source(2), {}, { assets, newId }).doc!;
+  a.deepEqual(unchanged.pages[0].tree.at(-2)!.vals, first.pages[0].tree.at(-2)!.vals);
+  a.equal(unchanged.pages[0].tree.at(-2)!.variant, 'combo');
+  const locallyEdited = clone(first);
+  locallyEdited.meta.components!.find(c => c.id === 'card')!.name = 'Keep my card';
+  const mine = planLibraryUpdate(locallyEdited, bundleOf(v2), source(2), { 'component:card': 'mine' }, { assets, newId }).doc!;
+  a.deepEqual(mine.pages[0].tree.at(-2)!.vals, first.pages[0].tree.at(-2)!.vals);
+  a.equal(mine.pages[0].tree.at(-2)!.variant, 'combo');
+  const input = clone(first);
+  const plan = planLibraryUpdate(first, bundleOf(v2), source(2), {}, { assets, newId });
+  a.deepEqual(first, input, 'planning never mutates the input document');
+
+  const placements = [
+    plan.doc!.pages[0].tree.at(-2)!, plan.doc!.header.at(-1)!, plan.doc!.footer.at(-1)!,
+    plan.doc!.meta.components!.find(c => c.id === 'badge')!.node.children[0],
+    plan.doc!.meta.blocks.find(b => b.id === 'consumer-block')!.node,
+  ];
+  for (const placed of placements) {
+    a.deepEqual(placed.vals, {
+      'image-a': 'asset:a9999999999ff', 'link-a': '/local-a',
+    });
+    a.equal(placed.variant, undefined);
+    a.deepEqual(placed.bind, { 'val:link-a': { src: 'field', path: 'destination' } });
+    a.equal(placed.children[0].slot, 'body');
+  }
+  const removedOnly = plan.doc!.pages[0].tree.at(-1)!;
+  a.equal(removedOnly.vals, undefined);
+  a.equal(removedOnly.bind, undefined);
+  a.equal(removedOnly.variant, 'steady', 'a variant still declared upstream remains selected');
+});
+
 test('dependencies new in the update are brought in as an import would', () => {
   const next = version2(doc => {
     doc.meta.tokens!.classes.push({ id: 'rounded', name: 'Rounded', css: { d: { 'border-radius': '12px' } } as never });

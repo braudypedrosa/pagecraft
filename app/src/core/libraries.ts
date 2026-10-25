@@ -548,6 +548,26 @@ function componentWarnings(doc: Doc, localId: string, before: ComponentDef, afte
   return warnings;
 }
 
+/** Apply the removals an accepted component update warned about. Placements keep every value
+    and variant the new definition still declares, including a link property's target sidecar. */
+function pruneComponentPlacements(doc: Doc, localId: string, after: ComponentDef) {
+  const props = new Set(after.props.flatMap(p => p.t === 'link' ? [p.k, LINK_TARGET + p.k] : [p.k]));
+  const variants = new Set((after.variants || []).map(v => v.id));
+  for (const instance of instancesOf(doc, localId)) {
+    if (instance.vals) {
+      for (const key of Object.keys(instance.vals)) if (!props.has(key)) delete instance.vals[key];
+      if (!Object.keys(instance.vals).length) delete instance.vals;
+    }
+    if (instance.bind) {
+      for (const key of Object.keys(instance.bind)) {
+        if (key.startsWith('val:') && !props.has(key.slice(4))) delete instance.bind[key];
+      }
+      if (!Object.keys(instance.bind).length) delete instance.bind;
+    }
+    if (instance.variant && !variants.has(instance.variant)) delete instance.variant;
+  }
+}
+
 export interface LibraryUpdatePreview {
   items: UpdateItem[];
   /** conflict keys (`${kind}:${sourceId}`) still waiting for a resolution */
@@ -627,13 +647,18 @@ export function planLibraryUpdate(
   const allRenames: Renames = {};
   for (const link of nextLinks.filter(l => l.libraryId === source.libraryId)) (allRenames[link.kind] ||= new Map()).set(link.sourceId, link.localId);
 
+  const updatedComponents: { localId: string; definition: ComponentDef }[] = [];
   for (const item of taking) {
     const clean = cleanItem(item.kind, clone(find(lists, item.kind, item.sourceId)!), bundle.components);
     const copy = rewrite(item.kind, clean, allRenames, assetMap) as { id: string; node?: Node };
     copy.id = item.localId;
     if (copy.node) reidTree(copy.node, newId);
     replaceItem(next, item.kind, item.localId, copy);
+    if (item.kind === 'component') updatedComponents.push({
+      localId: item.localId, definition: copy as unknown as ComponentDef,
+    });
   }
+  updatedComponents.forEach(({ localId, definition }) => pruneComponentPlacements(next, localId, definition));
   const touched = new Set(taking.map(i => key(i.kind, i.sourceId)));
   const kept = new Set(items.filter(i => i.action === 'conflict' && resolutions[key(i.kind, i.sourceId)] === 'mine').map(i => key(i.kind, i.sourceId)));
   const unlinked = new Set(items.filter(i => i.action === 'unlink').map(i => key(i.kind, i.sourceId)));

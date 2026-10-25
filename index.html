@@ -17849,6 +17849,23 @@ var PC_UI = (() => {
     if (lostSlots) warnings.push(`${lostSlots} placement(s) put content in a slot this version removes; that content would disappear.`);
     return warnings;
   }
+  function pruneComponentPlacements(doc, localId, after) {
+    const props = new Set(after.props.flatMap((p3) => p3.t === "link" ? [p3.k, LINK_TARGET + p3.k] : [p3.k]));
+    const variants = new Set((after.variants || []).map((v3) => v3.id));
+    for (const instance of instancesOf(doc, localId)) {
+      if (instance.vals) {
+        for (const key2 of Object.keys(instance.vals)) if (!props.has(key2)) delete instance.vals[key2];
+        if (!Object.keys(instance.vals).length) delete instance.vals;
+      }
+      if (instance.bind) {
+        for (const key2 of Object.keys(instance.bind)) {
+          if (key2.startsWith("val:") && !props.has(key2.slice(4))) delete instance.bind[key2];
+        }
+        if (!Object.keys(instance.bind).length) delete instance.bind;
+      }
+      if (instance.variant && !variants.has(instance.variant)) delete instance.variant;
+    }
+  }
   function previewLibraryUpdate(doc, bundle, source, resolutions = {}) {
     return updateScope(doc, bundle, source, resolutions).preview;
   }
@@ -17907,13 +17924,19 @@ var PC_UI = (() => {
     const nextLinks = next.meta.libraryLinks || [];
     const allRenames = {};
     for (const link of nextLinks.filter((l3) => l3.libraryId === source.libraryId)) (allRenames[link.kind] ||= /* @__PURE__ */ new Map()).set(link.sourceId, link.localId);
+    const updatedComponents = [];
     for (const item of taking) {
       const clean = cleanItem(item.kind, clone2(find(lists, item.kind, item.sourceId)), bundle.components);
       const copy2 = rewrite(item.kind, clean, allRenames, assetMap);
       copy2.id = item.localId;
       if (copy2.node) reidTree(copy2.node, newId);
       replaceItem(next, item.kind, item.localId, copy2);
+      if (item.kind === "component") updatedComponents.push({
+        localId: item.localId,
+        definition: copy2
+      });
     }
+    updatedComponents.forEach(({ localId, definition }) => pruneComponentPlacements(next, localId, definition));
     const touched = new Set(taking.map((i3) => key(i3.kind, i3.sourceId)));
     const kept = new Set(items.filter((i3) => i3.action === "conflict" && resolutions[key(i3.kind, i3.sourceId)] === "mine").map((i3) => key(i3.kind, i3.sourceId)));
     const unlinked = new Set(items.filter((i3) => i3.action === "unlink").map((i3) => key(i3.kind, i3.sourceId)));
