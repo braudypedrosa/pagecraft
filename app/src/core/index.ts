@@ -227,6 +227,12 @@ const BUTTON_VARIANT_DEFAULTS: Decls = {
   'padding-top': '13px', 'padding-right': '26px', 'padding-bottom': '13px', 'padding-left': '26px',
   'border-radius': '8px', 'background-color': 'var(--c-brand)'
 };
+const BUTTON_VARIANT_BASES: Record<string, Decls> = {
+  solid: {},
+  outline: { 'background-color': 'transparent', 'background-image': 'none', 'border-width': '1px', 'border-style': 'solid', 'border-color': 'currentColor' },
+  ghost: { 'background-color': 'transparent', 'background-image': 'none', 'border-color': 'transparent' },
+  link: { 'background-color': 'transparent', 'background-image': 'none', 'border-width': '0', 'border-color': 'transparent', 'border-radius': '0', padding: '0' }
+};
 
 /* One vocabulary per kind of measurement, so the same property always offers
    the same units wherever it appears. */
@@ -2449,9 +2455,130 @@ function tokenVars() {
 /* Button variants intentionally own their untouched defaults, but an authored Button value
    must outrank those two-class selectors. Keep the bridge narrow: ordinary declarations still
    use the normal text style < class < element cascade. */
-const buttonVariantProperty = (property: string) => property === 'background-color'
+const buttonVariantProperty = (property: string) => property === 'background'
+  || property === 'background-color' || property === 'background-image'
   || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 const BUTTON_AUTHORED = '--pc-authored-button-';
+const BUTTON_VARIANT_OWNS = '--pc-button-variant-owns-';
+const BUTTON_SIDES = ['top', 'right', 'bottom', 'left'];
+const BUTTON_CORNERS = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+/* Reduce shorthands and longhands to the surface component each declaration supplies.
+   Variant intent, clipboard materialization and responsive inheritance must agree here or a
+   later longhand can be mistaken for the hidden declaration it deliberately replaced. */
+const buttonSurfaceAtoms = (property: string) => {
+  if (property === 'background') return ['background-color', 'background-image'];
+  if (property === 'background-color' || property === 'background-image') return [property];
+  if (property === 'padding') return BUTTON_SIDES.map(side => `padding-${side}`);
+  if (/^padding-(?:top|right|bottom|left)$/.test(property)) return [property];
+  if (property === 'border-radius') return BUTTON_CORNERS.map(corner => `border-${corner}-radius`);
+  if (/^border-(?:top-left|top-right|bottom-right|bottom-left)-radius$/.test(property)) return [property];
+  if (property === 'border') return BUTTON_SIDES.flatMap(side =>
+    ['width', 'style', 'color'].map(component => `border-${side}-${component}`));
+  const all = property.match(/^border-(width|style|color)$/);
+  if (all) return BUTTON_SIDES.map(side => `border-${side}-${all[1]}`);
+  const side = property.match(/^border-(top|right|bottom|left)$/);
+  if (side) return ['width', 'style', 'color'].map(component => `border-${side[1]}-${component}`);
+  if (/^border-(?:top|right|bottom|left)-(?:width|style|color)$/.test(property)) return [property];
+  return [];
+};
+const cssWords = (value: string) => {
+  const out: string[] = [];
+  let part = '', depth = 0, quote = '', escaped = false;
+  for (const ch of value.trim()) {
+    if (escaped) { part += ch; escaped = false; continue; }
+    if (ch === '\\') { part += ch; escaped = true; continue; }
+    if (quote) { part += ch; if (ch === quote) quote = ''; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; part += ch; continue; }
+    if (ch === '(') depth++;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    if (/\s/.test(ch) && !depth) { if (part) { out.push(part); part = ''; } }
+    else part += ch;
+  }
+  if (part) out.push(part);
+  return out;
+};
+const quadValues = (value: string) => {
+  const parts = cssWords(value);
+  /* Elliptical border-radius uses a slash and needs two independent quads. Keep its original
+     shorthand when encountered rather than inventing a lossy longhand. */
+  if (!parts.length || parts.length > 4 || value.includes('/')) return null;
+  if (parts.length === 1) return [parts[0], parts[0], parts[0], parts[0]];
+  if (parts.length === 2) return [parts[0], parts[1], parts[0], parts[1]];
+  if (parts.length === 3) return [parts[0], parts[1], parts[2], parts[1]];
+  return [parts[0], parts[1], parts[2], parts[3]];
+};
+const buttonSurfaceAtomicDeclarations = (declarations: Decls) => {
+  const out: Decls = {};
+  for (const [property, value] of Object.entries(declarations)) {
+    const atoms = buttonSurfaceAtoms(property);
+    if (atoms.length === 1) out[atoms[0]] = value;
+    else if (property === 'padding' || property === 'border-width' || property === 'border-style'
+      || property === 'border-color' || property === 'border-radius') {
+      const values = quadValues(value);
+      if (values) atoms.forEach((atom, index) => { out[atom] = values[index]; });
+    }
+  }
+  return out;
+};
+const buttonBorderDeclarationRank = (property: string) => {
+  if (property === 'border') return 0;
+  if (/^border-(width|style|color)$/.test(property)) return 1;
+  if (/^border-(top|right|bottom|left)$/.test(property)) return 2;
+  if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(property)) return 3;
+  return 4;
+};
+const buttonDeclarationSupplier = (map: Decls, atom: string) => {
+  let supplier: { property: string; value: string; rank: number } | null = null;
+  for (const [property, value] of Object.entries(map)) {
+    if (property.startsWith(BUTTON_AUTHORED) || property.startsWith(BUTTON_VARIANT_OWNS)
+      || value === '') continue;
+    const atoms = buttonSurfaceAtoms(property);
+    if (!atoms.includes(atom)) continue;
+    /* `decl()` emits broad border shorthands before their edge longhands. Prefer its later
+       rank, and use insertion order for declarations with equal rank. */
+    const rank = buttonBorderDeclarationRank(property);
+    if (!supplier || rank >= supplier.rank) supplier = { property, value, rank };
+  }
+  return supplier;
+};
+const buttonAtomicDeclaration = (supplier: { property: string; value: string }, atom: string) => {
+  const atoms = buttonSurfaceAtoms(supplier.property);
+  if (atoms.length === 1) return { property: atom, value: supplier.value };
+  if (supplier.property === 'padding' || supplier.property === 'border-width'
+    || supplier.property === 'border-style' || supplier.property === 'border-color'
+    || supplier.property === 'border-radius') {
+    const values = quadValues(supplier.value);
+    if (values) return { property: atom, value: values[atoms.indexOf(atom)] };
+  }
+  /* Background and side/all-border shorthands can contain functions and reordered tokens.
+     Re-emit the authoritative shorthand rather than guessing at a lossy parsed longhand. */
+  return { property: supplier.property, value: supplier.value };
+};
+const buttonClassSurfaceAtoms = (n: PcNode, breakpoint: Bp) => {
+  const atoms = new Set<string>();
+  for (const bp of BP_CHAIN[breakpoint] as Bp[]) for (const c of nodeClasses(n)) {
+    Object.keys(c.css[bp]).forEach(property => buttonSurfaceAtoms(property).forEach(atom => atoms.add(atom)));
+  }
+  return atoms;
+};
+const buttonVariantOwns = (variant: unknown, property: string) => {
+  const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(variant)] || {});
+  return buttonSurfaceAtoms(property).some(atom => base[atom] !== undefined);
+};
+const buttonVariantMarkers = (map: Decls) => new Set(Object.keys(map)
+  .filter(property => property.startsWith(BUTTON_VARIANT_OWNS) && map[property] === '1')
+  .map(property => property.slice(BUTTON_VARIANT_OWNS.length)));
+const markButtonVariantIntent = (n: PcNode, variant: unknown) => {
+  for (const breakpoint of ['d', 't', 'm'] as Bp[]) {
+    const map = n.css[breakpoint];
+    Object.keys(map).forEach(property => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete map[property];
+    });
+    Object.keys(map).forEach(property => {
+      if (buttonVariantOwns(variant, property)) map[BUTTON_VARIANT_OWNS + property] = '1';
+    });
+  }
+};
 /* A Gallery's focusable surface is each lightbox frame, not the grid container. Keep the
    authored state on the container so background, border and layout effects still dress the
    whole Gallery, but let keyboard focus on a frame activate it. `:where` keeps the Gallery
@@ -2482,10 +2609,11 @@ const richTextLinkSelector = (selector: string, state = '') =>
   `${selector}:where(.pagecraft-wysiwyg)${state} a`;
 const richTextLinkStateSelector = (selector: string, state: StateKey, suffix: string) =>
   state === 'focus' ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
-const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null, forced = new Set<string>()) => {
+const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null,
+  forced = new Set<string>(), variantOwned = new Set<string>()) => {
   const out: Decls = {};
   for (const [property, value] of Object.entries(map)) {
-    if (!buttonVariantProperty(property)) continue;
+    if (!buttonVariantProperty(property) || variantOwned.has(property)) continue;
     if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value
       && !forced.has(property)) continue;
     out[property] = value;
@@ -2764,16 +2892,30 @@ function classRemove(n: PcNode, id: string) {
 function classFrom(n: PcNode, name: string) {
   const id = classAdd(name, n.css);
   const c = findClass(id);
+  const retained: Css = { d: {}, t: {}, m: {} };
   /* Hover and focus are styling too. Leaving them on the source made a class created from a
      finished element share only its resting look; every other user lost the interactive look.
      Motion is stored separately on `anim` and deliberately stays with the element. */
   if (c) {
-    (['d', 't', 'm'] as Bp[]).forEach(b => Object.keys(c.css[b]).forEach(prop => {
-      if (prop.startsWith(BUTTON_AUTHORED)) delete c.css[b][prop];
-    }));
+    (['d', 't', 'm'] as Bp[]).forEach(b => {
+      const variantOwned = buttonVariantMarkers(c.css[b]);
+      variantOwned.forEach(property => {
+        /* The hidden declaration is still needed when this Button returns to Solid. Keep it
+           local with its intent marker; moving it into a shared class would make the class's
+           reinforced selector override the currently chosen transparent variant. */
+        if (c.css[b][property] !== undefined) {
+          retained[b][property] = c.css[b][property];
+          retained[b][BUTTON_VARIANT_OWNS + property] = '1';
+          delete c.css[b][property];
+        }
+      });
+      Object.keys(c.css[b]).forEach(prop => {
+        if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS)) delete c.css[b][prop];
+      });
+    });
     if (n.st) { c.st = clone(n.st); delete n.st; }
   }
-  n.css = { d: {}, t: {}, m: {} };
+  n.css = retained;
   classApply(n, id);
   return id;
 }
@@ -2805,29 +2947,16 @@ function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]):
     'border-style': ['border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style'],
     'border-color': ['border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color']
   };
-  const words = (value: string) => {
-    const out: string[] = [];
-    let part = '', depth = 0, quote = '';
-    for (const ch of value.trim()) {
-      if (quote) { part += ch; if (ch === quote) quote = ''; continue; }
-      if (ch === '"' || ch === "'") { quote = ch; part += ch; continue; }
-      if (ch === '(') depth++;
-      if (ch === ')') depth = Math.max(0, depth - 1);
-      if (/\s/.test(ch) && !depth) { if (part) { out.push(part); part = ''; } }
-      else part += ch;
-    }
-    if (part) out.push(part);
-    return out;
-  };
   /* Compare box shorthands as the longhands the browser computes. Otherwise deleting
      `padding:20px` and baking that shorthand locally would overwrite a later surviving
      class's `padding-left:40px`, even though that class won before deletion. */
   const cascade = (out: Decls, map: Decls, keep: (prop: string, value: string) => boolean) => {
     for (const [prop, value] of Object.entries(map)) {
-      if (prop.startsWith(BUTTON_AUTHORED) || value === '' || !keep(prop, value)) continue;
+      if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS)
+        || value === '' || !keep(prop, value)) continue;
       const sides = quad[prop];
       if (!sides) { out[prop] = value; continue; }
-      const v = words(value);
+      const v = cssWords(value);
       if (!v.length || v.length > 4) { out[prop] = value; continue; }
       const expanded = v.length === 1 ? [v[0], v[0], v[0], v[0]]
         : v.length === 2 ? [v[0], v[1], v[0], v[1]]
@@ -2841,19 +2970,22 @@ function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]):
      otherwise change. In particular, a lower class must not be baked over a higher class. */
   const shown = (x: PcNode, b: Bp, stateKey?: StateKey, without = '') => {
     const out: Decls = {};
+    if (x.type === 'button' && !stateKey) cascade(out, BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, () => true);
     const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
     for (const bp of chain) {
       for (const cls of ordered) {
         if (cls.id === without || !(x.cls || []).includes(cls.id)) continue;
         cascade(out, (at(cls, stateKey) && at(cls, stateKey)![bp]) || {}, () => true);
       }
-      cascade(out, (at(x, stateKey) && at(x, stateKey)![bp]) || {}, (prop, value) =>
+      const own = (at(x, stateKey) && at(x, stateKey)![bp]) || {};
+      const variantOwned = stateKey ? new Set<string>() : buttonVariantMarkers(own);
+      cascade(out, own, (prop, value) =>
         /* Untouched Button defaults are present in the document but deliberately omitted from
            the high-specificity element bridge. A class bridge beats them. Treating them as an
            element winner here made deletion reveal the factory value instead of keeping the
            class value that had actually rendered. Responsive and state rules are all emitted. */
-        !(x.type === 'button' && !stateKey && bp === 'd'
-          && buttonVariantProperty(prop) && BUTTON_VARIANT_DEFAULTS[prop] === value));
+        !(x.type === 'button' && !stateKey && buttonVariantProperty(prop)
+          && (variantOwned.has(prop) || (bp === 'd' && BUTTON_VARIANT_DEFAULTS[prop] === value))));
     }
     return out;
   };
@@ -2871,6 +3003,7 @@ function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]):
       } else own = x.css;
       for (const prop of changed) {
         own[b][prop] = before[prop];
+        delete own[b][BUTTON_VARIANT_OWNS + prop];
         /* A fresh Button stores its factory values, but the renderer normally omits them from
            the high-specificity bridge so Outline/Link variants work. A deleted class may have
            been the authored winner with that exact value; remember that distinction or the
@@ -2894,6 +3027,7 @@ function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]):
         if (!prev || specificity >= prev.specificity) winners.set(property, { value, specificity });
       }
     };
+    if (x.type === 'button') put(BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, 2);
     const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
     for (const bp of chain) {
       for (const cls of ordered) {
@@ -2909,7 +3043,8 @@ function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]):
         const forced = new Set(Object.keys(base)
           .filter(property => property.startsWith(BUTTON_AUTHORED) && base[property] === '1')
           .map(property => property.slice(BUTTON_AUTHORED.length)));
-        put(buttonVariantDeclarations(base, bp === 'd' ? BUTTON_VARIANT_DEFAULTS : null, forced), 2);
+        put(buttonVariantDeclarations(base, bp === 'd' ? BUTTON_VARIANT_DEFAULTS : null,
+          forced, buttonVariantMarkers(base)), 2);
       }
       STATES.forEach(([key]) => put((x.st && x.st[key] && x.st[key]![bp]) || {}, 2));
     }
@@ -3047,6 +3182,19 @@ function setCss(n: { css: Css; st?: States }, c: string, val: string | null | un
   const dest = stWrite(n);
   const b: Bp = resp ? dk() : 'd';
   dest[b] = dest[b] || {};
+  /* A deliberate Style edit after choosing a Button variant owns this property again.
+     Clear only this breakpoint's renderer hint. Hover, Focus and shared classes never carry
+     the hint, so their established cascade remains unchanged. */
+  if ((n as PcNode).type === 'button' && !state.ui.st && buttonVariantProperty(c)) {
+    delete dest[b][BUTTON_VARIANT_OWNS + c];
+    const authored = BUTTON_AUTHORED + c;
+    /* Desktop factory values are normally omitted from the reinforced bridge. Record the one
+       indistinguishable case where a person deliberately writes that same value after choosing
+       a Variant; otherwise `var(--c-brand)` still loses to Outline transparency. */
+    if (b === 'd' && val !== '' && val != null && BUTTON_VARIANT_DEFAULTS[c] === val) {
+      dest[b][authored] = '1';
+    } else delete dest[b][authored];
+  }
   if (val === '' || val == null) delete dest[b][c]; else dest[b][c] = val;
 }
 
@@ -4083,6 +4231,30 @@ function copyStyles(id: string) {
   if (!h) return false;
   const n = h.node;
   styleClip.css = clone(n.css);
+  /* Variant intent belongs to the source Button's Content choice, not to its reusable look.
+     Paste styles does not copy that choice, so the stored declarations become ordinary
+     authored styles on the target rather than silently changing its cascade. */
+  (['d', 't', 'm'] as Bp[]).forEach(b => {
+    const variantOwned = buttonVariantMarkers(styleClip.css![b]);
+    const ownedAtoms = new Set<string>();
+    variantOwned.forEach(property => buttonSurfaceAtoms(property).forEach(atom => ownedAtoms.add(atom)));
+    variantOwned.forEach(property => delete styleClip.css![b][property]);
+    Object.keys(styleClip.css![b]).forEach(property => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete styleClip.css![b][property];
+    });
+    /* The clipboard does not carry Content props. Materialize only atoms still owned by the
+       chosen Variant. A later Style declaration or reusable class keeps the atom it visibly
+       owns; an unrelated border marker must never turn an explicit background transparent. */
+    const explicitAtoms = new Set<string>();
+    Object.keys(styleClip.css![b]).forEach(property =>
+      buttonSurfaceAtoms(property).forEach(atom => explicitAtoms.add(atom)));
+    const classAtoms = buttonClassSurfaceAtoms(n, b);
+    const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(n.props.variant)] || {});
+    for (const [atom, value] of Object.entries(base)) {
+      if (!ownedAtoms.has(atom) || explicitAtoms.has(atom) || classAtoms.has(atom)) continue;
+      styleClip.css![b][atom] = value;
+    }
+  });
   /* the states travel with the styling. "Make this look like that" that drops the hover is
      not what anyone means, and the omission would only show up on the live site. */
   styleClip.st = n.st ? clone(n.st) : null;
@@ -4515,6 +4687,11 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   else if (c.k) {
     const props = n.props as PropBag;
     if (n.type === 'list' && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
+    /* A Button's Variant control promises a visible semantic change. Preserve every authored
+       declaration, but let the newly chosen variant own only the surface properties its base
+       rule actually defines. Constructed or imported Buttons are unchanged until this control
+       makes a real transition. */
+    if (n.type === 'button' && c.k === 'variant' && props.variant !== v) markButtonVariantIntent(n, v);
     props[c.k] = v;
   }
 }
@@ -7882,14 +8059,7 @@ function decl(map: Decls) {
   /* CSS preserves declaration order. Broad border declarations must precede their
      edge-specific counterparts regardless of when the inspector first created each key;
      otherwise a later `border-width` silently resets an earlier `border-left-width`. */
-  const borderRank = (k: string) => {
-    if (k === 'border') return 0;
-    if (/^border-(width|style|color)$/.test(k)) return 1;
-    if (/^border-(top|right|bottom|left)$/.test(k)) return 2;
-    if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(k)) return 3;
-    return 4;
-  };
-  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) }))
+  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: buttonBorderDeclarationRank(k) }))
     .sort((a, b) => a.rank - b.rank || a.i - b.i);
   for (const { k } of keys) {
     let v = map[k];
@@ -7926,10 +8096,12 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
   detachedComponentRoot = false) {
   const map = { ...(n.css[b] || {}) };
   const authoredButton = new Set<string>();
+  const variantOwned = buttonVariantMarkers(map);
   Object.keys(map).forEach(prop => {
-    if (!prop.startsWith(BUTTON_AUTHORED)) return;
-    if (map[prop] === '1') authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
-    delete map[prop];
+    if (prop.startsWith(BUTTON_AUTHORED)) {
+      if (map[prop] === '1') authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
+      delete map[prop];
+    } else if (prop.startsWith(BUTTON_VARIANT_OWNS)) delete map[prop];
   });
   if (n.type === 'column') {
     /* The marker is editor state, not page CSS. Resolve it at every breakpoint so a
@@ -7969,13 +8141,31 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
   if (n.type === 'button') {
+    /* A background shorthand expands after the shared variant rule in the generated sheet.
+       Browsers normally resolve that conflict by specificity, but emitting the intended
+       longhands after the hidden local shorthand also keeps embedded and legacy CSS engines
+       correct. Class-owned components are excluded below, while the following authored bridge
+       still lets a later Style edit win. */
+    if (variantOwned.has('background')) {
+      const base = BUTTON_VARIANT_BASES[String(n.props.variant)] || {};
+      const classAtoms = buttonClassSurfaceAtoms(n, b);
+      const reset: Decls = {};
+      if (base['background-color'] !== undefined && !classAtoms.has('background-color')) {
+        reset['background-color'] = base['background-color'];
+      }
+      if (base['background-image'] !== undefined && !classAtoms.has('background-image')) {
+        reset['background-image'] = base['background-image'];
+      }
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-button{${resetBody}}`);
+    }
     /* Desktop Button documents include factory styling even when nobody touched the Style
        panel. Repeating those values here would erase Outline/Text link defaults, so only a
        value that differs from today's factory default is treated as authored. Responsive
        buckets contain overrides only and can all be bridged. The document model cannot tell
        an explicit desktop value equal to the factory default from the untouched default. */
     const defaults = b === 'd' ? BUTTON_VARIANT_DEFAULTS : null;
-    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton));
+    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton, variantOwned));
     if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
   }
   if (imageNode && decl(imageMap)) {
@@ -8066,19 +8256,37 @@ function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
     }
   });
   const buttonBridge: Decls = {};
-  if (n.type === 'button') for (const [property, value] of Object.entries(bridge)) {
-    if (!buttonVariantProperty(property)) continue;
-    const tabletOwns = b === 'm' && n.css.t[property] !== undefined && n.css.t[property] !== '';
-    const authoredDefault = n.css.d[BUTTON_AUTHORED + property] === '1';
-    /* Fresh Buttons store their desktop factory surface, but the reinforced class bridge must
-       still beat that untouched default. A real tablet override is authored even when its
-       value happens to equal the desktop factory value. */
-    if (!tabletOwns && BUTTON_VARIANT_DEFAULTS[property] === value && !authoredDefault) {
-      delete bridge[property];
-      continue;
+  if (n.type === 'button') {
+    const defaultAtoms = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_DEFAULTS);
+    const inheritedMaps = b === 'm'
+      ? [{ bp: 't' as Bp, map: n.css.t }, { bp: 'd' as Bp, map: n.css.d }]
+      : [{ bp: 'd' as Bp, map: n.css.d }];
+    for (const collision of collisions) {
+      const atoms = buttonSurfaceAtoms(collision);
+      if (!atoms.length) continue;
+      delete bridge[collision];
+      for (const atom of atoms) {
+        /* Any same-breakpoint local shorthand or longhand already follows the reusable rule.
+           Only a value inherited from a wider breakpoint needs the late bridge. */
+        if (buttonDeclarationSupplier(own, atom)) continue;
+        let supplied: { bp: Bp; map: Decls; supplier: { property: string; value: string; rank: number } } | null = null;
+        for (const source of inheritedMaps) {
+          const supplier = buttonDeclarationSupplier(source.map, atom);
+          if (supplier) { supplied = { ...source, supplier }; break; }
+        }
+        if (!supplied || supplied.map[BUTTON_VARIANT_OWNS + supplied.supplier.property] === '1') continue;
+        const emitted = supplied.supplier.property === collision
+          ? { property: collision, value: supplied.supplier.value }
+          : buttonAtomicDeclaration(supplied.supplier, atom);
+        const suppliedAtom = buttonAtomicDeclaration(supplied.supplier, atom);
+        const authoredDefault = supplied.map[BUTTON_AUTHORED + supplied.supplier.property] === '1';
+        /* Fresh Buttons store their desktop factory surface, but the reinforced class bridge
+           must still beat that untouched default. Tablet suppliers are always authored. */
+        if (supplied.bp === 'd' && suppliedAtom.property === atom
+          && defaultAtoms[atom] === suppliedAtom.value && !authoredDefault) continue;
+        buttonBridge[emitted.property] = emitted.value;
+      }
     }
-    buttonBridge[property] = value;
-    delete bridge[property];
   }
   const wrappedImage = n.type === 'image' && !!(n.props.caption || n.props.link);
   const imageBridge: Decls = {};
@@ -8348,6 +8556,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
+.pagecraft-button[data-variant=outline],.pagecraft-button[data-variant=ghost],.pagecraft-button[data-variant=link]{background-image:none}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-figure>a{display:block;width:100%;max-width:100%}
