@@ -68,6 +68,110 @@ test('Nav parent choices still block descendants that would create a cycle', () 
   assert.equal([...parent.options].find(option => option.value === 'c')?.disabled, true);
 });
 
+test('removing a Nav parent shows its retained children at the effective top level through Undo and Redo', async () => {
+  const n = C.insert('nav', null, 0)!;
+  n.props.items = [
+    { id: 'cafe', label: 'Café Menu', href: 'index.html#menu', parentId: '' },
+    { id: 'story', label: 'Story', href: 'index.html#story', parentId: '' },
+    { id: 'visit', label: 'Visit', href: 'index.html#visit', parentId: '' },
+  ];
+  C.state.pages[0].tree = [n];
+  C.hist.u.length = 0;
+  C.hist.r.length = 0;
+  const control = C.DEF.nav.controls.content.find(c => c.t === 'items')!;
+  const current = () => C.state.pages[0].tree[0];
+  const items = () => current().props.items as Array<{ id: string; parentId: string }>;
+  const draw = () => r.draw(<Ctl n={current()} c={control} />);
+  const open = (label: string) => {
+    const row = r.$$('.navitem').find(item => item.querySelector('.navitem-main b')?.textContent === label)!;
+    if (!row.classList.contains('on')) act(() => r.click(row.querySelector('.navitem-main')));
+  };
+  const parent = () => r.$('select[aria-label^="Parent item for"]') as HTMLSelectElement;
+  const parentTrigger = () => parent().nextElementSibling as HTMLButtonElement;
+  const settleSelect = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+
+  draw();
+  installCustomSelects();
+  await settleSelect();
+  open('Story');
+  act(() => r.pick(parent(), 'cafe'));
+  assert.equal(items()[1].parentId, 'cafe');
+
+  draw();
+  const visitHandle = r.$$('.navitem').find(item => item.querySelector('.navitem-main b')?.textContent === 'Visit')!
+    .querySelector('.navitem-drag')!;
+  const cafeRow = r.$$('.navitem').find(item => item.querySelector('.navitem-main b')?.textContent === 'Café Menu')!;
+  const start = new window.Event('dragstart', { bubbles: true });
+  Object.defineProperty(start, 'dataTransfer', { value: { effectAllowed: '', setData() {} } });
+  act(() => {
+    visitHandle.dispatchEvent(start);
+    cafeRow.dispatchEvent(new window.Event('drop', { bubbles: true, cancelable: true }));
+  });
+  assert.deepEqual(items().map(item => item.id), ['visit', 'cafe', 'story']);
+
+  draw();
+  const removeCafe = r.$$('.navitem').find(item => item.querySelector('.navitem-main b')?.textContent === 'Café Menu')!
+    .querySelector('button[aria-label^="Remove"]');
+  act(() => r.click(removeCafe));
+  assert.deepEqual(items().map(item => item.id), ['visit', 'story']);
+  assert.equal(items()[1].parentId, 'cafe');
+  const rendered = document.createElement('div');
+  rendered.innerHTML = C.renderNode(current(), { edit: false });
+  assert.deepEqual([...rendered.querySelectorAll('.pagecraft-nav-list > li > a')].map(link => link.textContent),
+    ['Visit', 'Story']);
+  draw();
+  open('Story');
+  await settleSelect();
+  assert.equal(parent().value, '');
+  assert.equal(parent().selectedIndex, 0);
+  assert.equal(parent().selectedOptions[0].textContent, 'Top level');
+  assert.match(parentTrigger().textContent || '', /Top level/);
+
+  C.undo();
+  assert.deepEqual(items().map(item => item.id), ['visit', 'cafe', 'story']);
+  assert.equal(items()[2].parentId, 'cafe');
+  draw();
+  open('Story');
+  await settleSelect();
+  assert.equal(parent().value, 'cafe');
+  assert.equal(parent().selectedOptions[0].textContent, 'Café Menu');
+
+  C.undo();
+  assert.deepEqual(items().map(item => item.id), ['cafe', 'story', 'visit']);
+  assert.equal(items()[1].parentId, 'cafe');
+  C.undo();
+  assert.equal(items()[1].parentId, '');
+  draw();
+  open('Café Menu');
+  await settleSelect();
+  assert.equal(parent().value, '');
+  assert.equal(parent().selectedIndex, 0);
+  assert.equal(parent().selectedOptions[0].textContent, 'Top level');
+  assert.match(parentTrigger().textContent || '', /Top level/);
+  assert.equal([...parent().options].find(option => option.value === 'story')?.disabled, false);
+
+  C.redo();
+  C.redo();
+  draw();
+  open('Café Menu');
+  await settleSelect();
+  assert.equal(parent().value, '');
+  assert.equal(parent().selectedIndex, 0);
+  assert.equal(parent().selectedOptions[0].textContent, 'Top level');
+  assert.match(parentTrigger().textContent || '', /Top level/);
+  assert.equal([...parent().options].find(option => option.value === 'story')?.disabled, true);
+  C.redo();
+  assert.deepEqual(items().map(item => item.id), ['visit', 'story']);
+  assert.equal(items()[1].parentId, 'cafe');
+  draw();
+  open('Story');
+  await settleSelect();
+  assert.equal(parent().value, '');
+  assert.equal(parent().selectedIndex, 0);
+  assert.equal(parent().selectedOptions[0].textContent, 'Top level');
+  assert.match(parentTrigger().textContent || '', /Top level/);
+});
+
 test('clearing a Mobile Slider override immediately shows its inherited Tablet value', () => {
   const n = C.insert('slider', null, 0)!;
   C.selSet([n.id]);

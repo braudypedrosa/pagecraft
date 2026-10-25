@@ -21481,6 +21481,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const reference = C2.parseWordPressContentReference(it.href);
         const native = nativePageForItem(it);
         const nativePending = !!nativeSource && nativePendingId === itemIds[k3];
+        const effectiveParentId = itemIds.includes(String(it.parentId || "")) ? String(it.parentId) : "";
         const nativeMode = !!nativeSource && (String(it.objectType || "") === "page" && !!it.objectId || reference?.objectType === "page" || !!native);
         const mode = nativePending ? "native" : destination.mode ? "page" : nativeMode ? "native" : wordpress || reference ? "wordpress" : "custom";
         const page2 = destination.slug;
@@ -21680,7 +21681,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                   "select",
                   {
                     class: "ctl",
-                    value: it.parentId || "",
+                    value: effectiveParentId,
                     "aria-label": `Parent item for ${itemContext}`,
                     onChange: (e3) => commitParent(k3, e3.target.value),
                     children: [
@@ -21695,7 +21696,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                         itemIds[index]
                       ))
                     ]
-                  }
+                  },
+                  itemIds[k3] + "|" + effectiveParentId
                 ),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
                   /* @__PURE__ */ u2("label", { children: "Link relationship" }),

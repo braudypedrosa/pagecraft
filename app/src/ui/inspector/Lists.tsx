@@ -200,6 +200,7 @@ export function ItemsCtl({ n, c }: P) {
       const reference = C.parseWordPressContentReference(it.href);
       const native = nativePageForItem(it);
       const nativePending = !!nativeSource && nativePendingId === itemIds[k];
+      const effectiveParentId = itemIds.includes(String(it.parentId || '')) ? String(it.parentId) : '';
       const nativeMode = !!nativeSource
         && ((String(it.objectType || '') === 'page' && !!it.objectId)
           || reference?.objectType === 'page' || !!native);
@@ -308,7 +309,8 @@ export function ItemsCtl({ n, c }: P) {
             aria-label={`CSS classes for ${itemContext}`} />
 
           <label>Parent item</label>
-          <select class="ctl" value={it.parentId || ''} aria-label={`Parent item for ${itemContext}`}
+          <select key={itemIds[k] + '|' + effectiveParentId} class="ctl" value={effectiveParentId}
+            aria-label={`Parent item for ${itemContext}`}
             onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
             <option value="">Top level</option>
             {arr.map((candidate, index) => index === k ? null : (

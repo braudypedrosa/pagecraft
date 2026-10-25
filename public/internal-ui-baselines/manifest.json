@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-25T12:05:12.359Z",
+  "capturedAt": "2026-10-25T21:59:38.312Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -106,7 +106,7 @@
     "app/src/ui/inspector/Controls.tsx": "3f067d3a7b522b6d5046904f0c2c5930689c383e0595856d05fa933f8b46e345",
     "app/src/ui/inspector/Inspector.tsx": "d88eac02883818ea629cb195a532e851ddc86786f8e6b402676a7d4ad24e127c",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
-    "app/src/ui/inspector/Lists.tsx": "96d1fc8a70fbac9b39433eb4f75c763b0d4d3b092f830d8a938b8584d3855e31",
+    "app/src/ui/inspector/Lists.tsx": "77340329218dad15ae386d9b8775ea0de789544ddf957b94a419b9f39650a574",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
