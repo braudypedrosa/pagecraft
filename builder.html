@@ -4211,14 +4211,30 @@ function positionHud() {
      is the same arithmetic that keeps the bar on screen. */
   const barBounds = bar.getBoundingClientRect();
   const h = barBounds.height;
-  // At low canvas zoom the fixed-screen-size toolbar can be wider than the
-  // selection. Its CSS wraps the actions; keep the whole result in view.
-  const x = Math.max(0, Math.min(r.left, cwin.innerWidth - barBounds.width));
+  /* Direct siblings are the content a bar immediately above or below can hide. Use their
+     rendered boxes rather than inferred spacing: canvas zoom, wrapping and authored margins
+     all change where the actual hit targets land. Ancestors deliberately stay out of this
+     list because their boxes contain the selected element and would reject every position. */
+  const blockers = (s.list || []).filter(node => node.id !== s.node.id).map(node => {
+    const sibling = selectedCanvasElement(node.id);
+    return sibling ? sibling.getBoundingClientRect() : null;
+  }).filter(Boolean);
+  /* Keep the source shell runnable against the last generated UI bundle during the ordered
+     build: the next bundle supplies the collision-aware helper before either artifact ships. */
+  const placed = PC_UI.selectionToolbarPosition ? PC_UI.selectionToolbarPosition(r, {
+    width: barBounds.width, height: h,
+  }, {
+    width: cwin.innerWidth, height: cwin.innerHeight,
+  }, blockers) : {
+    left: Math.max(0, Math.min(r.left, cwin.innerWidth - barBounds.width)),
+    top: PC_UI.selectionToolbarTop(r, h, cwin.innerHeight),
+  };
+  const x = placed.left;
   bar.style.left = (x + cwin.scrollX) + 'px';
 
   // A short element at the top of the viewport needs the bar below it, so
   // the controls never cover the text the user is trying to select or edit.
-  const y = PC_UI.selectionToolbarTop(r, h, cwin.innerHeight);
+  const y = placed.top;
   bar.style.top = (y + cwin.scrollY) + 'px';
   if (y >= r.bottom) bar.style.borderRadius = '0 0 6px 6px';
 

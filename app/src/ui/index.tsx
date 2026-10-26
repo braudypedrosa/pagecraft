@@ -13,7 +13,7 @@ import { CmsWorkspace } from './CmsWorkspace';
 import { ProposalsWorkspace } from './ProposalsWorkspace';
 import { Add } from './Add';
 export { recordElementUse } from './Add';
-export { selectionToolbarTop } from './canvas-placement';
+export { selectionToolbarPosition, selectionToolbarTop } from './canvas-placement';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
 import { installCanvasFocus } from './canvas-focus';

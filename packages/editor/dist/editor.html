@@ -13807,6 +13807,7 @@ var PC_UI = (() => {
     projectIdentity: () => projectIdentity,
     recordElementUse: () => recordElementUse,
     renameHostedSite: () => renameHostedSite,
+    selectionToolbarPosition: () => selectionToolbarPosition,
     selectionToolbarTop: () => selectionToolbarTop
   });
 
@@ -19712,6 +19713,53 @@ var PC_UI = (() => {
     if (rect.top >= height) return rect.top - height;
     if (rect.bottom >= 0 && rect.bottom + height <= viewport) return rect.bottom;
     return Math.min(Math.max(0, rect.top - height), Math.max(0, viewport - height));
+  }
+  var clamp = (value, max) => Math.min(Math.max(0, value), Math.max(0, max));
+  var intersects = (a3, b2) => a3.left < b2.right && a3.right > b2.left && a3.top < b2.bottom && a3.bottom > b2.top;
+  function selectionToolbarPosition(rect, toolbar, viewport, blockers = []) {
+    const width = Math.min(toolbar.width, viewport.width);
+    const height = Math.min(toolbar.height, viewport.height);
+    const maxX = viewport.width - width;
+    const maxY = viewport.height - height;
+    const preferred = {
+      left: clamp(rect.left, maxX),
+      top: selectionToolbarTop(rect, height, viewport.height)
+    };
+    const xs = /* @__PURE__ */ new Set([
+      preferred.left,
+      clamp(rect.right - width, maxX),
+      clamp(rect.left - width, maxX),
+      clamp(rect.right, maxX),
+      0,
+      maxX
+    ]);
+    const ys = /* @__PURE__ */ new Set([
+      preferred.top,
+      clamp(rect.top - height, maxY),
+      clamp(rect.bottom, maxY),
+      0,
+      maxY
+    ]);
+    blockers.forEach((blocker) => {
+      ys.add(clamp(blocker.top - height, maxY));
+      ys.add(clamp(blocker.bottom, maxY));
+    });
+    const selectionHasOutsideEdge = rect.top >= height || rect.bottom >= 0 && rect.bottom + height <= viewport.height;
+    const candidates = Array.from(ys).flatMap((top) => Array.from(xs).map((left) => ({ left, top }))).sort((a3, b2) => {
+      const distance = (point) => Math.abs(point.top - preferred.top) + Math.abs(point.left - preferred.left);
+      return distance(a3) - distance(b2);
+    });
+    const clear = candidates.find((candidate) => {
+      const bounds = {
+        left: candidate.left,
+        top: candidate.top,
+        right: candidate.left + width,
+        bottom: candidate.top + height
+      };
+      if (selectionHasOutsideEdge && intersects(bounds, rect)) return false;
+      return blockers.every((blocker) => !intersects(bounds, blocker));
+    });
+    return clear || preferred;
   }
 
   // shared/ui-motion.js
@@ -27744,7 +27792,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const c3 = id ? findClass(id) : null;
     return c3 && (n2.cls || []).includes(id) ? c3 : n2;
   }
-  var clamp = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
+  var clamp2 = (n2, lo, hi) => n2 < lo ? lo : n2 > hi ? hi : n2;
   var parseColor = (v3) => {
     const h3 = String(v3 == null ? "" : v3).trim();
     const hex = h3.match(/^#([0-9a-f]{3,8})$/i);
@@ -27760,10 +27808,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!f4) return null;
     const al = f4[4] === void 0 ? 1 : f4[4].endsWith("%") ? parseFloat(f4[4]) / 100 : parseFloat(f4[4]);
     return {
-      r: clamp(Math.round(+f4[1]), 0, 255),
-      g: clamp(Math.round(+f4[2]), 0, 255),
-      b: clamp(Math.round(+f4[3]), 0, 255),
-      a: clamp(isNaN(al) ? 1 : al, 0, 1)
+      r: clamp2(Math.round(+f4[1]), 0, 255),
+      g: clamp2(Math.round(+f4[2]), 0, 255),
+      b: clamp2(Math.round(+f4[3]), 0, 255),
+      a: clamp2(isNaN(al) ? 1 : al, 0, 1)
     };
   };
   var hex2rgb = (v3) => {
@@ -31119,14 +31167,30 @@ function positionHud() {
      is the same arithmetic that keeps the bar on screen. */
   const barBounds = bar.getBoundingClientRect();
   const h = barBounds.height;
-  // At low canvas zoom the fixed-screen-size toolbar can be wider than the
-  // selection. Its CSS wraps the actions; keep the whole result in view.
-  const x = Math.max(0, Math.min(r.left, cwin.innerWidth - barBounds.width));
+  /* Direct siblings are the content a bar immediately above or below can hide. Use their
+     rendered boxes rather than inferred spacing: canvas zoom, wrapping and authored margins
+     all change where the actual hit targets land. Ancestors deliberately stay out of this
+     list because their boxes contain the selected element and would reject every position. */
+  const blockers = (s.list || []).filter(node => node.id !== s.node.id).map(node => {
+    const sibling = selectedCanvasElement(node.id);
+    return sibling ? sibling.getBoundingClientRect() : null;
+  }).filter(Boolean);
+  /* Keep the source shell runnable against the last generated UI bundle during the ordered
+     build: the next bundle supplies the collision-aware helper before either artifact ships. */
+  const placed = PC_UI.selectionToolbarPosition ? PC_UI.selectionToolbarPosition(r, {
+    width: barBounds.width, height: h,
+  }, {
+    width: cwin.innerWidth, height: cwin.innerHeight,
+  }, blockers) : {
+    left: Math.max(0, Math.min(r.left, cwin.innerWidth - barBounds.width)),
+    top: PC_UI.selectionToolbarTop(r, h, cwin.innerHeight),
+  };
+  const x = placed.left;
   bar.style.left = (x + cwin.scrollX) + 'px';
 
   // A short element at the top of the viewport needs the bar below it, so
   // the controls never cover the text the user is trying to select or edit.
-  const y = PC_UI.selectionToolbarTop(r, h, cwin.innerHeight);
+  const y = placed.top;
   bar.style.top = (y + cwin.scrollY) + 'px';
   if (y >= r.bottom) bar.style.borderRadius = '0 0 6px 6px';
 

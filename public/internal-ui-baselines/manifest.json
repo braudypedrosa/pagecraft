@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-10-25T21:59:38.312Z",
+  "capturedAt": "2026-10-26T03:31:10.955Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,8 +95,8 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "84b3f61911c5832e415844d994c91683fa2de956e7f54ed943f182df6b25a0df",
-    "app/src/ui/index.tsx": "a44a95bebb09c322c9c141d8a3d5e0a8eb78338ffd6e7a66f54494d5375eed7a",
+    "builder.html": "09aa87d8c468828c398ce1117def7d3b24c47bf51b24b552f07e6d7fb8157d16",
+    "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
     "app/src/ui/Pages.tsx": "06cc0d0ee79d3a0de3f6baabe7d37e61f9f5e048de39ebc8ebb3f6e3d14a63f1",
@@ -654,7 +654,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+      "sha256": "3cc1b80162074eb0c381dbfe06bb34ed8e71eb154e0a19b2393bcc8dcfc9a6fe",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
