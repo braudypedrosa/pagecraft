@@ -2602,6 +2602,23 @@ const richTextFocusSelector = (selector: string) =>
 const videoFocusSelector = (selector: string) =>
   `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,` +
   `:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
+/* Tabs and Accordion keep state styling on their widget roots while keyboard focus belongs to
+   a tab button or summary. Guard the exact child surface so focus in nested panel content does
+   not style the wrapper, and pointer focus does not impersonate keyboard focus. */
+const tabsFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-tabs):has(>:where(.pagecraft-tablist)>:where(.pagecraft-tab):focus-visible)`;
+const accordionFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-accordion):has(>:where(.pagecraft-accordion-item)>:where(.pagecraft-accordion-q):focus-visible)`;
+/* Form and Code also keep authored state on their wrappers. Follow only controls owned by
+   each widget: nested content and the Form date popover (which lives under body) must not
+   activate the wrapper. Enhanced Form controls are included beside their native fallbacks. */
+const formFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-form):has(>:where(.pagecraft-field)>:where(input,textarea,select):focus-visible,` +
+  `>:where(.pagecraft-field)>:where(.pc-select)>:where(.pc-select-button):focus-visible,` +
+  `>:where(.pagecraft-field)>:where(.pc-date)>:where(.pc-date-control)>:where(.pc-date-input,.pc-date-trigger):focus-visible,` +
+  `>:where(.pagecraft-form-button):focus-visible)`;
+const codeFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-code):has(>:where(.pagecraft-code-head)>:where(.pagecraft-code-copy):focus-visible)`;
 /* Anchors carry their own UA colour, so the Rich Text --link value cannot reach them through
    inheritance. Emit the matching descendant rule while keeping the wrapper property for the
    existing document contract and custom CSS. */
@@ -2663,6 +2680,10 @@ function tokenCss() {
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${tabsFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${accordionFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${formFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${codeFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
         const linkState = decl({ color: stateMap['--link'] });
         if (linkState) {
@@ -8244,7 +8265,15 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
         : k === 'focus' && n.type === 'text'
           ? richTextFocusSelector(selOf(n))
           : k === 'focus' && n.type === 'video'
-            ? videoFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+            ? videoFocusSelector(selOf(n))
+            : k === 'focus' && n.type === 'tabs'
+              ? tabsFocusSelector(selOf(n))
+              : k === 'focus' && n.type === 'accordion'
+                ? accordionFocusSelector(selOf(n))
+                : k === 'focus' && n.type === 'form'
+                  ? formFocusSelector(selOf(n))
+                  : k === 'focus' && n.type === 'code'
+                    ? codeFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     if (n.type === 'text') {
       const linkState = decl({ color: stateMap['--link'] });
