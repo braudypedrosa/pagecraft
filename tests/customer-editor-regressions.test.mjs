@@ -122,7 +122,7 @@ function inlineSyncHarness(node, html, prop = null) {
  const locate=()=>({node}),checkpoint=vi.fn(label=>calls.push(['checkpoint',label,structuredClone(node)]));
  const paintHistory=vi.fn(()=>calls.push(['history'])),save=vi.fn(()=>calls.push(['save'])),renderLayers=vi.fn(()=>calls.push(['layers']));
  const instSet=(n,key,value)=>{n.vals ||= {};n.vals[key]=value;};
- const start=source.indexOf('const EDIT_IN ='),end=source.indexOf('\nfunction exitEdit()',start);
+ const start=source.indexOf('const EDIT_IN ='),end=source.indexOf('\nfunction exitEdit(',start);
  expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
  const api=new Function('editing','locate','checkpoint','paintHistory','instSet','$','save','renderLayers',
    `${source.slice(start,end)}; return {inlineEditValue,syncEdit};`

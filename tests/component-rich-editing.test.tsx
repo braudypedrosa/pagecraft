@@ -5,17 +5,20 @@ import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
 import { install } from '../app/src/ui/ctx';
 import { Inspector } from '../app/src/ui/inspector/Inspector';
+import { installCustomSelects } from '../shared/custom-select.js';
 import { rig, stubLegacy, type Rig } from './ui.setup';
 
 const source = readFileSync('builder.html', 'utf8');
 let r: Rig, frame: HTMLIFrameElement, canvas: Document, api: any, editing: any;
 let saves: any[];
+let rightPaint: () => void;
 const draw = () => act(() => r.draw(() => <Inspector />, 'right'));
 const paint = () => { canvas.body.innerHTML = C.tree().map(n => C.renderNode(n, { edit: true })).join(''); };
 const richHosts = (id: string) => [...canvas.getElementById(id)!.querySelectorAll('.pagecraft-wysiwyg')];
 
 beforeEach(() => {
   r = rig(); saves = [];
+  r.host.id = 'right';
   frame = document.createElement('iframe'); document.body.append(frame);
   canvas = frame.contentDocument!;
   // jsdom lacks the browser's contentEditable attribute reflection.
@@ -28,19 +31,25 @@ beforeEach(() => {
   // Execute the actual RTE entry/input/exit implementation. Layout, panel repaint and
   // persistence transport are inert; selection, property resolution, history and DOM are real.
   const start = source.indexOf('const EDIT_IN =');
-  const end = source.indexOf("\ndocument.addEventListener('pointerdown', e => {", start);
+  const end = source.indexOf('\n\n/* ============================================================== palette */', start);
   expect(start).toBeGreaterThan(0); expect(end).toBeGreaterThan(start);
   const toolbar = source.slice(source.indexOf('function placeRT() {'), source.indexOf('/* formatBlock is inconsistent')) ;
+  rightPaint = () => {};
   const scope = { ...C, editing, cdoc: canvas, cwin: frame.contentWindow!,
-    $: (q: string) => document.querySelector(q), paint, renderRight: () => {}, renderLayers: () => {},
+    $: (q: string) => document.querySelector(q), paint, renderRight: () => rightPaint(), renderLayers: () => {},
     paintSel: () => {}, paintHistory: () => {}, positionHud: () => {},
     frameRect: () => ({ left: 0, top: 0 }), toScreen: (x: number, offset: number) => x + offset, window,
     selectedCanvasElement: (id: string) => canvas.getElementById(id),
     save: () => saves.push(JSON.parse(JSON.stringify(C.doc()))), toast: vi.fn(), askText: async () => 'https://example.test/rich-link' };
-  api = new Function(...Object.keys(scope), toolbar + source.slice(start, end) + '\nreturn {enterEdit, syncEdit, exitEdit};')(...Object.values(scope));
+  api = new Function(...Object.keys(scope), toolbar + source.slice(start, end)
+    + '\nreturn {enterEdit, syncEdit, exitEdit, finishInlineEditOnOutsidePointer, refreshInspectorAfterAction};')(...Object.values(scope));
   install(C, { ...stubLegacy(r.calls), enterEdit: api.enterEdit });
 });
-afterEach(() => { act(() => r.draw(null)); r.host.remove(); frame.remove(); document.getElementById('rt')?.remove(); });
+afterEach(() => {
+  document.removeEventListener('pointerdown', api.finishInlineEditOnOutsidePointer);
+  act(() => r.draw(null)); r.host.remove(); frame.remove(); document.getElementById('rt')?.remove();
+  document.querySelectorAll('.pc-custom-select-popover').forEach(node => node.remove());
+});
 
 function fixture() {
   const original = C.insert('box', null, 0)!;
@@ -65,6 +74,24 @@ function input(html: string) {
   const el = canvas.querySelector('[contenteditable="true"]')!;
   expect(el).toBeTruthy(); el.innerHTML = html;
   act(() => { el.dispatchEvent(new Event('input', { bubbles: true })); });
+}
+
+const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+function addOpenProperty(def: ReturnType<typeof C.findComponent>) {
+  def!.props!.push({
+    k: 'open-on-load', t: 'select', label: 'Open on load', def: 'first',
+    opts: [['none', 'All closed'], ['first', 'The first one'], ['all', 'All open']]
+  });
+}
+async function openSelectAfterPointerDown() {
+  installCustomSelects();
+  await settle();
+  const trigger = r.$('.pc-custom-select-trigger[aria-label="Open on load"]') as HTMLButtonElement;
+  expect(trigger).toBeTruthy();
+  act(() => { trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  act(() => { trigger.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0 })); });
+  act(() => trigger.click());
+  return trigger;
 }
 
 test('actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings', () => {
@@ -153,4 +180,135 @@ test('imported definition node IDs do not become unsafe CSS selectors', () => {
   open();
   expect(canvas.querySelector('[contenteditable="true"]')).toBe(richHosts(second.id)[0]);
   act(() => api.exitEdit());
+});
+
+test('a changed inline Rich edit preserves the first select click and reconciles after cancel', async () => {
+  const { def } = fixture();
+  addOpenProperty(def);
+  draw();
+  rightPaint = () => {
+    act(() => r.draw(null));
+    draw();
+    installCustomSelects();
+  };
+  open();
+  input('<p>Changed before leaving inline editing</p>');
+  const host = canvas.querySelector('[contenteditable="true"]')!;
+  host.dispatchEvent(new (frame.contentWindow! as any).KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+
+  const trigger = await openSelectAfterPointerDown();
+  expect(editing.on).toBe(false);
+  expect(trigger.isConnected).toBe(true);
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  expect(r.host.textContent || '').not.toMatch(/One value is set on this instance/);
+
+  const nextField = document.createElement('input');
+  nextField.value = 'next field';
+  r.host.append(nextField);
+  act(() => { nextField.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  nextField.focus(); nextField.setSelectionRange(3, 3);
+  act(() => {
+    nextField.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0 }));
+    nextField.click();
+  });
+  expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  expect(nextField.isConnected).toBe(true);
+  expect(document.activeElement).toBe(nextField);
+  expect(nextField.selectionStart).toBe(3);
+  expect(r.host.textContent || '').not.toMatch(/One value is set on this instance/);
+  act(() => nextField.blur());
+  expect(trigger.isConnected).toBe(false);
+  expect(r.host.textContent || '').toMatch(/One value is set on this instance/);
+});
+
+test('Escape closes the first-click picker before deferred status reconciliation', async () => {
+  const { def } = fixture();
+  addOpenProperty(def);
+  draw();
+  rightPaint = () => { act(() => r.draw(null)); draw(); installCustomSelects(); };
+  open(); input('<p>Changed before Escape</p>');
+
+  const trigger = await openSelectAfterPointerDown();
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  act(() => {
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    trigger.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', bubbles: true }));
+  });
+
+  expect(trigger.isConnected).toBe(false);
+  expect(r.host.textContent || '').toMatch(/One value is set on this instance/);
+});
+
+test('unchanged and explicitly exited Rich edits keep the first select click working', async () => {
+  const { def } = fixture();
+  addOpenProperty(def);
+  draw();
+  rightPaint = draw;
+
+  open();
+  let trigger = await openSelectAfterPointerDown();
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  trigger.click();
+
+  open();
+  input('<p>Changed, then explicitly exited</p>');
+  act(() => api.exitEdit());
+  trigger = r.$('.pc-custom-select-trigger[aria-label="Open on load"]') as HTMLButtonElement;
+  act(() => { trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  act(() => { trigger.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0 })); });
+  act(() => trigger.click());
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');
+});
+
+test('changed inline Rich teardown does not swallow a neighboring button or replace an input caret', () => {
+  fixture();
+  const reconciled = vi.fn(() => { act(() => r.draw(null)); draw(); });
+  rightPaint = reconciled;
+  const button = document.createElement('button');
+  button.textContent = 'Neighbor action';
+  const action = vi.fn();
+  button.addEventListener('click', action);
+  const field = document.createElement('input');
+  field.value = 'caret';
+  r.host.append(button, field);
+
+  open(); input('<p>Button path</p>');
+  act(() => { button.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  act(() => button.click());
+  expect(action).toHaveBeenCalledOnce();
+  expect(reconciled).toHaveBeenCalledTimes(1);
+
+  const nextButton = document.createElement('button');
+  nextButton.textContent = 'Edit again';
+  r.host.append(nextButton, field);
+  open(); input('<p>Input path</p>');
+  act(() => { field.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  field.focus(); field.setSelectionRange(2, 2);
+  expect(field.isConnected).toBe(true);
+  expect(document.activeElement).toBe(field);
+  expect(field.selectionStart).toBe(2);
+  expect(reconciled).toHaveBeenCalledTimes(1);
+  act(() => field.blur());
+  expect(reconciled).toHaveBeenCalledTimes(2);
+});
+
+test('a real delegated Back to the variant action runs before deferred reconciliation', () => {
+  const { second, def, key } = fixture();
+  C.instSet(second, key, '<p>Variant value</p>');
+  const variant = C.variantFromInstance(second, 'QA variant')!;
+  C.instSet(second, key, '<p>Pre-existing local value</p>');
+  paint(); draw();
+  rightPaint = draw;
+  open(); input('<p>Local value before reset</p>');
+  const reset = [...r.host.querySelectorAll('button')].find(button => button.textContent?.trim() === 'Back to the variant')!;
+  expect(reset).toBeTruthy();
+
+  act(() => { reset.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })); });
+  act(() => reset.click());
+
+  expect(editing.on).toBe(false);
+  expect(second.variant).toBe(variant);
+  expect(C.instOwn(second)).toEqual([]);
+  expect(C.instValue(second, def, key)).toBe('<p>Variant value</p>');
+  expect(r.host.textContent || '').not.toMatch(/value is set on this instance/);
 });

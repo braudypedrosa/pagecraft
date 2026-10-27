@@ -32545,7 +32545,7 @@ function syncEdit() {
   return true;
 }
 
-function exitEdit() {
+function exitEdit(options = {}) {
   if (!editing.on) return;
   syncEdit();
   editing.off.forEach(f => f());
@@ -32553,12 +32553,90 @@ function exitEdit() {
   editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.node = null; editing.prop = null; editing.off = [];
   editing.changed = false; editing.label = ''; editing.value = null;
   $('#rt').classList.remove('show');
-  paint(); renderRight();
+  paint();
+  /* An inspector control pressed while a changed canvas edit is still active owns the live
+     pointer gesture. Replacing that panel between pointerdown and click consumes the first
+     action, and replacing a focused text control loses its caret. The deferred reconciler
+     below refreshes after that action or focus session safely finishes. */
+  if (!options.preserveInspector) renderRight();
 }
-document.addEventListener('pointerdown', e => {
+let pendingInlineInspectorRefresh = null;
+function refreshInspectorAfterAction(target) {
+  if (pendingInlineInspectorRefresh) pendingInlineInspectorRefresh();
+  let done = false;
+  let cleanup = () => {};
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    if (pendingInlineInspectorRefresh === cancel) pendingInlineInspectorRefresh = null;
+  };
+  const finish = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    if (pendingInlineInspectorRefresh === cancel) pendingInlineInspectorRefresh = null;
+    /* A normal control change may already have repainted the panel. Do not paint it twice. */
+    if (target.isConnected) renderRight();
+  };
+  const textField = target.matches('input,textarea,[contenteditable="true"]');
+  if (textField) {
+    target.addEventListener('blur', finish, { once: true });
+    cleanup = () => target.removeEventListener('blur', finish);
+    pendingInlineInspectorRefresh = cancel;
+    return;
+  }
+  if (target.matches('.pc-custom-select-trigger')) {
+    const settle = event => {
+      if (!target.isConnected) { pendingInlineInspectorRefresh?.(); return; }
+      if (target.getAttribute('aria-expanded') !== 'false') return;
+      /* Clicking another field closes this picker during pointerdown. At document click the
+         new action is complete, but a text caret or a second open picker is still live. Hand
+         the deferred refresh to that control rather than replacing it. */
+      const raw = event.type === 'click' && event.target instanceof Element ? event.target : null;
+      const next = raw && !target.contains(raw) ? raw.closest(
+        '#right input,#right textarea,#right [contenteditable="true"],#right .pc-custom-select-trigger,'
+        + '#devSeg input,#devSeg .pc-custom-select-trigger'
+      ) : null;
+      if (next instanceof HTMLElement) {
+        cancel();
+        refreshInspectorAfterAction(next);
+      } else finish();
+    };
+    document.addEventListener('click', settle);
+    document.addEventListener('keyup', settle);
+    cleanup = () => {
+      document.removeEventListener('click', settle);
+      document.removeEventListener('keyup', settle);
+    };
+    pendingInlineInspectorRefresh = cancel;
+    return;
+  }
+  const settle = event => {
+    if (event.type === 'click' && !event.composedPath().includes(target)) return;
+    finish();
+  };
+  /* Preact owns several inspector actions through an ancestor. Reconcile at document bubble,
+     after that delegated handler has applied its edit and repaint, never at the target first. */
+  document.addEventListener('click', settle);
+  document.addEventListener('pointercancel', settle);
+  cleanup = () => {
+    document.removeEventListener('click', settle);
+    document.removeEventListener('pointercancel', settle);
+  };
+  pendingInlineInspectorRefresh = cancel;
+}
+function finishInlineEditOnOutsidePointer(e) {
   // Link-dialog pointer events must not destroy the editable host and saved range.
-  if (editing.on && !editing.prompt && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
-});
+  if (!editing.on || editing.prompt || e.target.closest('#rt') || e.target.closest('#canvas')) return;
+  const inspectorAction = editing.changed && e.target.closest(
+    '#right button,#right [role="button"],#right input,#right textarea,#right select,#right [contenteditable="true"],'
+    + '#devSeg button,#devSeg [role="button"],#devSeg input,#devSeg select'
+  );
+  if (inspectorAction) refreshInspectorAfterAction(inspectorAction);
+  exitEdit({ preserveInspector: !!inspectorAction });
+}
+document.addEventListener('pointerdown', finishInlineEditOnOutsidePointer);
 
 
 /* ============================================================== palette */
