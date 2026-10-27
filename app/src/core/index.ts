@@ -4668,6 +4668,39 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
 /* These inputs can change which rows occupy every generated page. Preview must start from
    page one instead of clamping a stale later page into the changed result set. */
 const LIST_PAGE_INPUTS = new Set(['sort', 'dir', 'where', 'op', 'val', 'per', 'limit']);
+const toggleOn = (value: unknown) => !['', '0', 'false'].includes(String(value ?? ''));
+
+/** Keep the Accordion's two opening promises compatible at the same ownership layer.
+    A direct widget changes its own props. A component instance changes only its own values,
+    and only when both controls were exposed as properties; it must never repair one placement
+    by rewriting the shared definition or another placement. Legacy invalid documents remain
+    untouched until a person changes one of these controls, while rendering stays defensive. */
+function reconcileAccordionOpenMode(n: PcNode, key: string, value: unknown) {
+  if (n.use && key.startsWith(VAL)) {
+    const def = findComponent(n.use);
+    if (!def) return;
+    const property = key.slice(VAL.length);
+    const peers = new Map<string, string>();
+    eachNode([def.node], node => {
+      if (node.type !== 'accordion') return;
+      const open = bindGet(node, 'open'), single = bindGet(node, 'single');
+      if (open?.src !== 'prop' || single?.src !== 'prop') return;
+      if (property === open.path && value === 'all'
+        && toggleOn(instValue(n, def, single.path))) peers.set(single.path, '0');
+      if (property === single.path && toggleOn(value)
+        && instValue(n, def, open.path) === 'all') peers.set(open.path, 'first');
+    });
+    peers.forEach((next, peer) => {
+      if (!boundField(n, VAL + peer)) instSet(n, peer, next);
+    });
+    return;
+  }
+  if (n.type !== 'accordion') return;
+  const props = n.props as PropBag;
+  if (key === 'open' && value === 'all' && toggleOn(props.single)) props.single = 0;
+  if (key === 'single' && toggleOn(value) && props.open === 'all') props.open = 'first';
+}
+
 /** Write one control's value onto one node. `_id`, `_cls` and `_css` are the Advanced
     escape hatches and land on `adv` rather than on props; everything else is either a
     CSS declaration or a prop. */
@@ -4678,6 +4711,7 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_id') { n.adv.htmlId = String(v == null ? '' : v).replace(/[^\w-]/g, ''); return; }
   if (c.k === '_cls') { n.adv.cls = v; return; }
   if (c.k === '_css') { n.adv.css = v; return; }
+  if (c.k) reconcileAccordionOpenMode(n, c.k, v);
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
   else if (c.k && c.k.startsWith(VAL)) {
     const key = c.k.slice(VAL.length);

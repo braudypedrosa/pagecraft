@@ -8248,6 +8248,30 @@ function smartTarget(key) {
   return [container, index];
 }
 var LIST_PAGE_INPUTS = /* @__PURE__ */ new Set(["sort", "dir", "where", "op", "val", "per", "limit"]);
+var toggleOn = (value) => !["", "0", "false"].includes(String(value ?? ""));
+function reconcileAccordionOpenMode(n, key, value) {
+  if (n.use && key.startsWith(VAL)) {
+    const def = findComponent(n.use);
+    if (!def) return;
+    const property = key.slice(VAL.length);
+    const peers = /* @__PURE__ */ new Map();
+    eachNode([def.node], (node) => {
+      if (node.type !== "accordion") return;
+      const open = bindGet(node, "open"), single = bindGet(node, "single");
+      if (open?.src !== "prop" || single?.src !== "prop") return;
+      if (property === open.path && value === "all" && toggleOn(instValue(n, def, single.path))) peers.set(single.path, "0");
+      if (property === single.path && toggleOn(value) && instValue(n, def, open.path) === "all") peers.set(open.path, "first");
+    });
+    peers.forEach((next, peer) => {
+      if (!boundField(n, VAL + peer)) instSet(n, peer, next);
+    });
+    return;
+  }
+  if (n.type !== "accordion") return;
+  const props = n.props;
+  if (key === "open" && value === "all" && toggleOn(props.single)) props.single = 0;
+  if (key === "single" && toggleOn(value) && props.open === "all") props.open = "first";
+}
 function applyOne(n, c, v) {
   if (c.k === "_id") {
     n.adv.htmlId = String(v == null ? "" : v).replace(/[^\w-]/g, "");
@@ -8261,6 +8285,7 @@ function applyOne(n, c, v) {
     n.adv.css = v;
     return;
   }
+  if (c.k) reconcileAccordionOpenMode(n, c.k, v);
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
   else if (c.k && c.k.startsWith(VAL)) {
     const key = c.k.slice(VAL.length);
