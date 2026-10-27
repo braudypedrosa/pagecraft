@@ -9101,6 +9101,7 @@ function boundProps(n, col, item, inst, def) {
     const v = fieldValue(col, item, b.path);
     out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
   }
+  if (n.type === "accordion" && inst && out.open === "all" && bindGet(n, "open")?.src === "prop" && !bindGet(n, "single")) out.single = 0;
   return out;
 }
 var COND_OPS = [

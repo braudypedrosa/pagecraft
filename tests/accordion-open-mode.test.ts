@@ -135,3 +135,57 @@ test('an unrelated style edit does not normalize a legacy invalid Accordion', ()
   expect(accordion.props).toMatchObject({ open: 'all', single: 1 });
   expect(accordion.css.d['margin-top']).toBe('18px');
 });
+
+const accordionAttrs = (instance: ReturnType<typeof C.insert>) => {
+  const html = C.renderNode(instance!, { edit: false });
+  return {
+    open: (html.match(/<details[^>]* open/g) || []).length,
+    named: (html.match(/<details[^>]* name=/g) || []).length
+  };
+};
+
+test('an exposed Open property wins per instance over a fixed unbound exclusive default', () => {
+  const first = C.insert('box', null, 0)!;
+  const accordion = C.insert('accordion', first, 0)!;
+  Object.assign(accordion.props, { open: 'first', single: 1 });
+  const componentId = C.componentFromNode(first.id, 'Open property only')!;
+  const definition = C.findComponent(componentId)!;
+  const definitionAccordion = definition.node.children[0];
+  const openProperty = C.propFromControl(componentId, definitionAccordion.id, control('open'))!;
+  const second = C.instanceInsert(componentId, null, C.tree().length)!;
+  const openControl = C.instControls(second).find(item => item.k === C.VAL + openProperty)!;
+  const beforeDefinition = C.clone(definition);
+  const beforeFirst = C.clone(first);
+
+  C.edit(() => C.applyC(second, openControl, 'all'));
+
+  expect(accordionAttrs(first)).toEqual({ open: 1, named: 3 });
+  expect(accordionAttrs(second)).toEqual({ open: 3, named: 0 });
+  expect(definition).toEqual(beforeDefinition);
+  expect(first).toEqual(beforeFirst);
+  expect(second.vals).toEqual({ [openProperty]: 'all' });
+
+  C.bindSet(definitionAccordion, 'single', C.bindField('cms-exclusive'));
+  expect(accordionAttrs(second)).toEqual({ open: 1, named: 3 });
+  expect(second.vals).toEqual({ [openProperty]: 'all' });
+});
+
+test('an exposed Single property stays authoritative over fixed All open without changing its peer', () => {
+  const first = C.insert('box', null, 0)!;
+  const accordion = C.insert('accordion', first, 0)!;
+  Object.assign(accordion.props, { open: 'all', single: 0 });
+  const componentId = C.componentFromNode(first.id, 'Single property only')!;
+  const definition = C.findComponent(componentId)!;
+  const definitionAccordion = definition.node.children[0];
+  const singleProperty = C.propFromControl(componentId, definitionAccordion.id, control('single'))!;
+  const second = C.instanceInsert(componentId, null, C.tree().length)!;
+  const singleControl = C.instControls(second).find(item => item.k === C.VAL + singleProperty)!;
+
+  C.edit(() => C.applyC(second, singleControl, 1));
+
+  expect(accordionAttrs(first)).toEqual({ open: 3, named: 0 });
+  expect(accordionAttrs(second)).toEqual({ open: 1, named: 3 });
+  expect(definitionAccordion.props).toMatchObject({ open: 'all', single: 0 });
+  expect(first.vals).toBeUndefined();
+  expect(second.vals).toEqual({ [singleProperty]: '1' });
+});

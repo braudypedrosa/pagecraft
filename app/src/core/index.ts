@@ -5807,6 +5807,12 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
     const v = fieldValue(col, item, b.path);
     (out as PropBag)[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
   }
+  /* When Open on load is the only setting exposed by an Accordion component, that property
+     owns its visible promise for this placement. A fixed raw `single` default must not turn
+     the instance's “All open” into one open panel. Any binding on `single` remains authoritative:
+     it has its own owner, whether that is another component property or a CMS field. */
+  if (n.type === 'accordion' && inst && out.open === 'all'
+    && bindGet(n, 'open')?.src === 'prop' && !bindGet(n, 'single')) out.single = 0;
   return out;
 }
 
