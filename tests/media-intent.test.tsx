@@ -76,6 +76,39 @@ test('direct image library choices still adopt intrinsic dimensions', async () =
   expect(image.props).toMatchObject({src:'asset:new', w:'640', h:'480'});
 });
 
+test('multi-image replacement adopts every selected image dimension in one history step', async () => {
+  activeRig = rig({asset: id => ({...asset(id), w:400, h:800})});
+  C.seed(); C.blankProject('Multi-image dimensions QA');
+  const first = C.insert('image', null, 0)!;
+  const second = C.insert('image', null, 1)!;
+  const untouched = C.insert('image', null, 2)!;
+  const heading = C.insert('heading', null, 3)!;
+  Object.assign(first.props, {src:'asset:wide', w:'1200', h:'300'});
+  Object.assign(second.props, {src:'asset:square', w:'640', h:'640'});
+  Object.assign(untouched.props, {src:'asset:peer', w:'900', h:'600'});
+  C.selSet([first.id, second.id, heading.id]);
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  const before = JSON.stringify(C.doc());
+  const untouchedBefore = JSON.stringify(untouched);
+  const headingBefore = JSON.stringify(heading);
+  L.mediaPicker = vi.fn(async () => 'portrait');
+
+  activeRig.draw(<Ctl n={first} c={{t:'img', k:'src', label:'Image'}} />);
+  await act(async () => activeRig!.click(activeRig!.$$('button').find(button => button.textContent?.includes('Library'))!));
+
+  for (const id of [first.id, second.id]) {
+    expect(C.locate(id)!.node.props).toMatchObject({src:'asset:portrait', w:'400', h:'800'});
+  }
+  expect(JSON.stringify(C.locate(untouched.id)!.node)).toBe(untouchedBefore);
+  expect(JSON.stringify(C.locate(heading.id)!.node)).toBe(headingBefore);
+  expect(C.hist.u).toHaveLength(1);
+  const after = JSON.stringify(C.doc());
+  C.undo();
+  expect(JSON.stringify(C.doc())).toBe(before);
+  C.redo();
+  expect(JSON.stringify(C.doc())).toBe(after);
+});
+
 test('background image library choices remain dimensionless', async () => {
   activeRig = rig({asset: id => asset(id)});
   C.seed(); C.blankProject('Background image dimensions QA');

@@ -679,7 +679,13 @@ function ImgCtl({ n, c }: P) {
       /* an image's intrinsic size comes along once, so the export can write
          width/height and the review stops asking for them */
       if (!c.bg && !c.k?.startsWith(C.VAL) && got.w) {
-        n.props.w = String(got.w); n.props.h = String(got.h);
+        const ids = C.selIds();
+        const targets = n.type === 'image' && c.k === 'src' && ids.length > 1 && ids.includes(n.id)
+          ? C.fanTargets(c, ids).filter(target => target.type === 'image' && !target.use)
+          : [n];
+        targets.forEach(target => {
+          target.props.w = String(got.w); target.props.h = String(got.h);
+        });
       }
     });
   };
