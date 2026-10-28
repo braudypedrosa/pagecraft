@@ -166,7 +166,14 @@ function StylingTarget({ n }: { n: PcNode }) {
         { ok: 'Create class', note: sitewide
           ? 'Restyling it reaches every element using it on this WordPress site.'
           : 'Restyling it reaches every element using it.' });
-      if (name === null) { el.value = ''; return; }
+      if (name === null) {
+        el.value = '';
+        /* The enhanced select mirrors native selection through its ordinary change contract.
+           Resetting the native value directly after a cancelled dialog otherwise leaves the
+           visible trigger on the cancelled option. */
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+      }
       C.edit(() => { C.state.ui.target = C.classFrom(n, name); });
       L.toast('Class created from this element');
       return;

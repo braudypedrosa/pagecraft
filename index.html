@@ -24063,6 +24063,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         );
         if (name === null) {
           el.value = "";
+          el.dispatchEvent(new Event("change", { bubbles: true }));
           return;
         }
         C2.edit(() => {
