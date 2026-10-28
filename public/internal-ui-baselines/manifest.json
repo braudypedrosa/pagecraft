@@ -104,7 +104,7 @@
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
     "app/src/ui/inspector/Controls.tsx": "3f067d3a7b522b6d5046904f0c2c5930689c383e0595856d05fa933f8b46e345",
-    "app/src/ui/inspector/Inspector.tsx": "d88eac02883818ea629cb195a532e851ddc86786f8e6b402676a7d4ad24e127c",
+    "app/src/ui/inspector/Inspector.tsx": "889b6e7cb421e2f5d9555b555459b56e966b3721dcdbff6674b13005ce002fd5",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "77340329218dad15ae386d9b8775ea0de789544ddf957b94a419b9f39650a574",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",

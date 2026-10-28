@@ -153,6 +153,7 @@ function ClipStrip() {
 /** Which object styling lands on: this element, or one of its classes. */
 function StylingTarget({ n }: { n: PcNode }) {
   const applied = C.nodeClasses(n);
+  const sitewide = L.nativePageSource() != null;
   const target = C.state.ui.target && C.findClass(C.state.ui.target)
     && applied.some(c => c.id === C.state.ui.target) ? C.state.ui.target : '';
   const pool = C.classes().filter(c => !applied.some(x => x.id === c.id));
@@ -162,7 +163,9 @@ function StylingTarget({ n }: { n: PcNode }) {
     if (!v) return;
     if (v === '__new') {
       const name = await L.askText('New class', 'Class name', C.kindOf(n),
-        { ok: 'Create class', note: 'Restyling it reaches every element using it.' });
+        { ok: 'Create class', note: sitewide
+          ? 'Restyling it reaches every element using it on this WordPress site.'
+          : 'Restyling it reaches every element using it.' });
       if (name === null) { el.value = ''; return; }
       C.edit(() => { C.state.ui.target = C.classFrom(n, name); });
       L.toast('Class created from this element');
@@ -182,8 +185,10 @@ function StylingTarget({ n }: { n: PcNode }) {
         return (
           <div class="tgrow" key={c.id}>
             <button class={'tg' + (target === c.id ? ' on' : '')} aria-pressed={target === c.id ? 'true' : 'false'}
-              title={`Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
-            <small>{uses} use{uses === 1 ? '' : 's'}</small>
+              title={sitewide
+                ? 'Style every element using this class across this WordPress site'
+                : `Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
+            <small>{sitewide ? 'Across site' : `${uses} use${uses === 1 ? '' : 's'}`}</small>
             <button class="tgx" title="Remove this class from the element"
               onClick={() => {
                 if (C.state.ui.target === c.id) C.state.ui.target = '';
@@ -196,7 +201,7 @@ function StylingTarget({ n }: { n: PcNode }) {
         onChange={e => add((e.target as HTMLSelectElement).value, e.target as HTMLSelectElement)}>
         <option value="">Add a class…</option>
         {pool.map(c => (
-          <option key={c.id} value={c.id}>.{c.id} · {C.classUsage(c.id)} use{C.classUsage(c.id) === 1 ? '' : 's'}</option>
+          <option key={c.id} value={c.id}>.{c.id} · {sitewide ? 'Across site' : `${C.classUsage(c.id)} use${C.classUsage(c.id) === 1 ? '' : 's'}`}</option>
         ))}
         <option value="__new">＋ New class from this element…</option>
       </select>

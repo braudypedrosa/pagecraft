@@ -24045,6 +24045,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function StylingTarget({ n: n2 }) {
     const applied = C2.nodeClasses(n2);
+    const sitewide = L2.nativePageSource() != null;
     const target = C2.state.ui.target && C2.findClass(C2.state.ui.target) && applied.some((c3) => c3.id === C2.state.ui.target) ? C2.state.ui.target : "";
     const pool = C2.classes().filter((c3) => !applied.some((x2) => x2.id === c3.id));
     const pick = (id) => {
@@ -24058,7 +24059,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "New class",
           "Class name",
           C2.kindOf(n2),
-          { ok: "Create class", note: "Restyling it reaches every element using it." }
+          { ok: "Create class", note: sitewide ? "Restyling it reaches every element using it on this WordPress site." : "Restyling it reaches every element using it." }
         );
         if (name === null) {
           el.value = "";
@@ -24094,7 +24095,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             {
               class: "tg" + (target === c3.id ? " on" : ""),
               "aria-pressed": target === c3.id ? "true" : "false",
-              title: `Style all ${uses} elements using this class`,
+              title: sitewide ? "Style every element using this class across this WordPress site" : `Style all ${uses} elements using this class`,
               onClick: () => pick(c3.id),
               children: [
                 ".",
@@ -24102,11 +24103,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ]
             }
           ),
-          /* @__PURE__ */ u2("small", { children: [
-            uses,
-            " use",
-            uses === 1 ? "" : "s"
-          ] }),
+          /* @__PURE__ */ u2("small", { children: sitewide ? "Across site" : `${uses} use${uses === 1 ? "" : "s"}` }),
           /* @__PURE__ */ u2(
             "button",
             {
@@ -24134,9 +24131,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ".",
               c3.id,
               " \xB7 ",
-              C2.classUsage(c3.id),
-              " use",
-              C2.classUsage(c3.id) === 1 ? "" : "s"
+              sitewide ? "Across site" : `${C2.classUsage(c3.id)} use${C2.classUsage(c3.id) === 1 ? "" : "s"}`
             ] }, c3.id)),
             /* @__PURE__ */ u2("option", { value: "__new", children: "\uFF0B New class from this element\u2026" })
           ]
