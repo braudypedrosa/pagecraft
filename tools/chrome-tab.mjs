@@ -129,6 +129,16 @@ export async function launchChromeTab({ url, width = 1440, height = 900 } = {}) 
       }
       throw new Error(`Could not find an enabled ${what}.`);
     };
+    /* Run `fn(element, arg)` in the page against what `finder` locates, as Locator.evaluate does. */
+    const evaluateFound = async (finder, args, fn, arg, what) => {
+      for (let attempt = 0; attempt < 50; attempt++) {
+        const found = await evaluate(`(input) => { const el = (${finder})(...input.args); if (!el) return { missing: true };
+          return { value: (${fn.toString()})(el, input.arg) }; }`, { args, arg });
+        if (!found.missing) return found.value;
+        await sleep(100);
+      }
+      throw new Error(`Could not find ${what}.`);
+    };
     const locator = selector => ({
       waitFor: async () => {
         for (let attempt = 0; attempt < 100; attempt++) {
@@ -138,23 +148,38 @@ export async function launchChromeTab({ url, width = 1440, height = 900 } = {}) 
         throw new Error(`Timed out waiting for ${selector}`);
       },
       click: () => clickFound('(s) => document.querySelector(s)', [selector], selector),
+      evaluate: (fn, arg) => evaluateFound('(s) => document.querySelector(s)', [selector], fn, arg, selector),
+      press: async key => {
+        await evaluateFound('(s) => document.querySelector(s)', [selector], el => el.focus(), undefined, selector);
+        await pressKey(key);
+      },
     });
     const keys = { Escape: { code: 'Escape', windowsVirtualKeyCode: 27 }, Enter: { code: 'Enter', windowsVirtualKeyCode: 13 },
-      ArrowDown: { code: 'ArrowDown', windowsVirtualKeyCode: 40 }, Tab: { code: 'Tab', windowsVirtualKeyCode: 9 } };
+      ArrowDown: { code: 'ArrowDown', windowsVirtualKeyCode: 40 }, Tab: { code: 'Tab', windowsVirtualKeyCode: 9 },
+      End: { code: 'End', windowsVirtualKeyCode: 35 }, Home: { code: 'Home', windowsVirtualKeyCode: 36 } };
+    /* `Shift+Tab` / `Control+Home` style chords, as CDP modifier bits. */
+    const MODIFIERS = { Alt: 1, Control: 2, Meta: 4, Shift: 8 };
+    const pressKey = async chord => {
+      const parts = chord.split('+'), key = parts.pop();
+      if (parts.some(part => !MODIFIERS[part])) throw new Error(`Unsupported key ${chord}`);
+      const k = keys[key]; if (!k) throw new Error(`Unsupported key ${chord}`);
+      const modifiers = parts.reduce((bits, part) => bits | MODIFIERS[part], 0);
+      await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key, modifiers, ...k });
+      await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key, modifiers, ...k });
+    };
     const tab = {
       browser: CHROME_BROWSER_LABEL,
       browserVersion: version,
       capabilities: { get: async name => { if (name !== 'cdp') throw new Error(`No ${name} capability`); return cdp; } },
       playwright: {
         evaluate,
-        getByRole: (role, { name }) => ({ click: () => clickFound(FIND_BY_ROLE, [role, name], `${role} "${name}"`) }),
+        getByRole: (role, { name }) => ({
+          click: () => clickFound(FIND_BY_ROLE, [role, name], `${role} "${name}"`),
+          evaluate: (fn, arg) => evaluateFound(FIND_BY_ROLE, [role, name], fn, arg, `${role} "${name}"`),
+        }),
         locator,
       },
-      pressKey: async key => {
-        const k = keys[key]; if (!k) throw new Error(`Unsupported key ${key}`);
-        await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key, ...k });
-        await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key, ...k });
-      },
+      pressKey,
       type: async text => cdp.send('Input.insertText', { text }),
       clickAt,
       goto: async target => {
