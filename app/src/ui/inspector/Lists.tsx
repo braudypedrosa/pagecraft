@@ -248,7 +248,10 @@ export function ItemsCtl({ n, c }: P) {
             text="Custom destinations accept URLs, email, phone, and section links." /></div>
           <select class="ctl" value={mode} aria-label={`Destination for ${itemContext}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
-            const current = C.page();
+            /* A detail template has no page of its own to link to; start at the front page. */
+            const linkable = C.linkablePages();
+            const current = linkable.includes(C.page()) ? C.page()
+              : linkable.find(C.isFront) || linkable[0] || C.page();
             if (next === 'native') { setNativePendingId(itemIds[k]); return; }
             setNativePendingId(null);
             if (next === 'wordpress') {
@@ -273,7 +276,9 @@ export function ItemsCtl({ n, c }: P) {
             }}>
               {!destination.page && destination.storedId
                 ? <option value={destination.storedId} disabled>Missing page · {String(it.href || '')}</option> : null}
-              {C.state.pages.map(p => <option key={p.id} value={p.id}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
+              {destination.page && C.isDetailTemplate(destination.page)
+                ? <option value={destination.page.id} disabled>{destination.page.name} · detail template, not a page</option> : null}
+              {C.linkablePages().map(p => <option key={p.id} value={p.id}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
             <select class="ctl" value={destination.frag} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
               commitDestination(k, C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }), { pageId: destination.pageId });

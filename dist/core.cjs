@@ -278,6 +278,7 @@ __export(index_exports, {
   instValue: () => instValue,
   instanceInsert: () => instanceInsert,
   instances: () => instances,
+  isDetailTemplate: () => isDetailTemplate,
   isFront: () => isFront,
   isGoogle: () => isGoogle,
   isNotFound: () => isNotFound,
@@ -298,6 +299,7 @@ __export(index_exports, {
   layerTarget: () => layerTarget,
   linkOf: () => linkOf,
   linkTargetKey: () => linkTargetKey,
+  linkablePages: () => linkablePages,
   lint: () => lint,
   lintCounts: () => lintCounts,
   listItems: () => listItems,
@@ -5653,7 +5655,7 @@ function lint() {
   const out = [];
   const add = (level, code, msg, where, nodeId, target) => out.push({ level, code, msg, where, nodeId, target });
   const idsBySlug = {};
-  state.pages.forEach((pg2) => {
+  linkablePages().forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
     [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[pg2.slug + ".html"] = ids;
@@ -5762,6 +5764,11 @@ function lint() {
         const { path, frag, target } = destination || { path: h, frag: "", target: h };
         if (path === "" && region !== "page" && state.pages.length > 1) {
           add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
+          return;
+        }
+        const template = pageOf(target) ? void 0 : state.pages.find((p) => p.slug + ".html" === target && isDetailTemplate(p));
+        if (template) {
+          add("error", "dead-link", `\u201C${h}\u201D in the ${region} points at \u201C${template.name}\u201D, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item\u2019s own page.`, w, n.id);
           return;
         }
         if (!pageOf(target)) {
@@ -7112,6 +7119,8 @@ function pageAt(href) {
   const at = state.pages.findIndex((pg2) => pg2.id === exported.pg.id);
   return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
+var isDetailTemplate = (pg2) => !!(pg2.collection && findCollection(pg2.collection));
+var linkablePages = () => state.pages.filter((pg2) => !isDetailTemplate(pg2));
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
@@ -11939,6 +11948,7 @@ function proposalApply(changes, proposalId = "") {
   instValue,
   instanceInsert,
   instances,
+  isDetailTemplate,
   isFront,
   isGoogle,
   isNotFound,
@@ -11959,6 +11969,7 @@ function proposalApply(changes, proposalId = "") {
   layerTarget,
   linkOf,
   linkTargetKey,
+  linkablePages,
   lint,
   lintCounts,
   listItems,

@@ -2710,6 +2710,34 @@ test('a dead internal link is an error, a live one is silent', () => {
   a.equal(find(C.lint(), 'dead-link').length, 0);
 });
 
+test('a link to a detail template is dead: the template exports one page per item, not its own slug', () => {
+  blank();
+  const col = collectionAdd('Journal');
+  C.itemSet(col.id, itemAdd(col.id).id, 'title', 'First post');
+  const template = C.pageDup(0)!;
+  template.name = 'Post';
+  C.pageSlugSet(C.state.pages.indexOf(template), 'post');
+  template.collection = col.id;
+  template.tree = [];
+  C.state.cur = 0;
+  a.ok(!C.linkablePages().includes(template), 'a detail template is not offered as a link destination');
+  a.ok(!C.exportTargets().some(t => t.path === 'post.html'), 'and nothing is published at its slug');
+
+  const button = C.N('button', { text: 'Read', link: 'post.html' });
+  const menu = C.N('nav', { items: [{ label: 'Posts', href: 'post.html' }] });
+  const rich = C.N('text', { html: '<p><a href="post.html#top">posts</a></p>' });
+  const live = C.N('button', { text: 'Home', link: 'index.html' });
+  C.state.pages[0].tree = [C.N('section', {}, {}, [button, menu, rich, live])];
+  const dead = find(C.lint(), 'dead-link');
+  a.deepEqual(dead.map(f => f.nodeId).sort(), [button.id, menu.id, rich.id].sort());
+  for (const f of dead) a.match(f.msg, /“Post”, a detail template/);
+
+  /* A page whose collection no longer exists exports at its own slug again. */
+  template.collection = 'gone';
+  a.ok(C.linkablePages().includes(template));
+  a.equal(find(C.lint(), 'dead-link').length, 0);
+});
+
 test('a labelled button with no destination is reported as inert', () => {
   blank();
   const b = insert('button', null, 0);

@@ -904,6 +904,11 @@ function LinkTargetToggle({ n, c }: P) {
 
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
+  /* A detail template is published once per item and never at its own slug, so it is not a
+     page a link can choose. Editing on one, a new page link starts at the front page instead. */
+  const linkable = C.linkablePages();
+  const firstPage = linkable.some(p => p.slug === here) ? here
+    : (linkable.find(C.isFront) || linkable[0])?.slug || here;
   const key = n.id + '|' + (c.c || c.k || c.t);
   const rawLink = String(C.propVal(n, c.k) || '').trim();
   const storedLink = C.parseLink(rawLink, here) as any;
@@ -980,7 +985,7 @@ function LinkCtl({ n, c }: P) {
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
         C.state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
-        commit(mode === 'page' ? { mode, page: here, frag: '' }
+        commit(mode === 'page' ? { mode, page: firstPage, frag: '' }
           : mode === 'url' && samePageAnchor ? { mode, value: rawLink }
             : { mode }, mode === 'none');
         if (mode === 'item') C.state.ui.lmode = null;   // it stores a real value at once
@@ -989,9 +994,14 @@ function LinkCtl({ n, c }: P) {
     </select>
 
     {shownMode === 'page' && !nativeSource ? <>
-      <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
+      <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || firstPage}
         onChange={e => commit({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' })}>
-        {C.state.pages.map(p => (
+        {(() => {
+          const stored = C.state.pages.find(p => p.slug === (link.page || firstPage));
+          return stored && C.isDetailTemplate(stored)
+            ? <option value={stored.slug} disabled>{stored.name} · detail template, not a page</option> : null;
+        })()}
+        {linkable.map(p => (
           <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>
         ))}
       </select>

@@ -7399,7 +7399,7 @@ function lint() {
   const out = [];
   const add = (level, code, msg, where, nodeId, target) => out.push({ level, code, msg, where, nodeId, target });
   const idsBySlug = {};
-  state.pages.forEach((pg2) => {
+  linkablePages().forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
     [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[pg2.slug + ".html"] = ids;
@@ -7508,6 +7508,11 @@ function lint() {
         const { path, frag, target } = destination || { path: h, frag: "", target: h };
         if (path === "" && region !== "page" && state.pages.length > 1) {
           add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
+          return;
+        }
+        const template = pageOf(target) ? void 0 : state.pages.find((p) => p.slug + ".html" === target && isDetailTemplate(p));
+        if (template) {
+          add("error", "dead-link", `\u201C${h}\u201D in the ${region} points at \u201C${template.name}\u201D, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item\u2019s own page.`, w, n.id);
           return;
         }
         if (!pageOf(target)) {
@@ -8858,6 +8863,8 @@ function pageAt(href) {
   const at = state.pages.findIndex((pg2) => pg2.id === exported.pg.id);
   return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
+var isDetailTemplate = (pg2) => !!(pg2.collection && findCollection(pg2.collection));
+var linkablePages = () => state.pages.filter((pg2) => !isDetailTemplate(pg2));
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
@@ -13685,6 +13692,7 @@ var __CORE = {
   instValue,
   instanceInsert,
   instances,
+  isDetailTemplate,
   isFront,
   isGoogle,
   isNotFound,
@@ -13705,6 +13713,7 @@ var __CORE = {
   layerTarget,
   linkOf,
   linkTargetKey,
+  linkablePages,
   lint,
   lintCounts,
   listItems,
@@ -21721,7 +21730,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 ] }),
                 /* @__PURE__ */ u2("select", { class: "ctl", value: mode, "aria-label": `Destination for ${itemContext}`, onChange: (e3) => {
                   const next = e3.target.value;
-                  const current = C2.page();
+                  const linkable = C2.linkablePages();
+                  const current = linkable.includes(C2.page()) ? C2.page() : linkable.find(C2.isFront) || linkable[0] || C2.page();
                   if (next === "native") {
                     setNativePendingId(itemIds[k3]);
                     return;
@@ -21753,7 +21763,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                       "Missing page \xB7 ",
                       String(it.href || "")
                     ] }) : null,
-                    C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.id, children: [
+                    destination.page && C2.isDetailTemplate(destination.page) ? /* @__PURE__ */ u2("option", { value: destination.page.id, disabled: true, children: [
+                      destination.page.name,
+                      " \xB7 detail template, not a page"
+                    ] }) : null,
+                    C2.linkablePages().map((p3) => /* @__PURE__ */ u2("option", { value: p3.id, children: [
                       p3.name,
                       " \xB7 ",
                       p3.slug === "index" ? "/" : "/" + p3.slug
@@ -23567,6 +23581,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function LinkCtl({ n: n2, c: c3 }) {
     const here = C2.page().slug;
+    const linkable = C2.linkablePages();
+    const firstPage = linkable.some((p3) => p3.slug === here) ? here : (linkable.find(C2.isFront) || linkable[0])?.slug || here;
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const rawLink = String(C2.propVal(n2, c3.k) || "").trim();
     const storedLink = C2.parseLink(rawLink, here);
@@ -23632,7 +23648,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             }
             setNativePendingKey(null);
             C2.state.ui.lmode = mode === "none" ? null : { key: n2.id + "|" + c3.k, mode };
-            commit2(mode === "page" ? { mode, page: here, frag: "" } : mode === "url" && samePageAnchor ? { mode, value: rawLink } : { mode }, mode === "none");
+            commit2(mode === "page" ? { mode, page: firstPage, frag: "" } : mode === "url" && samePageAnchor ? { mode, value: rawLink } : { mode }, mode === "none");
             if (mode === "item") C2.state.ui.lmode = null;
           },
           children: MODES.map(([v3, l3]) => /* @__PURE__ */ u2("option", { value: v3, children: l3 }, v3))
@@ -23645,13 +23661,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "data-field-part": "page",
             class: "ctl",
             style: { marginTop: "var(--gap-1)" },
-            value: link.page || here,
+            value: link.page || firstPage,
             onChange: (e3) => commit2({ mode: "page", page: e3.target.value, frag: "" }),
-            children: C2.state.pages.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
-              p3.name,
-              " \xB7 ",
-              p3.slug === "index" ? "/" : "/" + p3.slug
-            ] }, p3.id))
+            children: [
+              (() => {
+                const stored = C2.state.pages.find((p3) => p3.slug === (link.page || firstPage));
+                return stored && C2.isDetailTemplate(stored) ? /* @__PURE__ */ u2("option", { value: stored.slug, disabled: true, children: [
+                  stored.name,
+                  " \xB7 detail template, not a page"
+                ] }) : null;
+              })(),
+              linkable.map((p3) => /* @__PURE__ */ u2("option", { value: p3.slug, children: [
+                p3.name,
+                " \xB7 ",
+                p3.slug === "index" ? "/" : "/" + p3.slug
+              ] }, p3.id))
+            ]
           }
         ),
         /* @__PURE__ */ u2(

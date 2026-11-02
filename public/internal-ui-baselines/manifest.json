@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-02T21:44:43.348Z",
+  "capturedAt": "2026-11-02T22:32:48.303Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -114,10 +114,10 @@
     "app/src/ui/CmsWorkspace.tsx": "9f03dd03116e2559c2128c965605ae2d953be645e1be8dd7520a36a05d2ad582",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
-    "app/src/ui/inspector/Controls.tsx": "e6ebef38c2791d240d6f83af611f8290d7fe4408a82fbb4f70077521fc667ab4",
+    "app/src/ui/inspector/Controls.tsx": "eb4de86ca2ffbd3d973094710c0b45ab9433530194da988a00bcc6dfdfe998b3",
     "app/src/ui/inspector/Inspector.tsx": "c2310df1747169010c3b4d4b564691e7f0ad561c8a6070a668e1aad0963eff49",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
-    "app/src/ui/inspector/Lists.tsx": "a636279ae4be761afcd41c8cec7d06b9d2fedb9a3ca6fb24a0eeb3d2ff32b966",
+    "app/src/ui/inspector/Lists.tsx": "2b2ab45b27d4517876f00326d6807b719becdeeda010606db1b1814c62017dd4",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
     "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
