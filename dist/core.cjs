@@ -6019,6 +6019,17 @@ function lint() {
             );
           }
         }
+        if (n.type === "button" && String(n.props.text || "").trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || "").trim()) queueContext(
+            "error",
+            "empty-button-bound",
+            `A button in the ${region} gets its label from content that is empty, so it has no label.`,
+            region,
+            n,
+            scoped
+          );
+        }
         if (n.type === "video") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
           const source2 = vidSrc(p);

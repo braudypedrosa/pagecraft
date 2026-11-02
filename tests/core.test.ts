@@ -2947,6 +2947,51 @@ test('a static source scope reviews the exact selected item, including a later d
     'the static source choice is retained even when it is a draft');
 });
 
+test('a button whose bound label is empty for an item is reviewed as having no label', () => {
+  blank();
+  C.state.meta.components = [];
+  const col = collectionAdd('Offers');
+  const label = must(C.fieldAdd(col.id, 'Label', 'text'), 'label field');
+  const add = (title: string, value: string) => {
+    const item = itemAdd(col.id);
+    C.itemSet(col.id, item.id, 'title', title);
+    C.itemSet(col.id, item.id, label.id, value);
+    return item;
+  };
+  add('Labelled offer', 'Book now');
+  add('Unlabelled offer', '');
+
+  const direct = C.N('button', { text: 'Fallback', link: '/' });
+  C.bindSet(direct, 'text', C.bindField(label.id));
+  const inner = C.N('button', { text: 'Default label', link: '/' });
+  C.bindSet(inner, 'text', { src: 'prop', path: 'label' });
+  C.state.meta.components.push({
+    id: 'offer-cta', name: 'Offer CTA', node: C.N('box', {}, {}, [inner]),
+    props: [{ k: 'label', label: 'Label', t: 'text', def: 'Default label' }]
+  });
+  const instance = C.N('box');
+  instance.use = 'offer-cta';
+  C.bindSet(instance, C.VAL + 'label', C.bindField(label.id));
+  const steady = C.N('button', { text: 'Always here', link: '/' });
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [direct, instance, steady])]);
+  C.srcSet(list, col.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+
+  const review = C.lint();
+  a.equal(find(review, 'empty-button').length, 0, 'every authored label is filled in');
+  const bound = find(review, 'empty-button-bound');
+  a.deepEqual(bound.map(row => row.nodeId).sort(), [direct.id, instance.id].sort(),
+    'the bound button and the placed component are each reported once');
+  for (const row of bound) {
+    a.equal(row.level, 'error');
+    a.match(row.msg, /Unlabelled offer/);
+    a.doesNotMatch(row.msg, /Labelled offer”/);
+  }
+
+  C.itemSet(col.id, col.items[1].id, label.id, 'Reserve');
+  a.equal(find(C.lint(), 'empty-button-bound').length, 0, 'a filled value clears the finding');
+});
+
 test('image review retains nested repeated item paths and an explicit global scope', () => {
   blank();
   const outer = collectionAdd('Neighbourhoods');

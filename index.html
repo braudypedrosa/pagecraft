@@ -7765,6 +7765,17 @@ function lint() {
             );
           }
         }
+        if (n.type === "button" && String(n.props.text || "").trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || "").trim()) queueContext(
+            "error",
+            "empty-button-bound",
+            `A button in the ${region} gets its label from content that is empty, so it has no label.`,
+            region,
+            n,
+            scoped
+          );
+        }
         if (n.type === "video") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
           const source2 = vidSrc(p);
@@ -30270,7 +30281,45 @@ function saveValidationReason(err) {
     'Pagecraft iframe embeds must use an absolute HTTPS URL.': 'An iframe embed needs an absolute HTTPS URL. Correct its URL, then save again.',
     'Pagecraft form actions must use an absolute HTTPS URL.': 'A form action needs an absolute HTTPS URL. Correct its URL, then save again.'
   };
+  if (err?.payload?.error === 'invalid CMS content') return cmsRejectionReason(err.payload.detail);
   return typeof reason === 'string' && Object.hasOwn(known, reason) ? known[reason] : '';
+}
+/* The host's CMS rejection lists "<collection> / <entry slug>: <message>" problems, joined by
+   spaces, with messages from `validateCmsEntry`. Show them only when every part parses into a
+   known message; anything else keeps the generic wording. The collection name and slug are the
+   author's own content, escaped where the dialog renders them. */
+const CMS_REJECTION_MESSAGES = [
+  'Entry IDs must be unique.',
+  'Use a non-reserved URL slug with lowercase letters, numbers and hyphens.',
+  'This URL is already in use.',
+  'This field no longer exists.',
+  'Use a text-encoded field value.',
+  'This value is too long.',
+  'Remove unsupported control characters.',
+  'Use supported text formatting only.',
+  'Enter a valid number.',
+  'Enter a valid date.',
+  'Choose yes or no.',
+  'Choose one of the configured options.',
+  'Choose an existing entry.',
+  'Choose an image from this site’s media library.',
+  'Enter a safe URL, site path or anchor.',
+  'Unsupported field type.'
+];
+function cmsRejectionReason(detail) {
+  if (typeof detail !== 'string' || !detail || detail.length > 4000) return '';
+  const known = CMS_REJECTION_MESSAGES.map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const part = new RegExp(`([^<>\\n]{1,120}?) / ([^\\s:<>]{0,80}): (${known}|[^<>\\n.]{1,80} is required\\.)(?: |$)`, 'y');
+  const found = [];
+  while (part.lastIndex < detail.length) {
+    const at = part.lastIndex;
+    const match = part.exec(detail);
+    if (!match || part.lastIndex === at) return '';
+    found.push(`${match[1]} / ${match[2] || '(no slug)'}: ${match[3]}`);
+  }
+  if (!found.length) return '';
+  const shown = found.slice(0, 3).join(' ');
+  return `The CMS content is not valid. ${shown}${found.length > 3 ? ` And ${found.length - 3} more.` : ''}`;
 }
 function warnSaveFailed(err) {
   if (IS_WORDPRESS && err?.status === 400
@@ -30295,7 +30344,7 @@ function warnSaveFailed(err) {
     ${reason ? `<p class="note">${esc(reason)}</p>` : ''}
     <div class="note" style="margin-top:var(--gap-2);line-height:1.7">
       <b>Download backup now</b> keeps a project file of your current draft.
-      ${rejected ? 'Close this message and correct the content you just changed, then choose <b>Try saving again</b> or <b>Save</b>. Keep this tab open until the draft is saved.' : (quota ? 'Then free space by removing unused images from <b>Project → Images</b>, or by clearing other sites’ data.' : (SRV ? 'Check your connection, reconnect if needed, then choose <b>Try saving again</b>. Keep this tab open until the draft is saved.' : 'Check this browser’s storage permissions. Private-browsing windows and blocked cookies can prevent local saves.'))}
+      ${rejected ? (reason && err?.payload?.error === 'invalid CMS content' ? 'Close this message and correct those entries in <b>CMS</b>, then choose <b>Try saving again</b> or <b>Save</b>. Keep this tab open until the draft is saved.' : 'Close this message and correct the content you just changed, then choose <b>Try saving again</b> or <b>Save</b>. Keep this tab open until the draft is saved.') : (quota ? 'Then free space by removing unused images from <b>Project → Images</b>, or by clearing other sites’ data.' : (SRV ? 'Check your connection, reconnect if needed, then choose <b>Try saving again</b>. Keep this tab open until the draft is saved.' : 'Check this browser’s storage permissions. Private-browsing windows and blocked cookies can prevent local saves.'))}
     </div>`, `
     <button class="btn" id="svRetry">Try saving again</button>
     <span style="flex:1"></span>

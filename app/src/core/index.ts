@@ -4140,6 +4140,16 @@ function lint() {
           }
         }
 
+        /* The static pass already flags an authored empty label. This catches the label a
+           binding empties: a CMS item with no value, or an instance property left blank,
+           renders a button with nothing for a screen reader to announce. */
+        if (n.type === 'button' && String(n.props.text || '').trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || '').trim()) queueContext('error', 'empty-button-bound',
+            `A button in the ${region} gets its label from content that is empty, so it has no label.`,
+            region, n, scoped);
+        }
+
         if (n.type === 'video') {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
           const source = vidSrc(p);

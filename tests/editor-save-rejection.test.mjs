@@ -20,9 +20,14 @@ for (const [status, payload, reason] of [
   [400, { message: 'Pagecraft iframe embeds must use an absolute HTTPS URL.' }, /absolute HTTPS URL/],
   [400, { error: 'The sealed Pagecraft editor/compiler schema version is unsupported. ' }, null],
   [422, { error: '<img src=x onerror=alert(1)> token=secret https://user:pass@example.test/private' }, null],
-  [400, { error: { token: 'secret' } }, null]
+  [400, { error: { token: 'secret' } }, null],
+  [422, { error: 'invalid CMS content', detail: 'ZZ QA Values / item-c: Choose one of the configured options. ZZ QA Values / item-c: Enter a valid date.' },
+    /ZZ QA Values \/ item-c: Choose one of the configured options\. ZZ QA Values \/ item-c: Enter a valid date\.[\s\S]*correct those entries in CMS/],
+  [422, { error: 'invalid CMS content', detail: 'Events / launch: Start date is required.' }, /Events \/ launch: Start date is required\./],
+  [422, { error: 'invalid CMS content', detail: 'Offers / a: Choose yes or no. token=secret https://user:pass@example.test/private' }, null],
+  [422, { error: 'invalid CMS content', detail: '<img src=x onerror=alert(1)> / a: Enter a valid number.' }, null],
 ]) {
-  test(`WordPress ${status} rejection explains correction and preserves explicit retry (${String(payload.error || payload.message).slice(0, 45)})`, async () => {
+  test(`WordPress ${status} rejection explains correction and preserves explicit retry (${String(payload.detail || payload.error || payload.message).slice(0, 45)})`, async () => {
     const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,
       `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
     const requests = [];
