@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
 import { L } from '../app/src/ui/ctx';
@@ -7,8 +8,42 @@ import { mount } from '../app/src/ui/index';
 import { stubLegacy } from './ui.setup';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+const pendingFrames = new Set<number>();
+const scrollDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollIntoView');
+let scrollIntoView: ReturnType<typeof vi.fn>;
 
-afterEach(() => { document.body.replaceChildren(); vi.restoreAllMocks(); });
+beforeEach(() => {
+  expect(pendingFrames.size).toBe(0);
+  scrollIntoView = vi.fn();
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView });
+  const request = requestAnimationFrame, cancel = cancelAnimationFrame;
+  vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(callback => {
+    const id = request(time => { pendingFrames.delete(id); callback(time); });
+    pendingFrames.add(id);
+    return id;
+  });
+  vi.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation(id => { pendingFrames.delete(id); cancel(id); });
+});
+
+afterEach(async () => {
+  document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger[aria-expanded="true"]')?.click();
+  const inspector = document.getElementById('right');
+  if (inspector) act(() => render(null, inspector));
+  document.body.replaceChildren();
+  try {
+    // Drain the picker focus and Preact after-paint callbacks before restoring browser APIs.
+    await frame();
+    await settle();
+    expect(pendingFrames.size).toBe(0);
+  } finally {
+    for (const id of pendingFrames) cancelAnimationFrame(id);
+    pendingFrames.clear();
+    vi.restoreAllMocks();
+    if (scrollDescriptor) Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', scrollDescriptor);
+    else Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView');
+  }
+});
 
 test('cancelling New class resets the enhanced picker label and allows another attempt', async () => {
   document.body.innerHTML = '<div id="app"><div class="main"><aside id="right"></aside></div></div>';
@@ -35,7 +70,9 @@ test('cancelling New class resets the enhanced picker label and allows another a
 
   await act(async () => {
     trigger.click();
-    await settle();
+    await frame();
+    expect(document.activeElement?.matches('.pc-custom-select-option')).toBe(true);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
     document.querySelector<HTMLButtonElement>('.pc-custom-select-option[data-value="__new"]')!.click();
     await settle();
   });
@@ -45,7 +82,9 @@ test('cancelling New class resets the enhanced picker label and allows another a
 
   await act(async () => {
     trigger.click();
-    await settle();
+    await frame();
+    expect(document.activeElement?.matches('.pc-custom-select-option')).toBe(true);
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
     document.querySelector<HTMLButtonElement>('.pc-custom-select-option[data-value="__new"]')!.click();
     await settle();
   });

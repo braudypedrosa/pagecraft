@@ -9101,6 +9101,7 @@ function boundProps(n, col, item, inst, def) {
       const v2 = instValue(inst, def || null, b.path, col, item);
       const field = col ? boundField(inst, VAL + b.path) : "";
       out[k] = !rich ? boundValue(k, v2) : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
+      if (n.type === "image" && k === "src") resolveImageSize(out, n.props, inst, def || null, b.path, !!field);
       const linked = linkControl(n, k);
       if (linked) out[linked.tk || "target"] = instLinkTarget(inst, def || null, b.path, n);
       continue;
@@ -9365,6 +9366,49 @@ function setMobileMenuMode(n, mode) {
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
+var imageSizeKey = (k) => "@image-size:" + k;
+function imageSizeValue(raw, source) {
+  if (typeof raw !== "string") return null;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).sort().join(",") !== "h,src,w" || value.src !== source || !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value.src) || !Number.isSafeInteger(value.w) || value.w <= 0 || !Number.isSafeInteger(value.h) || value.h <= 0) return null;
+    return { w: value.w, h: value.h };
+  } catch {
+    return null;
+  }
+}
+function instImageSizeSet(inst, k, size) {
+  const def = findComponent(inst.use);
+  if (!def || findProp(def, k)?.t !== "img") return;
+  let used = false;
+  const scan = (node) => {
+    if (node !== def.node && node.use) return;
+    const binding = bindGet(node, "src");
+    if (node.type === "image" && binding?.src === "prop" && binding.path === k) used = true;
+    (node.children || []).forEach(scan);
+  };
+  scan(def.node);
+  if (!used) return;
+  const source = instValue(inst, def, k);
+  const raw = JSON.stringify({ src: source, w: size.w, h: size.h });
+  const key = imageSizeKey(k);
+  if (imageSizeValue(raw, source)) {
+    inst.vals = inst.vals || {};
+    inst.vals[key] = raw;
+  } else if (inst.vals) delete inst.vals[key];
+}
+function resolveImageSize(out, original, inst, def, k, cms) {
+  const variant = findVariant(def, inst.variant);
+  const raw = ownsKey(inst.vals, k) ? inst.vals?.[imageSizeKey(k)] : variant?.values[imageSizeKey(k)];
+  const size = cms ? null : imageSizeValue(raw, out.src);
+  if (size) {
+    out.w = String(size.w);
+    out.h = String(size.h);
+  } else if (out.src !== original.src) {
+    delete out.w;
+    delete out.h;
+  }
+}
 var LINK_TARGET = "@link-target:";
 var linkTargetKey = (k) => LINK_TARGET + k;
 var ownsKey = (value, key) => !!value && Object.prototype.hasOwnProperty.call(value, key);
@@ -9479,6 +9523,7 @@ var variantRename = (cid, vid2, name) => {
   if (v) v.name = String(name || v.name).slice(0, 40);
 };
 function instSet(inst, k, v) {
+  if (findProp(findComponent(inst.use), k)?.t === "img" && inst.vals) delete inst.vals[imageSizeKey(k)];
   if (v === void 0) {
     const def = findComponent(inst.use);
     if (inst.vals) {
@@ -9707,6 +9752,7 @@ function propDelete(cid, k) {
     if (node.vals) {
       delete node.vals[k];
       delete node.vals[target];
+      delete node.vals[imageSizeKey(k)];
       if (!Object.keys(node.vals).length) delete node.vals;
     }
     if (legacyOwners.has(node)) delete node.props.target;
@@ -9715,6 +9761,7 @@ function propDelete(cid, k) {
   variantsOf(c).forEach((variant) => {
     delete variant.values[k];
     delete variant.values[target];
+    delete variant.values[imageSizeKey(k)];
   });
   return n;
 }
@@ -9732,6 +9779,7 @@ function componentDelete(cid) {
         if (b.src !== "prop") return;
         const field = boundField(node, VAL + b.path);
         x.props[key] = instValue(node, def, b.path);
+        if (x.type === "image" && key === "src") resolveImageSize(x.props, source.props, node, def, b.path, !!field);
         const linked = linkControl(x, key);
         if (linked) x.props[linked.tk || "target"] = instLinkTarget(node, def, b.path, source);
         bindSet(x, key, field ? bindField(field) : null);
@@ -13606,10 +13654,13 @@ var __CORE = {
   hsv2rgb,
   iconOf,
   iconSvg,
+  imageSizeKey,
+  imageSizeValue,
   imageWidths,
   initUi,
   insert,
   instControls,
+  instImageSizeSet,
   instLinkTarget,
   instLinkTargetSet,
   instOwn,
@@ -22102,6 +22153,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function ImgsCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
+    const replacing = A2(false);
+    const [replaceBusy, setReplaceBusy] = d2(false);
     const tile = (id) => {
       const a3 = L2.asset(id);
       return { src: "asset:" + id, alt: "", caption: "", w: a3 && a3.w ? String(a3.w) : "", h: a3 && a3.h ? String(a3.h) : "" };
@@ -22111,6 +22164,27 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       (ids) => C2.edit(() => ids.forEach((id) => rows(n2, c3).push(tile(id)))),
       true
     );
+    const replace = async (item, index) => {
+      if (replacing.current || files.busy) return;
+      replacing.current = true;
+      setReplaceBusy(true);
+      const source = item.src;
+      try {
+        const id = await L2.mediaPicker({ title: `Replace image ${index + 1}`, multiple: false });
+        if (!id || !L2.asset(id)) return;
+        if (C2.locate(n2.id)?.node !== n2 || !list(n2, c3).includes(item) || item.src !== source) return;
+        const { src, w: w3, h: h3 } = tile(id);
+        if (item.src === src && item.w === w3 && item.h === h3) return;
+        C2.edit(() => {
+          Object.assign(item, { src, w: w3, h: h3 });
+        }, "Replace gallery image");
+      } catch {
+        L2.toast("Could not replace the image. Try again.", { tone: "error" });
+      } finally {
+        replacing.current = false;
+        setReplaceBusy(false);
+      }
+    };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((it, k3) => {
         const ref = String(it.src || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
@@ -22145,7 +22219,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               }
             )
           ] }),
-          /* @__PURE__ */ u2("span", { class: "gacts", children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3, context: `image ${k3 + 1}` }) })
+          /* @__PURE__ */ u2("span", { class: "gacts", children: [
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                type: "button",
+                class: "x",
+                title: "Replace image",
+                "aria-label": `Replace image ${k3 + 1}`,
+                disabled: files.busy || replaceBusy,
+                onClick: () => replace(it, k3),
+                children: /* @__PURE__ */ u2(Icon, { name: "image", size: 11 })
+              }
+            ),
+            /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3, context: `image ${k3 + 1}` })
+          ] })
         ] }, k3);
       }),
       /* @__PURE__ */ u2("div", { class: "pc-field-actions" + (arr.length ? "" : " flush"), children: [
@@ -23133,9 +23221,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!got) return;
       C2.edit(() => {
         C2.applyC(n2, c3, wrap("asset:" + id));
+        if (!c3.bg && c3.k?.startsWith(C2.VAL)) {
+          const ids = C2.selIds();
+          const targets = ids.length > 1 && ids.includes(n2.id) ? C2.fanTargets(c3, ids) : [n2];
+          targets.forEach((target) => C2.instImageSizeSet(target, c3.k.slice(C2.VAL.length), got));
+        }
         if (!c3.bg && !c3.k?.startsWith(C2.VAL) && got.w) {
-          n2.props.w = String(got.w);
-          n2.props.h = String(got.h);
+          const ids = C2.selIds();
+          const targets = n2.type === "image" && c3.k === "src" && ids.length > 1 && ids.includes(n2.id) ? C2.fanTargets(c3, ids).filter((target) => target.type === "image" && !target.use) : [n2];
+          targets.forEach((target) => {
+            target.props.w = String(got.w);
+            target.props.h = String(got.h);
+          });
         }
       });
     };

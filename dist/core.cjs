@@ -264,10 +264,13 @@ __export(index_exports, {
   hsv2rgb: () => hsv2rgb,
   iconOf: () => iconOf,
   iconSvg: () => iconSvg,
+  imageSizeKey: () => imageSizeKey,
+  imageSizeValue: () => imageSizeValue,
   imageWidths: () => imageWidths,
   initUi: () => initUi,
   insert: () => insert,
   instControls: () => instControls,
+  instImageSizeSet: () => instImageSizeSet,
   instLinkTarget: () => instLinkTarget,
   instLinkTargetSet: () => instLinkTargetSet,
   instOwn: () => instOwn,
@@ -2057,7 +2060,7 @@ function changedLeafKeys(before, after) {
   return [...keys].filter((key) => !same(values(before, key), values(after, key)));
 }
 function cssChange(before, after) {
-  const changed = changedLeafKeys({ css: before.css, st: before.st }, { css: after.css, st: after.st });
+  const changed = changedLeafKeys({ css: before.css, st: before.st }, { css: after.css, st: after.st }).filter((key) => !key.startsWith("--pc-button-variant-owns-"));
   if (!changed.length) return null;
   if (changed.some((key) => /^(padding|margin)(-|$)|^gap$/.test(key))) return "spacing";
   if (changed.some((key) => /font-size|width|height|max-width|min-height|flex-(?:grow|basis)/.test(key))) return "size";
@@ -2076,6 +2079,7 @@ function propChange(before, after) {
   const changed = [...keys].filter((key) => !same(before.props[key], after.props[key]));
   if (!changed.length && !same(before.vals, after.vals)) return "content";
   if (!changed.length) return null;
+  if (after.type === "button" && changed.length === 1 && changed[0] === "variant") return "variant";
   if (changed.some((key) => /link|href|target|url|src/.test(key))) return changed.some((key) => /src/.test(key)) ? "source" : "link";
   if (changed.some((key) => /text|html|label|caption|alt|title|by|source/.test(key))) return "text";
   return "content";
@@ -2454,6 +2458,12 @@ var BUTTON_VARIANT_DEFAULTS = {
   "padding-left": "26px",
   "border-radius": "8px",
   "background-color": "var(--c-brand)"
+};
+var BUTTON_VARIANT_BASES = {
+  solid: {},
+  outline: { "background-color": "transparent", "background-image": "none", "border-width": "1px", "border-style": "solid", "border-color": "currentColor" },
+  ghost: { "background-color": "transparent", "background-image": "none", "border-color": "transparent" },
+  link: { "background-color": "transparent", "background-image": "none", "border-width": "0", "border-color": "transparent", "border-radius": "0", padding: "0" }
 };
 var U = {
   size: ["px", "rem", "em", "vw"],
@@ -4647,18 +4657,148 @@ function tokenVars() {
   const body = vars.join(";");
   return body ? `:root{${body}}` : "";
 }
-var buttonVariantProperty = (property) => property === "background-color" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
+var buttonVariantProperty = (property) => property === "background" || property === "background-color" || property === "background-image" || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
 var BUTTON_AUTHORED = "--pc-authored-button-";
+var BUTTON_VARIANT_OWNS = "--pc-button-variant-owns-";
+var BUTTON_SIDES = ["top", "right", "bottom", "left"];
+var BUTTON_CORNERS = ["top-left", "top-right", "bottom-right", "bottom-left"];
+var buttonSurfaceAtoms = (property) => {
+  if (property === "background") return ["background-color", "background-image"];
+  if (property === "background-color" || property === "background-image") return [property];
+  if (property === "padding") return BUTTON_SIDES.map((side2) => `padding-${side2}`);
+  if (/^padding-(?:top|right|bottom|left)$/.test(property)) return [property];
+  if (property === "border-radius") return BUTTON_CORNERS.map((corner) => `border-${corner}-radius`);
+  if (/^border-(?:top-left|top-right|bottom-right|bottom-left)-radius$/.test(property)) return [property];
+  if (property === "border") return BUTTON_SIDES.flatMap((side2) => ["width", "style", "color"].map((component) => `border-${side2}-${component}`));
+  const all = property.match(/^border-(width|style|color)$/);
+  if (all) return BUTTON_SIDES.map((side2) => `border-${side2}-${all[1]}`);
+  const side = property.match(/^border-(top|right|bottom|left)$/);
+  if (side) return ["width", "style", "color"].map((component) => `border-${side[1]}-${component}`);
+  if (/^border-(?:top|right|bottom|left)-(?:width|style|color)$/.test(property)) return [property];
+  return [];
+};
+var cssWords = (value) => {
+  const out = [];
+  let part = "", depth = 0, quote = "", escaped = false;
+  for (const ch of value.trim()) {
+    if (escaped) {
+      part += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      part += ch;
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      part += ch;
+      if (ch === quote) quote = "";
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      part += ch;
+      continue;
+    }
+    if (ch === "(") depth++;
+    if (ch === ")") depth = Math.max(0, depth - 1);
+    if (/\s/.test(ch) && !depth) {
+      if (part) {
+        out.push(part);
+        part = "";
+      }
+    } else part += ch;
+  }
+  if (part) out.push(part);
+  return out;
+};
+var quadValues = (value) => {
+  const parts = cssWords(value);
+  if (!parts.length || parts.length > 4 || value.includes("/")) return null;
+  if (parts.length === 1) return [parts[0], parts[0], parts[0], parts[0]];
+  if (parts.length === 2) return [parts[0], parts[1], parts[0], parts[1]];
+  if (parts.length === 3) return [parts[0], parts[1], parts[2], parts[1]];
+  return [parts[0], parts[1], parts[2], parts[3]];
+};
+var buttonSurfaceAtomicDeclarations = (declarations) => {
+  const out = {};
+  for (const [property, value] of Object.entries(declarations)) {
+    const atoms = buttonSurfaceAtoms(property);
+    if (atoms.length === 1) out[atoms[0]] = value;
+    else if (property === "padding" || property === "border-width" || property === "border-style" || property === "border-color" || property === "border-radius") {
+      const values = quadValues(value);
+      if (values) atoms.forEach((atom, index) => {
+        out[atom] = values[index];
+      });
+    }
+  }
+  return out;
+};
+var buttonBorderDeclarationRank = (property) => {
+  if (property === "border") return 0;
+  if (/^border-(width|style|color)$/.test(property)) return 1;
+  if (/^border-(top|right|bottom|left)$/.test(property)) return 2;
+  if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(property)) return 3;
+  return 4;
+};
+var buttonDeclarationSupplier = (map, atom) => {
+  let supplier = null;
+  for (const [property, value] of Object.entries(map)) {
+    if (property.startsWith(BUTTON_AUTHORED) || property.startsWith(BUTTON_VARIANT_OWNS) || value === "") continue;
+    const atoms = buttonSurfaceAtoms(property);
+    if (!atoms.includes(atom)) continue;
+    const rank = buttonBorderDeclarationRank(property);
+    if (!supplier || rank >= supplier.rank) supplier = { property, value, rank };
+  }
+  return supplier;
+};
+var buttonAtomicDeclaration = (supplier, atom) => {
+  const atoms = buttonSurfaceAtoms(supplier.property);
+  if (atoms.length === 1) return { property: atom, value: supplier.value };
+  if (supplier.property === "padding" || supplier.property === "border-width" || supplier.property === "border-style" || supplier.property === "border-color" || supplier.property === "border-radius") {
+    const values = quadValues(supplier.value);
+    if (values) return { property: atom, value: values[atoms.indexOf(atom)] };
+  }
+  return { property: supplier.property, value: supplier.value };
+};
+var buttonClassSurfaceAtoms = (n, breakpoint) => {
+  const atoms = /* @__PURE__ */ new Set();
+  for (const bp of BP_CHAIN[breakpoint]) for (const c of nodeClasses(n)) {
+    Object.keys(c.css[bp]).forEach((property) => buttonSurfaceAtoms(property).forEach((atom) => atoms.add(atom)));
+  }
+  return atoms;
+};
+var buttonVariantOwns = (variant, property) => {
+  const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(variant)] || {});
+  return buttonSurfaceAtoms(property).some((atom) => base[atom] !== void 0);
+};
+var buttonVariantMarkers = (map) => new Set(Object.keys(map).filter((property) => property.startsWith(BUTTON_VARIANT_OWNS) && map[property] === "1").map((property) => property.slice(BUTTON_VARIANT_OWNS.length)));
+var markButtonVariantIntent = (n, variant) => {
+  for (const breakpoint of ["d", "t", "m"]) {
+    const map = n.css[breakpoint];
+    Object.keys(map).forEach((property) => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete map[property];
+    });
+    Object.keys(map).forEach((property) => {
+      if (buttonVariantOwns(variant, property)) map[BUTTON_VARIANT_OWNS + property] = "1";
+    });
+  }
+};
 var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
 var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var richTextFocusSelector = (selector) => `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
 var videoFocusSelector = (selector) => `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
+var tabsFocusSelector = (selector) => `${selector}:where(.pagecraft-tabs):has(>:where(.pagecraft-tablist)>:where(.pagecraft-tab):focus-visible)`;
+var accordionFocusSelector = (selector) => `${selector}:where(.pagecraft-accordion):has(>:where(.pagecraft-accordion-item)>:where(.pagecraft-accordion-q):focus-visible)`;
+var formFocusSelector = (selector) => `${selector}:where(.pagecraft-form):has(>:where(.pagecraft-field)>:where(input,textarea,select):focus-visible,>:where(.pagecraft-field)>:where(.pc-select)>:where(.pc-select-button):focus-visible,>:where(.pagecraft-field)>:where(.pc-date)>:where(.pc-date-control)>:where(.pc-date-input,.pc-date-trigger):focus-visible,>:where(.pagecraft-form-button):focus-visible)`;
+var codeFocusSelector = (selector) => `${selector}:where(.pagecraft-code):has(>:where(.pagecraft-code-head)>:where(.pagecraft-code-copy):focus-visible)`;
 var richTextLinkSelector = (selector, state2 = "") => `${selector}:where(.pagecraft-wysiwyg)${state2} a`;
 var richTextLinkStateSelector = (selector, state2, suffix) => state2 === "focus" ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
-var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set()) => {
+var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set(), variantOwned = /* @__PURE__ */ new Set()) => {
   const out = {};
   for (const [property, value] of Object.entries(map)) {
-    if (!buttonVariantProperty(property)) continue;
+    if (!buttonVariantProperty(property) || variantOwned.has(property)) continue;
     if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value && !forced.has(property)) continue;
     out[property] = value;
   }
@@ -4697,6 +4837,10 @@ function tokenCss() {
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${tabsFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${accordionFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${formFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${codeFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
         const linkState = decl({ color: stateMap["--link"] });
         if (linkState) {
@@ -4891,16 +5035,27 @@ function classRemove(n, id) {
 function classFrom(n, name) {
   const id = classAdd(name, n.css);
   const c = findClass(id);
+  const retained = { d: {}, t: {}, m: {} };
   if (c) {
-    ["d", "t", "m"].forEach((b) => Object.keys(c.css[b]).forEach((prop) => {
-      if (prop.startsWith(BUTTON_AUTHORED)) delete c.css[b][prop];
-    }));
+    ["d", "t", "m"].forEach((b) => {
+      const variantOwned = buttonVariantMarkers(c.css[b]);
+      variantOwned.forEach((property) => {
+        if (c.css[b][property] !== void 0) {
+          retained[b][property] = c.css[b][property];
+          retained[b][BUTTON_VARIANT_OWNS + property] = "1";
+          delete c.css[b][property];
+        }
+      });
+      Object.keys(c.css[b]).forEach((prop) => {
+        if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS)) delete c.css[b][prop];
+      });
+    });
     if (n.st) {
       c.st = clone(n.st);
       delete n.st;
     }
   }
-  n.css = { d: {}, t: {}, m: {} };
+  n.css = retained;
   classApply(n, id);
   return id;
 }
@@ -4923,41 +5078,15 @@ function classRemovalPlan(id, ordered, trees) {
     "border-style": ["border-top-style", "border-right-style", "border-bottom-style", "border-left-style"],
     "border-color": ["border-top-color", "border-right-color", "border-bottom-color", "border-left-color"]
   };
-  const words = (value) => {
-    const out = [];
-    let part = "", depth = 0, quote = "";
-    for (const ch of value.trim()) {
-      if (quote) {
-        part += ch;
-        if (ch === quote) quote = "";
-        continue;
-      }
-      if (ch === '"' || ch === "'") {
-        quote = ch;
-        part += ch;
-        continue;
-      }
-      if (ch === "(") depth++;
-      if (ch === ")") depth = Math.max(0, depth - 1);
-      if (/\s/.test(ch) && !depth) {
-        if (part) {
-          out.push(part);
-          part = "";
-        }
-      } else part += ch;
-    }
-    if (part) out.push(part);
-    return out;
-  };
   const cascade = (out, map, keep) => {
     for (const [prop, value] of Object.entries(map)) {
-      if (prop.startsWith(BUTTON_AUTHORED) || value === "" || !keep(prop, value)) continue;
+      if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS) || value === "" || !keep(prop, value)) continue;
       const sides = quad[prop];
       if (!sides) {
         out[prop] = value;
         continue;
       }
-      const v = words(value);
+      const v = cssWords(value);
       if (!v.length || v.length > 4) {
         out[prop] = value;
         continue;
@@ -4970,18 +5099,21 @@ function classRemovalPlan(id, ordered, trees) {
   };
   const shown = (x, b, stateKey, without = "") => {
     const out = {};
+    if (x.type === "button" && !stateKey) cascade(out, BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, () => true);
     const chain = [...BP_CHAIN[b] || ["d"]].reverse();
     for (const bp of chain) {
       for (const cls of ordered) {
         if (cls.id === without || !(x.cls || []).includes(cls.id)) continue;
         cascade(out, at(cls, stateKey) && at(cls, stateKey)[bp] || {}, () => true);
       }
-      cascade(out, at(x, stateKey) && at(x, stateKey)[bp] || {}, (prop, value) => (
+      const own = at(x, stateKey) && at(x, stateKey)[bp] || {};
+      const variantOwned = stateKey ? /* @__PURE__ */ new Set() : buttonVariantMarkers(own);
+      cascade(out, own, (prop, value) => (
         /* Untouched Button defaults are present in the document but deliberately omitted from
            the high-specificity element bridge. A class bridge beats them. Treating them as an
            element winner here made deletion reveal the factory value instead of keeping the
            class value that had actually rendered. Responsive and state rules are all emitted. */
-        !(x.type === "button" && !stateKey && bp === "d" && buttonVariantProperty(prop) && BUTTON_VARIANT_DEFAULTS[prop] === value)
+        !(x.type === "button" && !stateKey && buttonVariantProperty(prop) && (variantOwned.has(prop) || bp === "d" && BUTTON_VARIANT_DEFAULTS[prop] === value))
       ));
     }
     return out;
@@ -5000,6 +5132,7 @@ function classRemovalPlan(id, ordered, trees) {
       } else own = x.css;
       for (const prop of changed) {
         own[b][prop] = before[prop];
+        delete own[b][BUTTON_VARIANT_OWNS + prop];
         if (!stateKey && x.type === "button" && b === "d" && BUTTON_VARIANT_DEFAULTS[prop] === before[prop]) {
           own[b][BUTTON_AUTHORED + prop] = "1";
         }
@@ -5016,6 +5149,7 @@ function classRemovalPlan(id, ordered, trees) {
         if (!prev || specificity >= prev.specificity) winners.set(property, { value, specificity });
       }
     };
+    if (x.type === "button") put(BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, 2);
     const chain = [...BP_CHAIN[b] || ["d"]].reverse();
     for (const bp of chain) {
       for (const cls of ordered) {
@@ -5029,7 +5163,12 @@ function classRemovalPlan(id, ordered, trees) {
       put(base, 1);
       if (x.type === "button") {
         const forced = new Set(Object.keys(base).filter((property) => property.startsWith(BUTTON_AUTHORED) && base[property] === "1").map((property) => property.slice(BUTTON_AUTHORED.length)));
-        put(buttonVariantDeclarations(base, bp === "d" ? BUTTON_VARIANT_DEFAULTS : null, forced), 2);
+        put(buttonVariantDeclarations(
+          base,
+          bp === "d" ? BUTTON_VARIANT_DEFAULTS : null,
+          forced,
+          buttonVariantMarkers(base)
+        ), 2);
       }
       STATES.forEach(([key]) => put(x.st && x.st[key] && x.st[key][bp] || {}, 2));
     }
@@ -5120,6 +5259,13 @@ function setCss(n, c, val, resp) {
   const dest = stWrite(n);
   const b = resp ? dk() : "d";
   dest[b] = dest[b] || {};
+  if (n.type === "button" && !state.ui.st && buttonVariantProperty(c)) {
+    delete dest[b][BUTTON_VARIANT_OWNS + c];
+    const authored = BUTTON_AUTHORED + c;
+    if (b === "d" && val !== "" && val != null && BUTTON_VARIANT_DEFAULTS[c] === val) {
+      dest[b][authored] = "1";
+    } else delete dest[b][authored];
+  }
   if (val === "" || val == null) delete dest[b][c];
   else dest[b][c] = val;
 }
@@ -5988,6 +6134,23 @@ function copyStyles(id) {
   if (!h) return false;
   const n = h.node;
   styleClip.css = clone(n.css);
+  ["d", "t", "m"].forEach((b) => {
+    const variantOwned = buttonVariantMarkers(styleClip.css[b]);
+    const ownedAtoms = /* @__PURE__ */ new Set();
+    variantOwned.forEach((property) => buttonSurfaceAtoms(property).forEach((atom) => ownedAtoms.add(atom)));
+    variantOwned.forEach((property) => delete styleClip.css[b][property]);
+    Object.keys(styleClip.css[b]).forEach((property) => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete styleClip.css[b][property];
+    });
+    const explicitAtoms = /* @__PURE__ */ new Set();
+    Object.keys(styleClip.css[b]).forEach((property) => buttonSurfaceAtoms(property).forEach((atom) => explicitAtoms.add(atom)));
+    const classAtoms = buttonClassSurfaceAtoms(n, b);
+    const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(n.props.variant)] || {});
+    for (const [atom, value] of Object.entries(base)) {
+      if (!ownedAtoms.has(atom) || explicitAtoms.has(atom) || classAtoms.has(atom)) continue;
+      styleClip.css[b][atom] = value;
+    }
+  });
   styleClip.st = n.st ? clone(n.st) : null;
   styleClip.cls = [...Array.isArray(n.cls) ? n.cls : []];
   styleClip.ts = String(n.props && n.props.ts || "");
@@ -6347,6 +6510,30 @@ function smartTarget(key) {
   return [container, index];
 }
 var LIST_PAGE_INPUTS = /* @__PURE__ */ new Set(["sort", "dir", "where", "op", "val", "per", "limit"]);
+var toggleOn = (value) => !["", "0", "false"].includes(String(value ?? ""));
+function reconcileAccordionOpenMode(n, key, value) {
+  if (n.use && key.startsWith(VAL)) {
+    const def = findComponent(n.use);
+    if (!def) return;
+    const property = key.slice(VAL.length);
+    const peers = /* @__PURE__ */ new Map();
+    eachNode([def.node], (node) => {
+      if (node.type !== "accordion") return;
+      const open = bindGet(node, "open"), single = bindGet(node, "single");
+      if (open?.src !== "prop" || single?.src !== "prop") return;
+      if (property === open.path && value === "all" && toggleOn(instValue(n, def, single.path))) peers.set(single.path, "0");
+      if (property === single.path && toggleOn(value) && instValue(n, def, open.path) === "all") peers.set(open.path, "first");
+    });
+    peers.forEach((next, peer) => {
+      if (!boundField(n, VAL + peer)) instSet(n, peer, next);
+    });
+    return;
+  }
+  if (n.type !== "accordion") return;
+  const props = n.props;
+  if (key === "open" && value === "all" && toggleOn(props.single)) props.single = 0;
+  if (key === "single" && toggleOn(value) && props.open === "all") props.open = "first";
+}
 function applyOne(n, c, v) {
   if (c.k === "_id") {
     n.adv.htmlId = String(v == null ? "" : v).replace(/[^\w-]/g, "");
@@ -6360,6 +6547,7 @@ function applyOne(n, c, v) {
     n.adv.css = v;
     return;
   }
+  if (c.k) reconcileAccordionOpenMode(n, c.k, v);
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
   else if (c.k && c.k.startsWith(VAL)) {
     const key = c.k.slice(VAL.length);
@@ -6368,6 +6556,7 @@ function applyOne(n, c, v) {
   } else if (c.k) {
     const props = n.props;
     if (n.type === "list" && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
+    if (n.type === "button" && c.k === "variant" && props.variant !== v) markButtonVariantIntent(n, v);
     props[c.k] = v;
   }
 }
@@ -7166,6 +7355,7 @@ function boundProps(n, col, item, inst, def) {
       const v2 = instValue(inst, def || null, b.path, col, item);
       const field = col ? boundField(inst, VAL + b.path) : "";
       out[k] = !rich ? boundValue(k, v2) : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
+      if (n.type === "image" && k === "src") resolveImageSize(out, n.props, inst, def || null, b.path, !!field);
       const linked = linkControl(n, k);
       if (linked) out[linked.tk || "target"] = instLinkTarget(inst, def || null, b.path, n);
       continue;
@@ -7174,6 +7364,7 @@ function boundProps(n, col, item, inst, def) {
     const v = fieldValue(col, item, b.path);
     out[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
   }
+  if (n.type === "accordion" && inst && out.open === "all" && bindGet(n, "open")?.src === "prop" && !bindGet(n, "single")) out.single = 0;
   return out;
 }
 var COND_OPS = [
@@ -7429,6 +7620,49 @@ function setMobileMenuMode(n, mode) {
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
+var imageSizeKey = (k) => "@image-size:" + k;
+function imageSizeValue(raw, source) {
+  if (typeof raw !== "string") return null;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).sort().join(",") !== "h,src,w" || value.src !== source || !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value.src) || !Number.isSafeInteger(value.w) || value.w <= 0 || !Number.isSafeInteger(value.h) || value.h <= 0) return null;
+    return { w: value.w, h: value.h };
+  } catch {
+    return null;
+  }
+}
+function instImageSizeSet(inst, k, size) {
+  const def = findComponent(inst.use);
+  if (!def || findProp(def, k)?.t !== "img") return;
+  let used = false;
+  const scan = (node) => {
+    if (node !== def.node && node.use) return;
+    const binding = bindGet(node, "src");
+    if (node.type === "image" && binding?.src === "prop" && binding.path === k) used = true;
+    (node.children || []).forEach(scan);
+  };
+  scan(def.node);
+  if (!used) return;
+  const source = instValue(inst, def, k);
+  const raw = JSON.stringify({ src: source, w: size.w, h: size.h });
+  const key = imageSizeKey(k);
+  if (imageSizeValue(raw, source)) {
+    inst.vals = inst.vals || {};
+    inst.vals[key] = raw;
+  } else if (inst.vals) delete inst.vals[key];
+}
+function resolveImageSize(out, original, inst, def, k, cms) {
+  const variant = findVariant(def, inst.variant);
+  const raw = ownsKey(inst.vals, k) ? inst.vals?.[imageSizeKey(k)] : variant?.values[imageSizeKey(k)];
+  const size = cms ? null : imageSizeValue(raw, out.src);
+  if (size) {
+    out.w = String(size.w);
+    out.h = String(size.h);
+  } else if (out.src !== original.src) {
+    delete out.w;
+    delete out.h;
+  }
+}
 var LINK_TARGET = "@link-target:";
 var linkTargetKey = (k) => LINK_TARGET + k;
 var ownsKey = (value, key) => !!value && Object.prototype.hasOwnProperty.call(value, key);
@@ -7543,6 +7777,7 @@ var variantRename = (cid, vid2, name) => {
   if (v) v.name = String(name || v.name).slice(0, 40);
 };
 function instSet(inst, k, v) {
+  if (findProp(findComponent(inst.use), k)?.t === "img" && inst.vals) delete inst.vals[imageSizeKey(k)];
   if (v === void 0) {
     const def = findComponent(inst.use);
     if (inst.vals) {
@@ -7771,6 +8006,7 @@ function propDelete(cid, k) {
     if (node.vals) {
       delete node.vals[k];
       delete node.vals[target];
+      delete node.vals[imageSizeKey(k)];
       if (!Object.keys(node.vals).length) delete node.vals;
     }
     if (legacyOwners.has(node)) delete node.props.target;
@@ -7779,6 +8015,7 @@ function propDelete(cid, k) {
   variantsOf(c).forEach((variant) => {
     delete variant.values[k];
     delete variant.values[target];
+    delete variant.values[imageSizeKey(k)];
   });
   return n;
 }
@@ -7796,6 +8033,7 @@ function componentDelete(cid) {
         if (b.src !== "prop") return;
         const field = boundField(node, VAL + b.path);
         x.props[key] = instValue(node, def, b.path);
+        if (x.type === "image" && key === "src") resolveImageSize(x.props, source.props, node, def, b.path, !!field);
         const linked = linkControl(x, key);
         if (linked) x.props[linked.tk || "target"] = instLinkTarget(node, def, b.path, source);
         bindSet(x, key, field ? bindField(field) : null);
@@ -9446,14 +9684,7 @@ var VISIBILITY_MQ = {
 var ruleBuckets = () => ({ d: "", t: "", m: "", vd: "", vt: "", vm: "" });
 function decl(map) {
   let out = "";
-  const borderRank = (k) => {
-    if (k === "border") return 0;
-    if (/^border-(width|style|color)$/.test(k)) return 1;
-    if (/^border-(top|right|bottom|left)$/.test(k)) return 2;
-    if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(k)) return 3;
-    return 4;
-  };
-  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: borderRank(k) })).sort((a, b) => a.rank - b.rank || a.i - b.i);
+  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: buttonBorderDeclarationRank(k) })).sort((a, b) => a.rank - b.rank || a.i - b.i);
   for (const { k } of keys) {
     let v = map[k];
     if (v === "" || v == null) continue;
@@ -9477,10 +9708,12 @@ var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "bord
 function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
   const authoredButton = /* @__PURE__ */ new Set();
+  const variantOwned = buttonVariantMarkers(map);
   Object.keys(map).forEach((prop) => {
-    if (!prop.startsWith(BUTTON_AUTHORED)) return;
-    if (map[prop] === "1") authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
-    delete map[prop];
+    if (prop.startsWith(BUTTON_AUTHORED)) {
+      if (map[prop] === "1") authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
+      delete map[prop];
+    } else if (prop.startsWith(BUTTON_VARIANT_OWNS)) delete map[prop];
   });
   if (n.type === "column") {
     const own = cssAt(n, b, COLUMN_V_ALIGN);
@@ -9508,8 +9741,21 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   const rules = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
   if (n.type === "button") {
+    if (variantOwned.has("background")) {
+      const base = BUTTON_VARIANT_BASES[String(n.props.variant)] || {};
+      const classAtoms = buttonClassSurfaceAtoms(n, b);
+      const reset = {};
+      if (base["background-color"] !== void 0 && !classAtoms.has("background-color")) {
+        reset["background-color"] = base["background-color"];
+      }
+      if (base["background-image"] !== void 0 && !classAtoms.has("background-image")) {
+        reset["background-image"] = base["background-image"];
+      }
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-button{${resetBody}}`);
+    }
     const defaults = b === "d" ? BUTTON_VARIANT_DEFAULTS : null;
-    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton));
+    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton, variantOwned));
     if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
   }
   if (imageNode && decl(imageMap)) {
@@ -9537,7 +9783,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : k === "focus" && n.type === "video" ? videoFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : k === "focus" && n.type === "video" ? videoFocusSelector(selOf(n)) : k === "focus" && n.type === "tabs" ? tabsFocusSelector(selOf(n)) : k === "focus" && n.type === "accordion" ? accordionFocusSelector(selOf(n)) : k === "focus" && n.type === "form" ? formFocusSelector(selOf(n)) : k === "focus" && n.type === "code" ? codeFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     if (n.type === "text") {
       const linkState = decl({ color: stateMap["--link"] });
@@ -9578,16 +9824,31 @@ function inheritedElementPriority(n, b) {
     }
   });
   const buttonBridge = {};
-  if (n.type === "button") for (const [property, value] of Object.entries(bridge)) {
-    if (!buttonVariantProperty(property)) continue;
-    const tabletOwns = b === "m" && n.css.t[property] !== void 0 && n.css.t[property] !== "";
-    const authoredDefault = n.css.d[BUTTON_AUTHORED + property] === "1";
-    if (!tabletOwns && BUTTON_VARIANT_DEFAULTS[property] === value && !authoredDefault) {
-      delete bridge[property];
-      continue;
+  if (n.type === "button") {
+    const defaultAtoms = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_DEFAULTS);
+    const inheritedMaps = b === "m" ? [{ bp: "t", map: n.css.t }, { bp: "d", map: n.css.d }] : [{ bp: "d", map: n.css.d }];
+    for (const collision of collisions) {
+      const atoms = buttonSurfaceAtoms(collision);
+      if (!atoms.length) continue;
+      delete bridge[collision];
+      for (const atom of atoms) {
+        if (buttonDeclarationSupplier(own, atom)) continue;
+        let supplied = null;
+        for (const source of inheritedMaps) {
+          const supplier = buttonDeclarationSupplier(source.map, atom);
+          if (supplier) {
+            supplied = { ...source, supplier };
+            break;
+          }
+        }
+        if (!supplied || supplied.map[BUTTON_VARIANT_OWNS + supplied.supplier.property] === "1") continue;
+        const emitted = supplied.supplier.property === collision ? { property: collision, value: supplied.supplier.value } : buttonAtomicDeclaration(supplied.supplier, atom);
+        const suppliedAtom = buttonAtomicDeclaration(supplied.supplier, atom);
+        const authoredDefault = supplied.map[BUTTON_AUTHORED + supplied.supplier.property] === "1";
+        if (supplied.bp === "d" && suppliedAtom.property === atom && defaultAtoms[atom] === suppliedAtom.value && !authoredDefault) continue;
+        buttonBridge[emitted.property] = emitted.value;
+      }
     }
-    buttonBridge[property] = value;
-    delete bridge[property];
   }
   const wrappedImage = n.type === "image" && !!(n.props.caption || n.props.link);
   const imageBridge = {};
@@ -9787,6 +10048,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
+.pagecraft-button[data-variant=outline],.pagecraft-button[data-variant=ghost],.pagecraft-button[data-variant=link]{background-image:none}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-figure>a{display:block;width:100%;max-width:100%}
@@ -11646,10 +11908,13 @@ function proposalApply(changes, proposalId = "") {
   hsv2rgb,
   iconOf,
   iconSvg,
+  imageSizeKey,
+  imageSizeValue,
   imageWidths,
   initUi,
   insert,
   instControls,
+  instImageSizeSet,
   instLinkTarget,
   instLinkTargetSet,
   instOwn,

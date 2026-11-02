@@ -63,6 +63,9 @@ img,video,svg{max-width:100%}
 .pagecraft-container.full{max-width:none}
 .pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none;--pc-list-padding:0}
+:where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none);padding:var(--pc-list-padding,0)}
+.pagecraft-list:where(:not(.pagecraft-slider))>:where(*){flex-shrink:var(--pc-list-item-shrink,1)}
 .pagecraft-box{display:block;width:100%;min-width:0;position:relative}
 .pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
 .pagecraft-box.l-grid{display:grid}
@@ -83,12 +86,13 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
 .pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
 .pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
+.pagecraft-button[data-variant=outline],.pagecraft-button[data-variant=ghost],.pagecraft-button[data-variant=link]{background-image:none}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
 .pagecraft-figure>a{display:block;width:100%;max-width:100%}
 .pagecraft-image{display:block;width:100%;height:auto}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
-.pagecraft-slider-box{position:relative;width:100%}
+.pagecraft-slider-box{position:relative;width:100%;min-width:0;max-width:100%}
 .pagecraft-slider{
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
@@ -116,7 +120,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .controls-bottom>.pagecraft-slide-btn{position:static;translate:none;width:44px;height:44px;grid-row:2}
 .controls-bottom>.pagecraft-slide-btn.p{grid-column:1;justify-self:end}
 .controls-bottom>.pagecraft-slide-btn.n{grid-column:3;justify-self:start}
-.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0}
+.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0;min-width:0;flex-wrap:wrap}
 .pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
 .pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
 .pagecraft-slider-dot:hover::before{opacity:.68}
@@ -188,10 +192,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
 .pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
 .pagecraft-table[data-zebra] tbody tr:nth-child(even)>td{background:var(--tbl-zebra,#f8f6ef)}
-.pagecraft-tabs{width:100%}
+.pagecraft-tabs{width:100%;overflow-wrap:anywhere}
 .pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
 .pagecraft-tab{
-  background:none;border:0;cursor:pointer;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
+  background:none;border:0;cursor:pointer;min-width:0;max-width:100%;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
   font:inherit;font-size:var(--tb-size,15px);font-weight:var(--tb-weight,500);
   color:var(--tb-off,#5f6660);border-bottom:2px solid transparent;transition:color .16s,border-color .16s;
 }
@@ -240,7 +244,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
-.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:calc(100dvh - var(--nav-top,0px));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
+.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:var(--nav-height,calc(100dvh - var(--nav-top,0px)));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
 .pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
 .pagecraft-mobile-menu[data-layout=dropdown]::backdrop{background:transparent;pointer-events:none}
 .pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
@@ -272,6 +276,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
+  grid-column:1 / -1;
   font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
@@ -349,12 +354,25 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 }
 .pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
 .pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
+.pagecraft-lightbox .pagecraft-lightbox-error{
+  max-width:64ch;margin:0;color:#f2f2ee;font:400 16px/1.5 system-ui,sans-serif;
+  text-align:center;overflow-wrap:anywhere;
+}
+.pagecraft-lightbox .pagecraft-lightbox-error strong,.pagecraft-lightbox .pagecraft-lightbox-error span{display:block}
+.pagecraft-lightbox .pagecraft-lightbox-error strong{font-weight:600}
+.pagecraft-lightbox .pagecraft-lightbox-retry{
+  min-height:44px;margin-top:12px;padding:8px 16px;border:1px solid currentColor;border-radius:6px;
+  background:transparent;color:inherit;font:600 16px/1.25 system-ui,sans-serif;cursor:pointer;
+}
+.pagecraft-lightbox .pagecraft-lightbox-retry[aria-disabled=true]{cursor:wait;opacity:.72}
+.pagecraft-lightbox .pagecraft-lightbox-retry:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .pagecraft-lightbox-btn{
   position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
   display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;
+  font:400 22px/1 system-ui,sans-serif;
 }
-.pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.pagecraft-lightbox .pagecraft-lightbox-btn{background:rgba(10,12,10,.72);color:#fff}
+.pagecraft-lightbox .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}
 .pagecraft-lightbox-prev{left:14px}
 .pagecraft-lightbox-next{right:14px}
 .pagecraft-lightbox-close{position:absolute;top:14px;right:14px;transform:none}
@@ -363,8 +381,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a:focus-visible,.pagecraft-nav-toggle:focus-visible,
 .pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
 .pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
-.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
-.pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-lightbox .pagecraft-lightbox-btn:focus-visible{
+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.01ms !important;animation-iteration-count:1 !important;
@@ -381,105 +401,106 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .ts-btn{font-size:15px;font-weight:600;letter-spacing:0em;}
 .c-card{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);border-radius:16px;}
 .c-card.pagecraft-button{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);border-radius:16px;}
-.pagecraft-k3i6d2t7b{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:26px;padding-right:26px;padding-bottom:26px;padding-left:26px;border-radius:16px;background-color:var(--c-surface);flex-direction:column;gap:10px;}
-.pagecraft-k3i6d2u2n{--icon-size:30px;--icon-stroke:1.75;color:var(--c-ink);align-self:flex-start;}
-.pagecraft-k3i6d2v4a{text-align:left;margin-bottom:0px;}
-.pagecraft-k3i6d2wma{text-align:left;}
-.pagecraft-k3i6c23rl{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--c-line);padding-top:16px;padding-right:28px;padding-bottom:16px;padding-left:28px;background-color:var(--c-bg);position:sticky;top:0px;z-index:50;}
-.pagecraft-k3i6c228i{gap:16px;align-items:baseline;justify-content:flex-start;flex-wrap:nowrap;}
-.pagecraft-k3i6c1zdd{flex-grow:33.3333;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c1wwf{text-align:left;margin-bottom:0px;font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--c-ink);}
-.pagecraft-k3i6c206j{flex-grow:33.3333;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c1x36{font-size:15px;font-weight:500;color:var(--c-muted);align-self:center;justify-content:center;width:100%;--nav-hover:var(--c-ink);--nav-gap:26px;--nav-panel:var(--c-bg);}
-.pagecraft-k3i6c21bb{flex-grow:33.3333;align-items:stretch;gap:16px;align-self:center;justify-content:flex-start;}
-.pagecraft-k3i6c1yk5{--pc-solid-fg:var(--c-ink);align-self:flex-end;padding-top:9px;padding-right:16px;padding-bottom:9px;padding-left:16px;border-radius:8px;background-color:var(--c-brand);color:var(--c-ink);white-space:nowrap;}
-.pagecraft-k3i6c1yk5.pagecraft-button{padding-top:9px;padding-right:16px;padding-bottom:9px;padding-left:16px;}
-.pagecraft-k3i6c2ge6{padding-top:112px;padding-right:28px;padding-bottom:88px;padding-left:28px;background-color:var(--c-bg);}
-.pagecraft-k3i6c2f7u{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6c2eyf{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c2a9r{text-align:center;margin-bottom:16px;}
-.pagecraft-k3i6c2bei{text-align:center;margin-bottom:18px;}
-.pagecraft-k3i6c2c1h{text-align:center;margin-bottom:8px;}
-.pagecraft-k3i6c2dec{--pc-solid-fg:var(--c-ink);align-self:center;padding-top:13px;padding-right:26px;padding-bottom:13px;padding-left:26px;border-radius:8px;background-color:var(--c-brand);color:var(--c-ink);}
-.pagecraft-k3i6c2j2v{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6c2ipw{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c2hwg{width:100%;max-width:100%;border-radius:16px;object-fit:cover;align-self:flex-start;margin-top:36px;}
-.pagecraft-k3i6c2hwg.pagecraft-figure{object-fit:initial;border-radius:0;}
-.pagecraft-k3i6c2hwg .pagecraft-image{object-fit:cover;border-radius:16px;width:100%;}
-.pagecraft-k3i6c2kv1{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;}
-.pagecraft-k3i6c2n8p{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6c2mvu{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c2lbf{text-align:center;margin-bottom:0px;}
-.pagecraft-k3i6d2oh6{gap:20px;grid-template-columns:repeat(3, minmax(0, 1fr));margin-top:36px;}
-.pagecraft-k3i6d36mk{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;background-color:var(--c-surface);}
-.pagecraft-k3i6d39x6{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d38b3{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d373{text-align:center;margin-bottom:0px;}
-.pagecraft-k3i6d3cnn{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3b2h{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3aet{text-align:center;max-width:62ch;margin-left:auto;margin-right:auto;}
-.pagecraft-k3i6d3dws{gap:24px;align-items:stretch;flex-wrap:wrap;margin-top:32px;}
-.pagecraft-k3i6d3dws.pagecraft-list{flex-wrap:wrap}
-.pagecraft-k3i6d3hg2{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3fv2{border-width:1px;border-style:solid;border-color:var(--c-line);flex-grow:100;align-items:stretch;gap:8px;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px;border-radius:14px;background-color:var(--c-bg);justify-content:flex-start;}
-.pagecraft-k3i6d3im2{text-align:left;margin-bottom:0px;}
-.pagecraft-k3i6d3jv8{text-align:left;margin-bottom:0px;}
-.pagecraft-k3i6d3k9z{text-align:left;}
-.pagecraft-k3i6d3l84{text-align:left;}
-.pagecraft-k3i6d3ee0{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3myg{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;}
-.pagecraft-k3i6d3pu9{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3op7{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3n2v{text-align:left;margin-bottom:0px;}
-.pagecraft-k3i6d3sel{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3rr4{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3qmf{width:100%;--tbl-size:15px;--tbl-pad:10px 12px;--tbl-line:var(--c-line);--tbl-text:var(--c-text);--tbl-head-bg:transparent;--tbl-head-text:var(--c-ink);--tbl-head-weight:600;--tbl-zebra:var(--c-bg);--tbl-caption-size:13px;--tbl-caption-color:var(--c-muted);margin-top:24px;}
-.pagecraft-k3i6d3vnb{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3ulb{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3tvx{width:100%;--cd-bg:var(--c-bg);--cd-text:var(--c-text);--cd-size:14px;--cd-pad:16px 18px;--cd-radius:10px;--cd-line:var(--c-line);--cd-com:var(--c-muted);--cd-str:#2f6f5e;--cd-kw:#8a4b2a;--cd-num:#3a5a9a;--cd-key:#5b4a8a;margin-top:32px;}
-.pagecraft-k3i6d3ydw{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d3xy2{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d3wn5{text-align:left;max-width:68ch;margin-top:20px;}
-.pagecraft-k3i6d3zi8{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;background-color:var(--c-surface);}
-.pagecraft-k3i6d42zp{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d41uh{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d40ef{text-align:left;margin-bottom:0px;}
-.pagecraft-k3i6d4556{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d44x9{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d43oj{text-align:left;max-width:58ch;}
-.pagecraft-k3i6d483j{gap:24px;align-items:stretch;justify-content:flex-start;}
-.pagecraft-k3i6d47kc{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6d46hl{width:100%;--f-gap:16px;--f-radius:8px;--f-pad:11px 13px;--f-bg:var(--c-surface);--f-border:var(--c-line);--f-text:var(--c-text);--f-label:var(--c-muted);--f-btn-bg:var(--c-brand);--f-btn-fg:var(--c-ink);font-size:15px;max-width:46rem;margin-top:28px;}
-.pagecraft-k3i6c29l0{border-top-width:1px;border-top-style:solid;border-top-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);}
-.pagecraft-k3i6c28u5{gap:16px;align-items:baseline;justify-content:flex-start;}
-.pagecraft-k3i6c26rk{flex-grow:50;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c24cg{text-align:left;margin-bottom:0px;font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--c-ink);}
-.pagecraft-k3i6c27g5{flex-grow:50;align-items:stretch;gap:16px;justify-content:flex-start;}
-.pagecraft-k3i6c25gb{text-align:right;}
+.pagecraft-p0mfg2tj0{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:26px;padding-right:26px;padding-bottom:26px;padding-left:26px;border-radius:16px;background-color:var(--c-surface);flex-direction:column;gap:10px;}
+.pagecraft-p0mfg2upf{--icon-size:30px;--icon-stroke:1.75;color:var(--c-ink);align-self:flex-start;}
+.pagecraft-p0mfg2vq3{text-align:left;margin-bottom:0px;}
+.pagecraft-p0mfg2w14{text-align:left;}
+.pagecraft-p0mfg233t{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--c-line);padding-top:16px;padding-right:28px;padding-bottom:16px;padding-left:28px;background-color:var(--c-bg);position:sticky;top:0px;z-index:50;}
+.pagecraft-p0mfg22e1{gap:16px;align-items:baseline;justify-content:flex-start;flex-wrap:nowrap;}
+.pagecraft-p0mfg1zlv{flex-grow:33.3333;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg1wq{text-align:left;margin-bottom:0px;font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--c-ink);}
+.pagecraft-p0mfg2078{flex-grow:33.3333;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg1x98{font-size:15px;font-weight:500;color:var(--c-muted);align-self:center;justify-content:center;width:100%;--nav-hover:var(--c-ink);--nav-gap:26px;--nav-panel:var(--c-bg);}
+.pagecraft-p0mfg21qa{flex-grow:33.3333;align-items:stretch;gap:16px;align-self:center;justify-content:flex-start;}
+.pagecraft-p0mfg1yds{--pc-solid-fg:var(--c-ink);align-self:flex-end;padding-top:9px;padding-right:16px;padding-bottom:9px;padding-left:16px;border-radius:8px;background-color:var(--c-brand);color:var(--c-ink);white-space:nowrap;}
+.pagecraft-p0mfg1yds.pagecraft-button{padding-top:9px;padding-right:16px;padding-bottom:9px;padding-left:16px;}
+.pagecraft-p0mfg2gpp{padding-top:112px;padding-right:28px;padding-bottom:88px;padding-left:28px;background-color:var(--c-bg);}
+.pagecraft-p0mfg2fjr{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfg2ecr{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg2a24{text-align:center;margin-bottom:16px;}
+.pagecraft-p0mfg2bgt{text-align:center;margin-bottom:18px;}
+.pagecraft-p0mfg2cpa{text-align:center;margin-bottom:8px;}
+.pagecraft-p0mfg2dib{--pc-solid-fg:var(--c-ink);align-self:center;padding-top:13px;padding-right:26px;padding-bottom:13px;padding-left:26px;border-radius:8px;background-color:var(--c-brand);color:var(--c-ink);}
+.pagecraft-p0mfg2jjz{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfg2ifq{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg2h4e{width:100%;max-width:100%;border-radius:16px;object-fit:cover;align-self:flex-start;margin-top:36px;}
+.pagecraft-p0mfg2h4e.pagecraft-figure{object-fit:initial;border-radius:0;}
+.pagecraft-p0mfg2h4e .pagecraft-image{object-fit:cover;border-radius:16px;width:100%;}
+.pagecraft-p0mfg2kb3{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;}
+.pagecraft-p0mfg2nlj{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfg2mfk{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg2llf{text-align:center;margin-bottom:0px;}
+.pagecraft-p0mfg2ok{gap:20px;grid-template-columns:repeat(3, minmax(0, 1fr));margin-top:36px;}
+.pagecraft-p0mfh36in{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;background-color:var(--c-surface);}
+.pagecraft-p0mfh392o{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3854{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh37vi{text-align:center;margin-bottom:0px;}
+.pagecraft-p0mfh3cjj{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3bur{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh3a4b{text-align:center;max-width:62ch;margin-left:auto;margin-right:auto;}
+.pagecraft-p0mfh3db0{gap:24px;align-items:stretch;flex-wrap:wrap;margin-top:32px;}
+.pagecraft-p0mfh3db0.pagecraft-list{flex-wrap:wrap}
+.pagecraft-p0mfh3db0.pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none;--pc-list-padding:0}
+.pagecraft-p0mfh3hrf{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3f61{border-width:1px;border-style:solid;border-color:var(--c-line);flex-grow:100;align-items:stretch;gap:8px;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px;border-radius:14px;background-color:var(--c-bg);justify-content:flex-start;}
+.pagecraft-p0mfh3ier{text-align:left;margin-bottom:0px;}
+.pagecraft-p0mfh3joi{text-align:left;margin-bottom:0px;}
+.pagecraft-p0mfh3kga{text-align:left;}
+.pagecraft-p0mfh3lnh{text-align:left;}
+.pagecraft-p0mfh3etl{flex-grow:100;align-items:stretch;gap:16px;flex-basis:280px;justify-content:flex-start;}
+.pagecraft-p0mfh3m9a{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;}
+.pagecraft-p0mfh3pgp{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3o7n{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh3n3w{text-align:left;margin-bottom:0px;}
+.pagecraft-p0mfh3svj{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3r91{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh3qrq{width:100%;--tbl-size:15px;--tbl-pad:10px 12px;--tbl-line:var(--c-line);--tbl-text:var(--c-text);--tbl-head-bg:transparent;--tbl-head-text:var(--c-ink);--tbl-head-weight:600;--tbl-zebra:var(--c-bg);--tbl-caption-size:13px;--tbl-caption-color:var(--c-muted);margin-top:24px;}
+.pagecraft-p0mfh3vs7{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3umy{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh3tbe{width:100%;--cd-bg:var(--c-bg);--cd-text:var(--c-text);--cd-size:14px;--cd-pad:16px 18px;--cd-radius:10px;--cd-line:var(--c-line);--cd-com:var(--c-muted);--cd-str:#2f6f5e;--cd-kw:#8a4b2a;--cd-num:#3a5a9a;--cd-key:#5b4a8a;margin-top:32px;}
+.pagecraft-p0mfh3yez{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh3xxu{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh3wl1{text-align:left;max-width:68ch;margin-top:20px;}
+.pagecraft-p0mfh3zq6{padding-top:72px;padding-right:24px;padding-bottom:72px;padding-left:24px;background-color:var(--c-surface);}
+.pagecraft-p0mfh42vc{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh41pm{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh40e{text-align:left;margin-bottom:0px;}
+.pagecraft-p0mfh45t7{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh44c3{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh431f{text-align:left;max-width:58ch;}
+.pagecraft-p0mfh483v{gap:24px;align-items:stretch;justify-content:flex-start;}
+.pagecraft-p0mfh47d1{flex-grow:100;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfh46w1{width:100%;--f-gap:16px;--f-radius:8px;--f-pad:11px 13px;--f-bg:var(--c-surface);--f-border:var(--c-line);--f-text:var(--c-text);--f-label:var(--c-muted);--f-btn-bg:var(--c-brand);--f-btn-fg:var(--c-ink);font-size:15px;max-width:46rem;margin-top:28px;}
+.pagecraft-p0mfg29lg{border-top-width:1px;border-top-style:solid;border-top-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);}
+.pagecraft-p0mfg28ms{gap:16px;align-items:baseline;justify-content:flex-start;}
+.pagecraft-p0mfg2665{flex-grow:50;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg24u0{text-align:left;margin-bottom:0px;font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--c-ink);}
+.pagecraft-p0mfg27k{flex-grow:50;align-items:stretch;gap:16px;justify-content:flex-start;}
+.pagecraft-p0mfg253r{text-align:right;}
 @media (max-width:1024px){.ts-display{font-size:44px;}
 .ts-title{font-size:32px;}
-.pagecraft-k3i6c228i{align-items:center;}
-.pagecraft-k3i6c1zdd{justify-content:center;}
-.pagecraft-k3i6c1wwf{font-size:19px;}
-.pagecraft-k3i6c206j{justify-content:center;}
-.pagecraft-k3i6c21bb{justify-content:center;}
-.pagecraft-k3i6c2eyf{justify-content:flex-start;}
-.pagecraft-k3i6c2ipw{justify-content:flex-start;}
-.pagecraft-k3i6c2mvu{justify-content:flex-start;}
-.pagecraft-k3i6d38b3{justify-content:flex-start;}
-.pagecraft-k3i6d3b2h{justify-content:flex-start;}
-.pagecraft-k3i6d3fv2{justify-content:flex-start;}
-.pagecraft-k3i6d3ee0{justify-content:flex-start;}
-.pagecraft-k3i6d3op7{justify-content:flex-start;}
-.pagecraft-k3i6d3rr4{justify-content:flex-start;}
-.pagecraft-k3i6d3ulb{justify-content:flex-start;}
-.pagecraft-k3i6d3xy2{justify-content:flex-start;}
-.pagecraft-k3i6d41uh{justify-content:flex-start;}
-.pagecraft-k3i6d44x9{justify-content:flex-start;}
-.pagecraft-k3i6d47kc{justify-content:flex-start;}
-.pagecraft-k3i6c26rk{justify-content:flex-start;}
-.pagecraft-k3i6c24cg{font-size:19px;}
-.pagecraft-k3i6c27g5{justify-content:flex-start;}
+.pagecraft-p0mfg22e1{align-items:center;}
+.pagecraft-p0mfg1zlv{justify-content:center;}
+.pagecraft-p0mfg1wq{font-size:19px;}
+.pagecraft-p0mfg2078{justify-content:center;}
+.pagecraft-p0mfg21qa{justify-content:center;}
+.pagecraft-p0mfg2ecr{justify-content:flex-start;}
+.pagecraft-p0mfg2ifq{justify-content:flex-start;}
+.pagecraft-p0mfg2mfk{justify-content:flex-start;}
+.pagecraft-p0mfh3854{justify-content:flex-start;}
+.pagecraft-p0mfh3bur{justify-content:flex-start;}
+.pagecraft-p0mfh3f61{justify-content:flex-start;}
+.pagecraft-p0mfh3etl{justify-content:flex-start;}
+.pagecraft-p0mfh3o7n{justify-content:flex-start;}
+.pagecraft-p0mfh3r91{justify-content:flex-start;}
+.pagecraft-p0mfh3umy{justify-content:flex-start;}
+.pagecraft-p0mfh3xxu{justify-content:flex-start;}
+.pagecraft-p0mfh41pm{justify-content:flex-start;}
+.pagecraft-p0mfh44c3{justify-content:flex-start;}
+.pagecraft-p0mfh47d1{justify-content:flex-start;}
+.pagecraft-p0mfg2665{justify-content:flex-start;}
+.pagecraft-p0mfg24u0{font-size:19px;}
+.pagecraft-p0mfg27k{justify-content:flex-start;}
 }
 @media (max-width:767px){.ts-display{font-size:33px;}
 .ts-title{font-size:27px;}
@@ -488,71 +509,71 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .ts-body{font-size:15px;}
 .c-card{padding-top:22px;padding-right:22px;padding-bottom:22px;padding-left:22px;}
 .c-card.pagecraft-button{padding-top:22px;padding-right:22px;padding-bottom:22px;padding-left:22px;}
-.pagecraft-k3i6c23rl{padding-top:12px;padding-right:20px;padding-bottom:12px;padding-left:20px;}
-.pagecraft-k3i6c228i{gap:14px;align-items:center;}
-.pagecraft-k3i6c1zdd{flex-basis:100%;justify-content:center;}
-.pagecraft-k3i6c1wwf{font-size:19px;}
-.pagecraft-k3i6c206j{flex-basis:100%;justify-content:center;}
-.pagecraft-k3i6c1x36 .pagecraft-nav-toggle{display:flex}
-.pagecraft-k3i6c1x36 .pagecraft-nav-list{display:none}
-.pagecraft-k3i6c1x36{justify-content:flex-end;}
-.pagecraft-k3i6c21bb{flex-basis:100%;justify-content:center;}
-.pagecraft-k3i6c1yk5{padding-top:8px;padding-right:12px;padding-bottom:8px;padding-left:12px;font-size:14px;}
-.pagecraft-k3i6c1yk5.pagecraft-button{padding-top:8px;padding-right:12px;padding-bottom:8px;padding-left:12px;}
-.pagecraft-k3i6c2ge6{padding-top:56px;padding-right:20px;padding-bottom:56px;padding-left:20px;}
-.pagecraft-k3i6c2f7u{gap:20px;}
-.pagecraft-k3i6c2eyf{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6c2j2v{gap:20px;}
-.pagecraft-k3i6c2ipw{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6c2kv1{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
-.pagecraft-k3i6c2n8p{gap:20px;}
-.pagecraft-k3i6c2mvu{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d2oh6{grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));}
-.pagecraft-k3i6d36mk{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
-.pagecraft-k3i6d39x6{gap:20px;}
-.pagecraft-k3i6d38b3{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3cnn{gap:20px;}
-.pagecraft-k3i6d3b2h{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3dws{gap:20px;}
-.pagecraft-k3i6d3hg2{gap:20px;}
-.pagecraft-k3i6d3fv2{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3ee0{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3myg{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
-.pagecraft-k3i6d3pu9{gap:20px;}
-.pagecraft-k3i6d3op7{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3sel{gap:20px;}
-.pagecraft-k3i6d3rr4{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3qmf{--tbl-size:14px;--tbl-pad:8px 10px;}
-.pagecraft-k3i6d3vnb{gap:20px;}
-.pagecraft-k3i6d3ulb{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3tvx{--cd-size:13px;--cd-pad:12px 13px;}
-.pagecraft-k3i6d3ydw{gap:20px;}
-.pagecraft-k3i6d3xy2{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d3zi8{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
-.pagecraft-k3i6d42zp{gap:20px;}
-.pagecraft-k3i6d41uh{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d4556{gap:20px;}
-.pagecraft-k3i6d44x9{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6d483j{gap:20px;}
-.pagecraft-k3i6d47kc{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6c29l0{padding-top:22px;padding-right:20px;padding-bottom:22px;padding-left:20px;}
-.pagecraft-k3i6c28u5{gap:20px;}
-.pagecraft-k3i6c26rk{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6c24cg{font-size:19px;}
-.pagecraft-k3i6c27g5{flex-basis:100%;justify-content:flex-start;}
-.pagecraft-k3i6c25gb{text-align:left;}
+.pagecraft-p0mfg233t{padding-top:12px;padding-right:20px;padding-bottom:12px;padding-left:20px;}
+.pagecraft-p0mfg22e1{gap:14px;align-items:center;}
+.pagecraft-p0mfg1zlv{flex-basis:100%;justify-content:center;}
+.pagecraft-p0mfg1wq{font-size:19px;}
+.pagecraft-p0mfg2078{flex-basis:100%;justify-content:center;}
+.pagecraft-p0mfg1x98 .pagecraft-nav-toggle{display:flex}
+.pagecraft-p0mfg1x98 .pagecraft-nav-list{display:none}
+.pagecraft-p0mfg1x98{justify-content:flex-end;}
+.pagecraft-p0mfg21qa{flex-basis:100%;justify-content:center;}
+.pagecraft-p0mfg1yds{padding-top:8px;padding-right:12px;padding-bottom:8px;padding-left:12px;font-size:14px;}
+.pagecraft-p0mfg1yds.pagecraft-button{padding-top:8px;padding-right:12px;padding-bottom:8px;padding-left:12px;}
+.pagecraft-p0mfg2gpp{padding-top:56px;padding-right:20px;padding-bottom:56px;padding-left:20px;}
+.pagecraft-p0mfg2fjr{gap:20px;}
+.pagecraft-p0mfg2ecr{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg2jjz{gap:20px;}
+.pagecraft-p0mfg2ifq{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg2kb3{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
+.pagecraft-p0mfg2nlj{gap:20px;}
+.pagecraft-p0mfg2mfk{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg2ok{grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));}
+.pagecraft-p0mfh36in{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
+.pagecraft-p0mfh392o{gap:20px;}
+.pagecraft-p0mfh3854{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3cjj{gap:20px;}
+.pagecraft-p0mfh3bur{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3db0{gap:20px;}
+.pagecraft-p0mfh3hrf{gap:20px;}
+.pagecraft-p0mfh3f61{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3etl{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3m9a{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
+.pagecraft-p0mfh3pgp{gap:20px;}
+.pagecraft-p0mfh3o7n{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3svj{gap:20px;}
+.pagecraft-p0mfh3r91{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3qrq{--tbl-size:14px;--tbl-pad:8px 10px;}
+.pagecraft-p0mfh3vs7{gap:20px;}
+.pagecraft-p0mfh3umy{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3tbe{--cd-size:13px;--cd-pad:12px 13px;}
+.pagecraft-p0mfh3yez{gap:20px;}
+.pagecraft-p0mfh3xxu{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh3zq6{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}
+.pagecraft-p0mfh42vc{gap:20px;}
+.pagecraft-p0mfh41pm{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh45t7{gap:20px;}
+.pagecraft-p0mfh44c3{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfh483v{gap:20px;}
+.pagecraft-p0mfh47d1{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg29lg{padding-top:22px;padding-right:20px;padding-bottom:22px;padding-left:20px;}
+.pagecraft-p0mfg28ms{gap:20px;}
+.pagecraft-p0mfg2665{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg24u0{font-size:19px;}
+.pagecraft-p0mfg27k{flex-basis:100%;justify-content:flex-start;}
+.pagecraft-p0mfg253r{text-align:left;}
 }
 </style>
 
 </head>
 <body>
 <a class="pagecraft-skip" href="#pagecraft-main">Skip to content</a>
-<!--PAGECRAFT_SHARED_HEADER_START--><header id="pagecraft-section-k3i6c23rl" class="pagecraft-section pagecraft-k3i6c23rl"><div class="pagecraft-container"><div id="pagecraft-row-k3i6c228i" class="pagecraft-row pagecraft-k3i6c228i"><div id="pagecraft-column-k3i6c1zdd" class="pagecraft-column pagecraft-k3i6c1zdd"><div id="pagecraft-heading-k3i6c1wwf" class="pagecraft-heading pagecraft-k3i6c1wwf">Pagecraft</div></div><div id="pagecraft-column-k3i6c206j" class="pagecraft-column pagecraft-k3i6c206j"><nav id="pagecraft-nav-menu-k3i6c1x36" class="pagecraft-nav-menu pagecraft-k3i6c1x36" data-nav data-mobile-menu="dropdown" aria-label="Main"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="pagecraft-nav-menu-k3i6c1x36-menu" aria-label="Main menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="pagecraft-nav-menu-k3i6c1x36-menu" data-nav-l><li><a href="#what">What it does</a></li><li><a href="#changed">What changed</a></li><li><a href="#export">The export</a></li></ul></nav></div><div id="pagecraft-column-k3i6c21bb" class="pagecraft-column pagecraft-k3i6c21bb"><a id="pagecraft-button-k3i6c1yk5" class="pagecraft-button pagecraft-k3i6c1yk5 ts-btn" data-variant="solid" href="https://github.com/braudypedrosa/pagecraft" target="_blank" rel="noopener"><span>Open it</span></a></div></div></div></header><!--PAGECRAFT_SHARED_HEADER_END--><main id="pagecraft-main" class="pagecraft-main"><section id="pagecraft-section-k3i6c2ge6" class="pagecraft-section pagecraft-k3i6c2ge6"><div class="pagecraft-container"><div id="pagecraft-row-k3i6c2f7u" class="pagecraft-row pagecraft-k3i6c2f7u"><div id="pagecraft-column-k3i6c2eyf" class="pagecraft-column pagecraft-k3i6c2eyf"><div id="pagecraft-heading-k3i6c2a9r" class="pagecraft-heading pagecraft-k3i6c2a9r ts-eyebrow">One HTML file</div><h1 id="pagecraft-heading-k3i6c2bei" class="pagecraft-heading pagecraft-k3i6c2bei ts-display">Build it visually. Ship real HTML.</h1><div id="pagecraft-wysiwyg-k3i6c2c1h" class="pagecraft-wysiwyg pagecraft-k3i6c2c1h ts-lead"><p>A page builder that is one file. No accounts, no build step, nothing to install — open it and start. What comes out is static HTML you own.</p></div><a id="pagecraft-button-k3i6c2dec" class="pagecraft-button pagecraft-k3i6c2dec ts-btn" data-variant="solid" href="#what"><span>See what it makes</span></a></div></div><div id="pagecraft-row-k3i6c2j2v" class="pagecraft-row pagecraft-k3i6c2j2v"><div id="pagecraft-column-k3i6c2ipw" class="pagecraft-column pagecraft-k3i6c2ipw"><img id="pagecraft-image-k3i6c2hwg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAwIDkwMCIgd2lkdGg9IjE2MDAiIGhlaWdodD0iOTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxMTEzMTEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyYjNhMmIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSIxMjAiIHk9IjQ3MCIgZmlsbD0iI2Y4ZjZlZiIgZm9udC1mYW1pbHk9Ik1hbnJvcGUsIHN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGxldHRlci1zcGFjaW5nPSItNCI+T25lIGZpbGUuPC90ZXh0Pjx0ZXh0IHg9IjEyMiIgeT0iNTYwIiBmaWxsPSIjYjBiN2IxIiBmb250LWZhbWlseT0iTWFucm9wZSwgc3lzdGVtLXVpLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjQwIj5FdmVyeXRoaW5nIGEgYnJvd3NlciBuZWVkcy48L3RleHQ+PHJlY3QgeD0iMTIwIiB5PSI2NDAiIHdpZHRoPSI0MjAiIGhlaWdodD0iMjYiIHJ4PSIxMyIgZmlsbD0iI2I3ZjM0YSIvPjwvc3ZnPg==" alt="A dark panel reading “One file. Everything a browser needs.”" width="1600" height="900" class="pagecraft-image pagecraft-k3i6c2hwg"></div></div></div></section><section id="what" class="pagecraft-section pagecraft-k3i6c2kv1"><div class="pagecraft-container"><div id="pagecraft-row-k3i6c2n8p" class="pagecraft-row pagecraft-k3i6c2n8p"><div id="pagecraft-column-k3i6c2mvu" class="pagecraft-column pagecraft-k3i6c2mvu"><h2 id="pagecraft-heading-k3i6c2lbf" class="pagecraft-heading pagecraft-k3i6c2lbf ts-title">What it actually does</h2></div></div><div id="pagecraft-box-k3i6d2oh6" class="pagecraft-box l-grid pagecraft-k3i6d2oh6"><div id="pagecraft-box-k3i6d2pf" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d2pf"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d2pf" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d2pf" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">Real HTML out</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d2pf" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>No runtime, no framework, no build. A folder of files a browser can open — and still read in ten years.</p></div></div><div id="pagecraft-box-k3i6d2xzv" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d2xzv"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d2xzv" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.8-9 4.8-9-4.8z"/><path d="M3 12.6l9 4.8 9-4.8"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d2xzv" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">Components, not copies</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d2xzv" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>Save a card once. Every place you put it stays connected, and what varies between them is a property you declared.</p></div></div><div id="pagecraft-box-k3i6d2yej" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d2yej"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d2yej" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.2" cy="8" r="3.4"/><path d="M2.6 20a6.6 6.6 0 0113.2 0"/><path d="M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d2yej" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">Content without a rebuild</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d2yej" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>Collections repeat a card per item. A client signs in and changes the words; nobody re-exports anything.</p></div></div><div id="pagecraft-box-k3i6d2zsz" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d2zsz"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d2zsz" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z"/><path d="M3.6 7.6L12 12l8.4-4.4M12 12v8.8"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d2zsz" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">Three breakpoints, one document</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d2zsz" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>Override only what needs overriding. The panel says which breakpoint owns a value, so nothing is haunted.</p></div></div><div id="pagecraft-box-k3i6d30jk" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d30jk"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d30jk" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d30jk" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">It tells you what is wrong</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d30jk" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>A review before you export: contrast, heading order, missing alt text, dead links, forms with nowhere to post.</p></div></div><div id="pagecraft-box-k3i6d31x1" class="pagecraft-box l-flex pagecraft-k3i6d2t7b pagecraft-k3i6d31x1"><svg id="pagecraft-icon-k3i6d2u2n-k3i6d31x1" class="pagecraft-icon pagecraft-icon-glyph pagecraft-k3i6d2u2n" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z"/></svg><h3 id="pagecraft-heading-k3i6d2v4a-k3i6d31x1" class="pagecraft-heading pagecraft-k3i6d2v4a ts-subtitle">Images done properly</h3><div id="pagecraft-wysiwyg-k3i6d2wma-k3i6d31x1" class="pagecraft-wysiwyg pagecraft-k3i6d2wma ts-body"><p>Uploads are stored once, referenced everywhere, and exported at the widths a browser actually wants.</p></div></div></div></div></section><section id="changed" class="pagecraft-section pagecraft-k3i6d36mk"><div class="pagecraft-container"><div id="pagecraft-row-k3i6d39x6" class="pagecraft-row pagecraft-k3i6d39x6"><div id="pagecraft-column-k3i6d38b3" class="pagecraft-column pagecraft-k3i6d38b3"><h2 id="pagecraft-heading-k3i6d373" class="pagecraft-heading pagecraft-k3i6d373 ts-title">What changed</h2></div></div><div id="pagecraft-row-k3i6d3cnn" class="pagecraft-row pagecraft-k3i6d3cnn"><div id="pagecraft-column-k3i6d3b2h" class="pagecraft-column pagecraft-k3i6d3b2h"><div id="pagecraft-wysiwyg-k3i6d3aet" class="pagecraft-wysiwyg pagecraft-k3i6d3aet ts-lead"><p>Each of these is a schema version, which means each one migrated every project that existed. The rule is that no page moves.</p></div></div></div><div id="pagecraft-collection-list-k3i6d3dws" class="pagecraft-list pagecraft-k3i6d3dws"><div id="pagecraft-row-k3i6d3hg2-one-way-to-author-a" class="pagecraft-row pagecraft-k3i6d3hg2"><div id="pagecraft-column-k3i6d3fv2-one-way-to-author-a" class="pagecraft-column pagecraft-k3i6d3fv2"><div id="pagecraft-heading-k3i6d3im2-one-way-to-author-a" class="pagecraft-heading pagecraft-k3i6d3im2 ts-eyebrow">v8</div><h3 id="pagecraft-heading-k3i6d3jv8-one-way-to-author-a" class="pagecraft-heading pagecraft-k3i6d3jv8 ts-subtitle">One way to author a hover</h3><div id="pagecraft-wysiwyg-k3i6d3k9z-one-way-to-author-a" class="pagecraft-wysiwyg pagecraft-k3i6d3k9z ts-body"><p>A button had two colour pickers of its own and nothing else could have a hover at all. Both are gone: every element uses the State control.</p></div><div id="pagecraft-wysiwyg-k3i6d3l84-one-way-to-author-a" class="pagecraft-wysiwyg pagecraft-k3i6d3l84 ts-small"><p>Migrating to a value that was not on screen would be a redesign wearing a migration’s clothes.</p></div></div></div><div id="pagecraft-column-k3i6d3ee0-one-way-to-author-a" class="pagecraft-column pagecraft-k3i6d3ee0"></div><div id="pagecraft-row-k3i6d3hg2-a-binding-says-where-its" class="pagecraft-row pagecraft-k3i6d3hg2"><div id="pagecraft-column-k3i6d3fv2-a-binding-says-where-its" class="pagecraft-column pagecraft-k3i6d3fv2"><div id="pagecraft-heading-k3i6d3im2-a-binding-says-where-its" class="pagecraft-heading pagecraft-k3i6d3im2 ts-eyebrow">v9</div><h3 id="pagecraft-heading-k3i6d3jv8-a-binding-says-where-its" class="pagecraft-heading pagecraft-k3i6d3jv8 ts-subtitle">A binding says where its value comes from</h3><div id="pagecraft-wysiwyg-k3i6d3k9z-a-binding-says-where-its" class="pagecraft-wysiwyg pagecraft-k3i6d3k9z ts-body"><p>A binding was a bare field id, because a CMS field was the only place a value could come from. It names its source now.</p></div></div></div><div id="pagecraft-column-k3i6d3ee0-a-binding-says-where-its" class="pagecraft-column pagecraft-k3i6d3ee0"></div><div id="pagecraft-row-k3i6d3hg2-components" class="pagecraft-row pagecraft-k3i6d3hg2"><div id="pagecraft-column-k3i6d3fv2-components" class="pagecraft-column pagecraft-k3i6d3fv2"><div id="pagecraft-heading-k3i6d3im2-components" class="pagecraft-heading pagecraft-k3i6d3im2 ts-eyebrow">v10</div><h3 id="pagecraft-heading-k3i6d3jv8-components" class="pagecraft-heading pagecraft-k3i6d3jv8 ts-subtitle">Components</h3><div id="pagecraft-wysiwyg-k3i6d3k9z-components" class="pagecraft-wysiwyg pagecraft-k3i6d3k9z ts-body"><p>A definition and its instances. Nothing is cloned at render, so one set of rules dresses every instance.</p></div><div id="pagecraft-wysiwyg-k3i6d3l84-components" class="pagecraft-wysiwyg pagecraft-k3i6d3l84 ts-small"><p>Taken early on purpose: it is the one thing expensive to retrofit.</p></div></div></div><div id="pagecraft-column-k3i6d3ee0-components" class="pagecraft-column pagecraft-k3i6d3ee0"></div><div id="pagecraft-row-k3i6d3hg2-the-global-block-retired" class="pagecraft-row pagecraft-k3i6d3hg2"><div id="pagecraft-column-k3i6d3fv2-the-global-block-retired" class="pagecraft-column pagecraft-k3i6d3fv2"><div id="pagecraft-heading-k3i6d3im2-the-global-block-retired" class="pagecraft-heading pagecraft-k3i6d3im2 ts-eyebrow">v11</div><h3 id="pagecraft-heading-k3i6d3jv8-the-global-block-retired" class="pagecraft-heading pagecraft-k3i6d3jv8 ts-subtitle">The global block retired</h3><div id="pagecraft-wysiwyg-k3i6d3k9z-the-global-block-retired" class="pagecraft-wysiwyg pagecraft-k3i6d3k9z ts-body"><p>Copies that pushed content over each other became components. A copy that had diverged keeps what it shows and stops being linked.</p></div></div></div><div id="pagecraft-column-k3i6d3ee0-the-global-block-retired" class="pagecraft-column pagecraft-k3i6d3ee0"></div></div></div></section><section id="export" class="pagecraft-section pagecraft-k3i6d3myg"><div class="pagecraft-container"><div id="pagecraft-row-k3i6d3pu9" class="pagecraft-row pagecraft-k3i6d3pu9"><div id="pagecraft-column-k3i6d3op7" class="pagecraft-column pagecraft-k3i6d3op7"><h2 id="pagecraft-heading-k3i6d3n2v" class="pagecraft-heading pagecraft-k3i6d3n2v ts-title">What comes out</h2></div></div><div id="pagecraft-row-k3i6d3sel" class="pagecraft-row pagecraft-k3i6d3sel"><div id="pagecraft-column-k3i6d3rr4" class="pagecraft-column pagecraft-k3i6d3rr4"><div id="pagecraft-table-k3i6d3qmf" class="pagecraft-table-wrap pagecraft-k3i6d3qmf"><table class="pagecraft-table" data-rules="rows" data-zebra><caption>What an export writes</caption><thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead><tbody><tr><th scope="row">index.html</th><td>One per page, named by its slug — with the stylesheet inlined</td></tr><tr><th scope="row">work/acme.html</th><td>One per collection item, when a page is a template for one</td></tr><tr><th scope="row">assets/hero.webp</th><td>Your uploads, each written at several widths with a srcset</td></tr><tr><th scope="row">sitemap.xml</th><td>Every page, once a Site URL is set in Project settings</td></tr><tr><th scope="row">robots.txt</th><td>Pointing at the sitemap</td></tr><tr><th scope="row">content.json</th><td>The collections, if the site has any</td></tr></tbody></table></div></div></div><div id="pagecraft-row-k3i6d3vnb" class="pagecraft-row pagecraft-k3i6d3vnb"><div id="pagecraft-column-k3i6d3ulb" class="pagecraft-column pagecraft-k3i6d3ulb"><figure id="pagecraft-code-k3i6d3tvx" class="pagecraft-code pagecraft-k3i6d3tvx" data-numbers><figcaption class="pagecraft-code-head"><span></span><button type="button" class="pagecraft-code-copy" data-copy hidden>Copy</button></figcaption><pre><code class="language-html"><span class="pagecraft-code-line">&lt;<span class="pc-c-kw">section</span> <span class="pc-c-key">id</span>=<span class="pc-c-str">&quot;pagecraft-section-1&quot;</span> <span class="pc-c-key">class</span>=<span class="pc-c-str">&quot;pagecraft-section pagecraft-1k2&quot;</span>&gt;</span>
+<!--PAGECRAFT_SHARED_HEADER_START--><header id="pagecraft-section-p0mfg233t" class="pagecraft-section pagecraft-p0mfg233t"><div class="pagecraft-container"><div id="pagecraft-row-p0mfg22e1" class="pagecraft-row pagecraft-p0mfg22e1"><div id="pagecraft-column-p0mfg1zlv" class="pagecraft-column pagecraft-p0mfg1zlv"><div id="pagecraft-heading-p0mfg1wq" class="pagecraft-heading pagecraft-p0mfg1wq">Pagecraft</div></div><div id="pagecraft-column-p0mfg2078" class="pagecraft-column pagecraft-p0mfg2078"><nav id="pagecraft-nav-menu-p0mfg1x98" class="pagecraft-nav-menu pagecraft-p0mfg1x98" data-nav data-mobile-menu="dropdown" aria-label="Main"><button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="pagecraft-nav-menu-p0mfg1x98-menu" aria-label="Main menu"><span class="pagecraft-nav-icon"></span></button><ul class="pagecraft-nav-list" id="pagecraft-nav-menu-p0mfg1x98-menu" data-nav-l><li><a href="#what">What it does</a></li><li><a href="#changed">What changed</a></li><li><a href="#export">The export</a></li></ul></nav></div><div id="pagecraft-column-p0mfg21qa" class="pagecraft-column pagecraft-p0mfg21qa"><a id="pagecraft-button-p0mfg1yds" class="pagecraft-button pagecraft-p0mfg1yds ts-btn" data-variant="solid" href="https://github.com/braudypedrosa/pagecraft" target="_blank" rel="noopener"><span>Open it</span></a></div></div></div></header><!--PAGECRAFT_SHARED_HEADER_END--><main id="pagecraft-main" class="pagecraft-main"><section id="pagecraft-section-p0mfg2gpp" class="pagecraft-section pagecraft-p0mfg2gpp"><div class="pagecraft-container"><div id="pagecraft-row-p0mfg2fjr" class="pagecraft-row pagecraft-p0mfg2fjr"><div id="pagecraft-column-p0mfg2ecr" class="pagecraft-column pagecraft-p0mfg2ecr"><div id="pagecraft-heading-p0mfg2a24" class="pagecraft-heading pagecraft-p0mfg2a24 ts-eyebrow">One HTML file</div><h1 id="pagecraft-heading-p0mfg2bgt" class="pagecraft-heading pagecraft-p0mfg2bgt ts-display">Build it visually. Ship real HTML.</h1><div id="pagecraft-wysiwyg-p0mfg2cpa" class="pagecraft-wysiwyg pagecraft-p0mfg2cpa ts-lead"><p>A page builder that is one file. No accounts, no build step, nothing to install — open it and start. What comes out is static HTML you own.</p></div><a id="pagecraft-button-p0mfg2dib" class="pagecraft-button pagecraft-p0mfg2dib ts-btn" data-variant="solid" href="#what"><span>See what it makes</span></a></div></div><div id="pagecraft-row-p0mfg2jjz" class="pagecraft-row pagecraft-p0mfg2jjz"><div id="pagecraft-column-p0mfg2ifq" class="pagecraft-column pagecraft-p0mfg2ifq"><img id="pagecraft-image-p0mfg2h4e" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAwIDkwMCIgd2lkdGg9IjE2MDAiIGhlaWdodD0iOTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxMTEzMTEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyYjNhMmIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSIxMjAiIHk9IjQ3MCIgZmlsbD0iI2Y4ZjZlZiIgZm9udC1mYW1pbHk9Ik1hbnJvcGUsIHN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMTIiIGZvbnQtd2VpZ2h0PSI2MDAiIGxldHRlci1zcGFjaW5nPSItNCI+T25lIGZpbGUuPC90ZXh0Pjx0ZXh0IHg9IjEyMiIgeT0iNTYwIiBmaWxsPSIjYjBiN2IxIiBmb250LWZhbWlseT0iTWFucm9wZSwgc3lzdGVtLXVpLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjQwIj5FdmVyeXRoaW5nIGEgYnJvd3NlciBuZWVkcy48L3RleHQ+PHJlY3QgeD0iMTIwIiB5PSI2NDAiIHdpZHRoPSI0MjAiIGhlaWdodD0iMjYiIHJ4PSIxMyIgZmlsbD0iI2I3ZjM0YSIvPjwvc3ZnPg==" alt="A dark panel reading “One file. Everything a browser needs.”" width="1600" height="900" class="pagecraft-image pagecraft-p0mfg2h4e"></div></div></div></section><section id="what" class="pagecraft-section pagecraft-p0mfg2kb3"><div class="pagecraft-container"><div id="pagecraft-row-p0mfg2nlj" class="pagecraft-row pagecraft-p0mfg2nlj"><div id="pagecraft-column-p0mfg2mfk" class="pagecraft-column pagecraft-p0mfg2mfk"><h2 id="pagecraft-heading-p0mfg2llf" class="pagecraft-heading pagecraft-p0mfg2llf ts-title">What it actually does</h2></div></div><div id="pagecraft-box-p0mfg2ok" class="pagecraft-box l-grid pagecraft-p0mfg2ok"><div id="pagecraft-box-p0mfg2p7z" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfg2p7z"><svg id="pagecraft-icon-p0mfg2upf-p0mfg2p7z" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfg2p7z" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">Real HTML out</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfg2p7z" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>No runtime, no framework, no build. A folder of files a browser can open — and still read in ten years.</p></div></div><div id="pagecraft-box-p0mfh2x9g" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfh2x9g"><svg id="pagecraft-icon-p0mfg2upf-p0mfh2x9g" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.8-9 4.8-9-4.8z"/><path d="M3 12.6l9 4.8 9-4.8"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfh2x9g" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">Components, not copies</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfh2x9g" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>Save a card once. Every place you put it stays connected, and what varies between them is a property you declared.</p></div></div><div id="pagecraft-box-p0mfh2yh4" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfh2yh4"><svg id="pagecraft-icon-p0mfg2upf-p0mfh2yh4" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.2" cy="8" r="3.4"/><path d="M2.6 20a6.6 6.6 0 0113.2 0"/><path d="M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfh2yh4" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">Content without a rebuild</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfh2yh4" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>Collections repeat a card per item. A client signs in and changes the words; nobody re-exports anything.</p></div></div><div id="pagecraft-box-p0mfh2zk0" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfh2zk0"><svg id="pagecraft-icon-p0mfg2upf-p0mfh2zk0" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z"/><path d="M3.6 7.6L12 12l8.4-4.4M12 12v8.8"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfh2zk0" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">Three breakpoints, one document</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfh2zk0" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>Override only what needs overriding. The panel says which breakpoint owns a value, so nothing is haunted.</p></div></div><div id="pagecraft-box-p0mfh30th" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfh30th"><svg id="pagecraft-icon-p0mfg2upf-p0mfh30th" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfh30th" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">It tells you what is wrong</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfh30th" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>A review before you export: contrast, heading order, missing alt text, dead links, forms with nowhere to post.</p></div></div><div id="pagecraft-box-p0mfh31nn" class="pagecraft-box l-flex pagecraft-p0mfg2tj0 pagecraft-p0mfh31nn"><svg id="pagecraft-icon-p0mfg2upf-p0mfh31nn" class="pagecraft-icon pagecraft-icon-glyph pagecraft-p0mfg2upf" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z"/></svg><h3 id="pagecraft-heading-p0mfg2vq3-p0mfh31nn" class="pagecraft-heading pagecraft-p0mfg2vq3 ts-subtitle">Images done properly</h3><div id="pagecraft-wysiwyg-p0mfg2w14-p0mfh31nn" class="pagecraft-wysiwyg pagecraft-p0mfg2w14 ts-body"><p>Uploads are stored once, referenced everywhere, and exported at the widths a browser actually wants.</p></div></div></div></div></section><section id="changed" class="pagecraft-section pagecraft-p0mfh36in"><div class="pagecraft-container"><div id="pagecraft-row-p0mfh392o" class="pagecraft-row pagecraft-p0mfh392o"><div id="pagecraft-column-p0mfh3854" class="pagecraft-column pagecraft-p0mfh3854"><h2 id="pagecraft-heading-p0mfh37vi" class="pagecraft-heading pagecraft-p0mfh37vi ts-title">What changed</h2></div></div><div id="pagecraft-row-p0mfh3cjj" class="pagecraft-row pagecraft-p0mfh3cjj"><div id="pagecraft-column-p0mfh3bur" class="pagecraft-column pagecraft-p0mfh3bur"><div id="pagecraft-wysiwyg-p0mfh3a4b" class="pagecraft-wysiwyg pagecraft-p0mfh3a4b ts-lead"><p>Each of these is a schema version, which means each one migrated every project that existed. The rule is that no page moves.</p></div></div></div><div id="pagecraft-collection-list-p0mfh3db0" class="pagecraft-list pagecraft-p0mfh3db0"><div id="pagecraft-row-p0mfh3hrf-one-way-to-author-a" class="pagecraft-row pagecraft-p0mfh3hrf"><div id="pagecraft-column-p0mfh3f61-one-way-to-author-a" class="pagecraft-column pagecraft-p0mfh3f61"><div id="pagecraft-heading-p0mfh3ier-one-way-to-author-a" class="pagecraft-heading pagecraft-p0mfh3ier ts-eyebrow">v8</div><h3 id="pagecraft-heading-p0mfh3joi-one-way-to-author-a" class="pagecraft-heading pagecraft-p0mfh3joi ts-subtitle">One way to author a hover</h3><div id="pagecraft-wysiwyg-p0mfh3kga-one-way-to-author-a" class="pagecraft-wysiwyg pagecraft-p0mfh3kga ts-body"><p>A button had two colour pickers of its own and nothing else could have a hover at all. Both are gone: every element uses the State control.</p></div><div id="pagecraft-wysiwyg-p0mfh3lnh-one-way-to-author-a" class="pagecraft-wysiwyg pagecraft-p0mfh3lnh ts-small"><p>Migrating to a value that was not on screen would be a redesign wearing a migration’s clothes.</p></div></div></div><div id="pagecraft-column-p0mfh3etl-one-way-to-author-a" class="pagecraft-column pagecraft-p0mfh3etl"></div><div id="pagecraft-row-p0mfh3hrf-a-binding-says-where-its" class="pagecraft-row pagecraft-p0mfh3hrf"><div id="pagecraft-column-p0mfh3f61-a-binding-says-where-its" class="pagecraft-column pagecraft-p0mfh3f61"><div id="pagecraft-heading-p0mfh3ier-a-binding-says-where-its" class="pagecraft-heading pagecraft-p0mfh3ier ts-eyebrow">v9</div><h3 id="pagecraft-heading-p0mfh3joi-a-binding-says-where-its" class="pagecraft-heading pagecraft-p0mfh3joi ts-subtitle">A binding says where its value comes from</h3><div id="pagecraft-wysiwyg-p0mfh3kga-a-binding-says-where-its" class="pagecraft-wysiwyg pagecraft-p0mfh3kga ts-body"><p>A binding was a bare field id, because a CMS field was the only place a value could come from. It names its source now.</p></div></div></div><div id="pagecraft-column-p0mfh3etl-a-binding-says-where-its" class="pagecraft-column pagecraft-p0mfh3etl"></div><div id="pagecraft-row-p0mfh3hrf-components" class="pagecraft-row pagecraft-p0mfh3hrf"><div id="pagecraft-column-p0mfh3f61-components" class="pagecraft-column pagecraft-p0mfh3f61"><div id="pagecraft-heading-p0mfh3ier-components" class="pagecraft-heading pagecraft-p0mfh3ier ts-eyebrow">v10</div><h3 id="pagecraft-heading-p0mfh3joi-components" class="pagecraft-heading pagecraft-p0mfh3joi ts-subtitle">Components</h3><div id="pagecraft-wysiwyg-p0mfh3kga-components" class="pagecraft-wysiwyg pagecraft-p0mfh3kga ts-body"><p>A definition and its instances. Nothing is cloned at render, so one set of rules dresses every instance.</p></div><div id="pagecraft-wysiwyg-p0mfh3lnh-components" class="pagecraft-wysiwyg pagecraft-p0mfh3lnh ts-small"><p>Taken early on purpose: it is the one thing expensive to retrofit.</p></div></div></div><div id="pagecraft-column-p0mfh3etl-components" class="pagecraft-column pagecraft-p0mfh3etl"></div><div id="pagecraft-row-p0mfh3hrf-the-global-block-retired" class="pagecraft-row pagecraft-p0mfh3hrf"><div id="pagecraft-column-p0mfh3f61-the-global-block-retired" class="pagecraft-column pagecraft-p0mfh3f61"><div id="pagecraft-heading-p0mfh3ier-the-global-block-retired" class="pagecraft-heading pagecraft-p0mfh3ier ts-eyebrow">v11</div><h3 id="pagecraft-heading-p0mfh3joi-the-global-block-retired" class="pagecraft-heading pagecraft-p0mfh3joi ts-subtitle">The global block retired</h3><div id="pagecraft-wysiwyg-p0mfh3kga-the-global-block-retired" class="pagecraft-wysiwyg pagecraft-p0mfh3kga ts-body"><p>Copies that pushed content over each other became components. A copy that had diverged keeps what it shows and stops being linked.</p></div></div></div><div id="pagecraft-column-p0mfh3etl-the-global-block-retired" class="pagecraft-column pagecraft-p0mfh3etl"></div></div></div></section><section id="export" class="pagecraft-section pagecraft-p0mfh3m9a"><div class="pagecraft-container"><div id="pagecraft-row-p0mfh3pgp" class="pagecraft-row pagecraft-p0mfh3pgp"><div id="pagecraft-column-p0mfh3o7n" class="pagecraft-column pagecraft-p0mfh3o7n"><h2 id="pagecraft-heading-p0mfh3n3w" class="pagecraft-heading pagecraft-p0mfh3n3w ts-title">What comes out</h2></div></div><div id="pagecraft-row-p0mfh3svj" class="pagecraft-row pagecraft-p0mfh3svj"><div id="pagecraft-column-p0mfh3r91" class="pagecraft-column pagecraft-p0mfh3r91"><div id="pagecraft-table-p0mfh3qrq" class="pagecraft-table-wrap pagecraft-p0mfh3qrq"><table class="pagecraft-table" data-rules="rows" data-zebra><caption>What an export writes</caption><thead><tr><th scope="col">File</th><th scope="col">What it is</th></tr></thead><tbody><tr><th scope="row">index.html</th><td>One per page, named by its slug — with the stylesheet inlined</td></tr><tr><th scope="row">work/acme.html</th><td>One per collection item, when a page is a template for one</td></tr><tr><th scope="row">assets/hero.webp</th><td>Your uploads, each written at several widths with a srcset</td></tr><tr><th scope="row">sitemap.xml</th><td>Every page, once a Site URL is set in Project settings</td></tr><tr><th scope="row">robots.txt</th><td>Pointing at the sitemap</td></tr><tr><th scope="row">content.json</th><td>The collections, if the site has any</td></tr></tbody></table></div></div></div><div id="pagecraft-row-p0mfh3vs7" class="pagecraft-row pagecraft-p0mfh3vs7"><div id="pagecraft-column-p0mfh3umy" class="pagecraft-column pagecraft-p0mfh3umy"><figure id="pagecraft-code-p0mfh3tbe" class="pagecraft-code pagecraft-p0mfh3tbe" data-numbers><figcaption class="pagecraft-code-head"><span></span><button type="button" class="pagecraft-code-copy" data-copy hidden>Copy</button></figcaption><pre><code class="language-html"><span class="pagecraft-code-line">&lt;<span class="pc-c-kw">section</span> <span class="pc-c-key">id</span>=<span class="pc-c-str">&quot;pagecraft-section-1&quot;</span> <span class="pc-c-key">class</span>=<span class="pc-c-str">&quot;pagecraft-section pagecraft-1k2&quot;</span>&gt;</span>
 <span class="pagecraft-code-line">  &lt;<span class="pc-c-kw">div</span> <span class="pc-c-key">class</span>=<span class="pc-c-str">&quot;pagecraft-container&quot;</span>&gt;</span>
 <span class="pagecraft-code-line">    &lt;<span class="pc-c-kw">h1</span> <span class="pc-c-key">class</span>=<span class="pc-c-str">&quot;pagecraft-heading pagecraft-1k3 ts-display&quot;</span>&gt;Build it visually.&lt;/<span class="pc-c-kw">h1</span>&gt;</span>
 <span class="pagecraft-code-line">    &lt;<span class="pc-c-kw">p</span> <span class="pc-c-key">class</span>=<span class="pc-c-str">&quot;pagecraft-wysiwyg pagecraft-1k4 ts-lead&quot;</span>&gt;Ship real HTML.&lt;/<span class="pc-c-kw">p</span>&gt;</span>
 <span class="pagecraft-code-line">  &lt;/<span class="pc-c-kw">div</span>&gt;</span>
-<span class="pagecraft-code-line">&lt;/<span class="pc-c-kw">section</span>&gt;</span></code></pre></figure></div></div><div id="pagecraft-row-k3i6d3ydw" class="pagecraft-row pagecraft-k3i6d3ydw"><div id="pagecraft-column-k3i6d3xy2" class="pagecraft-column pagecraft-k3i6d3xy2"><div id="pagecraft-wysiwyg-k3i6d3wn5" class="pagecraft-wysiwyg pagecraft-k3i6d3wn5 ts-body"><p>One <code>&lt;style&gt;</code> block per page, not a shared file: a page is then one request that renders on arrival, and there is no second file to lose when somebody copies the HTML somewhere. Three media queries — reduced motion, tablet, phone — and no rule for an element the page does not have.</p></div></div></div></div></section><section id="ask" class="pagecraft-section pagecraft-k3i6d3zi8"><div class="pagecraft-container"><div id="pagecraft-row-k3i6d42zp" class="pagecraft-row pagecraft-k3i6d42zp"><div id="pagecraft-column-k3i6d41uh" class="pagecraft-column pagecraft-k3i6d41uh"><h2 id="pagecraft-heading-k3i6d40ef" class="pagecraft-heading pagecraft-k3i6d40ef ts-title">Ask something</h2></div></div><div id="pagecraft-row-k3i6d4556" class="pagecraft-row pagecraft-k3i6d4556"><div id="pagecraft-column-k3i6d44x9" class="pagecraft-column pagecraft-k3i6d44x9"><div id="pagecraft-wysiwyg-k3i6d43oj" class="pagecraft-wysiwyg pagecraft-k3i6d43oj ts-lead"><p>It is MIT licensed and there is nothing to buy. If something is unclear, that is a bug.</p></div></div></div><div id="pagecraft-row-k3i6d483j" class="pagecraft-row pagecraft-k3i6d483j"><div id="pagecraft-column-k3i6d47kc" class="pagecraft-column pagecraft-k3i6d47kc"><form id="pagecraft-form-k3i6d46hl" class="pagecraft-form pagecraft-k3i6d46hl" aria-label="Contact form" action="https://formspree.io/f/example" method="post"><div class="pagecraft-field half"><label for="pagecraft-form-k3i6d46hl-f0">Name <span aria-hidden="true">*</span></label><input id="pagecraft-form-k3i6d46hl-f0" name="name" type="text" required></div><div class="pagecraft-field half"><label for="pagecraft-form-k3i6d46hl-f1">Email <span aria-hidden="true">*</span></label><input id="pagecraft-form-k3i6d46hl-f1" name="email" type="email" required></div><div class="pagecraft-field"><label for="pagecraft-form-k3i6d46hl-f2">Message</label><textarea id="pagecraft-form-k3i6d46hl-f2" name="message" rows="4"></textarea></div><button type="submit" class="pagecraft-form-button">Send it</button></form></div></div></div></section></main><!--PAGECRAFT_SHARED_FOOTER_START--><footer id="pagecraft-section-k3i6c29l0" class="pagecraft-section pagecraft-k3i6c29l0"><div class="pagecraft-container"><div id="pagecraft-row-k3i6c28u5" class="pagecraft-row pagecraft-k3i6c28u5"><div id="pagecraft-column-k3i6c26rk" class="pagecraft-column pagecraft-k3i6c26rk"><div id="pagecraft-heading-k3i6c24cg" class="pagecraft-heading pagecraft-k3i6c24cg">Pagecraft</div></div><div id="pagecraft-column-k3i6c27g5" class="pagecraft-column pagecraft-k3i6c27g5"><div id="pagecraft-wysiwyg-k3i6c25gb" class="pagecraft-wysiwyg pagecraft-k3i6c25gb ts-small"><p>MIT licensed. Build with it, sell what you make.</p></div></div></div></div></footer><!--PAGECRAFT_SHARED_FOOTER_END-->
+<span class="pagecraft-code-line">&lt;/<span class="pc-c-kw">section</span>&gt;</span></code></pre></figure></div></div><div id="pagecraft-row-p0mfh3yez" class="pagecraft-row pagecraft-p0mfh3yez"><div id="pagecraft-column-p0mfh3xxu" class="pagecraft-column pagecraft-p0mfh3xxu"><div id="pagecraft-wysiwyg-p0mfh3wl1" class="pagecraft-wysiwyg pagecraft-p0mfh3wl1 ts-body"><p>One &lt;style&gt; block per page, not a shared file: a page is then one request that renders on arrival, and there is no second file to lose when somebody copies the HTML somewhere. Three media queries — reduced motion, tablet, phone — and no rule for an element the page does not have.</p></div></div></div></div></section><section id="ask" class="pagecraft-section pagecraft-p0mfh3zq6"><div class="pagecraft-container"><div id="pagecraft-row-p0mfh42vc" class="pagecraft-row pagecraft-p0mfh42vc"><div id="pagecraft-column-p0mfh41pm" class="pagecraft-column pagecraft-p0mfh41pm"><h2 id="pagecraft-heading-p0mfh40e" class="pagecraft-heading pagecraft-p0mfh40e ts-title">Ask something</h2></div></div><div id="pagecraft-row-p0mfh45t7" class="pagecraft-row pagecraft-p0mfh45t7"><div id="pagecraft-column-p0mfh44c3" class="pagecraft-column pagecraft-p0mfh44c3"><div id="pagecraft-wysiwyg-p0mfh431f" class="pagecraft-wysiwyg pagecraft-p0mfh431f ts-lead"><p>It is MIT licensed and there is nothing to buy. If something is unclear, that is a bug.</p></div></div></div><div id="pagecraft-row-p0mfh483v" class="pagecraft-row pagecraft-p0mfh483v"><div id="pagecraft-column-p0mfh47d1" class="pagecraft-column pagecraft-p0mfh47d1"><form id="pagecraft-form-p0mfh46w1" class="pagecraft-form pagecraft-p0mfh46w1" aria-label="Contact form" action="https://formspree.io/f/example" method="post"><div class="pagecraft-field half"><label for="pagecraft-form-p0mfh46w1-f0">Name <span aria-hidden="true">*</span></label><input id="pagecraft-form-p0mfh46w1-f0" name="name" type="text" required></div><div class="pagecraft-field half"><label for="pagecraft-form-p0mfh46w1-f1">Email <span aria-hidden="true">*</span></label><input id="pagecraft-form-p0mfh46w1-f1" name="email" type="email" required></div><div class="pagecraft-field"><label for="pagecraft-form-p0mfh46w1-f2">Message</label><textarea id="pagecraft-form-p0mfh46w1-f2" name="message" rows="4"></textarea></div><button type="submit" class="pagecraft-form-button">Send it</button></form></div></div></div></section></main><!--PAGECRAFT_SHARED_FOOTER_START--><footer id="pagecraft-section-p0mfg29lg" class="pagecraft-section pagecraft-p0mfg29lg"><div class="pagecraft-container"><div id="pagecraft-row-p0mfg28ms" class="pagecraft-row pagecraft-p0mfg28ms"><div id="pagecraft-column-p0mfg2665" class="pagecraft-column pagecraft-p0mfg2665"><div id="pagecraft-heading-p0mfg24u0" class="pagecraft-heading pagecraft-p0mfg24u0">Pagecraft</div></div><div id="pagecraft-column-p0mfg27k" class="pagecraft-column pagecraft-p0mfg27k"><div id="pagecraft-wysiwyg-p0mfg253r" class="pagecraft-wysiwyg pagecraft-p0mfg253r ts-small"><p>MIT licensed. Build with it, sell what you make.</p></div></div></div></div></footer><!--PAGECRAFT_SHARED_FOOTER_END-->
 <script>
 (function(){var c=navigator.clipboard;if(!c)return;
 Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'),function(b){
@@ -573,9 +594,18 @@ var content=w.querySelector('[data-nav-content]')||list;
 var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
 function position(){
  if(!dialog)return;
- var host=w.closest('header,[data-kind="header"]')||w;
- if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
- dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+ var host=w.closest('header,[data-kind="header"]');
+ if(dialog.dataset.layout==='fullscreen'){
+  host=host||w;
+  if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
+  dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+  return;
+ }
+ var rect=(host||b).getBoundingClientRect(),height=window.innerHeight;
+ var above=Math.max(0,Math.min(height,rect.top)),below=height-Math.max(0,Math.min(height,rect.bottom));
+ var needed=dialog.scrollHeight,up=needed>below&&above>below,available=up?above:below;
+ dialog.style.setProperty('--nav-top',(up?above-Math.min(needed,available):height-below)+'px');
+ dialog.style.setProperty('--nav-height',available+'px');
 }
 function set(o,restore){
  if(o===!!dialog)return;
@@ -591,7 +621,7 @@ function set(o,restore){
   var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
   var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
   close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
-  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);position();
+  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);
   overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
   w.classList.add('is-open');b.setAttribute('aria-expanded','true');
   close.addEventListener('click',function(){set(false,true);});
@@ -599,9 +629,14 @@ function set(o,restore){
   dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
   var opened=dialog;
   dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
-  if(fullscreen){dialog.showModal();close.focus();}
-  else if(dialog.showPopover)dialog.showPopover();
-  else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
+  if(fullscreen){position();dialog.showModal();close.focus();}
+  else{
+   // Closed popovers have no layout; measure after opening without flashing at the wrong edge.
+   dialog.style.visibility='hidden';
+   if(dialog.showPopover)dialog.showPopover();
+   else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
+   position();dialog.scrollTop=0;dialog.style.removeProperty('visibility');
+  }
  }else{
   var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;if(old.dataset.layout==='fullscreen')old.close();else if(old.hidePopover)old.hidePopover();old.remove();
   document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
@@ -623,6 +658,7 @@ document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==
 document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
 window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
+window.addEventListener('scroll',function(){if(dialog&&dialog.dataset.layout==='dropdown')position();},{passive:true});
 });})();
 </script>
 </body>

@@ -491,6 +491,8 @@ export function QaCtl({ n, c }: P) {
 
 export function ImgsCtl({ n, c }: P) {
   const arr = list(n, c);
+  const replacing = useRef(false);
+  const [replaceBusy, setReplaceBusy] = useState(false);
 
   /* intrinsic size is taken once, from what the library measured — the export writes it
      as width/height and the review reads it */
@@ -502,6 +504,25 @@ export function ImgsCtl({ n, c }: P) {
   // Keep all successfully uploaded files in one undo step, including a partial batch.
   const files = useImageUpload('gallery-' + n.id + '-' + c.k,
     ids => C.edit(() => ids.forEach(id => rows(n, c).push(tile(id)))), true);
+
+  const replace = async (item: any, index: number) => {
+    if (replacing.current || files.busy) return;
+    replacing.current = true; setReplaceBusy(true);
+    const source = item.src;
+    try {
+      const id = await L.mediaPicker({ title: `Replace image ${index + 1}`, multiple: false });
+      if (!id || !L.asset(id)) return;
+      // Row identity follows reorders, but removed/restored rows cannot receive a stale result.
+      if (C.locate(n.id)?.node !== n || !list(n, c).includes(item) || item.src !== source) return;
+      const { src, w, h } = tile(id);
+      if (item.src === src && item.w === w && item.h === h) return;
+      C.edit(() => { Object.assign(item, { src, w, h }); }, 'Replace gallery image');
+    } catch {
+      L.toast('Could not replace the image. Try again.', { tone: 'error' });
+    } finally {
+      replacing.current = false; setReplaceBusy(false);
+    }
+  };
 
   return <Field n={n} c={c}>
     {arr.map((it, k) => {
@@ -518,7 +539,12 @@ export function ImgsCtl({ n, c }: P) {
             <RowInput n={n} c={c} k={k} prop="caption" placeholder="Caption (optional)"
               aria-label={`Caption for image ${k + 1}`} />
           </span>
-          <span class="gacts"><RowActs n={n} c={c} k={k} context={`image ${k + 1}`} /></span>
+          <span class="gacts">
+            <button type="button" class="x" title="Replace image" aria-label={`Replace image ${k + 1}`}
+              disabled={files.busy || replaceBusy} onClick={() => replace(it, k)}>
+              <Icon name="image" size={11} /></button>
+            <RowActs n={n} c={c} k={k} context={`image ${k + 1}`} />
+          </span>
         </div>
       );
     })}

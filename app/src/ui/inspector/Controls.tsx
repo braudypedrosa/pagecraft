@@ -676,6 +676,11 @@ function ImgCtl({ n, c }: P) {
     if (!got) return;
     C.edit(() => {
       C.applyC(n, c, wrap('asset:' + id));
+      if (!c.bg && c.k?.startsWith(C.VAL)) {
+        const ids = C.selIds();
+        const targets = ids.length > 1 && ids.includes(n.id) ? C.fanTargets(c, ids) : [n];
+        targets.forEach(target => C.instImageSizeSet(target, c.k!.slice(C.VAL.length), got));
+      }
       /* an image's intrinsic size comes along once, so the export can write
          width/height and the review stops asking for them */
       if (!c.bg && !c.k?.startsWith(C.VAL) && got.w) {

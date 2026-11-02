@@ -6535,6 +6535,10 @@ var galleryFocusSelector = (selector) => `${selector}:where(.pagecraft-gallery):
 var navFocusSelector = (selector) => `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
 var richTextFocusSelector = (selector) => `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
 var videoFocusSelector = (selector) => `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
+var tabsFocusSelector = (selector) => `${selector}:where(.pagecraft-tabs):has(>:where(.pagecraft-tablist)>:where(.pagecraft-tab):focus-visible)`;
+var accordionFocusSelector = (selector) => `${selector}:where(.pagecraft-accordion):has(>:where(.pagecraft-accordion-item)>:where(.pagecraft-accordion-q):focus-visible)`;
+var formFocusSelector = (selector) => `${selector}:where(.pagecraft-form):has(>:where(.pagecraft-field)>:where(input,textarea,select):focus-visible,>:where(.pagecraft-field)>:where(.pc-select)>:where(.pc-select-button):focus-visible,>:where(.pagecraft-field)>:where(.pc-date)>:where(.pc-date-control)>:where(.pc-date-input,.pc-date-trigger):focus-visible,>:where(.pagecraft-form-button):focus-visible)`;
+var codeFocusSelector = (selector) => `${selector}:where(.pagecraft-code):has(>:where(.pagecraft-code-head)>:where(.pagecraft-code-copy):focus-visible)`;
 var richTextLinkSelector = (selector, state2 = "") => `${selector}:where(.pagecraft-wysiwyg)${state2} a`;
 var richTextLinkStateSelector = (selector, state2, suffix) => state2 === "focus" ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
 var buttonVariantDeclarations = (map, defaults = null, forced = /* @__PURE__ */ new Set(), variantOwned = /* @__PURE__ */ new Set()) => {
@@ -6579,6 +6583,10 @@ function tokenCss() {
           acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
           acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${tabsFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${accordionFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${formFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${codeFocusSelector(`.c-${c.id}`)}{${d}}`;
         }
         const linkState = decl({ color: stateMap["--link"] });
         if (linkState) {
@@ -9093,6 +9101,7 @@ function boundProps(n, col, item, inst, def) {
       const v2 = instValue(inst, def || null, b.path, col, item);
       const field = col ? boundField(inst, VAL + b.path) : "";
       out[k] = !rich ? boundValue(k, v2) : field ? cmsRich(v2, fieldAt(col, field)) : (findProp(def || null, b.path) || { t: "" }).t === "rich" ? v2 : para(v2);
+      if (n.type === "image" && k === "src") resolveImageSize(out, n.props, inst, def || null, b.path, !!field);
       const linked = linkControl(n, k);
       if (linked) out[linked.tk || "target"] = instLinkTarget(inst, def || null, b.path, n);
       continue;
@@ -9357,6 +9366,49 @@ function setMobileMenuMode(n, mode) {
 var findProp = (def, k) => def && (def.props || []).find((x) => x.k === k) || null;
 var variantsOf = (def) => def && def.variants || [];
 var findVariant = (def, id) => id ? variantsOf(def).find((v) => v.id === id) || null : null;
+var imageSizeKey = (k) => "@image-size:" + k;
+function imageSizeValue(raw, source) {
+  if (typeof raw !== "string") return null;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).sort().join(",") !== "h,src,w" || value.src !== source || !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value.src) || !Number.isSafeInteger(value.w) || value.w <= 0 || !Number.isSafeInteger(value.h) || value.h <= 0) return null;
+    return { w: value.w, h: value.h };
+  } catch {
+    return null;
+  }
+}
+function instImageSizeSet(inst, k, size) {
+  const def = findComponent(inst.use);
+  if (!def || findProp(def, k)?.t !== "img") return;
+  let used = false;
+  const scan = (node) => {
+    if (node !== def.node && node.use) return;
+    const binding = bindGet(node, "src");
+    if (node.type === "image" && binding?.src === "prop" && binding.path === k) used = true;
+    (node.children || []).forEach(scan);
+  };
+  scan(def.node);
+  if (!used) return;
+  const source = instValue(inst, def, k);
+  const raw = JSON.stringify({ src: source, w: size.w, h: size.h });
+  const key = imageSizeKey(k);
+  if (imageSizeValue(raw, source)) {
+    inst.vals = inst.vals || {};
+    inst.vals[key] = raw;
+  } else if (inst.vals) delete inst.vals[key];
+}
+function resolveImageSize(out, original, inst, def, k, cms) {
+  const variant = findVariant(def, inst.variant);
+  const raw = ownsKey(inst.vals, k) ? inst.vals?.[imageSizeKey(k)] : variant?.values[imageSizeKey(k)];
+  const size = cms ? null : imageSizeValue(raw, out.src);
+  if (size) {
+    out.w = String(size.w);
+    out.h = String(size.h);
+  } else if (out.src !== original.src) {
+    delete out.w;
+    delete out.h;
+  }
+}
 var LINK_TARGET = "@link-target:";
 var linkTargetKey = (k) => LINK_TARGET + k;
 var ownsKey = (value, key) => !!value && Object.prototype.hasOwnProperty.call(value, key);
@@ -9471,6 +9523,7 @@ var variantRename = (cid, vid2, name) => {
   if (v) v.name = String(name || v.name).slice(0, 40);
 };
 function instSet(inst, k, v) {
+  if (findProp(findComponent(inst.use), k)?.t === "img" && inst.vals) delete inst.vals[imageSizeKey(k)];
   if (v === void 0) {
     const def = findComponent(inst.use);
     if (inst.vals) {
@@ -9699,6 +9752,7 @@ function propDelete(cid, k) {
     if (node.vals) {
       delete node.vals[k];
       delete node.vals[target];
+      delete node.vals[imageSizeKey(k)];
       if (!Object.keys(node.vals).length) delete node.vals;
     }
     if (legacyOwners.has(node)) delete node.props.target;
@@ -9707,6 +9761,7 @@ function propDelete(cid, k) {
   variantsOf(c).forEach((variant) => {
     delete variant.values[k];
     delete variant.values[target];
+    delete variant.values[imageSizeKey(k)];
   });
   return n;
 }
@@ -9724,6 +9779,7 @@ function componentDelete(cid) {
         if (b.src !== "prop") return;
         const field = boundField(node, VAL + b.path);
         x.props[key] = instValue(node, def, b.path);
+        if (x.type === "image" && key === "src") resolveImageSize(x.props, source.props, node, def, b.path, !!field);
         const linked = linkControl(x, key);
         if (linked) x.props[linked.tk || "target"] = instLinkTarget(node, def, b.path, source);
         bindSet(x, key, field ? bindField(field) : null);
@@ -11473,7 +11529,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       if (wrappedImage) delete stateMap[prop];
     }
     const d = decl(stateMap);
-    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : k === "focus" && n.type === "video" ? videoFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    const stateSelector = k === "focus" && n.type === "gallery" ? galleryFocusSelector(selOf(n)) : k === "focus" && n.type === "nav" ? navFocusSelector(selOf(n)) : k === "focus" && n.type === "text" ? richTextFocusSelector(selOf(n)) : k === "focus" && n.type === "video" ? videoFocusSelector(selOf(n)) : k === "focus" && n.type === "tabs" ? tabsFocusSelector(selOf(n)) : k === "focus" && n.type === "accordion" ? accordionFocusSelector(selOf(n)) : k === "focus" && n.type === "form" ? formFocusSelector(selOf(n)) : k === "focus" && n.type === "code" ? codeFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
     if (d) rules.push(`${stateSelector}{${d}}`);
     if (n.type === "text") {
       const linkState = decl({ color: stateMap["--link"] });
@@ -13598,10 +13654,13 @@ var __CORE = {
   hsv2rgb,
   iconOf,
   iconSvg,
+  imageSizeKey,
+  imageSizeValue,
   imageWidths,
   initUi,
   insert,
   instControls,
+  instImageSizeSet,
   instLinkTarget,
   instLinkTargetSet,
   instOwn,
@@ -22094,6 +22153,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function ImgsCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
+    const replacing = A2(false);
+    const [replaceBusy, setReplaceBusy] = d2(false);
     const tile = (id) => {
       const a3 = L2.asset(id);
       return { src: "asset:" + id, alt: "", caption: "", w: a3 && a3.w ? String(a3.w) : "", h: a3 && a3.h ? String(a3.h) : "" };
@@ -22103,6 +22164,27 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       (ids) => C2.edit(() => ids.forEach((id) => rows(n2, c3).push(tile(id)))),
       true
     );
+    const replace = async (item, index) => {
+      if (replacing.current || files.busy) return;
+      replacing.current = true;
+      setReplaceBusy(true);
+      const source = item.src;
+      try {
+        const id = await L2.mediaPicker({ title: `Replace image ${index + 1}`, multiple: false });
+        if (!id || !L2.asset(id)) return;
+        if (C2.locate(n2.id)?.node !== n2 || !list(n2, c3).includes(item) || item.src !== source) return;
+        const { src, w: w3, h: h3 } = tile(id);
+        if (item.src === src && item.w === w3 && item.h === h3) return;
+        C2.edit(() => {
+          Object.assign(item, { src, w: w3, h: h3 });
+        }, "Replace gallery image");
+      } catch {
+        L2.toast("Could not replace the image. Try again.", { tone: "error" });
+      } finally {
+        replacing.current = false;
+        setReplaceBusy(false);
+      }
+    };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
       arr.map((it, k3) => {
         const ref = String(it.src || "").match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
@@ -22137,7 +22219,21 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               }
             )
           ] }),
-          /* @__PURE__ */ u2("span", { class: "gacts", children: /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3, context: `image ${k3 + 1}` }) })
+          /* @__PURE__ */ u2("span", { class: "gacts", children: [
+            /* @__PURE__ */ u2(
+              "button",
+              {
+                type: "button",
+                class: "x",
+                title: "Replace image",
+                "aria-label": `Replace image ${k3 + 1}`,
+                disabled: files.busy || replaceBusy,
+                onClick: () => replace(it, k3),
+                children: /* @__PURE__ */ u2(Icon, { name: "image", size: 11 })
+              }
+            ),
+            /* @__PURE__ */ u2(RowActs, { n: n2, c: c3, k: k3, context: `image ${k3 + 1}` })
+          ] })
         ] }, k3);
       }),
       /* @__PURE__ */ u2("div", { class: "pc-field-actions" + (arr.length ? "" : " flush"), children: [
@@ -23125,9 +23221,18 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!got) return;
       C2.edit(() => {
         C2.applyC(n2, c3, wrap("asset:" + id));
+        if (!c3.bg && c3.k?.startsWith(C2.VAL)) {
+          const ids = C2.selIds();
+          const targets = ids.length > 1 && ids.includes(n2.id) ? C2.fanTargets(c3, ids) : [n2];
+          targets.forEach((target) => C2.instImageSizeSet(target, c3.k.slice(C2.VAL.length), got));
+        }
         if (!c3.bg && !c3.k?.startsWith(C2.VAL) && got.w) {
-          n2.props.w = String(got.w);
-          n2.props.h = String(got.h);
+          const ids = C2.selIds();
+          const targets = n2.type === "image" && c3.k === "src" && ids.length > 1 && ids.includes(n2.id) ? C2.fanTargets(c3, ids).filter((target) => target.type === "image" && !target.use) : [n2];
+          targets.forEach((target) => {
+            target.props.w = String(got.w);
+            target.props.h = String(got.h);
+          });
         }
       });
     };
@@ -24037,6 +24142,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   }
   function StylingTarget({ n: n2 }) {
     const applied = C2.nodeClasses(n2);
+    const sitewide = L2.nativePageSource() != null;
     const target = C2.state.ui.target && C2.findClass(C2.state.ui.target) && applied.some((c3) => c3.id === C2.state.ui.target) ? C2.state.ui.target : "";
     const pool = C2.classes().filter((c3) => !applied.some((x2) => x2.id === c3.id));
     const pick = (id) => {
@@ -24050,10 +24156,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "New class",
           "Class name",
           C2.kindOf(n2),
-          { ok: "Create class", note: "Restyling it reaches every element using it." }
+          { ok: "Create class", note: sitewide ? "Restyling it reaches every element using it on this WordPress site." : "Restyling it reaches every element using it." }
         );
         if (name === null) {
           el.value = "";
+          el.dispatchEvent(new Event("change", { bubbles: true }));
           return;
         }
         C2.edit(() => {
@@ -24086,7 +24193,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             {
               class: "tg" + (target === c3.id ? " on" : ""),
               "aria-pressed": target === c3.id ? "true" : "false",
-              title: `Style all ${uses} elements using this class`,
+              title: sitewide ? "Style every element using this class across this WordPress site" : `Style all ${uses} elements using this class`,
               onClick: () => pick(c3.id),
               children: [
                 ".",
@@ -24094,11 +24201,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ]
             }
           ),
-          /* @__PURE__ */ u2("small", { children: [
-            uses,
-            " use",
-            uses === 1 ? "" : "s"
-          ] }),
+          /* @__PURE__ */ u2("small", { children: sitewide ? "Across site" : `${uses} use${uses === 1 ? "" : "s"}` }),
           /* @__PURE__ */ u2(
             "button",
             {
@@ -24126,9 +24229,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               ".",
               c3.id,
               " \xB7 ",
-              C2.classUsage(c3.id),
-              " use",
-              C2.classUsage(c3.id) === 1 ? "" : "s"
+              sitewide ? "Across site" : `${C2.classUsage(c3.id)} use${C2.classUsage(c3.id) === 1 ? "" : "s"}`
             ] }, c3.id)),
             /* @__PURE__ */ u2("option", { value: "__new", children: "\uFF0B New class from this element\u2026" })
           ]
@@ -32539,7 +32640,7 @@ function syncEdit() {
   return true;
 }
 
-function exitEdit() {
+function exitEdit(options = {}) {
   if (!editing.on) return;
   syncEdit();
   editing.off.forEach(f => f());
@@ -32547,12 +32648,90 @@ function exitEdit() {
   editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.node = null; editing.prop = null; editing.off = [];
   editing.changed = false; editing.label = ''; editing.value = null;
   $('#rt').classList.remove('show');
-  paint(); renderRight();
+  paint();
+  /* An inspector control pressed while a changed canvas edit is still active owns the live
+     pointer gesture. Replacing that panel between pointerdown and click consumes the first
+     action, and replacing a focused text control loses its caret. The deferred reconciler
+     below refreshes after that action or focus session safely finishes. */
+  if (!options.preserveInspector) renderRight();
 }
-document.addEventListener('pointerdown', e => {
+let pendingInlineInspectorRefresh = null;
+function refreshInspectorAfterAction(target) {
+  if (pendingInlineInspectorRefresh) pendingInlineInspectorRefresh();
+  let done = false;
+  let cleanup = () => {};
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    if (pendingInlineInspectorRefresh === cancel) pendingInlineInspectorRefresh = null;
+  };
+  const finish = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    if (pendingInlineInspectorRefresh === cancel) pendingInlineInspectorRefresh = null;
+    /* A normal control change may already have repainted the panel. Do not paint it twice. */
+    if (target.isConnected) renderRight();
+  };
+  const textField = target.matches('input,textarea,[contenteditable="true"]');
+  if (textField) {
+    target.addEventListener('blur', finish, { once: true });
+    cleanup = () => target.removeEventListener('blur', finish);
+    pendingInlineInspectorRefresh = cancel;
+    return;
+  }
+  if (target.matches('.pc-custom-select-trigger')) {
+    const settle = event => {
+      if (!target.isConnected) { pendingInlineInspectorRefresh?.(); return; }
+      if (target.getAttribute('aria-expanded') !== 'false') return;
+      /* Clicking another field closes this picker during pointerdown. At document click the
+         new action is complete, but a text caret or a second open picker is still live. Hand
+         the deferred refresh to that control rather than replacing it. */
+      const raw = event.type === 'click' && event.target instanceof Element ? event.target : null;
+      const next = raw && !target.contains(raw) ? raw.closest(
+        '#right input,#right textarea,#right [contenteditable="true"],#right .pc-custom-select-trigger,'
+        + '#devSeg input,#devSeg .pc-custom-select-trigger'
+      ) : null;
+      if (next instanceof HTMLElement) {
+        cancel();
+        refreshInspectorAfterAction(next);
+      } else finish();
+    };
+    document.addEventListener('click', settle);
+    document.addEventListener('keyup', settle);
+    cleanup = () => {
+      document.removeEventListener('click', settle);
+      document.removeEventListener('keyup', settle);
+    };
+    pendingInlineInspectorRefresh = cancel;
+    return;
+  }
+  const settle = event => {
+    if (event.type === 'click' && !event.composedPath().includes(target)) return;
+    finish();
+  };
+  /* Preact owns several inspector actions through an ancestor. Reconcile at document bubble,
+     after that delegated handler has applied its edit and repaint, never at the target first. */
+  document.addEventListener('click', settle);
+  document.addEventListener('pointercancel', settle);
+  cleanup = () => {
+    document.removeEventListener('click', settle);
+    document.removeEventListener('pointercancel', settle);
+  };
+  pendingInlineInspectorRefresh = cancel;
+}
+function finishInlineEditOnOutsidePointer(e) {
   // Link-dialog pointer events must not destroy the editable host and saved range.
-  if (editing.on && !editing.prompt && !e.target.closest('#rt') && !e.target.closest('#canvas')) exitEdit();
-});
+  if (!editing.on || editing.prompt || e.target.closest('#rt') || e.target.closest('#canvas')) return;
+  const inspectorAction = editing.changed && e.target.closest(
+    '#right button,#right [role="button"],#right input,#right textarea,#right select,#right [contenteditable="true"],'
+    + '#devSeg button,#devSeg [role="button"],#devSeg input,#devSeg select'
+  );
+  if (inspectorAction) refreshInspectorAfterAction(inspectorAction);
+  exitEdit({ preserveInspector: !!inspectorAction });
+}
+document.addEventListener('pointerdown', finishInlineEditOnOutsidePointer);
 
 
 /* ============================================================== palette */

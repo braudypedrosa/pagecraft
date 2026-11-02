@@ -334,6 +334,8 @@ export interface Node {
   /** An instance's property values, by property key. Link targets use the reserved companion
       key `@link-target:<property>` so the href remains a backward-compatible string. Absent
       keys take the variant's value if it names one, then the definition's default. */
+  /** Exposed images may carry JSON {src,w,h} under `@image-size:<property>`.
+      It describes only that exact effective asset source, not authored CSS dimensions. */
   vals?: Record<string, string>;
   /** which variant of the component this instance is, if any */
   variant?: string;
