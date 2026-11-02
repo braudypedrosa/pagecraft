@@ -48,7 +48,8 @@ const fakeGateway = (answer: (call: Call) => unknown) => {
   ) => {
     const call = JSON.parse(String(init?.body || "{}")) as Call;
     calls.push(call);
-    return Response.json({ data: answer(call) });
+    const answered = answer(call);
+    return answered instanceof Response ? answered : Response.json({ data: answered });
   };
   return {
     calls,
@@ -1095,6 +1096,89 @@ test("gateway auth resolves a session and all memberships with one operation eac
     "auth.drainInvitationOutbox",
     "auth.inviteEmail",
   ]);
+});
+
+/* An Edge 502/503/546 is the function failing, not the database refusing the write. A save is
+   version-guarded, so it is sent exactly once more; everything else fails on the first error. */
+const edgeFailure = (status: number) =>
+  Response.json({ error: `edge ${status}` }, { status });
+
+test("an authorized save is retried once, with identical arguments, after a transient gateway failure", async () => {
+  const user = {
+    id: "owner-1",
+    email: "owner@example.test",
+    name: "Owner",
+    auth_user_id: "auth-owner",
+    plan: "free",
+    created_at: "2026-08-31T00:00:00.000Z",
+  };
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.saveAuthorized") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1
+      ? edgeFailure(502)
+      : { status: "saved", user, role: "owner", site: { ...siteRow, version: 4 } };
+  });
+  const cloud = new GatewayHostedPublishPreparer(gateway, new GatewayStore(gateway));
+  const saved = await cloud.saveAuthorized({
+    siteId: "s1",
+    sourceVersion: 3,
+    doc: siteRow.doc,
+    identity: { authUserId: "auth-owner", email: user.email, name: user.name },
+    requiredRole: "write",
+  });
+  a.equal(saved.status, "saved");
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+});
+
+test("a retried save whose first attempt committed reports the version conflict, not success", async () => {
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.saveAuthorized") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(546) : { status: "conflict", currentVersion: 4 };
+  });
+  const cloud = new GatewayHostedPublishPreparer(gateway);
+  const result = await cloud.saveAuthorized({
+    siteId: "s1",
+    sourceVersion: 3,
+    doc: siteRow.doc,
+    identity: { authUserId: "auth-owner", email: "owner@example.test", name: "Owner" },
+    requiredRole: "write",
+  });
+  a.deepEqual(result, { status: "conflict", currentVersion: 4 });
+  a.equal(calls.length, 2);
+});
+
+test("an editor-session save is retried once after a transient gateway failure", async () => {
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.save") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(503) : { ...siteRow, version: 4 };
+  });
+  const saved = await new GatewayStore(gateway).save("s1", siteRow.doc, 3, "owner-1");
+  a.equal(saved.ok, true);
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+});
+
+test("saves are not retried twice, nor after a database error, and other operations are not retried", async () => {
+  const twice = fakeGateway(() => edgeFailure(502));
+  await a.rejects(() => new GatewayStore(twice.gateway).save("s1", siteRow.doc, 3), /edge 502/);
+  a.equal(twice.calls.length, 2);
+
+  const database = fakeGateway(() =>
+    Response.json({ error: "database operation failed", code: "DATABASE_ERROR" }, { status: 500 })
+  );
+  await a.rejects(
+    () => new GatewayStore(database.gateway).save("s1", siteRow.doc, 3),
+    /database operation failed/,
+  );
+  a.equal(database.calls.length, 1);
+
+  const read = fakeGateway(() => edgeFailure(502));
+  await a.rejects(() => new GatewayStore(read.gateway).byId("s1"), /edge 502/);
+  a.equal(read.calls.length, 1);
 });
 
 test("a malformed successful gateway response fails closed", async () => {

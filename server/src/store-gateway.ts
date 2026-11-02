@@ -98,10 +98,33 @@ interface GatewayFailure {
 
 export class GatewayError extends Error {
   code?: string;
-  constructor(message: string, code?: string) {
+  /** The gateway's HTTP status, when it answered at all. */
+  status?: number;
+  constructor(message: string, code?: string, status?: number) {
     super(message);
     this.name = "GatewayError";
     this.code = code;
+    this.status = status;
+  }
+}
+
+/* 502, 503 and 546 mean the Edge function itself did not run to completion, not that the
+   database refused the write. A version-guarded save is safe to send once more: if the first
+   attempt did commit, the second is a stale conflict, and the editor's readback recognizes its
+   own document. Only saves use this; other operations keep failing on the first error. */
+const TRANSIENT_GATEWAY_STATUS = new Set([502, 503, 546]);
+export const GATEWAY_SAVE_RETRY_MS = 300;
+async function retryTransientSave<T>(send: () => Promise<T>): Promise<T> {
+  try {
+    return await send();
+  } catch (error) {
+    if (
+      !(error instanceof GatewayError) ||
+      !TRANSIENT_GATEWAY_STATUS.has(error.status ?? 0)
+    ) throw error;
+    console.warn("gateway save failed transiently; retrying once:", error.message);
+    await new Promise((done) => setTimeout(done, GATEWAY_SAVE_RETRY_MS));
+    return send();
   }
 }
 
@@ -144,6 +167,7 @@ export class PagecraftGateway {
       throw new GatewayError(
         body.error || `gateway answered ${response.status}`,
         body.code,
+        response.status,
       );
     }
     if (!Object.prototype.hasOwnProperty.call(body, "data")) {
@@ -455,13 +479,15 @@ export class GatewayStore implements Store {
     savedBy?: string,
     context?: Record<string, unknown>,
   ): Promise<SaveResult> {
-    const row = await this.gateway.call<SiteRow | null>("site.save", {
-      id,
-      doc,
-      version,
-      savedBy,
-      context,
-    });
+    const row = await retryTransientSave(() =>
+      this.gateway.call<SiteRow | null>("site.save", {
+        id,
+        doc,
+        version,
+        savedBy,
+        context,
+      })
+    );
     if (row) {
       const site = toSite(row);
       this.clearCache();
@@ -1771,12 +1797,8 @@ export class GatewayHostedPublishPreparer
   async saveAuthorized(
     input: Parameters<CloudMutationFastPath["saveAuthorized"]>[0],
   ): Promise<CloudSaveResult> {
-    const result = await this.gateway.call<
-      | { status: "saved"; user: UserWire; role: Role; site: SiteRow }
-      | { status: "missing" }
-      | { status: "forbidden" }
-      | { status: "conflict"; currentVersion: number }
-    >("site.saveAuthorized", {
+    // One argument object for both attempts, so a retry cannot propose a second new user id.
+    const args = {
       id: input.siteId,
       version: input.sourceVersion,
       doc: input.doc,
@@ -1785,7 +1807,15 @@ export class GatewayHostedPublishPreparer
       authUserId: input.identity.authUserId,
       email: normalEmail(input.identity.email),
       name: input.identity.name.trim(),
-    });
+    };
+    const result = await retryTransientSave(() =>
+      this.gateway.call<
+        | { status: "saved"; user: UserWire; role: Role; site: SiteRow }
+        | { status: "missing" }
+        | { status: "forbidden" }
+        | { status: "conflict"; currentVersion: number }
+      >("site.saveAuthorized", args)
+    );
     if (result.status !== "saved") return result;
     const user = toUser(result.user);
     const site = this.store?.accept(result.site) || toSite(result.site);
