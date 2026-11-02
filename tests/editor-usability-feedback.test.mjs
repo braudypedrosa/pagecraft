@@ -448,6 +448,57 @@ test('replacing and closing a modal detach pending preview listeners', async () 
   check(true); check(false);
 });
 
+/* A real click on Redo just after the export dialog closed landed on the body while #app was
+   still inert through the fade, so Redo silently did nothing (staging QA, 2 Nov 2026). */
+test('closing dialogs release the workspace when the fade starts, not when it ends', async () => {
+  const { w, d } = await editor();
+  const exits = [];
+  const motion = {
+    reduced: () => false,
+    enter(el) { el.removeAttribute('data-pc-motion-closing'); return Promise.resolve(true); },
+    exit(el) {
+      el.setAttribute('data-pc-motion-closing', '');
+      return new Promise(resolve => exits.push(() => { el.removeAttribute('data-pc-motion-closing'); resolve(true); }));
+    },
+    cancel(el) { el.removeAttribute('data-pc-motion-closing'); }
+  };
+  // Hold every exit open so the test can look inside the fade.
+  const ui = w.PC_UI;
+  w.PC_UI = new Proxy(ui, { get: (target, key) => key === 'installUiMotion' ? () => motion : target[key] });
+  expect(w.eval('PC_UI.installUiMotion()')).toBe(motion);
+  const app = d.querySelector('#app'), modal = d.querySelector('#modal');
+  const settle = async () => { exits.splice(0).forEach(done => done()); await new Promise(resolve => setTimeout(resolve, 0)); };
+
+  w.openModal('Export', '<p>Export</p>', '');
+  expect(app.hasAttribute('inert')).toBe(true);
+  w.eval('closeModal()');
+  expect(modal.hidden).toBe(false);                  // still fading out
+  expect(app.hasAttribute('inert')).toBe(false);
+  expect(app.hasAttribute('aria-hidden')).toBe(false);
+  await settle();
+  expect(modal.hidden).toBe(true);
+  expect(app.hasAttribute('inert')).toBe(false);
+
+  // Reopening during the fade locks the workspace again.
+  w.openModal('Export', '<p>Export</p>', '');
+  w.eval('closeModal()');
+  w.openModal('Export again', '<p>Export</p>', '');
+  expect(app.hasAttribute('inert')).toBe(true);
+  await settle();
+  expect(modal.hidden).toBe(false);
+  expect(app.hasAttribute('inert')).toBe(true);
+  w.eval('closeModal()'); await settle();
+
+  // The smaller ask dialog follows the same rule.
+  const answer = w.askOpen('Name', '<input>', 'OK');
+  expect(app.hasAttribute('inert')).toBe(true);
+  w.askClose(null);
+  expect(d.querySelector('#ask').hidden).toBe(false);
+  expect(app.hasAttribute('inert')).toBe(false);
+  await settle();
+  expect(await answer).toBe(null);
+});
+
 test('component root rejects sibling insertion without changing the document or history', async () => {
   const { w, d, core, errors } = await editor();
   core.edit(() => { core.tree().splice(0); core.selSet([]); });

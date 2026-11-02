@@ -6972,10 +6972,13 @@ let modalReturnFocus = null;
 let modalMotionVersion = 0;
 /* Only the top dialog may be exposed to the accessibility tree. The confirmation
    layer intentionally sits above the larger project/publish dialog, so opening it
-   makes that underlying dialog inert until the confirmation resolves. */
+   makes that underlying dialog inert until the confirmation resolves.
+   A layer that has started its exit already ignores the pointer, so it counts as closed:
+   otherwise the workspace stays inert through the fade and a click there (Undo, Redo) is lost. */
+const layerOpen = el => !el.hidden && !el.hasAttribute('data-pc-motion-closing');
 function syncDialogLayers() {
-  const modalOpen = !$('#modal').hidden;
-  const askOpen = !$('#ask').hidden;
+  const modalOpen = layerOpen($('#modal'));
+  const askOpen = layerOpen($('#ask'));
   const app = $('#app');
   const modal = $('#modal');
   const lock = (el, on) => {
@@ -7001,13 +7004,13 @@ function openModal(title, bodyHtml, footHtml, size) {
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
   mask.hidden = false; box.hidden = false;
-  syncDialogLayers();
   const fx = PC_UI.installUiMotion();
   if (wasHidden) {
     fx?.enter(mask, {kind:'fade'}); fx?.enter(box, {kind:'dialog'});
     const first = dialogFocusables($('#modalBox'))[0];
     (first || $('#modalBox')).focus();
   }
+  syncDialogLayers();                      // after enter, which cancels an exit still running
 }
 const closeModal = afterClose => {
   clearPublicationFrames();
@@ -7027,6 +7030,7 @@ const closeModal = afterClose => {
   if (!fx || fx.reduced()) { finish(); return; }
   const version=++modalMotionVersion;
   Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===modalMotionVersion&&done.every(Boolean))finish();});
+  syncDialogLayers();
 };
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
@@ -7095,6 +7099,7 @@ function askClose(value) {
   if(!fx||fx.reduced()){finish();return;}
   const version=++askMotionVersion;
   Promise.all([fx.exit(box,{kind:'dialog',hide:false}),fx.exit(mask,{kind:'fade',hide:false})]).then(done=>{if(version===askMotionVersion&&done.every(Boolean))finish();});
+  syncDialogLayers();
 }
 const askOpenNow = () => !$('#ask').hidden;
 
