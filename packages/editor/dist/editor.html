@@ -12362,6 +12362,10 @@ function pager(pg2, at, total, o) {
 }
 var SEC_TAGS = ["section", "div", "header", "footer", "main", "article", "aside", "nav"];
 var BOX_TAGS = ["div", "article", "aside", "nav", "header", "footer", "main", "section", "ul", "ol", "li"];
+var cssRatio = (v) => {
+  const s = String(v ?? "").trim();
+  return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : "";
+};
 function renderNode(n, o) {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   const d = DEF[n.type];
@@ -12541,7 +12545,7 @@ function renderNode(n, o) {
       return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx("pagecraft-image")}>`;
     }
     case "video": {
-      const box = `${at()} ${cx("pagecraft-video")} style="aspect-ratio:${esc(p.ratio || "16 / 9")}"`;
+      const box = `${at()} ${cx("pagecraft-video")} style="aspect-ratio:${esc(cssRatio(p.ratio) || "16 / 9")}"`;
       if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
       return `<div ${box} data-facade><button class="pagecraft-video-play" type="button" data-embed="${esc(embedUrl(p))}" aria-label="Play video">` + (poster ? `<img src="${esc(poster)}" alt="" loading="lazy" decoding="async">` : "") + `<span class="pagecraft-video-icon" aria-hidden="true"></span></button></div>`;
@@ -12700,14 +12704,15 @@ function renderNode(n, o) {
     case "embed": {
       const supplied = String(p.html == null ? "" : p.html);
       const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
-      const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : "";
-      const ecls = "pagecraft-embed" + (p.ratio ? " pagecraft-embed-ratio" : "");
+      const ratio = cssRatio(p.ratio);
+      const ar = ratio ? ` style="aspect-ratio:${esc(ratio)}"` : "";
+      const ecls = "pagecraft-embed" + (ratio ? " pagecraft-embed-ratio" : "");
       if (!raw.trim()) return o.edit ? `<div ${at()} ${cx("pagecraft-embed")}><div class="s-empty">${svg("code", 12)} Paste embed HTML in the panel</div></div>` : "";
       if (!o.edit && !o.canvas) return `<div ${at()} ${cx(ecls)}${ar}>${raw}</div>`;
       if (!o.edit) {
-        const frameCss = "html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}" + (p.ratio ? "html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}" : "");
-        const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + "</style>" + raw + (p.ratio ? "" : `<script>${EMBED_FRAME_JS}<\/script>`);
-        return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${p.ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+        const frameCss = "html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}" + (ratio ? "html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}" : "");
+        const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + "</style>" + raw + (ratio ? "" : `<script>${EMBED_FRAME_JS}<\/script>`);
+        return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame${ratio ? "" : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
       }
       const { html, stripped } = stripScripts(raw);
       const note = stripped ? `<div class="s-held">${stripped} script${stripped === 1 ? "" : "s"} held back here \u2014 ${stripped === 1 ? "it runs" : "they run"} on the exported page</div>` : "";
@@ -12733,7 +12738,8 @@ function renderNode(n, o) {
         const frame = p.lightbox ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>` : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ""}</figure>`;
       }).join("");
-      return `<div ${at()} ${cx("pagecraft-gallery" + (p.ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
+      const ratio = cssRatio(p.ratio);
+      return `<div ${at()} ${cx("pagecraft-gallery" + (ratio ? " pagecraft-gallery-fixed" : ""))}${p.lightbox ? " data-lightbox" : ""}${ratio ? ` style="--g-ratio:${esc(ratio)};--g-fit:${p.fit === "contain" ? "contain" : "cover"}"` : ` style="--g-fit:${p.fit === "contain" ? "contain" : "cover"}"`}>${tiles}</div>`;
     }
     case "spacer":
       return `<div ${at()} ${cx("pagecraft-spacer")} aria-hidden="true"></div>`;

@@ -9259,6 +9259,14 @@ const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'asid
    than emitted as typed, for the reason every other tag prop is: a prop is author input. */
 const BOX_TAGS = ['div', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'section', 'ul', 'ol', 'li'];
 
+/* `ratio` lands inside a style attribute. The Inspector offers only ratios, but a CMS field, an
+   instance value or an imported project can carry any string, and escaping keeps out markup,
+   not a second declaration. Anything that is not a plain ratio is treated as no ratio. */
+const cssRatio = (v: unknown) => {
+  const s = String(v ?? '').trim();
+  return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : '';
+};
+
 function renderNode(n: PcNode, o: RenderOpts): string {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   const d = DEF[n.type];
@@ -9562,7 +9570,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
-      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(p.ratio || '16 / 9')}"`;
+      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(cssRatio(p.ratio) || '16 / 9')}"`;
       if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
       return `<div ${box} data-facade>`
@@ -9811,8 +9819,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          content, so it is rendered as text instead of becoming an indirect script channel. */
       const supplied = String(p.html == null ? '' : p.html);
       const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
-      const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : '';
-      const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
+      const ratio = cssRatio(p.ratio);
+      const ar = ratio ? ` style="aspect-ratio:${esc(ratio)}"` : '';
+      const ecls = 'pagecraft-embed' + (ratio ? ' pagecraft-embed-ratio' : '');
       if (!raw.trim()) return o.edit
         ? `<div ${at()} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
       if (!o.edit && !o.canvas) return `<div ${at()} ${cx(ecls)}${ar}>${raw}</div>`;
@@ -9824,11 +9833,11 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       if (!o.edit) {
         // The isolated preview needs the same direct-child sizing as the exported embed.
         const frameCss = 'html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}'
-          + (p.ratio ? 'html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}' : '');
+          + (ratio ? 'html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}' : '');
         const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + '</style>'
-          + raw + (p.ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
+          + raw + (ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
         return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
-          + `${p.ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+          + `${ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
       }
       const { html, stripped } = stripScripts(raw);
       const note = stripped
@@ -9868,8 +9877,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         return `<figure class="pagecraft-gallery-item">${frame}`
           + `${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ''}</figure>`;
       }).join('');
-      return `<div ${at()} ${cx('pagecraft-gallery' + (p.ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
-        + `${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
+      const ratio = cssRatio(p.ratio);
+      return `<div ${at()} ${cx('pagecraft-gallery' + (ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
+        + `${ratio ? ` style="--g-ratio:${esc(ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
     }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;

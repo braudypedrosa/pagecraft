@@ -6292,6 +6292,47 @@ test('an aspect ratio reaches the iframe through a class, not a style-attribute 
   a.match(C.baseCss(false), /\.pagecraft-embed-ratio>iframe[^}]*height:100%/);
 });
 
+test('a ratio that is not a plain ratio never reaches a style attribute', () => {
+  /* The Inspector offers only ratios, but a CMS field, an instance value or an imported
+     project can hold any string. Escaping stops markup; it does not stop a second declaration. */
+  blank();
+  const col = collectionAdd('Media');
+  C.fieldAdd(col.id, 'Ratio', 'text');
+  const RF = C.collections()[0].fields[1].id;
+  const sec = insert('section', null, 0);
+  C.srcSet(sec, col.id);
+  const it = itemAdd(col.id);
+  const video = insert('video', sec, 0);
+  video.props.src = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+  const embed = insert('embed', sec, 1);
+  embed.props.html = '<iframe src="x"></iframe>';
+  const gallery = insert('gallery', sec, 2);
+  gallery.props.items = [{ src: 'https://example.com/a.jpg', alt: 'a', caption: '', w: '400', h: '300' }];
+  for (const n of [video, embed, gallery]) C.bindSet(n, 'ratio', C.bindField(RF));
+  const live = () => ({ edit: false, col: C.collections()[0], item: C.collections()[0].items[0] });
+
+  for (const bad of ['1;background:url(//evil.example/x)', '16 / 9"><b>x</b>', '</style>', 'auto', 'calc(1)']) {
+    C.itemSet(col.id, it.id, RF, bad);
+    const v = C.renderNode(video, live()), e = C.renderNode(embed, live()), g = C.renderNode(gallery, live());
+    a.match(v, /style="aspect-ratio:16 \/ 9"/, `video falls back to its default for ${bad}`);
+    a.equal(/aspect-ratio|pagecraft-embed-ratio/.test(e), false, `embed has no ratio for ${bad}`);
+    a.equal(/--g-ratio|pagecraft-gallery-fixed/.test(g), false, `gallery has no fixed ratio for ${bad}`);
+    a.equal(/evil|background|<b>|calc|auto/.test(v + e + g), false, `nothing of ${bad} is written`);
+  }
+
+  for (const good of ['4 / 3', '3/2', '1', '1.5']) {
+    C.itemSet(col.id, it.id, RF, good);
+    a.ok(C.renderNode(video, live()).includes(`aspect-ratio:${good}"`), `video keeps ${good}`);
+    a.ok(C.renderNode(embed, live()).includes(`aspect-ratio:${good}"`), `embed keeps ${good}`);
+    a.ok(C.renderNode(gallery, live()).includes(`--g-ratio:${good};`), `gallery keeps ${good}`);
+  }
+
+  /* the same rule holds for a value stored on the node itself, as an import could leave it */
+  C.bindSet(gallery, 'ratio', null);
+  gallery.props.ratio = '1;position:fixed';
+  a.equal(/--g-ratio|position/.test(C.renderNode(gallery, { edit: false })), false);
+});
+
 test('an empty embed exports nothing', () => {
   blank();
   const n = insert('embed', null, 0);
