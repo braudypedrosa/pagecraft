@@ -5671,6 +5671,19 @@ function lint() {
     const scope = { page: pg2.name, slug: pg2.slug };
     if (!pg2.title) add("warn", "no-title", `\u201C${pg2.name}\u201D has no browser title, so the tab falls back to the page name.`, scope);
     if (!pg2.desc) add("warn", "no-desc", `\u201C${pg2.name}\u201D has no meta description, so search results pick their own snippet.`, scope);
+    const linkProblem = (h, region) => {
+      if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return null;
+      const destination = projectLinkTarget(h, here);
+      const { path, frag, target } = destination || { path: h, frag: "", target: h };
+      if (path === "" && region !== "page" && state.pages.length > 1) {
+        return { level: "warn", code: "global-fragment", msg: `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.` };
+      }
+      const template = pageOf(target) ? void 0 : state.pages.find((p) => p.slug + ".html" === target && isDetailTemplate(p));
+      if (template) return { level: "error", code: "dead-link", msg: `\u201C${h}\u201D in the ${region} points at \u201C${template.name}\u201D, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item\u2019s own page.` };
+      if (!pageOf(target)) return { level: "error", code: "dead-link", msg: `\u201C${h}\u201D in the ${region} points at ${target}, which is not a page in this project.` };
+      if (frag && !pageOf(target).has(frag)) return { level: "error", code: "dead-anchor", msg: `\u201C${h}\u201D in the ${region} has no matching element id on ${target}.` };
+      return null;
+    };
     const seenIds = /* @__PURE__ */ new Set(), dupIds = /* @__PURE__ */ new Set();
     let headings = [];
     const stack = [];
@@ -5760,22 +5773,8 @@ function lint() {
           else if (!state.pages.some((x) => x.collection === owner.id)) add("error", "item-link-no-template", `A link in the ${region} points at an item\u2019s own page, but no page is a detail template for \u201C${owner.name}\u201D.`, w, n.id);
           return;
         }
-        const destination = projectLinkTarget(h, here);
-        const { path, frag, target } = destination || { path: h, frag: "", target: h };
-        if (path === "" && region !== "page" && state.pages.length > 1) {
-          add("warn", "global-fragment", `The ${region} links to \u201C${h}\u201D. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor \u2014 name the page instead.`, w, n.id);
-          return;
-        }
-        const template = pageOf(target) ? void 0 : state.pages.find((p) => p.slug + ".html" === target && isDetailTemplate(p));
-        if (template) {
-          add("error", "dead-link", `\u201C${h}\u201D in the ${region} points at \u201C${template.name}\u201D, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item\u2019s own page.`, w, n.id);
-          return;
-        }
-        if (!pageOf(target)) {
-          add("error", "dead-link", `\u201C${h}\u201D in the ${region} points at ${target}, which is not a page in this project.`, w, n.id);
-          return;
-        }
-        if (frag && !pageOf(target).has(frag)) add("error", "dead-anchor", `\u201C${h}\u201D in the ${region} has no matching element id on ${target}.`, w, n.id);
+        const problem = linkProblem(h, region);
+        if (problem) add(problem.level, problem.code, problem.msg, w, n.id);
       });
       if (n.type === "slider" && (n.children || []).length < 2)
         add("warn", "slider-thin", `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? "" : "s"}, so there is nothing to scroll to.`, w, n.id);
@@ -6036,6 +6035,11 @@ function lint() {
             n,
             scoped
           );
+        }
+        if (bindGet(n, "link")) {
+          const h = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).link || "").trim();
+          const problem = h && h !== "#" && h !== "cms:item" && !h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX) ? linkProblem(h, region) : null;
+          if (problem) queueContext(problem.level, problem.code, problem.msg, region, n, scoped);
         }
         if (n.type === "video") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
@@ -6879,8 +6883,21 @@ function relink(from, to) {
     n++;
     return `${to}.html${m[2] || ""}`;
   };
+  const linkKeys = (c) => (c?.props || []).filter((p) => p.t === "link").map((p) => p.k);
+  components().forEach((c) => {
+    (c.props || []).forEach((p) => {
+      if (p.t === "link" && p.def) p.def = swap2(p.def);
+    });
+    (c.variants || []).forEach((v) => linkKeys(c).forEach((k) => {
+      if (v.values[k]) v.values[k] = swap2(v.values[k]);
+    }));
+  });
   allTrees().forEach((list) => eachNode(list, (node) => {
     const p = node.props;
+    const vals = node.use ? node.vals : void 0;
+    if (vals) linkKeys(findComponent(node.use)).forEach((k) => {
+      if (vals[k]) vals[k] = swap2(vals[k]);
+    });
     if (p.link !== void 0) p.link = swap2(p.link);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       p.items.forEach((it) => {

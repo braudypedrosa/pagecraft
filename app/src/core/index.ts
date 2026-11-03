@@ -3735,6 +3735,33 @@ function lint() {
     if (!pg.title) add('warn', 'no-title', `“${pg.name}” has no browser title, so the tab falls back to the page name.`, scope);
     if (!pg.desc) add('warn', 'no-desc', `“${pg.name}” has no meta description, so search results pick their own snippet.`, scope);
 
+    /* Where a project path goes wrong: a page that does not exist, a detail template, an anchor
+       the page lacks, or a fragment in a global region. Shared by the authored-link pass and the
+       per-item pass that reviews links a component property or a CMS field supplies. */
+    const linkProblem = (h: string, region: string): { level: 'error' | 'warn'; code: string; msg: string } | null => {
+      if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return null;
+      const destination = projectLinkTarget(h, here);
+      // Unsupported custom schemes still fail review instead of becoming project paths.
+      const { path, frag, target } = destination || { path: h, frag: '', target: h };
+      /* A bare `#anchor` in a global region resolves only on the page that has it — unless
+         there is one page, where "every page" and "this page" are the same thing and the
+         warning is noise. A one-pager with an anchor nav is a normal site, and this fired
+         three times on one built with this very builder.
+
+         Not just quieter: the early return meant a single-page project never had the anchor
+         checked at all. Falling through sends it to the same `dead-anchor` check a page-local
+         link gets, so `#nope` in a one-pager is now an error rather than a shrug. */
+      if (path === '' && region !== 'page' && state.pages.length > 1) {
+        return { level: 'warn' as const, code: 'global-fragment', msg: `The ${region} links to “${h}”. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor — name the page instead.` };
+      }
+      const template: Page | undefined = pageOf(target) ? undefined
+        : state.pages.find(p => p.slug + '.html' === target && isDetailTemplate(p));
+      if (template) return { level: 'error' as const, code: 'dead-link', msg: `“${h}” in the ${region} points at “${template.name}”, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item’s own page.` };
+      if (!pageOf(target)) return { level: 'error' as const, code: 'dead-link', msg: `“${h}” in the ${region} points at ${target}, which is not a page in this project.` };
+      if (frag && !pageOf(target).has(frag)) return { level: 'error' as const, code: 'dead-anchor', msg: `“${h}” in the ${region} has no matching element id on ${target}.` };
+      return null;
+    };
+
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
     /* the components being walked into, so one that contains itself is a finding-free stop
@@ -3838,26 +3865,8 @@ function lint() {
           else if (!state.pages.some(x => x.collection === owner.id)) add('error', 'item-link-no-template', `A link in the ${region} points at an item’s own page, but no page is a detail template for “${owner.name}”.`, w, n.id);
           return;
         }
-        const destination = projectLinkTarget(h, here);
-        // Unsupported custom schemes still fail review instead of becoming project paths.
-        const { path, frag, target } = destination || { path: h, frag: '', target: h };
-        /* A bare `#anchor` in a global region resolves only on the page that has it — unless
-           there is one page, where "every page" and "this page" are the same thing and the
-           warning is noise. A one-pager with an anchor nav is a normal site, and this fired
-           three times on one built with this very builder.
-
-           Not just quieter: the early return meant a single-page project never had the anchor
-           checked at all. Falling through sends it to the same `dead-anchor` check a page-local
-           link gets, so `#nope` in a one-pager is now an error rather than a shrug. */
-        if (path === '' && region !== 'page' && state.pages.length > 1) {
-          add('warn', 'global-fragment', `The ${region} links to “${h}”. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor — name the page instead.`, w, n.id);
-          return;
-        }
-        const template: Page | undefined = pageOf(target) ? undefined
-          : state.pages.find(p => p.slug + '.html' === target && isDetailTemplate(p));
-        if (template) { add('error', 'dead-link', `“${h}” in the ${region} points at “${template.name}”, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item’s own page.`, w, n.id); return; }
-        if (!pageOf(target)) { add('error', 'dead-link', `“${h}” in the ${region} points at ${target}, which is not a page in this project.`, w, n.id); return; }
-        if (frag && !pageOf(target).has(frag)) add('error', 'dead-anchor', `“${h}” in the ${region} has no matching element id on ${target}.`, w, n.id);
+        const problem = linkProblem(h, region);
+        if (problem) add(problem.level, problem.code, problem.msg, w, n.id);
       });
 
       /* Images and videos are reviewed below with the same collection/component context the
@@ -4151,6 +4160,16 @@ function lint() {
           if (!String(p.text || '').trim()) queueContext('error', 'empty-button-bound',
             `A button in the ${region} gets its label from content that is empty, so it has no label.`,
             region, n, scoped);
+        }
+
+        /* The static pass reviews the authored link, which a binding replaces. A component
+           property or a CMS Link field supplies the href that is published, so review that
+           one, once per item. */
+        if (bindGet(n, 'link')) {
+          const h = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).link || '').trim();
+          const problem = h && h !== '#' && h !== 'cms:item' && !h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)
+            ? linkProblem(h, region) : null;
+          if (problem) queueContext(problem.level, problem.code, problem.msg, region, n, scoped);
         }
 
         if (n.type === 'video') {
@@ -5152,8 +5171,18 @@ function relink(from: string, to: string) {
     n++;
     return `${to}.html${m[2] || ''}`;
   };
+  /* A component's link property is a fourth place: its default, each variant's value and
+     each instance's own value are what the button inside actually renders. Only `link`
+     properties — a text property holding the same characters is words. */
+  const linkKeys = (c: ComponentDef | null) => (c?.props || []).filter(p => p.t === 'link').map(p => p.k);
+  components().forEach(c => {
+    (c.props || []).forEach(p => { if (p.t === 'link' && p.def) p.def = swap(p.def); });
+    (c.variants || []).forEach(v => linkKeys(c).forEach(k => { if (v.values[k]) v.values[k] = swap(v.values[k]); }));
+  });
   allTrees().forEach(list => eachNode(list, node => {
     const p = node.props as PropBag;
+    const vals = node.use ? node.vals : undefined;
+    if (vals) linkKeys(findComponent(node.use)).forEach(k => { if (vals[k]) vals[k] = swap(vals[k]); });
     if (p.link !== undefined) p.link = swap(p.link);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });

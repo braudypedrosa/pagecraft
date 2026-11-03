@@ -1090,6 +1090,82 @@ test('renaming a page takes every link that pointed at it', () => {
   a.match(String(txt.props.html), /href="https:\/\/x\.test"/, 'and an external link is untouched');
 });
 
+test('renaming a page takes the links a reusable component holds as property values', () => {
+  const { home } = twoPages();
+  C.state.meta.components = [];
+  C.state.cur = 0;
+  const go = C.N('button', { text: 'Go', link: 'pricing.html' });
+  const root = C.insert('column', null, 0)!;
+  root.children = [go];
+  const id = must(C.componentFromNode(root.id, 'Pricing card'), 'component');
+  const def = must(C.findComponent(id), 'definition');
+  const key = must(C.propAdd(id, 'Link', 'link', 'pricing.html'), 'link prop');
+  const label = must(C.propAdd(id, 'Label', 'text', 'pricing.html'), 'text prop');
+  C.bindSet(def.node.children[0], 'link', { src: 'prop', path: key });
+  def.variants = [{ id: 'v1', name: 'Plans', values: { [key]: 'pricing.html#plans', [label]: 'pricing.html' } }];
+  const inst = must(C.locate(root.id), 'instance').node;
+  C.instSet(inst, key, 'pricing.html#team');
+  C.instSet(inst, label, 'pricing.html');
+  const second = C.N('column');
+  second.use = id;
+  home.tree.push(second);
+
+  a.equal(C.pageSlugSet(1, 'plans'), 4, 'the fallback, the default, the variant and the instance value');
+  a.equal(inst.vals![key], 'plans.html#team');
+  a.equal(def.props.find(p => p.k === key)!.def, 'plans.html');
+  a.equal(def.variants[0].values[key], 'plans.html#plans');
+  a.equal(inst.vals![label], 'pricing.html', 'a text property that happens to look like a link is words, not a link');
+  a.equal(def.variants[0].values[label], 'pricing.html');
+  const html = C.buildPage(home, { rel: '' } as any);
+  a.match(html, /href="plans\.html#team"/);
+  a.match(html, /href="plans\.html"/, 'an instance on its default follows too');
+  a.doesNotMatch(html, /href="pricing\.html/);
+});
+
+test('Site checks reviews a link that a component property or a CMS field supplies', () => {
+  const { home } = twoPages();
+  C.state.meta.components = [];
+  C.state.cur = 0;
+  const go = C.N('button', { text: 'Go', link: 'pricing.html' });
+  const root = C.insert('column', null, 0)!;
+  root.children = [go];
+  const id = must(C.componentFromNode(root.id, 'Card'), 'component');
+  const def = must(C.findComponent(id), 'definition');
+  const key = must(C.propAdd(id, 'Link', 'link', 'pricing.html'), 'link prop');
+  C.bindSet(def.node.children[0], 'link', { src: 'prop', path: key });
+  const inst = must(C.locate(root.id), 'instance').node;
+  const dead = () => C.lint().filter(f => f.code === 'dead-link' || f.code === 'dead-anchor').map(f => f.msg);
+
+  a.deepEqual(dead(), []);
+  C.instSet(inst, key, 'gone.html');
+  a.equal(dead().length, 1);
+  a.match(dead()[0], /“gone\.html” in the page, in “Card” points at gone\.html, which is not a page/);
+  C.instSet(inst, key, 'pricing.html#nowhere');
+  a.match(dead()[0], /has no matching element id on pricing\.html/);
+  C.instSet(inst, key, 'https://example.com/');
+  a.deepEqual(dead(), []);
+
+  /* a CMS Link field is the same kind of value, reviewed per item */
+  const col = must(C.collectionAdd('Partners'), 'collection');
+  const site = must(C.fieldAdd(col.id, 'Site', 'link'), 'link field');
+  for (const [title, href] of [['Ok', 'pricing.html'], ['Lost', 'old-page.html']]) {
+    const item = must(C.itemAdd(col.id), 'item');
+    C.itemSet(col.id, item.id, must(C.titleField(col), 'title').id, title);
+    C.itemSet(col.id, item.id, site.id, href);
+  }
+  const visit = C.N('button', { text: 'Visit', link: '' });
+  C.bindSet(visit, 'link', C.bindField(site.id));
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [visit])]);
+  list.src = col.id;
+  home.tree.push(C.N('section', {}, {}, [list]));
+  C.instSet(inst, key, undefined);
+  const found = C.lint().filter(f => f.code === 'dead-link');
+  a.equal(found.length, 1);
+  a.match(found[0].msg, /old-page\.html/);
+  a.match(found[0].msg, /Lost/, 'names the item that carries it');
+  a.doesNotMatch(found[0].msg, /“Ok”/);
+});
+
 test('a rename is refused rather than allowed to collide', () => {
   const { } = twoPages();
   a.equal(C.pageSlugSet(1, 'index'), null, 'taken by the front page');
