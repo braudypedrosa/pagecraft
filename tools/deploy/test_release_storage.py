@@ -128,6 +128,59 @@ class StorageTests(unittest.TestCase):
         self.storage.retain(None, None, now=now)
         self.assertFalse(receipt.exists())
 
+    def archived(self, numbers):
+        names = []
+        for number in numbers:
+            release = self.release(number)
+            self.storage.archive(release, set())
+            receipt = self.storage.archives / (release.name + '.json')
+            data = json.loads(receipt.read_text())
+            data['archivedAt'] = 1000.0 + number
+            receipt.write_text(json.dumps(data))
+            names.append(release.name)
+        return names
+
+    def test_recent_archives_beyond_the_count_budget_expire_oldest_first(self):
+        names = self.archived(range(1, 6))
+        with patch('release_storage.MAX_ARCHIVES', 3):
+            self.assertEqual(self.storage.retain(None, None, now=2000.0, dry_run=True)['expired'], names[:2])
+            self.assertTrue((self.storage.archives / (names[0] + '.tar.gz')).exists())
+            self.storage.retain(None, None, now=2000.0)
+        left = sorted(p.name for p in self.storage.archives.iterdir())
+        self.assertEqual(left, sorted(n + suffix for n in names[2:] for suffix in ('.json', '.tar.gz')))
+
+    def test_recent_archives_beyond_the_byte_budget_expire_oldest_first(self):
+        names = self.archived(range(1, 5))
+        size = (self.storage.archives / (names[-1] + '.tar.gz')).stat().st_size
+        with patch('release_storage.MAX_ARCHIVE_BYTES', size * 2 + size // 2):
+            self.assertEqual(self.storage.retain(None, None, now=2000.0)['expired'], names[:2])
+        self.assertFalse((self.storage.archives / (names[1] + '.tar.gz')).exists())
+        self.assertTrue((self.storage.archives / (names[2] + '.tar.gz')).exists())
+
+    def test_budget_never_removes_protected_or_untimed_archives(self):
+        names = self.archived(range(1, 5))
+        untimed = self.storage.archives / (names[0] + '.json')
+        data = json.loads(untimed.read_text())
+        del data['archivedAt']
+        untimed.write_text(json.dumps(data))
+        protected = self.storage.root / names[1]
+        protected.mkdir()
+        self.storage.mark_success(protected)
+        with patch('release_storage.MAX_ARCHIVES', 1):
+            expired = self.storage.retain(protected, None, now=2000.0)['expired']
+        self.assertEqual(expired, [names[2]], 'only the older timed, unprotected archive goes')
+        for name in names[:2] + names[3:]:
+            self.assertTrue((self.storage.archives / (name + '.tar.gz')).exists())
+
+    def test_corrupt_budget_expired_archive_is_retained_for_investigation(self):
+        names = self.archived(range(1, 3))
+        archive = self.storage.archives / (names[0] + '.tar.gz')
+        archive.write_bytes(b'corrupt')
+        with patch('release_storage.MAX_ARCHIVES', 1):
+            with self.assertRaises(ValueError):
+                self.storage.retain(None, None, now=2000.0)
+        self.assertTrue(archive.exists())
+
     def test_corrupt_expired_archive_is_retained_for_investigation(self):
         release = self.release(1)
         self.storage.archive(release, set())
