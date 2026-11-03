@@ -1168,6 +1168,47 @@ test('Site checks reviews a link that a component property or a CMS field suppli
   a.doesNotMatch(found[0].msg, /“Ok”/);
 });
 
+test('Site checks names bindings, conditions and SEO sources left on a deleted CMS field', () => {
+  const { home } = twoPages();
+  const col = must(C.collectionAdd('Posts'), 'posts');
+  const sub = C.fieldAdd(col.id, 'Subtitle', 'text');
+  const flag = C.fieldAdd(col.id, 'Featured', 'bool');
+  for (const title of ['Hello', 'World']) {
+    const item = must(C.itemAdd(col.id), 'item');
+    C.itemSet(col.id, item.id, must(C.titleField(col), 'title').id, title);
+    C.itemSet(col.id, item.id, sub.id, 'Sub ' + title);
+  }
+  const subtitle = C.N('heading', { text: 'Authored' });
+  C.bindSet(subtitle, 'text', C.bindField(sub.id));
+  const badge = C.N('text', { html: '<p>Featured</p>' });
+  C.condSet(badge, { bind: { src: 'field', path: flag.id }, op: 'set' } as any);
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [subtitle, badge])]);
+  list.src = col.id;
+  home.tree.push(C.N('section', {}, {}, [list]));
+  const template = C.state.pages[1];
+  template.name = 'Post';
+  template.collection = col.id;
+  template.bindTitle = sub.id;
+  const codes = () => C.lint().filter(f => /missing-field/.test(f.code));
+
+  a.deepEqual(codes(), []);
+  C.fieldDelete(col.id, sub.id);
+  C.fieldDelete(col.id, flag.id);
+  const found = codes();
+  a.deepEqual(found.map(f => [f.level, f.code]).sort(), [
+    ['error', 'binding-missing-field'], ['error', 'condition-missing-field'], ['warn', 'seo-missing-field'],
+  ], 'one finding each, not one per item');
+  const msg = (code: string) => must(found.find(f => f.code === code), code).msg;
+  a.match(msg('binding-missing-field'), /A heading in the page is bound to a field “Posts” no longer has, so that part publishes empty/);
+  a.match(msg('condition-missing-field'), /is shown only when a field “Posts” no longer has is filled in, so it is always hidden/);
+  a.match(msg('seo-missing-field'), /“Post” takes its title from a field “Posts” no longer has, so every item page uses the page title/);
+  a.equal(must(found.find(f => f.code === 'binding-missing-field'), 'binding').nodeId, subtitle.id);
+
+  /* binding the heading to a field that exists clears it */
+  C.bindSet(subtitle, 'text', C.bindField(must(C.titleField(col), 'title').id));
+  a.equal(codes().filter(f => f.code === 'binding-missing-field').length, 0);
+});
+
 test('a rename is refused rather than allowed to collide', () => {
   const { } = twoPages();
   a.equal(C.pageSlugSet(1, 'index'), null, 'taken by the front page');

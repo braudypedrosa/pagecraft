@@ -3735,6 +3735,15 @@ function lint() {
     if (!pg.title) add('warn', 'no-title', `“${pg.name}” has no browser title, so the tab falls back to the page name.`, scope);
     if (!pg.desc) add('warn', 'no-desc', `“${pg.name}” has no meta description, so search results pick their own snippet.`, scope);
     const publisher = pg.collection ? templateFor(pg.collection) : null;
+    /* A detail template's title and description come from fields the CMS can delete. The
+       pages fall back quietly, which is fine to publish and easy never to notice. */
+    const seoCol = pg.collection ? findCollection(pg.collection) : null;
+    if (seoCol && templateFor(seoCol.id) === pg) {
+      for (const [key, what, fallback] of [['bindTitle', 'title', 'page title'], ['bindDesc', 'description', 'page description']] as const) {
+        if (pg[key] && !fieldAt(seoCol, pg[key]!)) add('warn', 'seo-missing-field',
+          `“${pg.name}” takes its ${what} from a field “${seoCol.name}” no longer has, so every item page uses the ${fallback}. Choose another field in Settings & SEO.`, scope);
+      }
+    }
     if (publisher && publisher !== pg) add('error', 'duplicate-template',
       `“${pg.name}” is also the detail template for “${findCollection(pg.collection!)!.name}”, so it publishes nothing: “${publisher.name}” publishes those pages. Make one of them an ordinary page.`, scope);
 
@@ -4063,6 +4072,7 @@ function lint() {
       items: Map<string, string>; target: FindingTarget;
     };
     const contextReviews = new Map<string, ContextReview>();
+    const missingFieldSeen = new Set<string>();
     const queueContext = (level: 'error' | 'warn', code: string, msg: string, region: string,
       node: PcNode, context: RenderContext) => {
       const nodeId = context.inst ? context.inst.id : node.id;
@@ -4124,6 +4134,33 @@ function lint() {
         const sourceItemValue = sc ? sourceItem(sc, context.col, context.item, context.repeat) : null;
         const scopedBase = sc ? { ...context, col: sc, item: sourceItemValue } : context;
         const scoped = sc && !sourceUsesRepeat ? withPreviewItem(scopedBase, sc, sourceItemValue) : scopedBase;
+        /* A binding or condition left on a field the collection no longer has. The CMS asks for
+           these to be reviewed before it deletes a field; this keeps them in view afterwards.
+           Once per element rather than once per item, because no item can fix it. */
+        if (scoped.col) {
+          const col = scoped.col;
+          const gone = (b?: Binding | null) => !!b && b.src === 'field' && !!b.path && !fieldAt(col, b.path);
+          const what = `A ${(DEF[n.type]?.label || 'element').toLowerCase()} in the ${region}`;
+          const report = (level: 'error' | 'warn', code: string, msg: string) => {
+            const key = code + '|' + n.id;
+            if (missingFieldSeen.has(key)) return;
+            missingFieldSeen.add(key);
+            add(level, code, msg, { ...scope, region, node: kindOf(n) }, context.inst ? context.inst.id : n.id);
+          };
+          if (Object.values(n.bind || {}).some(gone)) report('error', 'binding-missing-field',
+            `${what} is bound to a field “${col.name}” no longer has, so that part publishes empty. Unbind it in the inspector, or bind it to another field.`);
+          const c = n.showIf;
+          if (c && gone(c.bind)) {
+            const want = String(c.value == null ? '' : c.value).trim();
+            const test = c.op === 'set' ? 'is filled in' : c.op === 'empty' ? 'is empty'
+              : c.op === 'eq' ? `matches “${want}”` : `differs from “${want}”`;
+            /* the missing field reads as empty, which decides the outcome for good */
+            const shown = c.op === 'empty' || (c.op === 'eq' && want === '') || (c.op === 'ne' && want !== '');
+            report('error', 'condition-missing-field',
+              `${what} is shown only when a field “${col.name}” no longer has ${test}, so it is always ${shown ? 'shown' : 'hidden'}. Choose another field for its condition, or remove the condition.`);
+          }
+        }
+
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
 
         if (n.type === 'image') {
