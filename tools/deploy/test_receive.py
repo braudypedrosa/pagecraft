@@ -175,6 +175,18 @@ class ReceiverTests(unittest.TestCase):
         self.assertEqual(record['commit'], self.sha)
         self.assertEqual(len(self.restarts), 1)
 
+    def test_dependencies_install_into_the_release_with_the_real_npm(self):
+        # The nodevenv npm wrapper appends its own --prefix, which made npm ci look for a
+        # lockfile outside the release on 3 November 2026.
+        npm, _ = self.run_receiver()
+        args, kwargs = npm.call_args
+        command = args[0]
+        release = self.current.resolve()
+        self.assertEqual(command[:3], [str(receive.ALT_NODE), str(receive.ALT_NPM), 'ci'])
+        self.assertNotIn('nodevenv', ' '.join(command))
+        self.assertEqual(command[-2:], ['--prefix', str(release)])
+        self.assertEqual(kwargs['cwd'], release)
+
 
 if __name__ == '__main__':
     unittest.main()
