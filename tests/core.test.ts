@@ -1079,9 +1079,11 @@ test('renaming a page takes every link that pointed at it', () => {
   const btn = C.N('button', { text: 'Go', link: 'pricing.html' });
   const nav = C.N('nav', { items: [{ label: 'A', href: 'pricing.html' }, { label: 'B', href: 'index.html' }] });
   const txt = C.N('text', { html: '<p><a href="pricing.html#plans">plans</a> and <a href="https://x.test">out</a></p>' });
-  home.tree.push(C.N('section', {}, {}, [C.cols(1, [[btn, nav, txt]])]));
+  const tracked = C.N('button', { text: 'Tracked', link: 'pricing.html?from=hero#plans' });
+  home.tree.push(C.N('section', {}, {}, [C.cols(1, [[btn, nav, txt, tracked]])]));
 
-  a.equal(C.pageSlugSet(1, 'plans-and-prices'), 3, 'three links followed');
+  a.equal(C.pageSlugSet(1, 'plans-and-prices'), 4, 'four links followed');
+  a.equal(tracked.props.link, 'plans-and-prices.html?from=hero#plans', 'a query survives, like a fragment');
   a.equal(C.state.pages[1].slug, 'plans-and-prices');
   a.equal(btn.props.link, 'plans-and-prices.html');
   a.equal((nav.props.items as any[])[0].href, 'plans-and-prices.html');

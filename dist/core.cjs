@@ -6878,7 +6878,7 @@ function relink(from, to) {
   let n = 0;
   const swap2 = (h) => {
     const v = String(h == null ? "" : h);
-    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    const m = v.match(/^([\w-]+)\.html([?#].*)?$/);
     if (!m || m[1] !== from) return v;
     n++;
     return `${to}.html${m[2] || ""}`;

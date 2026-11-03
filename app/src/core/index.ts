@@ -5166,7 +5166,8 @@ function relink(from: string, to: string) {
   let n = 0;
   const swap = (h: unknown) => {
     const v = String(h == null ? '' : h);
-    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    /* a query rides along like a fragment: it does not change which page is meant */
+    const m = v.match(/^([\w-]+)\.html([?#].*)?$/);
     if (!m || m[1] !== from) return v;
     n++;
     return `${to}.html${m[2] || ''}`;
