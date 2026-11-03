@@ -147,8 +147,10 @@ function DetailBindings({ colId }: { colId: string }) {
         {pick('bindTitle', 'Title from', '— The page title —')}
         {pick('bindDesc', 'Description from', '— The page description —')}
       </div>
-      <div class="note">One file per item, at <b>/{dc.slug}/&lt;slug&gt;</b>
-        {C.published(dc).length === dc.items.length ? '' : ` — ${dc.items.length - C.published(dc).length} held back`}.</div>
+      {C.templateFor(dc.id) === pg
+        ? <div class="note">One file per item, at <b>/{dc.slug}/&lt;slug&gt;</b>
+          {C.published(dc).length === dc.items.length ? '' : ` — ${dc.items.length - C.published(dc).length} held back`}.</div>
+        : <div class="note">Publishes nothing: “{C.templateFor(dc.id)!.name}” publishes {dc.name}. Make one of them an ordinary page.</div>}
     </>
   );
 }

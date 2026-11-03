@@ -20372,7 +20372,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         pick("bindTitle", "Title from", "\u2014 The page title \u2014"),
         pick("bindDesc", "Description from", "\u2014 The page description \u2014")
       ] }),
-      /* @__PURE__ */ u2("div", { class: "note", children: [
+      C2.templateFor(dc.id) === pg ? /* @__PURE__ */ u2("div", { class: "note", children: [
         "One file per item, at ",
         /* @__PURE__ */ u2("b", { children: [
           "/",
@@ -20381,6 +20381,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ] }),
         C2.published(dc).length === dc.items.length ? "" : ` \u2014 ${dc.items.length - C2.published(dc).length} held back`,
         "."
+      ] }) : /* @__PURE__ */ u2("div", { class: "note", children: [
+        "Publishes nothing: \u201C",
+        C2.templateFor(dc.id).name,
+        "\u201D publishes ",
+        dc.name,
+        ". Make one of them an ordinary page."
       ] })
     ] });
   }

@@ -1020,6 +1020,16 @@ test('the Detail template picker does not offer a collection another page alread
   C.state.cur = C.state.pages.indexOf(template);
   r.draw(<Pages />);
   a.equal(option(posts.id).disabled, false);
+  a.match(r.$('.note')!.textContent!, /One file per item, at \/posts\//);
+
+  /* a second template keeps its choice, and says it publishes nothing */
+  const copy = C.pageDup(C.state.pages.indexOf(template))!;
+  C.state.cur = C.state.pages.indexOf(copy);
+  r.draw(<Pages />);
+  a.equal(option(posts.id).disabled, false);
+  const notes = [...r.host.querySelectorAll('.note')].map(n => n.textContent);
+  a.ok(notes.some(n => /Publishes nothing: “Post” publishes Posts/.test(n!)), notes.join(' | '));
+  a.ok(!notes.some(n => /One file per item/.test(n!)));
 });
 
 test('page, token, class, and text-style typing closes one undo transaction on blur', () => {
