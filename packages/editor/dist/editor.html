@@ -16838,10 +16838,11 @@ var PC_UI = (() => {
         for (const n2 of nodes) {
           const declared = n2.src || C2.findComponent(n2.use)?.node.src || "";
           const source = declared && C2.findCollection(declared) ? declared : inherited;
-          if (source === collectionId && Object.values(n2.bind || {}).some(
-            (b2) => b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + "."))
-          ))
+          const uses = (b2) => !!b2 && b2.src === "field" && (b2.path === fieldId || b2.path.startsWith(fieldId + "."));
+          if (source === collectionId && Object.values(n2.bind || {}).some(uses))
             affected.add(page2.name + " / " + C2.nameOf(n2));
+          if (source === collectionId && uses(n2.showIf?.bind))
+            affected.add(page2.name + " / " + C2.nameOf(n2) + " (condition)");
           visit(n2.children || [], source);
         }
       };

@@ -1265,7 +1265,7 @@ function RichValue({
     </div>
   );
 }
-function bindingImpact(collectionId: string, fieldId: string): string {
+export function bindingImpact(collectionId: string, fieldId: string): string {
   const affected = new Set<string>();
   for (const page of C.state.pages) {
     if (
@@ -1277,15 +1277,13 @@ function bindingImpact(collectionId: string, fieldId: string): string {
       for (const n of nodes) {
         const declared = n.src || C.findComponent(n.use)?.node.src || '';
         const source = declared && C.findCollection(declared) ? declared : inherited;
-        if (
-          source === collectionId &&
-          Object.values(n.bind || {}).some(
-            (b) =>
-              b.src === 'field' &&
-              (b.path === fieldId || b.path.startsWith(fieldId + '.')),
-          )
-        )
+        const uses = (b?: { src: string; path: string } | null) =>
+          !!b && b.src === 'field' && (b.path === fieldId || b.path.startsWith(fieldId + '.'));
+        if (source === collectionId && Object.values(n.bind || {}).some(uses))
           affected.add(page.name + ' / ' + C.nameOf(n));
+        /* a condition on the field decides visibility, and goes permanently one way without it */
+        if (source === collectionId && uses(n.showIf?.bind))
+          affected.add(page.name + ' / ' + C.nameOf(n) + ' (condition)');
         visit(n.children || [], source);
       }
     };
