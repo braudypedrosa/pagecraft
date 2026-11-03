@@ -5517,14 +5517,22 @@ function exportTargets() {
       }
       continue;
     }
+    /* A paginated list on a detail template paginates each item's page the same way, so its
+       pager's `page-2` links name files that exist. */
+    const pgn = paginatorOf(pg);
+    const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
     for (const it of published(col)) {
       const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
       const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
-      const path = col.slug + '/' + it.slug + '.html';
-      out.push({
-        pg: { ...pg, slug: col.slug + '/' + it.slug, title: t || pg.title, desc: d || pg.desc },
-        path, rel: pathRel(path), col, item: it
-      });
+      const slug = col.slug + '/' + it.slug;
+      for (let i = 1; i <= n; i++) {
+        const path = pagedPath(slug, i);
+        const title = t || pg.title;
+        out.push({
+          pg: { ...pg, slug, title: i > 1 ? `${title || pg.name} — page ${i}` : title, desc: d || pg.desc },
+          path, rel: pathRel(path), col, item: it, pageNo: i, pages: n
+        });
+      }
     }
   }
   return out;
@@ -9260,7 +9268,11 @@ const BICON: Record<string, string> = { arrow: IC.arrow, check: IC.check, plus: 
    left to infer it from the styling. The current page is not a link — linking to where you
    already are is a dead control that looks live. */
 function pager(pg: Page, at: number, total: number, o: RenderOpts) {
-  const to = (i: number) => esc((o.rel || '') + pagedPath(pg.slug, i));
+  /* A detail template's files are named for the item it is showing, not for its own slug,
+     which the canvas still renders it under. */
+  const slug = o.col && o.item && o.col.id === pg.collection && isDetailTemplate(pg)
+    ? o.col.slug + '/' + o.item.slug : pg.slug;
+  const to = (i: number) => esc((o.rel || '') + pagedPath(slug, i));
   const cell = (i: number) => i === at
     ? `<span class="pagecraft-page on" aria-current="page">${i}</span>`
     : `<a class="pagecraft-page" href="${to(i)}">${i}</a>`;

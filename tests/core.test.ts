@@ -1641,6 +1641,50 @@ test('preview can follow a pager link', () => {
   a.equal(must(C.pageAt('../journal.html'), 'from the folder').at, C.state.pages.indexOf(pg));
 });
 
+test('a paginated list on a detail template exports every page of every item, and its pager reaches them', () => {
+  const posts = must(C.collectionAdd('Posts'), 'posts');
+  const tags = must(C.collectionAdd('Tags'), 'tags');
+  for (const t of ['Alpha', 'Beta', 'Gamma']) C.itemSet(tags.id, must(C.itemAdd(tags.id), 'tag').id, 'title', t);
+  for (const t of ['Hello', 'World']) C.itemSet(posts.id, must(C.itemAdd(posts.id), 'post').id, 'title', t);
+  const template = must(C.pageDup(0), 'template');
+  template.name = 'Post';
+  C.pageSlugSet(C.state.pages.indexOf(template), 'post');
+  template.collection = posts.id;
+  const name = C.N('heading', { text: 'Tag' });
+  C.bindSet(name, 'text', C.bindField(must(C.titleField(tags), 'title').id));
+  const list = C.N('list', { per: '2' }, {}, [C.N('column', {}, {}, [name])]);
+  list.src = tags.id;
+  template.tree = [C.N('section', {}, {}, [list])];
+
+  const t = C.exportTargets().filter(x => x.pg.id === template.id);
+  a.deepEqual(t.map(x => x.path),
+    ['posts/hello.html', 'posts/hello/page-2.html', 'posts/world.html', 'posts/world/page-2.html'],
+    'Gamma is on a page two that is actually written');
+  a.deepEqual(t.map(x => x.rel), ['../', '../../', '../', '../../']);
+  a.deepEqual(t.map(x => x.pageNo), [1, 2, 1, 2]);
+  a.equal(/page 2/.test(String(t[1].pg.title)), true);
+
+  const exported = (x: any) => C.buildPage(x.pg, x);
+  a.match(exported(t[0]), /href="\.\.\/posts\/hello\/page-2\.html" rel="next"/);
+  const second = exported(t[1]);
+  a.match(second, />Gamma</);
+  a.doesNotMatch(second, />Alpha</);
+  a.match(second, /href="\.\.\/\.\.\/posts\/hello\.html" rel="prev"/);
+  for (const x of t) for (const [, href] of exported(x).matchAll(/class="pagecraft-page[^"]*" href="([^"]+)"/g)) {
+    const from = x.path.split('/').slice(0, -1);
+    const to = href.split('/').reduce((at: string[], part: string) => part === '..' ? at.slice(0, -1) : [...at, part], from).join('/');
+    a.ok(t.some(y => y.path === to), `${x.path} links to ${to}, which is exported`);
+  }
+
+  /* the canvas renders the template itself; its pager names the previewed item's pages, so
+     Preview can follow it */
+  const canvas = C.buildPage(template, { col: posts, item: posts.items[1], pageNo: 1, pages: 2 } as any);
+  const next = must(canvas.match(/href="([^"]+)" rel="next"/), 'canvas pager')[1];
+  a.equal(next, 'posts/world/page-2.html');
+  const to = must(C.pageAt(next), 'preview follows the pager');
+  a.deepEqual([to.at, to.item?.id, to.pageNo], [C.state.pages.indexOf(template), posts.items[1].id, 2]);
+});
+
 /* ---- where a link points -----------------------------------------------
    `.html` is in the stored href because that is what an HTML export needs; the slug is the
    page's identity. `pageAt` is the one place that knows the difference, which is what lets
