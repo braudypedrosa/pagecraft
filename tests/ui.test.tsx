@@ -1003,6 +1003,25 @@ test('page and collection rows expose a primary button without nesting their act
   a.equal(r.$('.brow-main button'), null, 'the collection picker does not contain its delete button');
 });
 
+test('the Detail template picker does not offer a collection another page already publishes', () => {
+  const posts = C.collectionAdd('Posts')!;
+  C.collectionAdd('Events');
+  const template = C.pageDup(0)!;
+  template.name = 'Post';
+  template.collection = posts.id;
+  C.state.cur = 0;
+  r.draw(<Pages />);
+  const option = (id: string) => [...(r.$('#page-collection') as HTMLSelectElement).options].find(o => o.value === id)!;
+  a.equal(option(posts.id).disabled, true);
+  a.match(option(posts.id).textContent!, /published by “Post”/);
+  a.equal(option(C.findCollection('events')!.id).disabled, false);
+
+  /* on the template itself, its own collection stays chosen and choosable */
+  C.state.cur = C.state.pages.indexOf(template);
+  r.draw(<Pages />);
+  a.equal(option(posts.id).disabled, false);
+});
+
 test('page, token, class, and text-style typing closes one undo transaction on blur', () => {
   r.draw(() => <Pages />, 'pages');
   const pageName = r.$('#page-name')!;

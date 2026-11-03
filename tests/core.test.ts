@@ -7957,6 +7957,36 @@ test('pageDup twice from the same page gives every copy its own slug', () => {
   a.equal(new Set(slugs).size, slugs.length);
 });
 
+test('two detail templates for one collection publish one set of files, and Site checks names the other', () => {
+  fresh();
+  const col = must(C.collectionAdd('Posts'), 'posts');
+  C.itemSet(col.id, must(C.itemAdd(col.id), 'item').id, 'title', 'Hello');
+  const template = must(C.pageDup(0), 'template');
+  template.name = 'Post';
+  template.collection = col.id;
+  template.tree = [C.N('section', {}, {}, [C.N('heading', { text: 'Original design' })])];
+  const copy = must(C.pageDup(C.state.pages.indexOf(template)), 'copy');
+  copy.tree = [C.N('section', {}, {}, [C.N('heading', { text: 'Copied design' })])];
+  a.equal(copy.collection, col.id, 'a duplicate keeps its binding, so its design still previews');
+
+  const paths = C.exportTargets().map(t => t.path);
+  a.equal(new Set(paths).size, paths.length, 'no file is written twice');
+  const target = must(C.exportTargets().find(t => t.path === 'posts/hello.html'), 'item page');
+  a.equal(target.pg.id, template.id, 'the first template in page order publishes');
+  a.match(C.buildPage(target.pg, target), /Original design/);
+
+  const findings = C.lint().filter(f => f.code === 'duplicate-template');
+  a.equal(findings.length, 1);
+  a.equal(findings[0].level, 'error');
+  a.match(findings[0].msg, /“Post copy” is also the detail template for “Posts”/);
+  a.match(findings[0].msg, /“Post” publishes/);
+
+  /* making the original an ordinary page hands publishing to the copy */
+  delete template.collection;
+  a.equal(must(C.exportTargets().find(t => t.path === 'posts/hello.html'), 'item page').pg.id, copy.id);
+  a.deepEqual(C.lint().filter(f => f.code === 'duplicate-template'), []);
+});
+
 test('pageDup clears the selection, which belonged to the page you left', () => {
   fresh();
   const h = C.flatten(C.state.pages[0].tree).find((n: any) => n.type === 'heading');

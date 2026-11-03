@@ -433,6 +433,7 @@ __export(index_exports, {
   styleSeen: () => styleSeen,
   styles: () => styles,
   tableGrid: () => tableGrid,
+  templateFor: () => templateFor,
   templatePreview: () => templatePreview,
   textSlots: () => textSlots,
   tgtIsClass: () => tgtIsClass,
@@ -5671,6 +5672,13 @@ function lint() {
     const scope = { page: pg2.name, slug: pg2.slug };
     if (!pg2.title) add("warn", "no-title", `\u201C${pg2.name}\u201D has no browser title, so the tab falls back to the page name.`, scope);
     if (!pg2.desc) add("warn", "no-desc", `\u201C${pg2.name}\u201D has no meta description, so search results pick their own snippet.`, scope);
+    const publisher = pg2.collection ? templateFor(pg2.collection) : null;
+    if (publisher && publisher !== pg2) add(
+      "error",
+      "duplicate-template",
+      `\u201C${pg2.name}\u201D is also the detail template for \u201C${findCollection(pg2.collection).name}\u201D, so it publishes nothing: \u201C${publisher.name}\u201D publishes those pages. Make one of them an ordinary page.`,
+      scope
+    );
     const linkProblem = (h, region) => {
       if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return null;
       const destination = projectLinkTarget(h, here);
@@ -7138,6 +7146,7 @@ function pageAt(href) {
 }
 var isDetailTemplate = (pg2) => !!(pg2.collection && findCollection(pg2.collection));
 var linkablePages = () => state.pages.filter((pg2) => !isDetailTemplate(pg2));
+var templateFor = (colId) => findCollection(colId) ? state.pages.find((pg2) => pg2.collection === colId) || null : null;
 function exportTargets() {
   const out = [];
   for (const pg2 of state.pages) {
@@ -7159,6 +7168,7 @@ function exportTargets() {
       }
       continue;
     }
+    if (templateFor(col.id) !== pg2) continue;
     const pgn = paginatorOf(pg2);
     const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
     for (const it of published(col)) {
@@ -12129,6 +12139,7 @@ function proposalApply(changes, proposalId = "") {
   styleSeen,
   styles,
   tableGrid,
+  templateFor,
   templatePreview,
   textSlots,
   tgtIsClass,

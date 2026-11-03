@@ -283,11 +283,16 @@ export function Pages() {
           <select class="ctl" id="page-collection" value={pg.collection || ''}
             onChange={e => setCollection((e.target as HTMLSelectElement).value)}>
             <option value="">— An ordinary page —</option>
-            {cols.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name} · {c.items.length} item{c.items.length === 1 ? '' : 's'}
-              </option>
-            ))}
+            {cols.map(c => {
+              /* two templates for one collection would write the same files */
+              const other = C.templateFor(c.id);
+              const taken = !!other && other !== pg;
+              return (
+                <option key={c.id} value={c.id} disabled={taken && pg.collection !== c.id}>
+                  {c.name} · {taken ? `published by “${other!.name}”` : `${c.items.length} item${c.items.length === 1 ? '' : 's'}`}
+                </option>
+              );
+            })}
           </select>
           {pg.collection && C.findCollection(pg.collection)
             ? <DetailBindings colId={pg.collection} />
