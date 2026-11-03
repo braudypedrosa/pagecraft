@@ -13,9 +13,12 @@ import {
   GatewayConnectedStore,
   GatewayHostedPublishPreparer,
   GatewayManualImportReader,
+  GATEWAY_RETRIED_READS,
   GatewayStore,
   PagecraftGateway,
 } from "../src/store-gateway.ts";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { cmsItemKey } from "../src/store.ts";
 import { AssetQuotaError } from "../src/assets.ts";
 import type { Doc } from "../../app/src/core/types.ts";
@@ -1162,7 +1165,7 @@ test("an editor-session save is retried once after a transient gateway failure",
   a.deepEqual(calls[1], calls[0]);
 });
 
-test("saves are not retried twice, nor after a database error, and other operations are not retried", async () => {
+test("saves are not retried twice, nor after a database error, and other writes are not retried", async () => {
   const twice = fakeGateway(() => edgeFailure(502));
   await a.rejects(() => new GatewayStore(twice.gateway).save("s1", siteRow.doc, 3), /edge 502/);
   a.equal(twice.calls.length, 2);
@@ -1176,9 +1179,62 @@ test("saves are not retried twice, nor after a database error, and other operati
   );
   a.equal(database.calls.length, 1);
 
-  const read = fakeGateway(() => edgeFailure(502));
-  await a.rejects(() => new GatewayStore(read.gateway).byId("s1"), /edge 502/);
-  a.equal(read.calls.length, 1);
+  const rename = fakeGateway(() => edgeFailure(502));
+  await a.rejects(() => new GatewayStore(rename.gateway).setName("s1", "Renamed"), /edge 502/);
+  a.equal(rename.calls.length, 1);
+});
+
+/* On 3 November a history read and a membership check each failed once with an Edge 502 and
+   succeeded on retry. Reads change nothing, so they get the same single retry as saves. */
+test("a read is retried once, with identical arguments, after a transient gateway failure", async () => {
+  let attempts = 0;
+  const revision = { site_id: "s1", version: 3, doc: siteRow.doc, saved_by: null, context: null, created_at: "2026-11-03T00:00:00.000Z" };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.revision") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(502) : revision;
+  });
+  const found = await new GatewayStore(gateway).revision("s1", 3);
+  a.equal(found?.version, 3);
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+
+  let checks = 0;
+  const auth = fakeGateway((call) => {
+    if (call.op !== "auth.membership") throw new Error(`unexpected ${call.op}`);
+    return ++checks === 1 ? edgeFailure(546) : { site_id: "s1", user_id: "owner-1", role: "owner" };
+  });
+  a.equal((await new GatewayAuthStore(auth.gateway).membership("s1", "owner-1"))?.role, "owner");
+  a.equal(auth.calls.length, 2);
+});
+
+test("a read is not retried twice, nor after a database error", async () => {
+  const twice = fakeGateway(() => edgeFailure(503));
+  await a.rejects(() => new GatewayStore(twice.gateway).byId("s1"), /edge 503/);
+  a.equal(twice.calls.length, 2);
+
+  const database = fakeGateway(() =>
+    Response.json({ error: "database operation failed", code: "DATABASE_ERROR" }, { status: 500 })
+  );
+  await a.rejects(() => new GatewayStore(database.gateway).byId("s1"), /database operation failed/);
+  a.equal(database.calls.length, 1);
+});
+
+/* The retried list must stay reads: each one has to be an Edge operation whose handler writes
+   nothing, apart from the two session lookups that clear an expired session. */
+test("every retried read is an Edge operation that writes nothing", () => {
+  const edge = readFileSync(
+    fileURLToPath(new URL("../../supabase/functions/pagecraft-db/index.ts", import.meta.url)),
+    "utf8",
+  );
+  const sessionCleanup = new Set(["auth.userForSession", "auth.accessForSession"]);
+  for (const op of GATEWAY_RETRIED_READS) {
+    const start = edge.indexOf(`case "${op}":`);
+    a.ok(start >= 0, `${op} is an Edge operation`);
+    const end = edge.indexOf("\n    case \"", start + 1);
+    const body = edge.slice(start, end < 0 ? undefined : end).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    a.doesNotMatch(body, /\b(insert|update|upsert)\b|\.(upload|remove|from\([^)]*\)\.(insert|update))\(/i, `${op} writes nothing`);
+    if (!sessionCleanup.has(op)) a.doesNotMatch(body, /\bdelete\b/i, `${op} deletes nothing`);
+  }
 });
 
 test("a malformed successful gateway response fails closed", async () => {

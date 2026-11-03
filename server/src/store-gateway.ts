@@ -111,10 +111,25 @@ export class GatewayError extends Error {
 /* 502, 503 and 546 mean the Edge function itself did not run to completion, not that the
    database refused the write. A version-guarded save is safe to send once more: if the first
    attempt did commit, the second is a stale conflict, and the editor's readback recognizes its
-   own document. Only saves use this; other operations keep failing on the first error. */
+   own document. Reads in GATEWAY_RETRIED_READS are selects (two also clear expired sessions,
+   which is safe to repeat), so they get the same single retry inside `call`. Every other
+   operation keeps failing on the first error. */
 const TRANSIENT_GATEWAY_STATUS = new Set([502, 503, 546]);
 export const GATEWAY_SAVE_RETRY_MS = 300;
-async function retryTransientSave<T>(send: () => Promise<T>): Promise<T> {
+export const GATEWAY_RETRIED_READS: ReadonlySet<string> = new Set([
+  "site.list", "site.listMeta", "site.byHost", "site.bySlug", "site.byId",
+  "site.history", "site.revision",
+  "auth.userByEmail", "auth.userById", "auth.userByAuthId", "auth.usersByIds",
+  "auth.sessionByDigest", "auth.userForSession", "auth.accessForSession",
+  "auth.membership", "auth.membershipsForUser", "auth.members",
+  "asset.list", "asset.get", "asset.byPath", "asset.usage",
+  "release.byId", "release.forSite", "target.byRelease", "deployment.forRelease",
+  "connection.byId", "connection.forSite", "connection.historyForSite",
+  "connection.canonicalProduction", "contentIndex.forSite", "editorCredential.get",
+  "library.listForOwner", "library.get", "library.members", "library.versions",
+  "library.version",
+]);
+async function retryTransient<T>(what: string, send: () => Promise<T>): Promise<T> {
   try {
     return await send();
   } catch (error) {
@@ -122,11 +137,12 @@ async function retryTransientSave<T>(send: () => Promise<T>): Promise<T> {
       !(error instanceof GatewayError) ||
       !TRANSIENT_GATEWAY_STATUS.has(error.status ?? 0)
     ) throw error;
-    console.warn("gateway save failed transiently; retrying once:", error.message);
+    console.warn(`gateway ${what} failed transiently; retrying once:`, error.message);
     await new Promise((done) => setTimeout(done, GATEWAY_SAVE_RETRY_MS));
     return send();
   }
 }
+const retryTransientSave = <T>(send: () => Promise<T>) => retryTransient("save", send);
 
 export class PagecraftGateway {
   private url: string;
@@ -142,6 +158,12 @@ export class PagecraftGateway {
   }
 
   async call<T>(op: string, args: Record<string, unknown> = {}): Promise<T> {
+    return GATEWAY_RETRIED_READS.has(op)
+      ? retryTransient(op, () => this.send<T>(op, args))
+      : this.send<T>(op, args);
+  }
+
+  private async send<T>(op: string, args: Record<string, unknown>): Promise<T> {
     const serialized = JSON.stringify({ op, args });
     if (Buffer.byteLength(serialized, "utf8") > GATEWAY_CONTROL_BODY_MAX) {
       throw new GatewayError(
