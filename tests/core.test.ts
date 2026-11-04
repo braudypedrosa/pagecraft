@@ -1209,6 +1209,50 @@ test('Site checks names bindings, conditions and SEO sources left on a deleted C
   a.equal(codes().filter(f => f.code === 'binding-missing-field').length, 0);
 });
 
+test('a CMS icon with an empty or unknown name publishes no icon instead of a check mark', () => {
+  const { home } = twoPages();
+  const col = must(C.collectionAdd('Perks'), 'perks');
+  const glyph = C.fieldAdd(col.id, 'Glyph', 'text');
+  const rows: [string, string][] = [['Named', 'arrow-right'], ['Blank', ''], ['Typo', 'not-an-icon']];
+  const items = rows.map(([title, name]) => {
+    const item = must(C.itemAdd(col.id), 'item');
+    C.itemSet(col.id, item.id, must(C.titleField(col), 'title').id, title);
+    C.itemSet(col.id, item.id, glyph.id, name);
+    return item;
+  });
+  const icon = C.N('icon', { name: 'check', label: '' });
+  C.bindSet(icon, 'name', C.bindField(glyph.id));
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [icon])]);
+  list.src = col.id;
+  home.tree.push(C.N('section', {}, {}, [list]));
+
+  const html = C.buildPage(home);
+  a.equal((html.match(/<svg[^>]*pagecraft-icon/g) || []).length, 1, 'only the item with a real name draws a glyph');
+  a.ok(html.includes(C.ICON_PATHS['arrow-right']), 'the named icon is drawn');
+  a.ok(!html.includes(C.ICON_PATHS.check), 'no check mark stands in for a missing or unknown name');
+  a.doesNotMatch(html, /s-icon-missing/, 'the editor marker never ships');
+
+  /* the editor shows the gap and why, on the element the author can select */
+  const edit = (item: typeof items[number]) => C.renderNode(icon, { edit: true, col, item } as any);
+  a.match(edit(items[1]), /class="pagecraft-icon s-icon-missing[^"]*"[^>]*aria-label="No icon for this item"/);
+  a.match(edit(items[2]), /aria-label="“not-an-icon” is not an icon name"/);
+  a.match(edit(items[2]), new RegExp(`data-id="${icon.id}"`));
+  a.ok(edit(items[0]).includes(C.ICON_PATHS['arrow-right']));
+
+  /* Site checks names the typo once, with the item, and leaves the empty item alone */
+  const found = C.lint().filter(f => f.code === 'icon-unknown-name');
+  a.equal(found.length, 1);
+  a.equal(found[0].level, 'warn');
+  a.match(found[0].msg, /takes its name from a value that is not an icon name, such as “not-an-icon”, so it publishes no icon/);
+  a.match(found[0].msg, /Typo/);
+  a.doesNotMatch(found[0].msg, /Blank|Named/);
+
+  /* an authored icon keeps the old default for a document that predates it */
+  const plain = C.N('icon', { label: '' });
+  delete (plain.props as any).name;
+  a.ok(C.renderNode(plain, { edit: false }).includes(C.ICON_PATHS.check));
+});
+
 test('a rename is refused rather than allowed to collide', () => {
   const { } = twoPages();
   a.equal(C.pageSlugSet(1, 'index'), null, 'taken by the front page');

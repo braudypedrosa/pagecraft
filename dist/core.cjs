@@ -6024,6 +6024,17 @@ function lint() {
           }
         }
         if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
+        if (n.type === "icon" && bindGet(n, "name")) {
+          const nm = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).name ?? "").trim();
+          if (nm && !ICON_PATHS[nm]) queueContext(
+            "warn",
+            "icon-unknown-name",
+            `An icon in the ${region} takes its name from a value that is not an icon name, such as \u201C${nm.slice(0, 40)}\u201D, so it publishes no icon. Use a name from the icon picker, for example \u201Ccheck\u201D or \u201Carrow-right\u201D.`,
+            region,
+            n,
+            scoped
+          );
+        }
         if (n.type === "image") {
           const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
           if (!p.src) queueContext(
@@ -10458,6 +10469,12 @@ ${m.css || ""}
   border:1px dashed #cbd2d8;border-radius:8px;color:#6f7771;
   font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;background:#f5f7f880;
 }
+.s-icon-missing{
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  width:var(--icon-size,30px);height:var(--icon-size,30px);min-width:18px;min-height:18px;
+  border:1px dashed #cbd2d8;border-radius:6px;color:#6f7771;background:#f5f7f880;
+  font:600 12px "DM Sans",system-ui,sans-serif;
+}
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
   background:#f5f7f8;border:1px dashed #cbd2d8;color:#6f7771;
@@ -11068,7 +11085,14 @@ function renderNode(n, o) {
       return `<div ${at()} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? "" : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case "icon": {
-      const nm = p.name && ICON_PATHS[p.name] ? p.name : "check";
+      const known = !!(p.name && ICON_PATHS[p.name]);
+      if (!known && bindGet(n, "name")) {
+        if (!o.edit) return "";
+        const raw = String(p.name == null ? "" : p.name).trim();
+        const why = raw ? `\u201C${raw}\u201D is not an icon name` : "No icon for this item";
+        return `<span ${at()} ${cx("pagecraft-icon s-icon-missing")} role="img" aria-label="${esc(why)}" title="${esc(why)}">?</span>`;
+      }
+      const nm = known ? String(p.name) : "check";
       const lab = String(p.label == null ? "" : p.label).trim();
       const ihref2 = pageHref(p.link, o);
       if (ihref2) return `<a ${at()} ${cx("pagecraft-icon")} href="${esc(ihref2)}"${blank}${lab ? ` aria-label="${esc(lab)}"` : ""}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;

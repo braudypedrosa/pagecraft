@@ -1092,7 +1092,8 @@ function DimsCtl({ n, c }: P) {
 function IconCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
-  const cur = C.ICON_PATHS[val] ? val : 'check';
+  // A bound value that is not an icon draws nothing, so no tile claims it (see the renderer).
+  const cur = C.ICON_PATHS[val] ? val : inert(n, c) ? '' : 'check';
   return <Field n={n} c={c}>
     <div class="iconpick">
       {C.ICONS.map(([g, list]) => <>
