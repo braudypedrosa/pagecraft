@@ -309,3 +309,27 @@ test('managed link styling exposes effective controls and keeps parent Menu back
   const parentLabels = [...r.host.querySelectorAll('label')].map(label => label.textContent?.trim());
   expect(parentLabels).toContain('Menu background');
 });
+
+test('a layout opened from the Components list previews the links of its only Nav', () => {
+  const nav = C.N('nav', { aria: 'Main', items: [{ id: 'only', label: 'Only owner link', href: '/only' }] });
+  nav.id = 'only-owner-nav';
+  C.state.header = [nav];
+  C.state.footer = [];
+  const follow = C.ensureMobileMenuComponent(nav, 'follow');
+  nav.props.mobileMenuMode = 'follow';
+  const managed = C.mobileMenuLinksNode(follow)!;
+
+  C.componentOpen(follow.id);
+  expect(C.state.ui.mobileMenuOwner?.nodeId).toBe(nav.id);
+  expect(C.renderNode(managed, { edit: true })).toContain('Only owner link');
+  C.componentClose();
+
+  /* a second Nav sharing the layout makes the owner ambiguous, so none is chosen */
+  const other = C.N('nav', { aria: 'Footer', mobileMenuMode: 'follow', mobileMenuFollowComponent: follow.id,
+    items: [{ id: 'other', label: 'Other owner link', href: '/other' }] });
+  C.state.footer = [other];
+  C.componentOpen(follow.id);
+  expect(C.state.ui.mobileMenuOwner).toBeNull();
+  expect(C.renderNode(managed, { edit: true })).not.toContain('Only owner link');
+  expect(C.renderNode(managed, { edit: true })).not.toContain('Other owner link');
+});

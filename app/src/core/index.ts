@@ -6118,6 +6118,18 @@ function mobileMenuOwnerContext(n: PcNode, componentId: string): MobileMenuOwner
   }
   return null;
 }
+/* A layout opened from the Components list has no Nav handing it over. When exactly one Nav uses
+   it, that Nav is the owner, so its links preview as they do when opened from the Nav; a layout
+   shared by several stays without one rather than guessing which links to show. */
+function soleMobileMenuOwner(componentId: string): MobileMenuOwnerContext | null {
+  const owners: PcNode[] = [];
+  const visit = (list: PcNode[]) => eachNode(list, node => { if (ownsMobileMenu(node, componentId)) owners.push(node); });
+  visit(state.header || []);
+  visit(state.footer || []);
+  state.pages.forEach(pg => visit(pg.tree || []));
+  components().forEach(definition => { if (definition.id !== componentId) visit([definition.node]); });
+  return owners.length === 1 ? mobileMenuOwnerContext(owners[0], componentId) : null;
+}
 function prepareMobileMenuEdit(n: PcNode, componentId: string) {
   state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
   return !!state.ui.mobileMenuOwnerPending;
@@ -6786,7 +6798,7 @@ function componentOpen(cid: string) {
   const pending = state.ui.mobileMenuOwnerPending;
   state.ui.mobileMenuOwnerPending = null;
   if (!findComponent(cid)) { state.ui.mobileMenuOwner = null; return false; }
-  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : null;
+  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : soleMobileMenuOwner(cid);
   state.ui.mode = 'component';
   state.ui.cedit = cid;
   state.ui.sel = null;
@@ -8938,6 +8950,8 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list .sub-menu{display:none;position:absolute;z-index:65;top:100%;left:0;min-width:190px;margin:0;padding:8px;list-style:none;background:var(--nav-panel,#fff);box-shadow:0 18px 38px -18px rgba(15,23,42,.36)}
 .pagecraft-nav-list li:hover>.sub-menu,.pagecraft-nav-list li:focus-within>.sub-menu{display:block}
 .pagecraft-nav-list .sub-menu .sub-menu{top:0;left:100%}
+.pagecraft-nav-list .sub-menu.is-flipped{left:auto;right:0}
+.pagecraft-nav-list .sub-menu .sub-menu.is-flipped{left:auto;right:100%}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
@@ -10161,6 +10175,18 @@ var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus()
 const NAV_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
 var b=w.querySelector('[data-nav-t]'),list=w.querySelector('[data-nav-l]');if(!b||!list)return;
+// A flyout opens to the right; near the right edge of the window it opens the other way instead,
+// outermost first, so a deeper level is measured from where its parent actually landed.
+function edge(e){
+ var chain=[],li=e.target&&e.target.closest?e.target.closest('li'):null;
+ while(li&&list.contains(li)){chain.unshift(li);li=li.parentElement&&li.parentElement.closest('li');}
+ chain.forEach(function(item){
+  var sub=null;for(var i=0;i<item.children.length;i++)if(item.children[i].classList.contains('sub-menu'))sub=item.children[i];
+  if(!sub)return;sub.classList.remove('is-flipped');
+  var r=sub.getBoundingClientRect();if(r.width&&r.right>document.documentElement.clientWidth)sub.classList.add('is-flipped');
+ });
+}
+list.addEventListener('mouseover',edge);list.addEventListener('focusin',edge);
 var content=w.querySelector('[data-nav-content]')||list;
 var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
 function position(){

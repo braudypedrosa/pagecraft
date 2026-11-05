@@ -231,3 +231,36 @@ test('menu background can override mobile without changing desktop or tablet', (
   expect(node.css.d['--nav-panel']).toBe(base);
   expect(node.css.t['--nav-panel']).toBeUndefined();
 });
+
+test('a flyout that would pass the right edge of the window opens the other way', () => {
+  const deep = [
+    { id: 'story', label: 'Our story', href: '#story' },
+    { id: 'team', parentId: 'story', label: 'Team', href: '#team' },
+    { id: 'founders', parentId: 'team', label: 'Founders and long-time hosts', href: 'https://example.com/founders' }
+  ];
+  const dom = new JSDOM(`<html><body><header>${C.renderNode(C.N('nav', { aria: 'Primary', items: deep }), { edit: false })}</header></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/' });
+  windows.push(dom);
+  const w = dom.window, d = w.document;
+  w.addEventListener('error', event => { runtimeErrors.push(event.message); event.preventDefault(); });
+  Object.defineProperty(d.documentElement, 'clientWidth', { configurable: true, value: 1269 });
+  w.eval(C.NAV_JS.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, ''));
+  const [second, third] = d.querySelectorAll('.sub-menu');
+  /* the measured boxes from the Stillwood header at a 1280px window */
+  const rect = (left, right) => () => ({ left, right, width: right - left, top: 0, bottom: 40, height: 40 });
+  second.getBoundingClientRect = rect(994, 1184);
+  third.getBoundingClientRect = () => third.classList.contains('is-flipped') ? rect(804, 994)() : rect(1176, 1366)();
+  const founders = [...d.querySelectorAll('a')].find(a => a.textContent.startsWith('Founders'));
+  founders.dispatchEvent(new w.MouseEvent('mouseover', { bubbles: true }));
+  expect(second.classList.contains('is-flipped'), 'the second level fits and stays put').toBe(false);
+  expect(third.classList.contains('is-flipped'), 'the third level would end at 1366px of 1269px').toBe(true);
+
+  /* a wider window: the same hover clears the flip */
+  Object.defineProperty(d.documentElement, 'clientWidth', { configurable: true, value: 1577 });
+  third.getBoundingClientRect = rect(1367, 1557);
+  founders.dispatchEvent(new w.FocusEvent('focusin', { bubbles: true }));
+  expect(third.classList.contains('is-flipped')).toBe(false);
+
+  const css = C.baseCss(false);
+  expect(css).toContain('.pagecraft-nav-list .sub-menu .sub-menu.is-flipped{left:auto;right:100%}');
+  expect(css).toContain('.pagecraft-nav-list .sub-menu.is-flipped{left:auto;right:0}');
+});
