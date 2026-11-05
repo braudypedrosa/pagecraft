@@ -124,6 +124,7 @@ __export(index_exports, {
   assetFile: () => assetFile,
   assetPaths: () => assetPaths,
   atEdge: () => atEdge,
+  atEditContext: () => atEditContext,
   autoId: () => autoId,
   baseCss: () => baseCss,
   bindField: () => bindField,
@@ -217,6 +218,7 @@ __export(index_exports, {
   dupNode: () => dupNode,
   eachNode: () => eachNode,
   edit: () => edit,
+  editContext: () => editContext,
   effective: () => effective,
   effectiveAt: () => effectiveAt,
   embedUrl: () => embedUrl,
@@ -4195,6 +4197,22 @@ function selIds() {
   if (state.ui.sel) out.push(state.ui.sel);
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter((id) => locate(id));
+}
+var editContext = () => ({
+  dev: state.ui.dev,
+  st: state.ui.st,
+  target: state.ui.target,
+  sel: state.ui.sel,
+  multi: [...state.ui.multi || []]
+});
+function atEditContext(ctx, fn) {
+  const now = editContext();
+  Object.assign(state.ui, ctx, { multi: [...ctx.multi] });
+  try {
+    return fn();
+  } finally {
+    Object.assign(state.ui, now);
+  }
 }
 var selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) => h.node);
 var multiOn = () => selIds().length > 1;
@@ -11963,6 +11981,7 @@ function proposalApply(changes, proposalId = "") {
   assetFile,
   assetPaths,
   atEdge,
+  atEditContext,
   autoId,
   baseCss,
   bindField,
@@ -12056,6 +12075,7 @@ function proposalApply(changes, proposalId = "") {
   dupNode,
   eachNode,
   edit,
+  editContext,
   effective,
   effectiveAt,
   embedUrl,

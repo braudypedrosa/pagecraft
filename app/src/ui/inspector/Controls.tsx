@@ -368,13 +368,18 @@ function ColorCtl({ n, c }: P) {
   };
 
   const addToken = async () => {
+    /* The colour and where it goes are taken at the click. The dialog resolves only
+       after its exit animation, and reading them then picked up whatever was clicked in
+       the meantime: a Hover click saved the hover colour and linked Hover instead. */
+    const ctx = C.editContext();
+    const value = C.resolveColor(cur()) || '#000000';
     const name = await L.askText('New colour token', 'Colour name', 'Accent',
       { ok: 'Create token', note: 'Every element using it changes with it.' });
-    if (name === null) return;
+    if (name === null || !C.locate(n.id)) return;
     /* `hexish` stood here, which only ever evaluated to #000000 on this path: it fell
        back to black unless `lit` was a plain hex, and `lit` is empty whenever
        resolveColor finds nothing to resolve. */
-    C.edit(() => { const id = C.colorAdd(name, C.resolveColor(cur()) || '#000000'); C.applyC(n, c, C.cvar(id)); });
+    C.edit(() => C.atEditContext(ctx, () => { const id = C.colorAdd(name, value); C.applyC(n, c, C.cvar(id)); }));
     L.toast('Colour token created');
   };
 

@@ -5939,6 +5939,22 @@ function selIds() {
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter((id) => locate(id));
 }
+var editContext = () => ({
+  dev: state.ui.dev,
+  st: state.ui.st,
+  target: state.ui.target,
+  sel: state.ui.sel,
+  multi: [...state.ui.multi || []]
+});
+function atEditContext(ctx, fn) {
+  const now = editContext();
+  Object.assign(state.ui, ctx, { multi: [...ctx.multi] });
+  try {
+    return fn();
+  } finally {
+    Object.assign(state.ui, now);
+  }
+}
 var selNodes = () => selIds().map((id) => locate(id)).filter(Boolean).map((h) => h.node);
 var multiOn = () => selIds().length > 1;
 function selSet(ids) {
@@ -13706,6 +13722,7 @@ var __CORE = {
   assetFile,
   assetPaths,
   atEdge,
+  atEditContext,
   autoId,
   baseCss,
   bindField,
@@ -13799,6 +13816,7 @@ var __CORE = {
   dupNode,
   eachNode,
   edit,
+  editContext,
   effective,
   effectiveAt,
   embedUrl,
@@ -23065,17 +23083,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       w3.hard(value);
     };
     const addToken = async () => {
+      const ctx = C2.editContext();
+      const value = C2.resolveColor(cur()) || "#000000";
       const name = await L2.askText(
         "New colour token",
         "Colour name",
         "Accent",
         { ok: "Create token", note: "Every element using it changes with it." }
       );
-      if (name === null) return;
-      C2.edit(() => {
-        const id = C2.colorAdd(name, C2.resolveColor(cur()) || "#000000");
+      if (name === null || !C2.locate(n2.id)) return;
+      C2.edit(() => C2.atEditContext(ctx, () => {
+        const id = C2.colorAdd(name, value);
         C2.applyC(n2, c3, C2.cvar(id));
-      });
+      }));
       L2.toast("Colour token created");
     };
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
