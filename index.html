@@ -9165,7 +9165,7 @@ var fieldValue = (col, item, path, depth = 0) => {
   if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return "";
   const to = findCollection(f.ref);
   const hit = to ? findItem(to, v) : null;
-  return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
+  return hit && !hit.draft ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
 var fieldAt = (col, path, depth = 0) => {
   if (!col) return null;
@@ -24015,13 +24015,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (n2.type === "list" && c3.k === "val") return /* @__PURE__ */ u2(CollectionListValueCtl, { n: n2, c: c3 });
     const Cmp = KINDS[c3.t];
     if (!Cmp) return null;
-    if (c3.k?.startsWith(C2.VAL) && bound(n2, c3).fid) {
+    const link = c3.k?.startsWith(C2.VAL) ? bound(n2, c3) : null;
+    if (link?.fid) {
       const value = String(valueOf(n2, c3) ?? "");
+      const markup = C2.fieldAt(link.scope?.col ?? null, link.fid)?.type === "rich";
       if (c3.t === "link") return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
         /* @__PURE__ */ u2("input", { class: "ctl", value, disabled: true, "aria-label": c3.label || "CMS value" }),
         /* @__PURE__ */ u2(LinkTargetToggle, { n: n2, c: c3 })
       ] });
-      const shown2 = c3.t === "toggle" ? ["", "0", "false"].includes(value) ? "No" : "Yes" : c3.t === "rich" ? value.replace(/<[^>]*>/g, "").slice(0, 180) : value;
+      const shown2 = c3.t === "toggle" ? ["", "0", "false"].includes(value) ? "No" : "Yes" : c3.t === "rich" && markup ? value.replace(/<[^>]*>/g, "").slice(0, 180) : value;
       return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("input", { class: "ctl", value: shown2, disabled: true, "aria-label": c3.label || "CMS value" }) });
     }
     return /* @__PURE__ */ u2(Cmp, { n: n2, c: c3 });

@@ -148,3 +148,17 @@ test('content-only accounts cannot change the CMS mapping', () => {
   r.draw(<Ctl n={node} c={control} />);
   a.equal(r.$('.bnd'), null);
 });
+
+test('a bound rich property previews a text field as the words it renders, tags included', () => {
+  const { col, item, node, key, control } = fixture('rich', 'text');
+  const text = C.fieldAdd(col.id, 'Summary', 'text')!;
+  const rich = C.fieldAdd(col.id, 'Body', 'rich')!;
+  C.itemSet(col.id, item.id, text.id, '<em>Sum</em> & co');
+  C.itemSet(col.id, item.id, rich.id, '<p><b>Bold</b> body</p>');
+  C.bindSet(node, C.VAL + key, C.bindField(text.id));
+  r.draw(<Ctl n={node} c={control} />);
+  a.equal((r.$('input') as HTMLInputElement).value, '<em>Sum</em> & co', 'the canvas escapes these tags, so the panel keeps them');
+  C.bindSet(node, C.VAL + key, C.bindField(rich.id));
+  r.draw(<Ctl n={node} c={control} />);
+  a.equal((r.$('input') as HTMLInputElement).value, 'Bold body', 'a rich field is markup and previews as its text');
+});

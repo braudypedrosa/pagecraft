@@ -1,20 +1,20 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-04T03:40:46.530Z",
+  "capturedAt": "2026-11-05T02:24:47.280Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
     "supported": true,
     "value": {
       "protocolVersion": "1.3",
-      "product": "Chrome/156.0.8078.80",
-      "revision": "@fb096c0011f9d50f0a264a9376420cdea9c421e3",
+      "product": "Chrome/156.0.8078.82",
+      "revision": "@58d3ba996be0cba47b6bcd928490da32a0e0edaf",
       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
       "jsVersion": "15.6.75.27"
     }
   },
   "declaredBrowserVersion": {
-    "value": "Chrome/156.0.8078.80",
+    "value": "Chrome/156.0.8078.82",
     "verified": true
   },
   "captureEnvironment": {
@@ -114,7 +114,7 @@
     "app/src/ui/CmsWorkspace.tsx": "ec2829e4bec8b691094f43d33f1add8c44603c5f832062c2f3df7ca79e5b95af",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
-    "app/src/ui/inspector/Controls.tsx": "2af4b8b11965134d34c7956a4052b6b57fc0c8c5dee8df1210c9d6b2d07fbd99",
+    "app/src/ui/inspector/Controls.tsx": "86e0c9ee58468f6b96789f84ea67b3620daee91cb2ab5147c898e44425d5aa43",
     "app/src/ui/inspector/Inspector.tsx": "c2310df1747169010c3b4d4b564691e7f0ad561c8a6070a668e1aad0963eff49",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "2b2ab45b27d4517876f00326d6807b719becdeeda010606db1b1814c62017dd4",

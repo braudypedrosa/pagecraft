@@ -7422,7 +7422,7 @@ var fieldValue = (col, item, path, depth = 0) => {
   if (f.type !== "ref" || !f.ref || depth >= REF_DEPTH) return "";
   const to = findCollection(f.ref);
   const hit = to ? findItem(to, v) : null;
-  return hit ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
+  return hit && !hit.draft ? fieldValue(to, hit, bits.slice(1).join("."), depth + 1) : "";
 };
 var fieldAt = (col, path, depth = 0) => {
   if (!col) return null;

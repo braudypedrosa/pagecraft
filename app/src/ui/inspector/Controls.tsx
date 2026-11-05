@@ -1165,14 +1165,18 @@ export function Ctl({ n, c }: P) {
   if (n.type === 'list' && c.k === 'val') return <CollectionListValueCtl n={n} c={c} />;
   const Cmp = KINDS[c.t];
   if (!Cmp) return null;
-  if (c.k?.startsWith(C.VAL) && bound(n, c).fid) {
+  const link = c.k?.startsWith(C.VAL) ? bound(n, c) : null;
+  if (link?.fid) {
     const value = String(valueOf(n, c) ?? '');
+    /* Only a rich field is markup. A text field in a rich slot renders as the words it holds,
+       tags included, so the panel shows them the same way the canvas does. */
+    const markup = C.fieldAt(link.scope?.col ?? null, link.fid)?.type === 'rich';
     if (c.t === 'link') return <Field n={n} c={c}>
       <input class="ctl" value={value} disabled aria-label={c.label || 'CMS value'} />
       <LinkTargetToggle n={n} c={c} />
     </Field>;
     const shown = c.t === 'toggle' ? (['', '0', 'false'].includes(value) ? 'No' : 'Yes')
-      : c.t === 'rich' ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
+      : c.t === 'rich' && markup ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
     return <Field n={n} c={c}>
       <input class="ctl" value={shown} disabled aria-label={c.label || 'CMS value'} />
     </Field>;

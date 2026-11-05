@@ -5864,7 +5864,9 @@ const fieldValue = (col: Collection | null, item: Item | null, path: string, dep
   if (f.type !== 'ref' || !f.ref || depth >= REF_DEPTH) return '';
   const to = findCollection(f.ref);
   const hit = to ? findItem(to, v) : null;
-  return hit ? fieldValue(to, hit, bits.slice(1).join('.'), depth + 1) : '';
+  /* A draft entry is hidden from the public site, so it is no more reachable through a
+     reference than it is as a list item: it reads as no value, in the editor and the export. */
+  return hit && !hit.draft ? fieldValue(to, hit, bits.slice(1).join('.'), depth + 1) : '';
 };
 /** The field a path ends on, followed the way `fieldValue` follows it — what a value *is*, which
     decides how it may be rendered. */
