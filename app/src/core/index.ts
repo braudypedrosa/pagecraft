@@ -4327,6 +4327,11 @@ const styleClip: { css: Css | null; st: States | null; cls: string[] | null; ts:
   { css: null, st: null, cls: null, ts: '', adv: '', from: '' };
 let styleClipSource: PcNode | null = null;
 let styleClipClasses: StyleClass[] = [];
+/* Copy-time snapshots of the text style and colour tokens the look reads. Deleting either
+   bakes its values into the elements using it ("elements keep the look"); the clipboard is
+   not an element, so Paste applies the same promise from these. */
+let styleClipTextStyle: { id: string; css: Css } | null = null;
+let styleClipColors: { id: string; literal: string }[] = [];
 
 function copyStyles(id: string) {
   const h = locate(id);
@@ -4369,6 +4374,9 @@ function copyStyles(id: string) {
     hide: {}, adv: { htmlId: '', cls: '', css: '' }, children: []
   });
   styleClipClasses = clone(classes().filter(c => (n.cls || []).includes(c.id)));
+  const ts = findStyle(styleClip.ts);
+  styleClipTextStyle = ts ? { id: ts.id, css: clone(ts.css) } : null;
+  styleClipColors = colors().map(c => ({ id: c.id, literal: resolveColor(cvar(c.id)) || 'transparent' }));
   return true;
 }
 
@@ -4387,7 +4395,36 @@ const STYLE_PASTE_DELETED_CLASS_REASON = 'Copied styles use a deleted class. Cop
 /* Resolve only missing references. Existing classes stay live, including edits and precedence
    changes made since Copy. The source envelope and missing definitions are copy-time snapshots;
    deleting or editing the live source cannot change what the clipboard holds. */
-function preparedStylePaste(): { css: Css; st: States | null; cls: string[] } | null {
+type PreparedStylePaste = { css: Css; st: States | null; cls: string[]; ts: string; tsBake: Css | null; adv: string };
+function preparedStylePaste(): PreparedStylePaste | null {
+  const base = preparedClassPaste();
+  if (!base) return null;
+  const css = clone(base.css), st = base.st ? clone(base.st) : null;
+  let ts = styleClip.ts, tsBake: Css | null = null, adv = styleClip.adv;
+  /* A text style deleted since Copy: paste its copy-time typography as the element's own,
+     which is what deleting it did to the source. A reference to a style that is gone would
+     render as plain text and come back to life if a style with that name is made later. */
+  if (ts && !findStyle(ts)) {
+    tsBake = styleClipTextStyle && styleClipTextStyle.id === ts ? clone(styleClipTextStyle.css) : null;
+    ts = '';
+  }
+  /* A colour token deleted since Copy becomes its copy-time literal, as it did everywhere else. */
+  const gone = styleClipColors.filter(c => !findColor(c.id));
+  if (gone.length) {
+    const fix = (value: string) => gone.reduce((v, c) => {
+      const r = rewriteColorRefs(v, c.id, c.literal);
+      return r.safe && r.count ? r.value : v;
+    }, value);
+    const visit = (c: Css | null | undefined) => {
+      if (c) (['d', 't', 'm'] as Bp[]).forEach(b => { const o = c[b]; if (o) for (const k in o) o[k] = fix(String(o[k])); });
+    };
+    visit(css); visit(tsBake);
+    if (st) STATES.forEach(([k]) => visit(st[k]));
+    adv = fix(adv);
+  }
+  return { css, st, cls: base.cls, ts, tsBake, adv };
+}
+function preparedClassPaste(): { css: Css; st: States | null; cls: string[] } | null {
   if (!styleClip.css) return null;
   const ids = styleClip.cls || [];
   const missing = ids.filter(id => !findClass(id));
@@ -4424,15 +4461,26 @@ function preparedStylePaste(): { css: Css; st: States | null; cls: string[] } | 
 function stylePasteCheck(): ClassDeleteCheck {
   return preparedStylePaste() ? { ok: true } : { ok: false, reason: STYLE_PASTE_DELETED_CLASS_REASON };
 }
-function applyPastedStyle(id: string, prepared: NonNullable<ReturnType<typeof preparedStylePaste>>) {
+function applyPastedStyle(id: string, prepared: PreparedStylePaste) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
   n.css = clone(prepared.css);
   if (prepared.st) n.st = clone(prepared.st); else delete n.st;
   n.cls = [...prepared.cls];
-  if (n.adv) n.adv.css = styleClip.adv;
-  if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
+  if (n.adv) n.adv.css = prepared.adv;
+  if (ctlKeys(n.type).has('ts')) {
+    n.props.ts = prepared.ts;
+    /* the same bake tsUnlink does: the copied element's own typography still wins */
+    if (prepared.tsBake) {
+      const baked = mergeResponsiveTypo(prepared.tsBake, n.css);
+      stripTypo(n);
+      (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => {
+        const v = baked[b] && baked[b][k];
+        if (v !== undefined && v !== '') (n.css[b] = n.css[b] || {})[k] = v;
+      }));
+    }
+  }
   return true;
 }
 function pasteStyles(id: string) {

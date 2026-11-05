@@ -7952,6 +7952,8 @@ var lintCounts = (findings) => ({
 var styleClip = { css: null, st: null, cls: null, ts: "", adv: "", from: "" };
 var styleClipSource = null;
 var styleClipClasses = [];
+var styleClipTextStyle = null;
+var styleClipColors = [];
 function copyStyles(id) {
   const h = locate(id);
   if (!h) return false;
@@ -7991,10 +7993,41 @@ function copyStyles(id) {
     children: []
   });
   styleClipClasses = clone(classes().filter((c) => (n.cls || []).includes(c.id)));
+  const ts = findStyle(styleClip.ts);
+  styleClipTextStyle = ts ? { id: ts.id, css: clone(ts.css) } : null;
+  styleClipColors = colors().map((c) => ({ id: c.id, literal: resolveColor(cvar(c.id)) || "transparent" }));
   return true;
 }
 var STYLE_PASTE_DELETED_CLASS_REASON = "Copied styles use a deleted class. Copy the source styles again.";
 function preparedStylePaste() {
+  const base = preparedClassPaste();
+  if (!base) return null;
+  const css = clone(base.css), st = base.st ? clone(base.st) : null;
+  let ts = styleClip.ts, tsBake = null, adv = styleClip.adv;
+  if (ts && !findStyle(ts)) {
+    tsBake = styleClipTextStyle && styleClipTextStyle.id === ts ? clone(styleClipTextStyle.css) : null;
+    ts = "";
+  }
+  const gone = styleClipColors.filter((c) => !findColor(c.id));
+  if (gone.length) {
+    const fix = (value) => gone.reduce((v, c) => {
+      const r = rewriteColorRefs(v, c.id, c.literal);
+      return r.safe && r.count ? r.value : v;
+    }, value);
+    const visit = (c) => {
+      if (c) ["d", "t", "m"].forEach((b) => {
+        const o = c[b];
+        if (o) for (const k in o) o[k] = fix(String(o[k]));
+      });
+    };
+    visit(css);
+    visit(tsBake);
+    if (st) STATES.forEach(([k]) => visit(st[k]));
+    adv = fix(adv);
+  }
+  return { css, st, cls: base.cls, ts, tsBake, adv };
+}
+function preparedClassPaste() {
   if (!styleClip.css) return null;
   const ids = styleClip.cls || [];
   const missing = ids.filter((id) => !findClass(id));
@@ -8036,8 +8069,18 @@ function applyPastedStyle(id, prepared) {
   if (prepared.st) n.st = clone(prepared.st);
   else delete n.st;
   n.cls = [...prepared.cls];
-  if (n.adv) n.adv.css = styleClip.adv;
-  if (ctlKeys(n.type).has("ts")) n.props.ts = styleClip.ts;
+  if (n.adv) n.adv.css = prepared.adv;
+  if (ctlKeys(n.type).has("ts")) {
+    n.props.ts = prepared.ts;
+    if (prepared.tsBake) {
+      const baked = mergeResponsiveTypo(prepared.tsBake, n.css);
+      stripTypo(n);
+      ["d", "t", "m"].forEach((b) => TYPO_KEYS.forEach((k) => {
+        const v = baked[b] && baked[b][k];
+        if (v !== void 0 && v !== "") (n.css[b] = n.css[b] || {})[k] = v;
+      }));
+    }
+  }
   return true;
 }
 function pasteStyles(id) {
