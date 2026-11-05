@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-05T13:21:01.038Z",
+  "capturedAt": "2026-11-05T13:41:06.138Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "87ddf9ccb830ec4dcdea89114e9b1a970870c721ead1de4cbce1438957466173",
+    "builder.html": "e626cbf2f8f789114cc4a35c0d6a07b65282be2da210ee8200cc8d5c935c8e13",
     "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
@@ -115,7 +115,7 @@
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
     "app/src/ui/inspector/Controls.tsx": "754a5a07448fff632fa5d706e058f4e67a32ba4fd6b21be23e3d134e6484bb02",
-    "app/src/ui/inspector/Inspector.tsx": "c2310df1747169010c3b4d4b564691e7f0ad561c8a6070a668e1aad0963eff49",
+    "app/src/ui/inspector/Inspector.tsx": "a7d6b4700fdee8d6735f6e00217134e165281ed2f0795e096d7b55233deca53d",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "2b2ab45b27d4517876f00326d6807b719becdeeda010606db1b1814c62017dd4",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",

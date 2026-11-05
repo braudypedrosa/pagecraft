@@ -58,3 +58,35 @@ test('real Inspector Paste bar rejects before creating a checkpoint or clearing 
   expect(r.calls.some(c => c[0] === 'toast' && c[1] === error)).toBe(true);
   expect(snapshot()).toEqual(before);
 });
+
+function validClip() {
+  C.seed(); C.state.ui = C.initUi(); C.state.cur = 0;
+  C.state.pages[0].tree = []; C.state.header = []; C.state.footer = []; C.ensureTokens().classes = [];
+  const source = C.insert('heading', null, 0)!, one = C.insert('heading', null, 1)!, two = C.insert('heading', null, 2)!;
+  source.css.d['font-size'] = '40px'; C.copyStyles(source.id);
+  C.hist.u.length = 0; C.hist.r.length = 0; C.selSet([one.id, two.id]);
+  return { one, two };
+}
+
+test('every Paste path names the history step Paste styles, not the property it changed', () => {
+  let { one, two } = validClip();
+  const ctxStart = builder.indexOf("    case 'stpaste': {"), ctxEnd = builder.indexOf("    case 'hide':", ctxStart);
+  new Function('styleClip', 'stylePasteCheck', 'edit', 'pasteStylesMany', 'list', 'toast',
+    'switch ("stpaste") {' + builder.slice(ctxStart, ctxEnd) + '}')(C.styleClip, C.stylePasteCheck, C.edit, C.pasteStylesMany, [one.id, two.id], vi.fn());
+  expect(one.css.d['font-size']).toBe('40px');
+  expect(C.historyLabel('undo')).toBe('Paste styles');
+
+  ({ one, two } = validClip());
+  const keyStart = builder.indexOf("  if (meta && e.shiftKey && k === 'v') {"), keyEnd = builder.indexOf('  const oneDeep =', keyStart);
+  new Function('styleClip', 'stylePasteCheck', 'selIds', 'edit', 'pasteStylesMany', 'toast', 'e',
+    'const meta = true, k = "v";\n' + builder.slice(keyStart, keyEnd))(C.styleClip, C.stylePasteCheck, C.selIds, C.edit, C.pasteStylesMany, vi.fn(), { shiftKey: true, preventDefault: vi.fn() });
+  expect(two.css.d['font-size']).toBe('40px');
+  expect(C.historyLabel('undo')).toBe('Paste styles');
+
+  r = rig(); ({ one, two } = validClip());
+  r.draw(() => <Inspector />, 'right');
+  const paste = r.$$('button').find(b => b.textContent?.trim() === 'Paste to 2');
+  act(() => paste!.click());
+  expect(one.css.d['font-size']).toBe('40px');
+  expect(C.historyLabel('undo')).toBe('Paste styles');
+});

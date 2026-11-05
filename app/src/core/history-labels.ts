@@ -129,6 +129,26 @@ export function inferHistoryAction(before: Doc, after: Doc): string {
     if (!same({ slug: old.slug, detail: old.detail, views: old.views }, { slug: collection.slug, detail: collection.detail, views: collection.views })) return 'Change collection settings';
   }
 
+  /* Creating, deleting or relinking a design token rewrites the elements that use it
+     (Save as token links the field; Delete bakes the value in). Name the token action,
+     not the element side effect that the node walk below would find first. */
+  const tokenAction = (noun: string, was: { id: string; name?: string }[] = [], now: { id: string; name?: string }[] = []) => {
+    const old = new Map(was.map(t => [t.id, t])), cur = new Map(now.map(t => [t.id, t]));
+    if (now.some(t => !old.has(t.id))) return `Create ${noun}`;
+    if (was.some(t => !cur.has(t.id))) return `Delete ${noun}`;
+    for (const t of now) {
+      const o = old.get(t.id)!;
+      if (o.name !== t.name) return `Rename ${noun}`;
+      if (!same(o, t)) return `Change ${noun}`;
+    }
+    return null;
+  };
+  const bt = before.meta.tokens, at = after.meta.tokens;
+  const token = tokenAction('colour token', bt?.colors, at?.colors)
+    || tokenAction('text style', bt?.text, at?.text)
+    || tokenAction('class', bt?.classes, at?.classes);
+  if (token) return token;
+
   const a = nodes(before), b = nodes(after);
   const added = [...b.values()].reverse().find(place => !a.has(place.node.id));
   if (added) return `Add ${kind(added.node)}`;

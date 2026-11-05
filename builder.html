@@ -4455,7 +4455,7 @@ function runAct(act, ids) {
       const check = stylePasteCheck();
       if (!check.ok) { toast(check.reason); break; }
       let k = 0;
-      edit(() => { k = pasteStylesMany(list); });
+      edit(() => { k = pasteStylesMany(list); }, 'Paste styles');
       toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
       break;
     }
@@ -8236,7 +8236,7 @@ function hotkey(e) {
     const check = stylePasteCheck();
     if (!check.ok) { toast(check.reason); return; }
     let n = 0;
-    edit(() => { n = pasteStylesMany(ids); });
+    edit(() => { n = pasteStylesMany(ids); }, 'Paste styles');
     toast(n > 1 ? `Styles pasted onto ${n} elements` : n ? 'Styles pasted' : 'Nothing to paste onto');
     return;
   }

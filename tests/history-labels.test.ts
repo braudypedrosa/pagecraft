@@ -194,3 +194,46 @@ test('Button variant intent names the chosen control instead of internal surface
   C.edit(() => C.setCss(C.locate(button.id)!.node, 'width', '240px'));
   expect(C.historyLabel('undo')).toBe('Change button size');
 });
+
+test('token, text style and class actions are named for the action, not the element they rewrite', () => {
+  const heading = C.insert('heading', null, 0)!;
+  heading.css.d.color = '#1f7a5c'; heading.css.d['font-size'] = '40px';
+  C.hist.u.length = 0;
+  let red = '';
+  C.edit(() => { red = C.colorAdd('QA green', '#1f7a5c'); heading.css.d.color = C.cvar(red); });
+  expect(C.historyLabel('undo')).toBe('Create colour token');
+  C.edit(() => { C.findColor(red)!.name = 'QA forest'; });
+  expect(C.historyLabel('undo')).toBe('Rename colour token');
+  C.edit(() => { C.findColor(red)!.value = '#123456'; });
+  expect(C.historyLabel('undo')).toBe('Change colour token');
+  C.edit(() => C.colorDelete(red));
+  expect(C.historyLabel('undo')).toBe('Delete colour token');
+  expect(C.historyLabel('undo')).not.toMatch(/QA|#/);
+
+  let lead = '';
+  C.edit(() => { lead = C.tsCreateFrom(heading, 'Lead'); });
+  expect(C.historyLabel('undo')).toBe('Create text style');
+  C.edit(() => C.styleDelete(lead));
+  expect(C.historyLabel('undo')).toBe('Delete text style');
+
+  let cls = '';
+  C.edit(() => { cls = C.classFrom(heading, 'Card'); });
+  expect(C.historyLabel('undo')).toBe('Create class');
+  C.edit(() => { C.findClass(cls)!.css.d.color = '#000'; });
+  expect(C.historyLabel('undo')).toBe('Change class');
+
+  /* plain element edits keep their element labels */
+  C.edit(() => { heading.css.d['font-size'] = '41px'; });
+  expect(C.historyLabel('undo')).toBe('Change heading size');
+});
+
+test('a style paste is labelled Paste styles through undo and redo', () => {
+  const source = C.insert('heading', null, 0)!, target = C.insert('heading', null, 1)!;
+  source.css.d['font-size'] = '40px';
+  C.copyStyles(source.id);
+  C.hist.u.length = 0;
+  C.edit(() => { C.pasteStylesMany([target.id]); }, 'Paste styles');
+  expect(C.historyLabel('undo')).toBe('Paste styles');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Paste styles');
+});
