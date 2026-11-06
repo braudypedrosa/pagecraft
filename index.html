@@ -23671,7 +23671,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             C2.edit(() => {
               if (v3) C2.tsApply(n2, v3);
               else C2.tsUnlink(n2);
-            });
+            }, v3 ? "Apply text style" : "Detach text style");
           },
           children: [
             /* @__PURE__ */ u2("option", { value: "", children: "\u2014 None (styled directly) \u2014" }),
@@ -23699,7 +23699,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             class: "btn",
             title: "Keep the look, stop following the style",
             onClick: () => {
-              C2.edit(() => C2.tsUnlink(n2));
+              C2.edit(() => C2.tsUnlink(n2), "Detach text style");
               L2.toast("Detached \u2014 the look is now local");
             },
             children: "Detach"

@@ -831,7 +831,7 @@ function TstyleCtl({ n, c }: P) {
     <select class="ctl" value={cur ? cur.id : ''}
       onChange={e => {
         const v = (e.target as HTMLSelectElement).value;
-        C.edit(() => { if (v) C.tsApply(n, v); else C.tsUnlink(n); });
+        C.edit(() => { if (v) C.tsApply(n, v); else C.tsUnlink(n); }, v ? 'Apply text style' : 'Detach text style');
       }}>
       <option value="">— None (styled directly) —</option>
       {C.styles().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -847,7 +847,7 @@ function TstyleCtl({ n, c }: P) {
             onClick={push}>Update typography{!sitewide && used > 1 ? ` · ${used} uses` : ''}</button>
           <button class="btn"
             title="Keep the look, stop following the style"
-            onClick={() => { C.edit(() => C.tsUnlink(n)); L.toast('Detached — the look is now local'); }}>
+            onClick={() => { C.edit(() => C.tsUnlink(n), 'Detach text style'); L.toast('Detached — the look is now local'); }}>
             Detach</button>
         </>
         : <button class="btn"
