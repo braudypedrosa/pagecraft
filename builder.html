@@ -1888,6 +1888,13 @@ let dirty = false;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+/* Copied styles survive a project switch; core needs to know which project this is so a look
+   from another one pastes as values instead of linking to ids that mean something else here.
+   WordPress shares one design-token set across the site, so every page there is one project;
+   a single-file editor is one project per file. */
+setStyleClipProject(IS_WORDPRESS ? 'wordpress:' + location.host
+  : SRV && SRV.siteId ? 'cloud:' + SRV.siteId
+    : 'local:' + location.pathname);
 /* The package build replaces only this marked literal. Saved output must identify
    the renderer that actually produced it, never the server version that requested it. */
 const BUNDLED_COMPILER_CONTRACT = Object.freeze(

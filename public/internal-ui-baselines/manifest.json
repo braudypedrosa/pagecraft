@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-06T16:08:52.210Z",
+  "capturedAt": "2026-11-06T21:35:19.849Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -62,8 +62,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "e626cbf2f8f789114cc4a35c0d6a07b65282be2da210ee8200cc8d5c935c8e13",
+    "builder.html": "b944e6c401d5548b36b9192f30cac71696bf0420b6785cf2f443ebfcba994e46",
     "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
@@ -115,7 +115,7 @@
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
     "app/src/ui/inspector/Controls.tsx": "10b9539083f6daa3714a46d19c4cb4dff3fd172c23973181bcecda37ff108469",
-    "app/src/ui/inspector/Inspector.tsx": "a7d6b4700fdee8d6735f6e00217134e165281ed2f0795e096d7b55233deca53d",
+    "app/src/ui/inspector/Inspector.tsx": "427cb156c3ba7624f0a165381923cae0a7f6c96cdfd496ff266defd70253a6b4",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "2b2ab45b27d4517876f00326d6807b719becdeeda010606db1b1814c62017dd4",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "d8a314d9d9b51753fbbdb48cf2efec467c8d602ae60dc17542688fa94d52dd44",
+      "sha256": "390bccb7feea8b879695d8d0cd92a94c8543960943e317f201f3f77d81b7f67d",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

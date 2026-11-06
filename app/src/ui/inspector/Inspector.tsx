@@ -143,7 +143,7 @@ function ClipStrip() {
         Paste{many ? ' to ' + ids.length : ''}
       </button>
       <button class="x" title="Forget it"
-        onClick={() => { C.styleClip.css = null; repaint('right'); L.toast('Style clipboard cleared'); }}>
+        onClick={() => { C.styleClipClear(); repaint('right'); L.toast('Style clipboard cleared'); }}>
         <Icon name="trash" size={11} />
       </button>
     </div>

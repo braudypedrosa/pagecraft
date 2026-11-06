@@ -4347,6 +4347,90 @@ let styleClipClasses: StyleClass[] = [];
 let styleClipTextStyle: { id: string; css: Css } | null = null;
 let styleClipColors: { id: string; literal: string }[] = [];
 
+/* The clipboard outlives the page. Switching projects reloads the editor, and a look copied
+   in one project used to arrive in the next as "No styles copied yet". It is kept in this
+   browser's storage with the project it came from, so Paste knows whether the token, text
+   style and class ids it holds mean anything here. Storage is a convenience: when it is
+   missing, full or unreadable the clipboard keeps working in memory for this page. */
+const STYLE_CLIP_KEY = 'pagecraft.styleClip';
+const STYLE_CLIP_VERSION = 1;
+/** The project the open editor is editing. Set by the host before anything is copied. */
+let styleClipHere = '';
+/** The project the held look was copied in. */
+let styleClipProject = '';
+function setStyleClipProject(id: string) { styleClipHere = String(id || ''); }
+const styleClipStorage = (): Storage | null => {
+  try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; }
+};
+function styleClipSave() {
+  const store = styleClipStorage();
+  if (!store) return;
+  try {
+    if (!styleClip.css) { store.removeItem(STYLE_CLIP_KEY); return; }
+    store.setItem(STYLE_CLIP_KEY, JSON.stringify({
+      v: STYLE_CLIP_VERSION, project: styleClipProject, clip: styleClip, source: styleClipSource,
+      classes: styleClipClasses, textStyle: styleClipTextStyle, colors: styleClipColors
+    }));
+  } catch { /* quota or privacy mode: memory still holds it */ }
+}
+const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
+const isDecls = (x: unknown) => isObj(x) && Object.values(x).every(v => typeof v === 'string');
+const isCssShape = (x: unknown): x is Css => isObj(x) && (['d', 't', 'm'] as const).every(b => isDecls(x[b]));
+const isStatesShape = (x: unknown) => x === null || (isObj(x) && Object.values(x).every(v => v === undefined || isCssShape(v)));
+const isStrings = (x: unknown): x is string[] => Array.isArray(x) && x.every(v => typeof v === 'string');
+/** Read the stored clipboard. Anything malformed or from another version is dropped, never
+    half-applied: a wrong look pasted with confidence is worse than an empty clipboard. */
+function styleClipLoad() {
+  const store = styleClipStorage();
+  if (!store) return false;
+  let raw: string | null = null;
+  try { raw = store.getItem(STYLE_CLIP_KEY); } catch { return false; }
+  if (!raw) return false;
+  let data: any;
+  try { data = JSON.parse(raw); } catch { data = null; }
+  const c = data && data.clip, s = data && data.source;
+  const ok = isObj(data) && data.v === STYLE_CLIP_VERSION && typeof data.project === 'string'
+    && isObj(c) && isCssShape(c.css) && isStatesShape(c.st ?? null) && isStrings(c.cls)
+    && typeof c.ts === 'string' && typeof c.adv === 'string' && typeof c.from === 'string'
+    && isObj(s) && typeof s.id === 'string' && typeof s.type === 'string'
+    && Array.isArray(data.classes) && data.classes.every((x: any) => isObj(x) && typeof x.id === 'string'
+      && isCssShape(x.css) && isStatesShape(x.st ?? null))
+    && (data.textStyle === null || (isObj(data.textStyle) && typeof data.textStyle.id === 'string' && isCssShape(data.textStyle.css)))
+    && Array.isArray(data.colors) && data.colors.every((x: any) => isObj(x) && typeof x.id === 'string' && typeof x.literal === 'string');
+  if (!ok) {
+    try { store.removeItem(STYLE_CLIP_KEY); } catch { /* read-only storage */ }
+    return false;
+  }
+  const clip = data.clip as typeof styleClip, src = data.source as { id: string; type: string };
+  styleClip.css = clip.css; styleClip.st = clip.st ?? null; styleClip.cls = clip.cls;
+  styleClip.ts = clip.ts; styleClip.adv = clip.adv; styleClip.from = clip.from;
+  styleClipSource = { id: src.id, type: src.type, props: {}, css: clip.css!, st: clip.st ?? undefined, cls: clip.cls!,
+    hide: {}, adv: { htmlId: '', cls: '', css: '' }, children: [] } as unknown as PcNode;
+  styleClipClasses = data.classes;
+  styleClipTextStyle = data.textStyle;
+  styleClipColors = data.colors;
+  styleClipProject = data.project;
+  return true;
+}
+/** "Forget it": empties memory and storage, so a reload does not bring it back. */
+function styleClipClear() {
+  styleClip.css = null; styleClip.st = null; styleClip.cls = null;
+  styleClip.ts = ''; styleClip.adv = ''; styleClip.from = '';
+  styleClipSource = null; styleClipClasses = []; styleClipTextStyle = null; styleClipColors = [];
+  styleClipProject = '';
+  styleClipSave();
+}
+styleClipLoad();
+/* A copy in another tab of this editor reaches this one too. */
+try {
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('storage', e => {
+      if (e.key !== STYLE_CLIP_KEY) return;
+      if (!styleClipLoad() && e.newValue === null) styleClipClear();
+    });
+  }
+} catch { /* no window */ }
+
 function copyStyles(id: string) {
   const h = locate(id);
   if (!h) return false;
@@ -4391,6 +4475,8 @@ function copyStyles(id: string) {
   const ts = findStyle(styleClip.ts);
   styleClipTextStyle = ts ? { id: ts.id, css: clone(ts.css) } : null;
   styleClipColors = colors().map(c => ({ id: c.id, literal: resolveColor(cvar(c.id)) || 'transparent' }));
+  styleClipProject = styleClipHere;
+  styleClipSave();
   return true;
 }
 
@@ -4410,20 +4496,45 @@ const STYLE_PASTE_DELETED_CLASS_REASON = 'Copied styles use a deleted class. Cop
    changes made since Copy. The source envelope and missing definitions are copy-time snapshots;
    deleting or editing the live source cannot change what the clipboard holds. */
 type PreparedStylePaste = { css: Css; st: States | null; cls: string[]; ts: string; tsBake: Css | null; adv: string };
+/* Copied in another project: none of the clip's token, text style or class ids belong here,
+   and an id that happens to exist here names something else. Every reference is resolved
+   from the copy-time definitions instead — classes baked in through the same cascade replay
+   class deletion uses (states and devices included), the text style's typography baked in,
+   and every colour token replaced by its literal — so the result looks like the source and
+   links to nothing in this project. */
+const styleClipForeign = () => styleClipProject !== styleClipHere;
+function preparedForeignClassPaste(): { css: Css; st: States | null; cls: string[] } | null {
+  if (!styleClip.css || !styleClipSource) return null;
+  const ids = styleClip.cls || [];
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st); else delete source.st;
+  let ordered = clone(styleClipClasses);
+  source.cls = ids.filter(id => ordered.some(c => c.id === id));
+  for (const id of [...source.cls]) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length > 1) return null;
+    if (plan.nodes.length) source = plan.nodes[0].next;
+    else source.cls = (source.cls || []).filter(x => x !== id);
+    ordered = ordered.filter(c => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: [] };
+}
 function preparedStylePaste(): PreparedStylePaste | null {
-  const base = preparedClassPaste();
+  const foreign = styleClipForeign();
+  const base = foreign ? preparedForeignClassPaste() : preparedClassPaste();
   if (!base) return null;
   const css = clone(base.css), st = base.st ? clone(base.st) : null;
   let ts = styleClip.ts, tsBake: Css | null = null, adv = styleClip.adv;
   /* A text style deleted since Copy: paste its copy-time typography as the element's own,
      which is what deleting it did to the source. A reference to a style that is gone would
      render as plain text and come back to life if a style with that name is made later. */
-  if (ts && !findStyle(ts)) {
+  if (ts && (foreign || !findStyle(ts))) {
     tsBake = styleClipTextStyle && styleClipTextStyle.id === ts ? clone(styleClipTextStyle.css) : null;
     ts = '';
   }
   /* A colour token deleted since Copy becomes its copy-time literal, as it did everywhere else. */
-  const gone = styleClipColors.filter(c => !findColor(c.id));
+  const gone = foreign ? styleClipColors : styleClipColors.filter(c => !findColor(c.id));
   if (gone.length) {
     const fix = (value: string) => gone.reduce((v, c) => {
       const r = rewriteColorRefs(v, c.id, c.literal);
@@ -10929,6 +11040,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '') {
 }
 
 export { editContext, atEditContext };
+export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad, styleClipClear };
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,

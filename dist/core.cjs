@@ -103,6 +103,8 @@ __export(index_exports, {
   SLOT_LABEL: () => SLOT_LABEL,
   SRCSET_W: () => SRCSET_W,
   STATES: () => STATES,
+  STYLE_CLIP_KEY: () => STYLE_CLIP_KEY,
+  STYLE_CLIP_VERSION: () => STYLE_CLIP_VERSION,
   TABS_JS: () => TABS_JS,
   TEMPLATES: () => TEMPLATES,
   TEXT_SLOTS: () => TEXT_SLOTS,
@@ -406,6 +408,7 @@ __export(index_exports, {
   setCloudFormEndpoint: () => setCloudFormEndpoint,
   setCss: () => setCss,
   setMobileMenuMode: () => setMobileMenuMode,
+  setStyleClipProject: () => setStyleClipProject,
   showsNode: () => showsNode,
   sitePlan: () => sitePlan,
   sitemapXml: () => sitemapXml,
@@ -430,6 +433,8 @@ __export(index_exports, {
   stripTypo: () => stripTypo,
   styleAdd: () => styleAdd,
   styleClip: () => styleClip,
+  styleClipClear: () => styleClipClear,
+  styleClipLoad: () => styleClipLoad,
   styleDelete: () => styleDelete,
   stylePasteCheck: () => stylePasteCheck,
   styleSeen: () => styleSeen,
@@ -6243,6 +6248,118 @@ var styleClipSource = null;
 var styleClipClasses = [];
 var styleClipTextStyle = null;
 var styleClipColors = [];
+var STYLE_CLIP_KEY = "pagecraft.styleClip";
+var STYLE_CLIP_VERSION = 1;
+var styleClipHere = "";
+var styleClipProject = "";
+function setStyleClipProject(id) {
+  styleClipHere = String(id || "");
+}
+var styleClipStorage = () => {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+};
+function styleClipSave() {
+  const store = styleClipStorage();
+  if (!store) return;
+  try {
+    if (!styleClip.css) {
+      store.removeItem(STYLE_CLIP_KEY);
+      return;
+    }
+    store.setItem(STYLE_CLIP_KEY, JSON.stringify({
+      v: STYLE_CLIP_VERSION,
+      project: styleClipProject,
+      clip: styleClip,
+      source: styleClipSource,
+      classes: styleClipClasses,
+      textStyle: styleClipTextStyle,
+      colors: styleClipColors
+    }));
+  } catch {
+  }
+}
+var isObj = (x) => !!x && typeof x === "object" && !Array.isArray(x);
+var isDecls = (x) => isObj(x) && Object.values(x).every((v) => typeof v === "string");
+var isCssShape = (x) => isObj(x) && ["d", "t", "m"].every((b) => isDecls(x[b]));
+var isStatesShape = (x) => x === null || isObj(x) && Object.values(x).every((v) => v === void 0 || isCssShape(v));
+var isStrings = (x) => Array.isArray(x) && x.every((v) => typeof v === "string");
+function styleClipLoad() {
+  const store = styleClipStorage();
+  if (!store) return false;
+  let raw = null;
+  try {
+    raw = store.getItem(STYLE_CLIP_KEY);
+  } catch {
+    return false;
+  }
+  if (!raw) return false;
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    data = null;
+  }
+  const c = data && data.clip, s = data && data.source;
+  const ok = isObj(data) && data.v === STYLE_CLIP_VERSION && typeof data.project === "string" && isObj(c) && isCssShape(c.css) && isStatesShape(c.st ?? null) && isStrings(c.cls) && typeof c.ts === "string" && typeof c.adv === "string" && typeof c.from === "string" && isObj(s) && typeof s.id === "string" && typeof s.type === "string" && Array.isArray(data.classes) && data.classes.every((x) => isObj(x) && typeof x.id === "string" && isCssShape(x.css) && isStatesShape(x.st ?? null)) && (data.textStyle === null || isObj(data.textStyle) && typeof data.textStyle.id === "string" && isCssShape(data.textStyle.css)) && Array.isArray(data.colors) && data.colors.every((x) => isObj(x) && typeof x.id === "string" && typeof x.literal === "string");
+  if (!ok) {
+    try {
+      store.removeItem(STYLE_CLIP_KEY);
+    } catch {
+    }
+    return false;
+  }
+  const clip2 = data.clip, src = data.source;
+  styleClip.css = clip2.css;
+  styleClip.st = clip2.st ?? null;
+  styleClip.cls = clip2.cls;
+  styleClip.ts = clip2.ts;
+  styleClip.adv = clip2.adv;
+  styleClip.from = clip2.from;
+  styleClipSource = {
+    id: src.id,
+    type: src.type,
+    props: {},
+    css: clip2.css,
+    st: clip2.st ?? void 0,
+    cls: clip2.cls,
+    hide: {},
+    adv: { htmlId: "", cls: "", css: "" },
+    children: []
+  };
+  styleClipClasses = data.classes;
+  styleClipTextStyle = data.textStyle;
+  styleClipColors = data.colors;
+  styleClipProject = data.project;
+  return true;
+}
+function styleClipClear() {
+  styleClip.css = null;
+  styleClip.st = null;
+  styleClip.cls = null;
+  styleClip.ts = "";
+  styleClip.adv = "";
+  styleClip.from = "";
+  styleClipSource = null;
+  styleClipClasses = [];
+  styleClipTextStyle = null;
+  styleClipColors = [];
+  styleClipProject = "";
+  styleClipSave();
+}
+styleClipLoad();
+try {
+  if (typeof window !== "undefined" && window.addEventListener) {
+    window.addEventListener("storage", (e) => {
+      if (e.key !== STYLE_CLIP_KEY) return;
+      if (!styleClipLoad() && e.newValue === null) styleClipClear();
+    });
+  }
+} catch {
+}
 function copyStyles(id) {
   const h = locate(id);
   if (!h) return false;
@@ -6285,19 +6402,41 @@ function copyStyles(id) {
   const ts = findStyle(styleClip.ts);
   styleClipTextStyle = ts ? { id: ts.id, css: clone(ts.css) } : null;
   styleClipColors = colors().map((c) => ({ id: c.id, literal: resolveColor(cvar(c.id)) || "transparent" }));
+  styleClipProject = styleClipHere;
+  styleClipSave();
   return true;
 }
 var STYLE_PASTE_DELETED_CLASS_REASON = "Copied styles use a deleted class. Copy the source styles again.";
+var styleClipForeign = () => styleClipProject !== styleClipHere;
+function preparedForeignClassPaste() {
+  if (!styleClip.css || !styleClipSource) return null;
+  const ids = styleClip.cls || [];
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st);
+  else delete source.st;
+  let ordered = clone(styleClipClasses);
+  source.cls = ids.filter((id) => ordered.some((c) => c.id === id));
+  for (const id of [...source.cls]) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length > 1) return null;
+    if (plan.nodes.length) source = plan.nodes[0].next;
+    else source.cls = (source.cls || []).filter((x) => x !== id);
+    ordered = ordered.filter((c) => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: [] };
+}
 function preparedStylePaste() {
-  const base = preparedClassPaste();
+  const foreign = styleClipForeign();
+  const base = foreign ? preparedForeignClassPaste() : preparedClassPaste();
   if (!base) return null;
   const css = clone(base.css), st = base.st ? clone(base.st) : null;
   let ts = styleClip.ts, tsBake = null, adv = styleClip.adv;
-  if (ts && !findStyle(ts)) {
+  if (ts && (foreign || !findStyle(ts))) {
     tsBake = styleClipTextStyle && styleClipTextStyle.id === ts ? clone(styleClipTextStyle.css) : null;
     ts = "";
   }
-  const gone = styleClipColors.filter((c) => !findColor(c.id));
+  const gone = foreign ? styleClipColors : styleClipColors.filter((c) => !findColor(c.id));
   if (gone.length) {
     const fix = (value) => gone.reduce((v, c) => {
       const r = rewriteColorRefs(v, c.id, c.literal);
@@ -11974,6 +12113,8 @@ function proposalApply(changes, proposalId = "") {
   SLOT_LABEL,
   SRCSET_W,
   STATES,
+  STYLE_CLIP_KEY,
+  STYLE_CLIP_VERSION,
   TABS_JS,
   TEMPLATES,
   TEXT_SLOTS,
@@ -12277,6 +12418,7 @@ function proposalApply(changes, proposalId = "") {
   setCloudFormEndpoint,
   setCss,
   setMobileMenuMode,
+  setStyleClipProject,
   showsNode,
   sitePlan,
   sitemapXml,
@@ -12301,6 +12443,8 @@ function proposalApply(changes, proposalId = "") {
   stripTypo,
   styleAdd,
   styleClip,
+  styleClipClear,
+  styleClipLoad,
   styleDelete,
   stylePasteCheck,
   styleSeen,
