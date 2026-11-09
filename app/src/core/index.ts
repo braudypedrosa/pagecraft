@@ -10350,13 +10350,18 @@ const NAV_JS = `<script>
 var b=w.querySelector('[data-nav-t]'),list=w.querySelector('[data-nav-l]');if(!b||!list)return;
 // A flyout opens to the right; near the right edge of the window it opens the other way instead,
 // outermost first, so a deeper level is measured from where its parent actually landed.
+// Once a flyout has turned back, the levels under it keep going that way while there is room:
+// opening right again would land on top of the level the pointer came from.
 function edge(e){
- var chain=[],li=e.target&&e.target.closest?e.target.closest('li'):null;
+ var chain=[],back=false,li=e.target&&e.target.closest?e.target.closest('li'):null;
  while(li&&list.contains(li)){chain.unshift(li);li=li.parentElement&&li.parentElement.closest('li');}
  chain.forEach(function(item){
   var sub=null;for(var i=0;i<item.children.length;i++)if(item.children[i].classList.contains('sub-menu'))sub=item.children[i];
   if(!sub)return;sub.classList.remove('is-flipped');
-  var r=sub.getBoundingClientRect();if(r.width&&r.right>document.documentElement.clientWidth)sub.classList.add('is-flipped');
+  var r=sub.getBoundingClientRect(),nested=!!(item.parentElement&&item.parentElement.classList.contains('sub-menu'));
+  if(r.width&&r.right>document.documentElement.clientWidth)sub.classList.add('is-flipped');
+  else if(r.width&&back&&nested){sub.classList.add('is-flipped');if(sub.getBoundingClientRect().left<0)sub.classList.remove('is-flipped');}
+  back=nested&&sub.classList.contains('is-flipped');
  });
 }
 list.addEventListener('mouseover',edge);list.addEventListener('focusin',edge);

@@ -264,3 +264,46 @@ test('a flyout that would pass the right edge of the window opens the other way'
   expect(css).toContain('.pagecraft-nav-list .sub-menu .sub-menu.is-flipped{left:auto;right:100%}');
   expect(css).toContain('.pagecraft-nav-list .sub-menu.is-flipped{left:auto;right:0}');
 });
+
+test('a fourth level under a flyout that turned back keeps going that way instead of covering the second', () => {
+  const deep = [
+    { id: 'story', label: 'Our story', href: '#story' },
+    { id: 'two', parentId: 'story', label: 'Right level two', href: '#two' },
+    { id: 'three', parentId: 'two', label: 'Right level three', href: '#three' },
+    { id: 'four', parentId: 'three', label: 'Right level four', href: '#four' }
+  ];
+  const dom = new JSDOM(`<html><body><header>${C.renderNode(C.N('nav', { aria: 'Primary', items: deep }), { edit: false })}</header></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/' });
+  windows.push(dom);
+  const w = dom.window, d = w.document;
+  w.addEventListener('error', event => { runtimeErrors.push(event.message); event.preventDefault(); });
+  Object.defineProperty(d.documentElement, 'clientWidth', { configurable: true, value: 1013 });
+  w.eval(C.NAV_JS.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, ''));
+  const [second, third, fourth] = d.querySelectorAll('.sub-menu');
+  /* the measured boxes from the Stillwood header in a 1013px Preview on staging */
+  const rect = (left, right) => () => ({ left, right, width: right - left, top: 0, bottom: 40, height: 40 });
+  const flipped = el => el.classList.contains('is-flipped');
+  second.getBoundingClientRect = rect(754, 944);
+  third.getBoundingClientRect = () => flipped(third) ? rect(572, 762)() : rect(936, 1126)();
+  /* unflipped it opens right of the third level, exactly over the second (754-944) */
+  fourth.getBoundingClientRect = () => flipped(fourth) ? rect(390, 580)() : rect(754, 944)();
+  const four = [...d.querySelectorAll('a')].find(a => a.textContent === 'Right level four');
+  four.dispatchEvent(new w.MouseEvent('mouseover', { bubbles: true }));
+  expect(flipped(second)).toBe(false);
+  expect(flipped(third)).toBe(true);
+  expect(flipped(fourth), 'fits on the right, but that is where the second level is').toBe(true);
+
+  /* no room left of the third level: opening over the second beats leaving the window */
+  third.getBoundingClientRect = () => flipped(third) ? rect(120, 310)() : rect(936, 1126)();
+  fourth.getBoundingClientRect = () => flipped(fourth) ? rect(-62, 128)() : rect(302, 492)();
+  four.dispatchEvent(new w.FocusEvent('focusin', { bubbles: true }));
+  expect(flipped(third)).toBe(true);
+  expect(flipped(fourth)).toBe(false);
+
+  /* a chain that never turned back is left alone */
+  Object.defineProperty(d.documentElement, 'clientWidth', { configurable: true, value: 1600 });
+  third.getBoundingClientRect = rect(936, 1126);
+  fourth.getBoundingClientRect = rect(1118, 1308);
+  four.dispatchEvent(new w.MouseEvent('mouseover', { bubbles: true }));
+  expect([second, third, fourth].some(flipped)).toBe(false);
+  expect(runtimeErrors).toEqual([]);
+});
