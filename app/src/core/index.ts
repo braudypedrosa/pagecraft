@@ -5399,8 +5399,17 @@ const animUsed = (lists: PcNode[][]) => {
 };
 /* `bp-animate` starts its elements hidden, so a visitor who has asked for less motion would be
    left with a blank page if the library were simply neutralised. Shown outright, unanimated. */
+/* An element waiting to animate is already where its animation starts from: slide-right sits
+   50px to the right, zoom-out is half as big again. On anything as wide as the page that is
+   past the right edge, so the whole page scrolled sideways until the element had come into
+   view and settled, and again each time a repeating one left. The page is clipped only while
+   something is still waiting or playing, so a page whose motion has finished behaves exactly
+   as one without any, and real overflow is not hidden for good. It rides with ANIM_CALM
+   because the two always ship together, on a page that moves and nowhere else. */
+const ANIM_EDGE = `html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}`;
 const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
-  + `.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`;
+  + `.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`
+  + ANIM_EDGE;
 
 /* ---- renaming a page, and choosing the front one --------------------
    A host serves `index.html` at the root, so the front page is not a flag — it is whichever

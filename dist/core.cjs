@@ -7175,7 +7175,8 @@ var animUsed = (lists) => {
   }));
   return hit;
 };
-var ANIM_CALM = `@media (prefers-reduced-motion:reduce){.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`;
+var ANIM_EDGE = `html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}`;
+var ANIM_CALM = `@media (prefers-reduced-motion:reduce){.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}` + ANIM_EDGE;
 function relink(from, to) {
   if (!from || from === to) return 0;
   let n = 0;

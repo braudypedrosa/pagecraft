@@ -1055,6 +1055,21 @@ test('reduced motion shows the element rather than freezing it hidden', () => {
   a.match(guard, /animation:none !important/);
 });
 
+test('a page that moves is clipped sideways only while something waits or plays', () => {
+  /* slide-right rests 50px to the right until it has played, so a full-width element made the
+     whole page scroll sideways; found on staging at 1026-1221px of a 1013px window */
+  blank();
+  const still = C.buildPage(C.state.pages[0]);
+  a.doesNotMatch(still, /overflow-x:clip/, 'a page with no motion carries no clip');
+
+  const n = insert('section', null, 0);
+  n.anim = { name: 'slide-right' };
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /\.pc-slide-right[^{]*\{opacity:0;transform:translateX\(50px\)\}/, 'the resting offset this guards');
+  a.ok(html.includes('html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}'));
+  a.doesNotMatch(html, /html\{[^}]*overflow-x/, 'never an unconditional clip that would hide real overflow');
+});
+
 test('the vendored library is pinned, so what ships is known', () => {
   a.match(C.ANIM_SHA, /^[0-9a-f]{40}$/);
   a.equal(C.ANIM_PFX, 'pc-');

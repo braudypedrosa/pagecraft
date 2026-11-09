@@ -53,6 +53,29 @@ function dispatchAnimationEnd(dom: JSDOM, target: Element, animationName: string
   target.dispatchEvent(event);
 }
 
+describe('sideways clip while motion is pending', () => {
+  const pending = 'html:has(.bp-animate:not(.bp-is-done-animating))';
+  test('matches until the element has finished, and again when a repeating one leaves', async () => {
+    const { dom, element, observer } = await runtime('slide-right');
+    const clipped = () => !!dom.window.document.querySelector(pending);
+    expect(clipped(), 'waiting off to the right').toBe(true);
+    observer.enter(element);
+    expect(clipped(), 'playing').toBe(true);
+    dispatchAnimationEnd(dom, element, 'bpSlideRight');
+    expect(element.classList.contains('bp-is-done-animating')).toBe(true);
+    expect(clipped(), 'settled: the page is itself again').toBe(false);
+    observer.leave(element);
+    observer.enter(element);
+    expect(clipped(), 'a repeat plays from the offset again').toBe(true);
+  });
+
+  test('reduced motion settles at once, so nothing stays clipped', async () => {
+    const { dom, element, observer } = await runtime('zoom-out', {}, '', { reduced: true });
+    observer.enter(element);
+    expect(dom.window.document.querySelector(pending)).toBeNull();
+  });
+});
+
 describe('exported animation runtime timing overrides', () => {
   test('delay-only Bounce keeps its 1s preset duration and honours Once', async () => {
     const { dom, element, observer } = await runtime('bounce', {
