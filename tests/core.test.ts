@@ -3227,6 +3227,79 @@ test('a button whose bound label is empty for an item is reviewed as having no l
   a.equal(find(C.lint(), 'empty-button-bound').length, 0, 'a filled value clears the finding');
 });
 
+test('a heading whose bound text is empty for an item is reviewed as an empty heading', () => {
+  blank();
+  C.state.meta.components = [];
+  const teams = collectionAdd('Teams');
+  const authors = collectionAdd('Authors');
+  const team = must(C.fieldAdd(authors.id, 'Team', 'ref'), 'team field');
+  team.ref = teams.id;
+  const posts = collectionAdd('Posts');
+  const author = must(C.fieldAdd(posts.id, 'Author', 'ref'), 'author field');
+  author.ref = authors.id;
+  const cedar = itemAdd(teams.id);
+  C.itemSet(teams.id, cedar.id, 'title', 'Team Cedar');
+  const gone = itemAdd(teams.id);
+  C.itemSet(teams.id, gone.id, 'title', 'Team Birch');
+  const writer = (name: string, teamId: string) => {
+    const item = itemAdd(authors.id);
+    C.itemSet(authors.id, item.id, 'title', name);
+    C.itemSet(authors.id, item.id, team.id, teamId);
+    return item;
+  };
+  const ada = writer('Ada', cedar.id), ben = writer('Ben', gone.id);
+  const post = (title: string, authorId: string) => {
+    const item = itemAdd(posts.id);
+    C.itemSet(posts.id, item.id, 'title', title);
+    C.itemSet(posts.id, item.id, author.id, authorId);
+  };
+  post('Kept post', ada.id);
+  post('Orphaned post', ben.id);
+
+  const direct = C.N('heading', { text: 'Fallback words' });
+  C.bindSet(direct, 'text', C.bindField(`${author.id}.${team.id}.title`));
+  C.state.meta.components.push({
+    id: 'team-heading', name: 'Team heading', node: (() => {
+      const root = C.N('heading', { text: 'Default heading' });
+      C.bindSet(root, 'text', { src: 'prop', path: 'words' });
+      return root;
+    })(),
+    props: [{ k: 'words', label: 'Words', t: 'text', def: 'Default heading' }]
+  });
+  const instance = C.N('heading', { text: 'Default heading' });
+  instance.use = 'team-heading';
+  C.bindSet(instance, 'text', { src: 'prop', path: 'words' });
+  C.bindSet(instance, C.VAL + 'words', C.bindField(`${author.id}.${team.id}.title`));
+  const steady = C.N('heading', { text: 'Always here' });
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [direct, instance, steady])]);
+  C.srcSet(list, posts.id);
+  C.state.pages[0].tree = [C.N('section', {}, {}, [list])];
+
+  a.equal(find(C.lint(), 'empty-heading-bound').length, 0, 'two hops resolve while both targets exist');
+
+  /* the second hop's target goes: only that entry's rows read empty */
+  C.itemDelete(teams.id, gone.id);
+  const bound = find(C.lint(), 'empty-heading-bound');
+  a.deepEqual(bound.map(row => row.nodeId).sort(), [direct.id, instance.id].sort(),
+    'the bound heading and the placed component are each reported once');
+  for (const row of bound) {
+    a.equal(row.level, 'warn');
+    a.match(row.msg, /Orphaned post/);
+    a.doesNotMatch(row.msg, /Kept post”/);
+  }
+  a.match(C.buildPage(C.state.pages[0]), /<h2[^>]*><\/h2>/, 'the published row really is an empty heading');
+
+  /* a draft in the middle reads as no value too, and publishing it clears the finding */
+  const birch = itemAdd(teams.id);
+  C.itemSet(teams.id, birch.id, 'title', 'Team Birch');
+  C.itemSet(authors.id, ben.id, team.id, birch.id);
+  a.equal(find(C.lint(), 'empty-heading-bound').length, 0, 'a live target clears the finding');
+  C.itemDraft(teams.id, birch.id, true);
+  a.equal(find(C.lint(), 'empty-heading-bound').length, 2);
+  C.itemDraft(teams.id, birch.id, false);
+  a.equal(find(C.lint(), 'empty-heading-bound').length, 0);
+});
+
 test('image review retains nested repeated item paths and an explicit global scope', () => {
   blank();
   const outer = collectionAdd('Neighbourhoods');

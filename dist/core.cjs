@@ -6131,6 +6131,17 @@ function lint() {
             scoped
           );
         }
+        if (n.type === "heading" && String(n.props.text || "").trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || "").trim()) queueContext(
+            "warn",
+            "empty-heading-bound",
+            `A heading in the ${region} gets its text from content that is empty, so it publishes as an empty heading.`,
+            region,
+            n,
+            scoped
+          );
+        }
         if (bindGet(n, "link")) {
           const h = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).link || "").trim();
           const problem = h && h !== "#" && h !== "cms:item" && !h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX) ? linkProblem(h, region) : null;

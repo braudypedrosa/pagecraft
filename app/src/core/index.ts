@@ -4225,6 +4225,16 @@ function lint() {
             region, n, scoped);
         }
 
+        /* The same gap for a heading: an entry with no value, or a reference whose target was
+           deleted or is still a draft, publishes an empty heading tag. A screen reader still
+           announces a heading there, so it is worth a look even though nothing is broken. */
+        if (n.type === 'heading' && String(n.props.text || '').trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || '').trim()) queueContext('warn', 'empty-heading-bound',
+            `A heading in the ${region} gets its text from content that is empty, so it publishes as an empty heading.`,
+            region, n, scoped);
+        }
+
         /* The static pass reviews the authored link, which a binding replaces. A component
            property or a CMS Link field supplies the href that is published, so review that
            one, once per item. */
