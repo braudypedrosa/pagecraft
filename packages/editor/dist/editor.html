@@ -8240,9 +8240,29 @@ function applyPastedStyle(id, prepared) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(prepared.css);
-  if (prepared.st) n.st = clone(prepared.st);
-  else delete n.st;
+  const sourceType = styleClipSource ? styleClipSource.type : "";
+  if (sourceType && sourceType !== n.type) {
+    const over = (own, pasted) => {
+      const out = clone(own || { d: {}, t: {}, m: {} });
+      ["d", "t", "m"].forEach((b) => {
+        out[b] = { ...out[b] || {}, ...clone(pasted[b] || {}) };
+      });
+      return out;
+    };
+    n.css = over(n.css, prepared.css);
+    if (prepared.st) {
+      const st = n.st ? clone(n.st) : {};
+      STATES.forEach(([k]) => {
+        const pasted = prepared.st[k];
+        if (pasted) st[k] = over(st[k], pasted);
+      });
+      n.st = st;
+    }
+  } else {
+    n.css = clone(prepared.css);
+    if (prepared.st) n.st = clone(prepared.st);
+    else delete n.st;
+  }
   n.cls = [...prepared.cls];
   if (n.adv) n.adv.css = prepared.adv;
   if (ctlKeys(n.type).has("ts")) {

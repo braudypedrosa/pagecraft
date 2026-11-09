@@ -4600,8 +4600,27 @@ function applyPastedStyle(id: string, prepared: PreparedStylePaste) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(prepared.css);
-  if (prepared.st) n.st = clone(prepared.st); else delete n.st;
+  /* Between two elements of one kind a paste is a copy: the target ends up styled exactly like
+     the source. Onto a different kind it is laid over what is there, so the target keeps every
+     setting the copy does not carry. A Button has no image fit, form columns or icon size, and
+     replacing outright dropped them: a hero photo lost its position and the hero collapsed. */
+  const sourceType = styleClipSource ? styleClipSource.type : '';
+  if (sourceType && sourceType !== n.type) {
+    const over = (own: Css | undefined, pasted: Css): Css => {
+      const out = clone(own || { d: {}, t: {}, m: {} }) as Css;
+      (['d', 't', 'm'] as Bp[]).forEach(b => { out[b] = { ...(out[b] || {}), ...clone(pasted[b] || {}) }; });
+      return out;
+    };
+    n.css = over(n.css, prepared.css);
+    if (prepared.st) {
+      const st = (n.st ? clone(n.st) : {}) as States;
+      STATES.forEach(([k]) => { const pasted = prepared.st![k]; if (pasted) st[k] = over(st[k], pasted); });
+      n.st = st;
+    }
+  } else {
+    n.css = clone(prepared.css);
+    if (prepared.st) n.st = clone(prepared.st); else delete n.st;
+  }
   n.cls = [...prepared.cls];
   if (n.adv) n.adv.css = prepared.adv;
   if (ctlKeys(n.type).has('ts')) {
