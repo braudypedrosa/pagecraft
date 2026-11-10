@@ -23,7 +23,9 @@ by Supabase, encrypts the archive with AES-256-CBC/PBKDF2 before upload, and ret
 GitHub artifact for 30 days. Missing secrets, empty dump files, encryption failure, or upload
 failure makes the job fail.
 
-For a local backup with the same format:
+For a local backup with the same format, use Supabase CLI 2.104.0, Docker and Python 3.
+The backup uses the pinned CLI's dump filters and runs the PostgreSQL tools as the backup
+login.
 
 ```sh
 SUPABASE_DB_URL='postgresql://...' \

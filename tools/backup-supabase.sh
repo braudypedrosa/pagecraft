@@ -12,6 +12,17 @@ command -v supabase >/dev/null 2>&1 || {
   echo "Supabase CLI is required." >&2
   exit 1
 }
+supabase_version="$(supabase --version)"
+if [[ "$supabase_version" != "2.104.0" ]]; then
+  echo "Supabase CLI 2.104.0 is required for the backup dump templates." >&2
+  exit 1
+fi
+for command in docker python3; do
+  command -v "$command" >/dev/null 2>&1 || {
+    echo "$command is required." >&2
+    exit 1
+  }
+done
 command -v openssl >/dev/null 2>&1 || {
   echo "OpenSSL is required." >&2
   exit 1
@@ -41,21 +52,52 @@ cleanup() {
 }
 trap cleanup EXIT
 
-supabase db dump --db-url "$SUPABASE_DB_URL" --file "$work_dir/roles.sql" --role-only
-supabase db dump --db-url "$SUPABASE_DB_URL" --file "$work_dir/schema.sql"
-supabase db dump \
-  --db-url "$SUPABASE_DB_URL" \
-  --file "$work_dir/history_schema.sql" \
+umask 077
+python3 - "$work_dir/pg.env" <<'PY'
+import os
+import sys
+from urllib.parse import parse_qs, unquote, urlsplit
+
+url = urlsplit(os.environ["SUPABASE_DB_URL"])
+if url.scheme not in ("postgres", "postgresql") or not all((url.hostname, url.username, url.password)):
+    raise SystemExit("A PostgreSQL connection URL with a user and password is required.")
+settings = {
+    "PGHOST": url.hostname,
+    "PGPORT": str(url.port or 5432),
+    "PGUSER": unquote(url.username),
+    "PGPASSWORD": unquote(url.password),
+    "PGDATABASE": unquote(url.path[1:]) or "postgres",
+    "PGSSLMODE": parse_qs(url.query).get("sslmode", ["require"])[0],
+}
+if any("\n" in value or "\r" in value for value in settings.values()):
+    raise SystemExit("Connection settings cannot contain line breaks.")
+with open(sys.argv[1], "w") as config:
+    for key, value in settings.items():
+        config.write(f"{key}={value}\n")
+PY
+
+# Retain the pinned CLI's dump filters and SQL formatting. Its templates assume the
+# postgres administrator, so drop that role switch and connect as the backup login.
+dump() {
+  local output="$1" template="$work_dir/dump.sh"
+  shift
+  supabase db dump --dry-run --db-url postgresql://backup@127.0.0.1:5432/postgres "$@" |
+    sed -E \
+      -e '/^export PG(HOST|PORT|USER|PASSWORD|DATABASE)=/d' \
+      -e '/^[[:space:]]+--role "postgres" \\$/d' > "$template"
+  docker run --rm -i --env-file "$work_dir/pg.env" --entrypoint /bin/bash \
+    ghcr.io/supabase/postgres:17.6.1.132 -s < "$template" > "$work_dir/$output"
+}
+
+dump roles.sql --role-only
+dump schema.sql
+dump history_schema.sql \
   --schema supabase_migrations
-supabase db dump \
-  --db-url "$SUPABASE_DB_URL" \
-  --file "$work_dir/history_data.sql" \
+dump history_data.sql \
   --use-copy \
   --data-only \
   --schema supabase_migrations
-supabase db dump \
-  --db-url "$SUPABASE_DB_URL" \
-  --file "$work_dir/data.sql" \
+dump data.sql \
   --use-copy \
   --data-only \
   --exclude "storage.buckets_vectors" \
@@ -63,14 +105,10 @@ supabase db dump \
 
 # The CLI performs separate logical dumps. Re-read the schema and migration ledger after the
 # data snapshot and abort if a deployment crossed the backup window.
-supabase db dump --db-url "$SUPABASE_DB_URL" --file "$work_dir/schema.verify.sql"
-supabase db dump \
-  --db-url "$SUPABASE_DB_URL" \
-  --file "$work_dir/history_schema.verify.sql" \
+dump schema.verify.sql
+dump history_schema.verify.sql \
   --schema supabase_migrations
-supabase db dump \
-  --db-url "$SUPABASE_DB_URL" \
-  --file "$work_dir/history_data.verify.sql" \
+dump history_data.verify.sql \
   --use-copy \
   --data-only \
   --schema supabase_migrations
@@ -108,7 +146,7 @@ done
   "${checksum[@]}" roles.sql schema.sql data.sql history_schema.sql history_data.sql > SHA256SUMS
   printf 'created_utc=%s\nsupabase_cli=%s\n' \
     "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
-    "$(supabase --version)" > MANIFEST
+    "$supabase_version" > MANIFEST
   tar -czf backup.tar.gz \
     roles.sql schema.sql data.sql history_schema.sql history_data.sql SHA256SUMS MANIFEST
 )
