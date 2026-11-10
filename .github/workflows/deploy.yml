@@ -23,7 +23,7 @@ jobs:
       - run: node tools/demo-site.mjs
       - run: python3 -m unittest discover -s tools/deploy -p 'test_*.py'
       - run: python3 tools/deploy/bundle.py "$GITHUB_SHA" "$GITHUB_REF_NAME" release.tar.gz
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release
           path: release.tar.gz
