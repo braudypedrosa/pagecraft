@@ -41,12 +41,19 @@ const splitGradient = (value: string) => {
   if (part.trim()) parts.push(part.trim());
   const anglePart = /^(-?\d+(?:\.\d+)?)deg$/i.exec(parts[0] || '');
   const angle = anglePart ? Number(anglePart[1]) : 180;
-  const colors = (anglePart ? parts.slice(1) : parts).slice(0, 2).map(raw => {
-    const value = raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, '');
-    return C.parseColor(C.resolveColor(value) || value);
-  });
+  const raws = (anglePart ? parts.slice(1) : parts).slice(0, 2).map(raw => raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, ''));
+  const colors = raws.map(value => C.parseColor(C.resolveColor(value) || value));
+  /* A stop written as a colour token stays one. The picker works in rgb, so the link is
+     carried beside the colour and written back for every stop that was not itself edited. */
   return colors.length === 2 && colors.every(Boolean)
-    ? { angle, stops: colors as Rgba[] } : null;
+    ? { angle, stops: colors as Rgba[], refs: raws.map(value => liveRef(value)) } : null;
+};
+const tokenName = (ref: string) => C.findColor(C.refId(ref) || '')?.name || '';
+/** `var(--c-…)` when it names a colour token this project has, otherwise nothing. */
+const liveRef = (value: string) => {
+  const raw = String(value || '').trim();
+  const id = C.isRef(raw) ? C.refId(raw) : '';
+  return id && C.findColor(id) ? C.cvar(id) : '';
 };
 
 /** A 2-D or 1-D drag surface. The three strips differ only in what they read from a
@@ -85,9 +92,11 @@ function Surface(
 }
 
 export function ColorPop(
-  { start, gradient, anchor, onLive, onDone, onClose }:
+  { start, startRef, gradient, anchor, onLive, onDone, onClose }:
   {
     start: string;
+    /** the colour token the solid colour is linked to, so a new gradient starts linked too */
+    startRef?: string;
     gradient?: { start: string; onLive: (css: string) => void; onDone: (css: string) => void };
     anchor: HTMLElement;
     onLive: (css: string) => void;
@@ -105,6 +114,7 @@ export function ColorPop(
   const [mode, setMode] = useState<'solid' | 'gradient'>(parsedGradient ? 'gradient' : 'solid');
   const [solid, setSolid] = useState<Rgba>(first);
   const [stops, setStops] = useState<Rgba[]>(parsedGradient?.stops || [first, fallbackStop]);
+  const [refs, setRefs] = useState<string[]>(parsedGradient?.refs || [liveRef(startRef || ''), '']);
   const [activeStop, setActiveStop] = useState(0);
   const [angle, setAngle] = useState(parsedGradient?.angle ?? 135);
   const [hue, setHue] = useState(C.rgb2hsv(first).h);
@@ -132,13 +142,18 @@ export function ColorPop(
      eyedropper carries its own — so the strip follows rgb whenever rgb has a hue to give. */
   const h = hsv.s > 0.004 && hsv.v > 0.004 ? hsv.h : hue;
 
-  const gradientCss = (nextStops = stops, nextAngle = angle) =>
-    `linear-gradient(${nextAngle}deg, ${C.fmtColor(nextStops[0])}, ${C.fmtColor(nextStops[1])})`;
+  /* What is saved keeps the token; what is drawn in the editor's own chrome cannot, because the
+     project's colour variables are not defined out here. */
+  const gradientCss = (nextStops = stops, nextAngle = angle, nextRefs = refs) =>
+    `linear-gradient(${nextAngle}deg, ${nextRefs[0] || C.fmtColor(nextStops[0])}, ${nextRefs[1] || C.fmtColor(nextStops[1])})`;
+  const previewCss = () => `linear-gradient(${angle}deg, ${C.fmtColor(stops[0])}, ${C.fmtColor(stops[1])})`;
   const put = (next: Rgba, commit?: boolean) => {
     if (mode === 'gradient' && gradient) {
       const nextStops = stops.map((stop, index) => index === activeStop ? next : stop);
-      setStops(nextStops);
-      (commit ? gradient.onDone : gradient.onLive)(gradientCss(nextStops));
+      /* choosing a colour by hand unlinks that stop, as it does a solid colour; the other stays */
+      const nextRefs = refs.map((ref, index) => index === activeStop ? '' : ref);
+      setStops(nextStops); setRefs(nextRefs);
+      (commit ? gradient.onDone : gradient.onLive)(gradientCss(nextStops, angle, nextRefs));
     } else {
       setSolid(next);
       (commit ? onDone : onLive)(C.fmtColor(next));
@@ -146,6 +161,15 @@ export function ColorPop(
   };
   const fromHsv = (s: number, v: number, hh = h, a = rgba.a, commit?: boolean) =>
     put({ ...C.hsv2rgb({ h: hh, s, v }), a }, commit);
+  const tokens = gradient ? C.colors().filter(token => C.parseColor(C.resolveColor(C.cvar(token.id)) || token.value)) : [];
+  const linkStop = (id: string) => {
+    const colour = C.parseColor(C.resolveColor(C.cvar(id)) || '');
+    if (!colour || !gradient) return;
+    const nextStops = stops.map((stop, index) => index === activeStop ? colour : stop);
+    const nextRefs = refs.map((ref, index) => index === activeStop ? C.cvar(id) : ref);
+    setStops(nextStops); setRefs(nextRefs); setHue(C.rgb2hsv(colour).h);
+    gradient.onDone(gradientCss(nextStops, angle, nextRefs));
+  };
 
   /* Escape closes, and an outside pointerdown closes — but not one that landed inside the
      popover, and not the click on the swatch that opened it, which would otherwise reopen
@@ -190,7 +214,8 @@ export function ColorPop(
      horizontally. A colour field near the bottom of a long inspector is the common case,
      not the edge case. */
   const r = anchor.getBoundingClientRect();
-  const W = 232, H = gradient ? 330 : 244;
+  const tokenRows = Math.ceil(tokens.length / 9);
+  const W = 232, H = gradient ? 330 + (tokenRows ? tokenRows * 24 + 22 : 0) : 244;
   const below = window.innerHeight - r.bottom > H + 12;
   const style = {
     left: Math.round(Math.min(Math.max(8, r.left), window.innerWidth - W - 8)) + 'px',
@@ -228,11 +253,13 @@ export function ColorPop(
       </div> : null}
 
       {mode === 'gradient' ? <div class="cp-gradient">
-        <div class="cp-gradient-preview" style={{ background: gradientCss() }} />
+        <div class="cp-gradient-preview" style={{ background: previewCss() }} />
         <div class="cp-stops" role="group" aria-label="Gradient colour stop">
           {stops.map((stop, index) => <button type="button" key={index}
             class={activeStop === index ? 'on' : ''} aria-pressed={activeStop === index}
-            aria-label={'Edit gradient colour ' + (index + 1)}
+            aria-label={'Edit gradient colour ' + (index + 1)
+              + (refs[index] ? ', linked to the ' + tokenName(refs[index]) + ' token' : '')}
+            title={refs[index] ? 'Linked to the ' + tokenName(refs[index]) + ' token' : undefined}
             onClick={() => { setActiveStop(index); setHue(C.rgb2hsv(stop).h); }}>
             <i style={{ background: C.fmtColor(stop) }} />
           </button>)}
@@ -247,6 +274,15 @@ export function ColorPop(
             </select>
           </label>
         </div>
+        {tokens.length ? <div class="cp-tokens" role="group" aria-label={'Colour token for gradient colour ' + (activeStop + 1)}>
+          <span>Token</span>
+          {tokens.map(token => <button type="button" key={token.id}
+            class={refs[activeStop] === C.cvar(token.id) ? 'on' : ''} aria-pressed={refs[activeStop] === C.cvar(token.id)}
+            title={'Link this colour to ' + token.name} aria-label={'Link this colour to the ' + token.name + ' token'}
+            onClick={() => linkStop(token.id)}>
+            <i style={{ background: C.resolveColor(C.cvar(token.id)) || token.value }} />
+          </button>)}
+        </div> : null}
       </div> : null}
 
       <Surface cls="cp-sv" aria={'Saturation and brightness'}

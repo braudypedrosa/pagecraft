@@ -349,6 +349,8 @@ function ColorCtl({ n, c }: P) {
      in place; new gradients use background-image, which does not wipe size or position. */
   const gradientControl: Control = { ...c, c: /^linear-gradient\(/i.test(shorthandPaint) ? 'background' : 'background-image', label: 'Gradient' };
   const gradientWriter = writer(n, gradientControl);
+  /* the swatch is drawn in the editor's chrome, where the project's colour variables do not exist */
+  const gradientShown = gradientValue.replace(/var\(\s*--c-[^)]+\)/g, ref => C.resolveColor(ref) || ref);
   /* The anchor rather than a boolean: the popover is positioned from the swatch's own
      rect, and holding the element is what lets it also tell an outside pointerdown from
      the click that opened it. */
@@ -389,7 +391,7 @@ function ColorCtl({ n, c }: P) {
           system's dialog: no alpha, and a panel that looks like nothing else here. */}
       <button class="sw" title="Pick a colour" aria-haspopup="dialog" aria-expanded={pop ? 'true' : 'false'}
         onClick={e => pop ? document.dispatchEvent(new Event('pagecraft:outside-pointer')) : setPop(e.currentTarget as HTMLElement)}>
-        <i style={{ background: gradientValue || lit || 'transparent' }} />
+        <i style={{ background: gradientShown || lit || 'transparent' }} />
       </button>
       {pop ? (
         /* picking a literal breaks any token link, which is why this writes through the
@@ -403,7 +405,7 @@ function ColorCtl({ n, c }: P) {
            Through `resolveColor`, because what it inherits is usually a token reference and
            `var(--c-muted)` is not a colour any parser can read — without it the fallback
            landed back on black, which is the thing it was meant to fix. */
-        <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} anchor={pop}
+        <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} startRef={tok ? v : ''} anchor={pop}
           gradient={c.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : undefined}
           onLive={liveColour}
           onDone={hardColour}

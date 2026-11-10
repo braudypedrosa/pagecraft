@@ -930,6 +930,12 @@ select.ctl{
 .cp-stops>button i{display:block;width:100%;height:100%;border-radius:2px}
 .cp-stops label{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:var(--sp-3);font:var(--pc-type-label);color:var(--text-3)}
 .cp-stops .ctl{height:26px;padding:4px 22px 4px 6px;font:var(--pc-type-label)}
+.cp-tokens{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2)}
+.cp-tokens>span{flex:0 0 100%;font:var(--pc-type-label);color:var(--text-3)}
+.cp-tokens>button{width:18px;height:18px;padding:2px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel)}
+.cp-tokens>button:hover,.cp-tokens>button.on{border-color:var(--text)}
+.cp-tokens>button.on{box-shadow:0 0 0 2px var(--green)}
+.cp-tokens>button i{display:block;width:100%;height:100%;border-radius:2px}
 .cp-sv{position:relative;height:132px;border-radius:var(--r-sm);overflow:hidden;cursor:crosshair;touch-action:none}
 
 /* white→hue across, then black up from the bottom: the standard HSV square, built from
@@ -21352,11 +21358,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (part.trim()) parts.push(part.trim());
     const anglePart = /^(-?\d+(?:\.\d+)?)deg$/i.exec(parts[0] || "");
     const angle = anglePart ? Number(anglePart[1]) : 180;
-    const colors2 = (anglePart ? parts.slice(1) : parts).slice(0, 2).map((raw) => {
-      const value2 = raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, "");
-      return C2.parseColor(C2.resolveColor(value2) || value2);
-    });
-    return colors2.length === 2 && colors2.every(Boolean) ? { angle, stops: colors2 } : null;
+    const raws = (anglePart ? parts.slice(1) : parts).slice(0, 2).map((raw) => raw.replace(/\s+-?\d+(?:\.\d+)?%\s*$/, ""));
+    const colors2 = raws.map((value2) => C2.parseColor(C2.resolveColor(value2) || value2));
+    return colors2.length === 2 && colors2.every(Boolean) ? { angle, stops: colors2, refs: raws.map((value2) => liveRef(value2)) } : null;
+  };
+  var tokenName = (ref) => C2.findColor(C2.refId(ref) || "")?.name || "";
+  var liveRef = (value) => {
+    const raw = String(value || "").trim();
+    const id = C2.isRef(raw) ? C2.refId(raw) : "";
+    return id && C2.findColor(id) ? C2.cvar(id) : "";
   };
   function Surface({ cls, onPick, children, aria, value, onKey }) {
     const el = A2(null);
@@ -21388,13 +21398,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       }
     );
   }
-  function ColorPop({ start, gradient, anchor, onLive, onDone, onClose }) {
+  function ColorPop({ start, startRef, gradient, anchor, onLive, onDone, onClose }) {
     const first = C2.parseColor(start) || BLACK;
     const parsedGradient = gradient ? splitGradient(gradient.start) : null;
     const fallbackStop = C2.parseColor("#ffffff");
     const [mode, setMode] = d2(parsedGradient ? "gradient" : "solid");
     const [solid, setSolid] = d2(first);
     const [stops, setStops] = d2(parsedGradient?.stops || [first, fallbackStop]);
+    const [refs, setRefs] = d2(parsedGradient?.refs || [liveRef(startRef || ""), ""]);
     const [activeStop, setActiveStop] = d2(0);
     const [angle, setAngle] = d2(parsedGradient?.angle ?? 135);
     const [hue, setHue] = d2(C2.rgb2hsv(first).h);
@@ -21414,18 +21425,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const fieldFocus = A2(css);
     const fieldDirty = A2(false);
     const h3 = hsv.s > 4e-3 && hsv.v > 4e-3 ? hsv.h : hue;
-    const gradientCss = (nextStops = stops, nextAngle = angle) => `linear-gradient(${nextAngle}deg, ${C2.fmtColor(nextStops[0])}, ${C2.fmtColor(nextStops[1])})`;
+    const gradientCss = (nextStops = stops, nextAngle = angle, nextRefs = refs) => `linear-gradient(${nextAngle}deg, ${nextRefs[0] || C2.fmtColor(nextStops[0])}, ${nextRefs[1] || C2.fmtColor(nextStops[1])})`;
+    const previewCss = () => `linear-gradient(${angle}deg, ${C2.fmtColor(stops[0])}, ${C2.fmtColor(stops[1])})`;
     const put = (next, commit2) => {
       if (mode === "gradient" && gradient) {
         const nextStops = stops.map((stop, index) => index === activeStop ? next : stop);
+        const nextRefs = refs.map((ref, index) => index === activeStop ? "" : ref);
         setStops(nextStops);
-        (commit2 ? gradient.onDone : gradient.onLive)(gradientCss(nextStops));
+        setRefs(nextRefs);
+        (commit2 ? gradient.onDone : gradient.onLive)(gradientCss(nextStops, angle, nextRefs));
       } else {
         setSolid(next);
         (commit2 ? onDone : onLive)(C2.fmtColor(next));
       }
     };
     const fromHsv = (s3, v3, hh = h3, a3 = rgba.a, commit2) => put({ ...C2.hsv2rgb({ h: hh, s: s3, v: v3 }), a: a3 }, commit2);
+    const tokens = gradient ? C2.colors().filter((token) => C2.parseColor(C2.resolveColor(C2.cvar(token.id)) || token.value)) : [];
+    const linkStop = (id) => {
+      const colour = C2.parseColor(C2.resolveColor(C2.cvar(id)) || "");
+      if (!colour || !gradient) return;
+      const nextStops = stops.map((stop, index) => index === activeStop ? colour : stop);
+      const nextRefs = refs.map((ref, index) => index === activeStop ? C2.cvar(id) : ref);
+      setStops(nextStops);
+      setRefs(nextRefs);
+      setHue(C2.rgb2hsv(colour).h);
+      gradient.onDone(gradientCss(nextStops, angle, nextRefs));
+    };
     h2(() => {
       const away = (e3) => {
         const t3 = e3.target;
@@ -21460,7 +21485,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       box.current?.querySelector(".cp-sv")?.focus();
     }, [anchor]);
     const r3 = anchor.getBoundingClientRect();
-    const W2 = 232, H2 = gradient ? 330 : 244;
+    const tokenRows = Math.ceil(tokens.length / 9);
+    const W2 = 232, H2 = gradient ? 330 + (tokenRows ? tokenRows * 24 + 22 : 0) : 244;
     const below = window.innerHeight - r3.bottom > H2 + 12;
     const style = {
       left: Math.round(Math.min(Math.max(8, r3.left), window.innerWidth - W2 - 8)) + "px",
@@ -21524,7 +21550,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         )
       ] }) : null,
       mode === "gradient" ? /* @__PURE__ */ u2("div", { class: "cp-gradient", children: [
-        /* @__PURE__ */ u2("div", { class: "cp-gradient-preview", style: { background: gradientCss() } }),
+        /* @__PURE__ */ u2("div", { class: "cp-gradient-preview", style: { background: previewCss() } }),
         /* @__PURE__ */ u2("div", { class: "cp-stops", role: "group", "aria-label": "Gradient colour stop", children: [
           stops.map((stop, index) => /* @__PURE__ */ u2(
             "button",
@@ -21532,7 +21558,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               type: "button",
               class: activeStop === index ? "on" : "",
               "aria-pressed": activeStop === index,
-              "aria-label": "Edit gradient colour " + (index + 1),
+              "aria-label": "Edit gradient colour " + (index + 1) + (refs[index] ? ", linked to the " + tokenName(refs[index]) + " token" : ""),
+              title: refs[index] ? "Linked to the " + tokenName(refs[index]) + " token" : void 0,
               onClick: () => {
                 setActiveStop(index);
                 setHue(C2.rgb2hsv(stop).h);
@@ -21552,7 +21579,23 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               "\xB0"
             ] }, value)) })
           ] })
-        ] })
+        ] }),
+        tokens.length ? /* @__PURE__ */ u2("div", { class: "cp-tokens", role: "group", "aria-label": "Colour token for gradient colour " + (activeStop + 1), children: [
+          /* @__PURE__ */ u2("span", { children: "Token" }),
+          tokens.map((token) => /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: refs[activeStop] === C2.cvar(token.id) ? "on" : "",
+              "aria-pressed": refs[activeStop] === C2.cvar(token.id),
+              title: "Link this colour to " + token.name,
+              "aria-label": "Link this colour to the " + token.name + " token",
+              onClick: () => linkStop(token.id),
+              children: /* @__PURE__ */ u2("i", { style: { background: C2.resolveColor(C2.cvar(token.id)) || token.value } })
+            },
+            token.id
+          ))
+        ] }) : null
       ] }) : null,
       /* @__PURE__ */ u2(
         Surface,
@@ -23276,6 +23319,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const gradientValue = /^linear-gradient\(/i.test(imagePaint) ? imagePaint : /^linear-gradient\(/i.test(shorthandPaint) ? shorthandPaint : "";
     const gradientControl = { ...c3, c: /^linear-gradient\(/i.test(shorthandPaint) ? "background" : "background-image", label: "Gradient" };
     const gradientWriter = writer(n2, gradientControl);
+    const gradientShown = gradientValue.replace(/var\(\s*--c-[^)]+\)/g, (ref) => C2.resolveColor(ref) || ref);
     const [pop, setPop] = d2(null);
     const editKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
     const [draft, setDraft] = d2({ key: editKey, value: v3, active: false });
@@ -23316,7 +23360,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "aria-haspopup": "dialog",
             "aria-expanded": pop ? "true" : "false",
             onClick: (e3) => pop ? document.dispatchEvent(new Event("pagecraft:outside-pointer")) : setPop(e3.currentTarget),
-            children: /* @__PURE__ */ u2("i", { style: { background: gradientValue || lit || "transparent" } })
+            children: /* @__PURE__ */ u2("i", { style: { background: gradientShown || lit || "transparent" } })
           }
         ),
         pop ? (
@@ -23335,6 +23379,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             ColorPop,
             {
               start: lit || (c3.c ? C2.resolveColor(C2.effectiveAt(n2.id, c3.c)) : ""),
+              startRef: tok ? v3 : "",
               anchor: pop,
               gradient: c3.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : void 0,
               onLive: liveColour,

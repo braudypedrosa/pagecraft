@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-06T21:35:19.849Z",
+  "capturedAt": "2026-11-10T04:29:27.132Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,15 +106,15 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "b944e6c401d5548b36b9192f30cac71696bf0420b6785cf2f443ebfcba994e46",
+    "builder.html": "a2f3b4e5c362b27971305f03a9155dbb4a6dcd1bb5bf89aed52893c02a95bb54",
     "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
     "app/src/ui/Pages.tsx": "922f5f5e3cc876e7ba01ae6478c9d23a913cc6437ea3c2d5893d9e2d9f4747fa",
     "app/src/ui/CmsWorkspace.tsx": "ec2829e4bec8b691094f43d33f1add8c44603c5f832062c2f3df7ca79e5b95af",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
-    "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
-    "app/src/ui/inspector/Controls.tsx": "10b9539083f6daa3714a46d19c4cb4dff3fd172c23973181bcecda37ff108469",
+    "app/src/ui/inspector/ColorPop.tsx": "d2f41c9f76951b6030d5ee66055c907bcde1ac5434eccf60fcaa9c53819a5111",
+    "app/src/ui/inspector/Controls.tsx": "c6f9f940228c346a43b28ade7d93d6d9a56ef53a0418a8b44124954c490ee76e",
     "app/src/ui/inspector/Inspector.tsx": "427cb156c3ba7624f0a165381923cae0a7f6c96cdfd496ff266defd70253a6b4",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "2b2ab45b27d4517876f00326d6807b719becdeeda010606db1b1814c62017dd4",
