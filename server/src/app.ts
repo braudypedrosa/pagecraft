@@ -151,6 +151,7 @@ import {
   createSitePackage,
   portableAssetIds,
 } from "./portable-packages.ts";
+import { wordpressPortablePackages } from "./wordpress-portable-packages.ts";
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
@@ -4551,10 +4552,11 @@ export function createApp(o: Options) {
     const site = read.site;
     if (!site) return c.notFound();
     try {
-      const assetIds = new Set(portableAssetIds(site.doc));
+      const packages = wordpressPortablePackages(site.doc);
+      const assetIds = new Set(packages.portableAssetIds(site.doc));
       return portableDownload(
         c,
-        createSitePackage({
+        packages.createSitePackage({
           document: site.doc,
           assets: await assetBodiesOf(site.id, assetIds),
           provenance: {
@@ -4608,10 +4610,11 @@ export function createApp(o: Options) {
       if (!site) return c.notFound();
       try {
         const pageId = c.req.param("pageId");
-        const assetIds = new Set(portableAssetIds(site.doc, pageId));
+        const packages = wordpressPortablePackages(site.doc);
+        const assetIds = new Set(packages.portableAssetIds(site.doc, pageId));
         return portableDownload(
           c,
-          createPagePackage({
+          packages.createPagePackage({
             document: site.doc,
             pageId,
             assets: await assetBodiesOf(site.id, assetIds),

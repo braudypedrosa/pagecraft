@@ -14,7 +14,10 @@ import {
   base64url, buildKeysetEnvelope, decodeReleaseManifest, parseReleaseArtifact, sha256
 } from '../src/releases.ts';
 import { assetFile, N } from '../../app/src/core/index.ts';
+import type { Doc } from '../../app/src/core/types.ts';
+import type { PortablePackageManifestV1 } from '../../app/src/package/types.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
+import { extractPortableZip } from '../src/portable-zip.ts';
 
 const privateKey = (value: string) => createPrivateKey({
   key: Buffer.from(value, 'base64url'), format: 'der', type: 'pkcs8'
@@ -251,6 +254,101 @@ test.each([
     body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
   });
   a.equal(afterRevoke.status, 401);
+});
+
+test('manual WordPress downloads preserve schema 14 component targets and packaged media', async () => {
+  const { site, owner, auth, store, assets, first, request } = await rig();
+  const token = 'workshop-package-reader';
+  await auth.createManualImportCredential({
+    id: 'workshop-import', ownerId: owner.id, installationId: 'workshop-qa',
+    accessTokenDigest: hashToken(token), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken('workshop-package-refresh')
+  });
+  const headers = { authorization: `Bearer ${token}` };
+  const imageBytes = new TextEncoder().encode(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>'
+  );
+  await assets.put({
+    id: 'workshop-image', siteId: site.id, name: 'workshop.svg', type: 'image/svg+xml',
+    w: 10, h: 10, bytes: imageBytes
+  });
+
+  const draft = structuredClone(site.doc);
+  draft.schemaVersion = 14;
+  const defaultLink = 'https://workshop.example.test';
+  const catalogueLink = `${defaultLink}/catalogue`;
+  const button = N('button', { text: 'View catalogue', link: defaultLink, target: '' });
+  button.bind = { link: { src: 'prop', path: 'catalogue' } };
+  const definition = N('column', {}, {}, [button]);
+  draft.meta.components = [{
+    id: 'catalogue-card', name: 'Catalogue card', node: definition,
+    props: [{ k: 'catalogue', label: 'Catalogue', t: 'link', def: defaultLink }]
+  }];
+  const instance = N('column');
+  instance.use = 'catalogue-card';
+  instance.vals = { catalogue: catalogueLink, '@link-target:catalogue': '_blank' };
+  const image = N('image', { src: 'asset:workshop-image', alt: 'Workshop illustration' });
+  draft.pages[0].tree = [N('section', {}, {}, [
+    N('row', {}, {}, [instance, N('column', {}, {}, [image])])
+  ])];
+  draft.pages.push({
+    ...structuredClone(draft.pages[0]), id: 'about-workshop', name: 'About', slug: 'about', tree: []
+  });
+  a.equal((await store.save(site.id, draft, site.version, owner.id)).ok, true);
+
+  const root = `/v1/integrations/wordpress/projects/${site.id}`;
+  const paths = [
+    ['site', `${root}/package`],
+    ['page', `${root}/pages/${draft.pages[0].id}/package`]
+  ] as const;
+  const decoder = new TextDecoder();
+  for (const [kind, path] of paths) {
+    const response = await request(first, path, { headers });
+    a.equal(response.status, 200, await response.clone().text());
+    a.match(response.headers.get('content-type') || '', /application\/zip/);
+    const files = extractPortableZip(new Uint8Array(await response.arrayBuffer()));
+    const manifest = JSON.parse(decoder.decode(files.get('manifest.json'))) as PortablePackageManifestV1;
+    const document = JSON.parse(decoder.decode(files.get('source/document.json'))) as Doc;
+    const provenance = JSON.parse(decoder.decode(files.get('source/provenance.json')));
+    a.equal(manifest.kind, kind);
+    a.equal(manifest.schemaVersion, 14);
+    a.equal(manifest.rendererVersion, 'pagecraft-core-14');
+    a.equal(document.schemaVersion, 14);
+    a.deepEqual(document.pages.map(page => page.id),
+      kind === 'site' ? draft.pages.map(page => page.id) : [draft.pages[0].id]);
+    a.equal(files.has('compiled/about.html'), kind === 'site');
+    a.equal(provenance.origin, 'pagecraft-cloud');
+    a.equal(provenance.sourceId, site.id);
+    a.equal(provenance.sourceVersion, site.version + 1);
+    const packagedAsset = manifest.files.find(file => file.role === 'asset');
+    a.ok(packagedAsset);
+    a.equal(packagedAsset.asset?.id, 'workshop-image');
+    a.deepEqual(files.get(packagedAsset.path), imageBytes);
+    const html = decoder.decode(files.get('compiled/index.html'));
+    a.ok(html.includes(packagedAsset.path));
+    const anchor = html.match(/<a\b[^>]*\bhref="https:\/\/workshop\.example\.test\/catalogue"[^>]*>/)?.[0];
+    a.ok(anchor);
+    a.match(anchor, /\btarget="_blank"/);
+    a.match(anchor, /\brel="noopener"/);
+  }
+
+  const withCms = structuredClone(draft);
+  withCms.meta.collections = [{
+    id: 'entries', name: 'Entries', slug: 'entries', detail: '', fields: [], items: []
+  }];
+  a.equal((await store.save(site.id, withCms, site.version + 1, owner.id)).ok, true);
+  for (const [, path] of paths) {
+    const response = await request(first, path, { headers });
+    a.equal(response.status, 422);
+    a.match((await response.json() as { error: string }).error, /rejects Pagecraft CMS bindings/);
+  }
+
+  a.equal((await store.save(site.id, { ...draft, schemaVersion: 15 }, site.version + 2, owner.id)).ok, true);
+  for (const [, path] of paths) {
+    const response = await request(first, path, { headers });
+    a.equal(response.status, 422);
+    a.match((await response.json() as { error: string }).error, /uses Pagecraft schema 15/);
+  }
 });
 
 test('OAuth consent and one-time editor SSO work across app workers and reject replay/demotion', async () => {
