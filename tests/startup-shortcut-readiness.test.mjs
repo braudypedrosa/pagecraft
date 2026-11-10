@@ -15,7 +15,11 @@ function deferred() {
 function harness() {
   const dom = new JSDOM(`
     <body>
-      <div id="app" inert aria-busy="true"><div id="target" tabindex="0"></div></div>
+      <div id="app" inert aria-busy="true">
+        <div id="target" tabindex="0"></div>
+        <button id="canvasFocusBtn"></button>
+        <input id="field">
+      </div>
       <div id="modal" hidden><button id="modalButton">Close</button></div>
     </body>`, { runScripts: 'outside-only' });
   windows.push(dom);
@@ -85,6 +89,34 @@ test('document shortcuts stay inactive until hosted startup finishes', async () 
   expect(calls.exportModal).toHaveBeenCalledTimes(1);
   expect(press('s', { metaKey: true }).defaultPrevented).toBe(true);
   expect(calls.saveExplicitly).toHaveBeenCalledTimes(1);
+});
+
+test('the shifted Backslash shortcut toggles panels only in the ready editor', () => {
+  const { w, press } = harness();
+  const { document } = w;
+  const button = document.querySelector('#canvasFocusBtn');
+  const modal = document.querySelector('#modal');
+  const app = document.querySelector('#app');
+  const chord = { code: 'Backslash', metaKey: true, shiftKey: true };
+  const panelsHidden = () => document.body.classList.contains('canvas-focus');
+  button.addEventListener('click', () => document.body.classList.toggle('canvas-focus'));
+
+  expect(press('|', chord).defaultPrevented).toBe(false);
+  expect(panelsHidden()).toBe(false);
+
+  app.removeAttribute('inert');
+  app.setAttribute('aria-busy', 'false');
+  expect(press('|', chord).defaultPrevented).toBe(true);
+  expect(panelsHidden()).toBe(true);
+
+  expect(press('|', chord, document.querySelector('#field')).defaultPrevented).toBe(false);
+  modal.hidden = false;
+  expect(press('|', chord, document.querySelector('#modalButton')).defaultPrevented).toBe(false);
+  expect(panelsHidden()).toBe(true);
+  modal.hidden = true;
+
+  expect(press('|', chord).defaultPrevented).toBe(true);
+  expect(panelsHidden()).toBe(false);
 });
 
 test('a startup-visible dialog keeps its Escape keyboard scope', () => {

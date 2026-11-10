@@ -18,12 +18,5 @@ export function installCanvasFocus(onLayout: () => void) {
   document.addEventListener('click', event => {
     if ((event.target as Element | null)?.closest('#pageSettings')) set(false);
   });
-  document.addEventListener('keydown', event => {
-    const target = event.target as Element | null;
-    if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key !== '\\'
-      || target?.closest('input,textarea,select,[contenteditable="true"],.mask:not([hidden]),#ask:not([hidden])')) return;
-    event.preventDefault();
-    button.click();
-  });
   set(false);
 }

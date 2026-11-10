@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-10T14:44:04.223Z",
+  "capturedAt": "2026-11-10T15:19:11.927Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "a2f3b4e5c362b27971305f03a9155dbb4a6dcd1bb5bf89aed52893c02a95bb54",
+    "builder.html": "2f25d04b6d66aeeddb0d800781df8d057a789e8b80b29219e00626add1532144",
     "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
