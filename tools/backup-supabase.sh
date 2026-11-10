@@ -74,10 +74,20 @@ supabase db dump \
   --use-copy \
   --data-only \
   --schema supabase_migrations
+
+# The CLI comments out pg_dump's random restrict keys in data dumps. Ignore the keys
+# when comparing the ledger, preserving COPY rows and the original archived SQL.
+for ledger in history_data.sql history_data.verify.sql; do
+  sed -E \
+    -e '/^COPY .* FROM stdin;$/,/^\\\.$/b' \
+    -e 's/^(-- \\(un)?restrict) [[:alnum:]]+$/\1/' \
+    "$work_dir/$ledger" > "$work_dir/$ledger.compare"
+done
+
 for pair in \
   "schema.sql:schema.verify.sql" \
   "history_schema.sql:history_schema.verify.sql" \
-  "history_data.sql:history_data.verify.sql"; do
+  "history_data.sql.compare:history_data.verify.sql.compare"; do
   before="${pair%%:*}"
   after="${pair#*:}"
   cmp -s "$work_dir/$before" "$work_dir/$after" || {

@@ -8,10 +8,13 @@ for the documented archive restore.
 
 ## Configure the daily backup
 
-The `encrypted database backup` GitHub Actions workflow runs daily and can also be started
-manually. Configure these repository Actions secrets:
+The `encrypted database backup` GitHub Actions workflow runs daily on `production` and can
+also be started manually from that branch. Configure these Actions secrets in the
+`production` environment:
 
-- `SUPABASE_DB_URL`: the percent-encoded Session pooler connection string from Supabase.
+- `SUPABASE_DB_URL`: the percent-encoded Session pooler connection string for the dedicated
+  backup login. The login needs read access to the dumped schemas and must be able to read
+  rows protected by RLS.
 - `PAGECRAFT_BACKUP_PASSPHRASE`: a long, unique passphrase stored separately from Supabase and
   GitHub recovery codes.
 
