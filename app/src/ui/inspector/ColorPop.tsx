@@ -176,10 +176,18 @@ export function ColorPop(
      and close in the same gesture. Scroll and resize close too, because the anchor moves
      and a fixed popover does not follow it. */
   useEffect(() => {
+    // The enhanced Angle select renders its listbox outside the picker.
+    const inAngleMenu = (target: EventTarget | null) => {
+      const menuId = box.current?.querySelector('.pc-custom-select-trigger[aria-controls]')?.getAttribute('aria-controls');
+      return !!menuId && target instanceof Node && document.getElementById(menuId)?.contains(target);
+    };
     const away = (e: Event) => {
       const t = e.target as Node;
-      if (box.current?.contains(t) || anchor.contains(t)) return;
+      if (box.current?.contains(t) || anchor.contains(t) || inAngleMenu(t)) return;
       requestClose();
+    };
+    const scroll = (e: Event) => {
+      if (!inAngleMenu(e.target)) requestClose();
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -192,7 +200,7 @@ export function ColorPop(
     window.addEventListener('blur', requestClose);
     document.addEventListener('keydown', key, true);
     window.addEventListener('resize', requestClose);
-    window.addEventListener('scroll', requestClose, true);
+    window.addEventListener('scroll', scroll, true);
     if (box.current) window.__pcMotion?.enter(box.current, { kind: 'popover' });
     return () => {
       document.removeEventListener('pointerdown', away, true);
@@ -200,7 +208,7 @@ export function ColorPop(
       window.removeEventListener('blur', requestClose);
       document.removeEventListener('keydown', key, true);
       window.removeEventListener('resize', requestClose);
-      window.removeEventListener('scroll', requestClose, true);
+      window.removeEventListener('scroll', scroll, true);
     };
   }, [anchor, onClose]);
 

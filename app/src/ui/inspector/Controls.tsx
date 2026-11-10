@@ -355,6 +355,7 @@ function ColorCtl({ n, c }: P) {
      rect, and holding the element is what lets it also tell an outside pointerdown from
      the click that opened it. */
   const [pop, setPop] = useState<HTMLElement | null>(null);
+  const [, setGradientRevision] = useState(0);
   const editKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
   const [draft, setDraft] = useState({ key: editKey, value: v, active: false });
   const inputValue = draft.key === editKey && draft.active ? draft.value : v;
@@ -406,7 +407,11 @@ function ColorCtl({ n, c }: P) {
            `var(--c-muted)` is not a colour any parser can read — without it the fallback
            landed back on black, which is the thing it was meant to fix. */
         <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} startRef={tok ? v : ''} anchor={pop}
-          gradient={c.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : undefined}
+          gradient={c.paint ? { start: gradientValue, onLive: value => {
+            gradientWriter.live(value);
+            // Live writes repaint the canvas. Refresh this field without remounting the picker.
+            setGradientRevision(revision => revision + 1);
+          }, onDone: gradientWriter.hard } : undefined}
           onLive={liveColour}
           onDone={hardColour}
           onClose={() => { w.done(); if (c.paint) gradientWriter.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />

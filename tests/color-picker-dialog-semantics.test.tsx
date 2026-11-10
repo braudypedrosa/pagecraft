@@ -5,6 +5,7 @@ import { act } from 'preact/test-utils';
 import { render } from 'preact';
 import * as C from '../app/src/core/index';
 import { Ctl } from '../app/src/ui/inspector/Controls';
+import { installCustomSelects } from '../shared/custom-select.js';
 import { rig, type Rig } from './ui.setup';
 
 let r: Rig;
@@ -56,6 +57,39 @@ test('named dialog retains keyboard colour editing and Escape restores the actua
   assert.equal(document.activeElement, anchor);
   assert.equal(node.css.d[key], edited);
   assert.equal(C.hist.u.length, depth, 'closing must not create an extra colour edit');
+});
+
+test('choosing an angle updates the inspector swatch while the gradient picker stays open', async () => {
+  installCustomSelects();
+  const node = C.insert('section', null, 0)!;
+  const token = C.cvar(C.colorAdd('Sea green', '#137b76'));
+  node.css.d['background-image'] = `linear-gradient(90deg, ${token}, #ffffff)`;
+  C.selSet([node.id]);
+  r.draw(() => <Ctl n={node} c={{ t: 'color', c: 'background-color', label: 'Colour', paint: 1 }} />, 'right');
+
+  const anchor = r.$('button.sw')!;
+  const swatch = anchor.querySelector('i')!;
+  act(() => r.click(anchor));
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const picker = r.$('[role="dialog"]')!;
+  const trigger = r.$('button[aria-label="Angle"]')!;
+  assert.ok(trigger, 'the Angle control is enhanced');
+  const menu = document.getElementById(trigger.getAttribute('aria-controls')!)!;
+  assert.match(swatch.style.backgroundImage, /^linear-gradient\(90deg,/);
+
+  act(() => {
+    r.click(trigger);
+    const option = menu.querySelector<HTMLButtonElement>('[role="option"][data-value="225"]')!;
+    option.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
+    option.click();
+  });
+
+  assert.equal(r.$('[role="dialog"]'), picker, 'the Angle option belongs to the open picker');
+  assert.equal(anchor.getAttribute('aria-expanded'), 'true');
+  assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+  assert.equal(node.css.d['background-image'], `linear-gradient(225deg, ${token}, #ffffff)`);
+  assert.match(swatch.style.backgroundImage, /^linear-gradient\(225deg,/);
+  assert.equal(swatch.style.backgroundImage, picker.querySelector<HTMLElement>('.cp-gradient-preview')!.style.backgroundImage);
 });
 
 for (const device of ['desktop', 'tablet', 'mobile'] as const) for (const side of ['top', 'right']) test(`outside Padding ${side} keeps focus after gradient picker dismissal on ${device}`, async () => {
