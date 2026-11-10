@@ -22806,6 +22806,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     visit(root, true);
     return out;
   }
+  function fitsSlot(node, key2, field) {
+    if (!field) return false;
+    const control = C2.contentControls(node).find((c3) => c3.k === key2);
+    return !!control && C2.cmsBindable(node, control) && C2.cmsFieldTypes(control).includes(field.type);
+  }
+  function comparisonFits(field, value) {
+    const wanted = String(value == null ? "" : value).trim();
+    if (field.type === "option") return wanted !== "" && cmsChoices(field.opts).includes(wanted);
+    if (field.type === "ref") return wanted !== "" && !!C2.findItem(C2.findCollection(field.ref || ""), wanted);
+    return true;
+  }
   function changeContentSource(root, requestedId) {
     const definitionSource = C2.findComponent(root.use)?.node.src || "";
     const currentExplicitId = root.src && C2.findCollection(root.src) ? root.src : "";
@@ -22825,9 +22836,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const conditionPlans = [];
     let cleared = 0;
     let remapped = 0;
+    const reconnecting = !before && !!after;
     if (after && !sameEffectiveSource) for (const node of nodes) {
       for (const [key2, binding] of Object.entries(node.bind || {})) {
         if (binding.src !== "field") continue;
+        if (reconnecting && fitsSlot(node, key2, terminalField(after, binding.path))) continue;
         const match2 = paths.get(binding.path);
         const nextPath = match2?.nextPath || "";
         if (!nextPath) cleared++;
@@ -22838,6 +22851,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!condition || condition.bind.src !== "field") continue;
       const match = paths.get(condition.bind.path);
       const comparesValue = condition.op === "eq" || condition.op === "ne";
+      if (reconnecting) {
+        const kept = terminalField(after, condition.bind.path);
+        if (kept && (!comparesValue || comparisonFits(kept, condition.value))) continue;
+      }
       if (!match || comparesValue && !comparisonSurvives(match, condition.value)) {
         conditionPlans.push({ node, condition: null });
         cleared++;
@@ -22863,9 +22880,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         nextSort = sort ? sortMatch?.nextPath || "" : "";
         if (sort && !nextSort) cleared++;
         else if (sort && nextSort !== sort) remapped++;
-        const whereMatch = direct.get(where);
+        const keptWhere = reconnecting && where ? C2.findField(after, where) : null;
+        const whereMatch = keptWhere ? { nextPath: where, before: keptWhere, after: keptWhere } : direct.get(where);
         const comparesValue = !["set", "unset"].includes(String(root.props.op || ""));
-        const comparisonSafe = !!whereMatch && comparisonSurvives(whereMatch, root.props.val);
+        const comparisonSafe = !!whereMatch && (keptWhere ? comparisonFits(keptWhere, root.props.val) : comparisonSurvives(whereMatch, root.props.val));
         const safeValue = !!whereMatch && (!comparesValue || comparisonSafe);
         nextWhere = where && safeValue ? whereMatch.nextPath : "";
         if (where && !nextWhere) cleared++;

@@ -161,6 +161,23 @@ function scopedNodes(root: PcNode): PcNode[] {
   return out;
 }
 
+/** Reconnecting from None has no earlier schema to compare with, so nothing can be remapped by
+    meaning. What can be shown is that a saved choice still fits: the chosen collection has a
+    field at that exact path, of a type the control accepts. Clearing those too meant picking
+    None by mistake cost every connection, the ones that pointed at this collection included,
+    and after a reload there was no Undo to bring them back. */
+function fitsSlot(node: PcNode, key: string, field: Field | null): boolean {
+  if (!field) return false;
+  const control = C.contentControls(node).find(c => c.k === key);
+  return !!control && C.cmsBindable(node, control) && C.cmsFieldTypes(control).includes(field.type);
+}
+function comparisonFits(field: Field, value: unknown): boolean {
+  const wanted = String(value == null ? '' : value).trim();
+  if (field.type === 'option') return wanted !== '' && cmsChoices(field.opts).includes(wanted);
+  if (field.type === 'ref') return wanted !== '' && !!C.findItem(C.findCollection(field.ref || ''), wanted);
+  return true;
+}
+
 /** Change one explicit content source and every field-relative choice that belongs to it.
     Planning is read-only; the source and all remaps enter history in one checkpoint. */
 export function changeContentSource(root: PcNode, requestedId: string): ContentSourceChange {
@@ -189,9 +206,11 @@ export function changeContentSource(root: PcNode, requestedId: string): ContentS
 
   /* Clearing a source deliberately leaves its bindings and conditions visible as disconnected
      recovery choices. A later source selection cannot prove their origin, so it clears them. */
+  const reconnecting = !before && !!after;
   if (after && !sameEffectiveSource) for (const node of nodes) {
     for (const [key, binding] of Object.entries(node.bind || {})) {
       if (binding.src !== 'field') continue;
+      if (reconnecting && fitsSlot(node, key, terminalField(after, binding.path))) continue;
       const match = paths.get(binding.path);
       const nextPath = match?.nextPath || '';
       if (!nextPath) cleared++;
@@ -202,6 +221,10 @@ export function changeContentSource(root: PcNode, requestedId: string): ContentS
     if (!condition || condition.bind.src !== 'field') continue;
     const match = paths.get(condition.bind.path);
     const comparesValue = condition.op === 'eq' || condition.op === 'ne';
+    if (reconnecting) {
+      const kept = terminalField(after, condition.bind.path);
+      if (kept && (!comparesValue || comparisonFits(kept, condition.value))) continue;
+    }
     if (!match || (comparesValue && !comparisonSurvives(match, condition.value))) {
       conditionPlans.push({ node, condition: null });
       cleared++;
@@ -228,9 +251,12 @@ export function changeContentSource(root: PcNode, requestedId: string): ContentS
       if (sort && !nextSort) cleared++;
       else if (sort && nextSort !== sort) remapped++;
 
-      const whereMatch = direct.get(where);
+      /* a filter saved before the list was disconnected still names a field of this collection */
+      const keptWhere = reconnecting && where ? C.findField(after, where) : null;
+      const whereMatch = keptWhere ? { nextPath: where, before: keptWhere, after: keptWhere } : direct.get(where);
       const comparesValue = !['set', 'unset'].includes(String(root.props.op || ''));
-      const comparisonSafe = !!whereMatch && comparisonSurvives(whereMatch, root.props.val);
+      const comparisonSafe = !!whereMatch && (keptWhere
+        ? comparisonFits(keptWhere, root.props.val) : comparisonSurvives(whereMatch, root.props.val));
       const safeValue = !!whereMatch && (!comparesValue || comparisonSafe);
       nextWhere = where && safeValue ? whereMatch!.nextPath : '';
       if (where && !nextWhere) cleared++;

@@ -454,3 +454,72 @@ test('reselecting a disconnected inherited component source explains safe recove
   C.undo();
   assert.equal(JSON.stringify(C.doc()), connectedBefore, 'Undo can recover the exact connected document');
 });
+
+test('reconnecting a list from None keeps the choices that still fit the chosen collection', () => {
+  /* found on staging: None then the same collection again cleared a Title connection that
+     fitted exactly and reported it as incompatible */
+  const cabins = C.collectionAdd('Cabins')!;
+  const title = firstField(cabins, 'title', 'Title', 'text');
+  const photo = field(cabins, 'photo', 'Photo', 'image');
+  const kind = field(cabins, 'kind', 'Kind', 'option'); kind.opts = 'Lake,Forest';
+  C.state.meta.components = [{
+    id: 'demo-heading', name: 'Demo heading', node: (() => {
+      const root = C.N('heading', { text: 'Default words' });
+      C.bindSet(root, 'text', { src: 'prop', path: 'words' });
+      return root;
+    })(),
+    props: [{ k: 'words', label: 'Words', t: 'text', def: 'Default words' }]
+  }];
+  const instance = C.N('heading', { text: 'Default words' });
+  instance.use = 'demo-heading';
+  C.bindSet(instance, 'text', { src: 'prop', path: 'words' });
+  C.bindSet(instance, C.VAL + 'words', C.bindField(title.id));
+  const picture = C.N('image', { src: 'asset:fallback' });
+  C.bindSet(picture, 'src', C.bindField(photo.id));
+  const wrong = C.N('heading', { text: 'Fallback' });
+  C.bindSet(wrong, 'text', C.bindField(photo.id));       // an image field in a text slot
+  const lost = C.N('heading', { text: 'Fallback' });
+  C.bindSet(lost, 'text', C.bindField('summary'));       // no such field in this collection
+  C.condSet(picture, { bind: C.bindField(kind.id)!, op: 'eq', value: 'Lake' });
+  C.condSet(lost, { bind: C.bindField(kind.id)!, op: 'eq', value: 'Desert' });
+  const list = C.N('list', { where: kind.id, op: 'is', val: 'Forest' }, {}, [C.N('column', {}, {}, [instance, picture, wrong, lost])]);
+  C.srcSet(list, cabins.id); put(list);
+  const connected = JSON.stringify(C.doc());
+
+  assert.equal(changeContentSource(list, '').changed, true);
+  const depth = C.hist.u.length;
+  const back = changeContentSource(list, cabins.id);
+  assert.equal(back.changed, true);
+  assert.equal(C.hist.u.length, depth + 1, 'reconnecting is one step');
+
+  assert.equal(C.boundField(instance, C.VAL + 'words'), title.id, 'the component property keeps its Title connection');
+  assert.equal(C.boundField(picture, 'src'), photo.id, 'an image slot keeps its image field');
+  assert.equal(picture.showIf?.value, 'Lake', 'a condition on an option still offered is kept');
+  assert.equal(list.props.where, kind.id, 'the list filter keeps its field');
+  assert.equal(list.props.val, 'Forest');
+
+  assert.equal(C.boundField(wrong, 'text'), '', 'a field of a type the control cannot take is cleared');
+  assert.equal(C.boundField(lost, 'text'), '', 'a field this collection does not have is cleared');
+  assert.equal(lost.showIf, undefined, 'a condition on an option no longer offered is cleared');
+  assert.equal(back.cleared, 3, 'only what does not fit is counted as cleared');
+
+  C.undo(); C.undo();
+  assert.equal(JSON.stringify(C.doc()), connected, 'two Undos return the exact connected document');
+});
+
+test('reconnecting to a different collection keeps nothing that only shares a name', () => {
+  const cabins = C.collectionAdd('Cabins')!;
+  const title = firstField(cabins, 'title', 'Title', 'text');
+  const people = C.collectionAdd('People')!;
+  firstField(people, 'name', 'Name', 'text');
+  field(people, 'bio', 'Title', 'rich');                  // same label, different id
+  const heading = C.N('heading', { text: 'Fallback' });
+  C.bindSet(heading, 'text', C.bindField(title.id));
+  const list = C.N('list', {}, {}, [C.N('column', {}, {}, [heading])]);
+  C.srcSet(list, cabins.id); put(list);
+
+  changeContentSource(list, '');
+  const next = changeContentSource(list, people.id);
+  assert.equal(C.boundField(heading, 'text'), '', 'no field sits at that path in the other collection');
+  assert.equal(next.cleared, 1);
+});
