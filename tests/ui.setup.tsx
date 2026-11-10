@@ -21,6 +21,7 @@ type StubOptions = {
   libraries?: ReturnType<Legacy['libraries']>;
   siteDraft?: () => ReturnType<Legacy['siteDraft']>;
   proposals?: ReturnType<Legacy['proposals']>;
+  acceptProposalDraft?: Legacy['acceptProposalDraft'];
 };
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
@@ -74,6 +75,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     guideSelect: rec('guideSelect'),
     previewInsertion: rec('previewInsertion'),
     flushDraft: async () => { calls.push(['flushDraft']); },
+    acceptProposalDraft: opts.acceptProposalDraft || (() => false),
     assetsReload: async () => { calls.push(['assetsReload']); },
     proposals: () => opts.proposals || null,
     saveBlockFlow: rec('saveBlockFlow'),

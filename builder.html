@@ -2325,6 +2325,18 @@ async function flushDraft() {
   if (saveState !== 'ok') throw new Error('The draft was not saved, so it was not published.');
 }
 
+function acceptProposalDraft(draft, baseVersion, baseline) {
+  if (saving || saveAgain || SRV.version !== baseVersion || JSON.stringify(doc()) !== baseline) return false;
+  checkpoint('Apply assistant proposal');
+  SRV.version = draft.version;
+  lastCloudDocument = JSON.stringify(draft.doc);
+  ambiguousCloudSave = null;
+  restore(draft.doc, true);
+  saveState = 'ok';
+  stamp('Draft saved ' + new Date().toTimeString().slice(0, 5), false);
+  return true;
+}
+
 /* The dashboard must never load the public site just to draw a card. Capture the canvas that
    is already open while the publication request is in flight, then attach that image to the
    exact immutable publication that won. A failed thumbnail is deliberately non-fatal: the
@@ -5795,7 +5807,7 @@ const ui = () => UI || (UI = PC_UI.mount(
        a non-owner never see them. See docs/phase5-libraries-design.md. */
     libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
     siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
-    flushDraft, assetsReload: assetsLoadServer,
+    flushDraft, acceptProposalDraft, assetsReload: assetsLoadServer,
     proposals: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.proposals) || null,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */

@@ -71,7 +71,7 @@ import {
   renderSite,
   resolvePath,
 } from "./render.ts";
-import { contentOnly } from "./content.ts";
+import { contentOnly, formRoutingChanged } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle, type NoticeSender } from "./mail.ts";
 import { planEntitlements } from "./plans.ts";
@@ -245,6 +245,7 @@ export interface CloudMutationFastPath {
     doc: Doc;
     identity: VerifiedIdentity;
     requiredRole: "write" | "admin";
+    proposal?: { id: string; attemptId: string; assetIds: string[] };
   }): Promise<CloudSaveResult>;
   cachedPublishSource(input: {
     siteId: string;
@@ -567,10 +568,11 @@ export function createApp(o: Options) {
       onError: (c) => c.text("Request too large", 413),
     }),
   );
-  // Invitation decisions are browser actions in both account and legacy cookie modes.
+  // These decisions are browser actions in both account and legacy cookie modes.
   app.use("*", async (c, next) => {
     const path = new URL(c.req.url).pathname;
-    if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method) && /^\/(?:api\/)?invitations(?:\/|$)/.test(path)) {
+    if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method) &&
+      (/^\/(?:api\/)?invitations(?:\/|$)/.test(path) || /^\/api\/sites\/[^/]+\/proposals\//.test(path))) {
       const expected = new URL(o.editorOrigin || c.req.url).origin;
       let origin = c.req.header("origin") || "";
       if (!origin) try { origin = new URL(c.req.header("referer") || "").origin; } catch { /* Missing origin fails closed. */ }
@@ -2654,6 +2656,36 @@ export function createApp(o: Options) {
   const assistantDeps: AssistantDeps = {
     store: o.store, auth: o.auth, assets: o.assets, assistants: o.assistants, reviews, editorOrigin: o.editorOrigin, allowed,
     render: (doc, assets) => candidate(doc, assets), assetHeaders: (asset) => assetHeaders(asset as Pick<Asset, "type" | "name">),
+    async saveDraft(c, site, doc, assets, userId, proposal) {
+      if (!candidate(doc, assets, cloudReceiver(c, site.id)) ||
+        cmsDocumentErrors(site.doc, doc, new Set(assets.map(asset => asset.id))).length) return 422;
+      if (o.cloudMutations && o.accountAuth) {
+        const identity = await verifiedIdentity(c);
+        if (!identity) return 401;
+        try {
+          const saved = await o.cloudMutations.saveAuthorized({
+            siteId: site.id, sourceVersion: site.version, doc, identity, requiredRole: "admin", proposal,
+          });
+          if (saved.status === "saved") return 200;
+          if (saved.status === "forbidden") return 403;
+          return saved.status === "missing" ? 404 : 409;
+        } catch (error) {
+          if ((error as { code?: string } | null)?.code === "PROPOSAL_ASSET_UNAVAILABLE") return 409;
+          throw error;
+        }
+      }
+      const gate = await allowed(c, site.id, "admin");
+      if (!gate.ok) return gate.status;
+      if (gate.user.id !== userId) return 403;
+      if (proposal.assetIds.length && o.assets) {
+        const active = new Set((await o.assets.list(site.id, { fresh: true })).filter(asset => !asset.retired).map(asset => asset.id));
+        if (proposal.assetIds.some(id => !active.has(id))) return 409;
+      }
+      const saved = await o.store.save(site.id, doc, site.version, userId, {
+        source: "assistant-proposal", proposalId: proposal.id, attemptId: proposal.attemptId,
+      });
+      return saved.ok ? 200 : saved.conflict ? 409 : 404;
+    },
   };
   assistantRoutes(app, assistantDeps);
   assistantOAuthRoutes(app, {
@@ -4302,6 +4334,9 @@ export function createApp(o: Options) {
     const cmsErrors = cmsDocumentErrors(stored, body.doc, ids);
     if (cmsErrors.length) return c.json({ error: 'invalid CMS content', detail: cmsErrors.join(' ') }, 422);
     const contentCheck = contentOnly(stored, body.doc, ids);
+    if (c.req.header("x-pagecraft-editor-session") && formRoutingChanged(stored, body.doc)) {
+      return c.json({ error: "form_routing_requires_owner", detail: "Change form destinations in the site's owner editor." }, 403);
+    }
     if (gate?.ok && gate.role === "content" && !contentCheck.ok) {
       return c.json({
         error: "content only",
@@ -7479,6 +7514,9 @@ export function createApp(o: Options) {
         }
       } catch (error) {
         return c.json({ error: String((error as Error).message) }, 422);
+      }
+      if (formRoutingChanged(site.doc, document)) {
+        return c.json({ error: "form_routing_requires_owner", detail: "This change affects where or how a form submits. Review it in the site's owner editor." }, 403);
       }
       const saved = await o.store.saveConnectedCms(
         id,

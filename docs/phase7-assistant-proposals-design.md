@@ -68,20 +68,21 @@ The core holds the proposal engine (`app/src/core/index.ts`, "assistant proposal
       `tel` URL;
     - `select` must be one of its options; `bool` becomes `1` or empty;
     - `color` must be a hex value or a site colour; `icon` must be a known icon.
-  - **Inserts** need an existing component, a region, and a parent that `fitsIn`, or none for
-    the region's top level.
-  - Nodes inside component definitions can't be addressed, because editing one would change
-    every instance.
-- **`proposalCheck(changes)`** returns `ok`, `stale` (the target's current value differs from
-  `before`) or `missing` for each change.
-- **`proposalApply(changes)`** writes with `slotSet`, `instSet` and `instanceInsert`. A root
-  insert briefly points the editor's scope at the region, then restores it.
+  - **Inserts** need an existing component and a valid destination in the requested region.
+    A component parent uses its first declared slot. The outline names that slot and excludes
+    destinations that cannot contain the component.
+  - The outline marks bindings and property sources. Edits to shadowed instance content or
+    bound values are refused.
+- **`proposalCheck(changes)`** reports whether each change still matches its target, placement,
+  and value. A legacy insert without a recorded placement needs to be proposed again.
+- **`proposalApply(changes)`** writes the complete plan only after all checks pass. Inserted
+  instances and wrappers have stable IDs so preview and apply use the same placement.
 
 The server prepares a proposal on a restored copy of the draft, synchronously, as `renderSite`
 does. Before that it requires `baseVersion` to equal the current draft version: if the site
-changed since the assistant read it, the assistant must read it again. The editor re-checks at
-apply time, so edits elsewhere in the draft don't block a proposal, but a change to anything the
-proposal touches does.
+changed since the assistant read it, the assistant must read it again. Preview and apply require
+that same saved draft version. The server rejects unknown input fields, unavailable assets, and
+changes to effective form routing, including changes through component properties or CMS data.
 
 Limits:
 - 50 changes per proposal, 10,000 characters per value;
@@ -99,27 +100,23 @@ Decided proposals are kept for 90 days.
 - **The workspace** (`app/src/ui/ProposalsWorkspace.tsx`), full width like the CMS:
   - a list of proposals;
   - each change shown now and proposed, flagged when stale or missing;
-  - a preview of each affected page, proposed or as it is now. The previews come from
-    `/api/sites/:id/proposals/:p/preview/<file>`, rendered server-side with the applicable
-    changes and the same script-free CSP as the dashboard preview.
-- **Apply to draft** is disabled while any change is stale, missing or already applied. When
-  clicked it:
-  1. claims the proposal on the server, which moves it to `applying` once — a second claim gets
-     a 409, and a claim older than ten minutes was abandoned and can be taken again;
-  2. runs `C.edit(() => C.proposalApply(changes, proposalId))`, which is one Undo step. An
-     inserted instance takes an id derived from the proposal id and the change's index, so
-     `proposalCheck` reports an insert that is already in the draft as `applied`;
-  3. re-renders the editor;
-  4. flushes the draft;
-  5. records the proposal as applied, with the saved version.
+  - a versioned preview of the affected regions, rendered with the same script-free CSP
+    as the dashboard preview.
+- **Apply to draft** is disabled if the proposal or saved version is stale. The server checks
+  the version and candidate, records the decision intent, and saves one draft revision. It
+  confirms the result from the revision's proposal and attempt IDs. A retry can confirm the
+  same revision. The editor adopts the confirmed draft as one Undo step.
 
   Publishing stays a separate, deliberate step. **Decline** asks first.
 - **Editor API**, owners only:
   - `GET /api/sites/:id/proposals[?status=pending]` (with preview paths);
-  - the preview route;
-  - `POST /api/sites/:id/proposals/:p/claim`, single use as above;
-  - `POST /api/sites/:id/proposals/:p/decision` with `{status, version}`, from `pending` or
-    `applying`. A proposal is decided once; a second decision gets a 409.
+  - `GET /api/sites/:id/proposals/:p/preview/<file>?version=<baseVersion>`, with optional `before=1`;
+  - `POST /api/sites/:id/proposals/:p/apply` with `{version}` for the reviewed draft;
+  - `POST /api/sites/:id/proposals/:p/decision` with `{status: "declined"}`.
+
+The hosted database gateway must support `site.saveAssistantProposal`. It rechecks owner
+membership and selected assets within the versioned save and writes the receipt to the existing
+revision context.
 
 ## Code
 

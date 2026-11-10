@@ -9,7 +9,7 @@ import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken, newToken } from '../src/auth.ts';
 import { MemoryAssetStore } from '../src/assets.ts';
-import { CLAIM_TTL, FileAssistantStore } from '../src/assistants.ts';
+import { FileAssistantStore } from '../src/assistants.ts';
 import { MemoryPublicationReviewStore } from '../src/reviews.ts';
 import { blankDoc } from '../src/render.ts';
 
@@ -44,11 +44,11 @@ async function rig() {
     return `pc_session=${token}`;
   };
   const ownerCookie = await cookie(owner.id), editorCookie = await cookie(editor.id);
-  const call = (path: string, init: { method?: string; body?: string; json?: unknown; cookie?: string } = {}) => app.request(new Request(`http://admin.test${path}`, {
+  const call = (path: string, init: { method?: string; body?: string; json?: unknown; cookie?: string; origin?: string } = {}) => app.request(new Request(`http://admin.test${path}`, {
     method: init.method || 'GET',
     body: init.json !== undefined ? JSON.stringify(init.json) : init.body,
     headers: {
-      host: 'admin.test', origin: 'http://admin.test', cookie: init.cookie ?? ownerCookie,
+      host: 'admin.test', origin: init.origin ?? 'http://admin.test', cookie: init.cookie ?? ownerCookie,
       ...(init.json !== undefined ? { 'content-type': 'application/json' } : init.body !== undefined ? { 'content-type': 'application/x-www-form-urlencoded' } : {}),
     },
   }));
@@ -68,7 +68,7 @@ async function rig() {
     const page = await (await call(`/sites/${site.id}/assistants/tokens`, { method: 'POST', body: 'name=Claude+Code' })).text();
     return /pca\.[A-Za-z0-9_-]+\.[a-f0-9]{16}\.[A-Za-z0-9_-]{43}/.exec(page)![0];
   };
-  return { app, store, auth, assistants, reviews, site, other, owner, editor, image, call, editorCookie, mcpFor, newAssistantToken };
+  return { app, store, auth, assets, assistants, reviews, site, other, owner, editor, image, call, editorCookie, mcpFor, newAssistantToken };
 }
 
 test('owners make tokens that are shown once, list them, and revoke them', async () => {
@@ -214,42 +214,169 @@ test('the editor lists proposals with previews, and each is decided once', async
   a.match(before, /Welcome/);
   a.doesNotMatch(before, /Workshops for everyone/);
 
-  const decided = await r.call(`/api/sites/${r.site.id}/proposals/${filed.proposal.id}/decision`, { method: 'POST', json: { status: 'applied', version: 9 } });
-  a.equal(decided.status, 200);
-  a.equal(((await decided.json()) as any).proposal.appliedVersion, 9);
-  a.equal((await r.call(`/api/sites/${r.site.id}/proposals/${filed.proposal.id}/decision`, { method: 'POST', json: { status: 'declined' } })).status, 409);
+  const url = `/api/sites/${r.site.id}/proposals/${filed.proposal.id}`;
+  a.equal((await r.call(url + '/decision', { method: 'POST', json: { status: 'applied', version: 9 } })).status, 400);
+  a.equal((await r.call(url + '/claim', { method: 'POST', json: {} })).status, 409);
+  a.equal((await r.call(url + '/apply', { method: 'POST', json: { version: 9 } })).status, 409);
+  a.equal((await r.call(url + '/apply', { method: 'POST', json: { version: r.site.version }, cookie: r.editorCookie })).status, 403);
+  a.equal((await r.call(url + '/apply', { method: 'POST', json: { version: r.site.version }, origin: 'https://foreign.example.test' })).status, 403);
+  const apply = () => r.call(url + '/apply', { method: 'POST', json: { version: r.site.version } });
+  const applied = await apply();
+  a.equal(applied.status, 200);
+  const result = await applied.json() as any;
+  a.equal(result.proposal.appliedVersion, r.site.version + 1);
+  a.equal(result.draft.version, result.proposal.appliedVersion);
+  a.equal((await r.store.byId(r.site.id))!.doc.pages[0].tree[0].children[0].props.text, 'Workshops for everyone');
+  a.deepEqual(await (await apply()).json(), result, 'retries return the same saved revision');
+  a.equal((await r.call(url + '/decision', { method: 'POST', json: { status: 'declined' } })).status, 409);
+  const saved = (await r.store.byId(r.site.id))!;
+  a.equal(saved.version, r.site.version + 1);
+  a.equal(saved.publishedReleaseId, null);
+  a.equal(saved.publishedPublicationId, null);
 });
 
-test('the editor claims a proposal before applying it, once, and an abandoned claim can be taken again', async () => {
+test('a moved target invalidates the whole preview and owner apply on the next draft version', async () => {
   const r = await rig();
   const mcp = await r.mcpFor(await r.newAssistantToken());
-  const filed = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
-    baseVersion: r.site.version, title: 'Add a card', changes: [{ type: 'insert', componentId: 'card', region: r.site.doc.pages[0].id }],
+  const { proposal } = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Clearer welcome', changes: [{ type: 'text', nodeId: 'h1', value: 'Workshops for everyone' }],
   } })).structuredContent as any;
   await mcp.close();
-  const id = filed.proposal.id;
-  const claim = (cookie?: string) => r.call(`/api/sites/${r.site.id}/proposals/${id}/claim`, { method: 'POST', json: {}, ...(cookie ? { cookie } : {}) });
+  const doc = structuredClone(r.site.doc);
+  const home = doc.pages[0];
+  doc.pages.push({ id: 'work', name: 'Work', slug: 'work', title: '', desc: '', tree: home.tree.splice(0) });
+  const save = await r.call(`/api/sites/${r.site.id}`, { method: 'PUT', json: { doc, version: r.site.version } });
+  a.equal(save.status, 200);
+  const path = `/api/sites/${r.site.id}/proposals`;
+  const listed = await (await r.call(path)).json() as any;
+  a.deepEqual(listed.proposals[0].previews, []);
+  a.match(listed.proposals[0].reviewIssue, /saved draft changed/);
+  a.equal((await r.call(path + `/${proposal.id}/preview/index.html?version=${r.site.version}`)).status, 409);
+  a.equal((await r.call(path + `/${proposal.id}/apply`, { method: 'POST', json: { version: r.site.version } })).status, 409);
+  const latest = await r.store.byId(r.site.id);
+  a.equal(latest?.version, r.site.version + 1);
+  a.equal(latest?.doc.pages[1].tree[0].children[0].props.text, 'Welcome');
+});
 
-  a.equal((await claim(r.editorCookie)).status, 403, 'owners only');
-  const first = await claim();
-  a.equal(first.status, 200);
-  a.equal(((await first.json()) as any).proposal.status, 'applying');
-  const second = await claim();
-  a.equal(second.status, 409, 'a second tab or a second click is refused');
-  a.match(((await second.json()) as any).detail, /already being applied/);
-  a.equal((await r.call(`/api/sites/${r.site.id}/proposals/0123456789abcdef/claim`, { method: 'POST', json: {} })).status, 404);
+test('owner apply survives an interrupted save response and refuses a concurrent decline', async () => {
+  const r = await rig();
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  const { proposal } = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Add a card', changes: [{ type: 'insert', componentId: 'card', region: r.site.doc.pages[0].id }],
+  } })).structuredContent as any;
+  const path = `/api/sites/${r.site.id}/proposals/${proposal.id}`;
+  const save = r.store.save.bind(r.store);
+  let enter!: () => void, leave!: () => void;
+  const started = new Promise<void>(resolve => { enter = resolve; });
+  const release = new Promise<void>(resolve => { leave = resolve; });
+  r.store.save = async (...args) => {
+    enter();
+    await release;
+    await save(...args);
+    // The route receives a success acknowledgement without access to its revision readback.
+    return { ok: true };
+  };
+  const revision = r.store.revision.bind(r.store);
+  let revisionAvailable = false;
+  r.store.revision = async (...args) => revisionAvailable ? revision(...args) : null;
+  const apply = () => r.call(path + '/apply', { method: 'POST', json: { version: r.site.version } });
+  const first = apply();
+  await started;
+  try {
+    const declined = await r.call(path + '/decision', { method: 'POST', json: { status: 'declined' } });
+    a.equal(declined.status, 409);
+    a.equal((await apply()).status, 409);
+  } finally {
+    leave();
+  }
+  a.equal((await first).status, 503);
+  a.equal((await r.assistants.proposal(r.site.id, proposal.id))?.status, 'applying');
+  revisionAvailable = true;
+  const recovered = await apply();
+  a.equal(recovered.status, 200);
+  a.equal(((await recovered.json()) as any).proposal.status, 'applied');
+  a.equal((await r.store.byId(r.site.id))?.version, r.site.version + 1);
+  const current = (await mcp.callTool({ name: 'pagecraft_get_page', arguments: { pageId: r.site.doc.pages[0].id } })).structuredContent as any;
+  a.equal(current.elements.filter((n: any) => n.component?.id === 'card').length, 2, 'one existing and one inserted');
+  await mcp.close();
+});
 
-  // A tab that closed mid-apply leaves its claim behind; ten minutes on, it can be taken again.
-  await writeFile(join(r.assistants.dir(r.site.id), 'proposals', `${id}.claim`), String(Date.now() - CLAIM_TTL - 1000));
-  a.equal((await claim()).status, 200);
-  a.equal((await claim()).status, 409, 'and the new claim is single use too');
+test('an expired apply worker cannot save after a decline wins', async () => {
+  const r = await rig();
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  const { proposal } = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Clarify welcome', changes: [{ type: 'text', nodeId: 'h1', value: 'Join the workshop' }],
+  } })).structuredContent as any;
+  await mcp.close();
+  let enter!: () => void, leave!: () => void;
+  const started = new Promise<void>(resolve => { enter = resolve; });
+  const release = new Promise<void>(resolve => { leave = resolve; });
+  const list = r.assets.list.bind(r.assets);
+  r.assets.list = async id => { enter(); await release; return list(id); };
+  const path = `/api/sites/${r.site.id}/proposals/${proposal.id}`;
+  const interrupted = r.call(path + '/apply', { method: 'POST', json: { version: r.site.version } });
+  await started;
+  try {
+    await writeFile(join(r.assistants.dir(r.site.id), 'proposals', proposal.id + '.decision.0'), JSON.stringify({ at: 0 }));
+    a.equal((await r.call(path + '/decision', { method: 'POST', json: { status: 'declined' } })).status, 200);
+  } finally {
+    leave();
+  }
+  a.equal((await interrupted).status, 409);
+  a.equal((await r.assistants.proposal(r.site.id, proposal.id))?.status, 'declined');
+  a.equal((await r.store.byId(r.site.id))?.version, r.site.version);
+});
 
-  const decided = await r.call(`/api/sites/${r.site.id}/proposals/${id}/decision`, { method: 'POST', json: { status: 'applied', version: 5 } });
-  a.equal(decided.status, 200, 'applying → applied');
-  a.equal(((await decided.json()) as any).proposal.status, 'applied');
-  a.equal((await claim()).status, 409, 'an applied proposal cannot be claimed again');
+test('an unrelated identical revision cannot confirm a failed proposal attempt', async () => {
+  const r = await rig();
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  const { proposal } = (await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Clarify welcome', changes: [{ type: 'text', nodeId: 'h1', value: 'Join the workshop' }],
+  } })).structuredContent as any;
+  await mcp.close();
+  const originalSave = r.store.save.bind(r.store);
+  let candidate: Parameters<typeof originalSave>[1] | undefined;
+  r.store.save = async (_id, doc) => { candidate = doc; throw new Error('fixture interrupted before committing'); };
+  const path = `/api/sites/${r.site.id}/proposals/${proposal.id}`;
+  const apply = () => r.call(path + '/apply', { method: 'POST', json: { version: r.site.version } });
+  a.equal((await apply()).status, 500);
+  a.ok(candidate);
+  a.equal((await originalSave(r.site.id, candidate, r.site.version, r.owner.id)).ok, true);
+  r.store.save = originalSave;
+  a.equal((await apply()).status, 409);
+  a.notEqual((await r.assistants.proposal(r.site.id, proposal.id))?.status, 'applied');
+  a.equal((await r.call(path + '/decision', { method: 'POST', json: { status: 'declined' } })).status, 200);
+});
 
-  // And the preview of an applied insert does not show it twice.
-  const listed = await (await r.call(`/api/sites/${r.site.id}/proposals`)).json() as any;
-  a.equal(listed.proposals[0].status, 'applied');
+test('assistant proposals and content saves reject effective form routing changes but allow ordinary copy', async () => {
+  const r = await rig();
+  const doc = structuredClone(r.site.doc);
+  doc.meta.components!.push({
+    id: 'form-card', name: 'Inquiry form',
+    props: [{ k: 'endpoint', label: 'Where submissions go', t: 'text', def: '' }],
+    node: node('form-def', 'form', { action: '', method: 'post' }, { bind: { action: { src: 'prop', path: 'endpoint' } } }),
+  });
+  doc.pages[0].tree[0].children.push(node('inquiry', 'form', {}, { use: 'form-card' }));
+  const sitePath = `/api/sites/${r.site.id}`;
+  a.equal((await r.call(sitePath, { method: 'PUT', json: { doc, version: r.site.version } })).status, 200);
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  const value = 'https://receiver.example.test/inquiries';
+  const result = await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version + 1, title: 'Update inquiry destination',
+    changes: [{ type: 'property', nodeId: 'inquiry', property: 'endpoint', value }],
+  } });
+  a.equal(result.isError, true);
+  a.match(JSON.stringify(result.content), /where a form submits/);
+  a.deepEqual(await r.assistants.proposals(r.site.id), []);
+  const rerouted = structuredClone(doc);
+  rerouted.pages[0].tree[0].children.at(-1)!.vals = { endpoint: value };
+  a.equal((await r.call(sitePath, { method: 'PUT', cookie: r.editorCookie, json: {
+    doc: rerouted, version: r.site.version + 1,
+  } })).status, 403);
+  doc.pages[0].tree[0].children[0].props.text = 'Workshop timetable';
+  a.equal((await r.call(sitePath, { method: 'PUT', cookie: r.editorCookie, json: {
+    doc, version: r.site.version + 1,
+  } })).status, 200);
+  a.equal((await r.call(sitePath, { method: 'PUT', json: { doc: rerouted, version: r.site.version + 2 } })).status, 200, 'the owner retains direct routing control');
+  await mcp.close();
 });

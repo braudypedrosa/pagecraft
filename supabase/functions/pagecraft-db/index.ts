@@ -69,6 +69,7 @@ const assetStoragePath = (
   }`;
 
 const MAX_BODY = 16 * 1024 * 1024;
+const MAX_PROPOSAL_ASSET_IDS = 10_000; // The assistant request element cap.
 const json = (data: unknown, status = 200) =>
   Response.json({ data }, { status });
 const failure = (error: string, status: number, code?: string) =>
@@ -498,6 +499,33 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         )
       );
     case "site.saveAuthorized":
+    case "site.saveAssistantProposal": {
+      let context: JsonValue = null;
+      let assetIds: string[] = [];
+      if (op === "site.saveAssistantProposal") {
+        const proposal = args.proposal as { id?: unknown; attemptId?: unknown; assetIds?: unknown } | undefined;
+        if (
+          typeof proposal?.id !== "string" || proposal.id.length !== 16 || !/^[a-f0-9]+$/.test(proposal.id) ||
+          typeof proposal.attemptId !== "string" || proposal.attemptId.length !== 32 || !/^[a-f0-9]+$/.test(proposal.attemptId)
+        ) {
+          throw Object.assign(new Error("invalid assistant proposal provenance"), {
+            status: 400,
+            code: "INVALID_PROPOSAL_PROVENANCE",
+          });
+        }
+        if (
+          !Array.isArray(proposal.assetIds) || proposal.assetIds.length > MAX_PROPOSAL_ASSET_IDS ||
+          proposal.assetIds.some(id => typeof id !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(id)) ||
+          new Set(proposal.assetIds).size !== proposal.assetIds.length
+        ) {
+          throw Object.assign(new Error("invalid assistant proposal assets"), {
+            status: 400,
+            code: "INVALID_PROPOSAL_ASSETS",
+          });
+        }
+        assetIds = proposal.assetIds;
+        context = { source: "assistant-proposal", proposalId: proposal.id, attemptId: proposal.attemptId };
+      }
       return await sql.begin(async (transaction) => {
         const existing = await transaction`
           update users set
@@ -524,45 +552,72 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
           );
         }
-        const membership = one(
-          await transaction`
+        const siteId = text(args.id);
+        const proposalSite = context
+          ? one(await transaction`select version from sites where id = ${siteId} for no key update`)
+          : null;
+        if (context && !proposalSite) return { status: "missing" };
+        // Member changes also lock the site first. Keep the member row locked against legacy
+        // grant/revoke calls that write it directly, until both the save and its receipt commit.
+        const membership = one(context ? await transaction`
             select role from site_users
-            where site_id = ${text(args.id)} and user_id = ${text(user.id)}
+            where site_id = ${siteId} and user_id = ${text(user.id)}
+            for share
+          ` : await transaction`
+            select role from site_users
+            where site_id = ${siteId} and user_id = ${text(user.id)}
             limit 1
-          `,
-        );
+          `);
         if (!membership) return { status: "missing" };
         const role = text(membership.role);
         const requiredRole = text(args.requiredRole);
         if (
           role !== "owner" &&
-          !(role === "content" && requiredRole === "write")
+          (context || !(role === "content" && requiredRole === "write"))
         ) return { status: "forbidden" };
+        if (proposalSite && integer(proposalSite.version) !== integer(args.version)) {
+          return { status: "conflict", currentVersion: integer(proposalSite.version) };
+        }
+        if (assetIds.length) {
+          // Retirement updates the same row. Read the active asset and keep the lock through
+          // the draft/revision write, using a consistent order when several assets are picked.
+          const active = await transaction`
+            select id from assets where site_id = ${siteId} and not retired and id in ${transaction(assetIds)}
+            order by id for share
+          `;
+          if (active.length !== assetIds.length) {
+            throw Object.assign(new Error("a selected proposal asset is no longer available"), {
+              status: 409,
+              code: "PROPOSAL_ASSET_UNAVAILABLE",
+            });
+          }
+        }
         const site = one(
           await transaction`
             with changed as (
               update sites set doc = ${
             transaction.json(jsonValue(args.doc))
           }, version = version + 1, updated_at = now()
-              where id = ${text(args.id)} and version = ${
+              where id = ${siteId} and version = ${
             integer(args.version)
           } returning *
             ), recorded as (
-              insert into site_revisions (site_id, version, doc, saved_by, created_at)
-              select id, version, doc, ${text(user.id)}, updated_at from changed
+              insert into site_revisions (site_id, version, doc, saved_by, context, created_at)
+              select id, version, doc, ${text(user.id)}, ${context ? transaction.json(context) : null}, updated_at from changed
             ) select * from changed
           `,
         );
         if (site) return { status: "saved", user, role, site };
         const current = one(
           await transaction`
-            select version from sites where id = ${text(args.id)} limit 1
+            select version from sites where id = ${siteId} limit 1
           `,
         );
         return current
           ? { status: "conflict", currentVersion: integer(current.version) }
           : { status: "missing" };
       });
+    }
     case "site.saveConnectedCms": {
       const connectionId = text(args.connectionId);
       if (!connectionId) throw new Error("connectionId is required");

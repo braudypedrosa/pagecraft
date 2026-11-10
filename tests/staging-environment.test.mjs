@@ -1,5 +1,5 @@
 import {test,expect} from 'vitest';
-import {validateStagingEnvironment} from '../server/src/staging-environment.ts';
+import {stagingProposalGatewayUrl,validateStagingEnvironment} from '../server/src/staging-environment.ts';
 const project='abcdefghijklmnopqrst';
 const isolated={EDITOR_HOST:'staging.itspagecraft.com',EDITOR_ORIGIN:'https://staging.itspagecraft.com',SUPABASE_URL:`https://${project}.supabase.co`,DATABASE_GATEWAY_URL:`https://${project}.supabase.co/functions/v1/pagecraft-db`,PAGECRAFT_STAGING_PROJECT_REF:project,PAGECRAFT_PUBLICATION_ROOT:'/home/itspbuku/pagecraft-staging-publications'};
 test('isolated staging requires pinned matching auth and data project endpoints',()=>{
@@ -27,4 +27,15 @@ test('the existing shared exception keeps workers off and cannot silently become
 test('local and production configuration is not changed by the staging guard',()=>{
  expect(validateStagingEnvironment({})).toBe('other');
  expect(validateStagingEnvironment({...isolated,EDITOR_HOST:'build.itspagecraft.com'})).toBe('other');
+});
+test('the proposal gateway is a fixed sibling only on validated staging',()=>{
+ expect(stagingProposalGatewayUrl(isolated)).toBe(`https://${project}.supabase.co/functions/v1/pagecraft-db-v4`);
+ const sharedOrigin='https://pwgwvicrdbjiecjxiyvl.supabase.co';
+ const shared={...isolated,SUPABASE_URL:sharedOrigin,DATABASE_GATEWAY_URL:`${sharedOrigin}/functions/v1/pagecraft-db-v3/`,PAGECRAFT_STAGING_PROJECT_REF:undefined,PAGECRAFT_ALLOW_SHARED_DATABASE:'1',PAGECRAFT_BACKGROUND_WORKERS:'0'};
+ expect(stagingProposalGatewayUrl(shared)).toBe(`${sharedOrigin}/functions/v1/pagecraft-db-v4`);
+ expect(()=>stagingProposalGatewayUrl({...shared,DATABASE_GATEWAY_URL:`https://${project}.supabase.co/functions/v1/pagecraft-db-v3`})).toThrow();
+ expect(()=>stagingProposalGatewayUrl({...shared,PAGECRAFT_BACKGROUND_WORKERS:'1'})).toThrow();
+ expect(stagingProposalGatewayUrl({...shared,EDITOR_HOST:'build.itspagecraft.com'})).toBeUndefined();
+ expect(stagingProposalGatewayUrl({...shared,EDITOR_HOST:'staging.itspagecraft.com.example.test'})).toBeUndefined();
+ expect(stagingProposalGatewayUrl({})).toBeUndefined();
 });

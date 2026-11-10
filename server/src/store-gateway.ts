@@ -1433,14 +1433,15 @@ export class GatewayAssetStore implements AssetStore {
     this.gateway = gateway;
   }
 
-  async list(siteId: string) {
-    const hit = this.cachedList(siteId);
+  async list(siteId: string, options: { fresh?: boolean } = {}) {
+    const hit = options.fresh ? null : this.cachedList(siteId);
     if (hit) return hit;
     const assets =
       (await this.gateway.call<AssetMetaWire[]>("asset.list", { siteId })).map(
         toAssetRecord,
       );
     this.acceptList(siteId, assets);
+    if (options.fresh) return assets;
     /* Current gateways may not yet return signed Storage URLs. Warm a small, bounded set
        without delaying the editor document so opening Media does not start an N-request
        waterfall. Once signed URLs are available this fallback naturally does no work. */
@@ -1746,6 +1747,7 @@ type HostedPublishPreparationWire =
 export class GatewayHostedPublishPreparer
   implements HostedPublishPreparer, CloudMutationFastPath {
   private gateway: PagecraftGateway;
+  private proposalGateway?: PagecraftGateway;
   private store?: GatewayStore;
   private assets?: GatewayAssetStore;
   private owners = new Map<string, { until: number; user: User }>();
@@ -1753,8 +1755,10 @@ export class GatewayHostedPublishPreparer
     gateway: PagecraftGateway,
     store?: GatewayStore,
     assets?: GatewayAssetStore,
+    proposalGateway?: PagecraftGateway,
   ) {
     this.gateway = gateway;
+    this.proposalGateway = proposalGateway;
     this.store = store;
     this.assets = assets;
   }
@@ -1825,18 +1829,21 @@ export class GatewayHostedPublishPreparer
       version: input.sourceVersion,
       doc: input.doc,
       requiredRole: input.requiredRole,
+      ...(input.proposal ? { proposal: input.proposal } : {}),
       newUserId: crypto.randomUUID(),
       authUserId: input.identity.authUserId,
       email: normalEmail(input.identity.email),
       name: input.identity.name.trim(),
     };
+    const gateway = input.proposal ? (this.proposalGateway ?? this.gateway) : this.gateway;
+    const operation = input.proposal ? "site.saveAssistantProposal" : "site.saveAuthorized";
     const result = await retryTransientSave(() =>
-      this.gateway.call<
+      gateway.call<
         | { status: "saved"; user: UserWire; role: Role; site: SiteRow }
         | { status: "missing" }
         | { status: "forbidden" }
         | { status: "conflict"; currentVersion: number }
-      >("site.saveAuthorized", args)
+      >(operation, args)
     );
     if (result.status !== "saved") return result;
     const user = toUser(result.user);

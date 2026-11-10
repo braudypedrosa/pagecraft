@@ -193,16 +193,18 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
           path: `/api/sites/${site}/proposals${status ? `?status=${status}` : ''}`
         })).body.proposals;
       },
-      async claim(id) {
-        await transport.request<unknown>({ method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/claim`, body: {} });
+      async apply(id, version) {
+        return (await transport.request<Awaited<ReturnType<WebHostAdapter['proposals']['apply']>>>({
+          method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/apply`, body: { version },
+        })).body;
       },
-      async decide(id, status, version) {
+      async decline(id) {
         await transport.request<unknown>({
-          method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/decision`, body: { status, version }
+          method: 'POST', path: `/api/sites/${site}/proposals/${encodeURIComponent(id)}/decision`, body: { status: 'declined' }
         });
       },
-      previewUrl: (id, path, before) =>
-        `${options.baseUrl || ''}/api/sites/${site}/proposals/${encodeURIComponent(id)}/preview/${path.split('/').map(encodeURIComponent).join('/')}${before ? '?before=1' : ''}`,
+      previewUrl: (id, path, version, before) =>
+        `${options.baseUrl || ''}/api/sites/${site}/proposals/${encodeURIComponent(id)}/preview/${path.split('/').map(encodeURIComponent).join('/')}?version=${version}${before ? '&before=1' : ''}`,
       settingsUrl: `${options.baseUrl || ''}/sites/${site}/assistants`
     }
   };

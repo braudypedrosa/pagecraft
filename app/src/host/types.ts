@@ -333,19 +333,20 @@ export interface WebProposal {
   regions: string[];
   createdAt: string;
   tokenName: string;
-  /** `applying` between the editor's claim and its decision */
+  /** `applying` while a saved revision is being confirmed */
   status: 'pending' | 'applying' | 'applied' | 'declined';
   decidedAt: string | null;
+  reviewIssue?: string;
+  recoveryAvailable?: boolean;
   /** rendered files that show the affected regions */
   previews: { region: string; label: string; path: string }[];
 }
 export interface WebProposalAdapter {
   list(status?: 'pending'): Promise<WebProposal[]>;
-  /** Take a pending proposal to apply it. Single use: a second claim is refused with a 409. */
-  claim(id: string): Promise<void>;
-  decide(id: string, status: 'applied' | 'declined', version?: number): Promise<void>;
+  apply(id: string, version: number): Promise<{ draft: { doc: import('../core/types').Doc; version: number } | null }>;
+  decline(id: string): Promise<void>;
   /** where an affected page renders, with the proposal applied or, with `before`, without */
-  previewUrl(id: string, path: string, before?: boolean): string;
+  previewUrl(id: string, path: string, version: number, before?: boolean): string;
   /** the owner page where assistant tokens are made */
   settingsUrl: string;
 }

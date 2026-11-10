@@ -36,26 +36,28 @@ const summary = (p: Proposal) => ({
   changes: p.changes.length, baseVersion: p.baseVersion,
 });
 
+// A proposal is reviewed as a whole. Reject unknown fields so a valid operation cannot
+// conceal a second, unsupported instruction that the client expects to be applied.
 const change = z.discriminatedUnion("type", [
-  z.object({
+  z.strictObject({
     type: z.literal("text"),
     nodeId: z.string().describe("an element id from pagecraft_get_page"),
     slot: z.string().optional().describe("which text, e.g. text, alt, caption or items.0.label; defaults to the element's first"),
     value: z.string().describe("plain text. In rich text (elements marked `formatting`, and rich component properties) **bold**, *italic*, [text](/page-or-https-url) and \"- \" list lines work; HTML is always shown literally"),
   }),
-  z.object({
+  z.strictObject({
     type: z.literal("image"),
     nodeId: z.string(),
     slot: z.string().optional().describe("defaults to the element's main image"),
     assetId: z.string().describe("an image id from pagecraft_site; new images cannot be uploaded"),
   }),
-  z.object({
+  z.strictObject({
     type: z.literal("property"),
     nodeId: z.string().describe("a component instance's element id"),
     property: z.string().describe("a property key from that component in pagecraft_site"),
     value: z.string(),
   }),
-  z.object({
+  z.strictObject({
     type: z.literal("insert"),
     componentId: z.string().describe("an existing component from pagecraft_site"),
     region: z.string().describe("a page id, or header / footer"),
@@ -73,12 +75,12 @@ function assistantServer(ctx: AssistantMcpContext) {
 
   server.registerTool("pagecraft_site", {
     description: `Start here. Read the outline of the Pagecraft site “${ctx.site.name}”: its pages, the header and footer, the components you can place and their properties, and the images you can use. Includes the version to send with a proposal.`,
-    inputSchema: z.object({}),
+    inputSchema: z.strictObject({}),
   }, async () => result(ctx.outline()));
 
   server.registerTool("pagecraft_get_page", {
     description: "Read one page (by id), or the header or footer, as a list of elements with their ids, text and images by slot, component values, and which components each element can hold. Use these ids in a proposal.",
-    inputSchema: z.object({ pageId: z.string().min(1).describe("a page id from pagecraft_site, or header / footer") }),
+    inputSchema: z.strictObject({ pageId: z.string().min(1).describe("a page id from pagecraft_site, or header / footer") }),
   }, async ({ pageId }) => {
     const region = ctx.region(pageId);
     return region ? result(region) : failure(`There is no page "${pageId}". Use a page id from pagecraft_site, or header / footer.`);
@@ -86,7 +88,7 @@ function assistantServer(ctx: AssistantMcpContext) {
 
   server.registerTool("pagecraft_propose_changes", {
     description: "Propose changes for the site's owner to review and apply in the Pagecraft editor. Nothing changes until they do. A proposal can change text, swap in one of the site's existing images, set a component instance's properties, and add instances of existing components. It cannot change layout, styles, code, settings or people, and it cannot publish. Send the version you read; if the site changed since, read it again.",
-    inputSchema: z.object({
+    inputSchema: z.strictObject({
       baseVersion: z.number().int().describe("the version from pagecraft_site or pagecraft_get_page"),
       title: z.string().min(1).max(120).describe("a short title the owner sees, e.g. “Clearer workshop copy”"),
       summary: z.string().max(2000).optional().describe("why, in a sentence or two"),
@@ -105,7 +107,7 @@ function assistantServer(ctx: AssistantMcpContext) {
 
   server.registerTool("pagecraft_get_proposal", {
     description: "See whether one of your proposals is still waiting, was applied, or was declined.",
-    inputSchema: z.object({ proposalId: z.string().min(1) }),
+    inputSchema: z.strictObject({ proposalId: z.string().min(1) }),
   }, async ({ proposalId }) => {
     const p = await ctx.proposal(proposalId);
     return p ? result({ proposal: summary(p), changes: p.changes.map((c) => c.label) }) : failure("There is no such proposal for this site.");
@@ -113,7 +115,7 @@ function assistantServer(ctx: AssistantMcpContext) {
 
   server.registerTool("pagecraft_list_proposals", {
     description: "List recent proposals for this site, newest first, with their status.",
-    inputSchema: z.object({}),
+    inputSchema: z.strictObject({}),
   }, async () => result({ proposals: (await ctx.proposals()).slice(0, 25).map(summary) }));
 
   return server;

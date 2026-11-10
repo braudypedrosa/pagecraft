@@ -33,3 +33,9 @@ export function validateStagingEnvironment(env: Environment): 'other' | 'shared-
   if (auth.hostname !== `${expected}.supabase.co`) throw new Error('Staging endpoints do not match the pinned Supabase project');
   return 'isolated';
 }
+
+/** Only the staging proposal save uses this sibling of the validated database gateway. */
+export function stagingProposalGatewayUrl(env: Environment): string | undefined {
+  if (validateStagingEnvironment(env) === 'other') return undefined;
+  return new URL('/functions/v1/pagecraft-db-v4', env.DATABASE_GATEWAY_URL).href;
+}

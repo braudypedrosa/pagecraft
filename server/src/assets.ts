@@ -69,7 +69,7 @@ export const legacyAssetPath = (a: Pick<AssetRecord, 'id' | 'name'>) =>
 
 export interface AssetStore {
   /** Metadata only. Listing a library must never transfer every image body. */
-  list(siteId: string): Promise<AssetRecord[]>;
+  list(siteId: string, options?: { fresh?: boolean }): Promise<AssetRecord[]>;
   get(siteId: string, id: string): Promise<Asset | null>;
   /** by the path a rendered page asks for, e.g. `assets/logo-a123.png` */
   byPath(siteId: string, path: string): Promise<Asset | null>;

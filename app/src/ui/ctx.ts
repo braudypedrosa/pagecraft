@@ -118,6 +118,7 @@ export interface Legacy {
   /** Save the draft now and wait for it, so the server holds what the owner sees. Rejects when
       the save failed. */
   flushDraft(): Promise<void>;
+  acceptProposalDraft(draft: { doc: import('../core/types').Doc; version: number }, baseVersion: number, baseline: string): boolean;
   /** Re-read the site's images, after an import copied some in, so the canvas can show them. */
   assetsReload(): Promise<void>;
   /** Assistant proposals (Phase 7): the hosted editor, for the site's owner; null otherwise. */

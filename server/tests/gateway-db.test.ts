@@ -250,6 +250,73 @@ async function siteWithOwner(siteId: string, userId: string) {
   await db.query(`insert into site_users (site_id, user_id, role) values ($1, $2, 'owner')`, [siteId, userId]);
 }
 
+test('proposal save commits owner provenance with the exact revision and retains ordinary content saves', async () => {
+  const siteId = 'proposal-revision', ownerId = 'proposal-owner', editorId = 'proposal-editor';
+  await siteWithOwner(siteId, ownerId);
+  await siteWithOwner('other-proposal-site', ownerId);
+  await db.query('update users set auth_user_id=$1 where id=$2', ['auth-proposal-owner', ownerId]);
+  await db.query('insert into users (id, email, auth_user_id) values ($1, $2, $3)',
+    [editorId, `${editorId}@example.test`, 'auth-proposal-editor']);
+  await db.query("insert into site_users (site_id, user_id, role) values ($1, $2, 'content')", [siteId, editorId]);
+
+  const storeAsset = (id: string, site: string, retired: boolean) => db.query(`
+    insert into assets (id, site_id, name, type, bytes, retired) values ($1, $2, $3, 'image/png', $4, $5)`,
+    [id, site, 'Workshop.png', new Uint8Array([1]), retired]);
+  await storeAsset('proposal-workshop', siteId, false);
+  await storeAsset('proposal-workshop-retired', siteId, true);
+  await storeAsset('proposal-workshop-other', 'other-proposal-site', false);
+
+  const proposal = { id: 'a'.repeat(16), attemptId: 'b'.repeat(32), assetIds: ['proposal-workshop'] };
+  const owner = { newUserId: 'unused-owner-id', authUserId: 'auth-proposal-owner', email: `${ownerId}@example.test`, name: 'Owner' };
+  const editor = { newUserId: 'unused-editor-id', authUserId: 'auth-proposal-editor', email: `${editorId}@example.test`, name: 'Editor' };
+  const draft = { ...doc, meta: { name: 'Approved workshop' } };
+  const input = { id: siteId, version: 1, doc: draft, requiredRole: 'write', proposal };
+  const revision = async (version: number) => (await operation('site.revision', { id: siteId, version })).body;
+
+  const invalid = await call('site.saveAssistantProposal', { ...input, ...owner, proposal: { ...proposal, attemptId: proposal.attemptId + '\n' } });
+  a.equal(invalid.status, 400);
+  a.equal(invalid.body.code, 'INVALID_PROPOSAL_PROVENANCE');
+  const forbidden = await operation('site.saveAssistantProposal', { ...input, ...editor });
+  a.deepEqual(forbidden.body, { status: 'forbidden' });
+  const duplicate = await call('site.saveAssistantProposal', { ...input, ...owner, proposal: { ...proposal, assetIds: ['proposal-workshop', 'proposal-workshop'] } });
+  a.equal(duplicate.status, 400);
+  a.equal(duplicate.body.code, 'INVALID_PROPOSAL_ASSETS');
+  for (const unavailable of ['proposal-workshop-retired', 'proposal-workshop-other', 'proposal-workshop-deleted']) {
+    const refused = await call('site.saveAssistantProposal', {
+      ...input, ...owner, proposal: { ...proposal, assetIds: ['proposal-workshop', unavailable] },
+    });
+    a.equal(refused.status, 409);
+    a.equal(refused.body.code, 'PROPOSAL_ASSET_UNAVAILABLE');
+    a.equal((await operation('site.byId', { id: siteId })).body.version, 1);
+  }
+  a.equal(await revision(2), null);
+
+  const start = harness.statements.length;
+  const saved = await operation('site.saveAssistantProposal', { ...input, ...owner });
+  a.equal(saved.body.status, 'saved');
+  a.equal(saved.body.site.version, 2);
+  a.equal(saved.body.site.published_version, 1);
+  const recorded = await revision(2);
+  a.deepEqual(recorded.doc, draft);
+  a.equal(recorded.saved_by, ownerId);
+  a.deepEqual(recorded.context, { source: 'assistant-proposal', proposalId: proposal.id, attemptId: proposal.attemptId });
+  const statements = harness.statements.slice(start);
+  const siteLock = statements.findIndex(statement => /select version from sites .* for no key update/.test(statement));
+  const membershipLock = statements.findIndex(statement => /select role from site_users .* for share/.test(statement));
+  const assetLock = statements.findIndex(statement => /select id from assets .* not retired .* order by id for share/.test(statement));
+  const revisionWrite = statements.findIndex(statement => statement.includes('insert into site_revisions'));
+  a.ok(siteLock >= 0 && siteLock < membershipLock && membershipLock < assetLock && assetLock < revisionWrite);
+
+  const replay = await operation('site.saveAssistantProposal', { ...input, ...owner });
+  a.deepEqual(replay.body, { status: 'conflict', currentVersion: 2 });
+  a.equal(await revision(3), null);
+  const ordinary = await operation('site.saveAuthorized', { ...input, ...editor, version: 2 });
+  a.equal(ordinary.body.status, 'saved');
+  a.equal(ordinary.body.site.version, 3);
+  a.equal((await revision(3)).context, null, 'ordinary save ignores proposal metadata');
+  a.deepEqual((await revision(2)).context, recorded.context);
+});
+
 test('site history stays metadata-only when saved documents exceed the gateway response budget', async () => {
   const siteId = 'large-history', ownerId = 'large-history-owner';
   await siteWithOwner(siteId, ownerId);

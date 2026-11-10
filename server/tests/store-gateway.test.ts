@@ -1153,6 +1153,50 @@ test("a retried save whose first attempt committed reports the version conflict,
   a.equal(calls.length, 2);
 });
 
+test("proposal saves fail closed when the gateway lacks the provenance operation", async () => {
+  const proposal = { id: 'a'.repeat(16), attemptId: 'b'.repeat(32), assetIds: ['workshop'] };
+  const { gateway, calls } = fakeGateway(() => Response.json({ error: 'unknown gateway operation', code: 'UNKNOWN_OPERATION' }, { status: 400 }));
+  const cloud = new GatewayHostedPublishPreparer(gateway);
+  await a.rejects(() => cloud.saveAuthorized({
+    siteId: 's1', sourceVersion: 3, doc: siteRow.doc, requiredRole: 'admin', proposal,
+    identity: { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' },
+  }), { status: 400, code: 'UNKNOWN_OPERATION' });
+  a.deepEqual(calls.map(call => call.op), ['site.saveAssistantProposal']);
+  a.deepEqual(calls[0].args.proposal, proposal);
+});
+
+test("only proposal saves use the dedicated gateway, including a transient retry", async () => {
+  const primary = 'https://gateway.example.test/functions/v1/pagecraft-db-v3';
+  const sidecar = 'https://gateway.example.test/functions/v1/pagecraft-db-v4';
+  const requests: { url: string; call: Call }[] = [];
+  let fail = false;
+  const request: typeof fetch = async (url, init) => {
+    requests.push({ url: String(url), call: JSON.parse(String(init?.body)) });
+    return fail ? edgeFailure(503) : Response.json({ data: { status: 'conflict', currentVersion: 4 } });
+  };
+  const cloud = new GatewayHostedPublishPreparer(
+    new PagecraftGateway(primary, 'fixture-key', request), undefined, undefined,
+    new PagecraftGateway(sidecar, 'fixture-key', request),
+  );
+  const input = {
+    siteId: 's1', sourceVersion: 3, doc: siteRow.doc, requiredRole: 'admin' as const,
+    identity: { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' },
+  };
+  const proposal = { id: 'a'.repeat(16), attemptId: 'b'.repeat(32), assetIds: ['workshop'] };
+  await cloud.saveAuthorized(input);
+  await cloud.saveAuthorized({ ...input, proposal });
+  fail = true;
+  await a.rejects(() => cloud.saveAuthorized({ ...input, proposal }), { status: 503 });
+  a.deepEqual(requests.map(({ url, call }) => [url, call.op]), [
+    [primary, 'site.saveAuthorized'],
+    [sidecar, 'site.saveAssistantProposal'],
+    [sidecar, 'site.saveAssistantProposal'],
+    [sidecar, 'site.saveAssistantProposal'],
+  ]);
+  a.deepEqual(requests[1].call.args.proposal, proposal);
+  a.deepEqual(requests[2], requests[3]);
+});
+
 test("an editor-session save is retried once after a transient gateway failure", async () => {
   let attempts = 0;
   const { gateway, calls } = fakeGateway((call) => {
@@ -1303,6 +1347,21 @@ test('retirement invalidates browser metadata without removing historical bytes'
   a.equal((await assets.list('s1'))[0].retired,true);
   a.equal(calls.filter(call=>call.op==='asset.list').length,2);
   a.equal(calls.some(call=>call.op==='asset.remove'),false);
+});
+
+test('fresh media listing bypasses cached metadata and sees another process retire an asset', async () => {
+  let retired = false;
+  const { gateway, calls } = fakeGateway(call => {
+    if (call.op === 'asset.list') return [{ id: 'a1', site_id: 's1', name: 'One.png', type: 'image/png', w: 1, h: 1, retired }];
+    throw new Error(call.op);
+  });
+  const assets = new GatewayAssetStore(gateway);
+  a.equal((await assets.list('s1'))[0].retired, false);
+  retired = true;
+  a.equal((await assets.list('s1'))[0].retired, false);
+  a.equal((await assets.list('s1', { fresh: true }))[0].retired, true);
+  a.equal((await assets.list('s1'))[0].retired, true);
+  a.deepEqual(calls.map(call => call.op), ['asset.list', 'asset.list']);
 });
 
 test("the signed-in identity upsert is reused briefly, but never across a changed identity or a rename", async () => {

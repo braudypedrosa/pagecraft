@@ -11,6 +11,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ProposalChange } from '../../app/src/core/index.ts';
+import { FileRecords } from './record-files.ts';
 
 export interface AssistantToken {
   id: string;
@@ -27,7 +28,7 @@ export interface AssistantToken {
 }
 export type AssistantTokenView = Omit<AssistantToken, 'digest'> & { lastUsedAt: string | null };
 
-/** `applying` is held by the editor between claiming a proposal and saying it was applied. */
+/** `applying` records a server save that may need to be confirmed by reading its revision. */
 export type ProposalStatus = 'pending' | 'applying' | 'applied' | 'declined';
 export interface Proposal {
   id: string;
@@ -47,14 +48,13 @@ export interface Proposal {
   decidedBy: string | null;
   /** the draft version the applied changes were saved as */
   appliedVersion: number | null;
-  /** when, and by whom, the editor claimed it to apply */
-  claimedAt?: string | null;
-  claimedBy?: string | null;
+  /** The only document and author that can confirm this attempt at baseVersion + 1. */
+  application?: { digest: string; by: string; attemptId: string };
 }
+type DecisionIntent = { kind: 'apply'; application: NonNullable<Proposal['application']> } | { kind: 'decline' };
 
 export const ASSISTANT_LIMITS = { tokens: 10, pending: 25, keepDays: 90, nameMax: 60 };
-/** A claim this old was abandoned — the tab closed while applying — and can be taken again. */
-export const CLAIM_TTL = 10 * 60_000;
+const DECISION_LEASE_MS = 10 * 60_000;
 
 const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 const b64 = (s: string) => Buffer.from(s, 'utf8').toString('base64url');
@@ -173,7 +173,8 @@ export class FileAssistantStore {
   /** Newest first. Decided proposals older than 90 days are left out. */
   async proposals(siteId: string): Promise<Proposal[]> {
     const cutoff = new Date(Date.now() - ASSISTANT_LIMITS.keepDays * 86_400_000).toISOString();
-    return (await listJson<Proposal>(join(this.dir(siteId), 'proposals')))
+    const rows = await listJson<Proposal>(join(this.dir(siteId), 'proposals'));
+    return (await Promise.all(rows.map(row => this.latestDecision(row))))
       .filter(p => p.status === 'pending' || p.status === 'applying' || (p.decidedAt || p.createdAt) >= cutoff)
       .sort((x, y) => y.createdAt.localeCompare(x.createdAt));
   }
@@ -181,50 +182,57 @@ export class FileAssistantStore {
   async proposal(siteId: string, id: string) {
     if (!ID.test(id)) return null;
     const row = await json<Proposal>(join(this.dir(siteId), 'proposals', `${id}.json`));
-    return row && row.siteId === siteId ? row : null;
+    return row && row.siteId === siteId ? this.latestDecision(row) : null;
   }
 
-  /** Pending → applying, once. The editor claims a proposal before it applies anything, so a
-      second tab or a second click gets a refusal instead of applying the same changes twice. The
-      claim is an exclusive file, which holds across processes; one older than `CLAIM_TTL` was
-      abandoned and can be taken again. Null when there is no such proposal. */
-  async claim(siteId: string, id: string, by: string): Promise<{ ok: boolean; proposal: Proposal } | null> {
-    const row = await this.proposal(siteId, id);
-    if (!row) return null;
-    if (row.status !== 'pending' && row.status !== 'applying') return { ok: false, proposal: row };
-    const dir = join(this.dir(siteId), 'proposals');
-    if (!(await this.lock(join(dir, `${id}.claim`)))) return { ok: false, proposal: row };
-    const next: Proposal = { ...row, status: 'applying', claimedAt: new Date().toISOString(), claimedBy: by };
-    await writeAtomic(join(dir, `${id}.json`), next);
-    return { ok: true, proposal: next };
-  }
-  private async lock(file: string) {
-    const take = () => writeFile(file, String(Date.now()), { flag: 'wx', mode: 0o600 }).then(() => true, (e: NodeJS.ErrnoException) => {
-      if (e.code === 'EEXIST') return false;
-      throw e;
-    });
-    if (await take()) return true;
-    const at = Number((await readFile(file, 'utf8').catch(() => '')).trim()) || 0;
-    if (Date.now() - at <= CLAIM_TTL) return false;
-    // Abandoned. Whoever moves it aside first is the one who may take it.
-    const aside = `${file}.${randomBytes(6).toString('hex')}.stale`;
-    try { await rename(file, aside); } catch { return false; }
-    await rm(aside, { force: true });
-    return take();
+  private async latestDecision(row: Proposal) {
+    const records = new FileRecords(join(this.dir(row.siteId), 'proposals'));
+    for (let generation = 0; ; generation++) {
+      const path = `${row.id}.decision.${generation}`;
+      if (!await records.read(path)) break;
+      row = await records.read<Proposal>(path + '.state') || row;
+    }
+    if (row.status === 'pending' || row.status === 'applying') {
+      const intent = await records.read<DecisionIntent>(`${row.id}.decision.intent`);
+      if (intent?.kind === 'apply') return { ...row, status: 'applying' as const, application: intent.application };
+    }
+    return row;
   }
 
-  /** Pending or applying → applied or declined, once. */
-  async decide(siteId: string, id: string, input: { status: 'applied' | 'declined'; by: string; version?: number }) {
-    const row = await this.proposal(siteId, id);
-    if (!row || (row.status !== 'pending' && row.status !== 'applying')) return null;
-    const next: Proposal = {
-      ...row, status: input.status, decidedAt: new Date().toISOString(), decidedBy: input.by,
-      appliedVersion: input.status === 'applied' && Number.isInteger(input.version) ? input.version! : null,
-    };
-    const dir = join(this.dir(siteId), 'proposals');
-    await writeAtomic(join(dir, `${id}.json`), next);
-    await rm(join(dir, `${id}.claim`), { force: true });
-    return next;
+  /** Apply and decline share the same cross-process lease. An expired generation is never
+      removed, so taking it over cannot unlink a concurrent winner. Re-read after acquiring it. */
+  async withDecision<T>(siteId: string, id: string, work: (row: Proposal, write: (next: Proposal) => Promise<void>,
+    reserve: (intent: DecisionIntent) => Promise<boolean>) => Promise<T>) {
+    if (!await this.proposal(siteId, id)) return { status: 'missing' } as const;
+    const records = new FileRecords(join(this.dir(siteId), 'proposals'));
+    let generation = 0;
+    for (;;) {
+      const path = `${id}.decision.${generation}`;
+      const lease = await records.read<{ at: number }>(path);
+      if (!lease) {
+        if (!await records.create(path, { at: Date.now() })) return { status: 'busy' } as const;
+        try {
+          const row = await this.proposal(siteId, id);
+          if (!row) return { status: 'missing' } as const;
+          // A resumed old process can update only its own generation, never the new winner's.
+          const write = (next: Proposal) => records.write(path + '.state', next);
+          // This exclusive intent survives lease takeover. An expired worker cannot save after a
+          // decline won, or decline while an earlier application may still reach the draft CAS.
+          const reserve = async (intent: DecisionIntent) => {
+            const key = `${id}.decision.intent`;
+            if (await records.create(key, intent)) return true;
+            const current = await records.read<DecisionIntent>(key);
+            return current?.kind === intent.kind && (intent.kind === 'decline' ||
+              (current.kind === 'apply' && current.application.attemptId === intent.application.attemptId));
+          };
+          return { status: 'ok', value: await work(row, write, reserve) } as const;
+        } finally {
+          await records.create(path + '.released', true);
+        }
+      }
+      if (!await records.read(path + '.released') && Date.now() - lease.at < DECISION_LEASE_MS) return { status: 'busy' } as const;
+      generation++;
+    }
   }
 
   /** A deleted site's tokens and proposals, gone. */

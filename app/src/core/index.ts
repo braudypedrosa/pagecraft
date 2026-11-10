@@ -18,7 +18,7 @@ import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
   StateKey, States, Anim, TabPanel, Capability, Binding, Condition, CondOp, ComponentDef, ComponentProp, PropKind,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
-  Finding, FindingItemTarget, FindingTarget, RenderOpts, MenuItem, Slot, SlotHit, Control
+  Finding, FindingItemTarget, FindingTarget, RenderOpts, MenuItem, Slot, SlotHit, Control, FormField
 } from './types.ts';
 import { UI_TEXT_SIZES } from '../../../shared/ui-tokens.js';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
@@ -26,6 +26,7 @@ import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
 /* `safeUrl` and the two markup cleaners live in their own module so the library import, which
    must not pull in this stateful core, shares the same answers. */
 import { safeUrl, safeRichUrl, stripScripts, cleanRich, richTextContent } from './safe-html.ts';
+import { sha256 } from './libraries.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
 import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
 import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
@@ -155,11 +156,11 @@ export type FormHandling = {
 };
 /** One answer for review, rendering and the inspector. Cloud owns only legacy blank POST
  * forms; an explicit secure destination always remains the author's destination. */
-export function resolveFormHandling(props: PropBag, formId = ''): FormHandling {
+export function resolveFormHandling(props: PropBag, formId = '', cloudEndpoint = cloudFormEndpoint): FormHandling {
   const rawAction = String(props.action || '').trim();
   const external = safeFormAction(rawAction);
   const method = props.method === 'get' ? 'get' : 'post';
-  if (cloudFormEndpoint) {
+  if (cloudEndpoint) {
     if (rawAction) return external
       ? { kind: 'external', action: external, method, reason: '', note: 'Sends entries to the configured external HTTPS destination.' }
       : { kind: 'disabled', action: '', method, reason: 'unsafe', note: 'Disabled until the destination is a complete HTTPS URL.' };
@@ -168,7 +169,7 @@ export function resolveFormHandling(props: PropBag, formId = ''): FormHandling {
     }
     return {
       kind: 'cloud',
-      action: cloudFormEndpoint + '/' + encodeURIComponent(formId),
+      action: cloudEndpoint + '/' + encodeURIComponent(formId),
       method: 'post',
       reason: '',
       note: 'Saves entries to this site’s Submissions inbox when published.',
@@ -2898,6 +2899,14 @@ function buildLink(o: any) {
     authored keys are absent, so label and positional fallbacks remain stable. */
 function formFieldName(field: any, index: number) {
   return String(field && field.name || '').trim() || slugify(field && field.label) || 'field-' + (index + 1);
+}
+
+/** A GET submit replaces the action's query. Keep configured pairs as hidden fields unless
+    an authored input already submits under that name. */
+function formFixedQuery(handling: FormHandling, fields: readonly FormField[]): [string, string][] {
+  if (handling.kind !== 'external' || handling.method !== 'get') return [];
+  const authoredNames = new Set(fields.map(formFieldName));
+  return Array.from(new URL(handling.action).searchParams).filter(([name]) => !authoredNames.has(name));
 }
 
 /* ---- reusable style classes -------------------------------------------
@@ -5794,8 +5803,12 @@ const templateFor = (colId: string) =>
 /* Every file the project exports: one per ordinary page, and one per item for a
    page marked as a collection's detail template. `rel` is how far that file sits
    from the root, which is what every internal link and asset path needs. */
-function exportTargets() {
+function exportTargets(maxTargets = Infinity) {
   const out: any[] = [];
+  const append = (target: typeof out[number]) => {
+    if (out.length >= maxTargets) throw new Error('Form routing inspection exceeded its page budget');
+    out.push(target);
+  };
   for (const pg of state.pages) {
     const col = pg.collection ? findCollection(pg.collection) : null;
     if (!col) {
@@ -5804,7 +5817,7 @@ function exportTargets() {
       const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
       for (let i = 1; i <= n; i++) {
         const path = pagedPath(pg.slug, i);
-        out.push({
+        append({
           pg: i > 1 ? { ...pg, title: `${pg.title || pg.name} — page ${i}` } : pg,
           path, rel: pathRel(path),
           col: null, item: null, pageNo: i, pages: n
@@ -5824,7 +5837,7 @@ function exportTargets() {
       for (let i = 1; i <= n; i++) {
         const path = pagedPath(slug, i);
         const title = t || pg.title;
-        out.push({
+        append({
           pg: { ...pg, slug, title: i > 1 ? `${title || pg.name} — page ${i}` : title, desc: d || pg.desc },
           path, rel: pathRel(path), col, item: it, pageNo: i, pages: n
         });
@@ -6803,19 +6816,22 @@ function componentFromNode(nodeId: string, name: string) {
   delete h.node.st; delete h.node.bind; delete h.node.src;
   return id;
 }
-/** Place an instance. Levels come from the definition's root, the way a block's do. */
-function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
-  const def = findComponent(cid);
-  if (!def) return null;
-  const root = def.node;
+function makeInstance(def: ComponentDef): PcNode {
   const fresh: PcNode = {
-    ...clone(root), id: uid(), use: cid, children: [],
+    ...clone(def.node), id: uid(), use: def.id, children: [],
     /* an instance starts unstyled: the definition's own css is already on the element through
        the definition's class, and copying it here would freeze today's definition into every
        instance placed today */
     css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
   };
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
+  return fresh;
+}
+/** Place an instance. Levels come from the definition's root, the way a block's do. */
+function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
+  const def = findComponent(cid);
+  if (!def) return null;
+  const fresh = makeInstance(def);
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
   if (nowhere(parentNode)) return null;
   if (slotlessInstance(parentNode)) return dropTree(fresh, parentNode!.id);
@@ -9616,8 +9632,24 @@ const cssRatio = (v: unknown) => {
   return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : '';
 };
 
-function renderNode(n: PcNode, o: RenderOpts): string {
+type ObservedFormHandling = FormHandling & { fixedQuery: [string, string][] };
+export type FormRoutingObservation = {
+  placement: string;
+  context: string;
+  cloud: ObservedFormHandling;
+  portable: ObservedFormHandling;
+};
+
+type FormRoutingInspection = {
+  region: string;
+  items: readonly (readonly [string, string])[];
+  count: (size?: number) => void;
+  visit: (form: FormRoutingObservation) => void;
+};
+
+function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspection }): string {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
+  o.formRouting?.count();
   const d = DEF[n.type];
   if (!d) return '';
   /* An instance renders its definition's tree. `o.inst` carries the instance down that render
@@ -9766,6 +9798,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : undefined
   } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
+  if (o.formRouting && n.type !== 'list' && n.type !== 'nav' && n.type !== 'form') return '';
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
   /* A link opens in a new tab or it does not. `target` is a prop a binding can write anything
      into, so nothing but `_blank` becomes an attribute. */
@@ -9832,6 +9865,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
       if (!kidz.length) return o.edit
         ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
+      o.formRouting?.count(lc.items.length);
       const all = listItems(n, lc);
       /* Keep true empty collections distinct from filters that exclude existing content. */
       if (!all.length) {
@@ -9856,8 +9890,11 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
 
-      const reps = rows.map((it, k) =>
-        kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
+      const reps = rows.map((it, k) => {
+        const formRouting = o.formRouting && { ...o.formRouting, items: [...o.formRouting.items, [lc.id, it.id] as const] };
+        return kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k, formRouting })).join('');
+      }).join('');
+      if (o.formRouting) return '';
       const scrollRegion = listMayScroll(n) || (host && listMayScroll(host))
         ? ` role="group" aria-label="${esc(lc.name)}" tabindex="0"` : '';
       const body = p.collectionLayout === 'slider'
@@ -9983,6 +10020,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
       } : null;
       const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined, mobileMenuItems: items })}</div>` : '';
+      if (o.formRouting) return '';
       return `<nav ${at()} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
         + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
@@ -9995,16 +10033,25 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const controlsAttr = enhancedControls ? ' data-pagecraft-controls' : '';
       const fid = (i: number) => domId() + '-f' + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
+      if (o.formRouting) {
+        const observe = (endpoint: string): ObservedFormHandling => {
+          const handling = resolveFormHandling(p, formId, endpoint);
+          return { ...handling, fixedQuery: formFixedQuery(handling, fields) };
+        };
+        o.formRouting.visit({
+          placement: JSON.stringify([o.formRouting.region, ...(o.placementPath || []), n.id]),
+          context: JSON.stringify(o.formRouting.items),
+          cloud: observe('pagecraft:cloud-form'),
+          portable: observe(''),
+        });
+        return '';
+      }
       const handling = resolveFormHandling(p, formId);
       const act = handling.action;
       const disabled = act ? '' : ' disabled';
-      const authoredNames = new Set(fields.map(formFieldName));
-      const getQueryFields = handling.kind === 'external' && handling.method === 'get'
-        ? Array.from(new URL(handling.action).searchParams.entries())
-          .filter(([name]) => !authoredNames.has(name))
-          .map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`)
-          .join('')
-        : '';
+      const getQueryFields = formFixedQuery(handling, fields)
+        .map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`)
+        .join('');
       const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
         const name = esc(formFieldName(f, i));
@@ -10258,6 +10305,44 @@ function renderPublicLists(lists: PcNode[][], o: RenderOpts): string[] {
   for (const list of lists) renderList(list, options);
   publicIds.reserving = false;
   return lists.map(list => renderList(list, options));
+}
+
+/** Inspect native form routing through the same component, slot and CMS expansion as export. */
+export function inspectFormRouting(source: Doc, visit: (form: FormRoutingObservation) => void): void {
+  let remaining = 100_000;
+  const count = (size = 1) => {
+    remaining -= size;
+    if (remaining < 0) throw new Error('Form routing inspection exceeded its element budget');
+  };
+  const pending = [source.header, source.footer, ...source.pages.map(page => page.tree),
+    ...(source.meta.components || []).map(component => [component.node])];
+  let hasForms = false;
+  while (pending.length && !hasForms) {
+    for (const node of pending.pop()!) {
+      count();
+      if (node.type === 'form') { hasForms = true; break; }
+      if (node.children?.length) pending.push(node.children);
+    }
+  }
+  if (!hasForms) return;
+
+  // Use the server compiler's default item selection and keep its singleton state private to
+  // this synchronous inspection. The shallow meta copy absorbs lazy collection initialization.
+  const { meta, pages, header, footer, cur, ui } = state;
+  Object.assign(state, { meta: { ...source.meta }, pages: source.pages, header: source.header, footer: source.footer, cur: 0, ui: initUi() });
+  try {
+    for (const target of exportTargets(10_000)) {
+      const { pg, col, item, pageNo } = target;
+      const items = col && item ? [[col.id, item.id] as const] : [];
+      const publicIds = { reserving: true, reserved: new Set<string>(), used: new Set<string>() };
+      const regions = [['header', state.header], ['page:' + pg.id, pg.tree], ['footer', state.footer]] as const;
+      for (const [region, nodes] of regions) for (const node of nodes) {
+        renderNode(node, { edit: false, publicIds, pg, col, item, pageNo, formRouting: { region, items, count, visit } });
+      }
+    }
+  } finally {
+    Object.assign(state, { meta, pages, header, footer, cur, ui });
+  }
 }
 
 
@@ -10779,25 +10864,98 @@ interface ProposalChange {
   parentId?: string | null;
   index?: number;
   values?: Record<string, string>;
+  /** Pins the exact insert destination or content owner when the proposal was filed. */
+  placement?: string;
+  target?: string;
   value: string;
   before: string;
   /** what the owner reads in the review: "Heading “Welcome” · Text" */
   label: string;
 }
+type ProposalAssets = { assets: ReadonlySet<string> };
 
 const PROPOSAL_LIMITS = { changes: 50, text: 10000, title: 120, summary: 2000 };
 
-/** A node in the header, the footer or a page — never inside a component definition, which
-    would change every instance at once and is the owner's to edit. */
-function proposalFind(nodeId: string): { node: PcNode; region: string } | null {
-  const lists: [string, PcNode[]][] = [['header', state.header], ['footer', state.footer],
-    ...state.pages.map(pg => [pg.id, pg.tree] as [string, PcNode[]])];
-  for (const [region, list] of lists) {
-    let hit: PcNode | null = null;
-    eachNode(list, n => { if (!hit && n.id === nodeId) hit = n; });
-    if (hit) return { node: hit, region };
+const proposalTree = (region: string) => region === 'header' ? state.header : region === 'footer'
+  ? state.footer : state.pages.find(pg => pg.id === region)?.tree;
+type ProposalPath = { node: PcNode; index: number }[];
+type ProposalTarget = { node: PcNode; region: string; path: ProposalPath };
+
+/** These slots belong to this definition's instance, not to any nested instance. A filled
+    slot replaces the definition's own children, so a slot in that fallback no longer renders. */
+function proposalInstanceSlots(inst: PcNode, def: ComponentDef) {
+  const first = slotsOf(def)[0]?.k;
+  const slots = new Map<string, { node: PcNode; path: ProposalPath }>();
+  const visit = (node: PcNode, path: ProposalPath) => {
+    if (node.use) return;
+    if (node.slot && DEF[node.type].level < 4 && node.type !== 'list') {
+      slots.set(node.slot, { node, path });
+      if (inst.children.some(child => (child.slot || first) === node.slot)) return;
+    }
+    (node.children || []).forEach((child, index) => visit(child, [...path, { node: child, index }]));
+  };
+  visit(def.node, [{ node: def.node, index: 0 }]);
+  return { first, slots };
+}
+
+/** Walk page-owned targets. An instance's stored fallback props and children without a
+    rendered slot have no editable surface on the page. */
+function* proposalTargets(region: string, list: PcNode[], path: ProposalPath = []): Generator<ProposalTarget> {
+  const parent = path.at(-1)?.node;
+  const def = parent?.use ? findComponent(parent.use) : null;
+  const placement = parent && def ? proposalInstanceSlots(parent, def) : null;
+  for (const [index, node] of list.entries()) {
+    if (parent?.use && !placement?.slots.has(node.slot || placement.first || '')) continue;
+    const next = [...path, { node, index }];
+    yield { node, region, path: next };
+    yield* proposalTargets(region, node.children || [], next);
+  }
+}
+function proposalFind(nodeId: string): ProposalTarget | null {
+  for (const region of ['header', 'footer', ...state.pages.map(pg => pg.id)]) {
+    for (const target of proposalTargets(region, proposalTree(region)!)) {
+      if (target.node.id === nodeId) return target;
+    }
   }
   return null;
+}
+
+function proposalContainer(list: PcNode[], parent: PcNode | null) {
+  if (!parent) return { list, type: null, slot: null };
+  if (!parent.use) return { list: parent.children, type: parent.type, slot: null };
+  const def = findComponent(parent.use);
+  if (!def) return null;
+  const { first, slots } = proposalInstanceSlots(parent, def);
+  const slot = first ? slots.get(first) : undefined;
+  if (!slot) return null;
+  // Filling a default would replace its definition children and orphan a nested slot's content.
+  const hidesPlacement = parent.children.some(child => child.slot && child.slot !== first
+    && slots.get(child.slot)?.path.some(part => part.node === slot.node));
+  return hidesPlacement ? null : { list: parent.children, type: slot.node.type, slot };
+}
+const proposalFits = (container: ReturnType<typeof proposalContainer>, def: ComponentDef) =>
+  !!container && !!DEF[def.node.type] && fitsIn(container.type, def.node.type);
+function proposalPlacement(region: string, parent: ProposalTarget | null, def: ComponentDef, index: number) {
+  const tree = proposalTree(region);
+  if (!tree || (parent && parent.region !== region)) return null;
+  const container = proposalContainer(tree, parent?.node || null);
+  if (!container || !proposalFits(container, def)) return null;
+  const { list, type, slot } = container;
+  const siblings = slot ? list.filter(node => !node.slot || node.slot === slot.node.slot) : list;
+  const next = siblings[index];
+  const receipt = sha256(JSON.stringify({
+    path: parent?.path.map(({ node, index: i }) => [node.id, node.type, node.use, node.slot, i]),
+    component: [def.node.id, def.node.type],
+    slot: slot && [slot.node.slot, slot.path.map(({ node, index }) => [node.id, node.type, index])], type, index,
+    children: list.map(node => [node.id, node.slot])
+  }));
+  return { list, type, slot: slot?.node.slot, next, receipt };
+}
+
+function proposalContentTarget(target: ProposalTarget, slot?: Slot, owner?: unknown) {
+  const { node, path } = target;
+  const row = slot && slot.i >= 0 ? ((node.props as PropBag)[slot.prop] as any[])[slot.i] : null;
+  return sha256(JSON.stringify([path.map(({ node: n }) => [n.id, n.type, n.use, n.slot]), row?.id, owner]));
 }
 const proposalSlotKey = (sl: Slot) => (sl.i < 0 ? sl.prop : `${sl.prop}.${sl.i}.${sl.sub}`);
 /** The image slots a node has, the way textSlots lists its words. */
@@ -10815,8 +10973,22 @@ const proposalWords = (v: string, max = 48) => {
   const t = String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   return t.length > max ? t.slice(0, max - 1) + '…' : t;
 };
+const proposalContentSlots = (n: PcNode, image = false) =>
+  n.use || OWNER_ONLY_CONTENT.has(n.type) || (n.type === 'nav' && n.props.managedMobileLinks)
+    ? [] : (image ? proposalImageSlots(n) : textSlots(n)) as Slot[];
+const proposalSlotBinding = (n: PcNode, slot: Slot) => bindGet(n, slot.prop) || bindGet(n, proposalSlotKey(slot));
+const proposalEditableSlots = (n: PcNode, image = false) =>
+  proposalContentSlots(n, image).filter(slot => !proposalSlotBinding(n, slot));
+const proposalPropertySource = (n: PcNode, def: ComponentDef, k: string) => {
+  const binding = bindGet(n, VAL + k);
+  if (binding) return { source: 'binding', ...binding } as const;
+  if (ownsKey(n.vals, k)) return { source: 'override' } as const;
+  const variant = findVariant(def, n.variant);
+  return variant && ownsKey(variant.values, k) ? { source: 'variant', variantId: variant.id } as const
+    : { source: 'default' } as const;
+};
 const proposalNodeLabel = (n: PcNode) => {
-  const words = proposalWords(textSlots(n).map(sl => String(slotGet(n, sl) || '')).find(Boolean) || '', 32);
+  const words = proposalWords(proposalEditableSlots(n).map(sl => String(slotGet(n, sl) || '')).find(Boolean) || '', 32);
   const kind = n.use ? findComponent(n.use)?.name || 'Component' : labelOf(n.type);
   return `${kind}${words ? ` “${words}”` : ''}`;
 };
@@ -10891,7 +11063,7 @@ function proposalPropValue(pr: ComponentProp, raw: unknown, assets: ReadonlySet<
 
 /** Check a proposal against the current document and resolve it into changes. Reads `state`;
     the server restores the draft first. Never writes. */
-function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string> }): { changes: ProposalChange[]; problems: string[] } {
+function proposalPrepare(inputs: unknown, options: ProposalAssets): { changes: ProposalChange[]; problems: string[] } {
   const problems: string[] = [];
   const changes: ProposalChange[] = [];
   const list = Array.isArray(inputs) ? inputs as ProposalInput[] : [];
@@ -10906,25 +11078,25 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
       const def = findComponent(String(input.componentId || ''));
       if (!def) return fail(`there is no component "${input.componentId}". List components to see what can be placed.`);
       const region = String(input.region || '');
-      if (region !== 'header' && region !== 'footer' && !state.pages.some(pg => pg.id === region)) return fail(`"${region}" is not a page id, header or footer.`);
-      let parentId: string | null = null;
-      if (input.parentId) {
-        const parent = proposalFind(String(input.parentId));
-        if (!parent || parent.region !== region) return fail(`there is no element "${input.parentId}" in that region.`);
-        if (!fitsIn(parent.node.type, def.node.type)) return fail(`a ${def.name} cannot go inside a ${nameOf(parent.node)}.`);
-        parentId = parent.node.id;
-      }
+      if (!proposalTree(region)) return fail(`"${region}" is not a page id, header or footer.`);
+      const parent = input.parentId ? proposalFind(String(input.parentId)) : null;
+      if (input.parentId && parent?.region !== region) return fail(`there is no element "${input.parentId}" in that region.`);
+      const index = Number.isInteger(input.index) ? Math.max(0, input.index as number) : 1e6;
+      const placement = proposalPlacement(region, parent, def, index);
+      if (!placement) return fail(`a ${def.name} cannot go inside ${parent ? nameOf(parent.node) : 'this region'}.`);
       const values: Record<string, string> = {};
       for (const [k, raw] of Object.entries(input.values || {})) {
         const pr = findProp(def, k);
         if (!pr) return fail(`${def.name} has no property "${k}".`);
+        if (bindGet(def.node, VAL + k)) return fail(`${def.name} · ${pr.label} is bound and cannot be changed by a proposal.`);
         const checked = proposalPropValue(pr, raw, options.assets);
         if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
         values[k] = checked.value!;
       }
-      const index = Number.isInteger(input.index) ? Math.max(0, input.index as number) : 1e6;
       const where = region === 'header' ? 'the header' : region === 'footer' ? 'the footer' : `page “${state.pages.find(pg => pg.id === region)!.name}”`;
-      changes.push({ type: 'insert', region, componentId: def.id, parentId, index, values, value: '', before: '', label: `Add ${def.name} to ${where}` });
+      const into = parent ? ` · ${proposalNodeLabel(parent.node)}${placement.slot ? ` · ${placement.slot}` : ''}` : '';
+      changes.push({ type: 'insert', region, componentId: def.id, parentId: parent?.node.id ?? null, index, values,
+        placement: placement.receipt, value: '', before: '', label: `Add ${def.name} to ${where}${into}` });
       return;
     }
     if (input.type !== 'text' && input.type !== 'image' && input.type !== 'property') {
@@ -10935,9 +11107,11 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
     const { node, region } = found;
     if (input.type === 'text') {
       if (OWNER_ONLY_CONTENT.has(node.type)) return fail('embedded code cannot be changed by a proposal.');
-      const slots = textSlots(node);
+      if (node.use) return fail('component content is owned by its definition. Use a declared component property.');
+      const slots = proposalContentSlots(node);
       const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
-      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ''}". Its text slots: ${slots.map(proposalSlotKey).join(', ') || 'none'}.`);
+      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ''}". Its editable text slots: ${proposalEditableSlots(node).map(proposalSlotKey).join(', ') || 'none'}.`);
+      if (proposalSlotBinding(node, slot)) return fail(`text "${proposalSlotKey(slot)}" is bound and cannot be changed by a proposal.`);
       const raw = String(input.value ?? '');
       if (raw.length > PROPOSAL_LIMITS.text) return fail('the text is too long.');
       const key = `${node.id}|${proposalSlotKey(slot)}`;
@@ -10949,20 +11123,22 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
         if (rich.problem) return fail(rich.problem + '.');
         value = rich.value!;
       }
-      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value,
+      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value, target: proposalContentTarget(found, slot),
         before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
       return;
     }
     if (input.type === 'image') {
-      const slots = proposalImageSlots(node);
+      if (node.use) return fail('component content is owned by its definition. Use a declared component property.');
+      const slots = proposalContentSlots(node, true);
       const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
       if (!slot) return fail(`${nameOf(node)} has no image "${input.slot || ''}".`);
+      if (proposalSlotBinding(node, slot)) return fail(`image "${proposalSlotKey(slot)}" is bound and cannot be changed by a proposal.`);
       const id = String(input.assetId || '').replace(/^asset:/, '').split('@')[0];
       if (!options.assets.has(id)) return fail(`names an image this site doesn't have (${id || 'none'}). List images to see what is uploaded.`);
       const key = `${node.id}|${proposalSlotKey(slot)}`;
       if (seen.has(key)) return fail('changes the same image twice.');
       seen.add(key);
-      changes.push({ type: 'image', region, nodeId: node.id, slot: proposalSlotKey(slot), value: 'asset:' + id,
+      changes.push({ type: 'image', region, nodeId: node.id, slot: proposalSlotKey(slot), value: 'asset:' + id, target: proposalContentTarget(found, slot),
         before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
       return;
     }
@@ -10971,113 +11147,180 @@ function proposalPrepare(inputs: unknown, options: { assets: ReadonlySet<string>
       if (!def) return fail(`${nameOf(node)} is not a component instance, so it has no properties.`);
       const pr = findProp(def, String(input.property || ''));
       if (!pr) return fail(`${def.name} has no property "${input.property}". Its properties: ${(def.props || []).map(x => x.k).join(', ') || 'none'}.`);
+      const owner = proposalPropertySource(node, def, pr.k);
+      if (owner.source === 'binding') return fail(`${def.name} · ${pr.label} is bound and cannot be changed by a proposal.`);
       const checked = proposalPropValue(pr, input.value, options.assets);
       if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
       const key = `${node.id}|${VAL}${pr.k}`;
       if (seen.has(key)) return fail('changes the same property twice.');
       seen.add(key);
       changes.push({ type: 'property', region, nodeId: node.id, property: pr.k, value: checked.value!,
-        before: instValue(node, def, pr.k), label: `${def.name} · ${pr.label}` });
+        target: proposalContentTarget(found, undefined, [pr.t, owner]), before: instValue(node, def, pr.k), label: `${def.name} · ${pr.label}` });
     }
   });
   return { changes: problems.length ? [] : changes, problems };
 }
 
-const proposalSlotOf = (n: PcNode, key: string, image: boolean) =>
-  (image ? proposalImageSlots(n) : textSlots(n)).find(sl => proposalSlotKey(sl) === key) || null;
-
 /** The id an inserted instance takes: the proposal's and the change's place in it, so the same
-    insert applied a second time would be the same node — and `proposalCheck` can see it is there.
-    An insert has no "before" to go stale, which is how one used to be applicable twice. */
+    insert applied a second time would be the same node. Wrapper ids use the same stable prefix
+    so a server preview and the saved draft can render exactly the same authored document. */
 const proposalNodeId = (proposalId: string, index: number) =>
   'np' + String(proposalId).replace(/[^a-z0-9]/gi, '').slice(0, 32) + 'x' + index.toString(36);
 
-/** Whether each change can still be applied: `ok`, or `stale` when what it replaces has changed
-    since the proposal was made, or `missing` when its target is gone, or — given the proposal's
-    id — `applied` when the instance it inserts is already in the draft. */
-function proposalCheck(changes: ProposalChange[], proposalId = ''): ('ok' | 'stale' | 'missing' | 'applied')[] {
+const proposalAssetId = (value: string) => typeof value === 'string' && value.startsWith('asset:') ? value.slice(6) : '';
+
+/** Read explicit managed image writes against the proposal's loaded base document. */
+export function proposalAssetIds(changes: ProposalChange[]): string[] {
+  const ids = new Set<string>();
+  const add = (value: string) => {
+    const id = proposalAssetId(value);
+    if (id) ids.add(id);
+  };
+  for (const change of changes) {
+    if (change.type === 'image') add(change.value);
+    if (change.type === 'property') {
+      const node = proposalFind(change.nodeId || '')?.node;
+      if (findProp(findComponent(node?.use), change.property || '')?.t === 'img') add(change.value);
+    }
+    if (change.type === 'insert') {
+      const def = findComponent(change.componentId);
+      for (const [key, value] of Object.entries(change.values || {})) {
+        if (findProp(def, key)?.t === 'img') add(value);
+      }
+    }
+  }
+  return [...ids];
+}
+
+type ProposalStep = { status: 'stale' | 'missing' | 'applied' } | { status: 'ok'; apply(): string | void };
+function proposalPlan(changes: ProposalChange[], proposalId: string, options?: ProposalAssets): ProposalStep[] {
+  const seen = new Set<string>();
+  const assetAllowed = (value: string) => !options || options.assets.has(proposalAssetId(value));
   return changes.map((ch, i) => {
     if (ch.type === 'insert') {
-      if (proposalId && proposalFind(proposalNodeId(proposalId, i))) return 'applied';
-      if (!findComponent(ch.componentId || '')) return 'missing';
-      if (ch.parentId) return proposalFind(ch.parentId)?.region === ch.region ? 'ok' : 'missing';
-      return ch.region === 'header' || ch.region === 'footer' || state.pages.some(pg => pg.id === ch.region) ? 'ok' : 'missing';
+      const def = findComponent(ch.componentId || '');
+      const parent = ch.parentId ? proposalFind(ch.parentId) : null;
+      if (!def || !proposalTree(ch.region) || (ch.parentId && !parent)) return { status: 'missing' };
+      const placement = proposalPlacement(ch.region, parent, def, ch.index ?? 1e6);
+      // A legacy insert has no evidence that this is the destination the owner reviewed.
+      if (!placement || !ch.placement) return { status: 'stale' };
+      const id = proposalId ? proposalNodeId(proposalId, i) : '';
+      const wrapperIds: string[] = [];
+      for (let level = takes(placement.type); level < lvl(def.node.type); level++) wrapperIds.push(id + 'w' + level);
+      if (id && locateAny(id)) {
+        const applied = proposalFind(id);
+        const path = applied?.path.map(part => part.node.id);
+        const expected = [...(parent?.path.map(part => part.node.id) || []), ...wrapperIds, id];
+        const inSlot = !placement.slot || applied?.path.at(-wrapperIds.length - 1)?.node.slot === placement.slot;
+        return { status: applied?.region === ch.region && applied.node.use === def.id
+          && inSlot && JSON.stringify(path) === JSON.stringify(expected) ? 'applied' : 'stale' };
+      }
+      if (placement.receipt !== ch.placement || (id && wrapperIds.some(w => locateAny(w)))) return { status: 'stale' };
+      if (Object.entries(ch.values || {}).some(([k, value]) => {
+        const prop = findProp(def, k);
+        return !prop || bindGet(def.node, VAL + k) || (prop.t === 'img' && !assetAllowed(value));
+      })) return { status: 'stale' };
+      return { status: 'ok', apply() {
+        const fresh = makeInstance(def);
+        if (id) fresh.id = id;
+        for (const [k, v] of Object.entries(ch.values || {})) instSet(fresh, k, v);
+        const packed = wrap(fresh.type, takes(placement.type), fresh);
+        if (placement.slot) packed.slot = placement.slot;
+        if (id) {
+          let wrapper = packed;
+          for (const wrapperId of wrapperIds) { wrapper.id = wrapperId; wrapper = wrapper.children[0]; }
+        }
+        const at = placement.next ? placement.list.indexOf(placement.next) : placement.list.length;
+        placement.list.splice(at, 0, packed);
+        return fresh.id;
+      } };
     }
     const found = proposalFind(ch.nodeId || '');
-    if (!found) return 'missing';
+    if (!found) return { status: 'missing' };
+    if (found.region !== ch.region) return { status: 'stale' };
+    const { node } = found;
+    const key = `${node.id}|${ch.type === 'property' ? VAL + ch.property : ch.slot}`;
+    if (seen.has(key)) return { status: 'stale' };
+    seen.add(key);
     if (ch.type === 'property') {
-      const def = found.node.use ? findComponent(found.node.use) : null;
-      if (!def || !findProp(def, ch.property || '')) return 'missing';
-      return instValue(found.node, def, ch.property!) === ch.before ? 'ok' : 'stale';
+      const def = node.use ? findComponent(node.use) : null;
+      const prop = findProp(def, ch.property || '');
+      if (!def || !prop) return { status: 'missing' };
+      const owner = proposalPropertySource(node, def, prop.k);
+      if (owner.source === 'binding' || instValue(node, def, prop.k) !== ch.before
+        || (prop.t === 'img' && !assetAllowed(ch.value))
+        || (ch.target && ch.target !== proposalContentTarget(found, undefined, [prop.t, owner]))) return { status: 'stale' };
+      return { status: 'ok', apply() { instSet(node, prop.k, ch.value); } };
     }
-    const slot = proposalSlotOf(found.node, ch.slot || '', ch.type === 'image');
-    if (!slot) return 'missing';
-    return String(slotGet(found.node, slot) ?? '') === ch.before ? 'ok' : 'stale';
+    const slot = proposalContentSlots(node, ch.type === 'image').find(sl => proposalSlotKey(sl) === ch.slot);
+    if (!slot) return { status: 'missing' };
+    if (proposalSlotBinding(node, slot) || String(slotGet(node, slot) ?? '') !== ch.before
+      || (ch.type === 'image' && !assetAllowed(ch.value))
+      || (ch.target && ch.target !== proposalContentTarget(found, slot))) return { status: 'stale' };
+    return { status: 'ok', apply() { slotSet(node, slot, ch.value); } };
   });
 }
 
-/** A region as an assistant reads it: every element with its id, its words and images by slot,
-    a component instance's values, and which components could be placed inside it. Rich text is
-    given as plain text, since that is what a proposal sends back. */
+/** Check all destinations and values before an editor review or apply. */
+function proposalCheck(changes: ProposalChange[], proposalId = '', options?: ProposalAssets) {
+  return proposalPlan(changes, proposalId, options).map(step => step.status);
+}
+
+/** A region as an assistant reads it: the slots and declared properties it can propose changes
+    to, with ownership for read-only bindings. Rich values use the proposal's Markdown subset. */
 function proposalOutline(region: string) {
-  const list = region === 'header' ? state.header : region === 'footer' ? state.footer
-    : state.pages.find(pg => pg.id === region)?.tree;
+  const list = proposalTree(region);
   if (!list) return null;
   const comps = components();
   const out: Record<string, unknown>[] = [];
-  eachNode(list, (n, parent, _i, depth) => {
+  for (const { node: n, path } of proposalTargets(region, list)) {
     const text: Record<string, string> = {}, images: Record<string, string> = {};
-    if (!OWNER_ONLY_CONTENT.has(n.type)) {
-      for (const sl of textSlots(n)) text[proposalSlotKey(sl)] = n.type === 'text' && sl.prop === 'html'
+    const boundSlots: Record<string, Binding> = {};
+    for (const sl of proposalContentSlots(n)) {
+      const key = proposalSlotKey(sl), binding = proposalSlotBinding(n, sl);
+      if (binding) { boundSlots[key] = binding; continue; }
+      text[key] = n.type === 'text' && sl.prop === 'html'
         ? proposalMarkdown(String(slotGet(n, sl) || '')).slice(0, 4000) : String(slotGet(n, sl) ?? '');
     }
-    for (const sl of proposalImageSlots(n)) images[proposalSlotKey(sl)] = String(slotGet(n, sl) ?? '');
+    for (const sl of proposalContentSlots(n, true)) {
+      const key = proposalSlotKey(sl), binding = proposalSlotBinding(n, sl);
+      if (binding) { boundSlots[key] = binding; continue; }
+      images[key] = String(slotGet(n, sl) ?? '');
+    }
     const def = n.use ? findComponent(n.use) : null;
-    const fits = comps.filter(cd => fitsIn(n.type, cd.node.type)).map(cd => cd.id);
+    const values: [string, string][] = [];
+    const propertySources = def?.props?.map(pr => {
+      const owner = proposalPropertySource(n, def, pr.k);
+      if (owner.source !== 'binding') {
+        const value = instValue(n, def, pr.k);
+        values.push([pr.k, pr.t === 'rich' ? proposalMarkdown(value) : value]);
+      }
+      return [pr.k, owner] as const;
+    }) || [];
+    const container = proposalContainer(list, n);
+    const fits = comps.filter(cd => proposalFits(container, cd)).map(cd => cd.id);
     out.push({
-      id: n.id, type: n.type, kind: def ? def.name : labelOf(n.type), depth, parentId: parent ? parent.id : null,
+      id: n.id, type: n.type, kind: def ? def.name : labelOf(n.type), depth: path.length - 1, parentId: path.at(-2)?.node.id ?? null,
       ...(Object.keys(text).length ? { text } : {}),
-      ...(n.type === 'text' ? { formatting: 'html is rich text: **bold**, *italic*, [text](link) and "- " lists' } : {}),
+      ...(n.type === 'text' && ownsKey(text, 'html') ? { formatting: 'html is rich text: **bold**, *italic*, [text](link) and "- " lists' } : {}),
       ...(Object.keys(images).length ? { images } : {}),
-      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries((def.props || []).map(pr => [pr.k, pr.t === 'rich' ? proposalMarkdown(instValue(n, def, pr.k)) : instValue(n, def, pr.k)])) } } : {}),
-      ...(fits.length ? { canHold: fits } : {}),
+      ...(Object.keys(boundSlots).length ? { boundSlots } : {}),
+      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries(values), propertySources: Object.fromEntries(propertySources) } } : {}),
+      ...(fits.length ? { canHold: fits, ...(container?.slot ? { placementSlot: container.slot.node.slot } : {}) } : {}),
     });
-  });
+  }
   return out;
 }
 
-/** Write the changes. Call inside one edit(), after proposalCheck said every one is ok; a change
-    that is not is skipped, which is what a preview of a half-stale proposal wants. Inserts go
-    through instanceInsert, so they follow the same structure rules as dragging one in, and with
-    the proposal's id they take the id `proposalNodeId` derives. */
-function proposalApply(changes: ProposalChange[], proposalId = '') {
+/** Plan against one snapshot before touching it. Preview and apply both refuse a conflicting batch. */
+function proposalApply(changes: ProposalChange[], proposalId = '', options?: ProposalAssets) {
+  const plan = proposalPlan(changes, proposalId, options);
+  if (plan.some(step => step.status !== 'ok')) return [];
   const placed: string[] = [];
-  const status = proposalCheck(changes, proposalId);
-  for (const [i, ch] of changes.entries()) {
-    if (status[i] !== 'ok') continue;
-    if (ch.type === 'insert') {
-      const parent = ch.parentId ? proposalFind(ch.parentId)!.node : null;
-      // A root insert lands in the region's own tree: point the editor's scope there for the call.
-      const mode = state.ui.mode, cur = state.cur, cedit = state.ui.cedit;
-      if (!parent) {
-        state.ui.mode = ch.region === 'header' || ch.region === 'footer' ? ch.region as any : 'page';
-        if (state.ui.mode === 'page') state.cur = state.pages.findIndex(pg => pg.id === ch.region);
-      }
-      try {
-        const made = instanceInsert(ch.componentId!, parent, ch.index ?? 1e6);
-        if (made) {
-          if (proposalId) made.id = proposalNodeId(proposalId, i);
-          for (const [k, v] of Object.entries(ch.values || {})) instSet(made, k, v);
-          placed.push(made.id);
-        }
-      } finally {
-        state.ui.mode = mode; state.cur = cur; state.ui.cedit = cedit;
-      }
-      continue;
-    }
-    const found = proposalFind(ch.nodeId!)!;
-    if (ch.type === 'property') { instSet(found.node, ch.property!, ch.value); continue; }
-    slotSet(found.node, proposalSlotOf(found.node, ch.slot!, ch.type === 'image')!, ch.value);
+  for (const step of plan) {
+    if (step.status !== 'ok') continue;
+    const id = step.apply();
+    if (id) placed.push(id);
   }
   return placed;
 }

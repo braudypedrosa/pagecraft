@@ -2,9 +2,8 @@
 
    An assistant connected over MCP files a proposal on the server, which has already checked it
    against the draft and recorded what every change replaces. Here the owner reads each change
-   before and after, previews the affected pages, and applies or declines. Applying runs the
-   core's own commands inside one edit(), so it is one Undo step, and only after proposalCheck
-   says everything it replaces is still there: a proposal whose targets moved is refused whole.
+   before and after, previews the affected pages, and applies or declines. The server saves the
+   reviewed version and the editor adopts the confirmed draft in one Undo step.
    See docs/phase7-assistant-proposals-design.md. */
 import { useEffect, useState } from 'preact/hooks';
 import type { ProposalChange } from '../core/index';
@@ -96,11 +95,12 @@ function Detail({ api, proposal, busy, apply, decline }: {
   const [tab, setTab] = useState(0);
   const [side, setSide] = useState<'after' | 'before'>('after');
   useEffect(() => { setTab(0); setSide('after'); }, [proposal.id]);
-  // Claimed but never decided — a tab closed mid-apply — is still the owner's to finish or decline.
   const pending = proposal.status === 'pending' || proposal.status === 'applying';
   // Whether a change still matches only means something while it waits; once applied, it won't.
   const statuses = pending ? C.proposalCheck(proposal.changes, proposal.id) : proposal.changes.map(() => 'ok' as const);
   const blocked = statuses.filter(s => s !== 'ok').length;
+  const reviewIssue = proposal.reviewIssue || (pending && L.siteDraft()?.version !== proposal.baseVersion
+    ? 'This editor has a different draft version. Reopen the draft before applying the proposal.' : '');
   const preview = proposal.previews[Math.min(tab, proposal.previews.length - 1)];
   return (
     <section class="pw-detail" aria-labelledby="pw-title">
@@ -113,18 +113,17 @@ function Detail({ api, proposal, busy, apply, decline }: {
         {pending ? (
           <div class="pw-actions">
             <button type="button" class="btn" disabled={busy} onClick={() => decline(proposal)}>Decline</button>
-            <button type="button" class="btn primary" disabled={busy || blocked > 0} onClick={() => apply(proposal)}>
-              {busy ? 'Applying…' : 'Apply to draft'}
+            <button type="button" class="btn primary" disabled={busy || (!proposal.recoveryAvailable && (blocked > 0 || !!reviewIssue))} onClick={() => apply(proposal)}>
+              {busy ? 'Applying…' : proposal.recoveryAvailable ? 'Confirm saved draft' : 'Apply to draft'}
             </button>
           </div>
         ) : (
           <span class={'pw-chip ' + proposal.status}>{proposal.status === 'applied' ? 'Applied' : 'Declined'}</span>
         )}
       </header>
-      {pending && blocked > 0 && (
+      {pending && (reviewIssue || blocked > 0) && (
         <p class="pw-blocked" role="status">
-          {blocked === 1 ? 'One change no longer matches' : `${blocked} changes no longer match`} the draft, so this proposal can’t be
-          applied as it is. Decline it and ask the assistant to read the site again and propose afresh.
+          {reviewIssue || 'A change no longer matches the draft. Ask the assistant to read the current draft and propose again.'}
         </p>
       )}
       <div class="pw-body">
@@ -146,7 +145,7 @@ function Detail({ api, proposal, busy, apply, decline }: {
               </div>
             </div>
             <iframe class="pw-frame" title={`${preview.label}, ${side === 'after' ? 'with the proposal' : 'as it is now'}`}
-              src={api.previewUrl(proposal.id, preview.path, side === 'before')} sandbox="allow-same-origin" loading="lazy" />
+              src={api.previewUrl(proposal.id, preview.path, proposal.baseVersion, side === 'before')} sandbox="allow-same-origin" loading="lazy" />
           </div>
         )}
       </div>
@@ -182,31 +181,21 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
   }, [busy]);
 
   const apply = async (p: WebProposal) => {
-    if (C.proposalCheck(p.changes, p.id).some(s => s !== 'ok')) { L.toast('This proposal no longer matches the draft.', { tone: 'error' }); return; }
     setBusy(true);
     try {
-      /* Claimed first, on the server: a second tab or a second click is refused here, before
-         anything is written, rather than inserting the same instances twice. */
-      try {
-        await api!.claim(p.id);
-      } catch (e) {
-        L.toast(problem(e), { tone: 'error' });
-        await load(p.id);
-        return;
+      if (!p.recoveryAvailable) await L.flushDraft();
+      const baseline = JSON.stringify(C.doc());
+      const { draft } = await api!.apply(p.id, p.baseVersion);
+      if (draft && L.acceptProposalDraft(draft, p.baseVersion, baseline)) {
+        L.appRender();
+        L.toast(`Applied “${p.title}” to the draft. You can undo this change.`);
+      } else {
+        L.toast('The proposal was saved. Keep a copy of any edits in this tab before reopening the draft.');
       }
-      C.edit(() => { C.proposalApply(p.changes, p.id); });
-      L.appRender();
-      try {
-        await L.flushDraft();
-      } catch (e) {
-        L.toast(`Applied in the editor, but the draft was not saved: ${problem(e)}`, { tone: 'error' });
-        return;
-      }
-      await api!.decide(p.id, 'applied', L.siteDraft()?.version);
-      L.toast(`Applied “${p.title}” to the draft. Undo reverses it; publish when you’re ready.`);
       await load(p.id);
     } catch (e) {
       L.toast(problem(e), { tone: 'error' });
+      await load(p.id);
     } finally {
       setBusy(false);
     }
@@ -216,7 +205,7 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
     if (!ok) return;
     setBusy(true);
     try {
-      await api!.decide(p.id, 'declined');
+      await api!.decline(p.id);
       L.toast(`Declined “${p.title}”.`);
       await load(p.id);
     } catch (e) {
