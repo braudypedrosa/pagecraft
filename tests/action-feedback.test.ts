@@ -281,6 +281,44 @@ test('progress and explicitly persistent notices remain until resolved or dismis
  expect(document.querySelector('[role=alert]')?.textContent).toContain('Reconnect your account.');
 });
 
+test.each(['info','success'] as const)('a new picker clears prior finite %s notices while preserving unresolved feedback',tone=>{
+ const feedback=installActionFeedback();
+ feedback.notify('Header added.',{tone});
+ const completed=document.querySelector('.pc-notification')!;
+ vi.advanceTimersByTime(1000);completed.dispatchEvent(new MouseEvent('mouseenter'));
+ feedback.notify('Uploading image…',{tone:'progress',duration:10000});
+ feedback.notify('The image could not be saved.',{tone:'error'});
+ feedback.notify('Review the selected page.',{tone:'info',duration:0});
+ feedback.notify('Keep this result available.',{tone:'success',duration:0});
+ feedback.dismissTransient();
+ expect(completed.isConnected).toBe(false);
+ expect(document.querySelectorAll('.pc-notification')).toHaveLength(4);
+ expect(document.querySelector('[data-tone=progress]')?.textContent).toContain('Uploading image…');
+ expect(document.querySelector('[role=alert]')?.textContent).toContain('The image could not be saved.');
+ expect(document.querySelector('[data-tone=info]')?.textContent).toContain('Review the selected page.');
+ expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Keep this result available.');
+ // Feedback from the newly opened picker still gets its normal lifetime.
+ feedback.notify('Editing current header.');
+ expect(document.querySelectorAll('[data-tone=info]')).toHaveLength(2);
+ vi.advanceTimersByTime(5001);
+ expect(document.querySelector('[data-tone=info]')?.textContent).toContain('Review the selected page.');
+ expect(feedback.problems()[0].message).toBe('The image could not be saved.');
+});
+
+test('clearing a previous result removes it before a new dialog can inherit its exit animation',()=>{
+ const feedback=installActionFeedback();feedback.notify('Header added.');
+ const completed=document.querySelector<HTMLElement>('.pc-notification')!;
+ const motion={enter:vi.fn(async()=>true),exit:vi.fn(()=>new Promise<boolean>(()=>{})),cancel:vi.fn(),showDialog:vi.fn(),closeDialog:vi.fn(),reduced:()=>false,destroy:vi.fn()};
+ window.__pcMotion=motion;
+ try{
+  feedback.dismissTransient();
+  expect(motion.cancel).toHaveBeenCalledWith(completed);
+  expect(motion.exit).not.toHaveBeenCalled();
+  expect(completed.isConnected).toBe(false);
+  expect(document.querySelector('#pc-notifications')?.childElementCount).toBe(0);
+ }finally{delete window.__pcMotion;}
+});
+
 test('independent actions can run together and cancelling one never restores another action early',async()=>{
  const feedback=installActionFeedback();
  let finish!:()=>void;

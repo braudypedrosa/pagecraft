@@ -7185,6 +7185,7 @@ function askConfirm(title, msg, opts = {}) {
    ask layer so it can open from inside Project settings without displacing it. */
 /* one-of-many, for choosing a field. Resolves with the value, or null on exit. */
 function askPick(title, opts, current = '') {
+  feedback().dismissTransient();
   const p = askOpen(title, `<div class="pickrows">${opts.map(([v, l]) =>
     `<button class="pickrow${v === current ? ' on' : ''}" data-p="${esc(v)}">${esc(l)}</button>`).join('')}</div>`, null, false);
   $$('#askBody [data-p]').forEach(b => b.addEventListener('click', () => askClose(b.dataset.p)));

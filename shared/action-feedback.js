@@ -113,11 +113,20 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     // Five seconds is the shared default for completed notices, including failures.
     // Progress remains until its work resolves; exceptional notices can explicitly use
     // `duration: 0` when the user must act on them before they disappear.
-    record.remaining=options.duration ?? (tone==='progress'?0:5000); resume();
+    record.duration=options.duration ?? (tone==='progress'?0:5000);
+    record.remaining=record.duration; resume();
     // Keep the stack bounded while preserving only work that is still in progress.
     if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);records.delete(key);const motion=window.__pcMotion;if(motion)motion.exit(r.node,{kind:'notification',remove:true});else r.node.remove();} }
     const context={label:options.label,recover:options.recover,available:options.available};
     return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone,...context}), success:value=>notify(value,{id,tone:'success',...context}), error:value=>notify(value,{id,tone:'error',...context}) };
+  };
+  const dismissTransient = () => {
+    for(const [id,record] of records){
+      if(!['info','success'].includes(record.node.dataset.tone)||!(record.duration>0))continue;
+      clearTimeout(record.timer);records.delete(id);
+      // A new picker must not inherit a previous result while its exit is animating.
+      window.__pcMotion?.cancel(record.node);record.node.remove();
+    }
   };
   const isIconOnly = control => {
     if (!control) return false;
@@ -188,7 +197,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','class']});
   window.addEventListener('resize',place);
   const destroy=()=>{observer.disconnect();window.removeEventListener('resize',place);for(const record of records.values())clearTimeout(record.timer);records.clear();problems.clear();activeActions.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
-  const api={notify,begin,run,flash,destroy,rememberProblem,resolveProblem,problems:readProblems,recoverProblem}; window.__pcFeedback=api;
+  const api={notify,dismissTransient,begin,run,flash,destroy,rememberProblem,resolveProblem,problems:readProblems,recoverProblem}; window.__pcFeedback=api;
   return api;
 }
 export const ACTION_FEEDBACK_BOOT_SCRIPT = `(${installActionFeedback.toString()})(${JSON.stringify(ACTION_FEEDBACK_CSS)});`;

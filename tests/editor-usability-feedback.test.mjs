@@ -499,6 +499,45 @@ test('closing dialogs release the workspace when the fade starts, not when it en
   expect(await answer).toBe(null);
 });
 
+test.each([
+  { label: 'Cloud', config: { url: 'https://example.test/live' }, wordpress: false },
+  { label: 'WordPress', config: wordpressConfig, wordpress: true }
+])('quickly opening another template picker clears the previous result in $label', async ({ config, wordpress }) => {
+  const { w, d, errors } = await editor(config, wordpress);
+  const options = [['add', 'Add another header'], ['replace', 'Replace current header'], ['edit', 'Edit existing header']];
+  const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+  w.toast('Dark bar added, now editing the global header');
+  const previous = d.querySelector('.pc-notification');
+  expect(previous.textContent).toContain('Dark bar added');
+
+  // Open the next chooser before the five-second result notice expires.
+  const choice = w.askPick('Add or replace header', options, 'replace');
+  await settle();
+  expect(previous.isConnected).toBe(false);
+  expect(d.querySelector('#ask').hidden).toBe(false);
+  expect(d.querySelectorAll('#askBody [data-p]')).toHaveLength(3);
+  expect(d.querySelector('#askBox').textContent).not.toContain('Dark bar added');
+  expect(d.activeElement.dataset.p).toBe('add');
+
+  w.toast('The selected header is unavailable.', { tone: 'error' });
+  expect(d.querySelector('#askBox [role="alert"]').textContent).toBe('The selected header is unavailable.');
+  d.querySelector('#askBody [data-p="edit"]').click();
+  expect(await choice).toBe('edit');
+  w.toast('Editing current header');
+  expect(d.querySelector('[data-tone="info"]').textContent).toContain('Editing current header');
+
+  // Repeat immediately, retaining the error and pending work from the current action.
+  w.toast('Loading header preview…', { tone: 'progress' });
+  const nextChoice = w.askPick('Add or replace header', options, 'replace');
+  await settle();
+  expect(d.querySelector('#askBox').textContent).not.toContain('Editing current header');
+  expect(d.querySelector('#askBox [role="alert"]').textContent).toBe('The selected header is unavailable.');
+  expect(d.querySelector('#askBox [data-tone="progress"]').textContent).toContain('Loading header preview…');
+  d.querySelector('#askNo').click();
+  expect(await nextChoice).toBe(null);
+  expect(errors).toEqual([]);
+});
+
 test('component root rejects sibling insertion without changing the document or history', async () => {
   const { w, d, core, errors } = await editor();
   core.edit(() => { core.tree().splice(0); core.selSet([]); });

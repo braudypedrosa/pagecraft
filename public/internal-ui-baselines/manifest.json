@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-10T15:44:24.396Z",
+  "capturedAt": "2026-11-11T05:47:31.256Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "5bf7fcc2401c3a76ca10972b9565b88437c7b4b5fc43c3f370b4a0cfd9ba644a",
+    "builder.html": "b196522e7bb4b41d4f0a4d175dc1583f52fdc41bf58503500137f58244742bdc",
     "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
@@ -116,7 +116,7 @@
     "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
     "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
     "shared/custom-select.js": "24fa98ca8247ed9bea815c6f2868112e4914d0fac24f256b7f1d962fe9afdf8f",
-    "shared/action-feedback.js": "732e26184ba61d4310c7d956856a2a617e106dc7574774fa2a6e74f990a946a7",
+    "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
     "server/src/account-pages.ts": "965bb05761004c9b939cd9984f4698b5252118bd1b74a517e172b247309f9aea",
@@ -1135,7 +1135,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "78d8b3e3fbdf5a31ad8fe0bd02081d410e68a1bd7b13ceee58b56c6a9009cafd",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples",

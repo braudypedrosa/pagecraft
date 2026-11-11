@@ -8,6 +8,7 @@ import { install } from '../app/src/ui/ctx';
 import { Ctl } from '../app/src/ui/inspector/Controls';
 import { Inspector } from '../app/src/ui/inspector/Inspector';
 import { rig, stubLegacy, type Rig } from './ui.setup';
+import { installActionFeedback } from '../shared/action-feedback.js';
 
 let r: Rig, ask: HTMLElement;
 const source = readFileSync('builder.html', 'utf8');
@@ -25,14 +26,14 @@ beforeEach(() => {
   const listeners = source.slice(source.indexOf("$('#askX').addEventListener('click',"),
     source.indexOf("$('#ask').addEventListener('keydown',"));
   a.ok(start > 0 && end > start);
-  const dialogs = new Function('$', '$$', 'esc', 'PC_UI', 'syncDialogLayers',
+  const dialogs = new Function('$', '$$', 'esc', 'PC_UI', 'syncDialogLayers', 'feedback',
     source.slice(start, end) + '\n' + listeners + '\nreturn {askPick, askText, askConfirm};')(
       (s: string) => document.querySelector(s),
       (s: string) => [...document.querySelectorAll(s)], C.esc,
-      { installUiMotion: () => null }, () => {});
+      { installUiMotion: () => null }, () => {}, installActionFeedback);
   install(C, { ...stubLegacy(r.calls), ...dialogs });
 });
-afterEach(() => { act(() => r.draw(null)); r.host.remove(); ask.remove(); });
+afterEach(() => { act(() => r.draw(null)); r.host.remove(); ask.remove(); window.__pcFeedback?.destroy(); });
 
 const draw = () => act(() => r.draw(() => <Inspector />, 'right'));
 const button = (label: string) => [...r.host.querySelectorAll<HTMLButtonElement>('button')]
