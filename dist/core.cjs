@@ -2611,6 +2611,10 @@ var U = {
   track: ["em", "px"],
   border: ["px", "rem"]
 };
+var MIN_COL = 4;
+var MAX_COL = 100;
+var COLUMN_SHARE_DIGITS = 4;
+var COLUMN_SHARE_STEP = 10 ** -COLUMN_SHARE_DIGITS;
 var COLUMN_V_ALIGN = "--pc-column-v-align";
 function columnVerticalOptions(n) {
   return [
@@ -3012,7 +3016,7 @@ var DEF = {
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
            the slider's own "Slides in view" — the strip sets `flex` on its children with two
            classes, so a share or a basis set here is a control that does nothing. */
-        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
+        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: MIN_COL, max: MAX_COL, step: COLUMN_SHARE_STEP, raw: 1, when: notASlide },
         { t: "unit", c: "flex-basis", label: "Min basis", layout: "inline", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
         {
           t: "select",
@@ -4676,10 +4680,9 @@ function applyCols(row, ws2) {
   }
   kids.forEach((k, i) => {
     k.css.d = k.css.d || {};
-    k.css.d["flex-grow"] = String(+ws2[i].toFixed(4));
+    k.css.d["flex-grow"] = String(+ws2[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
-var MIN_COL = 4;
 var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
 function cssAt(n, b, prop) {
   for (const k of BP_CHAIN[b] || ["d"]) {
@@ -4704,33 +4707,30 @@ function rowVerticalLabel(n) {
   return v === "center" ? "Center" : v === "flex-end" ? "Bottom" : "Top";
 }
 function rowRatiosAt(row, b) {
-  return (row.children || []).map((c) => {
-    for (const k of BP_CHAIN[b] || ["d"]) {
-      const v = (c.css[k] || {})["flex-grow"];
-      if (v !== void 0 && v !== "") return parseFloat(v) || 0;
-    }
-    return 0;
-  });
+  return (row.children || []).map((c) => parseFloat(cssAt(c, b, "flex-grow")) || 0);
 }
-function resizeCols(row, i, pct, b = "d") {
-  const ws2 = rowRatiosAt(row, b);
+function resizeCols(row, i, pct, b = "d", start = rowRatiosAt(row, b)) {
+  const ws2 = start;
   if (i < 0 || i + 1 >= ws2.length) return null;
   const total = ws2.reduce((a2, x) => a2 + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws2[i] + ws2[i + 1];
-  if (pair < min * 2) return null;
-  let a = ws2[i] + pct / 100 * total;
-  a = Math.max(min, Math.min(pair - min, a));
+  const min = Math.max(MIN_COL, total * (MIN_COL / 100));
+  const scale = 1 / COLUMN_SHARE_STEP;
+  const pair = Math.round((ws2[i] + ws2[i + 1]) * scale);
+  const minimum = Math.ceil(min * scale - 1e-7), maximum = MAX_COL * scale;
+  const lo = Math.max(minimum, pair - maximum), hi = Math.min(maximum, pair - minimum);
+  if (lo >= hi) return null;
+  const a = Math.max(lo, Math.min(hi, Math.round((ws2[i] + pct / 100 * total) * scale)));
   const out = ws2.slice();
-  out[i] = a;
-  out[i + 1] = pair - a;
+  out[i] = a / scale;
+  out[i + 1] = (pair - a) / scale;
   return out;
 }
 function applyColsAt(row, ws2, b = "d") {
   (row.children || []).forEach((k, i) => {
     if (ws2[i] === void 0) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(4));
+    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
 var RESERVED = ["text", "bg", "brand"];

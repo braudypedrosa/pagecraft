@@ -84,3 +84,20 @@ test('box writes retain all units and responsive, state, and class destinations'
   assert.equal(C.findClass(classId)!.css.d['padding-left'], '4px');
   assert.equal(target.css.d['padding-left'], undefined);
 });
+
+test('supported fractional padding and negative margin values are natively valid in every unit', () => {
+  for (const unit of ['px', 'rem', '%', 'em']) {
+    for (const [property, value, neg] of [['padding', '.5', undefined], ['margin', '-1.25', 1]] as const) {
+      const n = node();
+      const control: Control = { t: 'box', c: property, label: property, r: 1, neg };
+      r.draw(<Ctl n={n} c={control} />);
+      act(() => r.pick(r.$('select[data-field-part="unit"]')!, unit));
+      const input = r.$('input[data-field-part="top"]') as HTMLInputElement;
+      act(() => r.type(input, value));
+      assert.equal(n.css.d[property + '-top'], value + unit);
+      assert.equal(input.validity.stepMismatch, false);
+      assert.equal(input.validity.valid, true);
+      r.draw(null);
+    }
+  }
+});

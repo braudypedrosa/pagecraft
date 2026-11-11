@@ -247,6 +247,13 @@ const U = {
   border: ['px', 'rem']
 };
 
+/* Generated column shares retain four decimals, including thirds in layout presets.
+   The inspector and gutter must accept the same raw range and precision. */
+const MIN_COL = 4;
+const MAX_COL = 100;
+const COLUMN_SHARE_DIGITS = 4;
+const COLUMN_SHARE_STEP = 10 ** -COLUMN_SHARE_DIGITS;
+
 /* A column's vertical alignment is a relationship with its row, not only a literal
    `justify-content`. The marker stays in the document so each breakpoint can either
    follow the row or opt out without copying values into every child. `bucket()` resolves
@@ -610,7 +617,7 @@ const DEF: Record<string, WidgetDef> = {
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
            the slider's own "Slides in view" — the strip sets `flex` on its children with two
            classes, so a share or a basis set here is a control that does nothing. */
-        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: 5, max: 100, step: .01, raw: 1, when: notASlide },
+        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: MIN_COL, max: MAX_COL, step: COLUMN_SHARE_STEP, raw: 1, when: notASlide },
         { t: 'unit', c: 'flex-basis', label: 'Min basis', layout: 'inline', r: 1, units: ['%', 'px', 'rem'], note: 'Set 100% to force a full-width stack.', when: notASlide },
         { t: 'select', c: COLUMN_V_ALIGN, label: 'Vertical align', r: 1, opts: columnVerticalOptions,
           note: 'Follows the parent row unless this column overrides it.' },
@@ -2296,14 +2303,14 @@ function applyCols(row: PcNode, ws: number[]) {
     const dropped = kids.splice(ws.length);
     dropped.forEach(d => { kids[kids.length - 1].children.push(...d.children); });
   }
-  kids.forEach((k, i) => { k.css.d = k.css.d || {}; k.css.d['flex-grow'] = String(+ws[i].toFixed(4)); });
+  kids.forEach((k, i) => { k.css.d = k.css.d || {}; k.css.d['flex-grow'] = String(+ws[i].toFixed(COLUMN_SHARE_DIGITS)); });
 }
 
 /* ---- column proportions -------------------------------------------------
    Dragging a gutter moves width between two neighbours and leaves every other
-   column alone, so the row's total never drifts. A column stops at MIN_COL
-   percent of the row — below that its gutter is too small to grab back. */
-const MIN_COL = 4;
+   column alone, so the row's total never drifts beyond stored precision. A column
+   stops at both the inspector's raw minimum and MIN_COL percent of the row,
+   because below that its gutter is too small to grab back. */
 /* The proportions in force at a breakpoint, following the same fall-through the
    stylesheet does (mobile → tablet → desktop). `rowRatios` stays the desktop-only
    reader its existing callers expect. */
@@ -2337,26 +2344,27 @@ function rowVerticalLabel(n: PcNode) {
   return v === 'center' ? 'Center' : v === 'flex-end' ? 'Bottom' : 'Top';
 }
 function rowRatiosAt(row: PcNode, b: Bp) {
-  return (row.children || []).map(c => {
-    for (const k of (BP_CHAIN[b] || ['d'])) {
-      const v = ((c.css as any)[k] || {})['flex-grow'];
-      if (v !== undefined && v !== '') return parseFloat(v) || 0;
-    }
-    return 0;
-  });
+  return (row.children || []).map(c => parseFloat(cssAt(c, b, 'flex-grow')) || 0);
 }
-/* `pct` is a share of the whole row, signed: positive grows column `i`. */
-function resizeCols(row: PcNode, i: number, pct: number, b: Bp = 'd') {
-  const ws = rowRatiosAt(row, b);
+/* `pct` is a share of the whole row, signed: positive grows column `i`.
+   A pointer gesture supplies its starting shares because its displacement is total,
+   not an increment to add again to the previous pointermove's result. */
+function resizeCols(row: PcNode, i: number, pct: number, b: Bp = 'd', start = rowRatiosAt(row, b)) {
+  const ws = start;
   if (i < 0 || i + 1 >= ws.length) return null;
   const total = ws.reduce((a, x) => a + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws[i] + ws[i + 1];
-  if (pair < min * 2) return null;                  // no room to move either way
-  let a = ws[i] + (pct / 100) * total;
-  a = Math.max(min, Math.min(pair - min, a));
+  const min = Math.max(MIN_COL, total * (MIN_COL / 100));
+  const scale = 1 / COLUMN_SHARE_STEP;
+  const pair = Math.round((ws[i] + ws[i + 1]) * scale);
+  /* Work in stored precision so clamping cannot create an invalid native step.
+     A non-100 total still respects both the raw inspector bounds and grab minimum. */
+  const minimum = Math.ceil(min * scale - 1e-7), maximum = MAX_COL * scale;
+  const lo = Math.max(minimum, pair - maximum), hi = Math.min(maximum, pair - minimum);
+  if (lo >= hi) return null;                       // no valid move for this pair
+  const a = Math.max(lo, Math.min(hi, Math.round((ws[i] + (pct / 100) * total) * scale)));
   const out = ws.slice();
-  out[i] = a; out[i + 1] = pair - a;
+  out[i] = a / scale; out[i + 1] = (pair - a) / scale;
   return out;
 }
 /* Writes proportions at one breakpoint without touching the column count —
@@ -2365,7 +2373,7 @@ function applyColsAt(row: PcNode, ws: number[], b: Bp = 'd') {
   (row.children || []).forEach((k, i) => {
     if (ws[i] === undefined) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]['flex-grow'] = String(+ws[i].toFixed(4));
+    k.css[b]['flex-grow'] = String(+ws[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
 

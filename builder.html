@@ -5016,6 +5016,7 @@ function startColResize(e, grip) {
   const span = rowEl.getBoundingClientRect().width;
   if (!span) return;
   const startX = e.clientX;
+  const startShares = rowRatiosAt(row, b);
   const key = 'colresize:' + row.id + ':' + i + ':' + b;
   grip.classList.add('on');
   try { grip.setPointerCapture(e.pointerId); } catch (_) { }
@@ -5026,7 +5027,7 @@ function startColResize(e, grip) {
 
   const move = ev => {
     const pct = ((ev.clientX - startX) / span) * 100;
-    const ws = resizeCols(row, i, pct, b);
+    const ws = resizeCols(row, i, pct, b, startShares);
     if (!ws) return;
     tx(key);
     applyColsAt(row, ws, b);

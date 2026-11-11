@@ -294,21 +294,42 @@ function LengthListCtl({ n, c }: P) {
 function SliderCtl({ n, c }: P) {
   const w = writer(n, c);
   const raw = valueOf(n, c);
+  // A removed share is unset, not the range's minimum. Keep reset and inherited readback distinct.
+  const unset = c.c === 'flex-grow' && (raw === '' || raw == null);
   const v = raw === '' || raw == null ? (c.max === 1 ? 1 : c.min) : parseFloat(String(raw));
   const push = (root: HTMLElement, x: string) => {
-    if (x === '') { w.live(''); return; }
+    if (x === '') {
+      w.live('');
+      if (c.c === 'flex-grow') {
+        const effective = valueOf(n, c);
+        const missing = effective === '' || effective == null;
+        const range = root.querySelector<HTMLInputElement>('input[type="range"]')!;
+        if (missing) range.setAttribute('aria-valuetext', 'Not set');
+        else { range.removeAttribute('aria-valuetext'); range.value = String(effective); }
+        root.querySelector<HTMLInputElement>('input[type="number"]')!.placeholder = missing ? 'Not set' : String(effective);
+      }
+      return;
+    }
     const parsed = Number(x);
     if (!Number.isFinite(parsed)) return;
     const clamped = Math.min(c.max ?? parsed, Math.max(c.min ?? parsed, parsed));
     const value = String(clamped);
-    root.querySelectorAll<HTMLInputElement>('input').forEach(input => { input.value = value; });
+    root.querySelectorAll<HTMLInputElement>('input').forEach(input => {
+      input.value = value;
+      if (c.c === 'flex-grow') {
+        input.removeAttribute('aria-valuetext');
+        if (input.type === 'number') input.placeholder = '';
+      }
+    });
     w.live(c.raw ? value : value + 'px');
   };
   return <Field n={n} c={c}>
     <div class="sld">
       <input data-field-part="slider" type="range" min={c.min} max={c.max} step={c.step} value={v}
+        aria-valuetext={unset ? 'Not set' : undefined}
         onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onChange={w.done} />
-      <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step} value={v}
+      <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step}
+        value={unset ? '' : v} placeholder={unset ? 'Not set' : undefined}
         onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onBlur={w.done} />
     </div>
   </Field>;
@@ -582,7 +603,7 @@ function BoxCtl({ n, c }: P) {
     </div>
     <div class="row4">
       {SIDES.map((s, k) => (
-        <input data-field-part={s} class="ctl" key={s} type="number" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
+        <input data-field-part={s} class="ctl" key={s} type="number" step="any" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
           onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
       ))}
       <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
@@ -1142,7 +1163,7 @@ function ColsCtl({ n, c }: P) {
     <label>{c.label || ''}<HelpTip label="Columns" text="Drag a gutter on the canvas to adjust column widths." /></label>
     <div class="pick">
       {C.COUNTS.map(k => (
-        <button key={k} class={k === count ? 'on' : ''} title={`${k} column${k === 1 ? '' : 's'}`}
+        <button key={k} class={k === count ? 'on' : ''} aria-pressed={k === count} title={`${k} column${k === 1 ? '' : 's'}`}
           onClick={() => setCount(k)}>{k}</button>
       ))}
     </div>
@@ -1150,7 +1171,7 @@ function ColsCtl({ n, c }: P) {
       <label style={{ marginTop: 'var(--gap-2)' }}>Layout</label>
       <div class="lay">
         {list.map((l, k) => (
-          <button key={k} class={hit === k ? 'on' : ''} title={l.map(x => Math.round(x) + '%').join(' / ')}
+          <button key={k} class={hit === k ? 'on' : ''} aria-pressed={hit === k} title={l.map(x => Math.round(x) + '%').join(' / ')}
             onClick={() => C.edit(() => C.applyCols(n, C.LAYOUTS[n.children.length as keyof typeof C.LAYOUTS][k]))}>
             {l.map((x, j) => <i key={j} style={{ flexGrow: x }} />)}
           </button>

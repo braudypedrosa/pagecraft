@@ -4351,6 +4351,10 @@ var U = {
   track: ["em", "px"],
   border: ["px", "rem"]
 };
+var MIN_COL = 4;
+var MAX_COL = 100;
+var COLUMN_SHARE_DIGITS = 4;
+var COLUMN_SHARE_STEP = 10 ** -COLUMN_SHARE_DIGITS;
 var COLUMN_V_ALIGN = "--pc-column-v-align";
 function columnVerticalOptions(n) {
   return [
@@ -4752,7 +4756,7 @@ var DEF = {
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
            the slider's own "Slides in view" — the strip sets `flex` on its children with two
            classes, so a share or a basis set here is a control that does nothing. */
-        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
+        { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: MIN_COL, max: MAX_COL, step: COLUMN_SHARE_STEP, raw: 1, when: notASlide },
         { t: "unit", c: "flex-basis", label: "Min basis", layout: "inline", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
         {
           t: "select",
@@ -6416,10 +6420,9 @@ function applyCols(row, ws2) {
   }
   kids.forEach((k, i) => {
     k.css.d = k.css.d || {};
-    k.css.d["flex-grow"] = String(+ws2[i].toFixed(4));
+    k.css.d["flex-grow"] = String(+ws2[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
-var MIN_COL = 4;
 var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
 function cssAt(n, b, prop) {
   for (const k of BP_CHAIN[b] || ["d"]) {
@@ -6444,33 +6447,30 @@ function rowVerticalLabel(n) {
   return v === "center" ? "Center" : v === "flex-end" ? "Bottom" : "Top";
 }
 function rowRatiosAt(row, b) {
-  return (row.children || []).map((c) => {
-    for (const k of BP_CHAIN[b] || ["d"]) {
-      const v = (c.css[k] || {})["flex-grow"];
-      if (v !== void 0 && v !== "") return parseFloat(v) || 0;
-    }
-    return 0;
-  });
+  return (row.children || []).map((c) => parseFloat(cssAt(c, b, "flex-grow")) || 0);
 }
-function resizeCols(row, i, pct, b = "d") {
-  const ws2 = rowRatiosAt(row, b);
+function resizeCols(row, i, pct, b = "d", start = rowRatiosAt(row, b)) {
+  const ws2 = start;
   if (i < 0 || i + 1 >= ws2.length) return null;
   const total = ws2.reduce((a2, x) => a2 + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws2[i] + ws2[i + 1];
-  if (pair < min * 2) return null;
-  let a = ws2[i] + pct / 100 * total;
-  a = Math.max(min, Math.min(pair - min, a));
+  const min = Math.max(MIN_COL, total * (MIN_COL / 100));
+  const scale = 1 / COLUMN_SHARE_STEP;
+  const pair = Math.round((ws2[i] + ws2[i + 1]) * scale);
+  const minimum = Math.ceil(min * scale - 1e-7), maximum = MAX_COL * scale;
+  const lo = Math.max(minimum, pair - maximum), hi = Math.min(maximum, pair - minimum);
+  if (lo >= hi) return null;
+  const a = Math.max(lo, Math.min(hi, Math.round((ws2[i] + pct / 100 * total) * scale)));
   const out = ws2.slice();
-  out[i] = a;
-  out[i + 1] = pair - a;
+  out[i] = a / scale;
+  out[i + 1] = (pair - a) / scale;
   return out;
 }
 function applyColsAt(row, ws2, b = "d") {
   (row.children || []).forEach((k, i) => {
     if (ws2[i] === void 0) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(4));
+    k.css[b]["flex-grow"] = String(+ws2[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
 var RESERVED = ["text", "bg", "brand"];
@@ -23589,10 +23589,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function SliderCtl({ n: n2, c: c3 }) {
     const w3 = writer(n2, c3);
     const raw = valueOf(n2, c3);
+    const unset = c3.c === "flex-grow" && (raw === "" || raw == null);
     const v3 = raw === "" || raw == null ? c3.max === 1 ? 1 : c3.min : parseFloat(String(raw));
     const push = (root, x2) => {
       if (x2 === "") {
         w3.live("");
+        if (c3.c === "flex-grow") {
+          const effective = valueOf(n2, c3);
+          const missing = effective === "" || effective == null;
+          const range = root.querySelector('input[type="range"]');
+          if (missing) range.setAttribute("aria-valuetext", "Not set");
+          else {
+            range.removeAttribute("aria-valuetext");
+            range.value = String(effective);
+          }
+          root.querySelector('input[type="number"]').placeholder = missing ? "Not set" : String(effective);
+        }
         return;
       }
       const parsed = Number(x2);
@@ -23601,6 +23613,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const value = String(clamped);
       root.querySelectorAll("input").forEach((input) => {
         input.value = value;
+        if (c3.c === "flex-grow") {
+          input.removeAttribute("aria-valuetext");
+          if (input.type === "number") input.placeholder = "";
+        }
       });
       w3.live(c3.raw ? value : value + "px");
     };
@@ -23614,6 +23630,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           max: c3.max,
           step: c3.step,
           value: v3,
+          "aria-valuetext": unset ? "Not set" : void 0,
           onInput: (e3) => push(e3.target.parentElement, e3.target.value),
           onChange: w3.done
         }
@@ -23627,7 +23644,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           min: c3.min,
           max: c3.max,
           step: c3.step,
-          value: v3,
+          value: unset ? "" : v3,
+          placeholder: unset ? "Not set" : void 0,
           onInput: (e3) => push(e3.target.parentElement, e3.target.value),
           onBlur: w3.done
         }
@@ -23923,6 +23941,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             "data-field-part": s3,
             class: "ctl",
             type: "number",
+            step: "any",
             min: c3.neg ? void 0 : 0,
             value: vals[k3].n,
             placeholder: "0",
@@ -24648,6 +24667,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         "button",
         {
           class: k3 === count ? "on" : "",
+          "aria-pressed": k3 === count,
           title: `${k3} column${k3 === 1 ? "" : "s"}`,
           onClick: () => setCount(k3),
           children: k3
@@ -24660,6 +24680,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           "button",
           {
             class: hit === k3 ? "on" : "",
+            "aria-pressed": hit === k3,
             title: l3.map((x2) => Math.round(x2) + "%").join(" / "),
             onClick: () => C2.edit(() => C2.applyCols(n2, C2.LAYOUTS[n2.children.length][k3])),
             children: l3.map((x2, j3) => /* @__PURE__ */ u2("i", { style: { flexGrow: x2 } }, j3))
@@ -27307,6 +27328,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     track: ["em", "px"],
     border: ["px", "rem"]
   };
+  var MIN_COL = 4;
+  var MAX_COL = 100;
+  var COLUMN_SHARE_DIGITS = 4;
+  var COLUMN_SHARE_STEP = 10 ** -COLUMN_SHARE_DIGITS;
   var COLUMN_V_ALIGN = "--pc-column-v-align";
   function columnVerticalOptions(n2) {
     return [
@@ -27623,7 +27648,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           /* Neither of these is a slide's business. Inside a slider a column's width comes from
              the slider's own "Slides in view" — the strip sets `flex` on its children with two
              classes, so a share or a basis set here is a control that does nothing. */
-          { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: 5, max: 100, step: 0.01, raw: 1, when: notASlide },
+          { t: "slider", c: "flex-grow", label: "Width (share)", r: 1, min: MIN_COL, max: MAX_COL, step: COLUMN_SHARE_STEP, raw: 1, when: notASlide },
           { t: "unit", c: "flex-basis", label: "Min basis", layout: "inline", r: 1, units: ["%", "px", "rem"], note: "Set 100% to force a full-width stack.", when: notASlide },
           {
             t: "select",
@@ -33053,6 +33078,7 @@ function startColResize(e, grip) {
   const span = rowEl.getBoundingClientRect().width;
   if (!span) return;
   const startX = e.clientX;
+  const startShares = rowRatiosAt(row, b);
   const key = 'colresize:' + row.id + ':' + i + ':' + b;
   grip.classList.add('on');
   try { grip.setPointerCapture(e.pointerId); } catch (_) { }
@@ -33063,7 +33089,7 @@ function startColResize(e, grip) {
 
   const move = ev => {
     const pct = ((ev.clientX - startX) / span) * 100;
-    const ws = resizeCols(row, i, pct, b);
+    const ws = resizeCols(row, i, pct, b, startShares);
     if (!ws) return;
     tx(key);
     applyColsAt(row, ws, b);
