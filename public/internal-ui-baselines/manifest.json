@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-12T19:29:58.209Z",
+  "capturedAt": "2026-11-12T20:40:25.890Z",
   "browser": "Built-in browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "03d0214c1331278e23cd8ab9d916ba8a119c6befdd750be81e13673004137795",
+    "builder.html": "5ca7d17dd687bc5dccc23a16b82a9248c149a31cd324827a7e3048ee008a9c25",
     "app/src/ui/index.tsx": "7e1453567d0c535148a053e9a45603d407af2fbf2a4d49742848ab3cac207bee",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",

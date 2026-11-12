@@ -35466,6 +35466,85 @@ $('#ask').addEventListener('keydown', e => {
   e.preventDefault(); e.stopPropagation(); yes.click();
 });
 
+/* Project JSON holds references, not image bytes. Keep the candidate isolated until every
+   foreign reference is mapped to an image owned by this site. */
+function parseProjectImport(text) {
+  try { return migrate(JSON.parse(text)); } catch (_) { return null; }
+}
+
+function projectImportTokens(value) {
+  const counts = new Map();
+  const scan = part => {
+    if (typeof part === 'string') {
+      for (const match of part.matchAll(new RegExp(A_RE.source, 'g'))) counts.set(match[1], (counts.get(match[1]) || 0) + 1);
+    } else if (Array.isArray(part)) part.forEach(scan);
+    else if (part && typeof part === 'object') Object.values(part).forEach(scan);
+  };
+  scan(value);
+  return counts;
+}
+
+function projectImportRemap(value, mapping) {
+  if (typeof value === 'string') return value.replace(new RegExp(A_RE.source, 'g'), (token, id, width) =>
+    mapping.has(id) ? 'asset:' + mapping.get(id) + (width ? '@' + width : '') : token);
+  if (Array.isArray(value)) return value.map(item => projectImportRemap(item, mapping));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, projectImportRemap(item, mapping)]));
+  return value;
+}
+
+async function importCloudProject(d) {
+  await flushDraft();
+  const baseline = JSON.stringify(doc()), version = SRV.version;
+  const candidate = clone({ ...d, meta: { ...state.meta, ...d.meta }, header: d.header || [], footer: d.footer || [] });
+  const counts = projectImportTokens(candidate);
+  const missing = [...counts.keys()].filter(id => !AS.mem.has(id));
+  const references = mediaReferences(candidate);
+  const mapping = new Map(), unavailable = new Set();
+  const ready = () => missing.every(id => mapping.has(id) && AS.mem.has(mapping.get(id)));
+  const apply = async () => {
+    if (!ready()) { draw(); return; }
+    if (saving || saveAgain || SRV.version !== version || JSON.stringify(doc()) !== baseline) {
+      toast('The draft changed. Open the project file again to review the import.', {tone:'error'}); return;
+    }
+    const next = projectImportRemap(candidate, mapping);
+    checkpoint('Import project');
+    state.meta = next.meta; state.header = next.header; state.footer = next.footer;
+    state.pages = next.pages; state.cur = 0; selSet([]);
+    render();
+    await writeNow();
+    const until = Date.now() + 20000;
+    while ((saving || saveAgain) && Date.now() < until) await new Promise(resolve => setTimeout(resolve, 40));
+    if (saveState === 'ok' && !saving && !saveAgain && !dirty)
+      feedback().notify('Project imported and saved.', {id:'button-id-exImport', tone:'success'});
+  };
+  const finish = () => closeModal(() => { void apply().catch(() => toast('The import could not be confirmed. Check the draft save status before continuing.', {tone:'error'})); });
+  if (!missing.length) { finish(); return; }
+  const draw = () => {
+    missing.forEach(id => { if (mapping.has(id) && !AS.mem.has(mapping.get(id))) { mapping.delete(id); unavailable.add(id); } });
+    const rows = missing.map((id, index) => {
+      const related = references.filter(ref => ref.assetId === id);
+      const uses = [...new Set([...related.filter(ref => ref.scope === 'cms'), ...related.filter(ref => ref.scope !== 'cms')].map(ref => ref.label))];
+      const chosen = AS.mem.get(mapping.get(id));
+      const context = uses.length ? uses.slice(0, 3).join(' · ') + (uses.length > 3 ? ` · and ${uses.length - 3} more` : '') : `${counts.get(id)} reference${counts.get(id) === 1 ? '' : 's'} in the project`;
+      const groupName = `Image ${index + 1}: ${context}`;
+      return `<div class="f" role="group" aria-label="${esc(groupName)}" style="margin-bottom:var(--gap-2)"><strong>Image ${index + 1}</strong>
+        <div class="note">${esc(context)}</div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:var(--gap-1);min-width:0"><button class="btn" type="button" data-import-image="${index}" aria-label="${chosen ? 'Change' : 'Choose'} ${esc(groupName)}">${chosen ? 'Change image' : 'Choose image'}</button><span style="min-width:0;overflow-wrap:anywhere">${chosen ? esc(chosen.name) : unavailable.has(id) ? 'Image no longer available. Choose another.' : 'No image selected'}</span></div></div>`;
+    }).join('');
+    openModal('Choose images for this project', `<p>Project JSON does not include image files. Choose or upload an image for each missing image before replacing this project.</p><div aria-live="polite">${rows}</div>`,
+      `<button class="btn" id="importCancel">Cancel</button><span style="flex:1"></span><button class="btn primary" id="importApply"${ready() ? '' : ' disabled'}>Import project</button>`);
+    $('#importCancel').addEventListener('click', closeModal);
+    $('#importApply').addEventListener('click', () => { if (ready()) finish(); else draw(); });
+    $$('[data-import-image]').forEach(button => button.addEventListener('click', async () => {
+      const id = await mediaPicker({title:'Choose an image', multiple:false});
+      const index = Number(button.dataset.importImage);
+      if (id && AS.mem.has(id)) { mapping.set(missing[index], id); unavailable.delete(missing[index]); }
+      draw(); $(`[data-import-image="${index}"]`)?.focus();
+    }));
+  };
+  draw();
+}
+
 function exportModal() {
   if (editing.on) exitEdit();
   /* one entry per file the project emits — a detail template contributes one per item */
@@ -35740,9 +35819,13 @@ function exportModal() {
       const rd = new FileReader();
       rd.onerror = () => action.error('Could not read this file. Try again.');
       rd.onload = () => {
-        let d = null;
-        try { d = migrate(JSON.parse(rd.result)); } catch (e) { d = null; }
+        const d = parseProjectImport(rd.result);
         if (!d) { action.error('That file is not a Pagecraft project this build can open'); return; }
+        if (SRV && !IS_WORDPRESS) {
+          action.cancel();
+          void importCloudProject(d).catch(() => toast('Save the current draft before importing a project.', {tone:'error'}));
+          return;
+        }
         checkpoint('Import project');
         state.meta = { ...state.meta, ...d.meta }; state.header = d.header || []; state.footer = d.footer || [];
         state.pages = d.pages; state.cur = 0; selSet([]);
