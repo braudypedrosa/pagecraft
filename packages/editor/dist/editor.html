@@ -30615,7 +30615,9 @@ async function publishDraft(button, reviewed = null) {
     setTimeout(() => { if (button.isConnected) { button.disabled = false; button.textContent = 'Publish to Pagecraft'; } }, 900);
   } catch (error) {
     if (error && error.status === 409) {
-      warnStale(error.payload || {});
+      const info = error.payload || {};
+      warnStale(info.error === 'stale_source_version' && info.currentVersion != null
+        ? { ...info, conflict: { ...info.conflict, theirs: info.currentVersion } } : info);
     }
     const detail = error.payload?.detail || (error.message === 'publication_validation_failed' ? 'This draft did not pass publication checks. Review the site’s problems and try again.' : /^[a-z0-9_]+$/.test(error.message || '') ? 'The server could not publish this draft. Please try again.' : error.message || 'Please try again.');
     const message = error.status ? 'Publish failed. ' + detail : 'Publication could not be confirmed. Check the published site before trying again.';
