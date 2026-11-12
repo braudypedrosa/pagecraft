@@ -6,8 +6,8 @@
    jump button, which is what a component is for.
 
    Problems open the list themselves. A host may also request an initially open list when
-   review is the primary task, such as the Publish dialog. */
-import { useState } from 'preact/hooks';
+   review is the primary task, such as Site checks. */
+import { useId, useState } from 'preact/hooks';
 import { C, L } from './ctx';
 import type { Finding } from '../core/types';
 import { MotionPresence } from './MotionPresence';
@@ -16,11 +16,20 @@ const REGION_MODE: Record<string, string> = {
   page: 'page', 'global header': 'header', 'global footer': 'footer'
 };
 
-export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
-  const findings = C.lint();
+export function ReviewList({ defaultOpen = false, findings: supplied }: { defaultOpen?: boolean; findings?: Finding[] }) {
+  const findings = supplied ?? C.lint();
   const counts = C.lintCounts(findings);
   const [open, setOpen] = useState(defaultOpen || counts.error > 0);
+  const listId = useId();
   const clean = !findings.length;
+  const groups = new Map<string, { key: string; name: string; rows: Finding[] }>();
+  findings.forEach(finding => {
+    const key = finding.where.slug ?? finding.where.page ?? '';
+    if (!groups.has(key)) groups.set(key, { key, name: finding.where.page || 'Project', rows: [] });
+    groups.get(key)!.rows.push(finding);
+  });
+  const orderedGroups = [...groups.values()].sort((a, b) =>
+    Number(b.rows.some(row => row.level === 'error')) - Number(a.rows.some(row => row.level === 'error')));
 
   /* Jumping to a finding may cross a page or a global region, so the scope moves first
      and the canvas is repainted before anything is selected. */
@@ -52,22 +61,34 @@ export function ReviewList({ defaultOpen = false }: { defaultOpen?: boolean }) {
         <span>{summary}</span>
         <span class="spacer" />
         {clean ? null : (
-          <button class="reset" onClick={() => setOpen(!open)}>
+          <button class="reset" aria-expanded={open} aria-controls={listId} onClick={() => setOpen(!open)}>
             {open ? 'Hide' : 'Show'} details
           </button>
         )}
       </div>
-      <MotionPresence as="ul" show={!clean && open} kind="panel">
-          {findings.map((f, i) => (
-            <li key={i}>
-              <span class={'lv ' + f.level} />
-              <span class="msg">{f.msg}
-                <em>{f.where.page || ''}{f.where.region ? ' · ' + f.where.region : ''}</em>
-              </span>
-              {f.target || f.nodeId ? <button class="go" onClick={() => goTo(f)}>Show me</button> : null}
-            </li>
-          ))}
-      </MotionPresence>
+      <div id={listId}>
+        <MotionPresence show={!clean && open} kind="panel">
+          {orderedGroups.map(group => {
+            const totals = C.lintCounts(group.rows);
+            const label = [totals.error ? `${totals.error} ${totals.error === 1 ? 'problem' : 'problems'}` : '',
+              totals.warn ? `${totals.warn} ${totals.warn === 1 ? 'suggestion' : 'suggestions'}` : ''].filter(Boolean).join(' · ');
+            return <details class="review-group" key={group.key} open={orderedGroups.length === 1 || totals.error > 0}>
+              <summary><span class="review-group-name">{group.name}</span><span class="review-count">{label}</span></summary>
+              <ul>
+                {[...group.rows].sort((a, b) => Number(b.level === 'error') - Number(a.level === 'error')).map((f, i) => (
+                  <li key={i}>
+                    <span class={'review-level ' + f.level}>{f.level === 'error' ? 'Problem' : 'Suggestion'}</span>
+                    <span class="msg">{f.msg}
+                      {f.where.region || f.where.node ? <em>{[f.where.region, f.where.node].filter(Boolean).join(' · ')}</em> : null}
+                    </span>
+                    {f.target || f.nodeId ? <button type="button" class="go" onClick={() => goTo(f)}>Show me</button> : null}
+                  </li>
+                ))}
+              </ul>
+            </details>;
+          })}
+        </MotionPresence>
+      </div>
     </>
   );
 }

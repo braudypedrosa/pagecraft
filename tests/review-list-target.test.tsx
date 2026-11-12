@@ -51,3 +51,38 @@ test('legacy Site checks findings leave Preview before selecting the editable no
   expect(r.names()).toContain('exitPreview');
   expect(r.arg('select')).toEqual([skipped.id, { scroll: true }]);
 });
+
+test('snapshot findings group by page with problem priority and retain their own targets', () => {
+  const image = C.insert('image', null, 0)!;
+  Object.assign(image.props, { src: 'courtyard.webp', alt: '', w: '800', h: '600' });
+  const target = C.lint().find(finding => finding.code === 'no-alt')!.target!;
+  const source = C.lint();
+  const findings = [
+    { level: 'warn', code: 'title', msg: 'Add a browser title.', where: { page: 'Workshop', slug: 'workshop' }, target },
+    { level: 'warn', code: 'description', msg: 'Add a description.', where: { page: 'Workshop', slug: 'workshop' } },
+    { level: 'error', code: 'missing', msg: 'Choose a destination.', where: { page: 'Contact', slug: 'contact' }, target }
+  ] as any;
+  act(() => r.draw(<ReviewList defaultOpen findings={findings} />));
+  const groups = r.$$('.review-group') as HTMLDetailsElement[];
+  expect(groups.length).toBe(2);
+  expect(groups[0].querySelector('summary')!.textContent).toBe('Contact1 problem');
+  expect(groups[0].open).toBe(true);
+  expect(groups[1].querySelector('summary')!.textContent).toBe('Workshop2 suggestions');
+  expect(groups[1].open).toBe(false);
+  expect(r.$$('.review-level').map(e => e.textContent)).toEqual(['Problem', 'Suggestion', 'Suggestion']);
+  act(() => r.click(groups[1].querySelector('.go')));
+  expect(r.arg('showReviewTarget')).toEqual([target]);
+  expect(C.lint()).toEqual(source);
+});
+
+test('review disclosure announces expanded state and controls the actual grouped content', () => {
+  act(() => r.draw(<ReviewList findings={[{ level: 'warn', code: 'title', msg: 'Add a title.', where: { page: 'Workshop' } }]} />));
+  const button = r.$('.rh button')!;
+  expect(button.getAttribute('aria-expanded')).toBe('false');
+  const target = button.ownerDocument.getElementById(button.getAttribute('aria-controls')!)!;
+  expect(target).not.toBeNull();
+  expect(target.querySelector('.review-group')).toBeNull();
+  act(() => r.click(button));
+  expect(button.getAttribute('aria-expanded')).toBe('true');
+  expect(target.querySelector('.review-group')?.textContent).toContain('Workshop');
+});

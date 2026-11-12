@@ -256,6 +256,18 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     requestAnimationFrame(() => setActive(record, option));
   };
 
+  const handleTypeahead = (record, event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1 || !/\S/.test(event.key)) return;
+    typeahead += event.key.toLowerCase();
+    clearTimeout(typeaheadTimer);
+    typeaheadTimer = window.setTimeout(() => { typeahead = ''; }, 650);
+    const match = enabledOptions(record.select).find(option => option.label.toLowerCase().startsWith(typeahead));
+    if (match) {
+      const activate = () => setActive(record, match);
+      if (isClosed(record.menu)) { open(record); requestAnimationFrame(activate); } else activate();
+    }
+  };
+
   function sync(record) {
     if (!record.select.isConnected) return;
     record.owner = record.select.parentNode;
@@ -388,16 +400,7 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
         return;
       }
-      if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && /\S/.test(event.key)) {
-        typeahead += event.key.toLowerCase();
-        clearTimeout(typeaheadTimer);
-        typeaheadTimer = window.setTimeout(() => { typeahead = ''; }, 650);
-        const match = options.find(option => option.label.toLowerCase().startsWith(typeahead));
-        if (match) {
-          const activate = () => setActive(record, match);
-          if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
-        }
-      }
+      handleTypeahead(record, event);
     });
     menu.addEventListener('keydown', event => {
       const buttons = [...menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
@@ -413,7 +416,9 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
           : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
         if (buttons[next]) setActive(record, optionsForButton(record, buttons[next]));
+        return;
       }
+      handleTypeahead(record, event);
     });
   };
 

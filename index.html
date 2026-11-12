@@ -915,8 +915,9 @@ select.ctl{
 .cp{
   position:fixed;z-index:220;background:var(--panel);border:1px solid var(--line);
   border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
-  padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);
+  padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);overflow-y:auto;overscroll-behavior:contain;
 }
+.cp>*{flex-shrink:0}
 .cp-modes{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--field)}
 .cp-modes button{padding:5px 8px;border-radius:3px;font:var(--pc-type-label);color:var(--text-3)}
 .cp-modes button:hover{color:var(--text);background:var(--panel)}
@@ -1471,6 +1472,31 @@ pre.code{
 .review .msg em{color:var(--text-3);font-style:normal;font-family:var(--label);font-size:var(--fs-1);display:block;margin-top:2px}
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
 .review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
+.review-group{border-top:1px solid var(--line)}
+.review-group>summary{display:list-item;list-style:disclosure-closed inside;padding:12px 14px;cursor:pointer;font:var(--pc-type-label);color:var(--text)}
+.review-group[open]>summary{list-style-type:disclosure-open}
+.review-group>summary:hover{background:var(--field)}
+.review-group-name{font-weight:600;overflow-wrap:anywhere}
+.review-count{float:right;margin-left:12px;font-size:var(--fs-1);color:var(--text-2);font-weight:400;text-align:right}
+.review-level,.review-status{font:var(--pc-type-label);font-size:var(--fs-1);padding:3px 6px;border-radius:var(--r-sm);background:var(--field);color:var(--text-2);white-space:nowrap;flex:0 0 auto}
+.review-level.error,.review-status.removed{background:var(--risk-bg);color:var(--risk-fg)}
+.review-level.warn{background:var(--pc-warning-bg,#fff5dc);color:var(--pc-warning-fg,#755a0b)}
+.review .msg{min-width:0;overflow-wrap:anywhere}
+.review .go{min-height:28px;border-radius:var(--r-sm);font:var(--pc-type-label);font-size:var(--fs-2)}
+.publication-change-list{margin:var(--gap-2) 0}
+.publication-change-list .review-group:first-child{border-top:0}
+.publication-change-list li{align-items:center}
+.publication-change-list .msg>b{display:block;color:var(--text);font-weight:500}
+.review-affected{margin-top:6px}
+.review-affected>summary{cursor:pointer;color:var(--text-2);font-size:var(--fs-2)}
+.review-page-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.review-page-links .btn{font-size:var(--fs-2);min-height:28px;height:auto;max-width:100%;white-space:normal;text-align:left;overflow-wrap:anywhere}
+@media(max-width:559px){
+  .review li{flex-wrap:wrap;gap:8px}
+  .review .msg{flex:1 1 calc(100% - 92px)}
+  .review .go{margin-left:auto}
+  .review-count{max-width:60%;overflow-wrap:anywhere}
+}
 .alert{display:flex;flex-direction:column;gap:var(--sp-3);padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
 .publication-preview-error{margin-bottom:var(--gap-2)}
 .schedule-panel{display:grid;gap:var(--sp-3);padding:var(--sp-4);margin-bottom:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-md)}.schedule-panel h3{margin:0}.schedule-panel .f,.schedule-panel .help{margin:0}.schedule-ack{display:flex;align-items:center;gap:var(--pc-action-gap)}.schedule-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--pc-action-gap)}#scheduleStatus:empty{display:none}.schedule-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap)}.schedule-status .help{margin:0;flex:1 1 260px}
@@ -9592,22 +9618,28 @@ function condValue(c, col, item, inst, def) {
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? "" : String(v);
 }
-function condRich(c, col, inst, def) {
-  if (c.bind.src === "field") return fieldAt(col, c.bind.path)?.type === "rich";
-  if (!inst) return false;
+function condKind(c, col, inst, def) {
+  if (c.bind.src === "field") return fieldAt(col, c.bind.path)?.type;
+  if (!inst) return void 0;
   const field = boundField(inst, VAL + c.bind.path);
-  return field && col ? fieldAt(col, field)?.type === "rich" : findProp(def || null, c.bind.path)?.t === "rich";
+  return field && col ? fieldAt(col, field)?.type : findProp(def || null, c.bind.path)?.t;
 }
 function showsNode(n, col, item, inst, def) {
   const c = n.showIf;
   if (!c || !c.bind || !c.bind.path) return true;
   const raw = condValue(c, col, item, inst, def).trim();
-  const rich = condRich(c, col, inst, def);
+  const kind2 = condKind(c, col, inst, def);
+  const rich = kind2 === "rich";
   const v = rich ? richTextContent(raw) : raw;
   const want = String(c.value == null ? "" : c.value).trim();
   if (c.op === "set") return v !== "";
   if (c.op === "empty") return v === "";
-  const equal = raw === want || v === (rich ? want.replace(/\s+/g, " ") : want);
+  let equal = raw === want || v === (rich ? want.replace(/\s+/g, " ") : want);
+  if (kind2 === "bool") {
+    const booleanValue = (value) => /^(1|true|yes)$/i.test(value) ? true : /^(0|false|no)$/i.test(value) ? false : null;
+    const actual = booleanValue(raw), expected = booleanValue(want);
+    if (actual !== null && expected !== null) equal = actual === expected;
+  }
   if (c.op === "eq") return equal;
   if (c.op === "ne") return !equal;
   return true;
@@ -21797,7 +21829,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         requestClose();
       };
       const scroll = (e3) => {
-        if (!inAngleMenu(e3.target)) requestClose();
+        if (!(e3.target instanceof Node && box.current?.contains(e3.target)) && !inAngleMenu(e3.target)) requestClose();
       };
       const key2 = (e3) => {
         if (e3.key === "Escape") {
@@ -21826,15 +21858,24 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     h2(() => {
       box.current?.querySelector(".cp-sv")?.focus();
     }, [anchor]);
-    const r3 = anchor.getBoundingClientRect();
-    const tokenRows = Math.ceil(tokens.length / 9);
-    const W2 = 232, H2 = gradient ? 330 + (tokenRows ? tokenRows * 24 + 22 : 0) : 244;
-    const below = window.innerHeight - r3.bottom > H2 + 12;
-    const style = {
-      left: Math.round(Math.min(Math.max(8, r3.left), window.innerWidth - W2 - 8)) + "px",
-      top: Math.round(below ? r3.bottom + 6 : Math.max(8, r3.top - H2 - 6)) + "px",
-      width: W2 + "px"
-    };
+    const [placement, setPlacement] = d2({ left: 8, top: 60, maxHeight: window.innerHeight - 68 });
+    _2(() => {
+      const picker = box.current;
+      if (!picker) return;
+      const r3 = anchor.getBoundingClientRect();
+      const topEdge = Math.max(8, (document.querySelector(".topbar")?.getBoundingClientRect().bottom || 0) + 8);
+      const maxHeight = Math.max(0, window.innerHeight - topEdge - 8);
+      const height = Math.min(picker.getBoundingClientRect().height, maxHeight);
+      const below = r3.bottom + 6;
+      const top = below + height <= window.innerHeight - 8 ? below : r3.top - height - 6;
+      const next = {
+        left: Math.round(Math.max(8, Math.min(r3.left, window.innerWidth - 240))),
+        top: Math.round(Math.max(topEdge, Math.min(top, window.innerHeight - height - 8))),
+        maxHeight
+      };
+      setPlacement((previous) => Object.keys(next).every((key2) => previous[key2] === next[key2]) ? previous : next);
+    }, [anchor, mode, tokens.length]);
+    const style = { left: placement.left + "px", top: placement.top + "px", maxHeight: placement.maxHeight + "px", width: "232px" };
     const nudge = (e3, dx, dy) => {
       const step = e3.shiftKey ? 10 : 1;
       const map = {
@@ -26471,11 +26512,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     "global header": "header",
     "global footer": "footer"
   };
-  function ReviewList({ defaultOpen = false }) {
-    const findings = C2.lint();
+  function ReviewList({ defaultOpen = false, findings: supplied }) {
+    const findings = supplied ?? C2.lint();
     const counts = C2.lintCounts(findings);
     const [open, setOpen] = d2(defaultOpen || counts.error > 0);
+    const listId = g2();
     const clean = !findings.length;
+    const groups = /* @__PURE__ */ new Map();
+    findings.forEach((finding) => {
+      const key2 = finding.where.slug ?? finding.where.page ?? "";
+      if (!groups.has(key2)) groups.set(key2, { key: key2, name: finding.where.page || "Project", rows: [] });
+      groups.get(key2).rows.push(finding);
+    });
+    const orderedGroups = [...groups.values()].sort((a3, b2) => Number(b2.rows.some((row) => row.level === "error")) - Number(a3.rows.some((row) => row.level === "error")));
     const goTo = (f4) => {
       L2.exitPreview();
       if (f4.target) {
@@ -26500,22 +26549,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         /* @__PURE__ */ u2("span", { class: "dot " + (clean ? "ok" : counts.error ? "bad" : "warn") }),
         /* @__PURE__ */ u2("span", { children: summary }),
         /* @__PURE__ */ u2("span", { class: "spacer" }),
-        clean ? null : /* @__PURE__ */ u2("button", { class: "reset", onClick: () => setOpen(!open), children: [
+        clean ? null : /* @__PURE__ */ u2("button", { class: "reset", "aria-expanded": open, "aria-controls": listId, onClick: () => setOpen(!open), children: [
           open ? "Hide" : "Show",
           " details"
         ] })
       ] }),
-      /* @__PURE__ */ u2(MotionPresence, { as: "ul", show: !clean && open, kind: "panel", children: findings.map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
-        /* @__PURE__ */ u2("span", { class: "lv " + f4.level }),
-        /* @__PURE__ */ u2("span", { class: "msg", children: [
-          f4.msg,
-          /* @__PURE__ */ u2("em", { children: [
-            f4.where.page || "",
-            f4.where.region ? " \xB7 " + f4.where.region : ""
-          ] })
-        ] }),
-        f4.target || f4.nodeId ? /* @__PURE__ */ u2("button", { class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
-      ] }, i3)) })
+      /* @__PURE__ */ u2("div", { id: listId, children: /* @__PURE__ */ u2(MotionPresence, { show: !clean && open, kind: "panel", children: orderedGroups.map((group) => {
+        const totals = C2.lintCounts(group.rows);
+        const label = [
+          totals.error ? `${totals.error} ${totals.error === 1 ? "problem" : "problems"}` : "",
+          totals.warn ? `${totals.warn} ${totals.warn === 1 ? "suggestion" : "suggestions"}` : ""
+        ].filter(Boolean).join(" \xB7 ");
+        return /* @__PURE__ */ u2("details", { class: "review-group", open: orderedGroups.length === 1 || totals.error > 0, children: [
+          /* @__PURE__ */ u2("summary", { children: [
+            /* @__PURE__ */ u2("span", { class: "review-group-name", children: group.name }),
+            /* @__PURE__ */ u2("span", { class: "review-count", children: label })
+          ] }),
+          /* @__PURE__ */ u2("ul", { children: [...group.rows].sort((a3, b2) => Number(b2.level === "error") - Number(a3.level === "error")).map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
+            /* @__PURE__ */ u2("span", { class: "review-level " + f4.level, children: f4.level === "error" ? "Problem" : "Suggestion" }),
+            /* @__PURE__ */ u2("span", { class: "msg", children: [
+              f4.msg,
+              f4.where.region || f4.where.node ? /* @__PURE__ */ u2("em", { children: [f4.where.region, f4.where.node].filter(Boolean).join(" \xB7 ") }) : null
+            ] }),
+            f4.target || f4.nodeId ? /* @__PURE__ */ u2("button", { type: "button", class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
+          ] }, i3)) })
+        ] }, group.key);
+      }) }) })
     ] });
   }
 
@@ -26773,6 +26832,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const option = selectedOption(record.select) || enabledOptions(record.select)[0];
       requestAnimationFrame(() => setActive(record, option));
     };
+    const handleTypeahead = (record, event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1 || !/\S/.test(event.key)) return;
+      typeahead += event.key.toLowerCase();
+      clearTimeout(typeaheadTimer);
+      typeaheadTimer = window.setTimeout(() => {
+        typeahead = "";
+      }, 650);
+      const match = enabledOptions(record.select).find((option) => option.label.toLowerCase().startsWith(typeahead));
+      if (match) {
+        const activate = () => setActive(record, match);
+        if (isClosed(record.menu)) {
+          open(record);
+          requestAnimationFrame(activate);
+        } else activate();
+      }
+    };
     function sync(record) {
       if (!record.select.isConnected) return;
       record.owner = record.select.parentNode;
@@ -26900,21 +26975,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           } else activate();
           return;
         }
-        if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.length === 1 && /\S/.test(event.key)) {
-          typeahead += event.key.toLowerCase();
-          clearTimeout(typeaheadTimer);
-          typeaheadTimer = window.setTimeout(() => {
-            typeahead = "";
-          }, 650);
-          const match = options.find((option) => option.label.toLowerCase().startsWith(typeahead));
-          if (match) {
-            const activate = () => setActive(record, match);
-            if (isClosed(menu)) {
-              open(record);
-              requestAnimationFrame(activate);
-            } else activate();
-          }
-        }
+        handleTypeahead(record, event);
       });
       menu.addEventListener("keydown", (event) => {
         const buttons = [...menu.querySelectorAll(".pc-custom-select-option:not(:disabled)")];
@@ -26934,7 +26995,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           event.preventDefault();
           const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
           if (buttons[next]) setActive(record, optionsForButton(record, buttons[next]));
+          return;
         }
+        handleTypeahead(record, event);
       });
     };
     const scan = () => {
@@ -29811,7 +29874,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const mountColors = inBox("mColors", () => /* @__PURE__ */ u2(ColorTokens, {}));
     const mountClasses = inBox("mClasses", () => /* @__PURE__ */ u2(StyleClasses, {}));
     const mountStyles = inBox("mStyles", () => /* @__PURE__ */ u2(TextStyles, {}));
-    const mountReview = (hostId = "exReview", defaultOpen = false) => inBox(hostId, () => /* @__PURE__ */ u2(ReviewList, { defaultOpen }))();
+    const mountReview = (hostId = "exReview", defaultOpen = false, findings) => inBox(hostId, () => /* @__PURE__ */ u2(ReviewList, { defaultOpen, findings }))();
     registerPainter("colors", mountColors);
     registerPainter("classes", mountClasses);
     registerPainter("styles", mountStyles);
@@ -30652,7 +30715,7 @@ function renderPublicationPreviewFailure(host, failure) {
           ? finding.message.trim() : 'A publication check needs attention.';
         const place = location(finding);
         const level = finding.level === 'warn' ? 'warn' : 'error';
-        return `<li><span class="lv ${level}"></span><span class="msg">${esc(message)}${place ? `<em>${esc(place)}</em>` : ''}</span>${canShow(finding) ? `<button class="go" type="button" data-publication-finding="${index}">Show me</button>` : ''}</li>`;
+        return `<li><span class="review-level ${level}">${level === 'warn' ? 'Suggestion' : 'Problem'}</span><span class="msg">${esc(message)}${place ? `<em>${esc(place)}</em>` : ''}</span>${canShow(finding) ? `<button class="go" type="button" data-publication-finding="${index}">Show me</button>` : ''}</li>`;
       }).join('')}</ul>
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
@@ -30675,6 +30738,21 @@ function renderPublicationPreviewFailure(host, failure) {
   }));
 }
 
+function publicationChangesHtml(changes) {
+  const groups = [...new Set(changes.map(change => change.group))];
+  return `<div class="review publication-change-list">${groups.map(group => {
+    const rows = changes.filter(change => change.group === group);
+    return `<details class="review-group"${group === 'Pages' ? ' open' : ''}>
+      <summary><span class="review-group-name">${esc(group)}</span><span class="review-count">${rows.length} ${rows.length === 1 ? 'change' : 'changes'}</span></summary>
+      <ul>${rows.map(change => `<li>
+        <div class="msg"><b>${esc(change.label)}</b>${change.pages.length > 1 ? `<details class="review-affected"><summary>${change.pages.length} affected pages</summary><div class="review-page-links">${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join('')}</div></details>` : ''}</div>
+        <span class="review-status ${esc(change.status)}">${esc(({added:'Added',removed:'Removed',changed:'Changed'})[change.status] || change.status)}</span>
+        ${change.pages.length === 1 ? `<button class="go" type="button" data-review-page="${esc(change.pages[0].slug || 'index')}" aria-label="Compare ${esc(change.pages[0].name)}">Compare</button>` : ''}
+      </li>`).join('')}</ul>
+    </details>`;
+  }).join('')}</div>`;
+}
+
 async function preparePublicationReview(button) {
   const action = feedback().begin(button, 'Preparing preview…');
   if (!action) return;
@@ -30694,17 +30772,19 @@ async function preparePublicationReview(button) {
     if (JSON.stringify(doc()) !== baseline || reviewed.sourceVersion !== SRV.version) throw new Error('The draft changed while preparing the preview. Create a new preview.');
     const root = `/api/sites/${encodeURIComponent(SRV.siteId)}/publication-snapshots/`;
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
-    const groups = [...new Set(reviewed.changes.map(change => change.group))];
     if ($('#exReview')) $('#exReview').hidden = true;
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
-      ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
-      ${reviewed.warnings.length ? `<details><summary>${reviewed.warnings.length} publication suggestions</summary><ul>${reviewed.warnings.map(warning => `<li>${esc(warning.message)}</li>`).join('')}</ul></details>` : ''}
+      ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : reviewed.changes.length ? publicationChangesHtml(reviewed.changes) : '<p>No document changes since the current publication.</p>'}
+      ${reviewed.warnings.length ? '<h4>Publication suggestions</h4><div class="review" id="publicationWarnings"></div>' : ''}
       <div class="f"><label for="publicationPage">Compare page</label><select id="publicationPage">${reviewed.pages.map(path => `<option value="${esc(path)}">${esc(path === 'index.html' ? 'Home' : path.replace(/\.html$/, ''))}</option>`).join('')}</select></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap-2)">
         ${reviewed.baselinePublicationId ? '<div><h4>Published version</h4><iframe id="publicationBefore" title="Published page comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>' : '<p>This site has not been published.</p>'}
         <div><h4>Reviewed draft</h4><iframe id="publicationAfter" title="Reviewed draft comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
       </div>`;
+    if (reviewed.warnings.length) ui().mountReview('publicationWarnings', false, reviewed.warnings.map(finding => ({
+      ...finding, level: 'warn', msg: finding.message, where: finding.where || {}
+    })));
     const page = $('#publicationPage');
     const update = (hash = '') => {
       const show = (frame, id, paths) => {
@@ -30839,7 +30919,7 @@ function publishModal() {
     ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create publication preview</button>' : ''}
     ${SRV.role === 'owner' && HOST.releases.schedule && SRV.schedulingAvailable ? '<button class="btn" id="releaseSchedule" disabled title="Create a review preview first">Schedule…</button>' : ''}
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
-  ui().mountReview('exReview', true);
+  ui().mountReview('exReview');
   /* The editor page already carries the current publication identity and version. Rendering
      that injected state avoids a second authenticated database round trip just to open this
      dialog; a successful publish replaces it with the API's fresh response below. */
@@ -36045,13 +36125,13 @@ function findModal() {
   if (editing.on) exitEdit();
   openModal('Find and replace', `
     <div class="fgrid" style="margin-bottom:var(--gap-2)">
-      <div class="f"><label>Find</label>
+      <div class="f"><label for="fdQ">Find</label>
         <input class="ctl" id="fdQ" value="${esc(findState.q)}" placeholder="Text on any page, or in the CMS" autocomplete="off"></div>
-      <div class="f"><label>Replace with</label>
+      <div class="f"><label for="fdTo">Replace with</label>
         <input class="ctl" id="fdTo" value="${esc(findState.to)}" placeholder="Leave empty to delete it" autocomplete="off"></div>
     </div>
-    <div class="tog-row" style="margin-bottom:var(--gap-2)"><span>Match case</span>
-      <button class="sw-tog${findState.ci ? '' : ' on'}" id="fdCase"><i></i></button></div>
+    <div class="tog-row" style="margin-bottom:var(--gap-2)"><span id="fdCaseLabel">Match case</span>
+      <button type="button" class="sw-tog${findState.ci ? '' : ' on'}" id="fdCase" aria-labelledby="fdCaseLabel" aria-pressed="${!findState.ci}"><i></i></button></div>
     <div id="fdOut"></div>`, `
     <span class="note" id="fdCount" style="margin:0;flex:1;text-align:left"></span>
     <button class="btn danger" id="fdRep">Replace all</button>
@@ -36110,6 +36190,7 @@ function findModal() {
   $('#fdCase').addEventListener('click', () => {
     findState.ci = !findState.ci;
     $('#fdCase').classList.toggle('on', !findState.ci);
+    $('#fdCase').setAttribute('aria-pressed', String(!findState.ci));
     draw();
   });
   rep.addEventListener('click', async () => {

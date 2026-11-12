@@ -142,8 +142,8 @@ export function mount(core: Core, legacy: Legacy) {
   const mountColors = inBox('mColors', () => <ColorTokens />);
   const mountClasses = inBox('mClasses', () => <StyleClasses />);
   const mountStyles = inBox('mStyles', () => <TextStyles />);
-  const mountReview = (hostId = 'exReview', defaultOpen = false) =>
-    inBox(hostId, () => <ReviewList defaultOpen={defaultOpen} />)();
+  const mountReview = (hostId = 'exReview', defaultOpen = false, findings?: import('../core/types').Finding[]) =>
+    inBox(hostId, () => <ReviewList defaultOpen={defaultOpen} findings={findings} />)();
   registerPainter('colors', mountColors);
   registerPainter('classes', mountClasses);
   registerPainter('styles', mountStyles);

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, test } from 'vitest';
+import { afterEach, beforeEach, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { act } from 'preact/test-utils';
 import { render } from 'preact';
@@ -10,7 +10,7 @@ import { rig, type Rig } from './ui.setup';
 
 let r: Rig;
 beforeEach(() => { r = rig(); });
-afterEach(() => { act(() => r.draw(null)); r.host.remove(); });
+afterEach(() => { act(() => r.draw(null)); r.host.remove(); vi.restoreAllMocks(); });
 
 async function open(paint = false) {
   const node = C.insert(paint ? 'section' : 'heading', null, 0)!;
@@ -23,6 +23,38 @@ async function open(paint = false) {
   await act(async () => { r.click(anchor); await new Promise(resolve => setTimeout(resolve, 40)); });
   return { node, key, anchor };
 }
+
+test('picker measures each paint mode, clears the toolbar and keeps internal scrolling open', async () => {
+  const originalHeight = window.innerHeight;
+  const toolbar = document.createElement('div'); toolbar.className = 'topbar'; document.body.append(toolbar);
+  const rect = (top: number, height: number) => ({ x: 1000, y: top, top, bottom: top + height, left: 1000, right: 1232, width: 232, height, toJSON() {} });
+  toolbar.getBoundingClientRect = () => rect(0, 52);
+  const originalRect = HTMLElement.prototype.getBoundingClientRect;
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('cp') ? rect(0, this.querySelector('.cp-gradient') ? 450 : 280) : originalRect.call(this);
+  });
+  try {
+    window.innerHeight = 720;
+    const node = C.insert('section', null, 0)!;
+    C.selSet([node.id]);
+    r.draw(() => <Ctl n={node} c={{ t: 'color', c: 'background-color', label: 'Colour', paint: 1 }} />, 'right');
+    const anchor = r.$('button.sw')!;
+    anchor.getBoundingClientRect = () => rect(350, 30);
+    await act(async () => { r.click(anchor); });
+    const picker = r.$('.cp')! as HTMLElement;
+    assert.equal(picker.style.top, '386px', 'short Solid mode fits below the anchor');
+    act(() => r.click(picker.querySelector('[role="tab"]:last-child')));
+    assert.equal(picker.style.top, '60px', 'tall Gradient mode remains below the toolbar');
+    assert.equal(picker.style.maxHeight, '652px');
+    act(() => { picker.dispatchEvent(new Event('scroll')); });
+    assert.equal(r.$('.cp'), picker, 'scrolling the constrained picker does not dismiss it');
+    act(() => { window.dispatchEvent(new Event('scroll')); });
+    assert.equal(r.$('.cp'), null, 'moving the outer anchor still dismisses it');
+  } finally {
+    window.innerHeight = originalHeight;
+    toolbar.remove();
+  }
+});
 
 for (const paint of [false, true]) test(`${paint ? 'solid/gradient' : 'solid'} picker exposes the advertised named nonmodal dialog and receives focus`, async () => {
   const { anchor, node, key } = await open(paint);

@@ -6202,15 +6202,15 @@ function condValue(c: Condition, col: Collection | null, item: Item | null,
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? '' : String(v);
 }
-/* A rich property can take a plain Text field. Its binding's terminal type takes precedence
-   over the property kind, just as it does when `boundProps` renders that value. */
-function condRich(c: Condition, col: Collection | null,
-  inst?: PcNode | null, def?: ComponentDef | null): boolean {
-  if (c.bind.src === 'field') return fieldAt(col, c.bind.path)?.type === 'rich';
-  if (!inst) return false;
+/* A property can take a CMS field of a different kind. Its binding's terminal type takes
+   precedence over the property kind, just as it does when `boundProps` renders that value. */
+function condKind(c: Condition, col: Collection | null,
+  inst?: PcNode | null, def?: ComponentDef | null): FieldType | PropKind | undefined {
+  if (c.bind.src === 'field') return fieldAt(col, c.bind.path)?.type;
+  if (!inst) return undefined;
   const field = boundField(inst, VAL + c.bind.path);
-  return field && col ? fieldAt(col, field)?.type === 'rich'
-    : findProp(def || null, c.bind.path)?.t === 'rich';
+  return field && col ? fieldAt(col, field)?.type
+    : findProp(def || null, c.bind.path)?.t;
 }
 /** Does this element show? Absent condition means yes, which is every element until somebody
     decides otherwise. */
@@ -6219,14 +6219,23 @@ function showsNode(n: PcNode, col: Collection | null, item: Item | null,
   const c = n.showIf;
   if (!c || !c.bind || !c.bind.path) return true;
   const raw = condValue(c, col, item, inst, def).trim();
-  const rich = condRich(c, col, inst, def);
+  const kind = condKind(c, col, inst, def);
+  const rich = kind === 'rich';
   const v = rich ? richTextContent(raw) : raw;
   const want = String(c.value == null ? '' : c.value).trim();
   if (c.op === 'set') return v !== '';
   if (c.op === 'empty') return v === '';
   /* Keep existing exact-HTML comparisons working while accepting the words an author sees.
      Plain Text values and the comparison input are never interpreted as markup. */
-  const equal = raw === want || v === (rich ? want.replace(/\s+/g, ' ') : want);
+  let equal = raw === want || v === (rich ? want.replace(/\s+/g, ' ') : want);
+  if (kind === 'bool') {
+    const booleanValue = (value: string): boolean | null =>
+      /^(1|true|yes)$/i.test(value) ? true : /^(0|false|no)$/i.test(value) ? false : null;
+    const actual = booleanValue(raw), expected = booleanValue(want);
+    /* Empty and malformed values stay literal, distinct from No. Presence checks above
+       deliberately count every nonempty alias, including zero and false, as a value. */
+    if (actual !== null && expected !== null) equal = actual === expected;
+  }
   if (c.op === 'eq') return equal;
   if (c.op === 'ne') return !equal;
   return true;

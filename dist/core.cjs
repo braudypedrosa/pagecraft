@@ -7852,22 +7852,28 @@ function condValue(c, col, item, inst, def) {
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? "" : String(v);
 }
-function condRich(c, col, inst, def) {
-  if (c.bind.src === "field") return fieldAt(col, c.bind.path)?.type === "rich";
-  if (!inst) return false;
+function condKind(c, col, inst, def) {
+  if (c.bind.src === "field") return fieldAt(col, c.bind.path)?.type;
+  if (!inst) return void 0;
   const field = boundField(inst, VAL + c.bind.path);
-  return field && col ? fieldAt(col, field)?.type === "rich" : findProp(def || null, c.bind.path)?.t === "rich";
+  return field && col ? fieldAt(col, field)?.type : findProp(def || null, c.bind.path)?.t;
 }
 function showsNode(n, col, item, inst, def) {
   const c = n.showIf;
   if (!c || !c.bind || !c.bind.path) return true;
   const raw = condValue(c, col, item, inst, def).trim();
-  const rich = condRich(c, col, inst, def);
+  const kind2 = condKind(c, col, inst, def);
+  const rich = kind2 === "rich";
   const v = rich ? richTextContent(raw) : raw;
   const want = String(c.value == null ? "" : c.value).trim();
   if (c.op === "set") return v !== "";
   if (c.op === "empty") return v === "";
-  const equal = raw === want || v === (rich ? want.replace(/\s+/g, " ") : want);
+  let equal = raw === want || v === (rich ? want.replace(/\s+/g, " ") : want);
+  if (kind2 === "bool") {
+    const booleanValue = (value) => /^(1|true|yes)$/i.test(value) ? true : /^(0|false|no)$/i.test(value) ? false : null;
+    const actual = booleanValue(raw), expected = booleanValue(want);
+    if (actual !== null && expected !== null) equal = actual === expected;
+  }
   if (c.op === "eq") return equal;
   if (c.op === "ne") return !equal;
   return true;

@@ -15,7 +15,7 @@
    with `overflow:auto`, so an absolutely-positioned popover would be clipped by it; fixed
    escapes that and pays for it by having to close on scroll, which is what a popover
    anchored to a moving element should do anyway. */
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { C } from '../ctx';
 import { Icon } from '../Icon';
 
@@ -187,7 +187,7 @@ export function ColorPop(
       requestClose();
     };
     const scroll = (e: Event) => {
-      if (!inAngleMenu(e.target)) requestClose();
+      if (!(e.target instanceof Node && box.current?.contains(e.target)) && !inAngleMenu(e.target)) requestClose();
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -218,18 +218,27 @@ export function ColorPop(
     box.current?.querySelector<HTMLElement>('.cp-sv')?.focus();
   }, [anchor]);
 
-  /* Flipped above the anchor when there is no room below, and pinned inside the viewport
-     horizontally. A colour field near the bottom of a long inspector is the common case,
-     not the edge case. */
-  const r = anchor.getBoundingClientRect();
-  const tokenRows = Math.ceil(tokens.length / 9);
-  const W = 232, H = gradient ? 330 + (tokenRows ? tokenRows * 24 + 22 : 0) : 244;
-  const below = window.innerHeight - r.bottom > H + 12;
-  const style = {
-    left: Math.round(Math.min(Math.max(8, r.left), window.innerWidth - W - 8)) + 'px',
-    top: Math.round(below ? r.bottom + 6 : Math.max(8, r.top - H - 6)) + 'px',
-    width: W + 'px'
-  };
+  /* Measure the active paint mode, rather than estimating a gradient's height even for
+     Solid. The toolbar sits above the inspector's stacking context, so keep controls
+     below it. Short windows scroll the picker itself without dismissing it. */
+  const [placement, setPlacement] = useState({ left: 8, top: 60, maxHeight: window.innerHeight - 68 });
+  useLayoutEffect(() => {
+    const picker = box.current;
+    if (!picker) return;
+    const r = anchor.getBoundingClientRect();
+    const topEdge = Math.max(8, (document.querySelector('.topbar')?.getBoundingClientRect().bottom || 0) + 8);
+    const maxHeight = Math.max(0, window.innerHeight - topEdge - 8);
+    const height = Math.min(picker.getBoundingClientRect().height, maxHeight);
+    const below = r.bottom + 6;
+    const top = below + height <= window.innerHeight - 8 ? below : r.top - height - 6;
+    const next = {
+      left: Math.round(Math.max(8, Math.min(r.left, window.innerWidth - 240))),
+      top: Math.round(Math.max(topEdge, Math.min(top, window.innerHeight - height - 8))),
+      maxHeight
+    };
+    setPlacement(previous => Object.keys(next).every(key => previous[key as keyof typeof next] === next[key as keyof typeof next]) ? previous : next);
+  }, [anchor, mode, tokens.length]);
+  const style = { left: placement.left + 'px', top: placement.top + 'px', maxHeight: placement.maxHeight + 'px', width: '232px' };
 
   const nudge = (e: KeyboardEvent, dx: (k: number) => void, dy?: (k: number) => void) => {
     const step = e.shiftKey ? 10 : 1;

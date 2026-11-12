@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-11T11:39:38.290Z",
+  "capturedAt": "2026-11-12T05:48:18.530Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -95,14 +95,14 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "5c0068b5f72ae972591a3d91688c022de5165751d2541a446d29ab5d2c8cd918",
-    "app/src/ui/index.tsx": "ce9bbc31e79a8e76cb02c01a1e077f65b7cf31aabb4a7fe0c5f6bf84e788e76e",
+    "builder.html": "8bfb11dd6726609eb9612f7b3e41803791debc3a4375411ab8a86a145fb0935e",
+    "app/src/ui/index.tsx": "7e1453567d0c535148a053e9a45603d407af2fbf2a4d49742848ab3cac207bee",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
     "app/src/ui/Pages.tsx": "922f5f5e3cc876e7ba01ae6478c9d23a913cc6437ea3c2d5893d9e2d9f4747fa",
     "app/src/ui/CmsWorkspace.tsx": "ec2829e4bec8b691094f43d33f1add8c44603c5f832062c2f3df7ca79e5b95af",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
-    "app/src/ui/inspector/ColorPop.tsx": "5c625965e05964dcbfc0319645a67a664caf67897e368250471a028d46798655",
+    "app/src/ui/inspector/ColorPop.tsx": "c099e8988045ddf2ea09cb2e671a227ef27dae8f3935560dac99eaeef48f91d5",
     "app/src/ui/inspector/Controls.tsx": "f3bc6db2a469e63c7655f48734368a96757f54bd8083d3439fe5c9736fafc026",
     "app/src/ui/inspector/Inspector.tsx": "427cb156c3ba7624f0a165381923cae0a7f6c96cdfd496ff266defd70253a6b4",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
@@ -115,7 +115,7 @@
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
     "shared/workspace-styles.js": "f963eae63734c0fd9b5a5fb65b4778aefbd33898e24ecb3953e9d5e8e5cf3ba5",
     "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
-    "shared/custom-select.js": "24fa98ca8247ed9bea815c6f2868112e4914d0fac24f256b7f1d962fe9afdf8f",
+    "shared/custom-select.js": "8ef5404531cae78bb0817d2f468ee679de688337b05cdcfa6a2a112b98680d8d",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",

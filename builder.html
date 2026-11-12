@@ -910,8 +910,9 @@ select.ctl{
 .cp{
   position:fixed;z-index:220;background:var(--panel);border:1px solid var(--line);
   border-radius:var(--r-md);box-shadow:0 12px 32px #11131126,0 2px 8px #1113111f;
-  padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);
+  padding:8px;display:flex;flex-direction:column;gap:var(--sp-4);overflow-y:auto;overscroll-behavior:contain;
 }
+.cp>*{flex-shrink:0}
 .cp-modes{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--field)}
 .cp-modes button{padding:5px 8px;border-radius:3px;font:var(--pc-type-label);color:var(--text-3)}
 .cp-modes button:hover{color:var(--text);background:var(--panel)}
@@ -1466,6 +1467,31 @@ pre.code{
 .review .msg em{color:var(--text-3);font-style:normal;font-family:var(--label);font-size:var(--fs-1);display:block;margin-top:2px}
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
 .review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
+.review-group{border-top:1px solid var(--line)}
+.review-group>summary{display:list-item;list-style:disclosure-closed inside;padding:12px 14px;cursor:pointer;font:var(--pc-type-label);color:var(--text)}
+.review-group[open]>summary{list-style-type:disclosure-open}
+.review-group>summary:hover{background:var(--field)}
+.review-group-name{font-weight:600;overflow-wrap:anywhere}
+.review-count{float:right;margin-left:12px;font-size:var(--fs-1);color:var(--text-2);font-weight:400;text-align:right}
+.review-level,.review-status{font:var(--pc-type-label);font-size:var(--fs-1);padding:3px 6px;border-radius:var(--r-sm);background:var(--field);color:var(--text-2);white-space:nowrap;flex:0 0 auto}
+.review-level.error,.review-status.removed{background:var(--risk-bg);color:var(--risk-fg)}
+.review-level.warn{background:var(--pc-warning-bg,#fff5dc);color:var(--pc-warning-fg,#755a0b)}
+.review .msg{min-width:0;overflow-wrap:anywhere}
+.review .go{min-height:28px;border-radius:var(--r-sm);font:var(--pc-type-label);font-size:var(--fs-2)}
+.publication-change-list{margin:var(--gap-2) 0}
+.publication-change-list .review-group:first-child{border-top:0}
+.publication-change-list li{align-items:center}
+.publication-change-list .msg>b{display:block;color:var(--text);font-weight:500}
+.review-affected{margin-top:6px}
+.review-affected>summary{cursor:pointer;color:var(--text-2);font-size:var(--fs-2)}
+.review-page-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.review-page-links .btn{font-size:var(--fs-2);min-height:28px;height:auto;max-width:100%;white-space:normal;text-align:left;overflow-wrap:anywhere}
+@media(max-width:559px){
+  .review li{flex-wrap:wrap;gap:8px}
+  .review .msg{flex:1 1 calc(100% - 92px)}
+  .review .go{margin-left:auto}
+  .review-count{max-width:60%;overflow-wrap:anywhere}
+}
 .alert{display:flex;flex-direction:column;gap:var(--sp-3);padding:13px 15px;border-radius:var(--r-md);background:#a8402f0f;border:1px solid #a8402f40}
 .publication-preview-error{margin-bottom:var(--gap-2)}
 .schedule-panel{display:grid;gap:var(--sp-3);padding:var(--sp-4);margin-bottom:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-md)}.schedule-panel h3{margin:0}.schedule-panel .f,.schedule-panel .help{margin:0}.schedule-ack{display:flex;align-items:center;gap:var(--pc-action-gap)}.schedule-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--pc-action-gap)}#scheduleStatus:empty{display:none}.schedule-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--pc-action-gap)}.schedule-status .help{margin:0;flex:1 1 260px}
@@ -2590,7 +2616,7 @@ function renderPublicationPreviewFailure(host, failure) {
           ? finding.message.trim() : 'A publication check needs attention.';
         const place = location(finding);
         const level = finding.level === 'warn' ? 'warn' : 'error';
-        return `<li><span class="lv ${level}"></span><span class="msg">${esc(message)}${place ? `<em>${esc(place)}</em>` : ''}</span>${canShow(finding) ? `<button class="go" type="button" data-publication-finding="${index}">Show me</button>` : ''}</li>`;
+        return `<li><span class="review-level ${level}">${level === 'warn' ? 'Suggestion' : 'Problem'}</span><span class="msg">${esc(message)}${place ? `<em>${esc(place)}</em>` : ''}</span>${canShow(finding) ? `<button class="go" type="button" data-publication-finding="${index}">Show me</button>` : ''}</li>`;
       }).join('')}</ul>
     </div>` : ''}`;
   host.querySelectorAll('[data-publication-finding]').forEach(button => button.addEventListener('click', () => {
@@ -2613,6 +2639,21 @@ function renderPublicationPreviewFailure(host, failure) {
   }));
 }
 
+function publicationChangesHtml(changes) {
+  const groups = [...new Set(changes.map(change => change.group))];
+  return `<div class="review publication-change-list">${groups.map(group => {
+    const rows = changes.filter(change => change.group === group);
+    return `<details class="review-group"${group === 'Pages' ? ' open' : ''}>
+      <summary><span class="review-group-name">${esc(group)}</span><span class="review-count">${rows.length} ${rows.length === 1 ? 'change' : 'changes'}</span></summary>
+      <ul>${rows.map(change => `<li>
+        <div class="msg"><b>${esc(change.label)}</b>${change.pages.length > 1 ? `<details class="review-affected"><summary>${change.pages.length} affected pages</summary><div class="review-page-links">${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join('')}</div></details>` : ''}</div>
+        <span class="review-status ${esc(change.status)}">${esc(({added:'Added',removed:'Removed',changed:'Changed'})[change.status] || change.status)}</span>
+        ${change.pages.length === 1 ? `<button class="go" type="button" data-review-page="${esc(change.pages[0].slug || 'index')}" aria-label="Compare ${esc(change.pages[0].name)}">Compare</button>` : ''}
+      </li>`).join('')}</ul>
+    </details>`;
+  }).join('')}</div>`;
+}
+
 async function preparePublicationReview(button) {
   const action = feedback().begin(button, 'Preparing preview…');
   if (!action) return;
@@ -2632,17 +2673,19 @@ async function preparePublicationReview(button) {
     if (JSON.stringify(doc()) !== baseline || reviewed.sourceVersion !== SRV.version) throw new Error('The draft changed while preparing the preview. Create a new preview.');
     const root = `/api/sites/${encodeURIComponent(SRV.siteId)}/publication-snapshots/`;
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
-    const groups = [...new Set(reviewed.changes.map(change => change.group))];
     if ($('#exReview')) $('#exReview').hidden = true;
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
-      ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : groups.length ? groups.map(group => `<details><summary>${esc(group)}</summary><ul>${reviewed.changes.filter(change => change.group === group).map(change => `<li>${esc(change.label)} · ${esc(change.status)}${change.pages.length ? `<small> — ${change.pages.map(page => `<button class="btn" type="button" data-review-page="${esc(page.slug || 'index')}">${esc(page.name)}</button>`).join(' ')}</small>` : ''}</li>`).join('')}</ul></details>`).join('') : '<p>No document changes since the current publication.</p>'}
-      ${reviewed.warnings.length ? `<details><summary>${reviewed.warnings.length} publication suggestions</summary><ul>${reviewed.warnings.map(warning => `<li>${esc(warning.message)}</li>`).join('')}</ul></details>` : ''}
+      ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : reviewed.changes.length ? publicationChangesHtml(reviewed.changes) : '<p>No document changes since the current publication.</p>'}
+      ${reviewed.warnings.length ? '<h4>Publication suggestions</h4><div class="review" id="publicationWarnings"></div>' : ''}
       <div class="f"><label for="publicationPage">Compare page</label><select id="publicationPage">${reviewed.pages.map(path => `<option value="${esc(path)}">${esc(path === 'index.html' ? 'Home' : path.replace(/\.html$/, ''))}</option>`).join('')}</select></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap-2)">
         ${reviewed.baselinePublicationId ? '<div><h4>Published version</h4><iframe id="publicationBefore" title="Published page comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>' : '<p>This site has not been published.</p>'}
         <div><h4>Reviewed draft</h4><iframe id="publicationAfter" title="Reviewed draft comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
       </div>`;
+    if (reviewed.warnings.length) ui().mountReview('publicationWarnings', false, reviewed.warnings.map(finding => ({
+      ...finding, level: 'warn', msg: finding.message, where: finding.where || {}
+    })));
     const page = $('#publicationPage');
     const update = (hash = '') => {
       const show = (frame, id, paths) => {
@@ -2777,7 +2820,7 @@ function publishModal() {
     ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create publication preview</button>' : ''}
     ${SRV.role === 'owner' && HOST.releases.schedule && SRV.schedulingAvailable ? '<button class="btn" id="releaseSchedule" disabled title="Create a review preview first">Schedule…</button>' : ''}
     ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
-  ui().mountReview('exReview', true);
+  ui().mountReview('exReview');
   /* The editor page already carries the current publication identity and version. Rendering
      that injected state avoids a second authenticated database round trip just to open this
      dialog; a successful publish replaces it with the API's fresh response below. */
@@ -7983,13 +8026,13 @@ function findModal() {
   if (editing.on) exitEdit();
   openModal('Find and replace', `
     <div class="fgrid" style="margin-bottom:var(--gap-2)">
-      <div class="f"><label>Find</label>
+      <div class="f"><label for="fdQ">Find</label>
         <input class="ctl" id="fdQ" value="${esc(findState.q)}" placeholder="Text on any page, or in the CMS" autocomplete="off"></div>
-      <div class="f"><label>Replace with</label>
+      <div class="f"><label for="fdTo">Replace with</label>
         <input class="ctl" id="fdTo" value="${esc(findState.to)}" placeholder="Leave empty to delete it" autocomplete="off"></div>
     </div>
-    <div class="tog-row" style="margin-bottom:var(--gap-2)"><span>Match case</span>
-      <button class="sw-tog${findState.ci ? '' : ' on'}" id="fdCase"><i></i></button></div>
+    <div class="tog-row" style="margin-bottom:var(--gap-2)"><span id="fdCaseLabel">Match case</span>
+      <button type="button" class="sw-tog${findState.ci ? '' : ' on'}" id="fdCase" aria-labelledby="fdCaseLabel" aria-pressed="${!findState.ci}"><i></i></button></div>
     <div id="fdOut"></div>`, `
     <span class="note" id="fdCount" style="margin:0;flex:1;text-align:left"></span>
     <button class="btn danger" id="fdRep">Replace all</button>
@@ -8048,6 +8091,7 @@ function findModal() {
   $('#fdCase').addEventListener('click', () => {
     findState.ci = !findState.ci;
     $('#fdCase').classList.toggle('on', !findState.ci);
+    $('#fdCase').setAttribute('aria-pressed', String(!findState.ci));
     draw();
   });
   rep.addEventListener('click', async () => {

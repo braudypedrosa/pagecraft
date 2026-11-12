@@ -25,8 +25,10 @@ function fixture(prepare) {
   });
   const { window: w } = dom;
   const doc = w.document;
-  const project = { pages: [{ name: 'Home', slug: 'index' }, { name: 'Contact', slug: 'contact' }], ui: { mode: 'page' }, cur: 0 };
+  w.HTMLElement.prototype.scrollIntoView = vi.fn();
+  const project = { pages: [{ id: 'home', name: 'Home', slug: 'index' }, { id: 'contact', name: 'Contact', slug: 'contact' }], ui: { mode: 'page' }, cur: 0 };
   const notices = [];
+  const mountReview = vi.fn();
   Object.assign(w, {
     $: selector => doc.querySelector(selector),
     esc: value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character])),
@@ -38,6 +40,7 @@ function fixture(prepare) {
     flushDraft: async () => {},
     HOST: { releases: { prepare } },
     SRV: { siteId: 'qa', version: 4 },
+    ui: () => ({ mountReview }),
     doc: () => ({ pages: [] }),
     state: project,
     locate: id => id === 'form-1' ? { node: { id } } : null,
@@ -46,10 +49,36 @@ function fixture(prepare) {
     publishDraft: vi.fn(), openSchedulePanel: vi.fn(), toast: vi.fn()
   });
   w.eval(publicationSource);
-  return { dom, w, doc, notices };
+  return { dom, w, doc, notices, mountReview };
 }
 
 describe('publication preview failure feedback', () => {
+  test('review changes are counted rows with one page action and collapsed shared-page context', async () => {
+    const warning = { code: 'form-no-action', message: 'Choose a destination.', where: { page: 'Contact', slug: 'contact' }, target: { pageId: 'contact', scope: 'page', nodeId: 'form-1' } };
+    const { dom, w, doc, mountReview } = fixture(async () => ({
+      snapshotId: 'reviewed-4', sourceVersion: 4, baselinePublicationId: null,
+      comparisonAvailable: true, pages: ['index.html', 'workshop.html'], draftPages: ['index.html', 'workshop.html'],
+      changes: [
+        { group: 'Pages', label: 'Workshop', status: 'changed', pages: [{ name: 'Workshop', slug: 'workshop' }] },
+        { group: 'Global regions', label: 'Header', status: 'changed', pages: [{ name: 'Home', slug: 'index' }, { name: '<Workshop>', slug: 'workshop' }] }
+      ], warnings: [warning]
+    }));
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    const groups = doc.querySelectorAll('.publication-change-list>.review-group');
+    expect(groups.length).toBe(2);
+    expect(groups[0].querySelector('summary').textContent).toContain('1 change');
+    expect(groups[0].querySelectorAll('[data-review-page]').length).toBe(1);
+    expect(groups[0].querySelector('li .msg').textContent).toBe('Workshop');
+    expect(groups[0].querySelector('.review-status').textContent).toBe('Changed');
+    expect(groups[1].querySelector('.review-affected').open).toBe(false);
+    expect(groups[1].querySelector('workshop')).toBeNull();
+    expect(mountReview).toHaveBeenCalledWith('publicationWarnings', false, [{ ...warning, level: 'warn', msg: warning.message }]);
+    groups[0].querySelector('[data-review-page]').click();
+    expect(doc.querySelector('#publicationPage').value).toBe('workshop.html');
+    expect(doc.querySelector('#publicationAfter').src).toContain('/files/workshop.html');
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
   test('clicking a snapshot link updates its enhanced page picker and keeps the destination hash', async () => {
     const { dom, w, doc } = fixture(async () => ({
       snapshotId:'reviewed-4', sourceVersion:4, baselinePublicationId:null,
@@ -273,8 +302,8 @@ describe('publication preview failure feedback', () => {
     await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
 
     expect(doc.querySelector('.publication-preview-findings .rh').textContent).toContain('1 problem · 1 suggestion');
-    expect(doc.querySelectorAll('.publication-preview-findings .lv.error')).toHaveLength(1);
-    expect(doc.querySelectorAll('.publication-preview-findings .lv.warn')).toHaveLength(1);
+    expect(doc.querySelectorAll('.publication-preview-findings .review-level.error')).toHaveLength(1);
+    expect(doc.querySelectorAll('.publication-preview-findings .review-level.warn')).toHaveLength(1);
     dom.window.close();
   });
 });
