@@ -1,0 +1,110 @@
+[
+  {
+    "id": "a0a46f5a0f22d",
+    "name": "approach-conversation.webp",
+    "portableId": "img-375b16b6ee3aaacb5ca5a70b5bafc0e0b927a2363e00311c0ccb33516a6f8356",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a0a46f5a0f22d"
+  },
+  {
+    "id": "a0fae08737009",
+    "name": "bp-mark-ink.svg",
+    "portableId": "img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a0fae08737009"
+  },
+  {
+    "id": "a016b6c367b7d",
+    "name": "care-team-portrait-01.webp",
+    "portableId": "img-4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a016b6c367b7d"
+  },
+  {
+    "id": "a18636b56b899",
+    "name": "care-team-portrait-02.webp",
+    "portableId": "img-cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a18636b56b899"
+  },
+  {
+    "id": "af136e2847f89",
+    "name": "care-team-scene.webp",
+    "portableId": "img-14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/af136e2847f89"
+  },
+  {
+    "id": "afb192bd14ca8",
+    "name": "comfortable-consultation.webp",
+    "portableId": "img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/afb192bd14ca8"
+  },
+  {
+    "id": "ae2771aed59ea",
+    "name": "cta-clinic-entrance.webp",
+    "portableId": "img-f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/ae2771aed59ea"
+  },
+  {
+    "id": "a29fa07c4a832",
+    "name": "everyday-care-adult.webp",
+    "portableId": "img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a29fa07c4a832"
+  },
+  {
+    "id": "aea2e11372410",
+    "name": "everyday-oral-care.webp",
+    "portableId": "img-2f834a7efa58df29d831d636b5468cf1a3fb072bf44b5645bcb272530abfd8bd",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/aea2e11372410"
+  },
+  {
+    "id": "a2e1f63c1dcac",
+    "name": "family-care-hero.webp",
+    "portableId": "img-b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a2e1f63c1dcac"
+  },
+  {
+    "id": "a8be7f2c5b2ad",
+    "name": "first-visit-child.webp",
+    "portableId": "img-42c510f6b1b7cfd8aa85b930827e90589f835449b6d0d83693a1e78503510858",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a8be7f2c5b2ad"
+  },
+  {
+    "id": "a44b2745de809",
+    "name": "icon-planning.svg",
+    "portableId": "img-de2d578f111f7945f519bc17e46276438849eff514bf007df550d8651d101cf1",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a44b2745de809"
+  },
+  {
+    "id": "ab487310dbd2b",
+    "name": "icon-preventive.svg",
+    "portableId": "img-f67ccabb21c5996d6173e21c576e1261d82d16ca8787d462001ebc37c4bf97fc",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/ab487310dbd2b"
+  },
+  {
+    "id": "af30edc37b492",
+    "name": "icon-restorative.svg",
+    "portableId": "img-e080b5885b2fe89ec8f98a34d79c832d7f745853405392a0c98bdc88adb7b7a4",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/af30edc37b492"
+  },
+  {
+    "id": "a0b29e8e87b1c",
+    "name": "l2-horizontal-primary.svg",
+    "portableId": "img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a0b29e8e87b1c"
+  },
+  {
+    "id": "aaa80fd7475f6",
+    "name": "l2-mark-primary.svg",
+    "portableId": "img-8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/aaa80fd7475f6"
+  },
+  {
+    "id": "aea2a32a9c6da",
+    "name": "light-filled-treatment-room.webp",
+    "portableId": "img-b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/aea2a32a9c6da"
+  },
+  {
+    "id": "a1064d0e8ab18",
+    "name": "welcoming-reception.webp",
+    "portableId": "img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875",
+    "src": "/api/sites/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/assets/a1064d0e8ab18"
+  }
+]

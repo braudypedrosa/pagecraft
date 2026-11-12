@@ -1,0 +1,92 @@
+[
+  {
+    "file": "index-1440-full.png",
+    "revision": 24,
+    "viewportWidth": 1440,
+    "height": 5065,
+    "sourceTiles": [
+      {
+        "file": "index-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "index-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "index-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "index-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "index-1440-04.png",
+        "y": 2448
+      },
+      {
+        "file": "index-1440-05.png",
+        "y": 3060
+      },
+      {
+        "file": "index-1440-06.png",
+        "y": 3672
+      },
+      {
+        "file": "index-1440-07.png",
+        "y": 4284
+      },
+      {
+        "file": "index-1440-08.png",
+        "y": 4345
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "index-390-full.png",
+    "revision": 24,
+    "viewportWidth": 390,
+    "height": 5549,
+    "sourceTiles": [
+      {
+        "file": "index-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "index-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "index-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "index-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "index-390-04.png",
+        "y": 2448
+      },
+      {
+        "file": "index-390-05.png",
+        "y": 3060
+      },
+      {
+        "file": "index-390-06.png",
+        "y": 3672
+      },
+      {
+        "file": "index-390-07.png",
+        "y": 4284
+      },
+      {
+        "file": "index-390-08.png",
+        "y": 4829
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  }
+]

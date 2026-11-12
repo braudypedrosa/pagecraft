@@ -1,0 +1,31 @@
+{
+  "sourcePackage": "dental-clinic-a2-0.1.0-r30.pagecraft-site.zip",
+  "bytes": 1930007,
+  "sourceSha256": "92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29",
+  "rebuiltSha256": "92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29",
+  "byteIdentical": true,
+  "documentParity": true,
+  "assetCount": 18,
+  "assetParity": true,
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 30
+  },
+  "provenanceParity": true,
+  "catalog": {
+    "entries": 20,
+    "hashesChecked": 20,
+    "failures": [],
+    "unchangedFromHead": true,
+    "sha256": "7e92b7b8b06b208f5dd1d7b52c3b4a6386c758686b3b085ac5610335d61517cd"
+  },
+  "workflow": {
+    "schemaValid": true,
+    "approval": null
+  },
+  "previousSourceSnapshot": "revision-29-source-snapshot",
+  "previousRoundtrip": "roundtrip.json"
+}

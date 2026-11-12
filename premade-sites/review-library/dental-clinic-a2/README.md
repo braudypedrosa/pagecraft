@@ -1,6 +1,6 @@
 # Linden Dental A2 source
 
-This is the source for private review revision 24 of the complete six-page Linden Dental site. It preserves the selected A2 palette and typography and the L2 identity. The native page bodies contain:
+This is the source for private review revision 30 of the complete six-page Linden Dental site. It preserves the selected A2 palette and typography and the L2 identity. The native page bodies contain:
 
 - Home: 8 sections
 - Treatments: 6 sections
@@ -9,11 +9,11 @@ This is the source for private review revision 24 of the complete six-page Linde
 - Patient Information: 6 sections
 - Contact: 4 sections
 
-The site uses the original nine approved photographs and two exact photographic areas extracted from the approved expanded-home boards. Source art, approvals and review boards remain in the project branding directory. Team imagery is illustrative. Replace the team portraits with actual provider photos, and supply and verify names, credentials and practice details before a customer launch.
+The package uses 18 assets: 12 distinct photographs, three Iconify SVG icons, the logo, favicon and `bp` mark. The final CTA background image was approved; its source approval is recorded at `/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement/cta-image-approval.json`. The contained approach photo uses rounded corners; the full-width team scene and CTA background intentionally remain edge-to-edge. Team imagery is illustrative. Replace it with actual provider photos, and supply and verify names, credentials and practice details before a customer launch.
 
-The frozen review package has SHA-256 `9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8`. The user authorized the complete-site build. Final approval of the completed site is pending, and the customer template catalog remains unchanged.
+The frozen r30 review package has SHA-256 `92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29`. The seven r24 refinements distinguish visit and team CTA treatments, standardize contained-photo corners, balance the approach image and copy, add three care icons, improve first-visit panel contrast, add an approved full-bleed CTA image with a blue overlay, and remove appointment-confirmation placeholder copy. The complete site is built for private review. Final site approval is pending, and the customer template catalog remains unchanged.
 
-The visit request form is disabled and unconfigured. No external submission or booking integration is connected. Configure and test a real destination, privacy handling and delivery before accepting messages; a request does not confirm an appointment.
+The native visit request form remains disabled until a destination and required privacy handling are configured and verified. Appointment-confirmation placeholder copy has been removed.
 
 Run `node tools/template-dental-authoring.ts --check` to build the document and check that its assets are readable without contacting a server. Creating or updating a private draft requires `PAGECRAFT_TEMPLATE_ENDPOINT` and `PAGECRAFT_TEMPLATE_GRANT` in the process environment and explicit coordination. An update also requires `--update --expected-revision=<revision>`; the script refuses a revision mismatch. Tokens are never written to files or printed. A failed upload can leave a partial draft for inspection.
 

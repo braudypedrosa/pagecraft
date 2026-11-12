@@ -1,0 +1,25 @@
+{
+  "revision": 30,
+  "menuOpened": "true",
+  "menuClosed": "false",
+  "faq": [
+    {
+      "open": false,
+      "text": "What should I bring to my first visit?"
+    },
+    {
+      "open": false,
+      "text": "Can I discuss feeling nervous?"
+    },
+    {
+      "open": false,
+      "text": "How can I ask about fees?"
+    },
+    {
+      "open": true,
+      "text": "Can I ask for a clearer explanation?"
+    }
+  ],
+  "logs": [],
+  "submissions": 0
+}

@@ -12,7 +12,7 @@
       "contact"
     ],
     "content": "Six-page Linden Dental A2 site with eight purposeful home sections and expanded inner-page content. No invented provider names, credentials, results, address or availability. The request form is unconfigured.",
-    "imagery": "A2 palette and type, exact L2 identity, nine approved initial photographs, and two additional photo areas extracted from approved revision 3 boards.",
+    "imagery": "A2 palette and type, exact L2 identity, nine approved initial photographs, two approved board extractions, approved CTA image, and three sourced Iconify Lucide service icons.",
     "provenance": [
       {
         "asset": "Selected A2 direction, L2 identity, and nine photographs",
@@ -23,6 +23,16 @@
         "asset": "Six home section boards and extracted image areas",
         "source": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/revisions-v3/build-approval.json",
         "license": "Approved section designs and their specific extracted illustrative photo areas for native build; complete-site and catalog approvals remain separate."
+      },
+      {
+        "asset": "Closing CTA clinic entrance image",
+        "source": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement/cta-image-approval.json",
+        "license": "Exact generated image approved for the native closing CTA; complete-site and catalog approvals remain separate."
+      },
+      {
+        "asset": "Three Lucide service icons",
+        "source": "premade-sites/review-library/dental-clinic-a2/approved-additions/icon-provenance.json",
+        "license": "Iconify Lucide sources and ISC/MIT notices recorded in the provenance file."
       }
     ]
   },
@@ -35,8 +45,8 @@
       "page": "all",
       "node": "release-ledger",
       "viewport": "all",
-      "detail": "Frozen revision 24 private review candidate, package 9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8. Complete-site approval and exact-package host compatibility evidence are not yet a release ledger. The inquiry form remains unconfigured.",
-      "correction": "Complete Cloud and WordPress fresh-import, editing, responsive and interaction checks for revision 24, then obtain exact-package review and promotion approval.",
+      "detail": "Frozen revision 30 private review candidate, package 92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29. Complete-site approval and exact-package host compatibility evidence are not yet a release ledger. The inquiry form remains unconfigured.",
+      "correction": "Complete Cloud and WordPress fresh-import, editing, responsive and interaction checks for revision 30, then obtain exact-package review and promotion approval.",
       "resolved": false
     }
   ],

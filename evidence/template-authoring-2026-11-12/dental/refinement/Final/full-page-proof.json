@@ -1,0 +1,386 @@
+[
+  {
+    "file": "index-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 4835,
+    "sourceTiles": [
+      {
+        "file": "index-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "index-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "index-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "index-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "index-1440-04.png",
+        "y": 2448
+      },
+      {
+        "file": "index-1440-05.png",
+        "y": 3060
+      },
+      {
+        "file": "index-1440-06.png",
+        "y": 3672
+      },
+      {
+        "file": "index-1440-07.png",
+        "y": 4115
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "index-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 5643,
+    "sourceTiles": [
+      {
+        "file": "index-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "index-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "index-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "index-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "index-390-04.png",
+        "y": 2448
+      },
+      {
+        "file": "index-390-05.png",
+        "y": 3060
+      },
+      {
+        "file": "index-390-06.png",
+        "y": 3672
+      },
+      {
+        "file": "index-390-07.png",
+        "y": 4284
+      },
+      {
+        "file": "index-390-08.png",
+        "y": 4896
+      },
+      {
+        "file": "index-390-09.png",
+        "y": 4923
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "treatments-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 3155,
+    "sourceTiles": [
+      {
+        "file": "treatments-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "treatments-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "treatments-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "treatments-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "treatments-1440-04.png",
+        "y": 2435
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "treatments-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 3059,
+    "sourceTiles": [
+      {
+        "file": "treatments-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "treatments-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "treatments-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "treatments-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "treatments-390-04.png",
+        "y": 2339
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "care-team-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 2989,
+    "sourceTiles": [
+      {
+        "file": "care-team-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "care-team-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "care-team-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "care-team-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "care-team-1440-04.png",
+        "y": 2269
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "care-team-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 3416,
+    "sourceTiles": [
+      {
+        "file": "care-team-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "care-team-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "care-team-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "care-team-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "care-team-390-04.png",
+        "y": 2448
+      },
+      {
+        "file": "care-team-390-05.png",
+        "y": 2696
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "first-visit-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 2851,
+    "sourceTiles": [
+      {
+        "file": "first-visit-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "first-visit-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "first-visit-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "first-visit-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "first-visit-1440-04.png",
+        "y": 2131
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "first-visit-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 2746,
+    "sourceTiles": [
+      {
+        "file": "first-visit-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "first-visit-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "first-visit-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "first-visit-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "first-visit-390-04.png",
+        "y": 2026
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "patient-information-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 3173,
+    "sourceTiles": [
+      {
+        "file": "patient-information-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "patient-information-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "patient-information-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "patient-information-1440-03.png",
+        "y": 1836
+      },
+      {
+        "file": "patient-information-1440-04.png",
+        "y": 2448
+      },
+      {
+        "file": "patient-information-1440-05.png",
+        "y": 2453
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "patient-information-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 3377,
+    "sourceTiles": [
+      {
+        "file": "patient-information-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "patient-information-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "patient-information-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "patient-information-390-03.png",
+        "y": 1836
+      },
+      {
+        "file": "patient-information-390-04.png",
+        "y": 2448
+      },
+      {
+        "file": "patient-information-390-05.png",
+        "y": 2657
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "contact-1440-full.png",
+    "revision": 30,
+    "viewportWidth": 1440,
+    "height": 1953,
+    "sourceTiles": [
+      {
+        "file": "contact-1440-00.png",
+        "y": 0
+      },
+      {
+        "file": "contact-1440-01.png",
+        "y": 612
+      },
+      {
+        "file": "contact-1440-02.png",
+        "y": 1224
+      },
+      {
+        "file": "contact-1440-03.png",
+        "y": 1233
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  },
+  {
+    "file": "contact-390-full.png",
+    "revision": 30,
+    "viewportWidth": 390,
+    "height": 2109,
+    "sourceTiles": [
+      {
+        "file": "contact-390-00.png",
+        "y": 0
+      },
+      {
+        "file": "contact-390-01.png",
+        "y": 612
+      },
+      {
+        "file": "contact-390-02.png",
+        "y": 1224
+      },
+      {
+        "file": "contact-390-03.png",
+        "y": 1389
+      }
+    ],
+    "method": "Original built-in browser viewport screenshots composited at measured offsets. Scrollbar crop only, no repainting."
+  }
+]

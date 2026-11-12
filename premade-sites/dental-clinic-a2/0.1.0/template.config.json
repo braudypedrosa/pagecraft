@@ -57,6 +57,13 @@
       "height": 1086
     },
     {
+      "id": "img-f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2",
+      "file": "assets/img-f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2.webp",
+      "name": "cta-clinic-entrance.webp",
+      "width": 1774,
+      "height": 887
+    },
+    {
       "id": "img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce",
       "file": "assets/img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce.webp",
       "name": "everyday-care-adult.webp",
@@ -83,6 +90,27 @@
       "name": "first-visit-child.webp",
       "width": 1448,
       "height": 1086
+    },
+    {
+      "id": "img-de2d578f111f7945f519bc17e46276438849eff514bf007df550d8651d101cf1",
+      "file": "assets/img-de2d578f111f7945f519bc17e46276438849eff514bf007df550d8651d101cf1.svg",
+      "name": "icon-planning.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-f67ccabb21c5996d6173e21c576e1261d82d16ca8787d462001ebc37c4bf97fc",
+      "file": "assets/img-f67ccabb21c5996d6173e21c576e1261d82d16ca8787d462001ebc37c4bf97fc.svg",
+      "name": "icon-preventive.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-e080b5885b2fe89ec8f98a34d79c832d7f745853405392a0c98bdc88adb7b7a4",
+      "file": "assets/img-e080b5885b2fe89ec8f98a34d79c832d7f745853405392a0c98bdc88adb7b7a4.svg",
+      "name": "icon-restorative.svg",
+      "width": 24,
+      "height": 24
     },
     {
       "id": "img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9",
@@ -119,7 +147,7 @@
     "format": "pagecraft.provenance.v1",
     "origin": "pagecraft-cloud",
     "sourceId": "template:dental-clinic-a2:0.1.0",
-    "sourceVersion": 24
+    "sourceVersion": 30
   },
-  "importedPackageSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8"
+  "importedPackageSha256": "92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29"
 }

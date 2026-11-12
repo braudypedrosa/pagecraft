@@ -157,7 +157,7 @@ function firstVisitSections(h: DentalHelpers): Node[] {
 
 function patientInfoSections(h: DentalHelpers): Node[] {
   const checklist = innerSection(h, [
-    sectionTitle(h, 'Planning your visit', 'Get the details that apply to you.', 'Fees, access arrangements and what to bring can vary. The practice can provide current information for your situation.'),
+    sectionTitle(h, 'Planning your visit', 'Check practical details before your visit.', 'Ask us about fees, access and what to bring before you visit.'),
     h.box([
       copyGroup(h, 'Fees and payment questions', 'Ask which fees may apply and what payment information the practice can share before you decide how to proceed.'),
       copyGroup(h, 'Access and comfort', 'Contact the practice in advance to discuss any accessibility, communication or comfort needs you would like it to consider.'),
@@ -166,12 +166,12 @@ function patientInfoSections(h: DentalHelpers): Node[] {
   ], { 'background-color': h.color.ice });
 
   const faq = innerSection(h, [
-    sectionTitle(h, 'Common questions', 'Helpful answers before you get in touch.', 'These general notes can help you prepare. Confirm practice-specific details directly with the team.'),
+    sectionTitle(h, 'Common questions', 'Questions to help you prepare.', 'Fees, access and everyday care can bring up questions.'),
     h.box([nativeFaq(h, [
       { q: 'How can I ask about fees?', a: 'Contact the practice to ask for current fees and any payment information that may apply. Confirm details for your own circumstances before making a decision.' },
       { q: 'Can I discuss access or comfort needs in advance?', a: 'Yes. Let the practice know what would help you communicate or feel more comfortable, and ask what arrangements it can offer.' },
-      { q: 'What should I know about everyday oral care?', a: 'A dental professional can discuss guidance relevant to your needs. If you are unsure whether advice applies to you, ask the practice.' },
-      { q: 'Does a visit request confirm an appointment?', a: 'No. A request is only an inquiry. Confirm any appointment directly with the practice.' }
+      { q: 'What should I know about everyday oral care?', a: 'Ask the team about brushing, flossing or products you would like to understand better.' },
+      { q: 'Can I ask the team to explain something in plain language?', a: 'Yes. You can ask for a clearer explanation of a recommendation, an unfamiliar term or a possible next step.' }
     ])], { 'margin-top': '30px', 'max-width': '940px' })
   ]);
 

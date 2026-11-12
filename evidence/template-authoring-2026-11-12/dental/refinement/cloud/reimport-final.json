@@ -1,0 +1,13 @@
+{
+  "revision": 30,
+  "packageSha256": "92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29",
+  "approachRadius": "12px",
+  "ctaBackground": "url(\"https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/ae2771aed59ea-da42c7be05578e64.webp?token=REDACTED\")",
+  "ctaPadding": "0px",
+  "hasRemovedLine": false,
+  "heading": "Good care,for every smile.",
+  "imagesLoaded": true,
+  "sections": 10,
+  "mediaCount": 18,
+  "published": false
+}
