@@ -313,18 +313,20 @@ export function ItemsCtl({ n, c }: P) {
           <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class"
             aria-label={`CSS classes for ${itemContext}`} />
 
-          <label>Parent item</label>
-          <select key={itemIds[k] + '|' + effectiveParentId} class="ctl" value={effectiveParentId}
-            aria-label={`Parent item for ${itemContext}`}
-            onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
-            <option value="">Top level</option>
-            {arr.map((candidate, index) => index === k ? null : (
-              <option key={itemIds[index]} value={itemIds[index]}
-                disabled={wouldCreateParentCycle(k, index)}>
-                {candidate.label || 'Untitled link'}
-              </option>
-            ))}
-          </select>
+          {n.type !== 'crumbs' && <>
+            <label>Parent item</label>
+            <select key={itemIds[k] + '|' + effectiveParentId} class="ctl" value={effectiveParentId}
+              aria-label={`Parent item for ${itemContext}`}
+              onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
+              <option value="">Top level</option>
+              {arr.map((candidate, index) => index === k ? null : (
+                <option key={itemIds[index]} value={itemIds[index]}
+                  disabled={wouldCreateParentCycle(k, index)}>
+                  {candidate.label || 'Untitled link'}
+                </option>
+              ))}
+            </select>
+          </>}
 
           <div class="pc-label-with-help"><label>Link relationship</label><HelpTip label="Link relationship"
             text="Optional values such as nofollow or sponsored, separated by spaces." /></div>

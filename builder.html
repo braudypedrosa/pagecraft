@@ -3942,13 +3942,25 @@ let cwin = null, cdoc = null;
 /* A fresh nonce per canvas: the only scripts that run in it are the ones the editor injects with
    it (`runPreviewRuntime`). It is never written into the canvas markup. */
 let canvasNonce = '';
+let canvasRestorePending = false;
+
+function canvasDocument() {
+  try { return $('#canvas').contentDocument; } catch { return null; }
+}
 
 function mountCanvas() {
   const f = $('#canvas');
   canvasNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   return new Promise(res => {
     f.onload = () => {
-      cwin = f.contentWindow; cdoc = f.contentDocument;
+      const loaded = canvasDocument();
+      // A preview form may navigate this frame away from the editor's document.
+      if (!loaded?.getElementById('s-root') || !loaded.getElementById('s-css')) {
+        canvasReadyCleanup();
+        return;
+      }
+      if (loaded === cdoc) return;
+      cwin = f.contentWindow; cdoc = loaded;
       /* the embedded brand faces, handed to the canvas document as well */
       const fonts = document.getElementById('pc-fonts');
       const slot = cdoc.getElementById('s-fonts');
@@ -4173,7 +4185,7 @@ function watchCanvasPreview(source) {
   }));
 }
 function paint() {
-  if (!cdoc) return;
+  if (!cdoc || canvasDocument() !== cdoc) return;
   previewDispose();
   previewDispose = () => {};
   const editing = !document.body.classList.contains('preview');
@@ -6954,6 +6966,21 @@ function togglePreview() {
     : svg('eye', 14);
   $('#previewBtn').title = on ? 'Return to editing (⌘P)' : 'Preview your working draft (⌘P)';
   $('#previewBtn').setAttribute('aria-label', on ? 'Return to editing' : 'Preview your working draft');
+  const current = canvasDocument();
+  if (current !== cdoc || !current?.getElementById('s-root') || !current.getElementById('s-css')) {
+    if (!canvasRestorePending) {
+      previewDispose(); previewDispose = () => {};
+      canvasReadyCleanup();
+      cwin = cdoc = null;
+      canvasRestorePending = true;
+      mountCanvas().then(() => {
+        canvasRestorePending = false;
+        layoutCanvas(); paint();
+        if (!document.body.classList.contains('preview')) paintSel();
+      });
+    }
+    return;
+  }
   layoutCanvas();
   paint();
   if (!on) paintSel();

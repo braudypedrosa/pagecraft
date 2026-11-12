@@ -581,14 +581,14 @@ function BoxCtl({ n, c }: P) {
     const unit = (root.querySelector('select') as HTMLSelectElement).value;
     /* Once an author edits any side, materialize all four and remove the shorthand from this
        breakpoint. The inspector and the generated CSS now have one unambiguous source. */
-    delete C.stWrite(C.tgtObj(n))[C.dk()][c.c!];
+    C.applyC(n, c, '');
     root.querySelectorAll('input').forEach((inp, i) => {
       const input = inp as HTMLInputElement;
       const raw = input.value.trim();
       const parsed = Number(raw);
       const v = !c.neg && raw !== '' && Number.isFinite(parsed) && parsed < 0 ? '0' : raw;
       if (v !== raw) input.value = v;
-      C.setCss(C.tgtObj(n), c.c + '-' + SIDES[i], v === '' ? '' : v + unit, !!c.r);
+      C.applyC(n, { c: c.c + '-' + SIDES[i], r: c.r }, v === '' ? '' : v + unit);
     });
     L.repaintCss();
   };

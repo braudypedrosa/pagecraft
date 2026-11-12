@@ -10404,7 +10404,12 @@ var flatten = (list, out = []) => {
   return out;
 };
 function step(id, dir) {
-  const flat = flatten(tree());
+  const flat = [];
+  const walk = (list) => list.forEach((n) => {
+    flat.push(n);
+    if (!state.ui.collapsed[n.id]) walk(n.children || []);
+  });
+  walk(tree());
   if (!flat.length) return null;
   if (!id) return flat[0].id;
   const i = flat.findIndex((n) => n.id === id);
@@ -23170,29 +23175,31 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                     "aria-label": `CSS classes for ${itemContext}`
                   }
                 ),
-                /* @__PURE__ */ u2("label", { children: "Parent item" }),
-                /* @__PURE__ */ u2(
-                  "select",
-                  {
-                    class: "ctl",
-                    value: effectiveParentId,
-                    "aria-label": `Parent item for ${itemContext}`,
-                    onChange: (e3) => commitParent(k3, e3.target.value),
-                    children: [
-                      /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
-                      arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
-                        "option",
-                        {
-                          value: itemIds[index],
-                          disabled: wouldCreateParentCycle(k3, index),
-                          children: candidate.label || "Untitled link"
-                        },
-                        itemIds[index]
-                      ))
-                    ]
-                  },
-                  itemIds[k3] + "|" + effectiveParentId
-                ),
+                n2.type !== "crumbs" && /* @__PURE__ */ u2(S, { children: [
+                  /* @__PURE__ */ u2("label", { children: "Parent item" }),
+                  /* @__PURE__ */ u2(
+                    "select",
+                    {
+                      class: "ctl",
+                      value: effectiveParentId,
+                      "aria-label": `Parent item for ${itemContext}`,
+                      onChange: (e3) => commitParent(k3, e3.target.value),
+                      children: [
+                        /* @__PURE__ */ u2("option", { value: "", children: "Top level" }),
+                        arr.map((candidate, index) => index === k3 ? null : /* @__PURE__ */ u2(
+                          "option",
+                          {
+                            value: itemIds[index],
+                            disabled: wouldCreateParentCycle(k3, index),
+                            children: candidate.label || "Untitled link"
+                          },
+                          itemIds[index]
+                        ))
+                      ]
+                    },
+                    itemIds[k3] + "|" + effectiveParentId
+                  )
+                ] }),
                 /* @__PURE__ */ u2("div", { class: "pc-label-with-help", children: [
                   /* @__PURE__ */ u2("label", { children: "Link relationship" }),
                   /* @__PURE__ */ u2(
@@ -24476,14 +24483,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const push = (root) => {
       L2.tx(key2);
       const unit = root.querySelector("select").value;
-      delete C2.stWrite(C2.tgtObj(n2))[C2.dk()][c3.c];
+      C2.applyC(n2, c3, "");
       root.querySelectorAll("input").forEach((inp, i3) => {
         const input = inp;
         const raw = input.value.trim();
         const parsed = Number(raw);
         const v3 = !c3.neg && raw !== "" && Number.isFinite(parsed) && parsed < 0 ? "0" : raw;
         if (v3 !== raw) input.value = v3;
-        C2.setCss(C2.tgtObj(n2), c3.c + "-" + SIDES[i3], v3 === "" ? "" : v3 + unit, !!c3.r);
+        C2.applyC(n2, { c: c3.c + "-" + SIDES[i3], r: c3.r }, v3 === "" ? "" : v3 + unit);
       });
       L2.repaintCss();
     };
@@ -32070,13 +32077,25 @@ let cwin = null, cdoc = null;
 /* A fresh nonce per canvas: the only scripts that run in it are the ones the editor injects with
    it (`runPreviewRuntime`). It is never written into the canvas markup. */
 let canvasNonce = '';
+let canvasRestorePending = false;
+
+function canvasDocument() {
+  try { return $('#canvas').contentDocument; } catch { return null; }
+}
 
 function mountCanvas() {
   const f = $('#canvas');
   canvasNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   return new Promise(res => {
     f.onload = () => {
-      cwin = f.contentWindow; cdoc = f.contentDocument;
+      const loaded = canvasDocument();
+      // A preview form may navigate this frame away from the editor's document.
+      if (!loaded?.getElementById('s-root') || !loaded.getElementById('s-css')) {
+        canvasReadyCleanup();
+        return;
+      }
+      if (loaded === cdoc) return;
+      cwin = f.contentWindow; cdoc = loaded;
       /* the embedded brand faces, handed to the canvas document as well */
       const fonts = document.getElementById('pc-fonts');
       const slot = cdoc.getElementById('s-fonts');
@@ -32301,7 +32320,7 @@ function watchCanvasPreview(source) {
   }));
 }
 function paint() {
-  if (!cdoc) return;
+  if (!cdoc || canvasDocument() !== cdoc) return;
   previewDispose();
   previewDispose = () => {};
   const editing = !document.body.classList.contains('preview');
@@ -35082,6 +35101,21 @@ function togglePreview() {
     : svg('eye', 14);
   $('#previewBtn').title = on ? 'Return to editing (⌘P)' : 'Preview your working draft (⌘P)';
   $('#previewBtn').setAttribute('aria-label', on ? 'Return to editing' : 'Preview your working draft');
+  const current = canvasDocument();
+  if (current !== cdoc || !current?.getElementById('s-root') || !current.getElementById('s-css')) {
+    if (!canvasRestorePending) {
+      previewDispose(); previewDispose = () => {};
+      canvasReadyCleanup();
+      cwin = cdoc = null;
+      canvasRestorePending = true;
+      mountCanvas().then(() => {
+        canvasRestorePending = false;
+        layoutCanvas(); paint();
+        if (!document.body.classList.contains('preview')) paintSel();
+      });
+    }
+    return;
+  }
   layoutCanvas();
   paint();
   if (!on) paintSel();

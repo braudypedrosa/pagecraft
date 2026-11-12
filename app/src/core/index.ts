@@ -7066,7 +7066,12 @@ const componentRename = (cid: string, name: string) => {
 /* Arrow-key traversal of the tree as it reads on screen */
 const flatten = (list: any[], out: any[] = []): any[] => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
 function step(id: string | null, dir: number) {
-  const flat = flatten(tree());
+  const flat: PcNode[] = [];
+  const walk = (list: PcNode[]): void => list.forEach(n => {
+    flat.push(n);
+    if (!state.ui.collapsed[n.id]) walk(n.children || []);
+  });
+  walk(tree());
   if (!flat.length) return null;
   if (!id) return flat[0].id;
   const i = flat.findIndex(n => n.id === id);
