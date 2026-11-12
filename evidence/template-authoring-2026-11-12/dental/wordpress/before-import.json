@@ -1,0 +1,57 @@
+{
+    "site": "http://127.0.0.1:4397",
+    "admin": "site-reviewer",
+    "packageSha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 19,
+    "schemaVersion": 14,
+    "rendererVersion": "pagecraft-core-14",
+    "rendererRevision": "pagecraft-renderer-2",
+    "sourcePages": [
+        {
+            "id": "dental-index",
+            "name": "Home",
+            "slug": "index"
+        },
+        {
+            "id": "dental-treatments",
+            "name": "Treatments",
+            "slug": "treatments"
+        },
+        {
+            "id": "dental-care-team",
+            "name": "Care Team",
+            "slug": "care-team"
+        },
+        {
+            "id": "dental-first-visit",
+            "name": "Your First Visit",
+            "slug": "first-visit"
+        },
+        {
+            "id": "dental-patient-information",
+            "name": "Patient Information",
+            "slug": "patient-information"
+        },
+        {
+            "id": "dental-contact",
+            "name": "Contact",
+            "slug": "contact"
+        }
+    ],
+    "existingPages": [
+        {
+            "id": 2,
+            "status": "publish",
+            "title": "Sample Page"
+        },
+        {
+            "id": 3,
+            "status": "draft",
+            "title": "Privacy Policy"
+        }
+    ],
+    "linkedProject": [],
+    "frontPage": "0",
+    "attachmentCount": 0
+}

@@ -1,0 +1,44 @@
+{
+  "id": "dental-clinic-a2",
+  "version": "0.1.0",
+  "revision": 19,
+  "packageSha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456",
+  "downloadUrl": "https://staging.itspagecraft.com/mcp/template-authoring/packages/dental-clinic-a2/0.1.0/19",
+  "path": "evidence/template-authoring-2026-11-12/dental/package/dental-clinic-a2-0.1.0-r19.pagecraft-site.zip",
+  "bytes": 1502386,
+  "pages": [
+    {
+      "id": "dental-index",
+      "slug": "index",
+      "name": "Home"
+    },
+    {
+      "id": "dental-treatments",
+      "slug": "treatments",
+      "name": "Treatments"
+    },
+    {
+      "id": "dental-care-team",
+      "slug": "care-team",
+      "name": "Care Team"
+    },
+    {
+      "id": "dental-first-visit",
+      "slug": "first-visit",
+      "name": "Your First Visit"
+    },
+    {
+      "id": "dental-patient-information",
+      "slug": "patient-information",
+      "name": "Patient Information"
+    },
+    {
+      "id": "dental-contact",
+      "slug": "contact",
+      "name": "Contact"
+    }
+  ],
+  "schemaVersion": 14,
+  "rendererVersion": "pagecraft-core-14",
+  "rendererRevision": "pagecraft-renderer-2"
+}

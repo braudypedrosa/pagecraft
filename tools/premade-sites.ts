@@ -77,7 +77,9 @@ async function compile(directory: string) {
     const bytes = new Uint8Array(await readFile(path));
     const type = sniff(bytes);
     if (!type || !type.startsWith('image/')) throw new Error(`${spec.file} is not a supported image`);
-    const { w, h } = dimensions(bytes, type);
+    const inferred = dimensions(bytes, type);
+    const w = config.sourceKind === 'document-json-v1' && spec.width !== undefined ? spec.width : inferred.w;
+    const h = config.sourceKind === 'document-json-v1' && spec.height !== undefined ? spec.height : inferred.h;
     assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: spec.name || path.split(sep).at(-1)!, type, w, h, bytes });
   }
 
@@ -352,7 +354,13 @@ async function importDraft(id: string | undefined, version: string | undefined) 
             : file.mediaType === 'image/gif' ? '.gif'
               : file.mediaType === 'image/avif' ? '.avif' : '';
     if (!extension) throw new Error(`unsupported imported asset media type: ${file.mediaType}`);
-    return { id: asset.id, file: `assets/${asset.id}${extension}`, name: asset.name };
+    return {
+      id: asset.id,
+      file: `assets/${asset.id}${extension}`,
+      name: asset.name,
+      width: asset.width,
+      height: asset.height,
+    };
   });
   const config = validateTemplateSourceConfig({
     format: TEMPLATE_SOURCE_FORMAT,

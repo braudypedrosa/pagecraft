@@ -11,6 +11,9 @@ export interface TemplateAssetSource {
   file: string;
   /** Original portable-package asset name, when it differs from the source filename. */
   name?: string;
+  /** Original packaged dimensions, used by document-json-v1 when the source format cannot infer them. */
+  width?: number;
+  height?: number;
 }
 
 interface TemplateSourceBase {
@@ -87,6 +90,16 @@ export function validateTemplateSourceConfig(value: unknown): TemplateSourceConf
     if (!ASSET_FILE.test(String(asset?.file || ''))) fail(`asset file for ${asset.id} is unsafe`);
     if (asset.name !== undefined && (typeof asset.name !== 'string' || !asset.name.trim())) {
       fail(`asset name for ${asset.id} is invalid`);
+    }
+    if ((asset.width === undefined) !== (asset.height === undefined)) {
+      fail(`asset width and height for ${asset.id} must be provided together`);
+    }
+    if (asset.width !== undefined && (!Number.isSafeInteger(asset.width) || asset.width < 0
+      || !Number.isSafeInteger(asset.height) || asset.height! < 0)) {
+      fail(`asset dimensions for ${asset.id} must be nonnegative safe integers`);
+    }
+    if (!jsonSource && (asset.width !== undefined || asset.height !== undefined)) {
+      fail(`asset dimensions for ${asset.id} are only supported for document-json-v1`);
     }
     if (ids.has(asset.id)) fail(`asset id ${asset.id} is duplicated`);
     ids.add(asset.id);

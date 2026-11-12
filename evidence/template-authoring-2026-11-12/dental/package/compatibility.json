@@ -1,0 +1,142 @@
+{
+  "format": "pagecraft.template-compatibility.v1",
+  "checkedAt": "2026-11-12",
+  "template": {
+    "id": "dental-clinic-a2",
+    "version": "0.1.0",
+    "sourceKind": "document-json-v1",
+    "state": "private-tooling-draft"
+  },
+  "referencePackage": {
+    "path": "dental-clinic-a2-0.1.0-r19.pagecraft-site.zip",
+    "revision": 19,
+    "sha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456",
+    "bytes": 1502386,
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 19,
+    "schemaVersion": 14,
+    "rendererVersion": "pagecraft-core-14",
+    "rendererRevision": "pagecraft-renderer-2"
+  },
+  "roundTrip": {
+    "status": "passed",
+    "candidatePackageSha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456",
+    "packageHashMatches": true,
+    "documentMatches": true,
+    "assetBytesAndMetadataMatch": true,
+    "provenanceMatches": true,
+    "assetCount": 12,
+    "assetDimensionsPreserved": true,
+    "checks": [
+      "Portable archive validation",
+      "document-json-v1 source import",
+      "all asset bytes, names, media types and dimensions match",
+      "provenance match",
+      "rebuilt package SHA-256 matches the immutable source package"
+    ]
+  },
+  "localVerification": {
+    "focusedCommand": "npx vitest run tests/template-json-source.test.ts",
+    "focusedTests": "passed: 3",
+    "typecheckCommand": "npm run typecheck",
+    "typecheck": "passed",
+    "releasedCatalogEntriesChecked": 20,
+    "releasedPackageHashMismatches": 0,
+    "releasedCatalogAndTemplatePathsUnchanged": true
+  },
+  "runtimeUi": {
+    "cloud": {
+      "status": "passed-with-scope-limits",
+      "siteId": "89e24f93-b111-459b-bd14-a5e62a3775d7",
+      "environmentState": "new unpublished Cloud site",
+      "importPath": "Uploaded the 12 exact package assets using native Media, mapped 14 document asset references, then imported native project JSON. No whole-ZIP importer or customer-picker UI was available or used.",
+      "verified": [
+        "Home heading edited in native UI, saved, and confirmed after reload.",
+        "Reimporting the exact source restored the source heading.",
+        "All 12 media items remained stable with no duplicates after reimport.",
+        "All 6 page previews navigated; Treatments was checked by the root reviewer and the other 5 by frontend checks.",
+        "Images loaded and browser console had no warnings or errors."
+      ],
+      "evidence": [
+        "dental/cloud/uploaded-media.json",
+        "dental/cloud/native-import-document.json",
+        "dental/cloud/frontend-checks.json",
+        "dental/cloud/After-native-import.png",
+        "dental/cloud/After-edit-reopen.png",
+        "dental/cloud/After-reimport-media.png",
+        "dental/cloud/After-preview.png"
+      ],
+      "notRun": [
+        "Customer picker/import UI, because no such UI exists in this path.",
+        "Published output, pending catalog approval.",
+        "Form submissions, publication, and catalog addition."
+      ]
+    },
+    "wordpress": {
+      "status": "passed-with-scope-limits",
+      "environment": "local WordPress review site, drafts only",
+      "importPath": "Native WholeProjectImporter CLI bridge using the exact source ZIP.",
+      "verified": [
+        "Initial import created 6 draft pages and 12 media attachments.",
+        "Native editor heading edit, save, and reopen persisted.",
+        "Exact ZIP reimport updated 6 pages, created 0, preserved page IDs and the 12 media attachments, and restored the source heading.",
+        "All 6 native frontend draft previews were checked; no portable tokens, all images loaded, contact remained disabled/unconfigured, and browser console was clean.",
+        "Navigation repair was verified in an isolated plugin build."
+      ],
+      "evidence": [
+        "dental/wordpress/before-import.json",
+        "dental/wordpress/after-import.json",
+        "dental/wordpress/Before-edit.png",
+        "dental/wordpress/After-edit-reopen.png",
+        "dental/wordpress/before-reimport.json",
+        "dental/wordpress/after-reimport.json",
+        "dental/wordpress/reimport-receipt.json",
+        "dental/wordpress/frontend-checks.json",
+        "dental/wordpress/After-preview-17.png",
+        "dental/wordpress/After-preview-18.png",
+        "dental/wordpress/After-preview-19.png",
+        "dental/wordpress/After-preview-20.png",
+        "dental/wordpress/After-preview-21.png",
+        "dental/wordpress/After-preview-22.png",
+        "dental/wordpress/navigation-after-fix.json"
+      ],
+      "notRun": [
+        "Form submissions, publication, production output, and catalog addition."
+      ],
+      "navigationFixBuildSha256Prefix": "39f196",
+      "navigationFixBuildHashNote": "Full source hash and passing development CI are recorded under wordpressNavigationFix."
+    }
+  },
+  "release": {
+    "catalogAdded": false,
+    "productionActivated": false,
+    "submissionsTested": false,
+    "publicationTested": false
+  },
+  "wordpressNavigationFix": {
+    "commit": "2cfa51af283ff970fb42a33577a18fbcc29a6008",
+    "sourceSha256": "39f196eff8f3f27388ba1d7bdfa5cff0812401759469db6106a251e8064788d0",
+    "ci": "https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/43175073780",
+    "ciStatus": "passed",
+    "qaWordPressVersion": "7.1.4",
+    "productionReleased": false
+  },
+  "runtimeVersions": {
+    "cloud": {
+      "hostRevision": "0e66d154865bfe2769e4282c220a5e0c1260d608",
+      "sourceEditorVersion": "0.2.17",
+      "schemaVersion": 14,
+      "rendererVersion": "pagecraft-core-14",
+      "rendererRevision": "pagecraft-renderer-2"
+    },
+    "wordpress": {
+      "sourceRevision": "9281f1682a801109421f3599c0712a7090233cb2",
+      "navigationFixRevision": "2cfa51af283ff970fb42a33577a18fbcc29a6008",
+      "editorVersion": "0.2.17-preview.20261111.146",
+      "schemaVersion": 14,
+      "rendererVersion": "pagecraft-core-14",
+      "rendererRevision": "pagecraft-renderer-2"
+    }
+  }
+}

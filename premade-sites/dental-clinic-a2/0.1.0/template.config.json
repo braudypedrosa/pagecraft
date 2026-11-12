@@ -1,0 +1,111 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "dental-clinic-a2",
+  "version": "0.1.0",
+  "name": "Linden Dental",
+  "sampleName": "Linden Dental",
+  "description": "Family dental practice information and visit requests.",
+  "categories": [
+    "Dental",
+    "Healthcare",
+    "Local-Services"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be",
+      "file": "assets/img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be.svg",
+      "name": "bp-mark-ink.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "img-4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18",
+      "file": "assets/img-4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18.webp",
+      "name": "care-team-portrait-01.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188",
+      "file": "assets/img-cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188.webp",
+      "name": "care-team-portrait-02.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b",
+      "file": "assets/img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b.webp",
+      "name": "comfortable-consultation.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce",
+      "file": "assets/img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce.webp",
+      "name": "everyday-care-adult.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-2f834a7efa58df29d831d636b5468cf1a3fb072bf44b5645bcb272530abfd8bd",
+      "file": "assets/img-2f834a7efa58df29d831d636b5468cf1a3fb072bf44b5645bcb272530abfd8bd.webp",
+      "name": "everyday-oral-care.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd",
+      "file": "assets/img-b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd.webp",
+      "name": "family-care-hero.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "img-42c510f6b1b7cfd8aa85b930827e90589f835449b6d0d83693a1e78503510858",
+      "file": "assets/img-42c510f6b1b7cfd8aa85b930827e90589f835449b6d0d83693a1e78503510858.webp",
+      "name": "first-visit-child.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9",
+      "file": "assets/img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9.svg",
+      "name": "l2-horizontal-primary.svg",
+      "width": 424,
+      "height": 100
+    },
+    {
+      "id": "img-8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020",
+      "file": "assets/img-8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020.svg",
+      "name": "l2-mark-primary.svg",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "id": "img-b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9",
+      "file": "assets/img-b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9.webp",
+      "name": "light-filled-treatment-room.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875",
+      "file": "assets/img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875.webp",
+      "name": "welcoming-reception.webp",
+      "width": 1672,
+      "height": 941
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 19
+  },
+  "importedPackageSha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456"
+}
