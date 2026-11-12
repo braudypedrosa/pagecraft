@@ -1,0 +1,78 @@
+{
+  "revision": 24,
+  "menus": [
+    {
+      "width": 390,
+      "openState": "true",
+      "closeState": "false",
+      "focused": "Main navigation menu",
+      "menuLinks": [
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact",
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact"
+      ]
+    },
+    {
+      "width": 768,
+      "openState": "true",
+      "closeState": "false",
+      "focused": "Main navigation menu",
+      "menuLinks": [
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact",
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact"
+      ]
+    },
+    {
+      "width": 1024,
+      "openState": "true",
+      "closeState": "false",
+      "focused": "Main navigation menu",
+      "menuLinks": [
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact",
+        "Treatments",
+        "Our team",
+        "Your first visit",
+        "Patient information",
+        "Contact"
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "open": false,
+      "text": "What should I bring to my first visit?"
+    },
+    {
+      "open": true,
+      "text": "Can I discuss feeling nervous?"
+    },
+    {
+      "open": false,
+      "text": "How can I ask about fees?"
+    },
+    {
+      "open": false,
+      "text": "Does an enquiry confirm an appointment?"
+    }
+  ],
+  "submissionsMade": 0
+}

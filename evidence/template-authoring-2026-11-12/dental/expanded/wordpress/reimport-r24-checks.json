@@ -1,0 +1,47 @@
+{
+  "packageSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+  "sourceHeading": "Good care,\nfor every smile.",
+  "sourceHeroHash": "b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd",
+  "checks": {
+    "heading_matches_package": true,
+    "hero_matches_package_sha": true,
+    "stress_heading_replaced": true,
+    "stress_image_replaced": true,
+    "correct_collapse": true,
+    "semantic_colors": true,
+    "pages_same_ids": true,
+    "all_draft": true,
+    "section_counts": true,
+    "media_ids_unchanged": true,
+    "media_hashes_unique": true,
+    "one_menu_five_items": true,
+    "baseline_unchanged": true,
+    "global_ids_unchanged": true,
+    "import_counts": true
+  },
+  "beforeMenu": [
+    {
+      "id": 2,
+      "itemIds": [
+        43,
+        44,
+        45,
+        46,
+        47
+      ]
+    }
+  ],
+  "afterMenu": [
+    {
+      "id": 2,
+      "itemIds": [
+        79,
+        80,
+        81,
+        82,
+        83
+      ]
+    }
+  ],
+  "note": "Menu item IDs changed during native synchronization, while one five-item menu remains; no duplicate menu/items."
+}

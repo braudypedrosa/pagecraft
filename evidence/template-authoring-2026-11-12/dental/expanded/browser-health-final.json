@@ -1,0 +1,17 @@
+[
+  {
+    "environment": "private",
+    "url": "https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/24/index.html",
+    "logs": []
+  },
+  {
+    "environment": "cloud",
+    "url": "https://staging.itspagecraft.com/edit/8d74fb8c-dcca-4bfd-af97-c845c553d2b1",
+    "logs": []
+  },
+  {
+    "environment": "wordpress",
+    "url": "http://127.0.0.1:4397/?page_id=22&preview=true",
+    "logs": []
+  }
+]

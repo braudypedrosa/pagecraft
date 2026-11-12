@@ -1,0 +1,44 @@
+{
+  "revision": 22,
+  "homeFaqClick": [
+    {
+      "open": false,
+      "question": "What should I bring to my first visit?"
+    },
+    {
+      "open": true,
+      "question": "Can I discuss feeling nervous?"
+    },
+    {
+      "open": false,
+      "question": "How can I ask about fees?"
+    },
+    {
+      "open": false,
+      "question": "Does an enquiry confirm an appointment?"
+    }
+  ],
+  "homeFaqKey": [
+    {
+      "open": false,
+      "question": "What should I bring to my first visit?"
+    },
+    {
+      "open": false,
+      "question": "Can I discuss feeling nervous?"
+    },
+    {
+      "open": true,
+      "question": "How can I ask about fees?"
+    },
+    {
+      "open": false,
+      "question": "Does an enquiry confirm an appointment?"
+    }
+  ],
+  "navCheck": {
+    "url": "https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/22/treatments.html",
+    "h1": "Care that starts with you."
+  },
+  "treatmentFaq": "Can I ask about fees before treatment?\n\nYes. Ask the practice for current fees and any payment information that applies. Details vary, so confirm them directly before making a decision."
+}

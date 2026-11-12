@@ -1,0 +1,30 @@
+{
+  "sourcePackage": "dental-clinic-a2-0.1.0-r24.pagecraft-site.zip",
+  "bytes": 1852304,
+  "sourceSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+  "rebuiltSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+  "byteIdentical": true,
+  "documentParity": true,
+  "assetCount": 14,
+  "assetParity": true,
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 24
+  },
+  "provenanceParity": true,
+  "catalog": {
+    "entries": 20,
+    "hashesChecked": 20,
+    "failures": [],
+    "unchangedFromHead": true,
+    "sha256": "7e92b7b8b06b208f5dd1d7b52c3b4a6386c758686b3b085ac5610335d61517cd"
+  },
+  "workflow": {
+    "schemaValid": true,
+    "approval": null
+  },
+  "previousSourceSnapshot": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/native-review/revision-22/source-snapshot"
+}

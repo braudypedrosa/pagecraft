@@ -1,0 +1,115 @@
+{
+    "site": "http://127.0.0.1:4397",
+    "account": "site-reviewer",
+    "accountVerified": true,
+    "wordpressVersion": "7.1.4",
+    "phpVersion": "8.2.29",
+    "activePlugins": [
+        {
+            "file": "pagecraft-builder/pagecraft-builder.php",
+            "version": "0.2.1"
+        },
+        {
+            "file": "pagecraft-importer/pagecraft-importer.php",
+            "version": "0.2.1"
+        }
+    ],
+    "activeTheme": {
+        "name": "Pagecraft",
+        "version": "0.2.1"
+    },
+    "editorContract": {
+        "format": "pagecraft.editor-contract.v1",
+        "editorVersion": "0.2.17-preview.20261111.146",
+        "schemaVersion": 14,
+        "rendererVersion": "pagecraft-core-14",
+        "rendererRevision": "pagecraft-renderer-2"
+    },
+    "navigationFixSha256": "39f196eff8f3f27388ba1d7bdfa5cff0812401759469db6106a251e8064788d0",
+    "linkedProject": {
+        "project_id": "template:dental-clinic-a2:0.1.0",
+        "source_version": 19,
+        "last_job_id": 35,
+        "imported_at": "2026-11-12T07:22:10+00:00"
+    },
+    "pages": [
+        {
+            "id": 17,
+            "status": "draft",
+            "title": "Home",
+            "sourceId": "dental-index",
+            "version": "3"
+        },
+        {
+            "id": 18,
+            "status": "draft",
+            "title": "Treatments",
+            "sourceId": "dental-treatments",
+            "version": "2"
+        },
+        {
+            "id": 19,
+            "status": "draft",
+            "title": "Care Team",
+            "sourceId": "dental-care-team",
+            "version": "2"
+        },
+        {
+            "id": 20,
+            "status": "draft",
+            "title": "Your First Visit",
+            "sourceId": "dental-first-visit",
+            "version": "2"
+        },
+        {
+            "id": 21,
+            "status": "draft",
+            "title": "Patient Information",
+            "sourceId": "dental-patient-information",
+            "version": "2"
+        },
+        {
+            "id": 22,
+            "status": "draft",
+            "title": "Contact",
+            "sourceId": "dental-contact",
+            "version": "2"
+        }
+    ],
+    "attachmentCount": 12,
+    "baselinePages": [
+        {
+            "id": 2,
+            "status": "publish"
+        },
+        {
+            "id": 3,
+            "status": "draft"
+        }
+    ],
+    "frontPage": "0",
+    "headerId": "26",
+    "footerId": "27",
+    "hydratedNavigation": [
+        {
+            "href": "http://127.0.0.1:4397/?page_id=18",
+            "objectId": "18"
+        },
+        {
+            "href": "http://127.0.0.1:4397/?page_id=19",
+            "objectId": "19"
+        },
+        {
+            "href": "http://127.0.0.1:4397/?page_id=20",
+            "objectId": "20"
+        },
+        {
+            "href": "http://127.0.0.1:4397/?page_id=21",
+            "objectId": "21"
+        },
+        {
+            "href": "http://127.0.0.1:4397/?page_id=22",
+            "objectId": "22"
+        }
+    ]
+}

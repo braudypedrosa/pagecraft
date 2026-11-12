@@ -3,9 +3,9 @@
   "sourceKind": "document-json-v1",
   "id": "dental-clinic-a2",
   "version": "0.1.0",
-  "name": "Linden Dental",
+  "name": "Dental Clinic",
   "sampleName": "Linden Dental",
-  "description": "Family dental practice information and visit requests.",
+  "description": "Complete eight-section, six-page A2 dental practice site.",
   "categories": [
     "Dental",
     "Healthcare",
@@ -14,6 +14,13 @@
   "source": "document.json",
   "previewPage": "index.html",
   "assets": [
+    {
+      "id": "img-375b16b6ee3aaacb5ca5a70b5bafc0e0b927a2363e00311c0ccb33516a6f8356",
+      "file": "assets/img-375b16b6ee3aaacb5ca5a70b5bafc0e0b927a2363e00311c0ccb33516a6f8356.webp",
+      "name": "approach-conversation.webp",
+      "width": 703,
+      "height": 669
+    },
     {
       "id": "img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be",
       "file": "assets/img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be.svg",
@@ -34,6 +41,13 @@
       "name": "care-team-portrait-02.webp",
       "width": 1122,
       "height": 1402
+    },
+    {
+      "id": "img-14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a",
+      "file": "assets/img-14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a.webp",
+      "name": "care-team-scene.webp",
+      "width": 1536,
+      "height": 647
     },
     {
       "id": "img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b",
@@ -105,7 +119,7 @@
     "format": "pagecraft.provenance.v1",
     "origin": "pagecraft-cloud",
     "sourceId": "template:dental-clinic-a2:0.1.0",
-    "sourceVersion": 19
+    "sourceVersion": 24
   },
-  "importedPackageSha256": "05faa8a606ae9e383ffa10083d5484b96856529c06a6128dfbff7030db66f456"
+  "importedPackageSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8"
 }

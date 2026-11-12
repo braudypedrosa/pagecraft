@@ -1,0 +1,60 @@
+[
+  {
+    "file": "index-1440-full.png",
+    "revision": 19,
+    "viewportWidth": 1440,
+    "height": 1279,
+    "sourceTiles": [
+      {
+        "file": "index-1440-00.png",
+        "docHeight": 1279,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 0
+      },
+      {
+        "file": "index-1440-01.png",
+        "docHeight": 1279,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 559
+      }
+    ],
+    "method": "Immutable revision 19 captured in the built-in browser. Original scroll-stable viewport pixels composited at measured offsets. Scrollbar crop only."
+  },
+  {
+    "file": "index-390-full.png",
+    "revision": 19,
+    "viewportWidth": 390,
+    "height": 1744,
+    "sourceTiles": [
+      {
+        "file": "index-390-00.png",
+        "docHeight": 1744,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 0
+      },
+      {
+        "file": "index-390-01.png",
+        "docHeight": 1744,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 612
+      },
+      {
+        "file": "index-390-02.png",
+        "docHeight": 1744,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 1024
+      }
+    ],
+    "method": "Immutable revision 19 captured in the built-in browser. Original scroll-stable viewport pixels composited at measured offsets. Scrollbar crop only."
+  }
+]

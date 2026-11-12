@@ -1,0 +1,24 @@
+{
+    "site": "http://127.0.0.1:4397",
+    "packageSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+    "packageBytes": 1852304,
+    "result": {
+        "jobId": 69,
+        "created": 0,
+        "updated": 6,
+        "absent": 0,
+        "projectId": "template:dental-clinic-a2:0.1.0",
+        "sourceVersion": 24,
+        "homepageId": 17
+    },
+    "beforePageIds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+    ],
+    "beforeHeading": "Thoughtful dental care,\nfor your whole family.",
+    "beforeImage": "asset:50"
+}

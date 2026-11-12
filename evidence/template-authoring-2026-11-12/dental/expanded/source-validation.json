@@ -1,0 +1,33 @@
+{
+  "pages": [
+    {
+      "slug": "index",
+      "sections": 8
+    },
+    {
+      "slug": "treatments",
+      "sections": 6
+    },
+    {
+      "slug": "care-team",
+      "sections": 5
+    },
+    {
+      "slug": "first-visit",
+      "sections": 5
+    },
+    {
+      "slug": "patient-information",
+      "sections": 6
+    },
+    {
+      "slug": "contact",
+      "sections": 4
+    }
+  ],
+  "nodeCount": 351,
+  "uniqueNodeIds": true,
+  "assetsReferenced": 14,
+  "photoRepetition": false,
+  "schemaValidated": true
+}
