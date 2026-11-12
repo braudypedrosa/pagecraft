@@ -20,6 +20,7 @@ import { AssetField } from './AssetField';
 import { Icon } from './Icon';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
 import { recoverableFailure } from '../../../shared/account-actions.js';
+import { refreshCustomSelects } from '../../../shared/custom-select.js';
 
 /** Keep CMS save failures human-readable; never prefix recovery copy with a machine code. */
 function cmsSaveFailure(error: unknown) {
@@ -87,6 +88,8 @@ export function CmsWorkspace({
      from search/status so editing either simply drops back to the default. */
   const [viewId, setViewId] = useState('');
   const root = useRef<HTMLElement>(null);
+  // Controlled selects update native properties silently when a saved view is applied.
+  useLayoutEffect(() => { refreshCustomSelects(); });
   const dirty =
     !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
   const confirm = async (title: string, message: string, ok: string) => {

@@ -4798,7 +4798,7 @@ test('a bar keeps its desktop baseline and centres tablet and mobile header cont
     nav.props.collapse = 'tablet';
     const css = blocks(C.treeCss([[row]], false));
     const rowSelector = new RegExp('\\.' + C.nodeClass(row) + '\\{[^}]*align-items:center');
-    const navSelector = `.${C.nodeClass(nav)} .pagecraft-nav-toggle{display:flex}`;
+    const navSelector = `.${C.nodeClass(nav)}.pagecraft-nav-enhanced>.pagecraft-nav-toggle{display:flex}`;
     a.match(css.tablet, rowSelector, id + ': tablet stylesheet centres the row');
     a.equal(css.tablet.includes(navSelector), true, id + ': Tablet collapse emits burger CSS in tablet query');
   });

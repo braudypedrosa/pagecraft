@@ -8811,8 +8811,10 @@ function inheritedRichTextLinkStatePriority(n: PcNode, b: Exclude<Bp, 'd'>) {
 
 /* Mobile lists move into a native top-layer dialog when opened. This keeps full-width
    menus clear of clipped or transformed header containers. */
-const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
-  + `${selOf(n)} .pagecraft-nav-list{display:none}`;
+const navCollapse = (n: PcNode) => `${selOf(n)}.pagecraft-nav-enhanced>.pagecraft-nav-toggle{display:flex}`
+  + `${selOf(n)}.pagecraft-nav-enhanced>.pagecraft-nav-list{display:none}`
+  + `${selOf(n)}:not(.pagecraft-nav-enhanced)>.pagecraft-nav-list{flex-wrap:wrap;min-width:0}`
+  + `${selOf(n)}:not(.pagecraft-nav-enhanced) .sub-menu{display:block;position:static;min-width:0;box-shadow:none}`;
 
 function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
   parent: PcNode | null = null, detachedComponentRoot = false) {
@@ -10574,6 +10576,7 @@ document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout
 Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
 window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
 window.addEventListener('scroll',function(){if(dialog&&dialog.dataset.layout==='dropdown')position();},{passive:true});
+w.classList.add('pagecraft-nav-enhanced');
 });})();
 <\/script>
 `;
@@ -10623,7 +10626,7 @@ if(styleNonce)style.setAttribute('nonce',styleNonce);style.textContent=failureCs
 }
 function build(){
 ensureFailureCss();
-dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
+dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';dlg.setAttribute('aria-label','Image gallery');
 dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><div class="pagecraft-lightbox-error" hidden><div role="status" aria-live="polite"><strong></strong><span></span></div><button class="pagecraft-lightbox-retry" type="button" hidden>Try again</button></div><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203a</button>'

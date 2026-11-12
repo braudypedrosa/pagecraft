@@ -293,8 +293,8 @@ describe('sealed editor compiler', () => {
     expect(result.globalCss).toContain('--nav-gap:31px');
     expect(result.globalCss).toContain('font-size:14px');
     expect(result.globalCss).toContain('font-size:12px');
-    expect(result.globalCss).toContain(`.${Core.nodeClass(primaryNav)} .pagecraft-nav-toggle{display:flex}`);
-    expect(result.globalCss).not.toContain(`.${Core.nodeClass(footerNav)} .pagecraft-nav-toggle{display:flex}`);
+    expect(result.globalCss).toContain(`.${Core.nodeClass(primaryNav)}.pagecraft-nav-enhanced>.pagecraft-nav-toggle{display:flex}`);
+    expect(result.globalCss).not.toContain(`.${Core.nodeClass(footerNav)}.pagecraft-nav-enhanced>.pagecraft-nav-toggle{display:flex}`);
     expect(JSON.stringify(input)).toBe(inputBefore);
   });
 

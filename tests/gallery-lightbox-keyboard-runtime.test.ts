@@ -47,6 +47,14 @@ afterEach(() => {
 });
 
 describe('Gallery lightbox keyboard runtime', () => {
+  test('the opened dialog has a stable accessible name while images change', () => {
+    const { dialog } = runLightboxRuntime(2);
+    expect(dialog.getAttribute('aria-label')).toBe('Image gallery');
+    dialog.querySelector<HTMLButtonElement>('.pagecraft-lightbox-next')!.click();
+    expect(dialog.getAttribute('aria-label')).toBe('Image gallery');
+    expect(dialog.querySelector('img')!.alt).toBe('Image 2');
+  });
+
   test('Tab wraps only at the visible control boundaries', () => {
     const { dom, dialog } = runLightboxRuntime(2);
     const previous = dialog.querySelector<HTMLElement>('.pagecraft-lightbox-prev')!;

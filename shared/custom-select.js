@@ -25,6 +25,11 @@ export const CUSTOM_SELECT_CSS = `
 @media(prefers-reduced-motion:reduce){.pc-custom-select-trigger>svg{transition:none}}
 `;
 
+/** Notify enhancements after a renderer commits silent native selection changes. */
+export function refreshCustomSelects() {
+  if (typeof document !== 'undefined') document.dispatchEvent(new Event('pagecraft:refresh-selects'));
+}
+
 export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   if (typeof document === 'undefined' || window.__pagecraftCustomSelects) return;
   window.__pagecraftCustomSelects = true;
@@ -79,7 +84,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
   const optionSignature = select => [...select.options].map(option => [
     option.value, option.label, option.selected, option.disabled,
-    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : ''
+    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : '',
+    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.disabled : false
   ].join('\u0001')).join('\u0002');
   const enabledOptions = select => [...select.options].filter(option => !option.disabled && !option.parentElement?.disabled);
   const isClosed = menu => menu.hidden || menu.hasAttribute('data-pc-motion-closing');
@@ -440,6 +446,9 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     queueMicrotask(scan);
   };
 
+  document.addEventListener('pagecraft:refresh-selects', scan);
+  // Reset changes selectedness after the event handlers, without input/change events.
+  document.addEventListener('reset', schedule, true);
   document.addEventListener('pointerdown', event => {
     clearPointerActivation();
     const trigger = event.target instanceof Element ? event.target.closest('.pc-custom-select-trigger') : null;
@@ -484,6 +493,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         return mutation.target.nodeType === 1
           && mutation.target.matches('select,option,optgroup');
       }
+      const target = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
+      if (target?.closest('select,option,optgroup')) return true;
       const changesOptions = [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
         node.nodeType === 1
           && (node.matches('select,option,optgroup') || node.querySelector('select,option,optgroup'))
@@ -499,8 +510,8 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     });
     if (affectsSelect) schedule();
   }).observe(document.documentElement, {
-    subtree: true, childList: true, attributes: true,
-    attributeFilter: ['disabled', 'required', 'title', 'aria-label', 'aria-invalid', 'aria-describedby', 'aria-errormessage']
+    subtree: true, childList: true, characterData: true, attributes: true,
+    attributeFilter: ['selected', 'value', 'label', 'disabled', 'required', 'title', 'aria-label', 'aria-invalid', 'aria-describedby', 'aria-errormessage']
   });
   scan();
 }

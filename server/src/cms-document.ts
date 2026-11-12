@@ -1,4 +1,5 @@
 import type { Doc } from '../../app/src/core/types.ts';
+import { isDeepStrictEqual } from 'node:util';
 import { validateCmsEntry } from '../../app/src/core/cms-validation.ts';
 import { safeRichHtml } from './safe-html.ts';
 
@@ -33,7 +34,8 @@ export function cmsDocumentErrors(
         errors.push(`${col.name}: entry IDs must be unique.`);
       entries.add(item.id);
       const previous = old?.items.find((i) => i.id === item.id);
-      if (JSON.stringify(previous) === JSON.stringify(item)) continue;
+      // JSONB reorders object keys; a saved entry's interaction order is not an edit.
+      if (isDeepStrictEqual(previous, item)) continue;
       const found = validateCmsEntry(after, col, item, assets, safeRichHtml);
       errors.push(
         ...Object.values(found).map(

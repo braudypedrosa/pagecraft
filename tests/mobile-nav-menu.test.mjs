@@ -30,6 +30,33 @@ function runtime(props = {}) {
   return { w, d, nav, toggle, list, dialog: () => nav.querySelector('.pagecraft-mobile-menu') };
 }
 
+for (const custom of [false, true]) {
+  test(`collapsed navigation progressively enhances ${custom ? 'a custom panel' : 'the native list'}`, () => {
+    const navNode = C.N('nav', { aria: 'Primary', items, collapse: 'tablet' });
+    const definition = custom ? C.ensureMobileMenuComponent(navNode) : null;
+    // Apply the generated collapse rules directly, as they would apply inside the active media query.
+    const dom = new JSDOM(`<html><head><style>${C.baseCss(false)}${C.navCollapse(navNode)}</style></head><body>${C.renderNode(navNode, { edit: false })}</body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true });
+    if (definition) C.components().splice(C.components().indexOf(definition), 1);
+    windows.push(dom);
+    const { window: w } = dom;
+    const nav = w.document.querySelector('[data-nav]');
+    const toggle = nav.querySelector('[data-nav-t]');
+    const list = nav.querySelector('[data-nav-l]');
+    const sub = list.querySelector('.sub-menu');
+    expect(w.getComputedStyle(toggle).display).toBe('none');
+    expect(w.getComputedStyle(list).display).toBe('flex');
+    expect(w.getComputedStyle(sub).display).toBe('block');
+    expect([...list.querySelectorAll('a')].map(a => a.getAttribute('href'))).toEqual(['#gardens', '#courtyard']);
+    expect(nav.classList.contains('pagecraft-nav-enhanced')).toBe(false);
+    if (custom) expect(nav.querySelector('[data-nav-content]').hidden).toBe(true);
+
+    w.eval(C.NAV_JS.replace(/^<script>\s*/, '').replace(/<\/script>\s*$/, ''));
+    expect(nav.classList.contains('pagecraft-nav-enhanced')).toBe(true);
+    expect(w.getComputedStyle(toggle).display).toBe('flex');
+    expect(w.getComputedStyle(list).display).toBe('none');
+  });
+}
+
 for (const [label, props, expected] of [
   ['default', {}, 'dropdown'], ['legacy missing property', { mobileMenu: undefined }, 'dropdown'],
   ['explicit dropdown', { mobileMenu: 'dropdown' }, 'dropdown'], ['fullscreen', { mobileMenu: 'fullscreen' }, 'fullscreen'],

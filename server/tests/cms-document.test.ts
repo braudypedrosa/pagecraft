@@ -85,6 +85,52 @@ test('changed CMS entries validate without blocking untouched legacy entries', (
   after.meta.collections![0].items[1].values.body = '<script>alert(1)</script>';
   expect(cmsDocumentErrors(before, after, new Set()).length).toBeGreaterThan(0);
 });
+test('deleting a referenced entry ignores object key order on unchanged drafts', () => {
+  const before = fixture();
+  before.meta.collections![0].items.push({
+    id: 'b', slug: 'b', draft: 1,
+    values: { title: 'Brook cabin', related: 'a', capacity: '0', enabled: '0' },
+  });
+  const after = structuredClone(before);
+  after.meta.collections![0].items = [{
+    values: { enabled: '0', capacity: '0', related: 'a', title: 'Brook cabin' },
+    draft: 1, slug: 'b', id: 'b',
+  }];
+  const original = structuredClone({ before, after });
+  expect(after.meta.collections![0].items[0]).toEqual(before.meta.collections![0].items[1]);
+  expect(cmsDocumentErrors(before, after, new Set())).toEqual([]);
+  expect({ before, after }).toEqual(original);
+});
+test('unchanged legacy references do not exempt new or edited invalid references', () => {
+  const before = fixture();
+  before.meta.collections![0].items.push({
+    id: 'b', slug: 'b', draft: 1, values: { title: 'Brook cabin', related: 'a' },
+  });
+  const after = structuredClone(before);
+  after.meta.collections![0].items.shift();
+  after.meta.collections![0].items[0].values.related = 'missing';
+  expect(cmsDocumentErrors(before, after, new Set())).toContain(
+    'Cabins / b: Choose an existing entry.',
+  );
+  after.meta.collections![0].items[0].values.related = 'a';
+  after.meta.collections![0].items.push({
+    id: 'c', slug: 'c', draft: 1, values: { title: 'Grove cabin', related: 'a' },
+  });
+  expect(cmsDocumentErrors(before, after, new Set())).toEqual([
+    'Cabins / c: Choose an existing entry.',
+  ]);
+});
+test('real edits still validate required reference and ordinary field values', () => {
+  const before = fixture();
+  before.meta.collections![0].fields.find(f => f.id === 'related')!.required = 1;
+  before.meta.collections![0].items[0].values.related = 'a';
+  const after = structuredClone(before);
+  after.meta.collections![0].items[0].values.related = '';
+  expect(cmsDocumentErrors(before, after, new Set())).toContain('Cabins / a: Related is required.');
+  after.meta.collections![0].items[0].values.related = 'a';
+  after.meta.collections![0].items[0].values.capacity = 'not a number';
+  expect(cmsDocumentErrors(before, after, new Set())).toContain('Cabins / a: Enter a valid number.');
+});
 test('schema and path constraints reject unsafe changes', () => {
   const before = fixture(),
     after = structuredClone(before);

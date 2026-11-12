@@ -3,7 +3,9 @@ import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore } from '../src/auth.ts';
 import { MemoryHostedPublicationStore } from '../src/publications.ts';
-import { blankDoc } from '../src/render.ts';
+import { blankDoc, renderSite } from '../src/render.ts';
+import { PGlite } from '@electric-sql/pglite';
+import { PgStore, PgAuthStore, type Queryable } from '../src/store-pg.ts';
 import type { AccountAuth } from '../src/account-auth.ts';
 import * as C from '../../app/src/core/index.ts';
 
@@ -185,4 +187,105 @@ test('CMS HTTP lifecycle protects drafts, versions, ownership and published snap
   identity = ownerIdentity;
   expect((await publish()).status).toBe(200);
   expect((await req('/cms-qa/cabins/cabin-a')).status).toBe(404);
+});
+
+test('a JSONB round-trip permits referenced Author deletion and its undo without rewriting cabins', async () => {
+  const db = await PGlite.create();
+  try {
+    const store = new PgStore(db as unknown as Queryable);
+    const auth = new PgAuthStore(db as unknown as Queryable);
+    await store.init();
+    await auth.init();
+    const identity = { authUserId: 'workshop-owner', email: 'owner@example.test', name: 'Owner' };
+    const owner = await auth.ensureAuthUser(identity.authUserId, identity.email);
+    const accountAuth: AccountAuth = {
+      identity: async () => identity, oauth: async () => null,
+      signUp: async () => 'confirmation_required', signIn: async () => identity,
+      confirm: async () => identity, forgot: async () => {}, reset: async () => false,
+      updateEmail: async () => false, updatePassword: async () => false, signOut: async () => {},
+    };
+    const doc = blankDoc('Workshop cabins');
+    doc.meta.font = doc.meta.headFont = 'Arial';
+    doc.meta.collections = [
+      {
+        id: 'authors', name: 'Authors', slug: 'authors', detail: '',
+        fields: [{ id: 'title', name: 'Title', type: 'text', required: 1 }],
+        items: [
+          { id: 'sam', slug: 'sam-reed', values: { title: 'Sam Reed' } },
+          { id: 'jordan', slug: 'jordan-lee', values: { title: 'Jordan Lee' } },
+        ],
+      },
+      {
+        id: 'cabins', name: 'Cabins', slug: 'cabins', detail: '',
+        fields: [
+          { id: 'title', name: 'Title', type: 'text', required: 1 },
+          { id: 'field-4', name: 'Guests', type: 'number' },
+          { id: 'field-8', name: 'Author', type: 'ref', ref: 'authors' },
+        ],
+        items: [
+          { id: 'pine', slug: 'pine-cabin', values: { title: 'Pine cabin', 'field-4': '2', 'field-8': 'sam' } },
+          { id: 'lake', slug: 'lake-cabin', values: { title: 'Lake cabin', 'field-4': '4', 'field-8': 'jordan' } },
+        ],
+      },
+    ];
+    const list = C.N('list');
+    list.src = 'cabins';
+    const heading = C.N('heading');
+    heading.bind = { text: { src: 'field', path: 'field-8.title' } };
+    list.children = [heading];
+    doc.pages[0].tree = [list];
+    const site = await store.create({ name: doc.meta.name, host: 'workshop.test', doc, savedBy: owner.id });
+    await auth.grant(site.id, owner.id, 'owner');
+    const app = createApp({
+      store, auth, accountAuth, editorHost: 'builder.test', editorOrigin: 'https://builder.test',
+      editorHtml: '<title>Workshop</title>',
+    });
+    let version = site.version;
+    const save = async (document: typeof doc) => {
+      const response = await app.request(`https://builder.test/api/sites/${site.id}`, {
+        method: 'PUT',
+        headers: { host: 'builder.test', origin: 'https://builder.test', 'content-type': 'application/json' },
+        body: JSON.stringify({ doc: document, version }),
+      });
+      if (response.status === 200) version = (await response.clone().json()).version;
+      return response;
+    };
+    const client = structuredClone((await store.byId(site.id))!.doc);
+    // Native entry fields are assigned in interaction order, not schema order.
+    client.meta.collections![1].items.push({
+      id: 'brook', slug: 'brook-cabin', draft: 1,
+      values: { title: 'Brook cabin', 'field-8': 'sam', 'field-4': '0' }, slugLocked: 1,
+    });
+    expect((await save(client)).status).toBe(200);
+    const stored = (await store.byId(site.id))!.doc;
+    const brook = client.meta.collections![1].items[2];
+    expect(stored.meta.collections![1].items[2]).toEqual(brook);
+    expect(Object.keys(brook.values)).toEqual(['title', 'field-8', 'field-4']);
+    expect(Object.keys(stored.meta.collections![1].items[2].values)).toEqual(['title', 'field-4', 'field-8']);
+    expect(JSON.stringify(stored.meta.collections![1].items[2])).not.toBe(JSON.stringify(brook));
+
+    const deleted = structuredClone(client);
+    deleted.meta.collections![0].items.shift();
+    const removed = await save(deleted);
+    expect(removed.status, await removed.clone().text()).toBe(200);
+    const afterDelete = (await store.byId(site.id))!.doc;
+    expect(afterDelete.meta.collections).toEqual(deleted.meta.collections);
+    expect(afterDelete.meta.collections![1].items).toEqual(client.meta.collections![1].items);
+    const html = renderSite(afterDelete).files.get('index.html')!;
+    expect(html).not.toContain('Sam Reed');
+    expect(html).toContain('Jordan Lee');
+
+    // The editor's Undo sends the pre-delete document with the acknowledged version.
+    expect((await save(client)).status).toBe(200);
+    const restored = (await store.byId(site.id))!.doc;
+    expect(restored.meta.collections).toEqual(client.meta.collections);
+    expect(renderSite(restored).files.get('index.html')).toContain('Sam Reed');
+    const invalid = structuredClone(client);
+    invalid.meta.collections![1].items[2].values['field-8'] = 'missing';
+    expect((await save(invalid)).status).toBe(422);
+    expect((await store.byId(site.id))!.version).toBe(version);
+    expect((await store.byId(site.id))!.doc.meta.collections).toEqual(client.meta.collections);
+  } finally {
+    await db.close();
+  }
 });
