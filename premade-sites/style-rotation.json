@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "scope": "24 new Pagecraft customer-selectable premade sites",
+  "date": "2026-11-12",
+  "approval": "All new pairings and palettes are candidates until user selection.",
+  "rules": [
+    "Keep a deliberate pool of font pairings and palette families, selected to suit each industry.",
+    "Do not repeat an exact font-pair and palette combination within the 24-template collection.",
+    "Avoid using the same font pair or dominant palette on consecutive templates when a suitable alternative exists.",
+    "Compare each proposal against released Pagecraft sites, personal template references, and earlier approved sites in this collection.",
+    "Check perceived similarity as well as exact font names and colour values. Changing a hue slightly does not establish a new identity.",
+    "Present at least two suitable colour and typography alternatives with each template concept before building.",
+    "Record the chosen exact families, weights and colour tokens only after user approval.",
+    "Maintain separate structural design variation; colours and fonts alone do not make a unique template.",
+    "Cream, green, serif and other colour or type families remain permitted when appropriate. Avoid repeating the same combination by default."
+  ],
+  "fontPairs": [
+    {
+      "id": "sora-public",
+      "heading": "Sora",
+      "body": "Public Sans",
+      "character": "Precise geometric",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "figtree-source",
+      "heading": "Figtree",
+      "body": "Source Sans 3",
+      "character": "Friendly humanist",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "nunito-work",
+      "heading": "Nunito Sans",
+      "body": "Work Sans",
+      "character": "Soft and approachable",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "epilogue-dm",
+      "heading": "Epilogue",
+      "body": "DM Sans",
+      "character": "Bold editorial sans",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "manrope-plex",
+      "heading": "Manrope",
+      "body": "IBM Plex Sans",
+      "character": "Practical technical",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "fraunces-karla",
+      "heading": "Fraunces",
+      "body": "Karla",
+      "character": "Expressive editorial serif",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "dm-serif-mulish",
+      "heading": "DM Serif Display",
+      "body": "Mulish",
+      "character": "Formal display serif",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    },
+    {
+      "id": "crimson-manrope",
+      "heading": "Crimson Pro",
+      "body": "Manrope",
+      "character": "Literary traditional",
+      "nativeFamiliesVerified": true,
+      "approval": null
+    }
+  ],
+  "palettes": [
+    {
+      "id": "a1",
+      "name": "Violet and Lilac",
+      "tokens": {
+        "primary": "#60449F",
+        "surface": "#F3EFFF",
+        "paper": "#FFFFFF",
+        "ink": "#282139",
+        "accent": "#C0B3EA"
+      },
+      "state": "proposed-dental-choice"
+    },
+    {
+      "id": "a2",
+      "name": "Sky and Ice",
+      "tokens": {
+        "primary": "#076A9F",
+        "surface": "#EDF8FF",
+        "paper": "#FFFFFF",
+        "ink": "#183A50",
+        "accent": "#B9E5F7"
+      },
+      "state": "proposed-dental-choice"
+    },
+    {
+      "id": "a3",
+      "name": "Sunflower and Graphite",
+      "tokens": {
+        "primary": "#F3C645",
+        "surface": "#FFF8D9",
+        "paper": "#FFFFFF",
+        "ink": "#2A2E36",
+        "accent": "#E6AB18"
+      },
+      "state": "proposed-dental-choice"
+    },
+    {
+      "id": "graphite-tangerine",
+      "name": "Graphite and Tangerine",
+      "tokens": {
+        "primary": "#B94E07",
+        "surface": "#F1F3F5",
+        "paper": "#FFFFFF",
+        "ink": "#262C34",
+        "accent": "#FFBF8D"
+      },
+      "state": "unassigned-candidate"
+    },
+    {
+      "id": "emerald-porcelain",
+      "name": "Emerald and Porcelain",
+      "tokens": {
+        "primary": "#0A6C57",
+        "surface": "#F4FCF9",
+        "paper": "#FFFFFF",
+        "ink": "#193F35",
+        "accent": "#A7DAC5"
+      },
+      "state": "unassigned-candidate"
+    },
+    {
+      "id": "burgundy-silver",
+      "name": "Burgundy and Silver",
+      "tokens": {
+        "primary": "#7D263F",
+        "surface": "#F3F4F7",
+        "paper": "#FFFFFF",
+        "ink": "#2E2930",
+        "accent": "#E4B6C3"
+      },
+      "state": "unassigned-candidate"
+    }
+  ],
+  "existingInventory": [
+    {
+      "name": "Marea",
+      "body": "Outfit",
+      "heading": "Newsreader",
+      "palette": "cream, sage, dark green, clay",
+      "source": "coastal-rentals/1.0.4/site.pagecraft-site.zip:source/document.json"
+    },
+    {
+      "name": "Northline Studio",
+      "body": "Geist",
+      "heading": "Geist",
+      "palette": "warm paper, navy, vivid blue",
+      "source": "independent-studio/2.0.9/site.pagecraft-site.zip:source/document.json"
+    },
+    {
+      "name": "Common Ground",
+      "body": "Arial",
+      "heading": "Arial",
+      "palette": "near-white, dark charcoal-green, brown",
+      "source": "architecture-studio/1.0.0/site.pagecraft-site.zip:source/document.json"
+    },
+    {
+      "name": "Salt House",
+      "body": "Outfit",
+      "heading": "Outfit",
+      "palette": "cream, green, rust",
+      "source": "salt-house/1.0.0/site.pagecraft-site.zip:source/document.json"
+    },
+    {
+      "name": "Stillwood",
+      "body": "Arial",
+      "heading": "Georgia",
+      "palette": "pale cream, forest, muted green",
+      "source": "stillwood/1.0.0/site.pagecraft-site.zip:source/document.json"
+    },
+    {
+      "name": "Morrow & Muse",
+      "heading": "Marcellus",
+      "body": "Instrument Sans",
+      "palette": "paper, black, cherry, rose",
+      "source": "/Users/braudypedorsa/Braudy/Projects/braudyp-templates/sites/morrow-and-muse/styles.css"
+    },
+    {
+      "name": "Coastal Stays",
+      "heading": "Lora",
+      "body": "DM Sans",
+      "palette": "shell, lagoon, coral, sage",
+      "source": "/Users/braudypedorsa/Braudy/Projects/braudyp-templates/sites/coastal-stays/src/styles.css"
+    },
+    {
+      "name": "Stillbloom",
+      "heading": "Bricolage Grotesque",
+      "body": "Hanken Grotesk",
+      "palette": "cream, wine, blush, sage",
+      "source": "/Users/braudypedorsa/Braudy/Projects/braudyp-templates/sites/stillbloom/src/styles.css"
+    },
+    {
+      "name": "Rally Yard",
+      "heading": "Space Grotesk",
+      "body": "Plus Jakarta Sans",
+      "palette": "warm canvas, court green, lime, clay",
+      "source": "/Users/braudypedorsa/Braudy/Projects/braudyp-templates/sites/rally-yard/src/styles/club-identity.css"
+    }
+  ],
+  "usage": [
+    {
+      "template": "dental-clinic",
+      "preferredConcept": "A",
+      "palette": "a2",
+      "fontPair": "figtree-source",
+      "approval": {
+        "selection": "A2",
+        "userText": "A2",
+        "source": "User message in this chat, 12 November 2026",
+        "artifact": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/concepts/variants-v2/a2-sky-ice.png",
+        "artifactSha256": "ea7c7b529b978c6c8f5c5cd6b5def31d35e491565da8ff7b4b08296a0ddda1a7",
+        "scope": [
+          "concept direction",
+          "layout direction",
+          "Sky and Ice palette",
+          "Figtree headings",
+          "Source Sans 3 body"
+        ],
+        "notYetApproved": [
+          "separate production image files",
+          "editable vector logo masters",
+          "native built site",
+          "catalog package",
+          "production activation"
+        ]
+      },
+      "choices": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "review": "design/dental-clinic/concepts/variants-v2/manifest.json",
+      "headingWeights": [
+        600,
+        700
+      ],
+      "bodyWeights": [
+        400,
+        600
+      ]
+    }
+  ]
+}

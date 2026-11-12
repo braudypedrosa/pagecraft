@@ -1,0 +1,16 @@
+{
+  "id": "native-editing-review",
+  "version": "0.1.0",
+  "revision": 7,
+  "editorUrl": "http://127.0.0.1:4398/owner/template-drafts/native-editing-review/0.1.0/edit",
+  "previewUrl": "http://127.0.0.1:4398/owner/template-drafts/native-editing-review/0.1.0/preview/index.html?revision=7",
+  "packageSha256": "7118ada0dae9a4b88995c867977cb81b04f421b4b13d709ab6a74555c1cf1b6e",
+  "assets": 1,
+  "checks": {
+    "nativeHeadingEditSavedAndReopened": true,
+    "restoreCreatedRevision": true,
+    "browserUploadReopened": true,
+    "browserImageInserted": true,
+    "portableExportValidated": true
+  }
+}

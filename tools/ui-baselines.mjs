@@ -11,7 +11,7 @@ export {sourceHashes,names} from './ui-gallery-contract.mjs';
 export {pngColorMetadata} from './png-color-metadata.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
 /* Each capture path names itself. Adding one here is a review-policy decision, not a fix. */
-export const CAPTURE_BROWSERS=['Codex In-app Browser','Headless Chrome'];
+export const CAPTURE_BROWSERS=['Built-in browser','Codex In-app Browser','Headless Chrome'];
 const CAPTURE_SCHEMA_VERSION=2;
 const captureCodeFiles=['tools/capture-ui-gallery.mjs','tools/png-color-metadata.mjs'];
 const requiredVersionFields=['protocolVersion','product','revision','userAgent','jsVersion'];

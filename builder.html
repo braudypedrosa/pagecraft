@@ -1920,6 +1920,8 @@ let dirty = false;
 const WP = window.PC_WORDPRESS || null;
 const SRV = window.PC_SERVER || WP || null;
 const IS_WORDPRESS = !!WP;
+const IS_TEMPLATE_DRAFT = !!SRV?.templateDraft;
+const siteApiRoot = () => SRV.apiRoot || '/api/sites/' + encodeURIComponent(SRV.siteId);
 /* Copied styles survive a project switch; core needs to know which project this is so a look
    from another one pastes as values instead of linking to ids that mean something else here.
    WordPress shares one design-token set across the site, so every page there is one project;
@@ -1938,7 +1940,7 @@ const BUNDLED_COMPILER_CONTRACT = Object.freeze(
     rendererRevision: 'development'
   } /*PAGECRAFT_COMPILER_DESCRIPTOR_END*/
 );
-if (SRV && !IS_WORDPRESS) {
+if (SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT) {
   setCloudFormEndpoint(location.origin + '/forms/' + encodeURIComponent(SRV.siteId));
   const submissions = document.createElement('button');
   submissions.title = 'Submissions';
@@ -1958,7 +1960,7 @@ if (SRV && !IS_WORDPRESS) {
 }
 const brandHome = $('#brandHome');
 if (brandHome) {
-  const brandDestination = IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (SRV ? '/' : '');
+  const brandDestination = IS_WORDPRESS ? (WP.pagesUrl || WP.exitUrl || '') : (IS_TEMPLATE_DRAFT ? '/owner/template-drafts' : (SRV ? '/' : ''));
   if (brandDestination) brandHome.setAttribute('href', brandDestination);
   brandHome.setAttribute('aria-label', IS_WORDPRESS ? 'Back to WordPress pages' : (SRV ? 'Pagecraft dashboard' : 'Pagecraft'));
 }
@@ -1982,6 +1984,13 @@ const HOST = WP ? PC_UI.createWordPressHostAdapter({
   fetch: fetch.bind(window)
 }) : SRV ? PC_UI.createWebHostAdapter({
   siteId: SRV.siteId,
+  apiRoot: SRV.apiRoot,
+  templateDraft: IS_TEMPLATE_DRAFT,
+  getDraftRevision: () => SRV.version,
+  onDraftRevision: (revision, previousRevision) => {
+    if (SRV.version !== previousRevision) throw new Error('The draft changed during upload. Reload before continuing.');
+    SRV.version = revision;
+  },
   sessionToken: SRV.editorSessionToken,
   role: SRV.role,
   userId: SRV.user && SRV.user.id,
@@ -2036,9 +2045,9 @@ function applyHostFeatures() {
     remove('#accountPop');
   }
   if (!HOST_FEATURES.cloudPageManager) {
-    remove('#leftRail');
-    remove('#panePages');
+    if (!IS_TEMPLATE_DRAFT) { remove('#leftRail'); remove('#panePages'); }
     remove('#paneCms');
+    if (IS_TEMPLATE_DRAFT) remove('#leftRail [data-t="cms"]');
   }
   if (!HOST_FEATURES.projectExport) remove('[data-act="project"]');
 }
@@ -2671,7 +2680,7 @@ async function preparePublicationReview(button) {
     reviewed.document = baseline;
     if (!host?.isConnected) { action.cancel(); return; }
     if (JSON.stringify(doc()) !== baseline || reviewed.sourceVersion !== SRV.version) throw new Error('The draft changed while preparing the preview. Create a new preview.');
-    const root = `/api/sites/${encodeURIComponent(SRV.siteId)}/publication-snapshots/`;
+    const root = `${siteApiRoot()}/publication-snapshots/`;
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
     if ($('#exReview')) $('#exReview').hidden = true;
     host.innerHTML = `<h3>Changes to publish</h3>
@@ -2945,7 +2954,7 @@ const saveDocumentKey = value => JSON.stringify(value, (_key, part) => {
 async function readCloudDraft() {
   const headers = SRV.editorSessionToken
     ? { 'X-Pagecraft-Editor-Session': SRV.editorSessionToken } : {};
-  const response = await fetch('/api/sites/' + encodeURIComponent(SRV.siteId), {
+  const response = await fetch(siteApiRoot(), {
     headers, credentials: 'same-origin', cache: 'no-store'
   });
   if (!response.ok) throw new Error('Draft readback failed (' + response.status + ')');
@@ -3488,14 +3497,28 @@ async function assetsLoad() {
    server — which keeps every existing reader of `AS.mem` working unchanged. */
 async function assetAddServer(file) {
   let meta;
+  let locked = false;
   try {
+    if (IS_TEMPLATE_DRAFT) {
+      await flushDraft();
+      while (saving) await new Promise(resolve => setTimeout(resolve, 25));
+      saving = true; locked = true;
+    }
     meta = await HOST.assets.upload(file, file.name);
   } catch (e) {
+    if (IS_TEMPLATE_DRAFT && locked) {
+      loadBlocked = true; saveAgain = false; dirty = true; saveState = 'failed';
+      stamp('Reload required', true);
+      toast('The upload could not be confirmed. Reload the draft before continuing.', {tone:'error'});
+      return null;
+    }
     const why = e && e.payload;
     toast((why && (why.detail || why.error)) || (e && e.status
       ? `The server refused the image (${e.status})`
       : 'The upload did not reach the server. Try again.'), {tone:'error'});
     return null;
+  } finally {
+    if (locked) { saving = false; if (saveAgain && !loadBlocked) { saveAgain = false; writeServer(); } }
   }
   AS.mem.set(meta.id, {
     id: meta.id, name: meta.name, type: meta.mimeType, size: meta.size || file.size,
@@ -3505,7 +3528,7 @@ async function assetAddServer(file) {
     canDelete: meta.usageKnown === true && Number.isInteger(meta.usageCount) && meta.canDelete === true,
     usedBy: Array.isArray(meta.usedBy) ? meta.usedBy : [],
     /* served by the editor's own route, so it needs the session the page already has */
-    url: meta.url || (SRV.editorSessionToken ? URL.createObjectURL(file) : `/api/sites/${SRV.siteId}/assets/${meta.id}`)
+    url: meta.url || (SRV.editorSessionToken ? URL.createObjectURL(file) : `${siteApiRoot()}/assets/${encodeURIComponent(meta.id)}`)
   });
   return meta.id;
 }
@@ -3554,6 +3577,7 @@ async function assetAdd(file) {
 const deletingAssets = new Set();
 const confirmingAssetDeletes = new Set();
 async function assetDel(id, button = null, silent = false) {
+  if (IS_TEMPLATE_DRAFT) return false;
   if (deletingAssets.has(id)) return false;
   deletingAssets.add(id);
   const a = AS.mem.get(id);
@@ -5849,10 +5873,10 @@ const ui = () => UI || (UI = PC_UI.mount(
     },
     /* Libraries are account-owned and cookie-authenticated, so a connected editor session and
        a non-owner never see them. See docs/phase5-libraries-design.md. */
-    libraries: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
+    libraries: () => (!IS_WORDPRESS && !IS_TEMPLATE_DRAFT && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.libraries) || null,
     siteDraft: () => (SRV && !IS_WORDPRESS ? { siteId: SRV.siteId, version: SRV.version } : null),
     flushDraft, acceptProposalDraft, assetsReload: assetsLoadServer,
-    proposals: () => (!IS_WORDPRESS && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.proposals) || null,
+    proposals: () => (!IS_WORDPRESS && !IS_TEMPLATE_DRAFT && SRV && !SRV.editorSessionToken && SRV.role === 'owner' && HOST.proposals) || null,
     /* the click fires after the drag ends, so the flag is read and cleared in one go
        or the dragged element is also appended where it started */
     consumeDragMoved: () => { const v = dragDidMove; dragDidMove = false; return v; },
@@ -6001,7 +6025,7 @@ function wireMediaBrowser(root, use, attr, choose, remove, state, redraw = null)
     $('[data-media-select]', root).textContent = state.selecting ? 'Done selecting' : 'Select images';
     $('[data-media-selected]', root).textContent = state.selecting ? `${state.selected.size} selected` : '';
     $('[data-media-tag]', root).hidden = !state.selecting || !state.selected.size || !HOST?.assets?.tag;
-    $('[data-media-delete]', root).hidden = !state.selecting || !state.selected.size;
+    $('[data-media-delete]', root).hidden = IS_TEMPLATE_DRAFT || !state.selecting || !state.selected.size;
     $$('[' + attr + ']', results).forEach(button => button.addEventListener('click', () => {
       const id = button.getAttribute(attr);
       if (!state.selecting) return choose(id);
@@ -6209,8 +6233,8 @@ function mediaCards(list, use, attr, selection = {}) {
       <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''} · ${assetUsageLabel(a.id, use)}</span>
     </button>
     <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
-    <button class="mdel" type="button" data-del="${a.id}" title="${deleteDisabled ? esc(assetDeleteBlockedMessage(usage)) : 'Delete from the library'}"
-      aria-label="Delete ${esc(a.name)} from the library"${deleteDisabled ? ' disabled' : ''}>${svg('trash', 12)}</button>
+    ${IS_TEMPLATE_DRAFT ? '' : `<button class="mdel" type="button" data-del="${a.id}" title="${deleteDisabled ? esc(assetDeleteBlockedMessage(usage)) : 'Delete from the library'}"
+      aria-label="Delete ${esc(a.name)} from the library"${deleteDisabled ? ' disabled' : ''}>${svg('trash', 12)}</button>`}
   </div>`;
   }).join('');
 }
@@ -6381,7 +6405,7 @@ function mediaModal() {
          <button type="button" class="btn" data-media-intent="replace" aria-pressed="${browserState.intent === 'replace'}" title="Replace only ${esc(target.label)}">Replace selected image</button>
          <button type="button" class="btn" data-media-intent="insert" aria-pressed="${browserState.intent === 'insert'}" title="Add a separate Image element">Insert new image</button>
        </div>` : ''}
-       ${orphans ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
+       ${orphans && !IS_TEMPLATE_DRAFT ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
 
@@ -7707,7 +7731,7 @@ function projectModal() {
     ? wordpressSaveState.dirty : false;
   openModal(IS_WORDPRESS ? 'Pagecraft design settings' : 'Project settings', `
     <div class="fgrid">
-      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV ? '<div class="pc-field-actions"><button class="btn" type="button" id="mSaveName">Save name</button></div>' : ''}</div>`}
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV && !IS_TEMPLATE_DRAFT ? '<div class="pc-field-actions"><button class="btn" type="button" id="mSaveName">Save name</button></div>' : ''}</div>`}
       <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
@@ -7819,7 +7843,7 @@ function projectModal() {
   };
   let namePending = null;
   const saveProjectName = () => {
-    if (!SRV || IS_WORDPRESS || $('#mName').value.trim() === SRV.name) return Promise.resolve();
+    if (!SRV || IS_WORDPRESS || IS_TEMPLATE_DRAFT || $('#mName').value.trim() === SRV.name) return Promise.resolve();
     if (namePending) return namePending;
     const input = $('#mName');
     input.disabled = true;
@@ -7828,7 +7852,7 @@ function projectModal() {
     }).finally(() => { input.disabled = false; namePending = null; });
     return namePending;
   };
-  if (SRV && !IS_WORDPRESS) $('#mSaveName').addEventListener('click', () =>
+  if (SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT) $('#mSaveName').addEventListener('click', () =>
     withAction($('#mSaveName'), 'Saving name…', saveProjectName, 'Site name updated.'));
   else wire('mName', v => { m.name = v; renderModebar(); });
 
@@ -7894,7 +7918,7 @@ function projectModal() {
   $('#mDone').addEventListener('click', async () => {
     if (!IS_WORDPRESS) {
       const pending = SRV
-        ? namePending || $('#mName').value.trim() !== SRV.name || saving || saveAgain || saveState !== 'ok' || JSON.stringify(doc()) !== lastCloudDocument
+        ? namePending || (!IS_TEMPLATE_DRAFT && $('#mName').value.trim() !== SRV.name) || saving || saveAgain || saveState !== 'ok' || JSON.stringify(doc()) !== lastCloudDocument
         : saveState !== 'ok';
       if (!pending) { closeModal(); return; }
       await withAction($('#mDone'), 'Saving settings…', async () => {
@@ -8147,7 +8171,7 @@ function helpModal() {
       <p>${IS_WORDPRESS ? 'Preview checks your WordPress page. Changes save to WordPress; use Done when finished. Publish from WordPress.'
         : SRV ? 'Preview shows your working draft. Site checks helps find problems. Saving keeps your draft; Publish makes a reviewed version public. Live link copies the published site address.'
         : 'Preview shows your working page. Site checks helps find problems. Export downloads the site; changes save only in this browser.'}</p>
-      ${SRV && !IS_WORDPRESS ? `<p>For client feedback, open <a href="/sites/${encodeURIComponent(SRV.siteId)}/reviews">Reviews</a>. Review links show the latest saved draft and shared comments. A publication preview freezes one saved version for publishing.</p>` : ''}
+      ${SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT ? `<p>For client feedback, open <a href="/sites/${encodeURIComponent(SRV.siteId)}/reviews">Reviews</a>. Review links show the latest saved draft and shared comments. A publication preview freezes one saved version for publishing.</p>` : ''}
     </div>
     <h3>Keyboard shortcuts</h3>
     <table class="kt">${K.map(([a, b]) => `<tr><td>${a}</td><td><span class="kbd">${b}</span></td></tr>`).join('')}</table>
@@ -8450,6 +8474,15 @@ function bindTop() {
       });
     }
   }
+  if (IS_TEMPLATE_DRAFT) {
+    const brandLink = $('#brandHome');
+    brandLink.addEventListener('click', async event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      try { await flushDraft(); location.href = brandLink.href; }
+      catch { toast('Your draft could not finish saving. Please try again before leaving.'); }
+    });
+  }
   $$('#devSeg button').forEach(b => b.addEventListener('click', () => setDev(b.dataset.dev)));
   $('#undoBtn').addEventListener('click', () => { endTx(); undo(); });
   $('#redoBtn').addEventListener('click', () => { endTx(); redo(); });
@@ -8470,7 +8503,9 @@ function bindTop() {
     primary.addEventListener('click', () => finishWordPress(primary));
     $('#reviewBtn').addEventListener('click', reviewPanel);
   } else if (SRV) {
-    if (SRV.role === 'owner') {
+    if (IS_TEMPLATE_DRAFT) {
+      primary.hidden = true;
+    } else if (SRV.role === 'owner') {
       primary.title = 'Publish this draft';
       primary.setAttribute('aria-label', 'Publish this draft');
       primaryLabel.textContent = 'Publish';
@@ -8627,7 +8662,7 @@ HOOKS.note = msg => toast(msg);
   }
   await mountCanvas();
   bindTop();
-  $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || SRV.role !== 'owner' || !!SRV.editorSessionToken;
+  $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || IS_TEMPLATE_DRAFT || SRV.role !== 'owner' || !!SRV.editorSessionToken;
   $('#clientReviewBtn').addEventListener('click', clientReviewModal);
   renderPalette();
   setDev(state.ui.dev);

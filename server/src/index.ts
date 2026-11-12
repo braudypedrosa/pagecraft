@@ -48,6 +48,8 @@ import { FileAssistantStore, FileOAuthStore } from "./assistants.ts";
 import { FilePublicationScheduleStore } from "./schedules.ts";
 import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
+import { TemplateDraftStore } from './template-draft-store.ts';
+import { TemplateAuthorGrants } from './template-authoring-grants.ts';
 import { stagingProposalGatewayUrl } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
 
@@ -545,6 +547,17 @@ const schedulingEnabled = process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" || !!sch
    production's numbers. The flush only writes these local files; it is not one of the
    shared-database workers that PAGECRAFT_BACKGROUND_WORKERS turns off. */
 const analytics = new AnalyticsRecorder(new FileAnalyticsStore(join(resolve(publicationRoot), ".analytics")));
+const templateOperatorIds = (process.env.PAGECRAFT_TEMPLATE_AUTHOR_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
+let templateAuthoring;
+if (process.env.PAGECRAFT_TEMPLATE_AUTHORING === '1') {
+  if (!templateOperatorIds.length) throw new Error('Template authoring requires PAGECRAFT_TEMPLATE_AUTHOR_IDS');
+  const environment = EDITOR_HOST === 'staging.itspagecraft.com' ? 'staging' : production ? 'production' : 'test';
+  const drafts = new TemplateDraftStore({ root: join(resolve(publicationRoot), '.template-authoring'), environment });
+  await drafts.init();
+  const grants = new TemplateAuthorGrants(join(drafts.root, '.grants'), environment,
+    `${editorOrigin}/mcp/template-authoring`, templateOperatorIds);
+  templateAuthoring = { store: drafts, grants };
+}
 analytics.start();
 
 const app = createApp({
@@ -558,6 +571,7 @@ const app = createApp({
   // Phase 7: per-environment, like reviews: a staging token is a staging token.
   assistants: new FileAssistantStore(join(resolve(publicationRoot), ".assistants")),
   assistantOAuth: new FileOAuthStore(join(resolve(publicationRoot), ".assistants")),
+  templateAuthoring,
   schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),

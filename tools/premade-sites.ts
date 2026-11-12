@@ -4,6 +4,7 @@ import { newWorkflow, promotionFindings, workflowSchema } from '../premade-sites
 import { dirname, relative, resolve, sep } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import type { Doc } from '../app/src/core/types.ts';
+import { adoptHostDocument } from '../app/src/host/schema.ts';
 import {
   assertTemplateDocument,
   TEMPLATE_SOURCE_FORMAT,
@@ -55,10 +56,16 @@ async function compile(directory: string) {
   const config = await readConfig(directory);
   const sourcePath = resolve(directory, config.source);
   if (!inside(directory, sourcePath)) throw new Error('template source escaped its release directory');
-  const module = await import(`${pathToFileURL(sourcePath).href}?build=${Date.now()}`) as Record<string, unknown>;
-  const factory = module[config.sourceExport];
-  if (typeof factory !== 'function') throw new Error(`${config.source} does not export ${config.sourceExport}()`);
-  const document = await (factory as () => Doc | Promise<Doc>)();
+  let document: Doc;
+  if (config.sourceKind === 'document-json-v1') {
+    const source = JSON.parse(await readFile(sourcePath, 'utf8')) as unknown;
+    document = adoptHostDocument(source as Parameters<typeof adoptHostDocument>[0]);
+  } else {
+    const module = await import(`${pathToFileURL(sourcePath).href}?build=${Date.now()}`) as Record<string, unknown>;
+    const factory = module[config.sourceExport];
+    if (typeof factory !== 'function') throw new Error(`${config.source} does not export ${config.sourceExport}()`);
+    document = await (factory as () => Doc | Promise<Doc>)();
+  }
   assertTemplateDocument(document, config);
 
   const assets: Asset[] = [];
@@ -71,10 +78,10 @@ async function compile(directory: string) {
     const type = sniff(bytes);
     if (!type || !type.startsWith('image/')) throw new Error(`${spec.file} is not a supported image`);
     const { w, h } = dimensions(bytes, type);
-    assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: path.split(sep).at(-1)!, type, w, h, bytes });
+    assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: spec.name || path.split(sep).at(-1)!, type, w, h, bytes });
   }
 
-  const provenance = {
+  const provenance = config.sourceKind === 'document-json-v1' && config.provenance ? config.provenance : {
     format: 'pagecraft.provenance.v1' as const,
     origin: 'pagecraft-cloud' as const,
     sourceId: `template:${config.id}:${config.version}`,
@@ -319,10 +326,99 @@ async function scaffold(id: string | undefined, version: string | undefined) {
   console.log(`next: author source.ts, add assets to ${CONFIG_FILE}, then run npm run template -- build ${id} ${version}`);
 }
 
+async function importDraft(id: string | undefined, version: string | undefined) {
+  if (!id || !version) throw new Error('usage: npm run template -- import-draft <id> <version> --package=path --name=Name --sample-name=Name --description=Text --categories=Industry,Type');
+  const packagePath = option('package');
+  const name = option('name');
+  const sampleName = option('sample-name');
+  const description = option('description');
+  const categories = option('categories')?.split(',').map(value => value.trim()).filter(Boolean);
+  if (!packagePath || !name || !sampleName || !description || !categories?.length) {
+    throw new Error('import-draft requires --package, --name, --sample-name, --description, and --categories');
+  }
+  const archive = new Uint8Array(await readFile(resolve(packagePath)));
+  const imported = validatePortablePackage(archive);
+  if (imported.manifest.kind !== 'site') throw new Error('import-draft requires a portable site package');
+  const directory = resolve(templateRoot, id, version);
+  if (await exists(directory)) throw new Error(`${relative(root, directory)} already exists; nothing was overwritten`);
+
+  const assetRecords = imported.manifest.files.filter(file => file.role === 'asset');
+  const assets = assetRecords.map(file => {
+    const asset = file.asset!;
+    const extension = file.mediaType === 'image/svg+xml' ? '.svg'
+      : file.mediaType === 'image/png' ? '.png'
+        : file.mediaType === 'image/jpeg' ? '.jpg'
+          : file.mediaType === 'image/webp' ? '.webp'
+            : file.mediaType === 'image/gif' ? '.gif'
+              : file.mediaType === 'image/avif' ? '.avif' : '';
+    if (!extension) throw new Error(`unsupported imported asset media type: ${file.mediaType}`);
+    return { id: asset.id, file: `assets/${asset.id}${extension}`, name: asset.name };
+  });
+  const config = validateTemplateSourceConfig({
+    format: TEMPLATE_SOURCE_FORMAT,
+    sourceKind: 'document-json-v1',
+    id,
+    version,
+    name,
+    sampleName,
+    description,
+    categories,
+    source: 'document.json',
+    previewPage: 'index.html',
+    assets,
+    customCssPolicy: 'native-only',
+    provenance: imported.provenance,
+    importedPackageSha256: imported.sha256,
+  });
+  await mkdir(resolve(directory, 'assets'), { recursive: true });
+  try {
+    await writeFile(resolve(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}\n`);
+    await writeFile(resolve(directory, 'document.json'), `${JSON.stringify(imported.document, null, 2)}\n`);
+    for (const [index, file] of assetRecords.entries()) {
+      await writeFile(resolve(directory, assets[index].file), imported.files.get(file.path)!);
+    }
+    await writeFile(resolve(directory, 'workflow.json'), `${JSON.stringify(newWorkflow(), null, 2)}\n`);
+    const output = await compile(directory);
+    const importedAssets = assetRecords.map(file => ({
+      id: file.asset!.id,
+      name: file.asset!.name,
+      type: file.mediaType,
+      w: file.asset!.width,
+      h: file.asset!.height,
+      sha256: digest(imported.files.get(file.path)!),
+    }));
+    const rebuiltAssets = output.assets.map(asset => ({
+      id: asset.id,
+      name: asset.name,
+      type: asset.type,
+      w: asset.w,
+      h: asset.h,
+      sha256: digest(asset.bytes),
+    }));
+    const parityFindings = [
+      canonicalJson(imported.document) === canonicalJson(output.document) ? '' : 'native document',
+      canonicalJson(imported.provenance) === canonicalJson(output.provenance) ? '' : 'provenance',
+      canonicalJson(importedAssets) === canonicalJson(rebuiltAssets) ? '' : 'assets',
+    ].filter(Boolean);
+    if (parityFindings.length) {
+      throw new Error(`imported package source parity failed: ${parityFindings.join(', ')}`);
+    }
+    if (output.built.sha256 !== imported.sha256) {
+      throw new Error(`imported package source parity passed, but rebuilt package hash differs (${imported.sha256} != ${output.built.sha256}); compiled artifacts were not reproduced`);
+    }
+    await build(id, version);
+    console.log(`imported draft ${id}@${version} ${output.built.sha256} — document, assets, and provenance match ${imported.sha256}; catalog unchanged`);
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
 const [command = 'build', id, version] = process.argv.slice(2).filter(value => !value.startsWith('--'));
 if (command === 'scaffold') await scaffold(id, version);
+else if (command === 'import-draft') await importDraft(id, version);
 else if (command === 'build') await build(id, version);
 else if (command === 'check') await check(id, version);
 else if (command === 'status') await status(id, version);
 else if (command === 'promote') await promote(id, version);
-else throw new Error('usage: npm run template -- <scaffold|build|check|status|promote> [id] [version]');
+else throw new Error('usage: npm run template -- <scaffold|import-draft|build|check|status|promote> [id] [version]');

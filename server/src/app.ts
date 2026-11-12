@@ -20,6 +20,7 @@ import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js'
 import { submissionRoutes } from './submissions-routes.ts';
 import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
 import { assistantMcpResponse } from './assistant-mcp.ts';
+import { templateAuthoringRoutes, type TemplateAuthoringOptions } from './template-authoring-routes.ts';
 import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from './assistants.ts';
 import { ASSISTANT_SCOPES, assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
@@ -364,6 +365,7 @@ export interface Options {
   assistants?: FileAssistantStore;
   /** Sign-in for assistant apps (claude.ai, Claude Desktop) that issues those tokens. */
   assistantOAuth?: FileOAuthStore;
+  templateAuthoring?: TemplateAuthoringOptions;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -475,7 +477,7 @@ export function createApp(o: Options) {
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
       /^\/(?:account|invitations|owner)(?:\/|$)/.test(path) ||
       /^\/internal\/components(?:\/|$)/.test(path) ||
-      path === "/mcp" ||
+      (path === "/mcp" || path.startsWith('/mcp/')) ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
     const cachedThumbnail = c.req.method === "GET" && /^\/api\/sites\/[^/]+\/dashboard-thumbnail$/.test(path) &&
       [200, 304].includes(c.res.status) && c.res.headers.get("cache-control")?.includes("immutable");
@@ -2688,6 +2690,13 @@ export function createApp(o: Options) {
     },
   };
   assistantRoutes(app, assistantDeps);
+  if (o.templateAuthoring) templateAuthoringRoutes(app, {
+    ...o.templateAuthoring,
+    origin: o.editorOrigin || `https://${o.editorHost}`,
+    editorHtml: o.editorHtml,
+    identity: who,
+    editorHost: c => isEditorHost(c.req.header('host'), o),
+  });
   assistantOAuthRoutes(app, {
     assistants: o.assistants, oauth: o.assistantOAuth, editorOrigin: o.editorOrigin, who, requestSource,
     isEditorHost: (c) => isEditorHost(c.req.header("host"), o),

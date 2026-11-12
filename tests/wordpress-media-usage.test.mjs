@@ -10,7 +10,7 @@ afterEach(()=>windows.splice(0).forEach(window=>window.close()));
 function harness({wordpress=true,document={pages:[]},remove=vi.fn(async()=>{}),confirm=vi.fn(async()=>true)}={}){
   const success=vi.fn(),error=vi.fn(),toast=vi.fn(),askConfirm=confirm;
   const context={
-    IS_WORDPRESS:wordpress,AS:{mem:new Map()},SRV:wordpress?{siteId:'wp'}:{siteId:'cloud'},
+    IS_WORDPRESS:wordpress,IS_TEMPLATE_DRAFT:false,AS:{mem:new Map()},SRV:wordpress?{siteId:'wp'}:{siteId:'cloud'},
     HOST:{assets:{remove}},feedback:()=>({begin:()=>({success,error})}),toast,askConfirm,
     A_RE:/asset:([A-Za-z0-9][A-Za-z0-9._:-]*)(?:@\d+)?/g,doc:()=>document,
     idbReq:vi.fn(),idbStore:vi.fn(),URL:{revokeObjectURL:vi.fn()},

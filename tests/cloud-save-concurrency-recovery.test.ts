@@ -4,6 +4,8 @@ import * as Core from '../app/src/core/index';
 import { createWebHostAdapter } from '../app/src/host/web';
 
 const source = readFileSync('builder.html', 'utf8');
+const siteApiRootSource = source.match(/^const siteApiRoot = .*;$/m)?.[0];
+if (!siteApiRootSource) throw new Error('site API root helper is missing');
 const saveStart = source.indexOf('let saving = false, saveAgain = false;');
 const saveEnd = source.indexOf('\n// A lock is temporary', saveStart);
 const flushStart = source.indexOf('async function flushDraft() {');
@@ -33,6 +35,7 @@ function harness(save: (input: SaveInput) => Promise<{ version: number }>, readb
     `${String.raw`
       const IS_WORDPRESS = false;
       const SRV = { siteId: 'site-save-qa', version: 99, editorSessionToken: 'scoped-save-qa' };
+      ${siteApiRootSource}
       let loadBlocked = false, saveState = 'ok', saveWarned = false, dirty = false;
       let lastCloudDocument = JSON.stringify(doc());
       function writeNow() { return writeServer(); }

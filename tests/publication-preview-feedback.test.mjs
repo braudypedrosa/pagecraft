@@ -4,6 +4,8 @@ import { JSDOM } from 'jsdom';
 import { installCustomSelects } from '../shared/custom-select.js';
 
 const builder = readFileSync(new URL('../builder.html', import.meta.url), 'utf8');
+const siteApiRootSource = builder.match(/^const siteApiRoot = .*;$/m)?.[0];
+if (!siteApiRootSource) throw new Error('site API root helper is missing');
 const publicationSource = builder.slice(
   builder.indexOf('const publicationFrameCleanup ='),
   builder.indexOf('\n/* Scheduling publishes this exact reviewed version later')
@@ -48,7 +50,7 @@ function fixture(prepare) {
     showReviewTarget: vi.fn(() => true),
     publishDraft: vi.fn(), openSchedulePanel: vi.fn(), toast: vi.fn()
   });
-  w.eval(publicationSource);
+  w.eval(`${siteApiRootSource}\n${publicationSource}`);
   return { dom, w, doc, notices, mountReview };
 }
 
