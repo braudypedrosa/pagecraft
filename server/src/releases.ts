@@ -5,7 +5,7 @@ import {
 import type { Doc } from '../../app/src/core/types.ts';
 import type { Asset } from './assets.ts';
 import {
-  assetFile, buildWordPressContentReference, pageTrees, parseWordPressContentReference,
+  assetFile, buildWordPressContentReference, eachNode, hasRichTabPanels, pageTrees, parseWordPressContentReference,
   parseWordPressContentToken, SHARED_FOOTER_END, SHARED_FOOTER_START,
   SHARED_HEADER_END, SHARED_HEADER_START, wordpressContentToken
 } from '../../app/src/core/index.ts';
@@ -700,11 +700,11 @@ export function migrateIndexedWordPressLinks(
   };
 }
 
-const connectedV1Schema = (schema: number) => {
-  if (!Number.isInteger(schema) || schema < 1 || schema > 15) {
-    throw new Error('Connected WordPress release v1 requires a reviewed schema-15 or earlier document. Upgrade the release compiler before converting a newer project.');
+const connectedV1Schema = (schema: number, richTabs = false) => {
+  if (!Number.isInteger(schema) || schema < 1 || schema > 16) {
+    throw new Error('Connected WordPress release v1 requires a reviewed schema-16 or earlier document. Upgrade the release compiler before converting a newer project.');
   }
-  return schema === 15 ? 14 : schema;
+  return schema >= 15 ? richTabs ? 15 : 14 : schema;
 };
 
 /** Freeze compiled routes and content-addressed assets; the raw editor Doc never crosses. */
@@ -722,9 +722,15 @@ export function buildReleaseArtifact(input: {
   if (input.document.pages.some(page => page.header !== undefined || page.footer !== undefined)) {
     throw new Error('Connected WordPress release v1 does not support per-page header or footer overrides. Use Cloud publishing or export one page as a portable page package.');
   }
-  /* The v1 receiver understands schema 14. Schema 15 adds only the explicitly refused
-     page regions, so inherited-only sites retain the same signed artifact contract. */
-  const compatibilitySchema = connectedV1Schema(input.document.schemaVersion);
+  /* Page regions require schema 16 and are refused above. Editable tab panels still need
+     schema 15; only documents without that capability retain the old schema-14 contract. */
+  let richTabs = false;
+  for (const tree of [input.document.header, input.document.footer, ...input.document.pages.flatMap(pageTrees),
+    ...(input.document.meta.components || []).map(component => [component.node]),
+    ...(input.document.meta.blocks || []).map(block => [block.node])]) {
+    eachNode(tree, node => { if (hasRichTabPanels(node)) richTabs = true; });
+  }
+  const compatibilitySchema = connectedV1Schema(input.document.schemaVersion, richTabs);
   const authoredDocument = canonicalJson(input.document);
   for (const marker of [
     SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END
@@ -2725,11 +2731,15 @@ export function manifestForRelease(input: {
   createdAt: string;
   audit: ReleaseManifestV1['audit'];
   built: Pick<BuiltReleaseV1,
-    'artifactHash' | 'artifactBytes' | 'files' | 'pages' | 'cms' | 'assets' | 'scripts'
+    'artifact' | 'artifactHash' | 'artifactBytes' | 'files' | 'pages' | 'cms' | 'assets' | 'scripts'
     | 'redirects' | 'entities' | 'forms' | 'placeholders'>;
 }): ReleaseManifestV1 {
   if (!Number.isInteger(input.sequence) || input.sequence < 1) throw new Error('release sequence must be positive');
-  const compatibilitySchema = connectedV1Schema(input.schemaVersion);
+  connectedV1Schema(input.schemaVersion); // reject unreviewed source schemas
+  const compatibilitySchema = input.built.artifact.schemaVersion;
+  if (compatibilitySchema > 15 || input.built.artifact.rendererVersion !== `pagecraft-core-${compatibilitySchema}`) {
+    throw new Error('Connected WordPress release v1 artifact has an unsupported renderer contract');
+  }
   return {
     format: RELEASE_FORMAT,
     releaseId: input.releaseId,

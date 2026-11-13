@@ -225,7 +225,12 @@ export interface TableProps {
   rules?: string;
   zebra?: 0 | 1;
 }
-export interface TabPanel { label?: string; panel?: string }
+export interface TabPanel {
+  label?: string;
+  /** Legacy plain text content. Rich panels instead reference a direct native Box. */
+  panel?: string;
+  panelId?: string;
+}
 export interface AccordionProps {
   items?: QaItem[]; open?: string; single?: 0 | 1 | boolean; marker?: string;
 }

@@ -21,10 +21,12 @@ function harness() {
   const runAct = vi.fn();
   Object.assign(w, { state: C.state, DEF: C.DEF, selSet: C.selSet, selIds: C.selIds, selToggle: C.selToggle, selRange: C.selRange,
     multiOn: C.multiOn, locate: C.locate, menuFor: C.menuFor, esc: C.esc,
+    tabSelectionPath: C.tabSelectionPath, hasRichTabPanels: C.hasRichTabPanels, tabPanelNodes: C.tabPanelNodes,
     cdoc, cwin: frame.contentWindow, editing: { on: false },
     $: q => w.document.querySelector(q), $$: (q, root = w.document) => [...root.querySelectorAll(q)],
     PC_UI: { installUiMotion: () => null }, runAct, startDrag: vi.fn(), startColResize: vi.fn(), setMode: vi.fn(),
     contextualCanvasElement: () => null, rememberCanvasItem: () => false, exitEdit: vi.fn(), escCtx: vi.fn(),
+    paint: vi.fn(() => { cdoc.body.innerHTML = C.renderList(C.state.pages[0].tree, { edit: true }); }),
     paintSel: vi.fn(), renderRight: vi.fn(), renderModebar: vi.fn(), renderLayers: vi.fn(), drawBlocks: vi.fn(),
     revealSelection: vi.fn(), positionHud: vi.fn(), placeRT: vi.fn(), hotkey: vi.fn(),
     frameRect: () => ({ left: 0, top: 0 }), toScreen: (value, offset) => value + offset });
@@ -39,7 +41,7 @@ function harness() {
     target(node).dispatchEvent(new w.MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2, ...options }));
   };
   const selectThree = () => { press(nodes[0]); press(nodes[1], { shiftKey: true }); press(nodes[2], { shiftKey: true }); };
-  return { w, nodes, press, context, selectThree, runAct };
+  return { w, cdoc, nodes, press, context, selectThree, runAct };
 }
 
 test('right-clicking each selected member preserves all three targets and actual multi-action menu', () => {
@@ -77,4 +79,22 @@ test('secondary clicks with modifiers preserve selected members and select unsel
   selectThree(); const selected = [...C.selIds()];
   context(nodes[1], { shiftKey: true }); expect(C.selIds()).toEqual(selected);
   context(nodes[3], { shiftKey: true }); expect(C.selIds()).toEqual([nodes[3].id]);
+});
+
+
+test('rich tab clicks and keyboard navigation select and repaint the matching panel', () => {
+  const { w, cdoc } = harness();
+  const tabs = C.N('tabs', { items: [{ label: 'Care', panel: 'Everyday care' }, { label: 'Planning', panel: 'Discuss choices' }] });
+  C.enableTabPanels(tabs);
+  C.state.pages[0].tree.push(tabs);
+  w.paint(); w.paint.mockClear();
+  const buttons = () => cdoc.querySelectorAll('[data-t="tabs"] [role="tab"]');
+  buttons()[1].dispatchEvent(new w.MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+  expect(C.state.ui.sel).toBe(tabs.children[1].id);
+  expect(w.paint).toHaveBeenCalledTimes(1);
+  expect(buttons()[1].getAttribute('aria-selected')).toBe('true');
+  buttons()[1].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+  expect(C.state.ui.sel).toBe(tabs.children[0].id);
+  expect(w.paint).toHaveBeenCalledTimes(2);
+  expect(buttons()[0].getAttribute('aria-selected')).toBe('true');
 });

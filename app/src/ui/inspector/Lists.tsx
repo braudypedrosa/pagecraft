@@ -468,6 +468,44 @@ export function FieldsCtl({ n, c }: P) {
   </Field>;
 }
 
+/** Rich tab panels are real Box children. Structural changes must update both
+    the panel references and children together through the Core operations. */
+function TabPanelsCtl({ n, c }: P) {
+  const items = list(n, c);
+  const [, setLabelRevision] = useState(0);
+  const canStructure = L.canStructure();
+  return <Field n={n} c={c}>
+    <p class="note">Each tab has an editable panel. Select a panel to add and arrange its content.</p>
+    {items.map((item, index) => <div class="frow repeater-row" key={item.panelId}>
+      <div class="repeater-head">
+        <span>{item.label || `Tab ${index + 1}`}</span>
+        <button type="button" class="x" title="Move up" aria-label={`Move tab ${index + 1} up`}
+          disabled={!canStructure || index === 0} onClick={() => C.edit(() => { C.tabMove(n, index, -1); }, 'Move tab')}><Icon name="caretUp" size={11} /></button>
+        <button type="button" class="x" title="Move down" aria-label={`Move tab ${index + 1} down`}
+          disabled={!canStructure || index === items.length - 1} onClick={() => C.edit(() => { C.tabMove(n, index, 1); }, 'Move tab')}><Icon name="caret" size={11} /></button>
+        <button type="button" class="x" title="Duplicate" aria-label={`Duplicate tab ${index + 1}`}
+          disabled={!canStructure} onClick={() => C.edit(() => { C.tabDuplicate(n, index); }, 'Duplicate tab')}><Icon name="copy" size={11} /></button>
+        <button type="button" class="x" title="Remove" aria-label={`Remove tab ${index + 1}`}
+          disabled={!canStructure || items.length <= 1} onClick={() => C.edit(() => { C.tabRemove(n, index); }, 'Remove tab')}><Icon name="trash" size={11} /></button>
+      </div>
+      <div class="repeater-body">
+        <label class="frow-control"><span>Tab label</span><RowInput n={n} c={c} k={index} prop="label"
+          placeholder="Tab label" aria-label={`Label for tab ${index + 1}`}
+          onCommit={() => setLabelRevision(revision => revision + 1)} /></label>
+        <button type="button" class="btn" onClick={() => {
+          L.endTx();
+          if (!C.tabSelect(n, index)) return;
+          L.paint();
+          L.select(String(item.panelId), { scroll: true });
+        }}>Edit panel</button>
+      </div>
+    </div>)}
+    {canStructure && <AddButton label="Add tab" gap={!!items.length} onClick={() => {
+      C.edit(() => { C.tabAdd(n); }, 'Add tab');
+    }} />}
+  </Field>;
+}
+
 /* Questions and tabs use the same compact repeater as form fields. */
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
@@ -476,7 +514,11 @@ export function QaCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
   const [kA, kB] = c.rowKeys || ['q', 'a'];
   const [phA, phB] = c.rowPhs || ['Question', 'Answer'];
+  if (n.type === 'tabs' && C.hasRichTabPanels(n)) return <TabPanelsCtl n={n} c={c} />;
   return <Field n={n} c={c}>
+    {n.type === 'tabs' && L.canStructure() && <button type="button" class="btn block" onClick={() => {
+      L.endTx(); C.edit(() => { C.enableTabPanels(n); }, 'Use editable tab panels');
+    }}>Use editable panels</button>}
     {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
       title={it[kA] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
       <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA}

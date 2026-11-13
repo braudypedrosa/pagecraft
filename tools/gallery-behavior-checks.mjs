@@ -255,10 +255,12 @@ const CHECKS = [
   }],
 ];
 
-export async function runBehaviorChecks(tab, base, { hosts = ['cloud', 'builder'] } = {}) {
+export const behaviorCheckNames = CHECKS.map(([name]) => name);
+export async function runBehaviorChecks(tab, base, { hosts = ['cloud', 'builder'], checks = behaviorCheckNames } = {}) {
   const results = [];
   for (const host of hosts) {
     for (const [check, run] of CHECKS) {
+      if (!checks.includes(check)) continue;
       let outcome;
       try { outcome = await run(tab, base, host); } catch (error) { outcome = { passed: false, detail: String(error.message) }; }
       results.push({ host, check, passed: outcome.passed === true, detail: outcome.detail });

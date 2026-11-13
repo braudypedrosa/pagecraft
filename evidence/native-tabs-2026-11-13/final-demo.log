@@ -1,0 +1,6 @@
+
+dist/demo/index.html — 66 KB
+  1 component, 6 instances
+  4 collection items, 0 findings
+(node:53099) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -10,7 +10,7 @@ The Edit button opens the current shared or page-owned region through the existi
 
 ## Persistence
 
-Schema 15 adds optional `Page.header` and `Page.footer` fields:
+Schema 16 adds optional `Page.header` and `Page.footer` fields:
 
 | Stored value | Meaning |
 | --- | --- |
@@ -18,7 +18,7 @@ Schema 15 adds optional `Page.header` and `Page.footer` fields:
 | `null` | Hidden on this page |
 | `Node[]`, including `[]` | Page-owned editable region |
 
-Schema-14 documents migrate by changing version markers only. No override fields are invented. Released schema-14 template archives remain unchanged. The schema gate prevents an older editor from silently ignoring visible owned content.
+Schema-14 and schema-15 documents migrate by changing version markers only. No override fields are invented. Released schema-14 template archives remain unchanged. The schema gate prevents an older editor from silently ignoring visible owned content.
 
 The core exports `pageTrees(page)` for stored-tree walks, `pageRegion(page, kind)` for effective rendering against the current compiler state, `pageRegionMode` and the mutation-only `pageRegionSet`. The UI wraps mutations in one `edit()` transaction. Ordinary node content/style edits use the same active-tree APIs as shared regions. Public compilation resolves the supplied page, not the currently selected page, and passes detail-page CMS context into its effective regions.
 
@@ -28,7 +28,7 @@ MCP/proposal outlines identify stored page-owned regions as `page-header:<page-i
 
 ## WordPress boundary
 
-The current connected WordPress v1 release format assumes one shared header/footer for the whole site. A whole-site or connected release containing page overrides must refuse explicitly, until that separate contract is upgraded. A single-page portable export can flatten its selected page's effective regions into that package's shared trees, remove all page override fields, validate the result and convert schema 15 to schema 14 for the existing reader. The Cloud source remains unchanged. No installed WordPress runtime is upgraded by adding this Cloud feature.
+The current connected WordPress v1 release format assumes one shared header/footer for the whole site. A whole-site or connected release containing page overrides must refuse explicitly, until that separate contract is upgraded. A single-page portable export can flatten its selected page's effective regions into that package's shared trees, remove all page override fields, validate the result and convert schema 16 to schema 14 for the existing reader when it contains no native tab panels. Native editable tab panels retain schema 15 and renderer revision 3, and require a reader with that capability. The Cloud source remains unchanged. No installed WordPress runtime is upgraded by adding this Cloud feature.
 
 ## Verification ownership
 

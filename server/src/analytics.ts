@@ -63,8 +63,8 @@ export function excluded(header: Header): string | null {
   if (header('sec-gpc') === '1' || header('dnt') === '1') return 'privacy-signal';
   if (/prefetch|prerender/i.test(`${header('sec-purpose') || ''} ${header('purpose') || ''} ${header('x-moz') || ''}`)) return 'prefetch';
   if (isBot(header('user-agent') || '')) return 'bot';
-  // Someone signed in to Pagecraft: very likely the owner or a collaborator checking the site.
-  if (/(?:^|;\s*)pc_session=/.test(header('cookie') || '')) return 'signed-in';
+  // Current account auth uses pc_auth, chunked by Supabase SSR when needed; keep legacy sessions excluded too.
+  if (/(?:^|;)\s*(?:pc_session|pc_auth(?:\.\d+)?)=/.test(header('cookie') || '')) return 'signed-in';
   return null;
 }
 

@@ -9,13 +9,14 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import * as Core from '../../app/src/core/index.ts';
 import {
-  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema, supportsPortableRendererContract,
+  portableRendererRevisionForSchema, portableRendererVersionForSchema, supportsPortableRendererContract,
 } from '../../app/src/package/renderer-version.ts';
 import type { PortablePackageManifestV1 } from '../../app/src/package/types.ts';
 import { blankDoc } from '../src/render.ts';
 import { canonicalJson } from '../src/releases.ts';
 import { createPortableZip, extractPortableZip } from '../src/portable-zip.ts';
-import { createSitePackage, validatePortablePackage } from '../src/portable-packages.ts';
+import { createPagePackage, createSitePackage, validatePortablePackage } from '../src/portable-packages.ts';
+import { validateNativeTabRelations } from '../src/template-draft-validation.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -23,10 +24,17 @@ const json = (value: unknown) => encoder.encode(canonicalJson(value));
 
 test('portable renderer revision is independent, legacy-compatible, and fails unknown revisions closed', () => {
   const rendererVersion = portableRendererVersionForSchema(Core.SCHEMA);
-  a.equal(supportsPortableRendererContract(rendererVersion, PORTABLE_RENDERER_REVISION, Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-3', Core.SCHEMA, Core.SCHEMA), false);
+  const currentRevision = portableRendererRevisionForSchema(Core.SCHEMA);
+  a.equal(supportsPortableRendererContract(rendererVersion, currentRevision, Core.SCHEMA, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-2', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-4', Core.SCHEMA, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-14', 'pagecraft-renderer-2', 14, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-14', undefined, 14, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-2', 15, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 15), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 14), false);
   a.equal(supportsPortableRendererContract('pagecraft-renderer-1', undefined, Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract(`pagecraft-core-${Core.SCHEMA - 1}`, undefined, Core.SCHEMA, Core.SCHEMA), false);
 
@@ -42,7 +50,7 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
   const transportRenderer = portableRendererVersionForSchema(transportSchema);
   a.equal(built.manifest.schemaVersion, transportSchema);
   a.equal(built.manifest.rendererVersion, transportRenderer);
-  a.equal(built.manifest.rendererRevision, PORTABLE_RENDERER_REVISION);
+  a.equal(built.manifest.rendererRevision, portableRendererRevisionForSchema(transportSchema));
   a.equal(supportsPortableRendererContract(transportRenderer, built.manifest.rendererRevision, transportSchema, 14), true);
   a.equal(validatePortablePackage(built.bytes).document.schemaVersion, Core.SCHEMA);
   const files = extractPortableZip(built.bytes);
@@ -50,11 +58,57 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
   a.equal(transported.schemaVersion, transportSchema);
   a.ok(transported.pages.every((page: Record<string, unknown>) => !('header' in page) && !('footer' in page)));
   const manifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
-  manifest.rendererRevision = 'pagecraft-renderer-3';
+  manifest.rendererRevision = 'pagecraft-renderer-4';
   files.set('manifest.json', json(manifest));
   const unsupported = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
   a.throws(() => validatePortablePackage(unsupported),
-    new RegExp(`unsupported renderer ${transportRenderer} / pagecraft-renderer-3`));
+    new RegExp(`unsupported renderer ${transportRenderer} / pagecraft-renderer-4`));
+});
+
+test('schema-16 handoffs retain editable tabs at schema 15 and flatten only page-region ownership', () => {
+  const doc = blankDoc('Workshop tab handoff');
+  const tabs = Core.N('tabs'); Core.enableTabPanels(tabs);
+  tabs.children[0].children = [Core.N('heading', { text: 'Workshop panel details' })];
+  doc.pages[0].tree = [tabs];
+  const provenance = { format: 'pagecraft.provenance.v1' as const, origin: 'pagecraft-cloud' as const,
+    sourceId: 'workshop-tabs', sourceVersion: 1 };
+  const site = createSitePackage({ document: doc, provenance });
+  a.equal(site.manifest.schemaVersion, 15);
+  a.equal(site.manifest.rendererRevision, 'pagecraft-renderer-3');
+  a.equal(supportsPortableRendererContract(site.manifest.rendererVersion, site.manifest.rendererRevision, 15, 14), false);
+  a.equal(supportsPortableRendererContract(site.manifest.rendererVersion, site.manifest.rendererRevision, 15, 15), true);
+  const source = validatePortablePackage(site.bytes).document;
+  a.equal(source.pages[0].tree[0].children[0].children[0].props.text, 'Workshop panel details');
+  doc.pages[0].header = [tabs]; doc.pages[0].tree = []; doc.pages[0].footer = null;
+  a.throws(() => createSitePackage({ document: doc, provenance }), /cannot carry per-page/);
+  const before = structuredClone(doc);
+  const page = createPagePackage({ document: doc, pageId: doc.pages[0].id, provenance });
+  a.equal(page.manifest.schemaVersion, 15);
+  a.equal(page.manifest.rendererRevision, 'pagecraft-renderer-3');
+  const imported = validatePortablePackage(page.bytes);
+  const raw = JSON.parse(decoder.decode(imported.files.get('source/document.json')!));
+  a.equal(raw.schemaVersion, 15);
+  a.equal('header' in raw.pages[0], false);
+  a.equal('footer' in raw.pages[0], false);
+  a.equal(raw.header[0].children[0].children[0].props.text, 'Workshop panel details');
+  a.match(decoder.decode(imported.files.get('compiled/index.html')!), /Workshop panel details/);
+  a.deepEqual(doc, before);
+});
+
+test('native-tab relation validation also checks custom header and footer trees', () => {
+  for (const kind of ['header', 'footer'] as const) {
+    const doc = blankDoc('Workshop region tab validation');
+    doc.pages[0].tree = [];
+    doc.pages[0][kind] = [Core.N('tabs')]; Core.enableTabPanels(doc.pages[0][kind][0]);
+    validateNativeTabRelations(doc);
+    const malformed = structuredClone(doc);
+    const tabs = malformed.pages[0][kind]![0];
+    const items = tabs.props.items as Array<{ panelId?: string }>;
+    items[1].panelId = items[0].panelId;
+    a.throws(() => validateNativeTabRelations(malformed), /unique panel references/);
+    a.throws(() => createPagePackage({ document: malformed, pageId: malformed.pages[0].id,
+      provenance: { format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: 'workshop-regions', sourceVersion: 1 } }), /unique panel references/);
+  }
 });
 
 test('released checks preserve immutable legacy archives while drafts stay reproducible', async () => {
@@ -99,8 +153,20 @@ test('released checks preserve immutable legacy archives while drafts stay repro
     const packagePath = resolve(draft, 'site.pagecraft-site.zip');
     const files = extractPortableZip(new Uint8Array(await readFile(packagePath)));
     const packageManifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
-    packageManifest.rendererVersion = `pagecraft-core-${packageManifest.schemaVersion}`;
-    delete packageManifest.rendererRevision;
+    const sourcePath = packageManifest.documentPath;
+    const oldDocument = JSON.parse(decoder.decode(files.get(sourcePath)!));
+    oldDocument.schemaVersion = 14;
+    oldDocument.v = 14;
+    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(oldDocument)}; }`);
+    const oldDocumentBytes = json(oldDocument);
+    files.set(sourcePath, oldDocumentBytes);
+    const documentEntry = packageManifest.files.find(file => file.path === sourcePath)!;
+    documentEntry.bytes = oldDocumentBytes.byteLength;
+    documentEntry.sha256 = createHash('sha256').update(oldDocumentBytes).digest('hex');
+    packageManifest.schemaVersion = 14;
+    packageManifest.rendererVersion = 'pagecraft-core-14';
+    packageManifest.rendererRevision = 'pagecraft-renderer-2';
+    packageManifest.contentHash = createHash('sha256').update(json(packageManifest.files)).digest('hex');
     files.set('manifest.json', json(packageManifest));
     const legacyBytes = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
     const packageSha256 = createHash('sha256').update(legacyBytes).digest('hex');
@@ -117,8 +183,8 @@ test('released checks preserve immutable legacy archives while drafts stay repro
     a.match(run('check', 'fixture', '1.0.0'), /released archive integrity and source parity valid; current rebuild differs/);
     a.throws(() => run('check', 'fixture', '1.0.0', '--require-reproducible'), /archive is valid but current rebuild differs/);
 
-    document.meta.name = 'Changed after release';
-    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(document)}; }`);
+    oldDocument.meta.name = 'Changed after release';
+    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(oldDocument)}; }`);
     a.throws(() => run('check', 'fixture', '1.0.0'), /archived native document differs from source/);
   } finally {
     await rm(temp, { recursive: true, force: true });

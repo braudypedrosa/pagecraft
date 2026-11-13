@@ -224,6 +224,7 @@ __export(index_exports, {
   effective: () => effective,
   effectiveAt: () => effectiveAt,
   embedUrl: () => embedUrl,
+  enableTabPanels: () => enableTabPanels,
   ensureMobileMenuComponent: () => ensureMobileMenuComponent,
   ensureTokens: () => ensureTokens,
   esc: () => esc,
@@ -261,6 +262,7 @@ __export(index_exports, {
   gridTracks: () => gridTracks,
   guessBindings: () => guessBindings,
   hasBackdrop: () => hasBackdrop,
+  hasRichTabPanels: () => hasRichTabPanels,
   hex2rgb: () => hex2rgb,
   hist: () => hist,
   historyLabel: () => historyLabel,
@@ -445,6 +447,14 @@ __export(index_exports, {
   stylePasteCheck: () => stylePasteCheck,
   styleSeen: () => styleSeen,
   styles: () => styles,
+  tabAdd: () => tabAdd,
+  tabDuplicate: () => tabDuplicate,
+  tabMove: () => tabMove,
+  tabPanelNodes: () => tabPanelNodes,
+  tabPanelProblem: () => tabPanelProblem,
+  tabRemove: () => tabRemove,
+  tabSelect: () => tabSelect,
+  tabSelectionPath: () => tabSelectionPath,
   tableGrid: () => tableGrid,
   templateFor: () => templateFor,
   templatePreview: () => templatePreview,
@@ -3699,6 +3709,8 @@ var DEF = {
     label: "Tabs",
     icon: "tabs",
     level: 4,
+    takes: 4,
+    alsoHolds: ["box"],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
@@ -4207,7 +4219,7 @@ var N = (type, props = {}, css = {}, children = []) => {
     hide: {},
     cls: [],
     adv: { htmlId: "", cls: "", css: "" },
-    children: DEF[type].level < 4 ? children : []
+    children: DEF[type].level < 4 || type === "tabs" ? children : []
   };
 };
 var cols = (n, kids, css) => N("row", {}, css, Array.from({ length: n }, (_, i) => N("column", {}, { d: { "flex-grow": String(+(100 / n).toFixed(4)) } }, kids[i] || [])));
@@ -4292,8 +4304,13 @@ function pageRegionSet(pg2, kind2, mode) {
   else if (mode === "hidden") pg2[kind2] = null;
   else {
     const copy = clone(pageRegion(pg2, kind2));
+    const anchors = /* @__PURE__ */ new Map();
     eachNode(copy, (node) => {
-      node.id = uid();
+      if (node.adv?.htmlId) anchors.set(node, node.adv.htmlId);
+    });
+    copy.forEach(reid);
+    anchors.forEach((anchor, node) => {
+      node.adv.htmlId = anchor;
     });
     pg2[kind2] = copy;
   }
@@ -4524,14 +4541,19 @@ function wrap(type, t, node) {
 }
 var holds = (pt, t) => {
   const b = BASE[t] || t;
+  if (pt === "tabs") return b === "box";
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
 var slotlessInstance = (n) => !!n?.use && slotsOf(findComponent(n.use)).length === 0;
-var receivesInside = (n, t) => !!n && !slotlessInstance(n) && holds(n.type, t);
+var receivesInside = (n, t) => !!n && n.type !== "tabs" && !slotlessInstance(n) && holds(n.type, t);
 var fitsIn = (pt, t) => pt === null || holds(pt, t);
 var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
   if (nowhere(parentNode)) return null;
+  if (parentNode?.type === "tabs") {
+    const panel = tabPanelNodes(parentNode)[0];
+    return panel ? insert(type, panel, panel.children.length) : null;
+  }
   const leaf = makeFor(type);
   if (type === "list" && !leaf.children.length) {
     leaf.children.push(N("column", {}, { d: { "flex-basis": "280px" }, m: { "flex-basis": "100%" } }));
@@ -4545,6 +4567,13 @@ function insert(type, parentNode, index) {
 function moveNode(id, parentNode, index) {
   const h = locate(id);
   if (!h || nowhere(parentNode)) return;
+  if (h.parent?.type === "tabs") {
+    if (parentNode !== h.parent) return;
+    const from = tabRows(h.parent).findIndex((row) => row.panelId === id);
+    if (from >= 0) tabMove(h.parent, from, Math.max(0, Math.min(index, h.list.length - 1)) - from);
+    return;
+  }
+  if (parentNode?.type === "tabs") return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return;
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -4624,6 +4653,7 @@ function layerTarget(rowId, zone, type, movingIds = []) {
     return { container: h.node, index: 0 };
   }
   const parent = h.parent || null;
+  if (parent?.type === "tabs" && (!movingIds.length || movingIds.some((id) => locate(id)?.parent !== parent))) return null;
   if (!canHold(parent ? parent.type : null, type)) return null;
   const list = parent ? parent.children : tree();
   const i = list.findIndex((c) => c.id === rowId);
@@ -4631,10 +4661,103 @@ function layerTarget(rowId, zone, type, movingIds = []) {
   return { container: parent, index: zone === "after" ? i + 1 : i };
 }
 function reid(n) {
-  n.id = uid();
-  if (n.adv) n.adv.htmlId = "";
-  (n.children || []).forEach(reid);
+  const ids = /* @__PURE__ */ new Map();
+  eachNode([n], (node) => {
+    const id = uid();
+    ids.set(node.id, id);
+    node.id = id;
+    if (node.adv) node.adv.htmlId = "";
+  });
+  eachNode([n], (node) => {
+    if (node.type === "tabs") tabRows(node).forEach((row) => {
+      if (row.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId);
+    });
+  });
   return n;
+}
+function tabRows(n) {
+  return Array.isArray(n.props.items) ? n.props.items : [];
+}
+function hasRichTabPanels(n) {
+  return n.type === "tabs" && (!!n.children.length || tabRows(n).some((row) => row?.panelId !== void 0));
+}
+function tabPanelProblem(n) {
+  if (n.type !== "tabs" || !hasRichTabPanels(n)) return null;
+  const rows = tabRows(n), used = /* @__PURE__ */ new Set();
+  if (!rows.length || rows.length !== n.children.length) return "Tab panels must match their labels.";
+  for (const row of rows) {
+    if (!row || typeof row.panelId !== "string" || !row.panelId || used.has(row.panelId) || row.panel !== void 0) return "Each tab must reference one unique editable panel.";
+    if (!n.children.some((child) => child.type === "box" && child.id === row.panelId))
+      return "A tab references a missing panel Box.";
+    used.add(row.panelId);
+  }
+  return null;
+}
+function tabPanelNodes(n) {
+  return tabRows(n).map((row) => n.children.find((child) => child.id === row.panelId)).filter((node) => !!node);
+}
+function tabOrderChildren(n) {
+  n.children = tabPanelNodes(n);
+}
+function enableTabPanels(n) {
+  if (n.type !== "tabs" || hasRichTabPanels(n)) return false;
+  const rows = tabRows(n);
+  for (const row of rows) {
+    const body = String(row.panel || "");
+    const panel = N("box", {}, {}, body ? [N("heading", { text: body, level: "p", ts: "body" })] : []);
+    n.children.push(panel);
+    row.panelId = panel.id;
+    delete row.panel;
+  }
+  return true;
+}
+function tabAdd(n) {
+  if (n.type !== "tabs") return "";
+  if (!hasRichTabPanels(n)) enableTabPanels(n);
+  if (tabPanelProblem(n)) return "";
+  const panel = N("box");
+  n.props.items = [...tabRows(n), { label: "New tab", panelId: panel.id }];
+  n.children.push(panel);
+  return panel.id;
+}
+function tabSelect(n, index) {
+  const panel = tabPanelNodes(n)[index];
+  if (!panel) return false;
+  selSet([panel.id]);
+  return true;
+}
+function tabSelectionPath(id) {
+  const panels = [];
+  for (let hit = id ? locate(id) : null; hit?.parent; hit = locate(hit.parent.id)) {
+    if (hit.parent.type === "tabs") panels.push(hit.node.id);
+  }
+  return panels.join("/");
+}
+function tabRemove(n, index) {
+  const rows = tabRows(n), row = rows[index];
+  if (!row || !hasRichTabPanels(n) || rows.length < 2) return false;
+  const panel = n.children.find((child) => child.id === row.panelId);
+  rows.splice(index, 1);
+  n.children = n.children.filter((child) => child.id !== row.panelId);
+  if (panel && state.ui.sel && locate(state.ui.sel, [panel])) selSet([n.id]);
+  return true;
+}
+function tabMove(n, index, delta) {
+  const rows = tabRows(n), to = index + delta;
+  if (!hasRichTabPanels(n) || !rows[index] || to < 0 || to >= rows.length || to === index) return false;
+  const [row] = rows.splice(index, 1);
+  rows.splice(to, 0, row);
+  tabOrderChildren(n);
+  return true;
+}
+function tabDuplicate(n, index) {
+  const row = tabRows(n)[index], source = n.children.find((child) => child.id === row?.panelId);
+  if (!row || !source || tabPanelProblem(n)) return "";
+  const panel = reid(clone(source));
+  tabRows(n).splice(index + 1, 0, { label: `${row.label || "Tab"} copy`, panelId: panel.id });
+  n.children.push(panel);
+  tabOrderChildren(n);
+  return panel.id;
 }
 function pageMove(i, dir) {
   const j = i + dir;
@@ -4676,6 +4799,11 @@ function pageDelete(i) {
 function dupNode(id) {
   const h = locate(id);
   if (!h) return;
+  if (h.parent?.type === "tabs") {
+    const copy = tabDuplicate(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id));
+    if (copy) selSet([copy]);
+    return;
+  }
   const c = reid(clone(h.node));
   h.list.splice(h.i + 1, 0, c);
   selSet([c.id]);
@@ -4683,6 +4811,10 @@ function dupNode(id) {
 function delNode(id) {
   const h = locate(id);
   if (!h) return;
+  if (h.parent?.type === "tabs") {
+    if (tabRemove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id))) selSet([h.parent.id]);
+    return;
+  }
   h.list.splice(h.i, 1);
   selSet(h.parent ? [h.parent.id] : []);
 }
@@ -4691,6 +4823,11 @@ function dupMany(ids) {
   for (const id of selOrder(topMost(ids))) {
     const h = locate(id);
     if (!h) continue;
+    if (h.parent?.type === "tabs") {
+      const id2 = tabDuplicate(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === h.node.id));
+      if (id2) made.push(id2);
+      continue;
+    }
     const c = reid(clone(h.node));
     h.list.splice(h.i + 1, 0, c);
     made.push(c.id);
@@ -4701,14 +4838,23 @@ function dupMany(ids) {
 function delMany(ids) {
   const top = selOrder(topMost(ids));
   let fallback = null;
+  let removed = 0;
   for (const id of top.slice().reverse()) {
     const h = locate(id);
     if (!h) continue;
+    if (h.parent?.type === "tabs") {
+      if (tabRemove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id))) {
+        fallback = h.parent.id;
+        removed++;
+      }
+      continue;
+    }
     h.list.splice(h.i, 1);
+    removed++;
     fallback = h.parent ? h.parent.id : null;
   }
   selSet(fallback ? [fallback] : []);
-  return top.length;
+  return removed;
 }
 function applyCols(row, ws2) {
   const kids = row.children;
@@ -6014,7 +6160,9 @@ function lint() {
         const rows = Array.isArray(n.props.items) ? n.props.items : [];
         if (!rows.length) add("warn", "tabs-empty", `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
         const noL = rows.filter((r) => !String(r && r.label || "").trim()).length;
-        const noP = rows.filter((r) => String(r && r.label || "").trim() && !String(r && r.panel || "").trim()).length;
+        const problem = tabPanelProblem(n);
+        if (problem) add("error", "tabs-invalid-panels", problem, w, n.id);
+        const noP = rows.filter((r) => String(r && r.label || "").trim() && (hasRichTabPanels(n) ? !n.children.find((child) => child.id === r.panelId)?.children.length : !String(r && r.panel || "").trim())).length;
         if (noL) add("error", "tabs-no-label", `${noL} tab${noL === 1 ? "" : "s"} in the ${region} have no label, so there is nothing to click.`, w, n.id);
         if (noP) add("warn", "tabs-no-panel", `${noP} tab${noP === 1 ? "" : "s"} in the ${region} open onto an empty panel.`, w, n.id);
       }
@@ -6941,11 +7089,16 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType, parentNode) => {
+    if (parentType === "tabs") return false;
     if (!fitsIn(parentType, fresh.type) || parentNode && slotlessInstance(parentNode) || nowhere(parentNode)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
+  if (h?.node.type === "tabs") {
+    const panel = tabPanelNodes(h.node)[0];
+    if (panel) return dropTree(fresh, panel.id);
+  }
   if (!h) return place(tree(), tree().length, null, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type, h.node)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null, h.parent)) return fresh;
@@ -6970,6 +7123,10 @@ function smartTarget(key) {
   }
   if (s) {
     let node = s.node, parent = s.parent;
+    if (node.type === "tabs") {
+      const panel = tabPanelNodes(node)[0];
+      if (panel && receivesInside(panel, key)) return [panel, panel.children.length];
+    }
     const card = !slotlessInstance(node) && node.type === "list" && node.children[0]?.type === "column" && holds("column", key) ? node.children[0] : null;
     if (card) {
       container = card;
@@ -8439,6 +8596,7 @@ function componentFromNode(nodeId, name) {
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
   h.node.use = id;
   h.node.children = [];
+  if (hasRichTabPanels(node)) h.node.props.items = [];
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
@@ -8461,6 +8619,7 @@ function makeInstance(def) {
     cls: [],
     adv: { htmlId: "", cls: "", css: "" }
   };
+  if (hasRichTabPanels(def.node)) fresh.props.items = [];
   delete fresh.vals;
   delete fresh.variant;
   delete fresh.slot;
@@ -8713,6 +8872,7 @@ var firstChildOf = (id) => {
 function nudge(id, dir) {
   const h = locate(id);
   if (!h) return false;
+  if (h.parent?.type === "tabs") return tabMove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id), dir);
   const j = h.i + dir;
   if (j < 0 || j >= h.list.length) return false;
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
@@ -8752,12 +8912,16 @@ function nudgeMany(ids, dir) {
     const j = h.i + dir;
     if (j < 0 || j >= h.list.length) continue;
     if (set.has(h.list[j].id)) continue;
+    if (h.parent?.type === "tabs") {
+      if (nudge(id, dir)) moved++;
+      continue;
+    }
     [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
     moved++;
   }
   return moved > 0;
 }
-var SCHEMA = 15;
+var SCHEMA = 16;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const schemaVersion = d.schemaVersion;
@@ -8774,6 +8938,7 @@ function migrate(d) {
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;
   for (const pg2 of d.pages) for (const kind2 of ["header", "footer"]) {
+    if (pg2[kind2] !== void 0 && v < 16) throw new Error("Page " + kind2 + " overrides require document schema 16.");
     if (pg2[kind2] !== void 0 && pg2[kind2] !== null && !Array.isArray(pg2[kind2])) {
       throw new Error("invalid page " + kind2 + " override");
     }
@@ -8793,6 +8958,12 @@ function migrate(d) {
       if (cd.node) walk(cd.node);
     });
   };
+  everyNode((n) => {
+    if (n?.type !== "tabs" || !hasRichTabPanels(n)) return;
+    if (v < 15) throw new Error("Editable tab panels require document schema 15.");
+    const problem = tabPanelProblem(n);
+    if (problem) throw new Error(problem);
+  });
   if (v < 3) {
     d.meta = d.meta || {};
     if (!d.meta.tokens) d.meta.tokens = defaultTokens(d.meta);
@@ -11520,14 +11691,16 @@ function renderNode(n, o) {
     case "tabs": {
       const rows = Array.isArray(p.items) ? p.items : [];
       if (!rows.length) return o.edit ? `<div ${at()} ${cx("pagecraft-tabs")}><div class="s-empty">${svg("plus", 12)} Add a tab in the panel</div></div>` : "";
-      const all = o.edit && state.ui.sel === n.id;
+      const rich = hasRichTabPanels(n);
+      const all = !rich && o.edit && state.ui.sel === n.id;
+      const active = rich && o.edit ? Math.max(0, tabPanelNodes(n).findIndex((panel) => !!state.ui.sel && !!locate(state.ui.sel, [panel]))) : 0;
       const tid = (k) => `${domId()}-t${k}`;
       const pid = (k) => `${domId()}-p${k}`;
       const strip = rows.map(
-        (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === 0 ? "true" : "false"}" tabindex="${k === 0 ? "0" : "-1"}" class="pagecraft-tab${k === 0 ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
+        (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === active ? "true" : "false"}" tabindex="${k === active ? "0" : "-1"}" class="pagecraft-tab${k === active ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
       ).join("");
       const panels = rows.map(
-        (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === 0 || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+        (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === active || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${rich ? renderList(n.children.filter((child) => child.id === it.panelId), o) : para(it.panel)}</div>`
       ).join("");
       return `<div ${at()} ${cx("pagecraft-tabs")} data-tabs><div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
     }
@@ -11712,7 +11885,7 @@ Allow: /
 ` + (base ? `Sitemap: ${base}/sitemap.xml
 ` : "");
 }
-var TABS_JS = `<script>
+var LEGACY_TABS_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
 var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
 if(!t.length)return;w.setAttribute('data-tabs-ready','');
@@ -11720,6 +11893,23 @@ function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on
 b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
 if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
 show(0);
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
+});})();
+</script>
+`;
+var TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var strip=[].slice.call(w.children).find(function(e){return e.getAttribute('role')==='tablist';});
+var t=strip?[].slice.call(strip.children).filter(function(e){return e.getAttribute('role')==='tab';}):[],p=[].slice.call(w.children).filter(function(e){return e.getAttribute('role')==='tabpanel';});
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(Math.max(0,t.findIndex(function(b){return b.getAttribute('aria-selected')==='true';})));
 t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
 b.addEventListener('keydown',function(e){
 var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
@@ -12032,7 +12222,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 </script>
 ` : ""}</body>
@@ -12693,6 +12883,7 @@ function proposalApply(changes, proposalId = "", options) {
   effective,
   effectiveAt,
   embedUrl,
+  enableTabPanels,
   ensureMobileMenuComponent,
   ensureTokens,
   esc,
@@ -12730,6 +12921,7 @@ function proposalApply(changes, proposalId = "", options) {
   gridTracks,
   guessBindings,
   hasBackdrop,
+  hasRichTabPanels,
   hex2rgb,
   hist,
   historyLabel,
@@ -12914,6 +13106,14 @@ function proposalApply(changes, proposalId = "", options) {
   stylePasteCheck,
   styleSeen,
   styles,
+  tabAdd,
+  tabDuplicate,
+  tabMove,
+  tabPanelNodes,
+  tabPanelProblem,
+  tabRemove,
+  tabSelect,
+  tabSelectionPath,
   tableGrid,
   templateFor,
   templatePreview,

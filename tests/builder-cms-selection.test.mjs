@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { pageRegion, locate } from '../app/src/core/index.ts';
+import * as C from '../app/src/core/index.ts';
 
 const builder = readFileSync('builder.html', 'utf8');
 const windows = [];
@@ -51,10 +51,14 @@ function harness() {
     heading: { node, parent: card },
     card: { node: card, parent: null },
   };
+  C.seed();
+  Object.assign(C.state, { ui: { item: {}, sel: 'heading' }, pages: [{ id: 'page-home', tree: [card] }], header: [], footer: [], cur: 0, meta: {} });
   Object.assign(w, {
+    tabSelectionPath: C.tabSelectionPath, hasRichTabPanels: C.hasRichTabPanels, tabPanelNodes: C.tabPanelNodes,
+    paint: vi.fn(),
     cdoc: cd,
     cwin: frame.contentWindow,
-    state: { ui: { item: {}, sel: 'heading' }, pages: [{ id: 'page-home', tree: [card] }], header: [], footer: [], cur: 0, meta: {} },
+    state: C.state,
     findCollection: id => id === collection.id ? collection : null,
     $: selector => d.querySelector(selector),
     $$: (selector, root = d) => Array.from(root.querySelectorAll(selector)),
@@ -80,7 +84,7 @@ function harness() {
 
   // Evaluate the shipped helper in this harness realm so its shared fallback reads this
   // window's document state, just like the extracted builder functions below.
-  w.eval('var pageRegion = ' + pageRegion.toString() + ';');
+  w.eval('var pageRegion = ' + C.pageRegion.toString() + ';');
   w.eval(between('let canvasSelectionContext = null;', 'function activateHudButton'));
   w.eval(between('function bindCanvas()', '/* =============================================================== drag/drop */'));
   w.bindCanvas();
@@ -433,7 +437,7 @@ for (const many of [false, true]) test(`selected secondary press refreshes repea
 test('a CMS review target uses the page-owned header and refuses hidden custom and shared targets', () => {
   const { w, cd, collection, selected } = reviewHarness();
   // This case needs real tree membership, unlike the other selection-context fixtures' map.
-  w.eval('var locate = ' + locate.toString() + ';');
+  w.eval('var locate = ' + C.locate.toString() + ';');
   const custom = { id: 'workshop-custom-image', type: 'image', children: [] };
   const shared = { id: 'workshop-shared-image', type: 'image', children: [] };
   const page = w.state.pages[0];

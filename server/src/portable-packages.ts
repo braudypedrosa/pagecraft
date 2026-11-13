@@ -1,6 +1,6 @@
 import type { Doc, NavItem, Node as PagecraftNode } from '../../app/src/core/types.ts';
 import {
-  SCHEMA, assetFile, eachNode, exportTargets, pageTrees, slugify, wordpressStyles
+  SCHEMA, assetFile, eachNode, exportTargets, hasRichTabPanels, pageTrees, slugify, wordpressStyles
 } from '../../app/src/core/index.ts';
 import { adoptHostDocument } from '../../app/src/host/schema.ts';
 import {
@@ -12,7 +12,7 @@ import {
   type PortablePackageProvenanceV1
 } from '../../app/src/package/types.ts';
 import {
-  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema, supportsPortableRendererContract
+  portableRendererRevisionForSchema, portableRendererVersionForSchema, supportsPortableRendererContract
 } from '../../app/src/package/renderer-version.ts';
 import { ALLOWED as ALLOWED_ASSET_TYPES, type Asset } from './assets.ts';
 import {
@@ -20,6 +20,7 @@ import {
 } from './releases.ts';
 import { renderSite } from './render.ts';
 import { createPortableZip, extractPortableZip } from './portable-zip.ts';
+import { validateNativeTabRelations } from './template-draft-validation.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -27,6 +28,8 @@ const DOCUMENT_PATH = 'source/document.json' as const;
 const PROVENANCE_PATH = 'source/provenance.json' as const;
 const DEPENDENCIES_PATH = 'source/dependencies.json' as const;
 const HASH = /^[a-f0-9]{64}$/;
+// Preserve the source marker and legacy runtime for byte-identical schema-14 archives.
+const LEGACY_TEXT_TABS_SCHEMA = 14;
 
 interface PackageContent {
   path: string;
@@ -91,6 +94,9 @@ const treesWithRegions = (doc: Doc) => {
   ];
   return rows;
 };
+
+const documentHasRichTabs = (doc: Doc) => treesWithRegions(doc)
+  .some(({ tree }) => nodes(tree).some(hasRichTabPanels));
 
 const cmsCounts = (doc: Doc) => {
   let boundNodes = 0;
@@ -173,10 +179,9 @@ const mimeFor = (path: string) => {
 };
 
 const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
-  /* Schema 15 adds only page regions. Do not carry this conversion forward silently if a
-     later schema introduces other fields an installed schema-14 WordPress reader cannot keep. */
-  if (doc.schemaVersion !== 14 && doc.schemaVersion !== 15) {
-    throw new Error('Portable page compatibility requires a reviewed schema-14 or schema-15 document. Upgrade the page exporter before converting a newer project.');
+  /* Review each future schema before converting it for an installed WordPress reader. */
+  if (![14, 15, 16].includes(doc.schemaVersion)) {
+    throw new Error('Portable page compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the page exporter before converting a newer project.');
   }
   const page = doc.pages.find(candidate => candidate.id === pageId);
   if (!page) throw new Error(`Pagecraft page ${pageId} does not exist`);
@@ -189,8 +194,9 @@ const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
   });
   delete selected.pages[0].header;
   delete selected.pages[0].footer;
-  selected.schemaVersion = 14;
-  (selected as Doc & { v: number }).v = 14;
+  const schema = documentHasRichTabs(selected) ? 15 : 14;
+  selected.schemaVersion = schema;
+  (selected as Doc & { v: number }).v = schema;
   return selected;
 };
 
@@ -228,28 +234,46 @@ function validateProvenance(value: PortablePackageProvenanceV1) {
 
 function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly Asset[], provenance: PortablePackageProvenanceV1, pageId?: string): PortablePackageBuild {
   validateProvenance(provenance);
+  validateNativeTabRelations(rawDocument);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
   assertPortableRegions(document);
-  if (kind === 'site') {
-    /* With no page-region fields, schema 15 has the exact schema-14 editable shape.
-       A future schema needs its own reviewed conversion before v1 receivers can keep it. */
-    if (document.schemaVersion !== 14 && document.schemaVersion !== 15) {
-      throw new Error('Portable site compatibility requires a reviewed schema-14 or schema-15 document. Upgrade the site exporter before converting a newer project.');
-    }
-    document.schemaVersion = 14;
-    (document as Doc & { v: number }).v = 14;
+  if (![14, 15, 16].includes(document.schemaVersion)) {
+    throw new Error('Portable compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the exporter before converting a newer project.');
+  }
+  const raw = rawDocument && typeof rawDocument === 'object' && !Array.isArray(rawDocument)
+    ? rawDocument as Record<string, unknown> : {};
+  const rawSchema = raw.schemaVersion ?? raw.v;
+  const richTabs = documentHasRichTabs(document);
+  const preserveLegacySchema = rawSchema === LEGACY_TEXT_TABS_SCHEMA && !richTabs;
+  const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
+  const renderDocument = structuredClone(document);
+  // Editable panel children need schema 15 / renderer 3. Only a document without that
+  // capability may use the legacy receiver, after its page-owned regions were flattened.
+  const packageSchemaVersion = richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
+  packageDocument.schemaVersion = packageSchemaVersion;
+  packageDocument.v = packageSchemaVersion;
+  renderDocument.schemaVersion = packageSchemaVersion;
+  (renderDocument as Doc & { v?: number }).v = packageSchemaVersion;
+  if (preserveLegacySchema) {
+    if (Object.hasOwn(raw, 'schemaVersion')) packageDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+    else delete packageDocument.schemaVersion;
+    if (Object.hasOwn(raw, 'v')) packageDocument.v = LEGACY_TEXT_TABS_SCHEMA;
+    else delete packageDocument.v;
+    renderDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+    if (Object.hasOwn(raw, 'v')) (renderDocument as Doc & { v?: number }).v = LEGACY_TEXT_TABS_SCHEMA;
+    else delete (renderDocument as Doc & { v?: number }).v;
   }
   const dependencies = dependenciesOf(document);
   const selectedAssets = packageAssets(document, assets);
-  const rendered = renderSite(document, selectedAssets);
+  const rendered = renderSite(renderDocument, selectedAssets);
   const wordpressStyleFiles = new Map(exportTargets().map(target => [
     target.path,
     wordpressStyles(target.pg)
   ]));
   const firstStyles = wordpressStyleFiles.values().next().value as ReturnType<typeof wordpressStyles> | undefined;
   const content: PackageContent[] = [
-    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(document) },
+    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(packageDocument) },
     { path: PROVENANCE_PATH, role: 'provenance', mediaType: 'application/json', bytes: jsonBytes(provenance) },
     { path: DEPENDENCIES_PATH, role: 'dependencies', mediaType: 'application/json', bytes: jsonBytes(dependencies) },
     {
@@ -293,9 +317,9 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     format: kind === 'site' ? SITE_PACKAGE_FORMAT_V1 : PAGE_PACKAGE_FORMAT_V1,
     packageVersion: 1,
     kind,
-    schemaVersion: document.schemaVersion,
-    rendererVersion: portableRendererVersionForSchema(document.schemaVersion),
-    rendererRevision: PORTABLE_RENDERER_REVISION,
+    schemaVersion: packageSchemaVersion,
+    rendererVersion: portableRendererVersionForSchema(packageSchemaVersion),
+    rendererRevision: portableRendererRevisionForSchema(packageSchemaVersion),
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
@@ -430,6 +454,7 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(supplied) || supplied !== manifest.schemaVersion) {
     throw new Error('portable package document schema does not match its manifest');
   }
+  validateNativeTabRelations(rawDocument);
   const document = adoptHostDocument(rawDocument);
   assertPortableRegions(document);
   const provenance = canonicalObject<PortablePackageProvenanceV1>(files.get(PROVENANCE_PATH)!, 'portable package provenance');
@@ -458,5 +483,5 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
 }
 
 export const portablePackageRendererVersion = portableRendererVersionForSchema(SCHEMA);
-export const portablePackageRendererRevision = PORTABLE_RENDERER_REVISION;
+export const portablePackageRendererRevision = portableRendererRevisionForSchema(SCHEMA);
 export const selectPortablePageDocument = (document: Doc, pageId: string) => packageDocumentForPage(document, pageId);

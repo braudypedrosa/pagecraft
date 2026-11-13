@@ -1,0 +1,20 @@
+[
+  {
+    "key": "ArrowRight",
+    "expected": "Restorative care",
+    "selected": "true",
+    "visible": true
+  },
+  {
+    "key": "End",
+    "expected": "Treatment planning",
+    "selected": "true",
+    "visible": true
+  },
+  {
+    "key": "Home",
+    "expected": "Preventive care",
+    "selected": "true",
+    "visible": true
+  }
+]

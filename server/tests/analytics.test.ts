@@ -42,6 +42,50 @@ test('what is not counted: privacy signals, prefetches, bots and signed-in Pagec
   a.equal(excluded(headers({ 'user-agent': CHROME, cookie: 'theme=dark; pc_session=abc' })), 'signed-in');
 });
 
+test('signed-in exclusions recognize exact legacy, current and chunked auth cookie names', () => {
+  for (const cookie of [
+    'pc_session=workshop',
+    'pc_auth=workshop',
+    'pc_auth.0=workshop',
+    'pc_auth.1=workshop',
+    'theme=light; pc_auth.0=first; pc_auth.1=second',
+    ' theme=light;pc_auth=workshop; preference=compact',
+    ' pc_auth.12=workshop',
+  ]) a.equal(excluded(headers({ 'user-agent': CHROME, cookie })), 'signed-in', cookie);
+
+  for (const cookie of [
+    'theme=light',
+    'pc_auth-code-verifier=workshop',
+    'pc_auth.0-code-verifier=workshop',
+    'pc_auth_extra=workshop',
+    'other_pc_auth=workshop',
+    'pc_auth.1x=workshop',
+    'pc_auth.=workshop',
+    'pc_auth.-1=workshop',
+    'pc_session.extra=workshop',
+    'preference=pc_auth=workshop',
+    'pc_auth',
+  ]) a.equal(excluded(headers({ 'user-agent': CHROME, cookie })), null, cookie);
+});
+
+test('current auth and chunks create no counts or deduplication entries before an anonymous visit', async () => {
+  const { recorder, store } = await rig();
+  const cookies = ['pc_session=workshop', 'pc_auth=workshop', 'pc_auth.0=workshop', 'pc_auth.1=workshop'];
+  for (const [index, cookie] of cookies.entries()) {
+    const page = `/workshop-${index}`;
+    const action = { label: 'Workshop details', target: page };
+    a.equal(recorder.view('workshop-site', page, visitor({ cookie })), false, cookie);
+    a.equal(recorder.click('workshop-site', action, visitor({ cookie })), false, cookie);
+    a.equal(recorder.view('workshop-site', page, visitor()), true, 'excluded traffic did not populate view deduplication');
+    a.equal(recorder.click('workshop-site', action, visitor()), true, 'excluded traffic did not populate click deduplication');
+  }
+  await recorder.flush();
+  const total = sumBuckets((await store.read('workshop-site', '2026-10-02', '2026-10-02')).map(day => day.total));
+  a.equal(total.views, cookies.length);
+  a.equal(total.clicks, cookies.length);
+  a.deepEqual(total.pages, { '/workshop-0': 1, '/workshop-1': 1, '/workshop-2': 1, '/workshop-3': 1 });
+});
+
 test('devices, referrers and click targets keep only coarse, owner-meaningful values', () => {
   a.equal(deviceOf(CHROME), 'desktop');
   a.equal(deviceOf(IPHONE), 'mobile');

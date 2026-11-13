@@ -156,10 +156,42 @@ test('proposals can target page-owned regions without mutating shared content', 
 });
 
 
-test('schema 14 migrates without inventing overrides and schema 15 stays behind the host version gate', () => {
+test('schema 14 migrates without inventing overrides and schema 16 stays behind the host version gate', () => {
   const legacy = C.clone(C.doc()); legacy.schemaVersion = 14;
   const reopened = adoptHostDocument(legacy);
-  expect(reopened.schemaVersion).toBe(15);
+  expect(reopened.schemaVersion).toBe(16);
   expect(reopened.pages.every(pg => !Object.hasOwn(pg, 'header') && !Object.hasOwn(pg, 'footer'))).toBe(true);
   expect(C.migrate({ ...legacy, schemaVersion: C.SCHEMA + 1 })).toBeNull();
+});
+
+
+test('customizing a shared region remaps native tab panel relations while preserving authored anchors', () => {
+  const tabs = C.N('tabs'); C.enableTabPanels(tabs);
+  const sourcePanels = C.tabPanelNodes(tabs);
+  sourcePanels[0].adv.htmlId = 'workshop-panel-anchor';
+  tabs.adv.htmlId = 'workshop-tabs-anchor';
+  C.state.header = [tabs];
+  const shared = C.clone(C.state.header);
+  const pg = pages()[1];
+  C.pageRegionSet(pg, 'header', 'custom');
+  const copied = pg.header![0];
+  expect(C.tabPanelProblem(copied)).toBeNull();
+  expect(C.tabPanelNodes(copied).map(node => node.id)).toEqual(copied.children.map(node => node.id));
+  expect(copied.children.every(node => !sourcePanels.some(original => original.id === node.id))).toBe(true);
+  expect(copied.adv.htmlId).toBe('workshop-tabs-anchor');
+  expect(copied.children[0].adv.htmlId).toBe('workshop-panel-anchor');
+  expect(C.state.header).toEqual(shared);
+  expect(() => adoptHostDocument(C.doc())).not.toThrow();
+  expect(C.buildPage(pg)).toContain('role="tablist"');
+  expect(C.buildPage(pg)).not.toContain('Tab panels must match');
+});
+
+test('schema 15 retains native tabs but refuses page-owned regions instead of silently adopting unsupported visible content', () => {
+  const tabs = C.N('tabs'); C.enableTabPanels(tabs); pages()[0].tree = [tabs];
+  const native15 = C.clone(C.doc()); native15.schemaVersion = 15;
+  expect(adoptHostDocument(native15).pages[0].tree).toEqual(native15.pages[0].tree);
+  for (const kind of ['header', 'footer'] as const) for (const region of [null, [], [heading('Workshop owned region')]]) {
+    const incompatible = C.clone(native15); incompatible.pages[0][kind] = region;
+    expect(() => adoptHostDocument(incompatible)).toThrow('Page ' + kind + ' overrides require document schema 16');
+  }
 });

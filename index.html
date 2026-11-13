@@ -5467,6 +5467,8 @@ var DEF = {
     label: "Tabs",
     icon: "tabs",
     level: 4,
+    takes: 4,
+    alsoHolds: ["box"],
     caps: ["spacing", "decoration", "effects", "animation"],
     make: () => ({
       props: {
@@ -5975,7 +5977,7 @@ var N = (type, props = {}, css = {}, children = []) => {
     hide: {},
     cls: [],
     adv: { htmlId: "", cls: "", css: "" },
-    children: DEF[type].level < 4 ? children : []
+    children: DEF[type].level < 4 || type === "tabs" ? children : []
   };
 };
 var cols = (n, kids, css) => N("row", {}, css, Array.from({ length: n }, (_, i) => N("column", {}, { d: { "flex-grow": String(+(100 / n).toFixed(4)) } }, kids[i] || [])));
@@ -6060,8 +6062,13 @@ function pageRegionSet(pg2, kind2, mode) {
   else if (mode === "hidden") pg2[kind2] = null;
   else {
     const copy = clone(pageRegion(pg2, kind2));
+    const anchors = /* @__PURE__ */ new Map();
     eachNode(copy, (node) => {
-      node.id = uid();
+      if (node.adv?.htmlId) anchors.set(node, node.adv.htmlId);
+    });
+    copy.forEach(reid);
+    anchors.forEach((anchor, node) => {
+      node.adv.htmlId = anchor;
     });
     pg2[kind2] = copy;
   }
@@ -6292,14 +6299,19 @@ function wrap(type, t, node) {
 }
 var holds = (pt, t) => {
   const b = BASE[t] || t;
+  if (pt === "tabs") return b === "box";
   return lvl(b) > lvl(pt) || (DEF[pt] || {}).alsoHolds?.includes(b) === true;
 };
 var slotlessInstance = (n) => !!n?.use && slotsOf(findComponent(n.use)).length === 0;
-var receivesInside = (n, t) => !!n && !slotlessInstance(n) && holds(n.type, t);
+var receivesInside = (n, t) => !!n && n.type !== "tabs" && !slotlessInstance(n) && holds(n.type, t);
 var fitsIn = (pt, t) => pt === null || holds(pt, t);
 var nowhere = (parentNode) => !parentNode && state.ui.mode === "component";
 function insert(type, parentNode, index) {
   if (nowhere(parentNode)) return null;
+  if (parentNode?.type === "tabs") {
+    const panel = tabPanelNodes(parentNode)[0];
+    return panel ? insert(type, panel, panel.children.length) : null;
+  }
   const leaf = makeFor(type);
   if (type === "list" && !leaf.children.length) {
     leaf.children.push(N("column", {}, { d: { "flex-basis": "280px" }, m: { "flex-basis": "100%" } }));
@@ -6313,6 +6325,13 @@ function insert(type, parentNode, index) {
 function moveNode(id, parentNode, index) {
   const h = locate(id);
   if (!h || nowhere(parentNode)) return;
+  if (h.parent?.type === "tabs") {
+    if (parentNode !== h.parent) return;
+    const from = tabRows(h.parent).findIndex((row) => row.panelId === id);
+    if (from >= 0) tabMove(h.parent, from, Math.max(0, Math.min(index, h.list.length - 1)) - from);
+    return;
+  }
+  if (parentNode?.type === "tabs") return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return;
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -6392,6 +6411,7 @@ function layerTarget(rowId, zone, type, movingIds = []) {
     return { container: h.node, index: 0 };
   }
   const parent = h.parent || null;
+  if (parent?.type === "tabs" && (!movingIds.length || movingIds.some((id) => locate(id)?.parent !== parent))) return null;
   if (!canHold(parent ? parent.type : null, type)) return null;
   const list = parent ? parent.children : tree();
   const i = list.findIndex((c) => c.id === rowId);
@@ -6399,10 +6419,103 @@ function layerTarget(rowId, zone, type, movingIds = []) {
   return { container: parent, index: zone === "after" ? i + 1 : i };
 }
 function reid(n) {
-  n.id = uid();
-  if (n.adv) n.adv.htmlId = "";
-  (n.children || []).forEach(reid);
+  const ids = /* @__PURE__ */ new Map();
+  eachNode([n], (node) => {
+    const id = uid();
+    ids.set(node.id, id);
+    node.id = id;
+    if (node.adv) node.adv.htmlId = "";
+  });
+  eachNode([n], (node) => {
+    if (node.type === "tabs") tabRows(node).forEach((row) => {
+      if (row.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId);
+    });
+  });
   return n;
+}
+function tabRows(n) {
+  return Array.isArray(n.props.items) ? n.props.items : [];
+}
+function hasRichTabPanels(n) {
+  return n.type === "tabs" && (!!n.children.length || tabRows(n).some((row) => row?.panelId !== void 0));
+}
+function tabPanelProblem(n) {
+  if (n.type !== "tabs" || !hasRichTabPanels(n)) return null;
+  const rows = tabRows(n), used = /* @__PURE__ */ new Set();
+  if (!rows.length || rows.length !== n.children.length) return "Tab panels must match their labels.";
+  for (const row of rows) {
+    if (!row || typeof row.panelId !== "string" || !row.panelId || used.has(row.panelId) || row.panel !== void 0) return "Each tab must reference one unique editable panel.";
+    if (!n.children.some((child) => child.type === "box" && child.id === row.panelId))
+      return "A tab references a missing panel Box.";
+    used.add(row.panelId);
+  }
+  return null;
+}
+function tabPanelNodes(n) {
+  return tabRows(n).map((row) => n.children.find((child) => child.id === row.panelId)).filter((node) => !!node);
+}
+function tabOrderChildren(n) {
+  n.children = tabPanelNodes(n);
+}
+function enableTabPanels(n) {
+  if (n.type !== "tabs" || hasRichTabPanels(n)) return false;
+  const rows = tabRows(n);
+  for (const row of rows) {
+    const body = String(row.panel || "");
+    const panel = N("box", {}, {}, body ? [N("heading", { text: body, level: "p", ts: "body" })] : []);
+    n.children.push(panel);
+    row.panelId = panel.id;
+    delete row.panel;
+  }
+  return true;
+}
+function tabAdd(n) {
+  if (n.type !== "tabs") return "";
+  if (!hasRichTabPanels(n)) enableTabPanels(n);
+  if (tabPanelProblem(n)) return "";
+  const panel = N("box");
+  n.props.items = [...tabRows(n), { label: "New tab", panelId: panel.id }];
+  n.children.push(panel);
+  return panel.id;
+}
+function tabSelect(n, index) {
+  const panel = tabPanelNodes(n)[index];
+  if (!panel) return false;
+  selSet([panel.id]);
+  return true;
+}
+function tabSelectionPath(id) {
+  const panels = [];
+  for (let hit = id ? locate(id) : null; hit?.parent; hit = locate(hit.parent.id)) {
+    if (hit.parent.type === "tabs") panels.push(hit.node.id);
+  }
+  return panels.join("/");
+}
+function tabRemove(n, index) {
+  const rows = tabRows(n), row = rows[index];
+  if (!row || !hasRichTabPanels(n) || rows.length < 2) return false;
+  const panel = n.children.find((child) => child.id === row.panelId);
+  rows.splice(index, 1);
+  n.children = n.children.filter((child) => child.id !== row.panelId);
+  if (panel && state.ui.sel && locate(state.ui.sel, [panel])) selSet([n.id]);
+  return true;
+}
+function tabMove(n, index, delta) {
+  const rows = tabRows(n), to = index + delta;
+  if (!hasRichTabPanels(n) || !rows[index] || to < 0 || to >= rows.length || to === index) return false;
+  const [row] = rows.splice(index, 1);
+  rows.splice(to, 0, row);
+  tabOrderChildren(n);
+  return true;
+}
+function tabDuplicate(n, index) {
+  const row = tabRows(n)[index], source = n.children.find((child) => child.id === row?.panelId);
+  if (!row || !source || tabPanelProblem(n)) return "";
+  const panel = reid(clone(source));
+  tabRows(n).splice(index + 1, 0, { label: `${row.label || "Tab"} copy`, panelId: panel.id });
+  n.children.push(panel);
+  tabOrderChildren(n);
+  return panel.id;
 }
 function pageMove(i, dir) {
   const j = i + dir;
@@ -6444,6 +6557,11 @@ function pageDelete(i) {
 function dupNode(id) {
   const h = locate(id);
   if (!h) return;
+  if (h.parent?.type === "tabs") {
+    const copy = tabDuplicate(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id));
+    if (copy) selSet([copy]);
+    return;
+  }
   const c = reid(clone(h.node));
   h.list.splice(h.i + 1, 0, c);
   selSet([c.id]);
@@ -6451,6 +6569,10 @@ function dupNode(id) {
 function delNode(id) {
   const h = locate(id);
   if (!h) return;
+  if (h.parent?.type === "tabs") {
+    if (tabRemove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id))) selSet([h.parent.id]);
+    return;
+  }
   h.list.splice(h.i, 1);
   selSet(h.parent ? [h.parent.id] : []);
 }
@@ -6459,6 +6581,11 @@ function dupMany(ids) {
   for (const id of selOrder(topMost(ids))) {
     const h = locate(id);
     if (!h) continue;
+    if (h.parent?.type === "tabs") {
+      const id2 = tabDuplicate(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === h.node.id));
+      if (id2) made.push(id2);
+      continue;
+    }
     const c = reid(clone(h.node));
     h.list.splice(h.i + 1, 0, c);
     made.push(c.id);
@@ -6469,14 +6596,23 @@ function dupMany(ids) {
 function delMany(ids) {
   const top = selOrder(topMost(ids));
   let fallback = null;
+  let removed = 0;
   for (const id of top.slice().reverse()) {
     const h = locate(id);
     if (!h) continue;
+    if (h.parent?.type === "tabs") {
+      if (tabRemove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id))) {
+        fallback = h.parent.id;
+        removed++;
+      }
+      continue;
+    }
     h.list.splice(h.i, 1);
+    removed++;
     fallback = h.parent ? h.parent.id : null;
   }
   selSet(fallback ? [fallback] : []);
-  return top.length;
+  return removed;
 }
 function applyCols(row, ws2) {
   const kids = row.children;
@@ -7782,7 +7918,9 @@ function lint() {
         const rows = Array.isArray(n.props.items) ? n.props.items : [];
         if (!rows.length) add("warn", "tabs-empty", `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
         const noL = rows.filter((r) => !String(r && r.label || "").trim()).length;
-        const noP = rows.filter((r) => String(r && r.label || "").trim() && !String(r && r.panel || "").trim()).length;
+        const problem = tabPanelProblem(n);
+        if (problem) add("error", "tabs-invalid-panels", problem, w, n.id);
+        const noP = rows.filter((r) => String(r && r.label || "").trim() && (hasRichTabPanels(n) ? !n.children.find((child) => child.id === r.panelId)?.children.length : !String(r && r.panel || "").trim())).length;
         if (noL) add("error", "tabs-no-label", `${noL} tab${noL === 1 ? "" : "s"} in the ${region} have no label, so there is nothing to click.`, w, n.id);
         if (noP) add("warn", "tabs-no-panel", `${noP} tab${noP === 1 ? "" : "s"} in the ${region} open onto an empty panel.`, w, n.id);
       }
@@ -8709,11 +8847,16 @@ function pasteNode(intoId) {
 }
 function dropTree(fresh, intoId) {
   const place = (list2, index, parentType, parentNode) => {
+    if (parentType === "tabs") return false;
     if (!fitsIn(parentType, fresh.type) || parentNode && slotlessInstance(parentNode) || nowhere(parentNode)) return false;
     list2.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
+  if (h?.node.type === "tabs") {
+    const panel = tabPanelNodes(h.node)[0];
+    if (panel) return dropTree(fresh, panel.id);
+  }
   if (!h) return place(tree(), tree().length, null, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type, h.node)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null, h.parent)) return fresh;
@@ -8738,6 +8881,10 @@ function smartTarget(key) {
   }
   if (s) {
     let node = s.node, parent = s.parent;
+    if (node.type === "tabs") {
+      const panel = tabPanelNodes(node)[0];
+      if (panel && receivesInside(panel, key)) return [panel, panel.children.length];
+    }
     const card = !slotlessInstance(node) && node.type === "list" && node.children[0]?.type === "column" && holds("column", key) ? node.children[0] : null;
     if (card) {
       container = card;
@@ -10207,6 +10354,7 @@ function componentFromNode(nodeId, name) {
   components().push({ id, name: String(name || nameOf(h.node)).slice(0, 40), node, props: [] });
   h.node.use = id;
   h.node.children = [];
+  if (hasRichTabPanels(node)) h.node.props.items = [];
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
@@ -10229,6 +10377,7 @@ function makeInstance(def) {
     cls: [],
     adv: { htmlId: "", cls: "", css: "" }
   };
+  if (hasRichTabPanels(def.node)) fresh.props.items = [];
   delete fresh.vals;
   delete fresh.variant;
   delete fresh.slot;
@@ -10481,6 +10630,7 @@ var firstChildOf = (id) => {
 function nudge(id, dir) {
   const h = locate(id);
   if (!h) return false;
+  if (h.parent?.type === "tabs") return tabMove(h.parent, tabRows(h.parent).findIndex((row) => row.panelId === id), dir);
   const j = h.i + dir;
   if (j < 0 || j >= h.list.length) return false;
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
@@ -10520,12 +10670,16 @@ function nudgeMany(ids, dir) {
     const j = h.i + dir;
     if (j < 0 || j >= h.list.length) continue;
     if (set.has(h.list[j].id)) continue;
+    if (h.parent?.type === "tabs") {
+      if (nudge(id, dir)) moved++;
+      continue;
+    }
     [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
     moved++;
   }
   return moved > 0;
 }
-var SCHEMA = 15;
+var SCHEMA = 16;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const schemaVersion = d.schemaVersion;
@@ -10542,6 +10696,7 @@ function migrate(d) {
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;
   for (const pg2 of d.pages) for (const kind2 of ["header", "footer"]) {
+    if (pg2[kind2] !== void 0 && v < 16) throw new Error("Page " + kind2 + " overrides require document schema 16.");
     if (pg2[kind2] !== void 0 && pg2[kind2] !== null && !Array.isArray(pg2[kind2])) {
       throw new Error("invalid page " + kind2 + " override");
     }
@@ -10561,6 +10716,12 @@ function migrate(d) {
       if (cd.node) walk(cd.node);
     });
   };
+  everyNode((n) => {
+    if (n?.type !== "tabs" || !hasRichTabPanels(n)) return;
+    if (v < 15) throw new Error("Editable tab panels require document schema 15.");
+    const problem = tabPanelProblem(n);
+    if (problem) throw new Error(problem);
+  });
   if (v < 3) {
     d.meta = d.meta || {};
     if (!d.meta.tokens) d.meta.tokens = defaultTokens(d.meta);
@@ -13288,14 +13449,16 @@ function renderNode(n, o) {
     case "tabs": {
       const rows = Array.isArray(p.items) ? p.items : [];
       if (!rows.length) return o.edit ? `<div ${at()} ${cx("pagecraft-tabs")}><div class="s-empty">${svg("plus", 12)} Add a tab in the panel</div></div>` : "";
-      const all = o.edit && state.ui.sel === n.id;
+      const rich = hasRichTabPanels(n);
+      const all = !rich && o.edit && state.ui.sel === n.id;
+      const active = rich && o.edit ? Math.max(0, tabPanelNodes(n).findIndex((panel) => !!state.ui.sel && !!locate(state.ui.sel, [panel]))) : 0;
       const tid = (k) => `${domId()}-t${k}`;
       const pid = (k) => `${domId()}-p${k}`;
       const strip = rows.map(
-        (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === 0 ? "true" : "false"}" tabindex="${k === 0 ? "0" : "-1"}" class="pagecraft-tab${k === 0 ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
+        (it, k) => `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}" aria-selected="${k === active ? "true" : "false"}" tabindex="${k === active ? "0" : "-1"}" class="pagecraft-tab${k === active ? " on" : ""}">${esc(it.label || "Tab " + (k + 1))}</button>`
       ).join("");
       const panels = rows.map(
-        (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === 0 || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+        (it, k) => `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"${k === active || all ? "" : " data-tab-idle"} class="pagecraft-tabpanel">${rich ? renderList(n.children.filter((child) => child.id === it.panelId), o) : para(it.panel)}</div>`
       ).join("");
       return `<div ${at()} ${cx("pagecraft-tabs")} data-tabs><div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
     }
@@ -13480,7 +13643,7 @@ Allow: /
 ` + (base ? `Sitemap: ${base}/sitemap.xml
 ` : "");
 }
-var TABS_JS = `<script>
+var LEGACY_TABS_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
 var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
 if(!t.length)return;w.setAttribute('data-tabs-ready','');
@@ -13488,6 +13651,23 @@ function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on
 b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
 if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
 show(0);
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
+});})();
+<\/script>
+`;
+var TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var strip=[].slice.call(w.children).find(function(e){return e.getAttribute('role')==='tablist';});
+var t=strip?[].slice.call(strip.children).filter(function(e){return e.getAttribute('role')==='tab';}):[],p=[].slice.call(w.children).filter(function(e){return e.getAttribute('role')==='tabpanel';});
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(Math.max(0,t.findIndex(function(b){return b.getAttribute('aria-selected')==='true';})));
 t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
 b.addEventListener('keydown',function(e){
 var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
@@ -13800,7 +13980,7 @@ ${isNotFound(pg2) ? '<meta name="robots" content="noindex">\n' : ""}${demoteMain
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${moves ? `<script>
+${/data-slider/.test(body) ? SLIDE_JS : ""}${/data-copy/.test(body) ? CODE_JS : ""}${/data-tabs/.test(body) ? (ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS : ""}${/data-nav/.test(body) ? NAV_JS : ""}${/data-facade/.test(body) ? FACADE_JS : ""}${/data-lightbox/.test(body) ? LB_JS : ""}${hasPublicSelect ? PUBLIC_SELECT_JS : ""}${hasPublicDate ? PUBLIC_DATE_JS : ""}${moves ? `<script>
 ${ANIM_JS}
 <\/script>
 ` : ""}</body>
@@ -14461,6 +14641,7 @@ var __CORE = {
   effective,
   effectiveAt,
   embedUrl,
+  enableTabPanels,
   ensureMobileMenuComponent,
   ensureTokens,
   esc,
@@ -14498,6 +14679,7 @@ var __CORE = {
   gridTracks,
   guessBindings,
   hasBackdrop,
+  hasRichTabPanels,
   hex2rgb,
   hist,
   historyLabel,
@@ -14682,6 +14864,14 @@ var __CORE = {
   stylePasteCheck,
   styleSeen,
   styles,
+  tabAdd,
+  tabDuplicate,
+  tabMove,
+  tabPanelNodes,
+  tabPanelProblem,
+  tabRemove,
+  tabSelect,
+  tabSelectionPath,
   tableGrid,
   templateFor,
   templatePreview,
@@ -23592,6 +23782,103 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       } })
     ] });
   }
+  function TabPanelsCtl({ n: n2, c: c3 }) {
+    const items = list(n2, c3);
+    const [, setLabelRevision] = d2(0);
+    const canStructure = L2.canStructure();
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      /* @__PURE__ */ u2("p", { class: "note", children: "Each tab has an editable panel. Select a panel to add and arrange its content." }),
+      items.map((item, index) => /* @__PURE__ */ u2("div", { class: "frow repeater-row", children: [
+        /* @__PURE__ */ u2("div", { class: "repeater-head", children: [
+          /* @__PURE__ */ u2("span", { children: item.label || `Tab ${index + 1}` }),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "x",
+              title: "Move up",
+              "aria-label": `Move tab ${index + 1} up`,
+              disabled: !canStructure || index === 0,
+              onClick: () => C2.edit(() => {
+                C2.tabMove(n2, index, -1);
+              }, "Move tab"),
+              children: /* @__PURE__ */ u2(Icon, { name: "caretUp", size: 11 })
+            }
+          ),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "x",
+              title: "Move down",
+              "aria-label": `Move tab ${index + 1} down`,
+              disabled: !canStructure || index === items.length - 1,
+              onClick: () => C2.edit(() => {
+                C2.tabMove(n2, index, 1);
+              }, "Move tab"),
+              children: /* @__PURE__ */ u2(Icon, { name: "caret", size: 11 })
+            }
+          ),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "x",
+              title: "Duplicate",
+              "aria-label": `Duplicate tab ${index + 1}`,
+              disabled: !canStructure,
+              onClick: () => C2.edit(() => {
+                C2.tabDuplicate(n2, index);
+              }, "Duplicate tab"),
+              children: /* @__PURE__ */ u2(Icon, { name: "copy", size: 11 })
+            }
+          ),
+          /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              class: "x",
+              title: "Remove",
+              "aria-label": `Remove tab ${index + 1}`,
+              disabled: !canStructure || items.length <= 1,
+              onClick: () => C2.edit(() => {
+                C2.tabRemove(n2, index);
+              }, "Remove tab"),
+              children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ u2("div", { class: "repeater-body", children: [
+          /* @__PURE__ */ u2("label", { class: "frow-control", children: [
+            /* @__PURE__ */ u2("span", { children: "Tab label" }),
+            /* @__PURE__ */ u2(
+              RowInput,
+              {
+                n: n2,
+                c: c3,
+                k: index,
+                prop: "label",
+                placeholder: "Tab label",
+                "aria-label": `Label for tab ${index + 1}`,
+                onCommit: () => setLabelRevision((revision) => revision + 1)
+              }
+            )
+          ] }),
+          /* @__PURE__ */ u2("button", { type: "button", class: "btn", onClick: () => {
+            L2.endTx();
+            if (!C2.tabSelect(n2, index)) return;
+            L2.paint();
+            L2.select(String(item.panelId), { scroll: true });
+          }, children: "Edit panel" })
+        ] })
+      ] }, item.panelId)),
+      canStructure && /* @__PURE__ */ u2(AddButton, { label: "Add tab", gap: !!items.length, onClick: () => {
+        C2.edit(() => {
+          C2.tabAdd(n2);
+        }, "Add tab");
+      } })
+    ] });
+  }
   function QaCtl({ n: n2, c: c3 }) {
     const arr = list(n2, c3);
     const [open, setOpen] = d2(null);
@@ -23599,7 +23886,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const [kA, kB] = c3.rowKeys || ["q", "a"];
     const [phA, phB] = c3.rowPhs || ["Question", "Answer"];
+    if (n2.type === "tabs" && C2.hasRichTabPanels(n2)) return /* @__PURE__ */ u2(TabPanelsCtl, { n: n2, c: c3 });
     return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
+      n2.type === "tabs" && L2.canStructure() && /* @__PURE__ */ u2("button", { type: "button", class: "btn block", onClick: () => {
+        L2.endTx();
+        C2.edit(() => {
+          C2.enableTabPanels(n2);
+        }, "Use editable tab panels");
+      }, children: "Use editable panels" }),
       arr.map((it, k3) => /* @__PURE__ */ u2(
         RepeaterRow,
         {
@@ -28724,6 +29018,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       label: "Tabs",
       icon: "tabs",
       level: 4,
+      takes: 4,
+      alsoHolds: ["box"],
       caps: ["spacing", "decoration", "effects", "animation"],
       make: () => ({
         props: {
@@ -29117,10 +29413,37 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     });
   }
   function reid(n2) {
-    n2.id = uid();
-    if (n2.adv) n2.adv.htmlId = "";
-    (n2.children || []).forEach(reid);
+    const ids = /* @__PURE__ */ new Map();
+    eachNode2([n2], (node) => {
+      const id = uid();
+      ids.set(node.id, id);
+      node.id = id;
+      if (node.adv) node.adv.htmlId = "";
+    });
+    eachNode2([n2], (node) => {
+      if (node.type === "tabs") tabRows(node).forEach((row) => {
+        if (row.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId);
+      });
+    });
     return n2;
+  }
+  function tabRows(n2) {
+    return Array.isArray(n2.props.items) ? n2.props.items : [];
+  }
+  function hasRichTabPanels(n2) {
+    return n2.type === "tabs" && (!!n2.children.length || tabRows(n2).some((row) => row?.panelId !== void 0));
+  }
+  function tabPanelProblem(n2) {
+    if (n2.type !== "tabs" || !hasRichTabPanels(n2)) return null;
+    const rows2 = tabRows(n2), used = /* @__PURE__ */ new Set();
+    if (!rows2.length || rows2.length !== n2.children.length) return "Tab panels must match their labels.";
+    for (const row of rows2) {
+      if (!row || typeof row.panelId !== "string" || !row.panelId || used.has(row.panelId) || row.panel !== void 0) return "Each tab must reference one unique editable panel.";
+      if (!n2.children.some((child) => child.type === "box" && child.id === row.panelId))
+        return "A tab references a missing panel Box.";
+      used.add(row.panelId);
+    }
+    return null;
   }
   var BP_CHAIN = { d: ["d"], t: ["t", "d"], m: ["m", "t", "d"] };
   function cssAt(n2, b2, prop) {
@@ -29370,7 +29693,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const h3 = locate(id);
     return h3 && h3.parent ? h3.parent.id : null;
   };
-  var SCHEMA = 15;
+  var SCHEMA = 16;
   function migrate(d3) {
     if (!d3 || !d3.pages || !d3.pages.length) return null;
     const schemaVersion = d3.schemaVersion;
@@ -29387,6 +29710,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const v3 = schemaVersion ?? legacyVersion ?? 1;
     if (v3 > SCHEMA) return null;
     for (const pg of d3.pages) for (const kind of ["header", "footer"]) {
+      if (pg[kind] !== void 0 && v3 < 16) throw new Error("Page " + kind + " overrides require document schema 16.");
       if (pg[kind] !== void 0 && pg[kind] !== null && !Array.isArray(pg[kind])) {
         throw new Error("invalid page " + kind + " override");
       }
@@ -29406,6 +29730,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         if (cd.node) walk2(cd.node);
       });
     };
+    everyNode((n2) => {
+      if (n2?.type !== "tabs" || !hasRichTabPanels(n2)) return;
+      if (v3 < 15) throw new Error("Editable tab panels require document schema 15.");
+      const problem3 = tabPanelProblem(n2);
+      if (problem3) throw new Error(problem3);
+    });
     if (v3 < 3) {
       d3.meta = d3.meta || {};
       if (!d3.meta.tokens) d3.meta.tokens = defaultTokens(d3.meta);
@@ -32903,6 +33233,7 @@ function selectsCanvasAncestor(id) {
 }
 
 function select(id, opts = {}) {
+  const previousTabPanel = tabSelectionPath(state.ui.sel);
   if (editing.on) exitEdit();
   if (!opts.keepCanvasContext && !selectsCanvasAncestor(id)) canvasSelectionContext = null;
   if (opts.add) selToggle(id);
@@ -32911,6 +33242,7 @@ function select(id, opts = {}) {
     if (id !== state.ui.sel) { state.ui.target = ''; state.ui.lmode = null; }
     selSet(id ? [id] : []);
   }
+  if (previousTabPanel !== tabSelectionPath(state.ui.sel)) paint();
   /* reveal every member — a hit buried under a collapsed parent is no use if
      the Navigator will not show it */
   for (const sid of selIds()) {
@@ -33380,8 +33712,37 @@ function bindCanvas() {
   }, true);
   cdoc.addEventListener('keydown', escCtx, true);
 
+  const editableTab = target => {
+    const button = target.closest && target.closest('[role="tab"]');
+    const host = button && button.closest('[data-t="tabs"][data-id]');
+    const node = host && locate(host.dataset.id)?.node;
+    if (!node || !hasRichTabPanels(node)) return null;
+    const buttons = Array.from(button.parentElement.children);
+    return { button, node, index: buttons.indexOf(button), count: buttons.length };
+  };
+  const selectEditableTab = (tab, index, focus = false) => {
+    const panel = tabPanelNodes(tab.node)[index];
+    if (!panel) return;
+    select(panel.id);
+    if (focus) requestAnimationFrame(() => {
+      const host = Array.from(cdoc.querySelectorAll('[data-t="tabs"]')).find(el => el.dataset.id === tab.node.id);
+      host?.querySelectorAll(':scope > [role="tablist"] > [role="tab"]')[index]?.focus();
+    });
+  };
+  cdoc.addEventListener('keydown', e => {
+    if (document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (!tab) return;
+    const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    selectEditableTab(tab, e.key === 'Home' ? 0 : e.key === 'End' ? tab.count - 1 : (tab.index + delta + tab.count) % tab.count, true);
+  }, true);
+
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (tab && e.button === 0) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
@@ -33434,6 +33795,8 @@ function bindCanvas() {
      native click keeps one action per gesture. */
   cdoc.addEventListener('click', e => {
     if (e.detail !== 0 || document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (tab) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (!hudBtn) return;
     e.preventDefault();

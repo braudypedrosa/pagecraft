@@ -141,7 +141,7 @@ export function renderSite(
     for (const t of Core.exportTargets()) {
       /* `rel` is how deep the file sits, so a detail page one directory down asks for
          `../assets/logo.png` rather than a path that only resolves at the root. */
-      files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, t), get, t.rel || ''));
+      files.set(t.path, Core.assetPaths(Core.buildPage(t.pg, { ...t, schemaVersion: doc.schemaVersion }), get, t.rel || ''));
       shared?.pages.set(t.path, { rel: t.rel || '', inline: Core.assetPaths(foundation, get, t.rel || '') });
     }
 

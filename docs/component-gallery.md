@@ -57,11 +57,15 @@ var steps = captureModule.captureGallerySteps(tab, captureDirectory,
   await captureModule.readBehaviorChecks(captureDirectory));
 // Run this batch again in later calls until all 24 images have been yielded.
 for (var i = 0; i < 6; i++) nodeRepl.write(await steps.next());
-// Resume once after the final image to validate sources, write capture.json, and reset emulation.
+// Resume once after the final image to validate sources and reset emulation.
 nodeRepl.write(await steps.next());
 ```
 
-Use `await steps.return()` when abandoning a partial run so viewport and media emulation are restored. Partial PNGs are not accepted evidence; `capture.json` is written only after the complete inventory and source checks pass. Keep the iterator paused between calls rather than launching browser work in the background.
+Use `await steps.return()` when abandoning a partial run so viewport and media emulation are restored. Keep the iterator paused between calls rather than launching browser work in the background. The helper checkpoints `capture.json` after each PNG. A partial checkpoint is recovery data, not review evidence: recording still requires all 24 captures and passing source and behavior checks.
+
+If an interruption such as a built-in browser command timeout loses the iterator, create a new one with `{resume: true}` as the fourth argument. It verifies the saved source and capture-code hashes, behavior checks, browser environment, capture recipe, and each recorded PNG hash and color metadata before skipping completed captures. A mismatch stops the resume and requires investigation or a fresh capture. Checkpoints created before this resume support lack the required image hashes and cannot be resumed.
+
+The recovery path is covered by `npx vitest run tests/gallery-capture-steps.test.mjs tests/ui-capture-provenance.test.mjs`, including interruption, skipped captures, changed source evidence, changed image bytes and emulation cleanup.
 
 4. Compare the candidate captures:
 

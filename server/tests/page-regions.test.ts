@@ -128,8 +128,8 @@ test('portable page packages materialize selected effective regions without sour
   const shared = validatePortablePackage(createPagePackage({ document: original, pageId: original.pages[0].id,
     assets: [asset('shared-photo')], provenance }).bytes);
   expect(shared.document.header).toEqual(original.header);
-  expect(() => selectPortablePageDocument({ ...doc, schemaVersion: 16 }, 'workshop-special'))
-    .toThrow(/requires a reviewed schema-14 or schema-15/);
+  expect(() => selectPortablePageDocument({ ...doc, schemaVersion: 17 }, 'workshop-special'))
+    .toThrow(/requires a reviewed schema-14, schema-15 or schema-16/);
   expect(() => createPagePackage({ document: { ...doc, schemaVersion: Core.SCHEMA + 1 }, pageId: 'workshop-special', provenance }))
     .toThrow(/Upgrade Pagecraft|newer/);
 });
@@ -143,9 +143,9 @@ test('portable site and Connected WordPress v1 fail closed for every explicit re
   }
 });
 
-test('inherited-only schema-15 sites retain the schema-14 portable and Connected v1 contracts without changing source', () => {
+test('inherited-only schema-16 sites retain the schema-14 portable and Connected v1 contracts without changing source', () => {
   const doc = blankDoc('Workshop shared-site handoff');
-  doc.schemaVersion = 15;
+  doc.schemaVersion = 16;
   doc.header = [Core.N('heading', { text: 'Workshop shared header' })];
   doc.pages[0].tree = [Core.N('heading', { text: 'Workshop shared body' })];
   doc.meta.font = "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
@@ -173,21 +173,30 @@ test('inherited-only schema-15 sites retain the schema-14 portable and Connected
   expect(release.artifact.rendererVersion).toBe('pagecraft-core-14');
   expect(release.artifact.shared.headerHtml).toContain('Workshop shared header');
   const manifestInput = { releaseId: 'workshop-shared-release', siteId: 'workshop-shared', sequence: 1,
-    sourceVersion: 1, schemaVersion: 15, parentReleaseId: null, createdAt: '2026-11-13T00:00:00.000Z',
+    sourceVersion: 1, schemaVersion: 16, parentReleaseId: null, createdAt: '2026-11-13T00:00:00.000Z',
     audit: { acknowledgeWarnings: false, warningCodes: [], warningCount: 0, errorCodes: [], errorCount: 0 }, built: release };
   const manifest = manifestForRelease(manifestInput);
   expect(manifest.schemaVersion).toBe(14);
   expect(manifest.rendererVersion).toBe('pagecraft-core-14');
   expect(manifest.artifactHash).toBe(release.artifactHash);
+  const native = structuredClone(doc);
+  const tabs = Core.N('tabs'); Core.enableTabPanels(tabs); native.pages[0].tree = [tabs];
+  const nativeRelease = buildReleaseArtifact({ releaseId: manifestInput.releaseId, siteId: manifestInput.siteId,
+    sourceVersion: 1, document: native, files: renderSite(native).files });
+  expect(nativeRelease.artifact.schemaVersion).toBe(15);
+  expect(nativeRelease.artifact.rendererVersion).toBe('pagecraft-core-15');
+  const nativeManifest = manifestForRelease({ ...manifestInput, built: nativeRelease });
+  expect(nativeManifest.schemaVersion).toBe(15);
+  expect(nativeManifest.rendererVersion).toBe('pagecraft-core-15');
   expect(doc).toEqual(before);
-  const future = { ...doc, schemaVersion: 16 };
+  const future = { ...doc, schemaVersion: 17 };
   expect(() => createSitePackage({ document: future, provenance })).toThrow(/Upgrade Pagecraft|newer/);
   expect(() => buildReleaseArtifact({ releaseId: 'workshop-future', siteId: 'workshop-shared', sourceVersion: 1,
-    document: future, files })).toThrow(/requires a reviewed schema-15 or earlier/);
-  expect(() => manifestForRelease({ ...manifestInput, schemaVersion: 16 })).toThrow(/requires a reviewed schema-15 or earlier/);
+    document: future, files })).toThrow(/requires a reviewed schema-16 or earlier/);
+  expect(() => manifestForRelease({ ...manifestInput, schemaVersion: 17 })).toThrow(/requires a reviewed schema-16 or earlier/);
 });
 
-test('portable import refuses a correctly rehashed document that asks an old receiver to discard page overrides', () => {
+test('portable import refuses a correctly rehashed legacy document carrying newer page-region fields', () => {
   const doc = blankDoc('Workshop import boundary');
   const files = extractPortableZip(createSitePackage({ document: doc, provenance }).bytes);
   const manifest = JSON.parse(new TextDecoder().decode(files.get('manifest.json')));
@@ -198,7 +207,7 @@ test('portable import refuses a correctly rehashed document that asks an old rec
   row.bytes = bytes.byteLength; row.sha256 = sha256(bytes);
   manifest.contentHash = sha256(json(manifest.files)); files.set('manifest.json', json(manifest));
   const archive = createPortableZip([...files].map(([path, content]) => ({ path, bytes: content })));
-  expect(() => validatePortablePackage(archive)).toThrow(/Portable package v1 cannot carry per-page/);
+  expect(() => validatePortablePackage(archive)).toThrow(/Page footer overrides require document schema 16/);
 });
 
 test('portable page CMS rejection also inspects a custom shell', () => {

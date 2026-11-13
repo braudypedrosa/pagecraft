@@ -24,9 +24,9 @@ const fixture = () => {
 
 test('content edits survive nested JSON object key reordering and schema adoption', () => {
   const before = reorder(fixture()); before.schemaVersion = 14;
+  delete before.pages[0].header; // a real schema-14 row cannot declare schema-16 regions
   const after = reorder(before); after.schemaVersion = Core.SCHEMA;
   after.pages[0].tree[0].props.text = 'Workshop saved heading';
-  after.pages[0].header![0].props.text = 'Workshop saved header';
   const stored = adopt(before)!, incoming = adopt(after)!;
   expect(Object.keys(stored)).not.toEqual(Object.keys(incoming));
   expect(contentOnly(stored, incoming).ok).toBe(true);
@@ -61,6 +61,7 @@ test('reordered content still passes rich-text and owned-image safety checks', (
 
 test('the content-role save API accepts a word edit against a reordered schema-14 row and still rejects styling', async () => {
   const document = reorder(fixture()); document.schemaVersion = 14;
+  delete document.pages[0].header;
   const store = new MemoryStore(), auth = new MemoryAuthStore();
   const site = await store.create({ host: 'workshop-content.test', name: 'Workshop content permissions', doc: document });
   const user = await auth.createUser('workshop-content@example.test', 'Workshop content editor');
