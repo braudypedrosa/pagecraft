@@ -17,7 +17,11 @@ function nodes(doc: Doc): Map<string, NodePlace> {
     walk(node.children || [], node.id, region);
   });
   walk(doc.header, '', 'header');
-  doc.pages.forEach(page => walk(page.tree, '', `page:${page.id}`));
+  doc.pages.forEach(page => {
+    walk(page.tree, '', `page:${page.id}`);
+    if (Array.isArray(page.header)) walk(page.header, '', `page:${page.id}:header`);
+    if (Array.isArray(page.footer)) walk(page.footer, '', `page:${page.id}:footer`);
+  });
   walk(doc.footer, '', 'footer');
   for (const component of doc.meta.components || []) walk([component.node], '', `component:${component.id}`);
   for (const block of doc.meta.blocks || []) walk([block.node], '', `block:${block.id}`);

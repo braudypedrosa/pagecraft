@@ -37,8 +37,13 @@ export function siteForms(doc: Doc): SiteForm[] {
       visit(node.children, page, stack);
     }
   };
-  visit(doc.header, 'Header'); visit(doc.footer, 'Footer');
-  for (const page of doc.pages) visit(page.tree, page.name);
+  if (doc.pages.some(page => page.header === undefined)) visit(doc.header, 'Header');
+  if (doc.pages.some(page => page.footer === undefined)) visit(doc.footer, 'Footer');
+  for (const page of doc.pages) {
+    visit(page.tree, page.name);
+    if (Array.isArray(page.header)) visit(page.header, page.name + ' header');
+    if (Array.isArray(page.footer)) visit(page.footer, page.name + ' footer');
+  }
   return [...forms.values()];
 }
 export function submissionValues(form: SiteForm, body: URLSearchParams) {

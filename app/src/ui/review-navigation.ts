@@ -12,7 +12,7 @@ export function openReviewTarget(core: Core, legacy: Legacy, search: string) {
   core.selSet([]);
   const target = query.get('reviewNode');
   let found: { id: string; mode: "page" | "header" | "footer" } | undefined;
-  for (const [mode, nodes] of [['page', core.state.pages[index].tree], ['header', core.state.header], ['footer', core.state.footer]] as const) {
+  for (const [mode, nodes] of [['page', core.state.pages[index].tree], ['header', core.pageRegion(core.state.pages[index], 'header')], ['footer', core.pageRegion(core.state.pages[index], 'footer')]] as const) {
     core.eachNode(nodes, node => {
       if (!found && target && core.domIdOf(node) === target) found = {id: node.id, mode};
     });

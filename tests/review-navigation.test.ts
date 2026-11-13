@@ -134,3 +134,30 @@ test('clean generated detail and pagination routes resolve only while those expo
   expect(core.pageAt(detailUrl)).toBeNull();
   expect(linkFindings().map(f => f.code)).toEqual(['dead-link']);
 });
+
+
+test('review links select only the effective page-owned header/footer and ignore hidden shared nodes', () => {
+  core.blankProject('Workshop region review');
+  const page = core.page();
+  const shared = core.N('heading', { text: 'Workshop shared header' });
+  const custom = core.N('heading', { text: 'Workshop custom header' });
+  const footer = core.N('heading', { text: 'Workshop custom footer' });
+  core.state.header = [shared]; page.header = [custom]; page.footer = [footer];
+  const before = core.clone(core.doc());
+  const legacy = { appRender: vi.fn(), select: vi.fn() } as unknown as Legacy;
+  const visit = (node: typeof custom) => openReviewTarget(core, legacy,
+    '?reviewPage=' + page.slug + '.html&reviewNode=' + encodeURIComponent(core.domIdOf(node)));
+  visit(custom);
+  expect(core.state.ui.mode).toBe('header');
+  expect(legacy.select).toHaveBeenLastCalledWith(custom.id, { scroll: true });
+  visit(footer);
+  expect(core.state.ui.mode).toBe('footer');
+  expect(legacy.select).toHaveBeenLastCalledWith(footer.id, { scroll: true });
+  vi.mocked(legacy.select).mockClear(); visit(shared);
+  expect(legacy.select).not.toHaveBeenCalled();
+  page.header = null;
+  visit(custom); visit(shared);
+  expect(legacy.select).not.toHaveBeenCalled();
+  expect(core.state.ui.mode).toBe('page');
+  expect({ ...core.doc(), pages: [{ ...core.page(), header: before.pages[0].header }] }).toEqual(before);
+});

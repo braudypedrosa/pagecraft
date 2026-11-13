@@ -5,7 +5,7 @@ import {
 import type { Doc } from '../../app/src/core/types.ts';
 import type { Asset } from './assets.ts';
 import {
-  assetFile, buildWordPressContentReference, parseWordPressContentReference,
+  assetFile, buildWordPressContentReference, pageTrees, parseWordPressContentReference,
   parseWordPressContentToken, SHARED_FOOTER_END, SHARED_FOOTER_START,
   SHARED_HEADER_END, SHARED_HEADER_START, wordpressContentToken
 } from '../../app/src/core/index.ts';
@@ -679,7 +679,7 @@ export function migrateIndexedWordPressLinks(
   };
   document.header.forEach(visitNode);
   document.footer.forEach(visitNode);
-  document.pages.forEach(page => page.tree.forEach(visitNode));
+  document.pages.forEach(page => pageTrees(page).forEach(tree => tree.forEach(visitNode)));
   for (const block of document.meta.blocks || []) visitNode(block.node);
   for (const component of document.meta.components || []) {
     for (const property of component.props || []) {
@@ -700,6 +700,13 @@ export function migrateIndexedWordPressLinks(
   };
 }
 
+const connectedV1Schema = (schema: number) => {
+  if (!Number.isInteger(schema) || schema < 1 || schema > 15) {
+    throw new Error('Connected WordPress release v1 requires a reviewed schema-15 or earlier document. Upgrade the release compiler before converting a newer project.');
+  }
+  return schema === 15 ? 14 : schema;
+};
+
 /** Freeze compiled routes and content-addressed assets; the raw editor Doc never crosses. */
 export function buildReleaseArtifact(input: {
   releaseId: string;
@@ -712,6 +719,12 @@ export function buildReleaseArtifact(input: {
   if (!Number.isInteger(input.document.schemaVersion) || input.document.schemaVersion < 1) {
     throw new Error('a release requires an adopted document with schemaVersion');
   }
+  if (input.document.pages.some(page => page.header !== undefined || page.footer !== undefined)) {
+    throw new Error('Connected WordPress release v1 does not support per-page header or footer overrides. Use Cloud publishing or export one page as a portable page package.');
+  }
+  /* The v1 receiver understands schema 14. Schema 15 adds only the explicitly refused
+     page regions, so inherited-only sites retain the same signed artifact contract. */
+  const compatibilitySchema = connectedV1Schema(input.document.schemaVersion);
   const authoredDocument = canonicalJson(input.document);
   for (const marker of [
     SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END
@@ -838,8 +851,8 @@ export function buildReleaseArtifact(input: {
     releaseId: input.releaseId,
     siteId: input.siteId,
     sourceVersion: input.sourceVersion,
-    schemaVersion: input.document.schemaVersion,
-    rendererVersion: `pagecraft-core-${input.document.schemaVersion}`,
+    schemaVersion: compatibilitySchema,
+    rendererVersion: `pagecraft-core-${compatibilitySchema}`,
     routes,
     shared,
     redirects,
@@ -2572,7 +2585,7 @@ export function authoredStylesheetIssues(document: Doc): string[] {
     }
   };
   visit(document.header); visit(document.footer);
-  for (const page of document.pages) { inspect(page.headHtml || ''); visit(page.tree); }
+  for (const page of document.pages) { inspect(page.headHtml || ''); pageTrees(page).forEach(visit); }
   for (const component of document.meta.components || []) visit(component.node ? [component.node] : []);
   return [...issues].sort(utf8ByteCompare);
 }
@@ -2594,7 +2607,7 @@ export function authoredCssAtRuleIssues(document: Doc): string[] {
     }
   };
   visit(document.header); visit(document.footer);
-  for (const page of document.pages) { inspect(page.headHtml || ''); visit(page.tree); }
+  for (const page of document.pages) { inspect(page.headHtml || ''); pageTrees(page).forEach(visit); }
   for (const component of document.meta.components || []) visit(component.node ? [component.node] : []);
   return sources.some(hasUnsafeCssParserDirective)
     ? ['unsafe-global-at-rule'] : [];
@@ -2630,7 +2643,7 @@ export function existingThemeCssIssues(document: Doc): string[] {
     }
   };
   visit(document.header); visit(document.footer);
-  for (const page of document.pages) { takeStyles(page.headHtml || ''); visit(page.tree); }
+  for (const page of document.pages) { takeStyles(page.headHtml || ''); pageTrees(page).forEach(visit); }
   for (const component of document.meta.components || []) visit(component.node ? [component.node] : []);
   return [...new Set([
     ...authored.flatMap(unsafeExistingThemeCss), ...authoredStylesheetIssues(document)
@@ -2716,14 +2729,15 @@ export function manifestForRelease(input: {
     | 'redirects' | 'entities' | 'forms' | 'placeholders'>;
 }): ReleaseManifestV1 {
   if (!Number.isInteger(input.sequence) || input.sequence < 1) throw new Error('release sequence must be positive');
+  const compatibilitySchema = connectedV1Schema(input.schemaVersion);
   return {
     format: RELEASE_FORMAT,
     releaseId: input.releaseId,
     siteId: input.siteId,
     sequence: input.sequence,
     sourceVersion: input.sourceVersion,
-    schemaVersion: input.schemaVersion,
-    rendererVersion: `pagecraft-core-${input.schemaVersion}`,
+    schemaVersion: compatibilitySchema,
+    rendererVersion: `pagecraft-core-${compatibilitySchema}`,
     parentReleaseId: input.parentReleaseId,
     createdAt: new Date(input.createdAt).toISOString(),
     requirements: { plugin: '>=0.1.0', wordpress: '>=6.6', php: '>=8.1' },

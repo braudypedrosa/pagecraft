@@ -13,7 +13,7 @@ import type { Finding } from '../core/types';
 import { MotionPresence } from './MotionPresence';
 
 const REGION_MODE: Record<string, string> = {
-  page: 'page', 'global header': 'header', 'global footer': 'footer'
+  page: 'page', 'global header': 'header', 'global footer': 'footer', 'page header': 'header', 'page footer': 'footer'
 };
 
 export function ReviewList({ defaultOpen = false, findings: supplied }: { defaultOpen?: boolean; findings?: Finding[] }) {
@@ -42,11 +42,13 @@ export function ReviewList({ defaultOpen = false, findings: supplied }: { defaul
     if (!f.nodeId) return;
     const pi = C.state.pages.findIndex(p => p.slug === f.where.slug);
     if (pi > -1) C.state.cur = pi;
-    C.state.ui.mode = (REGION_MODE[f.where.region || ''] || 'page') as 'page' | 'header' | 'footer';
+    C.state.ui.mode = (REGION_MODE[(f.where.region || '').split(',')[0]] || 'page') as 'page' | 'header' | 'footer';
+    const shown = C.locate(f.nodeId);
+    if (!shown) C.state.ui.mode = 'page';
     L.closeReviewSurface();
     L.appRender();
-    L.select(f.nodeId, { scroll: true });
-    if (!C.locate(f.nodeId)) L.toast('That element is no longer in the project');
+    if (shown) L.select(f.nodeId, { scroll: true });
+    else L.toast('That element is no longer shown on this page');
   };
 
   const summary = clean ? 'No problems found' : [

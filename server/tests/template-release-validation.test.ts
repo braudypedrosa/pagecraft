@@ -36,15 +36,25 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
       format: 'pagecraft.provenance.v1', origin: 'pagecraft-cloud', sourceId: 'renderer-contract', sourceVersion: 1,
     },
   });
-  a.equal(built.manifest.rendererVersion, rendererVersion);
+  // An inherited-only site uses the reviewed schema-14 transport understood by installed
+  // WordPress readers. The current editor adopts that portable document back to its schema.
+  const transportSchema = 14;
+  const transportRenderer = portableRendererVersionForSchema(transportSchema);
+  a.equal(built.manifest.schemaVersion, transportSchema);
+  a.equal(built.manifest.rendererVersion, transportRenderer);
   a.equal(built.manifest.rendererRevision, PORTABLE_RENDERER_REVISION);
+  a.equal(supportsPortableRendererContract(transportRenderer, built.manifest.rendererRevision, transportSchema, 14), true);
+  a.equal(validatePortablePackage(built.bytes).document.schemaVersion, Core.SCHEMA);
   const files = extractPortableZip(built.bytes);
+  const transported = JSON.parse(decoder.decode(files.get('source/document.json')!));
+  a.equal(transported.schemaVersion, transportSchema);
+  a.ok(transported.pages.every((page: Record<string, unknown>) => !('header' in page) && !('footer' in page)));
   const manifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
   manifest.rendererRevision = 'pagecraft-renderer-3';
   files.set('manifest.json', json(manifest));
   const unsupported = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
   a.throws(() => validatePortablePackage(unsupported),
-    new RegExp(`unsupported renderer pagecraft-core-${Core.SCHEMA} / pagecraft-renderer-3`));
+    new RegExp(`unsupported renderer ${transportRenderer} / pagecraft-renderer-3`));
 });
 
 test('released checks preserve immutable legacy archives while drafts stay reproducible', async () => {

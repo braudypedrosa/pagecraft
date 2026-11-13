@@ -11,7 +11,7 @@ export interface AssistantMcpContext {
   tokenName: string;
   /** pages, regions, components and images */
   outline(): Record<string, unknown>;
-  /** one page, or `header` / `footer`, as elements; null when there is no such region */
+  /** One page or a region key from the outline, including page-owned regions. */
   region(id: string): Record<string, unknown> | null;
   propose(input: { baseVersion: number; title: string; summary: string; changes: unknown[] }):
     Promise<{ ok: true; proposal: Proposal } | { ok: false; problems: string[] }>;
@@ -60,7 +60,7 @@ const change = z.discriminatedUnion("type", [
   z.strictObject({
     type: z.literal("insert"),
     componentId: z.string().describe("an existing component from pagecraft_site"),
-    region: z.string().describe("a page id, or header / footer"),
+    region: z.string().describe("a page id or region key listed by pagecraft_site"),
     parentId: z.string().optional().describe("an element whose canHold includes the component; omit to add at the region's top level"),
     index: z.number().int().min(0).optional().describe("position among the parent's children; defaults to the end"),
     values: z.record(z.string(), z.string()).optional().describe("property values for the new instance"),
@@ -79,11 +79,11 @@ function assistantServer(ctx: AssistantMcpContext) {
   }, async () => result(ctx.outline()));
 
   server.registerTool("pagecraft_get_page", {
-    description: "Read one page (by id), or the header or footer, as a list of elements with their ids, text and images by slot, component values, and which components each element can hold. Use these ids in a proposal.",
-    inputSchema: z.strictObject({ pageId: z.string().min(1).describe("a page id from pagecraft_site, or header / footer") }),
+    description: "Read one page or region key listed by pagecraft_site, including page-owned headers and footers, as elements with their ids, text and images by slot, component values, and which components each element can hold. Use these ids in a proposal.",
+    inputSchema: z.strictObject({ pageId: z.string().min(1).describe("a page id or region key from pagecraft_site") }),
   }, async ({ pageId }) => {
     const region = ctx.region(pageId);
-    return region ? result(region) : failure(`There is no page "${pageId}". Use a page id from pagecraft_site, or header / footer.`);
+    return region ? result(region) : failure(`There is no page or region "${pageId}". Use a page id or region key from pagecraft_site.`);
   });
 
   server.registerTool("pagecraft_propose_changes", {

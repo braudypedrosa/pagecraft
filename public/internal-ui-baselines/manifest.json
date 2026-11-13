@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-13T00:03:11.983Z",
+  "capturedAt": "2026-11-13T02:27:09.988Z",
   "browser": "Built-in browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,16 +95,16 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "91a2a7ea5f75661939b11adac23ff2bf471309e98454f154d9ba4344bcd5314e",
+    "builder.html": "0612fba33c0217c6a75c8c80f6eb9f44a5fa965f77067ba69a9b4ccce446e79d",
     "app/src/ui/index.tsx": "7e1453567d0c535148a053e9a45603d407af2fbf2a4d49742848ab3cac207bee",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
-    "app/src/ui/Add.tsx": "1b029feb69378c05a804a35b9968fbd7a8ea11e6d87402d0181b68c7418b7a10",
-    "app/src/ui/Pages.tsx": "922f5f5e3cc876e7ba01ae6478c9d23a913cc6437ea3c2d5893d9e2d9f4747fa",
-    "app/src/ui/CmsWorkspace.tsx": "01af91661cfe77026966fb81255b762586ef507162957d96362ea712ac244987",
+    "app/src/ui/Add.tsx": "326ae0593dc78b68cd857b48838b8ea181c70a59d6abe8685c3cd7290fafce9a",
+    "app/src/ui/Pages.tsx": "03c9777e12c672205af347da0b6af4b5f2837898368ffb1b1fd7dba5d23ac9c6",
+    "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "c099e8988045ddf2ea09cb2e671a227ef27dae8f3935560dac99eaeef48f91d5",
     "app/src/ui/inspector/Controls.tsx": "9a451902cc857a9a693a962c83fe3eeda15db9300627c2038666c03b1093e4d3",
-    "app/src/ui/inspector/Inspector.tsx": "427cb156c3ba7624f0a165381923cae0a7f6c96cdfd496ff266defd70253a6b4",
+    "app/src/ui/inspector/Inspector.tsx": "a5e7e0ff1df2cb26fb2b29c2276a0151ba4e578cdb32740a7cd5d9f223c9a064",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "2f1b6afe83513390d1c0338fa567c07f49711fb3298fe20b445bbef8bab1356d",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
@@ -119,7 +119,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "965bb05761004c9b939cd9984f4698b5252118bd1b74a517e172b247309f9aea",
+    "server/src/account-pages.ts": "fd7239df5de0a908848e266b9c19cd3398b3edcf01d2b446f23b2f28db7fe522",
     "server/src/component-gallery.ts": "f5aea66c3554fa97d3cbfa566c6bf7cad03c7bbc9daf1e89262174f3a80cf1f9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -724,7 +724,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+      "sha256": "b60ff91b028fc0ff9f2c1876a7e9bc8fc1e3bf6199b4d4c442059a78485ab833",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -761,7 +761,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "78d8b3e3fbdf5a31ad8fe0bd02081d410e68a1bd7b13ceee58b56c6a9009cafd",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples",

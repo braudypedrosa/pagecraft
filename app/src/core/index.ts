@@ -1741,6 +1741,33 @@ const doc = (): Doc => ({
   pages: state.pages
 });
 const page = () => state.pages[state.cur] || state.pages[0];
+/** Stored page-owned trees, never duplicated inherited shared trees. */
+function pageTrees(pg: Page): PcNode[][] {
+  return [pg.tree, ...(Array.isArray(pg.header) ? [pg.header] : []),
+    ...(Array.isArray(pg.footer) ? [pg.footer] : [])];
+}
+function pageRegion(pg: Page | undefined, kind: 'header' | 'footer'): PcNode[] {
+  return pg?.[kind] === null ? [] : pg?.[kind] ?? state[kind];
+}
+function pageRegionMode(pg: Page, kind: 'header' | 'footer'): 'shared' | 'custom' | 'hidden' {
+  return pg[kind] === undefined ? 'shared' : pg[kind] === null ? 'hidden' : 'custom';
+}
+/** Mutation only. The host groups the choice and its selection reset in one edit(). */
+function pageRegionSet(pg: Page, kind: 'header' | 'footer', mode: 'shared' | 'custom' | 'hidden'): boolean {
+  if (!state.pages.includes(pg) || pageRegionMode(pg, kind) === mode) return false;
+  if (mode === 'shared') delete pg[kind];
+  else if (mode === 'hidden') pg[kind] = null;
+  else {
+    const copy = clone(pageRegion(pg, kind));
+    // The copy replaces this page's shared region, so authored anchors remain valid. Only
+    // document node identities change; unlike Duplicate, both copies never render together.
+    eachNode(copy, node => { node.id = uid(); });
+    pg[kind] = copy;
+  }
+  selSet([]);
+  return true;
+}
+
 /* Which tree is being edited. A component definition is one of them, and that single line is
    most of what makes editing a component work: `locate`, `insert`, the drag targets, the
    layer list and the inspector all read `tree()`, so none of them needed to learn what a
@@ -1750,7 +1777,8 @@ const tree = (): PcNode[] => {
     const cd = findComponent(state.ui.cedit);
     return cd ? [cd.node] : [];
   }
-  return state.ui.mode === 'header' ? state.header : state.ui.mode === 'footer' ? state.footer : page().tree;
+  return state.ui.mode === 'header' || state.ui.mode === 'footer'
+    ? pageRegion(page(), state.ui.mode) : page().tree;
 };
 const dk = () => DEV_KEY[state.ui.dev];
 
@@ -1768,7 +1796,9 @@ function locateAny(id: string): any {
     const h = locate(id, list, null); if (h) return { ...h, mode: m };
   }
   for (let p = 0; p < state.pages.length; p++) {
-    const h = locate(id, state.pages[p].tree, null); if (h) return { ...h, mode: 'page', page: p };
+    for (const [mode, list] of [['page', state.pages[p].tree], ['header', state.pages[p].header], ['footer', state.pages[p].footer]] as const) {
+      const h = list && locate(id, list, null); if (h) return { ...h, mode, page: p };
+    }
   }
   return null;
 }
@@ -1951,6 +1981,7 @@ function restore(snap: Doc, preserveMobileMenuOwner = false) {
   state.ui.mobileMenuOwner = owner;
   if (owner) mobileMenuOwner(owner.menuComponentId); // validate the exact owner and menu ref in this snapshot
   if (state.cur >= state.pages.length) state.cur = 0;
+  if ((state.ui.mode === 'header' || state.ui.mode === 'footer') && pageRegionMode(page(), state.ui.mode) === 'hidden') state.ui.mode = 'page';
   selSet(selIds());                        // drop members this snapshot has no node for
   HOOKS.change(); HOOKS.save();
 }
@@ -2224,7 +2255,7 @@ function pageDup(i: number) {
   if (!src) return null;
   const c = clone(src);
   c.id = uid();
-  c.tree.forEach(reid);
+  pageTrees(c).forEach(list => list.forEach(reid));
   c.name += ' copy';
   /* unique among every page, or copying "about" twice makes two `about-copy` pages and one
      overwrites the other on publish */
@@ -2839,7 +2870,7 @@ function tsCreateFrom(n: PcNode, name: string) {
    page — a walk that missed it would delete the token or ship no font. */
 function renderedTrees(): PcNode[][] {
   return [
-    state.header, state.footer, ...state.pages.map(p => p.tree),
+    state.header, state.footer, ...state.pages.flatMap(pageTrees),
     ...components().map(c => [c.node])
   ];
 }
@@ -2873,7 +2904,7 @@ const LANGS = [
 function anchorsOf(slug: string) {
   const pg = state.pages.find(p => p.slug === slug) || page();
   const out: any[] = [];
-  [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => {
+  [pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')].forEach(l => eachNode(l, n => {
     if (n.adv && n.adv.htmlId) out.push(n.adv.htmlId);
   }));
   return [...new Set(out)];
@@ -3748,13 +3779,13 @@ function lint() {
   const idsBySlug: Record<string, Set<string>> = {};
   linkablePages().forEach(pg => {
     const ids = new Set<string>();
-    [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
+    [pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[pg.slug + '.html'] = ids;
   });
   // Generated detail and pagination URLs are real publication targets too.
   for (const target of exportTargets()) {
     const ids = new Set<string>();
-    [state.header, target.pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
+    [pageRegion(target.pg, 'header'), target.pg.tree, pageRegion(target.pg, 'footer')].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[target.path] = ids;
   }
   const pageOf = (slug: string) => idsBySlug[slug];
@@ -3901,7 +3932,7 @@ function lint() {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
             let f: Collection | null = null;
-            eachNode(pg.tree, x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
+            eachNode([...(pageRegion(pg, 'header')), ...pg.tree, ...(pageRegion(pg, 'footer'))], x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
             return (f || (pg.collection ? findCollection(pg.collection) : null)) as any;
           })();
           if (!owner) add('error', 'item-link-no-scope', `A link in the ${region} points at “this item’s page”, but nothing around it says which collection.`, w, n.id);
@@ -4089,9 +4120,9 @@ function lint() {
       visit(n.children || [], chain.concat(n), region);
     });
 
-    visit(state.header, [], 'global header');
+    visit(pageRegion(pg, 'header'), [], pg.header === undefined ? 'global header' : 'page header');
     visit(pg.tree, [], 'page');
-    visit(state.footer, [], 'global footer');
+    visit(pageRegion(pg, 'footer'), [], pg.footer === undefined ? 'global footer' : 'page footer');
 
     /* Media review is the one lint pass that needs rendered content rather than the authored
        fallback. Keep it separate from the static review above so collection repetition does
@@ -4298,7 +4329,7 @@ function lint() {
         const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
         const kids = filled && filled.length ? filled : (n.children || []);
         const childContext = filled && filled.length
-          ? { ...scoped, inst: null, cdef: null }
+          ? { ...scoped, inst: null, cdef: null, stack: slotCallerStack(context.stack, context.cdef) }
           : scoped;
         walkContext(kids, chain.concat(n), region, childContext);
       });
@@ -4315,9 +4346,9 @@ function lint() {
           ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
         repeatPath: [], pagination: null
       };
-      walkContext(state.header, [], 'global header', { ...renderContext, scope: 'header' });
+      walkContext(pageRegion(pg, 'header'), [], pg.header === undefined ? 'global header' : 'page header', { ...renderContext, scope: 'header' });
       walkContext(pg.tree, [], 'page', renderContext);
-      walkContext(state.footer, [], 'global footer', { ...renderContext, scope: 'footer' });
+      walkContext(pageRegion(pg, 'footer'), [], pg.footer === undefined ? 'global footer' : 'page footer', { ...renderContext, scope: 'footer' });
     }
     for (const review of contextReviews.values()) {
       const labels = [...review.items.values()];
@@ -4829,6 +4860,8 @@ function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean
       });
     });
     scan(p.tree, 'page', i, p.name);
+    if (p.header) scan(p.header, 'header', i, p.name + ' header');
+    if (p.footer) scan(p.footer, 'footer', i, p.name + ' footer');
   });
   scan(state.footer, 'footer', -1, 'Global footer');
   {
@@ -4879,7 +4912,7 @@ function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: bo
     /* a page's slug is deliberately left alone: it is a published URL, and moving one
        silently because a word changed is how links break */
     PAGE_TEXT.forEach(([k]) => { const q = p as any; if (typeof q[k] === 'string') q[k] = swap(q[k]); });
-    scan(p.tree);
+    pageTrees(p).forEach(scan);
   });
   scan(state.footer);
   if (typeof state.meta.name === 'string') state.meta.name = swap(state.meta.name);
@@ -5128,7 +5161,7 @@ type RemovedCollectionFields = Map<string, Set<string>>;
     inside edit(), so the durable document and its undo record cannot disagree. */
 function documentTrees(d: Doc): PcNode[][] {
   return [
-    d.header, d.footer, ...d.pages.map(p => p.tree),
+    d.header, d.footer, ...d.pages.flatMap(pageTrees),
     ...(d.meta.components || []).map(c => [c.node]),
     ...(d.meta.blocks || []).map(b => [b.node])
   ];
@@ -6347,8 +6380,11 @@ function mobileMenuOwnerContext(n: PcNode, componentId: string): MobileMenuOwner
     if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
   }
   for (let page = 0; page < state.pages.length; page++) {
-    const hit = locate(n.id, state.pages[page].tree);
-    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: 'page', page };
+    const pg = state.pages[page];
+    for (const [mode, list] of [['page', pg.tree], ['header', pg.header], ['footer', pg.footer]] as const) {
+      const hit = list && locate(n.id, list);
+      if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode, page };
+    }
   }
   for (const definition of components()) {
     if (definition.id === componentId) continue;
@@ -6367,7 +6403,7 @@ function soleMobileMenuOwner(componentId: string): MobileMenuOwnerContext | null
   const visit = (list: PcNode[]) => eachNode(list, node => { if (ownsMobileMenu(node, componentId)) owners.push(node); });
   visit(state.header || []);
   visit(state.footer || []);
-  state.pages.forEach(pg => visit(pg.tree || []));
+  state.pages.forEach(pg => pageTrees(pg).forEach(visit));
   components().forEach(definition => { if (definition.id !== componentId) visit([definition.node]); });
   return owners.length === 1 ? mobileMenuOwnerContext(owners[0], componentId) : null;
 }
@@ -6382,8 +6418,10 @@ function mobileMenuOwner(componentId: string): MobileMenuOwner | null {
     return null;
   }
   let hit: Handle | null = null;
-  if (context.mode === 'header') hit = locate(context.nodeId, state.header);
-  else if (context.mode === 'footer') hit = locate(context.nodeId, state.footer);
+  if (context.mode === 'header' || context.mode === 'footer') {
+    const list = context.page === undefined ? state[context.mode] : pageRegion(state.pages[context.page], context.mode);
+    hit = locate(context.nodeId, list);
+  }
   else if (context.mode === 'page' && context.page !== undefined) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
   else if (context.mode === 'component' && context.ownerComponentId) {
     const owner = findComponent(context.ownerComponentId);
@@ -6869,7 +6907,11 @@ function instances(cid: string) {
   });
   scan(state.header, 'header');
   scan(state.footer, 'footer');
-  state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
+  state.pages.forEach((p, i) => {
+    scan(p.tree, 'page:' + i);
+    if (p.header) scan(p.header, 'page:' + i + ':header');
+    if (p.footer) scan(p.footer, 'page:' + i + ':footer');
+  });
   components().forEach(c => { if (c.id !== cid) scan([c.node], 'component:' + c.id); });
   blocks().forEach(b => scan([b.node], 'block:' + b.id));
   return out;
@@ -7154,7 +7196,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 14;                       // bump when the stored shape changes
+const SCHEMA = 15;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   /* `v` was the editor-backup marker before the document schema became an explicit part of
@@ -7173,6 +7215,11 @@ function migrate(d: any) {
   }
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;          // written by a newer build — refuse rather than corrupt
+  for (const pg of d.pages) for (const kind of ['header', 'footer']) {
+    if (pg[kind] !== undefined && pg[kind] !== null && !Array.isArray(pg[kind])) {
+      throw new Error('invalid page ' + kind + ' override');
+    }
+  }
   /* Every node the document owns, for the steps that rewrite nodes rather than meta. Saved
      blocks are in here on purpose: a block is a detached tree, and a step that skips them
      leaves a node that renders one way on the page and another way out of the Blocks list. */
@@ -7180,7 +7227,7 @@ function migrate(d: any) {
     const walk = (n: any) => { fn(n); (n.children || []).forEach(walk); };
     (d.header || []).forEach(walk);
     (d.footer || []).forEach(walk);
-    (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(walk));
+    (d.pages || []).forEach((pg: Page) => pageTrees(pg).forEach(list => (list || []).forEach(walk)));
     (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) walk(bl.node); });
     (((d.meta || {}).components) || []).forEach((cd: any) => { if (cd.node) walk(cd.node); });
   };
@@ -7371,6 +7418,9 @@ function migrate(d: any) {
   /* v13 -> v14: a component link property may carry its own target beside its href. Existing
      documents have no companion values, so their authored behaviour is already the correct
      default. The migration is markers-only; new edits add the reserved string-map key. */
+  /* v14 -> v15: page-owned header/footer arrays and explicit hidden regions. Missing fields
+     keep inheritance unchanged. The version gate prevents older renderers silently dropping
+     visible page-owned content. Every owned tree participates in migrations above. */
   /* `v` is an input compatibility marker, not part of `Doc`. Adding it to an already-current
      document makes the public save/load contract oscillate: `migrate()` adds `v`, then
      `restore()` + `doc()` drops it because state stores only the typed document fields. Keep
@@ -8973,14 +9023,14 @@ function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
 function wordpressStyles(pg: Page) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
-  const pageMoves = animUsed([pg.tree]);
+  const pageMoves = animUsed(pageTrees(pg));
   const globalControls = publicFormControlsUsed(globalTrees);
-  const pageControls = publicFormControlsUsed([pg.tree]);
+  const pageControls = publicFormControlsUsed(pageTrees(pg));
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false)
       + publicFormControlCss(globalControls)
       + (globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : '')),
-    page: tidy(treeRuleCss([pg.tree], false)
+    page: tidy(treeRuleCss(pageTrees(pg), false)
       + publicFormControlCss({
         select: pageControls.select && !globalControls.select,
         date: pageControls.date && !globalControls.date,
@@ -9671,6 +9721,13 @@ type FormRoutingInspection = {
   visit: (form: FormRoutingObservation) => void;
 };
 
+/** Supplied slot children belong to the instance's caller, not the definition being
+    expanded. Drop only that definition's frame: a surrounding definition still owns its
+    supplied content and must retain its recursion guard. Never clear the whole stack. */
+function slotCallerStack(stack: string[], definition: ComponentDef | null | undefined): string[] {
+  return definition && stack.at(-1) === definition.id ? stack.slice(0, -1) : stack;
+}
+
 function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspection }): string {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   o.formRouting?.count();
@@ -9817,7 +9874,7 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : (n.children || []);
   const kidOpts = filled && filled.length ? {
-    ...o2, inst: null, cdef: null,
+    ...o2, inst: null, cdef: null, stack: slotCallerStack(o.stack || [], o.cdef),
     /* Direct placement slots are page-owned; slots inside nested definitions are not. */
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : undefined
   } : o2;
@@ -10338,7 +10395,7 @@ export function inspectFormRouting(source: Doc, visit: (form: FormRoutingObserva
     remaining -= size;
     if (remaining < 0) throw new Error('Form routing inspection exceeded its element budget');
   };
-  const pending = [source.header, source.footer, ...source.pages.map(page => page.tree),
+  const pending = [source.header, source.footer, ...source.pages.flatMap(pageTrees),
     ...(source.meta.components || []).map(component => [component.node])];
   let hasForms = false;
   while (pending.length && !hasForms) {
@@ -10359,7 +10416,7 @@ export function inspectFormRouting(source: Doc, visit: (form: FormRoutingObserva
       const { pg, col, item, pageNo } = target;
       const items = col && item ? [[col.id, item.id] as const] : [];
       const publicIds = { reserving: true, reserved: new Set<string>(), used: new Set<string>() };
-      const regions = [['header', state.header], ['page:' + pg.id, pg.tree], ['footer', state.footer]] as const;
+      const regions = [['header', pageRegion(pg, 'header')], ['page:' + pg.id, pg.tree], ['footer', pageRegion(pg, 'footer')]] as const;
       for (const [region, nodes] of regions) for (const node of nodes) {
         renderNode(node, { edit: false, publicIds, pg, col, item, pageNo, formRouting: { region, items, count, visit } });
       }
@@ -10742,7 +10799,7 @@ function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | nul
      that happens to be about something. */
   /* A BreadcrumbList only when the page shows one, and built from the same trail the
      widget renders — a claimed trail that is not on the page is worth less than none. */
-  if (crumbsShown([state.header, pg.tree, state.footer])) {
+  if (crumbsShown([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')])) {
     const trail = crumbTrail(pg, ctx);
     if (trail.length > 1) graph.push({
       '@type': 'BreadcrumbList',
@@ -10808,21 +10865,21 @@ function buildPage(pg: Page, ctx: {
     edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '',
     variants: !!ctx.variants, pageNo: ctx.pageNo || 1, pages: ctx.pages || 1, pg
   };
-  const css = treeCss([state.header, pg.tree, state.footer], false);
+  const css = treeCss([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], false);
   /* per page, not per project: two pages of a site can differ, and 34 KB is most of the weight
      of a page that has nothing moving on it */
-  const moves = animUsed([state.header, pg.tree, state.footer]);
+  const moves = animUsed([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')]);
   /* The node tree, not a regex over rendered bytes, defines the document landmarks. Every
      page tree is wrapped in one Pagecraft-owned main; global regions stay outside. Any main
      authored inside those fragments is demoted by a raw-text-aware scanner before nesting,
      which prevents sibling content and multiple landmarks without treating script/embed text
      as structure. */
-  const allNodes = [...state.header, ...pg.tree, ...state.footer];
+  const allNodes = [...pageRegion(pg, 'header'), ...pg.tree, ...pageRegion(pg, 'footer')];
   const occupied = new Set<string>();
   eachNode(allNodes, n => occupied.add(domIdOf(n)));
   let mainId = 'pagecraft-main';
   while (occupied.has(mainId)) mainId += '-content';
-  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([state.header, pg.tree, state.footer], o);
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], o);
   const header = demoteMainTags(headerHtml);
   const pageBody = demoteMainTags(pageHtml);
   const footer = demoteMainTags(footerHtml);
@@ -10880,7 +10937,7 @@ type ProposalInput =
 /** A checked change: where, the value to write, and what it replaces. */
 interface ProposalChange {
   type: 'text' | 'image' | 'property' | 'insert';
-  /** `header`, `footer`, or a page id */
+  /** Shared region, page id, or `page-header:<id>` / `page-footer:<id>` for an owned region. */
   region: string;
   nodeId?: string;
   slot?: string;
@@ -10901,8 +10958,13 @@ type ProposalAssets = { assets: ReadonlySet<string> };
 
 const PROPOSAL_LIMITS = { changes: 50, text: 10000, title: 120, summary: 2000 };
 
-const proposalTree = (region: string) => region === 'header' ? state.header : region === 'footer'
-  ? state.footer : state.pages.find(pg => pg.id === region)?.tree;
+const proposalRegions = (): [string, PcNode[]][] => [
+  ['header', state.header], ['footer', state.footer],
+  ...state.pages.flatMap(pg => [[pg.id, pg.tree] as [string, PcNode[]],
+    ...(Array.isArray(pg.header) ? [['page-header:' + pg.id, pg.header] as [string, PcNode[]]] : []),
+    ...(Array.isArray(pg.footer) ? [['page-footer:' + pg.id, pg.footer] as [string, PcNode[]]] : [])])
+];
+const proposalTree = (region: string) => proposalRegions().find(([key]) => key === region)?.[1];
 type ProposalPath = { node: PcNode; index: number }[];
 type ProposalTarget = { node: PcNode; region: string; path: ProposalPath };
 
@@ -10937,8 +10999,8 @@ function* proposalTargets(region: string, list: PcNode[], path: ProposalPath = [
   }
 }
 function proposalFind(nodeId: string): ProposalTarget | null {
-  for (const region of ['header', 'footer', ...state.pages.map(pg => pg.id)]) {
-    for (const target of proposalTargets(region, proposalTree(region)!)) {
+  for (const [region, list] of proposalRegions()) {
+    for (const target of proposalTargets(region, list)) {
       if (target.node.id === nodeId) return target;
     }
   }
@@ -11118,7 +11180,9 @@ function proposalPrepare(inputs: unknown, options: ProposalAssets): { changes: P
         if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
         values[k] = checked.value!;
       }
-      const where = region === 'header' ? 'the header' : region === 'footer' ? 'the footer' : `page “${state.pages.find(pg => pg.id === region)!.name}”`;
+      const owner = state.pages.find(pg => pg.id === region || 'page-header:' + pg.id === region || 'page-footer:' + pg.id === region);
+      const where = region === 'header' ? 'the header' : region === 'footer' ? 'the footer'
+        : `${region.startsWith('page-header:') ? 'header of ' : region.startsWith('page-footer:') ? 'footer of ' : ''}page “${owner!.name}”`;
       const into = parent ? ` · ${proposalNodeLabel(parent.node)}${placement.slot ? ` · ${placement.slot}` : ''}` : '';
       changes.push({ type: 'insert', region, componentId: def.id, parentId: parent?.node.id ?? null, index, values,
         placement: placement.receipt, value: '', before: '', label: `Add ${def.name} to ${where}${into}` });
@@ -11363,3 +11427,5 @@ export { LINK_TARGET, linkTargetKey, instLinkTarget, instLinkTargetSet };
 
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
 export type { ProposalChange, ProposalInput };
+
+export { pageTrees, pageRegion, pageRegionMode, pageRegionSet };

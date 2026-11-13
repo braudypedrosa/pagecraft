@@ -667,6 +667,10 @@ export interface Page {
   desc: string;
   ogImage?: string;
   tree: Node[];
+  /** Absent inherits the shared region; null hides it; an array owns this page's region.
+      An empty custom array stays editable, unlike a hidden region. */
+  header?: Node[] | null;
+  footer?: Node[] | null;
   /** makes this page a detail template: one file per item of that collection */
   collection?: string;
   bindTitle?: string;

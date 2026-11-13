@@ -3923,7 +3923,11 @@ function nodes(doc2) {
     walk(node.children || [], node.id, region);
   });
   walk(doc2.header, "", "header");
-  doc2.pages.forEach((page2) => walk(page2.tree, "", `page:${page2.id}`));
+  doc2.pages.forEach((page2) => {
+    walk(page2.tree, "", `page:${page2.id}`);
+    if (Array.isArray(page2.header)) walk(page2.header, "", `page:${page2.id}:header`);
+    if (Array.isArray(page2.footer)) walk(page2.footer, "", `page:${page2.id}:footer`);
+  });
   walk(doc2.footer, "", "footer");
   for (const component of doc2.meta.components || []) walk([component.node], "", `component:${component.id}`);
   for (const block of doc2.meta.blocks || []) walk([block.node], "", `block:${block.id}`);
@@ -4171,6 +4175,9 @@ function mediaReferences(document) {
     const context = { scope: "page", label: page2.name, ownerId: page2.id };
     scan(page2.ogImage, ["pages", i, "ogImage"], context);
     nodes2(page2.tree, ["pages", i, "tree"], context);
+    for (const kind2 of ["header", "footer"]) if (Array.isArray(page2[kind2])) {
+      nodes2(page2[kind2], ["pages", i, kind2], { ...context, label: page2.name + " " + kind2 });
+    }
   });
   for (const scope of ["header", "footer"]) nodes2(document[scope], [scope], { scope, label: `Global ${scope}` });
   document.meta.components?.forEach((def, i) => {
@@ -6034,12 +6041,39 @@ var doc = () => ({
   pages: state.pages
 });
 var page = () => state.pages[state.cur] || state.pages[0];
+function pageTrees(pg2) {
+  return [
+    pg2.tree,
+    ...Array.isArray(pg2.header) ? [pg2.header] : [],
+    ...Array.isArray(pg2.footer) ? [pg2.footer] : []
+  ];
+}
+function pageRegion(pg2, kind2) {
+  return pg2?.[kind2] === null ? [] : pg2?.[kind2] ?? state[kind2];
+}
+function pageRegionMode(pg2, kind2) {
+  return pg2[kind2] === void 0 ? "shared" : pg2[kind2] === null ? "hidden" : "custom";
+}
+function pageRegionSet(pg2, kind2, mode) {
+  if (!state.pages.includes(pg2) || pageRegionMode(pg2, kind2) === mode) return false;
+  if (mode === "shared") delete pg2[kind2];
+  else if (mode === "hidden") pg2[kind2] = null;
+  else {
+    const copy = clone(pageRegion(pg2, kind2));
+    eachNode(copy, (node) => {
+      node.id = uid();
+    });
+    pg2[kind2] = copy;
+  }
+  selSet([]);
+  return true;
+}
 var tree = () => {
   if (state.ui.mode === "component") {
     const cd = findComponent(state.ui.cedit);
     return cd ? [cd.node] : [];
   }
-  return state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+  return state.ui.mode === "header" || state.ui.mode === "footer" ? pageRegion(page(), state.ui.mode) : page().tree;
 };
 var dk = () => DEV_KEY[state.ui.dev];
 function locate(id, list = tree(), parent = null) {
@@ -6056,8 +6090,10 @@ function locateAny(id) {
     if (h) return { ...h, mode: m };
   }
   for (let p = 0; p < state.pages.length; p++) {
-    const h = locate(id, state.pages[p].tree, null);
-    if (h) return { ...h, mode: "page", page: p };
+    for (const [mode, list] of [["page", state.pages[p].tree], ["header", state.pages[p].header], ["footer", state.pages[p].footer]]) {
+      const h = list && locate(id, list, null);
+      if (h) return { ...h, mode, page: p };
+    }
   }
   return null;
 }
@@ -6209,6 +6245,7 @@ function restore(snap, preserveMobileMenuOwner = false) {
   state.ui.mobileMenuOwner = owner;
   if (owner) mobileMenuOwner(owner.menuComponentId);
   if (state.cur >= state.pages.length) state.cur = 0;
+  if ((state.ui.mode === "header" || state.ui.mode === "footer") && pageRegionMode(page(), state.ui.mode) === "hidden") state.ui.mode = "page";
   selSet(selIds());
   HOOKS.change();
   HOOKS.save();
@@ -6380,7 +6417,7 @@ function pageDup(i) {
   if (!src) return null;
   const c = clone(src);
   c.id = uid();
-  c.tree.forEach(reid);
+  pageTrees(c).forEach((list) => list.forEach(reid));
   c.name += " copy";
   c.slug = uniqueId(c.slug + "-copy", state.pages.map((p) => p.slug));
   state.pages.splice(i + 1, 0, c);
@@ -6874,7 +6911,7 @@ function renderedTrees() {
   return [
     state.header,
     state.footer,
-    ...state.pages.map((p) => p.tree),
+    ...state.pages.flatMap(pageTrees),
     ...components().map((c) => [c.node])
   ];
 }
@@ -6909,7 +6946,7 @@ var LANGS = [
 function anchorsOf(slug) {
   const pg2 = state.pages.find((p) => p.slug === slug) || page();
   const out = [];
-  [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => {
+  [pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")].forEach((l) => eachNode(l, (n) => {
     if (n.adv && n.adv.htmlId) out.push(n.adv.htmlId);
   }));
   return [...new Set(out)];
@@ -7585,12 +7622,12 @@ function lint() {
   const idsBySlug = {};
   linkablePages().forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
-    [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
+    [pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[pg2.slug + ".html"] = ids;
   });
   for (const target of exportTargets()) {
     const ids = /* @__PURE__ */ new Set();
-    [state.header, target.pg.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
+    [pageRegion(target.pg, "header"), target.pg.tree, pageRegion(target.pg, "footer")].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[target.path] = ids;
   }
   const pageOf = (slug) => idsBySlug[slug];
@@ -7704,7 +7741,7 @@ function lint() {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
             let f = null;
-            eachNode(pg2.tree, (x) => {
+            eachNode([...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")], (x) => {
               if (!f && x.src && findCollection(x.src)) {
                 let d = false;
                 eachNode([x], (y) => {
@@ -7865,9 +7902,9 @@ function lint() {
       }
       visit(n.children || [], chain.concat(n), region);
     });
-    visit(state.header, [], "global header");
+    visit(pageRegion(pg2, "header"), [], pg2.header === void 0 ? "global header" : "page header");
     visit(pg2.tree, [], "page");
-    visit(state.footer, [], "global footer");
+    visit(pageRegion(pg2, "footer"), [], pg2.footer === void 0 ? "global footer" : "page footer");
     const contextReviews = /* @__PURE__ */ new Map();
     const missingFieldSeen = /* @__PURE__ */ new Set();
     const queueContext = (level, code, msg, region, node, context) => {
@@ -8084,7 +8121,7 @@ function lint() {
         }
         const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
         const kids = filled && filled.length ? filled : n.children || [];
-        const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null } : scoped;
+        const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null, stack: slotCallerStack(context.stack, context.cdef) } : scoped;
         walkContext(kids, chain.concat(n), region, childContext);
       });
     };
@@ -8105,9 +8142,9 @@ function lint() {
         repeatPath: [],
         pagination: null
       };
-      walkContext(state.header, [], "global header", { ...renderContext, scope: "header" });
+      walkContext(pageRegion(pg2, "header"), [], pg2.header === void 0 ? "global header" : "page header", { ...renderContext, scope: "header" });
       walkContext(pg2.tree, [], "page", renderContext);
-      walkContext(state.footer, [], "global footer", { ...renderContext, scope: "footer" });
+      walkContext(pageRegion(pg2, "footer"), [], pg2.footer === void 0 ? "global footer" : "page footer", { ...renderContext, scope: "footer" });
     }
     for (const review of contextReviews.values()) {
       const labels = [...review.items.values()];
@@ -8578,6 +8615,8 @@ function searchAll(q, o = {}) {
       });
     });
     scan(p.tree, "page", i, p.name);
+    if (p.header) scan(p.header, "header", i, p.name + " header");
+    if (p.footer) scan(p.footer, "footer", i, p.name + " footer");
   });
   scan(state.footer, "footer", -1, "Global footer");
   {
@@ -8644,7 +8683,7 @@ function replaceAll(q, to, o = {}) {
       const q2 = p;
       if (typeof q2[k] === "string") q2[k] = swap2(q2[k]);
     });
-    scan(p.tree);
+    pageTrees(p).forEach(scan);
   });
   scan(state.footer);
   if (typeof state.meta.name === "string") state.meta.name = swap2(state.meta.name);
@@ -8843,7 +8882,7 @@ function documentTrees(d) {
   return [
     d.header,
     d.footer,
-    ...d.pages.map((p) => p.tree),
+    ...d.pages.flatMap(pageTrees),
     ...(d.meta.components || []).map((c) => [c.node]),
     ...(d.meta.blocks || []).map((b) => [b.node])
   ];
@@ -9731,8 +9770,11 @@ function mobileMenuOwnerContext(n, componentId) {
     if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
   }
   for (let page2 = 0; page2 < state.pages.length; page2++) {
-    const hit = locate(n.id, state.pages[page2].tree);
-    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: "page", page: page2 };
+    const pg2 = state.pages[page2];
+    for (const [mode, list] of [["page", pg2.tree], ["header", pg2.header], ["footer", pg2.footer]]) {
+      const hit = list && locate(n.id, list);
+      if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode, page: page2 };
+    }
   }
   for (const definition of components()) {
     if (definition.id === componentId) continue;
@@ -9753,7 +9795,7 @@ function soleMobileMenuOwner(componentId) {
   });
   visit(state.header || []);
   visit(state.footer || []);
-  state.pages.forEach((pg2) => visit(pg2.tree || []));
+  state.pages.forEach((pg2) => pageTrees(pg2).forEach(visit));
   components().forEach((definition) => {
     if (definition.id !== componentId) visit([definition.node]);
   });
@@ -9770,9 +9812,10 @@ function mobileMenuOwner(componentId) {
     return null;
   }
   let hit = null;
-  if (context.mode === "header") hit = locate(context.nodeId, state.header);
-  else if (context.mode === "footer") hit = locate(context.nodeId, state.footer);
-  else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  if (context.mode === "header" || context.mode === "footer") {
+    const list = context.page === void 0 ? state[context.mode] : pageRegion(state.pages[context.page], context.mode);
+    hit = locate(context.nodeId, list);
+  } else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
   else if (context.mode === "component" && context.ownerComponentId) {
     const owner = findComponent(context.ownerComponentId);
     if (owner) hit = locate(context.nodeId, [owner.node]);
@@ -10213,7 +10256,11 @@ function instances(cid) {
   });
   scan(state.header, "header");
   scan(state.footer, "footer");
-  state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
+  state.pages.forEach((p, i) => {
+    scan(p.tree, "page:" + i);
+    if (p.header) scan(p.header, "page:" + i + ":header");
+    if (p.footer) scan(p.footer, "page:" + i + ":footer");
+  });
   components().forEach((c) => {
     if (c.id !== cid) scan([c.node], "component:" + c.id);
   });
@@ -10478,7 +10525,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 14;
+var SCHEMA = 15;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const schemaVersion = d.schemaVersion;
@@ -10494,6 +10541,11 @@ function migrate(d) {
   }
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;
+  for (const pg2 of d.pages) for (const kind2 of ["header", "footer"]) {
+    if (pg2[kind2] !== void 0 && pg2[kind2] !== null && !Array.isArray(pg2[kind2])) {
+      throw new Error("invalid page " + kind2 + " override");
+    }
+  }
   const everyNode = (fn) => {
     const walk = (n) => {
       fn(n);
@@ -10501,7 +10553,7 @@ function migrate(d) {
     };
     (d.header || []).forEach(walk);
     (d.footer || []).forEach(walk);
-    (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(walk));
+    (d.pages || []).forEach((pg2) => pageTrees(pg2).forEach((list) => (list || []).forEach(walk)));
     ((d.meta || {}).blocks || []).forEach((bl) => {
       if (bl.node) walk(bl.node);
     });
@@ -12262,14 +12314,14 @@ function publicFormControlCssFor(lists, editing) {
 function wordpressStyles(pg2) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
-  const pageMoves = animUsed([pg2.tree]);
+  const pageMoves = animUsed(pageTrees(pg2));
   const globalControls = publicFormControlsUsed(globalTrees);
-  const pageControls = publicFormControlsUsed([pg2.tree]);
+  const pageControls = publicFormControlsUsed(pageTrees(pg2));
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false) + publicFormControlCss(globalControls) + (globalMoves ? `
 ${ANIM_CSS}
 ${ANIM_CALM}` : "")),
-    page: tidy(treeRuleCss([pg2.tree], false) + publicFormControlCss({
+    page: tidy(treeRuleCss(pageTrees(pg2), false) + publicFormControlCss({
       select: pageControls.select && !globalControls.select,
       date: pageControls.date && !globalControls.date
     }) + (pageMoves && !globalMoves ? `
@@ -12901,6 +12953,9 @@ var cssRatio = (v) => {
   const s = String(v ?? "").trim();
   return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : "";
 };
+function slotCallerStack(stack, definition) {
+  return definition && stack.at(-1) === definition.id ? stack.slice(0, -1) : stack;
+}
 function renderNode(n, o) {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   o.formRouting?.count();
@@ -12985,6 +13040,7 @@ function renderNode(n, o) {
     ...o2,
     inst: null,
     cdef: null,
+    stack: slotCallerStack(o.stack || [], o.cdef),
     /* Direct placement slots are page-owned; slots inside nested definitions are not. */
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : void 0
   } : o2;
@@ -13327,7 +13383,7 @@ function inspectFormRouting(source, visit) {
   const pending = [
     source.header,
     source.footer,
-    ...source.pages.map((page2) => page2.tree),
+    ...source.pages.flatMap(pageTrees),
     ...(source.meta.components || []).map((component) => [component.node])
   ];
   let hasForms = false;
@@ -13349,7 +13405,7 @@ function inspectFormRouting(source, visit) {
       const { pg: pg2, col, item, pageNo } = target;
       const items = col && item ? [[col.id, item.id]] : [];
       const publicIds = { reserving: true, reserved: /* @__PURE__ */ new Set(), used: /* @__PURE__ */ new Set() };
-      const regions = [["header", state.header], ["page:" + pg2.id, pg2.tree], ["footer", state.footer]];
+      const regions = [["header", pageRegion(pg2, "header")], ["page:" + pg2.id, pg2.tree], ["footer", pageRegion(pg2, "footer")]];
       for (const [region, nodes2] of regions) for (const node of nodes2) {
         renderNode(node, { edit: false, publicIds, pg: pg2, col, item, pageNo, formRouting: { region, items, count, visit } });
       }
@@ -13646,7 +13702,7 @@ function jsonLdGraph(pg2, ctx = {}) {
     { "@type": "Organization", "@id": org, name: m.name, url: base + "/" },
     { "@type": "WebSite", "@id": site, name: m.name, url: base + "/", publisher: { "@id": org } }
   ];
-  if (crumbsShown([state.header, pg2.tree, state.footer])) {
+  if (crumbsShown([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")])) {
     const trail = crumbTrail(pg2, ctx);
     if (trail.length > 1) graph.push({
       "@type": "BreadcrumbList",
@@ -13694,14 +13750,14 @@ function buildPage(pg2, ctx = {}) {
     pages: ctx.pages || 1,
     pg: pg2
   };
-  const css = treeCss([state.header, pg2.tree, state.footer], false);
-  const moves = animUsed([state.header, pg2.tree, state.footer]);
-  const allNodes = [...state.header, ...pg2.tree, ...state.footer];
+  const css = treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false);
+  const moves = animUsed([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")]);
+  const allNodes = [...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")];
   const occupied = /* @__PURE__ */ new Set();
   eachNode(allNodes, (n) => occupied.add(domIdOf(n)));
   let mainId = "pagecraft-main";
   while (occupied.has(mainId)) mainId += "-content";
-  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([state.header, pg2.tree, state.footer], o);
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], o);
   const header = demoteMainTags(headerHtml);
   const pageBody = demoteMainTags(pageHtml);
   const footer = demoteMainTags(footerHtml);
@@ -13752,7 +13808,16 @@ ${ANIM_JS}
 `;
 }
 var PROPOSAL_LIMITS = { changes: 50, text: 1e4, title: 120, summary: 2e3 };
-var proposalTree = (region) => region === "header" ? state.header : region === "footer" ? state.footer : state.pages.find((pg2) => pg2.id === region)?.tree;
+var proposalRegions = () => [
+  ["header", state.header],
+  ["footer", state.footer],
+  ...state.pages.flatMap((pg2) => [
+    [pg2.id, pg2.tree],
+    ...Array.isArray(pg2.header) ? [["page-header:" + pg2.id, pg2.header]] : [],
+    ...Array.isArray(pg2.footer) ? [["page-footer:" + pg2.id, pg2.footer]] : []
+  ])
+];
+var proposalTree = (region) => proposalRegions().find(([key]) => key === region)?.[1];
 function proposalInstanceSlots(inst, def) {
   const first = slotsOf(def)[0]?.k;
   const slots = /* @__PURE__ */ new Map();
@@ -13779,8 +13844,8 @@ function* proposalTargets(region, list, path = []) {
   }
 }
 function proposalFind(nodeId) {
-  for (const region of ["header", "footer", ...state.pages.map((pg2) => pg2.id)]) {
-    for (const target of proposalTargets(region, proposalTree(region))) {
+  for (const [region, list] of proposalRegions()) {
+    for (const target of proposalTargets(region, list)) {
       if (target.node.id === nodeId) return target;
     }
   }
@@ -13945,7 +14010,8 @@ function proposalPrepare(inputs, options) {
         if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
         values[k] = checked.value;
       }
-      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `page \u201C${state.pages.find((pg2) => pg2.id === region2).name}\u201D`;
+      const owner = state.pages.find((pg2) => pg2.id === region2 || "page-header:" + pg2.id === region2 || "page-footer:" + pg2.id === region2);
+      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `${region2.startsWith("page-header:") ? "header of " : region2.startsWith("page-footer:") ? "footer of " : ""}page \u201C${owner.name}\u201D`;
       const into = parent ? ` \xB7 ${proposalNodeLabel(parent.node)}${placement.slot ? ` \xB7 ${placement.slot}` : ""}` : "";
       changes.push({
         type: "insert",
@@ -14513,7 +14579,11 @@ var __CORE = {
   pageFront,
   pageHref,
   pageMove,
+  pageRegion,
+  pageRegionMode,
+  pageRegionSet,
   pageSlugSet,
+  pageTrees,
   pagedPath,
   pagedRel,
   pager,
@@ -14968,7 +15038,7 @@ var PC_UI = (() => {
     core.selSet([]);
     const target = query.get("reviewNode");
     let found;
-    for (const [mode, nodes] of [["page", core.state.pages[index].tree], ["header", core.state.header], ["footer", core.state.footer]]) {
+    for (const [mode, nodes] of [["page", core.state.pages[index].tree], ["header", core.pageRegion(core.state.pages[index], "header")], ["footer", core.pageRegion(core.state.pages[index], "footer")]]) {
       core.eachNode(nodes, (node) => {
         if (!found && target && core.domIdOf(node) === target) found = { id: node.id, mode };
       });
@@ -18064,7 +18134,7 @@ var PC_UI = (() => {
           visit(n2.children || [], source);
         }
       };
-      visit(page2.tree);
+      C2.pageTrees(page2).forEach((nodes) => visit(nodes));
     }
     const bindings = affected.size ? "Review these bindings: " + [...affected].join(", ") + "." : "No page field bindings were found. Check shared components and references before publishing.";
     const settings = C2.collectionFieldSettingUsage(collectionId, fieldId);
@@ -19437,7 +19507,11 @@ var PC_UI = (() => {
     const visit = (node) => eachNode(node, (n2) => {
       if (n2.use === id) found.push(n2);
     });
-    doc.pages.forEach((page2) => page2.tree.forEach(visit));
+    doc.pages.forEach((page2) => {
+      page2.tree.forEach(visit);
+      if (Array.isArray(page2.header)) page2.header.forEach(visit);
+      if (Array.isArray(page2.footer)) page2.footer.forEach(visit);
+    });
     doc.header.forEach(visit);
     doc.footer.forEach(visit);
     (doc.meta.components || []).forEach((def) => visit(def.node));
@@ -20753,7 +20827,7 @@ var PC_UI = (() => {
         return;
       }
       const scope = pat.scope;
-      const currentRegion = () => scope === "header" ? C2.state.header : C2.state.footer;
+      const currentRegion = () => C2.pageRegion(C2.page(), scope);
       const regionSnapshot = JSON.stringify(currentRegion());
       const contextChanged = () => C2.page().id !== originalPageId || JSON.stringify(currentRegion()) !== regionSnapshot;
       let action = "add";
@@ -20802,21 +20876,28 @@ var PC_UI = (() => {
         actionSetup = { label: label.trim() || "Action", href: destination };
       }
       let made = null;
-      L2.setMode(scope);
+      const wasHidden = C2.pageRegionMode(C2.page(), scope) === "hidden";
+      const owner = C2.pageRegionMode(C2.page(), scope) === "shared" ? "global" : "page";
+      if (!wasHidden) L2.setMode(scope);
       C2.edit(() => {
+        if (wasHidden) {
+          C2.pageRegionSet(C2.page(), scope, "custom");
+          C2.state.ui.mode = scope;
+        }
         const region = currentRegion();
         const oldLength = region.length;
         made = C2.patternInsert(id, null, region.length);
         if (!made) return;
         applyRegionSetup(made, navItems, actionSetup);
         if (action === "replace") region.splice(0, oldLength);
-      }, action === "replace" ? `Replace global ${scope}` : `Add global ${scope}`);
+      }, action === "replace" ? `Replace ${owner} ${scope}` : `Add ${owner} ${scope}`);
       if (!made) {
         L2.toast("That does not fit there");
         return;
       }
+      if (wasHidden) L2.setMode(scope);
       L2.select(made.id);
-      L2.toast(action === "replace" ? `${pat.name} replaced the current ${scope}. Undo restores it.` : `${pat.name} added \u2014 now editing the global ${scope}`);
+      L2.toast(action === "replace" ? `${pat.name} replaced the current ${scope}. Undo restores it.` : `${pat.name} added \u2014 now editing the ${owner} ${scope}`);
     };
     return /* @__PURE__ */ u2(S, { children: [
       /* @__PURE__ */ u2("div", { class: "pc-add-starters", "aria-labelledby": "starter-sections-label", children: [
@@ -21633,6 +21714,57 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] })
     ] });
   }
+  function PageRegionControl({ pg, kind }) {
+    const mode = C2.pageRegionMode(pg, kind);
+    const title = kind === "header" ? "Header" : "Footer";
+    _2(() => {
+      refreshCustomSelects();
+    });
+    const change = async (element) => {
+      const next = element.value;
+      element.value = mode;
+      refreshCustomSelects();
+      if (!L2.canStructure() || next === mode) return;
+      if (mode === "custom" && (pg[kind]?.length || 0) > 0 && !await L2.askConfirm(
+        next === "shared" ? "Use the shared " + kind + "?" : "Hide this " + kind + "?",
+        "The custom " + kind + " on <b>" + C2.esc(pg.name) + "</b> will be removed. " + (next === "shared" ? "This page will follow the shared " + kind + ". " : "") + "Undo brings the custom content back until you reload.",
+        { ok: next === "shared" ? "Use shared " + kind : "Hide " + kind }
+      )) return;
+      const current = C2.state.pages.find((p3) => p3.id === pg.id);
+      if (!current || !L2.canStructure()) return;
+      C2.edit(() => {
+        C2.pageRegionSet(current, kind, next);
+        C2.state.ui.mode = "page";
+      }, title + " for this page");
+      L2.paint();
+      L2.save();
+      L2.renderModebar();
+      repaint("pages");
+    };
+    return /* @__PURE__ */ u2("div", { class: "f", children: [
+      /* @__PURE__ */ u2("label", { htmlFor: "page-region-" + kind, children: [
+        title,
+        " for this page"
+      ] }),
+      /* @__PURE__ */ u2("select", { class: "ctl", id: "page-region-" + kind, value: mode, onChange: (e3) => {
+        void change(e3.currentTarget);
+      }, children: [
+        /* @__PURE__ */ u2("option", { value: "shared", children: [
+          "Use shared ",
+          kind
+        ] }),
+        /* @__PURE__ */ u2("option", { value: "custom", children: "Customize for this page" }),
+        /* @__PURE__ */ u2("option", { value: "hidden", children: "Hide on this page" })
+      ] }),
+      /* @__PURE__ */ u2("p", { class: "note", children: mode === "shared" ? "Shared edits reach every page that uses this " + kind + "." : mode === "hidden" ? "This page publishes without a " + kind + "." : "Only this page uses this copy. Shared edits do not replace it." }),
+      mode !== "hidden" ? /* @__PURE__ */ u2("button", { type: "button", class: "btn block", onClick: () => L2.setMode(kind), children: [
+        "Edit ",
+        mode === "custom" ? "page" : "shared",
+        " ",
+        kind
+      ] }) : null
+    ] });
+  }
   function Pages() {
     const pg = C2.page();
     const cols = C2.collections();
@@ -21767,6 +21899,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             }
           )
         ] }),
+        /* @__PURE__ */ u2(PageRegionControl, { pg, kind: "header" }, pg.id + ":header"),
+        /* @__PURE__ */ u2(PageRegionControl, { pg, kind: "footer" }, pg.id + ":footer"),
         /* @__PURE__ */ u2("div", { class: "f", children: [
           /* @__PURE__ */ u2("label", { htmlFor: "page-title", children: "Browser title" }),
           /* @__PURE__ */ u2(
@@ -25670,6 +25804,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
   function VariantPick({ n: n2 }) {
+    const select = A2(null);
+    const focusAfterDelete = A2(false);
+    _2(() => {
+      if (!focusAfterDelete.current) return;
+      focusAfterDelete.current = false;
+      const trigger = select.current?.nextElementSibling;
+      const target = trigger instanceof HTMLElement && trigger.matches(".pc-custom-select-trigger") ? trigger : select.current;
+      target?.focus({ preventScroll: true });
+    });
     const def = C2.findComponent(n2.use);
     if (!def) return null;
     const list2 = C2.variantsOf(def);
@@ -25698,9 +25841,26 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       L2.save();
       repaint("right");
     };
+    const remove = async () => {
+      if (!L2.canStructure()) return;
+      const variant = C2.findVariant(def, n2.variant);
+      if (!variant) return;
+      const used = C2.variantUsage(def.id, variant.id);
+      const ok = await L2.askConfirm(
+        "Delete this variant?",
+        `<b>${esc7(variant.name)}</b> will be removed. ` + (used === 1 ? "The one instance using it keeps its current values." : `${used} instances using it keep their current values.`),
+        { ok: "Delete variant", danger: true }
+      );
+      if (!ok || !L2.canStructure() || !C2.findVariant(C2.findComponent(def.id), variant.id)) return;
+      focusAfterDelete.current = true;
+      C2.edit(() => C2.variantDelete(def.id, variant.id), "Delete variant " + variant.name);
+      L2.paint();
+      L2.save();
+      repaint("right");
+    };
     return /* @__PURE__ */ u2("div", { class: "f", children: [
       /* @__PURE__ */ u2("label", { children: "Component variant" }),
-      /* @__PURE__ */ u2("select", { "aria-label": "Component variant", value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
+      /* @__PURE__ */ u2("select", { ref: select, "aria-label": "Component variant", value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
         /* @__PURE__ */ u2("option", { value: "", children: "Default" }),
         list2.map((v3) => /* @__PURE__ */ u2("option", { value: v3.id, children: v3.name }, v3.id))
       ] }),
@@ -25708,6 +25868,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: save, children: "Save as variant" }),
         own ? /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: reset, children: n2.variant ? "Back to the variant" : "Back to the defaults" }) : null
       ] }),
+      n2.variant && C2.findVariant(def, n2.variant) && L2.canStructure() ? /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny block danger", style: { marginTop: "var(--gap-1)" }, onClick: remove, children: "Delete variant" }) : null,
       own ? /* @__PURE__ */ u2("div", { class: "note", children: [
         own === 1 ? "One value is" : own + " values are",
         " set on this instance",
@@ -26043,12 +26204,147 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
   var DEV_ICON2 = { d: "desktop", t: "tablet", m: "mobile" };
+  function PropertyDefaultEditor({ cid, pr, close }) {
+    const [value, setValue] = d2(pr.def);
+    const [colourAnchor, setColourAnchor] = d2(null);
+    const id = g2();
+    const label = "Default for " + pr.label;
+    const assetId = pr.t === "img" ? value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/)?.[1] : "";
+    const asset = assetId ? L2.asset(assetId) : null;
+    const options = pr.t === "bool" ? [["0", "No"], ["1", "Yes"]] : pr.t === "icon" ? [["", "No icon"], ...C2.ICONS.flatMap(([, list2]) => list2.map(([name]) => [name, name]))] : pr.opts || [];
+    const validColour = pr.t !== "color" || !value || !!C2.parseColor(C2.resolveColor(value) || value) || typeof CSS !== "undefined" && CSS.supports("color", value);
+    const save = () => {
+      const current = C2.findProp(C2.findComponent(cid), pr.k);
+      if (!current || current.t !== pr.t || !validColour || !L2.canStructure()) return;
+      if (current.def !== value) {
+        C2.edit(() => {
+          current.def = value;
+        }, "Change default for " + current.label);
+        L2.paint();
+        L2.save();
+      }
+      close();
+      repaint("right");
+    };
+    const chooseImage = async () => {
+      const selected = await L2.mediaPicker({ title: "Choose default image" });
+      if (selected && L2.asset(selected)) setValue("asset:" + selected);
+    };
+    return /* @__PURE__ */ u2(
+      "div",
+      {
+        class: "f",
+        role: "group",
+        "aria-label": "Edit default for " + pr.label,
+        style: { paddingTop: "var(--gap-1)", paddingBottom: "var(--gap-2)" },
+        children: [
+          /* @__PURE__ */ u2("label", { id, htmlFor: pr.t === "img" ? void 0 : id + "-value", children: label }),
+          pr.t === "img" ? /* @__PURE__ */ u2(S, { children: [
+            asset ? /* @__PURE__ */ u2("div", { class: "imgset", children: [
+              /* @__PURE__ */ u2("img", { src: asset.url, alt: "" }),
+              /* @__PURE__ */ u2("span", { class: "an", children: [
+                /* @__PURE__ */ u2("b", { children: asset.name }),
+                /* @__PURE__ */ u2("small", { children: [
+                  C2.kb(asset.size),
+                  asset.w ? ` \xB7 ${asset.w} \xD7 ${asset.h}` : ""
+                ] })
+              ] })
+            ] }) : /* @__PURE__ */ u2("div", { class: "note", children: value ? "Not in this project: " + value : "No default image." }),
+            /* @__PURE__ */ u2("div", { class: "pc-field-actions", children: [
+              /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: chooseImage, "aria-label": "Choose default image for " + pr.label, children: [
+                /* @__PURE__ */ u2(Icon, { name: "image", size: 13 }),
+                " Library"
+              ] }),
+              value ? /* @__PURE__ */ u2(
+                "button",
+                {
+                  type: "button",
+                  class: "btn",
+                  onClick: () => setValue(""),
+                  "aria-label": "Clear default image for " + pr.label,
+                  children: "Clear"
+                }
+              ) : null
+            ] })
+          ] }) : pr.t === "select" || pr.t === "bool" || pr.t === "icon" ? /* @__PURE__ */ u2(
+            "select",
+            {
+              id: id + "-value",
+              class: "ctl",
+              "aria-labelledby": id,
+              value,
+              onChange: (e3) => setValue(e3.currentTarget.value),
+              children: [
+                !options.some(([v3]) => v3 === value) ? /* @__PURE__ */ u2("option", { value, children: value || "None" }) : null,
+                options.map(([v3, name]) => /* @__PURE__ */ u2("option", { value: v3, children: name }, v3))
+              ]
+            }
+          ) : pr.t === "rich" ? /* @__PURE__ */ u2(
+            "textarea",
+            {
+              id: id + "-value",
+              class: "ctl",
+              "aria-labelledby": id,
+              rows: 4,
+              value,
+              onInput: (e3) => setValue(e3.currentTarget.value)
+            }
+          ) : /* @__PURE__ */ u2("div", { class: pr.t === "color" ? "clr" : void 0, children: [
+            pr.t === "color" ? /* @__PURE__ */ u2(
+              "button",
+              {
+                type: "button",
+                class: "sw",
+                "aria-label": "Pick default colour for " + pr.label,
+                onClick: (e3) => setColourAnchor(e3.currentTarget),
+                children: /* @__PURE__ */ u2("i", { style: { background: C2.resolveColor(value) || value || "transparent" } })
+              }
+            ) : null,
+            /* @__PURE__ */ u2(
+              "input",
+              {
+                id: id + "-value",
+                class: "ctl",
+                "aria-labelledby": id,
+                value,
+                "aria-invalid": !validColour ? "true" : void 0,
+                onInput: (e3) => setValue(e3.currentTarget.value)
+              }
+            )
+          ] }),
+          colourAnchor ? /* @__PURE__ */ u2(
+            ColorPop,
+            {
+              start: C2.resolveColor(value) || value,
+              startRef: C2.isRef(value) ? value : "",
+              anchor: colourAnchor,
+              onLive: setValue,
+              onDone: setValue,
+              onClose: () => setColourAnchor(null)
+            }
+          ) : null,
+          !validColour ? /* @__PURE__ */ u2("div", { class: "note", role: "alert", children: "Enter a valid colour." }) : null,
+          /* @__PURE__ */ u2("p", { class: "note", children: "Instances without an override follow this default. Their own values and variants stay as saved." }),
+          /* @__PURE__ */ u2("div", { class: "pc-field-actions", children: [
+            /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: close, children: "Cancel" }),
+            /* @__PURE__ */ u2("button", { type: "button", class: "btn grow primary", disabled: !validColour, onClick: save, children: "Save default" })
+          ] })
+        ]
+      }
+    );
+  }
   function ComponentProps({ n: n2 }) {
+    const [editing, setEditing] = d2("");
+    const opener = A2(null);
     const cid = C2.state.ui.cedit;
     if (C2.state.ui.mode !== "component" || !cid) return null;
     const def = C2.findComponent(cid);
     if (!def || def.node.id !== n2.id) return null;
     const list2 = def.props || [];
+    const closeDefault = () => {
+      setEditing("");
+      opener.current?.focus();
+    };
     const rename2 = async (k3, label) => {
       const name = await L2.askText("Rename property", "Label", label);
       if (!name) return;
@@ -26074,51 +26370,67 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       repaint("right");
       void pr;
     };
-    return /* @__PURE__ */ u2(Panel, { title: "Properties", n: n2, children: list2.length ? list2.map((pr, i3) => /* @__PURE__ */ u2("div", { class: "lrow", style: { paddingLeft: 0, paddingRight: 0 }, children: [
-      /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u2(Panel, { title: "Properties", n: n2, children: list2.length ? list2.map((pr, i3) => /* @__PURE__ */ u2("div", { children: [
+      /* @__PURE__ */ u2("div", { class: "lrow", style: { paddingLeft: 0, paddingRight: 0 }, children: [
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            type: "button",
+            class: "nm property-rename",
+            onClick: () => rename2(pr.k, pr.label),
+            title: "Rename",
+            "aria-label": "Rename property " + pr.label,
+            children: [
+              /* @__PURE__ */ u2("b", { children: pr.label }),
+              " ",
+              /* @__PURE__ */ u2("small", { style: { opacity: 0.6 }, children: pr.t })
+            ]
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "bx",
+            title: "Move up",
+            disabled: i3 === 0,
+            onClick: () => move(pr.k, -1),
+            children: /* @__PURE__ */ u2(Icon, { name: "toTop", size: 11 })
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "bx",
+            title: "Move down",
+            disabled: i3 === list2.length - 1,
+            onClick: () => move(pr.k, 1),
+            children: /* @__PURE__ */ u2(Icon, { name: "toBottom", size: 11 })
+          }
+        ),
+        /* @__PURE__ */ u2(
+          "button",
+          {
+            class: "bx danger",
+            title: "Remove this property",
+            onClick: () => remove(pr.k, pr.label),
+            children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+          }
+        )
+      ] }),
+      L2.canStructure() ? /* @__PURE__ */ u2(
         "button",
         {
           type: "button",
-          class: "nm property-rename",
-          onClick: () => rename2(pr.k, pr.label),
-          title: "Rename",
-          "aria-label": "Rename property " + pr.label,
-          children: [
-            /* @__PURE__ */ u2("b", { children: pr.label }),
-            " ",
-            /* @__PURE__ */ u2("small", { style: { opacity: 0.6 }, children: pr.t })
-          ]
+          class: "btn tiny",
+          "aria-label": "Edit default for " + pr.label,
+          onClick: (e3) => {
+            opener.current = e3.currentTarget;
+            setEditing(cid + "|" + pr.k);
+          },
+          children: "Edit default"
         }
-      ),
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          class: "bx",
-          title: "Move up",
-          disabled: i3 === 0,
-          onClick: () => move(pr.k, -1),
-          children: /* @__PURE__ */ u2(Icon, { name: "toTop", size: 11 })
-        }
-      ),
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          class: "bx",
-          title: "Move down",
-          disabled: i3 === list2.length - 1,
-          onClick: () => move(pr.k, 1),
-          children: /* @__PURE__ */ u2(Icon, { name: "toBottom", size: 11 })
-        }
-      ),
-      /* @__PURE__ */ u2(
-        "button",
-        {
-          class: "bx danger",
-          title: "Remove this property",
-          onClick: () => remove(pr.k, pr.label),
-          children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
-        }
-      )
+      ) : null,
+      editing === cid + "|" + pr.k ? /* @__PURE__ */ u2(PropertyDefaultEditor, { cid, pr, close: closeDefault }, editing) : null
     ] }, pr.k)) : /* @__PURE__ */ u2("div", { class: "note", children: [
       "No properties yet. ",
       /* @__PURE__ */ u2(HelpTip, { label: "Component properties", text: "Use a control\u2019s component badge to make its value editable on each instance." })
@@ -27039,7 +27351,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var REGION_MODE = {
     page: "page",
     "global header": "header",
-    "global footer": "footer"
+    "global footer": "footer",
+    "page header": "header",
+    "page footer": "footer"
   };
   function ReviewList({ defaultOpen = false, findings: supplied }) {
     const findings = supplied ?? C2.lint();
@@ -27063,11 +27377,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (!f4.nodeId) return;
       const pi = C2.state.pages.findIndex((p3) => p3.slug === f4.where.slug);
       if (pi > -1) C2.state.cur = pi;
-      C2.state.ui.mode = REGION_MODE[f4.where.region || ""] || "page";
+      C2.state.ui.mode = REGION_MODE[(f4.where.region || "").split(",")[0]] || "page";
+      const shown2 = C2.locate(f4.nodeId);
+      if (!shown2) C2.state.ui.mode = "page";
       L2.closeReviewSurface();
       L2.appRender();
-      L2.select(f4.nodeId, { scroll: true });
-      if (!C2.locate(f4.nodeId)) L2.toast("That element is no longer in the project");
+      if (shown2) L2.select(f4.nodeId, { scroll: true });
+      else L2.toast("That element is no longer shown on this page");
     };
     const summary = clean ? "No problems found" : [
       counts.error ? counts.error + (counts.error === 1 ? " problem" : " problems") : "",
@@ -28755,12 +29071,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ui: initUi()
   };
   var page = () => state.pages[state.cur] || state.pages[0];
+  function pageTrees(pg) {
+    return [
+      pg.tree,
+      ...Array.isArray(pg.header) ? [pg.header] : [],
+      ...Array.isArray(pg.footer) ? [pg.footer] : []
+    ];
+  }
+  function pageRegion(pg, kind) {
+    return pg?.[kind] === null ? [] : pg?.[kind] ?? state[kind];
+  }
   var tree = () => {
     if (state.ui.mode === "component") {
       const cd = findComponent(state.ui.cedit);
       return cd ? [cd.node] : [];
     }
-    return state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+    return state.ui.mode === "header" || state.ui.mode === "footer" ? pageRegion(page(), state.ui.mode) : page().tree;
   };
   var dk = () => DEV_KEY[state.ui.dev];
   function locate(id, list2 = tree(), parent = null) {
@@ -28777,8 +29103,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (h3) return { ...h3, mode: m3 };
     }
     for (let p3 = 0; p3 < state.pages.length; p3++) {
-      const h3 = locate(id, state.pages[p3].tree, null);
-      if (h3) return { ...h3, mode: "page", page: p3 };
+      for (const [mode, list2] of [["page", state.pages[p3].tree], ["header", state.pages[p3].header], ["footer", state.pages[p3].footer]]) {
+        const h3 = list2 && locate(id, list2, null);
+        if (h3) return { ...h3, mode, page: p3 };
+      }
     }
     return null;
   }
@@ -29042,7 +29370,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const h3 = locate(id);
     return h3 && h3.parent ? h3.parent.id : null;
   };
-  var SCHEMA = 14;
+  var SCHEMA = 15;
   function migrate(d3) {
     if (!d3 || !d3.pages || !d3.pages.length) return null;
     const schemaVersion = d3.schemaVersion;
@@ -29058,6 +29386,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     const v3 = schemaVersion ?? legacyVersion ?? 1;
     if (v3 > SCHEMA) return null;
+    for (const pg of d3.pages) for (const kind of ["header", "footer"]) {
+      if (pg[kind] !== void 0 && pg[kind] !== null && !Array.isArray(pg[kind])) {
+        throw new Error("invalid page " + kind + " override");
+      }
+    }
     const everyNode = (fn) => {
       const walk2 = (n2) => {
         fn(n2);
@@ -29065,7 +29398,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       };
       (d3.header || []).forEach(walk2);
       (d3.footer || []).forEach(walk2);
-      (d3.pages || []).forEach((pg) => (pg.tree || []).forEach(walk2));
+      (d3.pages || []).forEach((pg) => pageTrees(pg).forEach((list2) => (list2 || []).forEach(walk2)));
       ((d3.meta || {}).blocks || []).forEach((bl) => {
         if (bl.node) walk2(bl.node);
       });
@@ -30788,7 +31121,7 @@ function renderPublicationPreviewFailure(host, failure) {
     const where = finding?.where && typeof finding.where === 'object' ? finding.where : {};
     const page = typeof where.slug === 'string' ? state.pages.findIndex(candidate => candidate.slug === where.slug) : -1;
     if (page > -1) state.cur = page;
-    const mode = {'global header':'header','global footer':'footer'}[where.region] || 'page';
+    const mode = {'global header':'header','global footer':'footer','page header':'header','page footer':'footer'}[String(where.region || '').split(',')[0]] || 'page';
     state.ui.mode = mode;
     closeModal(); render();
     if (typeof finding?.nodeId === 'string' && locate(finding.nodeId)) select(finding.nodeId, {scroll:true});
@@ -32130,17 +32463,17 @@ function mountCanvas() {
    one root, the mode bar names it and offers the way back. */
 const curSets = () => state.ui.mode === 'component'
   ? [tree()]
-  : [state.header, page().tree, state.footer];
+  : [pageRegion(page(), 'header'), page().tree, pageRegion(page(), 'footer')];
 const regions = () => {
   if (state.ui.mode === 'component') {
     const cd = findComponent(state.ui.cedit);
     return [{ kind: 'component', label: cd ? 'Component — ' + cd.name : 'Component', get: () => tree() }];
   }
   return [
-    { kind: 'header', label: 'Global header', get: () => state.header },
+    { kind: 'header', label: page().header === undefined ? 'Global header' : 'Page header', get: () => pageRegion(page(), 'header') },
     { kind: 'main', label: 'Page content', get: () => page().tree },
-    { kind: 'footer', label: 'Global footer', get: () => state.footer }
-  ];
+    { kind: 'footer', label: page().footer === undefined ? 'Global footer' : 'Page footer', get: () => pageRegion(page(), 'footer') }
+  ].filter(R => R.kind === 'main' || pageRegionMode(page(), R.kind) !== 'hidden');
 };
 /* How many places would change if this edit is wrong. The number is the point of the mode
    bar's line: editing a page changes a page, and editing a component changes everywhere it
@@ -32906,8 +33239,8 @@ function showReviewTarget(target) {
   const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
   if (pageIndex < 0) return unavailable('That page is no longer in the project');
   const pg = state.pages[pageIndex];
-  const root = target.scope === 'header' ? state.header
-    : target.scope === 'footer' ? state.footer : pg.tree;
+  const root = target.scope === 'header' || target.scope === 'footer'
+    ? pageRegion(pg, target.scope) : pg.tree;
   if (!locate(target.nodeId, root)) return unavailable('That element is no longer in the project');
 
   const items = value => {
@@ -34495,12 +34828,13 @@ function mediaSelectedImageTarget() {
   const found = locate(state.ui.sel);
   if (!found || found.node.type !== 'image') return null;
   const mode = state.ui.mode;
+  const regionPageId = (mode === 'header' || mode === 'footer') && page()[mode] !== undefined ? page().id : '';
   const ownerId = mode === 'page' ? page().id : mode === 'component' ? state.ui.cedit : mode;
   const ownerLabel = mode === 'page' ? page().name
     : mode === 'component' ? (findComponent(state.ui.cedit)?.name || 'Component')
-      : mode === 'header' ? 'Global header' : 'Global footer';
+      : regionPageId ? page().name + ' ' + mode : mode === 'header' ? 'Global header' : 'Global footer';
   return Object.freeze({
-    id: found.node.id, mode, ownerId, src: String(found.node.props.src || ''),
+    id: found.node.id, mode, ownerId, regionPageId, src: String(found.node.props.src || ''),
     label: `${nameOf(found.node)} · ${ownerLabel}`
   });
 }
@@ -34509,8 +34843,10 @@ function mediaResolveImageTarget(target) {
   if (!target) return null;
   let list = null;
   if (target.mode === 'page') list = state.pages.find(item => item.id === target.ownerId)?.tree;
-  else if (target.mode === 'header') list = state.header;
-  else if (target.mode === 'footer') list = state.footer;
+  else if (target.mode === 'header' || target.mode === 'footer') {
+    const owner = target.regionPageId ? state.pages.find(item => item.id === target.regionPageId) : null;
+    list = target.regionPageId ? (owner ? pageRegion(owner, target.mode) : null) : state[target.mode];
+  }
   else if (target.mode === 'component') {
     const definition = findComponent(target.ownerId);
     list = definition ? [definition.node] : null;
@@ -34913,6 +35249,7 @@ function renderModebar() {
   }
   const scope = scopeOf();
   const R = regions().find(x => x.kind === scope) || { label: '' };
+  const sharedPages = state.pages.filter(pg => pg[scope] === undefined).length;
   $('#modebar').innerHTML =
     (scope === 'main'
       ? (IS_WORDPRESS ? '' : `<span class="pill page-switcher"><select id="quickPage" aria-label="Current page">${state.pages.map((p, i) => `<option value="${i}"${i === state.cur ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></span><button class="btn tiny" id="pageSettings" title="Page settings and SEO">Settings &amp; SEO</button>`
@@ -34920,7 +35257,7 @@ function renderModebar() {
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`
-        : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
+        : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — ${page()[scope] !== undefined ? 'only on this page' : 'shared by ' + (sharedPages === state.pages.length ? 'all ' : '') + sharedPages + ' pages'}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
     (crumbs.length ? `<nav class="selectionCrumb" aria-label="Selected element path">${crumbs.map((n, i) => `<button type="button" data-select-ancestor="${esc(n.id)}" title="Select ${esc(nameOf(n))}"${i === crumbs.length - 1 ? ' aria-current="true"' : ''}>${esc(nameOf(n))}</button>`).join('<span aria-hidden="true">›</span>')}</nav>` : '') +
@@ -35078,6 +35415,9 @@ function render(opts = {}) {
 
 function setMode(m) {
   if (editing.on) exitEdit();
+  if ((m === 'header' || m === 'footer') && pageRegionMode(page(), m) === 'hidden') {
+    toast('This ' + m + ' is hidden on this page. Choose Customize in Page settings to edit it.'); return;
+  }
   state.ui.mode = m; selSet([]); render();
 }
 /* Opening a definition, and closing it. Not `setMode('component')`: the mode is half of the
@@ -36360,7 +36700,12 @@ function findModal() {
       if (h.where === 'cms') { cmsModal(h.colId); return; }
       if (h.where === 'project') { projectModal(); return; }
       state.ui.mode = h.where === 'page' ? 'page' : h.where;
-      if (h.where === 'page') state.cur = h.page;
+      if (h.page >= 0) state.cur = h.page;
+      else if (h.where === 'header' || h.where === 'footer') {
+        const inheriting = state.pages.findIndex(pg => pg[h.where] === undefined);
+        if (inheriting >= 0) state.cur = inheriting;
+        else { state.ui.mode = 'page'; toast('No page currently uses this shared region. Choose Use shared in Page settings first.'); render(); return; }
+      }
       render();
       if (h.type === 'meta') { showPanel('pages'); selSet([]); return; }
       select(h.nodeId, { scroll: true });

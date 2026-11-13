@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import { pageRegion, locate } from '../app/src/core/index.ts';
 
 const builder = readFileSync('builder.html', 'utf8');
 const windows = [];
@@ -77,6 +78,9 @@ function harness() {
     PC_UI: { selectionToolbarTop: rect => rect.top },
   });
 
+  // Evaluate the shipped helper in this harness realm so its shared fallback reads this
+  // window's document state, just like the extracted builder functions below.
+  w.eval('var pageRegion = ' + pageRegion.toString() + ';');
   w.eval(between('let canvasSelectionContext = null;', 'function activateHudButton'));
   w.eval(between('function bindCanvas()', '/* =============================================================== drag/drop */'));
   w.bindCanvas();
@@ -423,4 +427,37 @@ for (const many of [false, true]) test(`selected secondary press refreshes repea
   expect(refreshInspector).toHaveBeenCalledOnce();
   expect(inspector.textContent).toBe('Community Garden');
   expect(JSON.stringify({ pages: w.state.pages, collection })).toBe(before);
+});
+
+
+test('a CMS review target uses the page-owned header and refuses hidden custom and shared targets', () => {
+  const { w, cd, collection, selected } = reviewHarness();
+  // This case needs real tree membership, unlike the other selection-context fixtures' map.
+  w.eval('var locate = ' + locate.toString() + ';');
+  const custom = { id: 'workshop-custom-image', type: 'image', children: [] };
+  const shared = { id: 'workshop-shared-image', type: 'image', children: [] };
+  const page = w.state.pages[0];
+  page.header = [custom]; w.state.header = [shared];
+  cd.querySelector('#s-root').innerHTML = '<img id="workshop-custom-image" data-id="workshop-custom-image" data-t="image">';
+  const target = {
+    pageId: page.id, scope: 'header', nodeId: custom.id,
+    previewItems: [{ collectionId: collection.id, itemId: 'courtyard' }],
+  };
+  const sourceBefore = JSON.stringify({ pages: w.state.pages, header: w.state.header, footer: w.state.footer, collection });
+  expect(w.showReviewTarget(target)).toBe(true);
+  expect(w.state.ui.mode).toBe('header');
+  expect(w.state.ui.item.places).toBe(2);
+  expect(selected.at(-1)).toEqual({
+    id: custom.id, options: { keepCanvasContext: false, scroll: true }, index: 2,
+  });
+  expect(JSON.stringify({ pages: w.state.pages, header: w.state.header, footer: w.state.footer, collection })).toBe(sourceBefore);
+
+  page.header = null;
+  selected.length = 0; w.render.mockClear(); w.closeReviewSurface.mockClear();
+  expect(w.showReviewTarget(target)).toBe(false);
+  expect(w.showReviewTarget({ ...target, nodeId: shared.id })).toBe(false);
+  expect(selected).toHaveLength(0);
+  expect(w.render).not.toHaveBeenCalled();
+  expect(w.closeReviewSurface).not.toHaveBeenCalled();
+  expect(w.toast).toHaveBeenLastCalledWith('That element is no longer in the project');
 });

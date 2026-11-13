@@ -2648,7 +2648,7 @@ function renderPublicationPreviewFailure(host, failure) {
     const where = finding?.where && typeof finding.where === 'object' ? finding.where : {};
     const page = typeof where.slug === 'string' ? state.pages.findIndex(candidate => candidate.slug === where.slug) : -1;
     if (page > -1) state.cur = page;
-    const mode = {'global header':'header','global footer':'footer'}[where.region] || 'page';
+    const mode = {'global header':'header','global footer':'footer','page header':'header','page footer':'footer'}[String(where.region || '').split(',')[0]] || 'page';
     state.ui.mode = mode;
     closeModal(); render();
     if (typeof finding?.nodeId === 'string' && locate(finding.nodeId)) select(finding.nodeId, {scroll:true});
@@ -3990,17 +3990,17 @@ function mountCanvas() {
    one root, the mode bar names it and offers the way back. */
 const curSets = () => state.ui.mode === 'component'
   ? [tree()]
-  : [state.header, page().tree, state.footer];
+  : [pageRegion(page(), 'header'), page().tree, pageRegion(page(), 'footer')];
 const regions = () => {
   if (state.ui.mode === 'component') {
     const cd = findComponent(state.ui.cedit);
     return [{ kind: 'component', label: cd ? 'Component — ' + cd.name : 'Component', get: () => tree() }];
   }
   return [
-    { kind: 'header', label: 'Global header', get: () => state.header },
+    { kind: 'header', label: page().header === undefined ? 'Global header' : 'Page header', get: () => pageRegion(page(), 'header') },
     { kind: 'main', label: 'Page content', get: () => page().tree },
-    { kind: 'footer', label: 'Global footer', get: () => state.footer }
-  ];
+    { kind: 'footer', label: page().footer === undefined ? 'Global footer' : 'Page footer', get: () => pageRegion(page(), 'footer') }
+  ].filter(R => R.kind === 'main' || pageRegionMode(page(), R.kind) !== 'hidden');
 };
 /* How many places would change if this edit is wrong. The number is the point of the mode
    bar's line: editing a page changes a page, and editing a component changes everywhere it
@@ -4766,8 +4766,8 @@ function showReviewTarget(target) {
   const pageIndex = state.pages.findIndex(pg => pg.id === target.pageId);
   if (pageIndex < 0) return unavailable('That page is no longer in the project');
   const pg = state.pages[pageIndex];
-  const root = target.scope === 'header' ? state.header
-    : target.scope === 'footer' ? state.footer : pg.tree;
+  const root = target.scope === 'header' || target.scope === 'footer'
+    ? pageRegion(pg, target.scope) : pg.tree;
   if (!locate(target.nodeId, root)) return unavailable('That element is no longer in the project');
 
   const items = value => {
@@ -6355,12 +6355,13 @@ function mediaSelectedImageTarget() {
   const found = locate(state.ui.sel);
   if (!found || found.node.type !== 'image') return null;
   const mode = state.ui.mode;
+  const regionPageId = (mode === 'header' || mode === 'footer') && page()[mode] !== undefined ? page().id : '';
   const ownerId = mode === 'page' ? page().id : mode === 'component' ? state.ui.cedit : mode;
   const ownerLabel = mode === 'page' ? page().name
     : mode === 'component' ? (findComponent(state.ui.cedit)?.name || 'Component')
-      : mode === 'header' ? 'Global header' : 'Global footer';
+      : regionPageId ? page().name + ' ' + mode : mode === 'header' ? 'Global header' : 'Global footer';
   return Object.freeze({
-    id: found.node.id, mode, ownerId, src: String(found.node.props.src || ''),
+    id: found.node.id, mode, ownerId, regionPageId, src: String(found.node.props.src || ''),
     label: `${nameOf(found.node)} · ${ownerLabel}`
   });
 }
@@ -6369,8 +6370,10 @@ function mediaResolveImageTarget(target) {
   if (!target) return null;
   let list = null;
   if (target.mode === 'page') list = state.pages.find(item => item.id === target.ownerId)?.tree;
-  else if (target.mode === 'header') list = state.header;
-  else if (target.mode === 'footer') list = state.footer;
+  else if (target.mode === 'header' || target.mode === 'footer') {
+    const owner = target.regionPageId ? state.pages.find(item => item.id === target.regionPageId) : null;
+    list = target.regionPageId ? (owner ? pageRegion(owner, target.mode) : null) : state[target.mode];
+  }
   else if (target.mode === 'component') {
     const definition = findComponent(target.ownerId);
     list = definition ? [definition.node] : null;
@@ -6773,6 +6776,7 @@ function renderModebar() {
   }
   const scope = scopeOf();
   const R = regions().find(x => x.kind === scope) || { label: '' };
+  const sharedPages = state.pages.filter(pg => pg[scope] === undefined).length;
   $('#modebar').innerHTML =
     (scope === 'main'
       ? (IS_WORDPRESS ? '' : `<span class="pill page-switcher"><select id="quickPage" aria-label="Current page">${state.pages.map((p, i) => `<option value="${i}"${i === state.cur ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></span><button class="btn tiny" id="pageSettings" title="Page settings and SEO">Settings &amp; SEO</button>`
@@ -6780,7 +6784,7 @@ function renderModebar() {
       : scope === 'component'
         ? `<span class="pill g">${svg('component', 11)} Editing ${esc(R.label.replace('Component — ', ''))} — ${cUsageLabel()}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`
-        : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — shared by all ${state.pages.length} pages</span>`
+        : `<span class="pill g">${svg('globe', 11)} Editing ${esc(R.label.toLowerCase())} — ${page()[scope] !== undefined ? 'only on this page' : 'shared by ' + (sharedPages === state.pages.length ? 'all ' : '') + sharedPages + ' pages'}</span>`
           + `<button class="btn tiny" id="doneScope">Done</button>`) +
     (IS_WORDPRESS ? '' : `<span class="spacer"></span>`) +
     (crumbs.length ? `<nav class="selectionCrumb" aria-label="Selected element path">${crumbs.map((n, i) => `<button type="button" data-select-ancestor="${esc(n.id)}" title="Select ${esc(nameOf(n))}"${i === crumbs.length - 1 ? ' aria-current="true"' : ''}>${esc(nameOf(n))}</button>`).join('<span aria-hidden="true">›</span>')}</nav>` : '') +
@@ -6938,6 +6942,9 @@ function render(opts = {}) {
 
 function setMode(m) {
   if (editing.on) exitEdit();
+  if ((m === 'header' || m === 'footer') && pageRegionMode(page(), m) === 'hidden') {
+    toast('This ' + m + ' is hidden on this page. Choose Customize in Page settings to edit it.'); return;
+  }
   state.ui.mode = m; selSet([]); render();
 }
 /* Opening a definition, and closing it. Not `setMode('component')`: the mode is half of the
@@ -8220,7 +8227,12 @@ function findModal() {
       if (h.where === 'cms') { cmsModal(h.colId); return; }
       if (h.where === 'project') { projectModal(); return; }
       state.ui.mode = h.where === 'page' ? 'page' : h.where;
-      if (h.where === 'page') state.cur = h.page;
+      if (h.page >= 0) state.cur = h.page;
+      else if (h.where === 'header' || h.where === 'footer') {
+        const inheriting = state.pages.findIndex(pg => pg[h.where] === undefined);
+        if (inheriting >= 0) state.cur = inheriting;
+        else { state.ui.mode = 'page'; toast('No page currently uses this shared region. Choose Use shared in Page settings first.'); render(); return; }
+      }
       render();
       if (h.type === 'meta') { showPanel('pages'); selSet([]); return; }
       select(h.nodeId, { scroll: true });

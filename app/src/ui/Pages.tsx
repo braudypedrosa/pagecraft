@@ -8,7 +8,9 @@
    to update-and-save and `change` to re-render, because repainting on every keystroke
    loses the caret. Same split here — which is also why they are uncontrolled: nothing
    re-renders mid-typing, so nothing fights the DOM value. */
-import { useState } from 'preact/hooks';
+import { useLayoutEffect, useState } from 'preact/hooks';
+import { refreshCustomSelects } from '../../../shared/custom-select.js';
+import type { Page } from '../core/types';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { AssetField } from './AssetField';
@@ -155,6 +157,42 @@ function DetailBindings({ colId }: { colId: string }) {
   );
 }
 
+function PageRegionControl({ pg, kind }: { pg: Page; kind: 'header' | 'footer' }) {
+  const mode = C.pageRegionMode(pg, kind);
+  const title = kind === 'header' ? 'Header' : 'Footer';
+  useLayoutEffect(() => { refreshCustomSelects(); });
+  const change = async (element: HTMLSelectElement) => {
+    const next = element.value as 'shared' | 'custom' | 'hidden';
+    // Keep the saved choice visible while confirmation is open, including on Cancel.
+    element.value = mode; refreshCustomSelects();
+    if (!L.canStructure() || next === mode) return;
+    if (mode === 'custom' && (pg[kind]?.length || 0) > 0 && !await L.askConfirm(
+      next === 'shared' ? 'Use the shared ' + kind + '?' : 'Hide this ' + kind + '?',
+      'The custom ' + kind + ' on <b>' + C.esc(pg.name) + '</b> will be removed. '
+      + (next === 'shared' ? 'This page will follow the shared ' + kind + '. ' : '')
+      + 'Undo brings the custom content back until you reload.',
+      { ok: next === 'shared' ? 'Use shared ' + kind : 'Hide ' + kind })) return;
+    const current = C.state.pages.find(p => p.id === pg.id);
+    if (!current || !L.canStructure()) return;
+    C.edit(() => { C.pageRegionSet(current, kind, next); C.state.ui.mode = 'page'; }, title + ' for this page');
+    L.paint(); L.save(); L.renderModebar(); repaint('pages');
+  };
+  return <div class="f">
+    <label htmlFor={'page-region-' + kind}>{title} for this page</label>
+    <select class="ctl" id={'page-region-' + kind} value={mode} onChange={e => { void change(e.currentTarget); }}>
+      <option value="shared">Use shared {kind}</option>
+      <option value="custom">Customize for this page</option>
+      <option value="hidden">Hide on this page</option>
+    </select>
+    <p class="note">{mode === 'shared' ? 'Shared edits reach every page that uses this ' + kind + '.'
+      : mode === 'hidden' ? 'This page publishes without a ' + kind + '.'
+        : 'Only this page uses this copy. Shared edits do not replace it.'}</p>
+    {mode !== 'hidden' ? <button type="button" class="btn block" onClick={() => L.setMode(kind)}>
+      Edit {mode === 'custom' ? 'page' : 'shared'} {kind}
+    </button> : null}
+  </div>;
+}
+
 export function Pages() {
   const pg = C.page();
   const cols = C.collections();
@@ -254,6 +292,9 @@ export function Pages() {
                 L.toast(pg.name + ' is the front page');
               }}>Make this the front page</button>
           )}</div>
+
+        <PageRegionControl key={pg.id + ':header'} pg={pg} kind="header" />
+        <PageRegionControl key={pg.id + ':footer'} pg={pg} kind="footer" />
 
         <div class="f"><label htmlFor="page-title">Browser title</label>
           <input class="ctl" id="page-title" value={pg.title || ''} placeholder={pg.name}

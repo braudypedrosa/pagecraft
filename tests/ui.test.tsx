@@ -1021,7 +1021,7 @@ test('the Detail template picker does not offer a collection another page alread
   C.state.cur = C.state.pages.indexOf(template);
   r.draw(<Pages />);
   a.equal(option(posts.id).disabled, false);
-  a.match(r.$('.note')!.textContent!, /One file per item, at \/posts\//);
+  a.match(r.$('#page-collection')!.parentElement!.querySelector('.note')!.textContent!, /One file per item, at \/posts\//);
 
   /* a second template keeps its choice, and says it publishes nothing */
   const copy = C.pageDup(C.state.pages.indexOf(template))!;

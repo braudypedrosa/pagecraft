@@ -270,7 +270,7 @@ function Templates() {
     }
 
     const scope = pat.scope;
-    const currentRegion = () => scope === 'header' ? C.state.header : C.state.footer;
+    const currentRegion = () => C.pageRegion(C.page(), scope);
     const regionSnapshot = JSON.stringify(currentRegion());
     const contextChanged = () => C.page().id !== originalPageId || JSON.stringify(currentRegion()) !== regionSnapshot;
     let action = 'add' as 'add' | 'replace' | 'edit';
@@ -319,20 +319,24 @@ function Templates() {
     }
 
     let made: { id: string } | null = null;
-    L.setMode(scope);
+    const wasHidden = C.pageRegionMode(C.page(), scope) === 'hidden';
+    const owner = C.pageRegionMode(C.page(), scope) === 'shared' ? 'global' : 'page';
+    if (!wasHidden) L.setMode(scope);
     C.edit(() => {
+      if (wasHidden) { C.pageRegionSet(C.page(), scope, 'custom'); C.state.ui.mode = scope; }
       const region = currentRegion();
       const oldLength = region.length;
       made = C.patternInsert(id, null, region.length);
       if (!made) return;
       applyRegionSetup(made as any, navItems, actionSetup);
       if (action === 'replace') region.splice(0, oldLength);
-    }, action === 'replace' ? `Replace global ${scope}` : `Add global ${scope}`);
+    }, action === 'replace' ? `Replace ${owner} ${scope}` : `Add ${owner} ${scope}`);
     if (!made) { L.toast('That does not fit there'); return; }
+    if (wasHidden) L.setMode(scope);
     L.select((made as { id: string }).id);
     L.toast(action === 'replace'
       ? `${pat.name} replaced the current ${scope}. Undo restores it.`
-      : `${pat.name} added — now editing the global ${scope}`);
+      : `${pat.name} added — now editing the ${owner} ${scope}`);
   };
 
   return (

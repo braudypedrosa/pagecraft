@@ -1,6 +1,6 @@
 import type { Doc, NavItem, Node as PagecraftNode } from '../../app/src/core/types.ts';
 import {
-  SCHEMA, assetFile, eachNode, exportTargets, slugify, wordpressStyles
+  SCHEMA, assetFile, eachNode, exportTargets, pageTrees, slugify, wordpressStyles
 } from '../../app/src/core/index.ts';
 import { adoptHostDocument } from '../../app/src/host/schema.ts';
 import {
@@ -84,7 +84,7 @@ const nodes = (tree: PagecraftNode[]) => {
 const treesWithRegions = (doc: Doc) => {
   const rows: Array<{ region: PortableMenuDependencyV1['region']; tree: PagecraftNode[] }> = [
     { region: 'header', tree: doc.header },
-    ...doc.pages.map(page => ({ region: 'page' as const, tree: page.tree })),
+    ...doc.pages.flatMap(page => pageTrees(page).map(tree => ({ region: 'page' as const, tree }))),
     { region: 'footer', tree: doc.footer },
     ...(doc.meta.components || []).map(component => ({ region: 'component' as const, tree: [component.node] })),
     ...(doc.meta.blocks || []).map(block => ({ region: 'block' as const, tree: [block.node] }))
@@ -173,9 +173,31 @@ const mimeFor = (path: string) => {
 };
 
 const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
+  /* Schema 15 adds only page regions. Do not carry this conversion forward silently if a
+     later schema introduces other fields an installed schema-14 WordPress reader cannot keep. */
+  if (doc.schemaVersion !== 14 && doc.schemaVersion !== 15) {
+    throw new Error('Portable page compatibility requires a reviewed schema-14 or schema-15 document. Upgrade the page exporter before converting a newer project.');
+  }
   const page = doc.pages.find(candidate => candidate.id === pageId);
   if (!page) throw new Error(`Pagecraft page ${pageId} does not exist`);
-  return structuredClone({ ...doc, pages: [page] });
+  /* A page handoff is independent of its source site. Materialize the effective shell into
+     the globals the v1 WordPress receiver understands, with one stored copy of every id. */
+  const selected = structuredClone({ ...doc,
+    header: page.header === undefined ? doc.header : page.header || [],
+    footer: page.footer === undefined ? doc.footer : page.footer || [],
+    pages: [page]
+  });
+  delete selected.pages[0].header;
+  delete selected.pages[0].footer;
+  selected.schemaVersion = 14;
+  (selected as Doc & { v: number }).v = 14;
+  return selected;
+};
+
+const assertPortableRegions = (doc: Doc) => {
+  if (doc.pages.some(page => page.header !== undefined || page.footer !== undefined)) {
+    throw new Error('Portable package v1 cannot carry per-page header or footer overrides. Export one page as a portable page package, or keep the lossless native project JSON.');
+  }
 };
 
 function packageAssets(doc: Doc, input: readonly Asset[]) {
@@ -208,6 +230,16 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   validateProvenance(provenance);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
+  assertPortableRegions(document);
+  if (kind === 'site') {
+    /* With no page-region fields, schema 15 has the exact schema-14 editable shape.
+       A future schema needs its own reviewed conversion before v1 receivers can keep it. */
+    if (document.schemaVersion !== 14 && document.schemaVersion !== 15) {
+      throw new Error('Portable site compatibility requires a reviewed schema-14 or schema-15 document. Upgrade the site exporter before converting a newer project.');
+    }
+    document.schemaVersion = 14;
+    (document as Doc & { v: number }).v = 14;
+  }
   const dependencies = dependenciesOf(document);
   const selectedAssets = packageAssets(document, assets);
   const rendered = renderSite(document, selectedAssets);
@@ -399,6 +431,7 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
     throw new Error('portable package document schema does not match its manifest');
   }
   const document = adoptHostDocument(rawDocument);
+  assertPortableRegions(document);
   const provenance = canonicalObject<PortablePackageProvenanceV1>(files.get(PROVENANCE_PATH)!, 'portable package provenance');
   validateProvenance(provenance);
   const dependencies = canonicalObject<PortablePackageDependenciesV1>(files.get(DEPENDENCIES_PATH)!, 'portable package dependencies');

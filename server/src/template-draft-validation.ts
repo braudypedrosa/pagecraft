@@ -89,10 +89,10 @@ export function validateTemplateDraftDocument(input: unknown, assetIds: readonly
     }
   };
   for (const page of doc.pages) {
-    if (!object(page) || Object.keys(page).some(k => !['id','name','slug','title','desc','ogImage','tree','headHtml'].includes(k)) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(page.slug) || slugs.has(page.slug)) fail('invalid page');
+    if (!object(page) || Object.keys(page).some(k => !['id','name','slug','title','desc','ogImage','tree','headHtml','header','footer'].includes(k)) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(page.slug) || slugs.has(page.slug)) fail('invalid page');
     if (!safeIdentifier(page.id) || !page.id) fail('invalid page id');
     if (page.headHtml) fail('page head markup unsupported');
-    slugs.add(page.slug); walk(page.tree, null, 0);
+    slugs.add(page.slug); Core.pageTrees(page).forEach(tree => walk(tree, null, 0));
   }
   if (!slugs.has('index')) fail('missing index');
   walk(doc.header, null, 0); walk(doc.footer, null, 0);

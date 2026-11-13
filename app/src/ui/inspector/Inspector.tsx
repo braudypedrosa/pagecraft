@@ -9,14 +9,15 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect, useId, useState } from 'preact/hooks';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
 import { Disclosure } from '../Disclosure';
 import { Ctl } from './Controls';
 import { HelpTip } from '../HelpTip';
+import { ColorPop } from './ColorPop';
 import { MobileMenuBuilder } from './MobileMenuBuilder';
-import type { Control, Node as PcNode } from '../../core/types';
+import type { ComponentProp, Control, Node as PcNode } from '../../core/types';
 import {
   advancedControlIsModified, clearOwnBreakpointChanges, commonControlsFirst,
   controlIsModified, hasOwnBreakpointChanges, scopeDeclarations
@@ -243,6 +244,16 @@ function StylingTarget({ n }: { n: PcNode }) {
    right, and a dialog to retype them is how a variant ends up not quite matching the thing it
    was meant to capture. */
 function VariantPick({ n }: { n: PcNode }) {
+  const select = useRef<HTMLSelectElement>(null);
+  const focusAfterDelete = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusAfterDelete.current) return;
+    focusAfterDelete.current = false;
+    const trigger = select.current?.nextElementSibling;
+    const target = trigger instanceof HTMLElement && trigger.matches('.pc-custom-select-trigger')
+      ? trigger : select.current;
+    target?.focus({ preventScroll: true });
+  });
   const def = C.findComponent(n.use);
   if (!def) return null;
   const list = C.variantsOf(def);
@@ -267,11 +278,27 @@ function VariantPick({ n }: { n: PcNode }) {
     L.paint(); L.save();
     repaint('right');
   };
+  const remove = async () => {
+    if (!L.canStructure()) return;
+    const variant = C.findVariant(def, n.variant);
+    if (!variant) return;
+    const used = C.variantUsage(def.id, variant.id);
+    const ok = await L.askConfirm('Delete this variant?',
+      `<b>${esc(variant.name)}</b> will be removed. `
+      + (used === 1 ? 'The one instance using it keeps its current values.'
+        : `${used} instances using it keep their current values.`),
+      { ok: 'Delete variant', danger: true });
+    if (!ok || !L.canStructure() || !C.findVariant(C.findComponent(def.id), variant.id)) return;
+    focusAfterDelete.current = true;
+    C.edit(() => C.variantDelete(def.id, variant.id), 'Delete variant ' + variant.name);
+    L.paint(); L.save();
+    repaint('right');
+  };
 
   return (
     <div class="f">
       <label>Component variant</label>
-      <select aria-label="Component variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+      <select ref={select} aria-label="Component variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
           <option value="">Default</option>
           {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
@@ -283,6 +310,9 @@ function VariantPick({ n }: { n: PcNode }) {
           </button>
           : null}
       </div>
+      {n.variant && C.findVariant(def, n.variant) && L.canStructure()
+        ? <button type="button" class="btn tiny block danger" style={{ marginTop: 'var(--gap-1)' }} onClick={remove}>Delete variant</button>
+        : null}
       {own
         ? <div class="note">
           {own === 1 ? 'One value is' : own + ' values are'} set on this instance
@@ -589,12 +619,85 @@ const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile
    Shown on the definition's root, because that is the node that stands for the component. The
    order is the order of the controls on every instance's panel, so moving one is a real
    decision rather than bookkeeping. */
+/** Draft only until Save: changing a shared default must not rewrite any instance's own
+    values, and Cancel must not create an Undo step or a save. Reuse the inspector's media
+    picker, colour picker and native control styling without using the live-value writer. */
+function PropertyDefaultEditor({ cid, pr, close }: { cid: string; pr: ComponentProp; close: () => void }) {
+  const [value, setValue] = useState(pr.def);
+  const [colourAnchor, setColourAnchor] = useState<HTMLElement | null>(null);
+  const id = useId();
+  const label = 'Default for ' + pr.label;
+  const assetId = pr.t === 'img' ? value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/)?.[1] : '';
+  const asset = assetId ? L.asset(assetId) : null;
+  const options = pr.t === 'bool' ? [['0', 'No'], ['1', 'Yes']]
+    : pr.t === 'icon' ? [['', 'No icon'], ...C.ICONS.flatMap(([, list]) => list.map(([name]) => [name, name]))]
+      : pr.opts || [];
+  const validColour = pr.t !== 'color' || !value || !!C.parseColor(C.resolveColor(value) || value)
+    || (typeof CSS !== 'undefined' && CSS.supports('color', value));
+  const save = () => {
+    const current = C.findProp(C.findComponent(cid), pr.k);
+    if (!current || current.t !== pr.t || !validColour || !L.canStructure()) return;
+    if (current.def !== value) {
+      C.edit(() => { current.def = value; }, 'Change default for ' + current.label);
+      L.paint(); L.save();
+    }
+    close();
+    repaint('right');
+  };
+  const chooseImage = async () => {
+    const selected = await L.mediaPicker({ title: 'Choose default image' });
+    if (selected && L.asset(selected)) setValue('asset:' + selected);
+  };
+  return <div class="f" role="group" aria-label={'Edit default for ' + pr.label}
+    style={{ paddingTop: 'var(--gap-1)', paddingBottom: 'var(--gap-2)' }}>
+    <label id={id} htmlFor={pr.t === 'img' ? undefined : id + '-value'}>{label}</label>
+    {pr.t === 'img' ? <>
+      {asset ? <div class="imgset">
+        <img src={asset.url} alt="" />
+        <span class="an"><b>{asset.name}</b><small>{C.kb(asset.size)}{asset.w ? ` · ${asset.w} × ${asset.h}` : ''}</small></span>
+      </div> : <div class="note">{value ? 'Not in this project: ' + value : 'No default image.'}</div>}
+      <div class="pc-field-actions">
+        <button type="button" class="btn grow" onClick={chooseImage} aria-label={'Choose default image for ' + pr.label}>
+          <Icon name="image" size={13} /> Library
+        </button>
+        {value ? <button type="button" class="btn" onClick={() => setValue('')}
+          aria-label={'Clear default image for ' + pr.label}>Clear</button> : null}
+      </div>
+    </> : pr.t === 'select' || pr.t === 'bool' || pr.t === 'icon'
+      ? <select id={id + '-value'} class="ctl" aria-labelledby={id} value={value}
+          onChange={e => setValue(e.currentTarget.value)}>
+          {!options.some(([v]) => v === value) ? <option value={value}>{value || 'None'}</option> : null}
+          {options.map(([v, name]) => <option key={v} value={v}>{name}</option>)}
+        </select>
+      : pr.t === 'rich'
+        ? <textarea id={id + '-value'} class="ctl" aria-labelledby={id} rows={4} value={value}
+            onInput={e => setValue(e.currentTarget.value)} />
+        : <div class={pr.t === 'color' ? 'clr' : undefined}>
+          {pr.t === 'color' ? <button type="button" class="sw" aria-label={'Pick default colour for ' + pr.label}
+            onClick={e => setColourAnchor(e.currentTarget)}><i style={{ background: C.resolveColor(value) || value || 'transparent' }} /></button> : null}
+          <input id={id + '-value'} class="ctl" aria-labelledby={id} value={value}
+            aria-invalid={!validColour ? 'true' : undefined} onInput={e => setValue(e.currentTarget.value)} />
+        </div>}
+    {colourAnchor ? <ColorPop start={C.resolveColor(value) || value} startRef={C.isRef(value) ? value : ''}
+      anchor={colourAnchor} onLive={setValue} onDone={setValue} onClose={() => setColourAnchor(null)} /> : null}
+    {!validColour ? <div class="note" role="alert">Enter a valid colour.</div> : null}
+    <p class="note">Instances without an override follow this default. Their own values and variants stay as saved.</p>
+    <div class="pc-field-actions">
+      <button type="button" class="btn grow" onClick={close}>Cancel</button>
+      <button type="button" class="btn grow primary" disabled={!validColour} onClick={save}>Save default</button>
+    </div>
+  </div>;
+}
+
 function ComponentProps({ n }: { n: PcNode }) {
+  const [editing, setEditing] = useState('');
+  const opener = useRef<HTMLButtonElement | null>(null);
   const cid = C.state.ui.cedit;
   if (C.state.ui.mode !== 'component' || !cid) return null;
   const def = C.findComponent(cid);
   if (!def || def.node.id !== n.id) return null;
   const list = def.props || [];
+  const closeDefault = () => { setEditing(''); opener.current?.focus(); };
 
   const rename = async (k: string, label: string) => {
     const name = await L.askText('Rename property', 'Label', label);
@@ -624,7 +727,8 @@ function ComponentProps({ n }: { n: PcNode }) {
   return (
     <Panel title="Properties" n={n}>
       {list.length ? list.map((pr, i) => (
-        <div class="lrow" key={pr.k} style={{ paddingLeft: 0, paddingRight: 0 }}>
+        <div key={pr.k}>
+        <div class="lrow" style={{ paddingLeft: 0, paddingRight: 0 }}>
           <button type="button" class="nm property-rename" onClick={() => rename(pr.k, pr.label)}
             title="Rename" aria-label={'Rename property ' + pr.label}>
             <b>{pr.label}</b> <small style={{ opacity: .6 }}>{pr.t}</small>
@@ -635,6 +739,13 @@ function ComponentProps({ n }: { n: PcNode }) {
             onClick={() => move(pr.k, 1)}><Icon name="toBottom" size={11} /></button>
           <button class="bx danger" title="Remove this property"
             onClick={() => remove(pr.k, pr.label)}><Icon name="trash" size={11} /></button>
+        </div>
+        {L.canStructure() ? <button type="button" class="btn tiny" aria-label={'Edit default for ' + pr.label}
+          onClick={e => { opener.current = e.currentTarget; setEditing(cid + '|' + pr.k); }}>
+          Edit default
+        </button> : null}
+        {editing === cid + '|' + pr.k
+          ? <PropertyDefaultEditor key={editing} cid={cid} pr={pr} close={closeDefault} /> : null}
         </div>
       )) : (
         <div class="note">

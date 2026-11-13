@@ -13,8 +13,8 @@ const stable = (value: unknown): string => {
     .map(([key, child]) => JSON.stringify(key) + ':' + stable(child)).join(',') + '}';
   return JSON.stringify(value) ?? 'null';
 };
-/** Shared document changes conservatively include every page: nested components, bindings,
- * custom CSS and global regions can affect pages without a direct asset or node reference. */
+/** Shared definitions and styles conservatively include every page. Region changes affect
+ * only pages that inherit that region in either side of the comparison. */
 export function publicationChanges(before: Doc | null, after: Doc): PublicationChange[] {
   const result: PublicationChange[] = [];
   const pages = after.pages.map(({ id, name, slug }) => ({ id, name, slug }));
@@ -23,6 +23,7 @@ export function publicationChanges(before: Doc | null, after: Doc): PublicationC
     result.push({ group, label, status: old == null ? 'added' : next == null ? 'removed' : 'changed', pages: affected });
   };
   const oldPages = new Map((before?.pages || []).map(page => [page.id, page]));
+  const priorPages = new Map(oldPages);
   for (const page of after.pages) {
     add('Pages', page.name, oldPages.get(page.id), page, [{ id: page.id, name: page.name, slug: page.slug }]);
     oldPages.delete(page.id);
@@ -32,8 +33,12 @@ export function publicationChanges(before: Doc | null, after: Doc): PublicationC
   add('CMS content', 'Collections and entries', before?.meta.collections, after.meta.collections);
   add('Shared components', 'Component definitions', before?.meta.components, after.meta.components);
   add('Shared components', 'Saved blocks', before?.meta.blocks, after.meta.blocks, []);
-  add('Global regions', 'Header', before?.header, after.header);
-  add('Global regions', 'Footer', before?.footer, after.footer);
+  const inheriting = (region: 'header' | 'footer') => after.pages.filter(current => {
+    const prior = priorPages.get(current.id);
+    return current[region] === undefined || (!!prior && prior[region] === undefined);
+  }).map(({ id, name, slug }) => ({ id, name, slug }));
+  add('Global regions', 'Header', before?.header, after.header, inheriting('header'));
+  add('Global regions', 'Footer', before?.footer, after.footer, inheriting('footer'));
   const settings = (doc: Doc | null) => doc ? Object.fromEntries(Object.entries(doc.meta)
     .filter(([key]) => !['collections', 'components', 'blocks', 'ogImage', 'favicon'].includes(key))) : null;
   add('Styles', 'Site styles and settings', settings(before), settings(after));

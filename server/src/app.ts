@@ -2436,6 +2436,10 @@ export function createApp(o: Options) {
     const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
     const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
     const invitations = gate.role === 'owner' ? await liveReviews.invitations(id) : [];
+    const [snapshots, members] = gate.role === 'owner' ? await Promise.all([
+      o.publications?.listBySite(id) || [],
+      o.auth.members(id),
+    ]) : [[], []];
     // Snapshot reviews still waiting on this person, otherwise found only through Notifications.
     const assigned = gate.role === "owner" || gate.role === "reviewer"
       ? (await Promise.all((await reviews.assignmentsForReviewer(id, gate.user.id))
@@ -2455,6 +2459,8 @@ export function createApp(o: Options) {
       links: liveLinks,
       invitations,
       assigned,
+      snapshots,
+      reviewers: members.filter(member => member.role === 'reviewer'),
       error: c.req.query("error"),
       message: c.req.query("message"),
     }));

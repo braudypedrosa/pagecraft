@@ -56,15 +56,28 @@ function proposalCandidate(doc: Doc, changes: Proposal['changes'], id: string, a
   return formRoutingChanged(doc, next) ? { detail: routingDetail } : { doc: next, assetIds };
 }
 
-/** Which rendered file shows a region: the page itself, or the front page for header and footer. */
+const ownedPageRegion = (pages: Doc['pages'], region: string) => {
+  const match = /^page-(header|footer):(.+)$/.exec(region);
+  if (!match) return null;
+  const kind = match[1] as 'header' | 'footer';
+  const page = pages.find(page => page.id === match[2] && Array.isArray(page[kind]));
+  return page ? { page, kind } : null;
+};
+
+/** Preview a shared region on a page that actually inherits it. Custom regions belong to
+ * their named page, even when the front page uses a different or hidden shell. */
 function previewPaths(doc: Doc, regions: string[]) {
   load(doc);
   const targets = Core.exportTargets() as { pg: { id: string; name: string }; path: string; item?: unknown; pageNo?: number }[];
   const pages = targets.filter(t => (t.pageNo || 1) === 1);
-  const front = pages.find(t => t.path === 'index.html') || pages[0];
   return regions.map(region => {
-    const target = region === 'header' || region === 'footer' ? front : pages.find(t => t.pg.id === region);
-    const label = region === 'header' ? 'Header' : region === 'footer' ? 'Footer' : target?.pg.name || 'Page';
+    const custom = ownedPageRegion(doc.pages, region);
+    const shared = region === 'header' || region === 'footer' ? region : null;
+    const inheriting = shared ? pages.filter(t => doc.pages.find(page => page.id === t.pg.id)?.[shared] === undefined) : [];
+    const target = shared ? inheriting.find(t => t.path === 'index.html') || inheriting[0]
+      : pages.find(t => t.pg.id === (custom?.page.id || region));
+    const label = custom ? custom.page.name + ' ' + custom.kind
+      : region === 'header' ? 'Header' : region === 'footer' ? 'Footer' : target?.pg.name || 'Page';
     return target ? { region, label, path: target.path } : null;
   }).filter(Boolean) as { region: string; label: string; path: string }[];
 }
@@ -318,7 +331,8 @@ export async function assistantMcpContext(d: AssistantDeps, c: Context, auth: { 
       return {
         site: { id: site.id, name: site.name, version: site.version },
         pages: Core.state.pages.map(pg => ({ id: pg.id, name: pg.name, slug: pg.slug })),
-        regions: ['header', 'footer'],
+        regions: ['header', 'footer', ...Core.state.pages.flatMap(page =>
+          (['header', 'footer'] as const).filter(kind => Array.isArray(page[kind])).map(kind => `page-${kind}:${page.id}`))],
         components: Core.components().map(cd => ({
           id: cd.id, name: cd.name, rootType: cd.node.type,
           properties: (cd.props || []).map(pr => ({ key: pr.k, label: pr.label, kind: pr.t, default: pr.def, ...(pr.opts ? { options: pr.opts.map(([v]) => v) } : {}) })),
@@ -331,7 +345,9 @@ export async function assistantMcpContext(d: AssistantDeps, c: Context, auth: { 
       load(site.doc);
       const elements = Core.proposalOutline(id);
       if (!elements) return null;
-      const name = id === 'header' ? 'Header' : id === 'footer' ? 'Footer' : Core.state.pages.find(pg => pg.id === id)?.name;
+      const custom = ownedPageRegion(Core.state.pages, id);
+      const name = custom ? custom.page.name + ' ' + custom.kind
+        : id === 'header' ? 'Header' : id === 'footer' ? 'Footer' : Core.state.pages.find(pg => pg.id === id)?.name;
       return { version: site.version, region: id, name, elements };
     },
     async propose(input) {

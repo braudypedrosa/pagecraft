@@ -342,7 +342,11 @@ __export(index_exports, {
   pageFront: () => pageFront,
   pageHref: () => pageHref,
   pageMove: () => pageMove,
+  pageRegion: () => pageRegion,
+  pageRegionMode: () => pageRegionMode,
+  pageRegionSet: () => pageRegionSet,
   pageSlugSet: () => pageSlugSet,
+  pageTrees: () => pageTrees,
   pagedPath: () => pagedPath,
   pagedRel: () => pagedRel,
   pager: () => pager,
@@ -2151,7 +2155,11 @@ function nodes(doc2) {
     walk(node.children || [], node.id, region);
   });
   walk(doc2.header, "", "header");
-  doc2.pages.forEach((page2) => walk(page2.tree, "", `page:${page2.id}`));
+  doc2.pages.forEach((page2) => {
+    walk(page2.tree, "", `page:${page2.id}`);
+    if (Array.isArray(page2.header)) walk(page2.header, "", `page:${page2.id}:header`);
+    if (Array.isArray(page2.footer)) walk(page2.footer, "", `page:${page2.id}:footer`);
+  });
   walk(doc2.footer, "", "footer");
   for (const component of doc2.meta.components || []) walk([component.node], "", `component:${component.id}`);
   for (const block of doc2.meta.blocks || []) walk([block.node], "", `block:${block.id}`);
@@ -2399,6 +2407,9 @@ function mediaReferences(document) {
     const context = { scope: "page", label: page2.name, ownerId: page2.id };
     scan(page2.ogImage, ["pages", i, "ogImage"], context);
     nodes2(page2.tree, ["pages", i, "tree"], context);
+    for (const kind2 of ["header", "footer"]) if (Array.isArray(page2[kind2])) {
+      nodes2(page2[kind2], ["pages", i, kind2], { ...context, label: page2.name + " " + kind2 });
+    }
   });
   for (const scope of ["header", "footer"]) nodes2(document[scope], [scope], { scope, label: `Global ${scope}` });
   document.meta.components?.forEach((def, i) => {
@@ -4262,12 +4273,39 @@ var doc = () => ({
   pages: state.pages
 });
 var page = () => state.pages[state.cur] || state.pages[0];
+function pageTrees(pg2) {
+  return [
+    pg2.tree,
+    ...Array.isArray(pg2.header) ? [pg2.header] : [],
+    ...Array.isArray(pg2.footer) ? [pg2.footer] : []
+  ];
+}
+function pageRegion(pg2, kind2) {
+  return pg2?.[kind2] === null ? [] : pg2?.[kind2] ?? state[kind2];
+}
+function pageRegionMode(pg2, kind2) {
+  return pg2[kind2] === void 0 ? "shared" : pg2[kind2] === null ? "hidden" : "custom";
+}
+function pageRegionSet(pg2, kind2, mode) {
+  if (!state.pages.includes(pg2) || pageRegionMode(pg2, kind2) === mode) return false;
+  if (mode === "shared") delete pg2[kind2];
+  else if (mode === "hidden") pg2[kind2] = null;
+  else {
+    const copy = clone(pageRegion(pg2, kind2));
+    eachNode(copy, (node) => {
+      node.id = uid();
+    });
+    pg2[kind2] = copy;
+  }
+  selSet([]);
+  return true;
+}
 var tree = () => {
   if (state.ui.mode === "component") {
     const cd = findComponent(state.ui.cedit);
     return cd ? [cd.node] : [];
   }
-  return state.ui.mode === "header" ? state.header : state.ui.mode === "footer" ? state.footer : page().tree;
+  return state.ui.mode === "header" || state.ui.mode === "footer" ? pageRegion(page(), state.ui.mode) : page().tree;
 };
 var dk = () => DEV_KEY[state.ui.dev];
 function locate(id, list = tree(), parent = null) {
@@ -4284,8 +4322,10 @@ function locateAny(id) {
     if (h) return { ...h, mode: m };
   }
   for (let p = 0; p < state.pages.length; p++) {
-    const h = locate(id, state.pages[p].tree, null);
-    if (h) return { ...h, mode: "page", page: p };
+    for (const [mode, list] of [["page", state.pages[p].tree], ["header", state.pages[p].header], ["footer", state.pages[p].footer]]) {
+      const h = list && locate(id, list, null);
+      if (h) return { ...h, mode, page: p };
+    }
   }
   return null;
 }
@@ -4437,6 +4477,7 @@ function restore(snap, preserveMobileMenuOwner = false) {
   state.ui.mobileMenuOwner = owner;
   if (owner) mobileMenuOwner(owner.menuComponentId);
   if (state.cur >= state.pages.length) state.cur = 0;
+  if ((state.ui.mode === "header" || state.ui.mode === "footer") && pageRegionMode(page(), state.ui.mode) === "hidden") state.ui.mode = "page";
   selSet(selIds());
   HOOKS.change();
   HOOKS.save();
@@ -4608,7 +4649,7 @@ function pageDup(i) {
   if (!src) return null;
   const c = clone(src);
   c.id = uid();
-  c.tree.forEach(reid);
+  pageTrees(c).forEach((list) => list.forEach(reid));
   c.name += " copy";
   c.slug = uniqueId(c.slug + "-copy", state.pages.map((p) => p.slug));
   state.pages.splice(i + 1, 0, c);
@@ -5102,7 +5143,7 @@ function renderedTrees() {
   return [
     state.header,
     state.footer,
-    ...state.pages.map((p) => p.tree),
+    ...state.pages.flatMap(pageTrees),
     ...components().map((c) => [c.node])
   ];
 }
@@ -5137,7 +5178,7 @@ var LANGS = [
 function anchorsOf(slug) {
   const pg2 = state.pages.find((p) => p.slug === slug) || page();
   const out = [];
-  [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => {
+  [pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")].forEach((l) => eachNode(l, (n) => {
     if (n.adv && n.adv.htmlId) out.push(n.adv.htmlId);
   }));
   return [...new Set(out)];
@@ -5813,12 +5854,12 @@ function lint() {
   const idsBySlug = {};
   linkablePages().forEach((pg2) => {
     const ids = /* @__PURE__ */ new Set();
-    [state.header, pg2.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
+    [pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[pg2.slug + ".html"] = ids;
   });
   for (const target of exportTargets()) {
     const ids = /* @__PURE__ */ new Set();
-    [state.header, target.pg.tree, state.footer].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
+    [pageRegion(target.pg, "header"), target.pg.tree, pageRegion(target.pg, "footer")].forEach((l) => eachNode(l, (n) => ids.add(domIdOf(n))));
     idsBySlug[target.path] = ids;
   }
   const pageOf = (slug) => idsBySlug[slug];
@@ -5932,7 +5973,7 @@ function lint() {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
             let f = null;
-            eachNode(pg2.tree, (x) => {
+            eachNode([...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")], (x) => {
               if (!f && x.src && findCollection(x.src)) {
                 let d = false;
                 eachNode([x], (y) => {
@@ -6093,9 +6134,9 @@ function lint() {
       }
       visit(n.children || [], chain.concat(n), region);
     });
-    visit(state.header, [], "global header");
+    visit(pageRegion(pg2, "header"), [], pg2.header === void 0 ? "global header" : "page header");
     visit(pg2.tree, [], "page");
-    visit(state.footer, [], "global footer");
+    visit(pageRegion(pg2, "footer"), [], pg2.footer === void 0 ? "global footer" : "page footer");
     const contextReviews = /* @__PURE__ */ new Map();
     const missingFieldSeen = /* @__PURE__ */ new Set();
     const queueContext = (level, code, msg, region, node, context) => {
@@ -6312,7 +6353,7 @@ function lint() {
         }
         const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
         const kids = filled && filled.length ? filled : n.children || [];
-        const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null } : scoped;
+        const childContext = filled && filled.length ? { ...scoped, inst: null, cdef: null, stack: slotCallerStack(context.stack, context.cdef) } : scoped;
         walkContext(kids, chain.concat(n), region, childContext);
       });
     };
@@ -6333,9 +6374,9 @@ function lint() {
         repeatPath: [],
         pagination: null
       };
-      walkContext(state.header, [], "global header", { ...renderContext, scope: "header" });
+      walkContext(pageRegion(pg2, "header"), [], pg2.header === void 0 ? "global header" : "page header", { ...renderContext, scope: "header" });
       walkContext(pg2.tree, [], "page", renderContext);
-      walkContext(state.footer, [], "global footer", { ...renderContext, scope: "footer" });
+      walkContext(pageRegion(pg2, "footer"), [], pg2.footer === void 0 ? "global footer" : "page footer", { ...renderContext, scope: "footer" });
     }
     for (const review of contextReviews.values()) {
       const labels = [...review.items.values()];
@@ -6806,6 +6847,8 @@ function searchAll(q, o = {}) {
       });
     });
     scan(p.tree, "page", i, p.name);
+    if (p.header) scan(p.header, "header", i, p.name + " header");
+    if (p.footer) scan(p.footer, "footer", i, p.name + " footer");
   });
   scan(state.footer, "footer", -1, "Global footer");
   {
@@ -6872,7 +6915,7 @@ function replaceAll(q, to, o = {}) {
       const q2 = p;
       if (typeof q2[k] === "string") q2[k] = swap2(q2[k]);
     });
-    scan(p.tree);
+    pageTrees(p).forEach(scan);
   });
   scan(state.footer);
   if (typeof state.meta.name === "string") state.meta.name = swap2(state.meta.name);
@@ -7071,7 +7114,7 @@ function documentTrees(d) {
   return [
     d.header,
     d.footer,
-    ...d.pages.map((p) => p.tree),
+    ...d.pages.flatMap(pageTrees),
     ...(d.meta.components || []).map((c) => [c.node]),
     ...(d.meta.blocks || []).map((b) => [b.node])
   ];
@@ -7959,8 +8002,11 @@ function mobileMenuOwnerContext(n, componentId) {
     if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
   }
   for (let page2 = 0; page2 < state.pages.length; page2++) {
-    const hit = locate(n.id, state.pages[page2].tree);
-    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode: "page", page: page2 };
+    const pg2 = state.pages[page2];
+    for (const [mode, list] of [["page", pg2.tree], ["header", pg2.header], ["footer", pg2.footer]]) {
+      const hit = list && locate(n.id, list);
+      if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode, page: page2 };
+    }
   }
   for (const definition of components()) {
     if (definition.id === componentId) continue;
@@ -7981,7 +8027,7 @@ function soleMobileMenuOwner(componentId) {
   });
   visit(state.header || []);
   visit(state.footer || []);
-  state.pages.forEach((pg2) => visit(pg2.tree || []));
+  state.pages.forEach((pg2) => pageTrees(pg2).forEach(visit));
   components().forEach((definition) => {
     if (definition.id !== componentId) visit([definition.node]);
   });
@@ -7998,9 +8044,10 @@ function mobileMenuOwner(componentId) {
     return null;
   }
   let hit = null;
-  if (context.mode === "header") hit = locate(context.nodeId, state.header);
-  else if (context.mode === "footer") hit = locate(context.nodeId, state.footer);
-  else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  if (context.mode === "header" || context.mode === "footer") {
+    const list = context.page === void 0 ? state[context.mode] : pageRegion(state.pages[context.page], context.mode);
+    hit = locate(context.nodeId, list);
+  } else if (context.mode === "page" && context.page !== void 0) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
   else if (context.mode === "component" && context.ownerComponentId) {
     const owner = findComponent(context.ownerComponentId);
     if (owner) hit = locate(context.nodeId, [owner.node]);
@@ -8441,7 +8488,11 @@ function instances(cid) {
   });
   scan(state.header, "header");
   scan(state.footer, "footer");
-  state.pages.forEach((p, i) => scan(p.tree, "page:" + i));
+  state.pages.forEach((p, i) => {
+    scan(p.tree, "page:" + i);
+    if (p.header) scan(p.header, "page:" + i + ":header");
+    if (p.footer) scan(p.footer, "page:" + i + ":footer");
+  });
   components().forEach((c) => {
     if (c.id !== cid) scan([c.node], "component:" + c.id);
   });
@@ -8706,7 +8757,7 @@ function nudgeMany(ids, dir) {
   }
   return moved > 0;
 }
-var SCHEMA = 14;
+var SCHEMA = 15;
 function migrate(d) {
   if (!d || !d.pages || !d.pages.length) return null;
   const schemaVersion = d.schemaVersion;
@@ -8722,6 +8773,11 @@ function migrate(d) {
   }
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;
+  for (const pg2 of d.pages) for (const kind2 of ["header", "footer"]) {
+    if (pg2[kind2] !== void 0 && pg2[kind2] !== null && !Array.isArray(pg2[kind2])) {
+      throw new Error("invalid page " + kind2 + " override");
+    }
+  }
   const everyNode = (fn) => {
     const walk = (n) => {
       fn(n);
@@ -8729,7 +8785,7 @@ function migrate(d) {
     };
     (d.header || []).forEach(walk);
     (d.footer || []).forEach(walk);
-    (d.pages || []).forEach((pg2) => (pg2.tree || []).forEach(walk));
+    (d.pages || []).forEach((pg2) => pageTrees(pg2).forEach((list) => (list || []).forEach(walk)));
     ((d.meta || {}).blocks || []).forEach((bl) => {
       if (bl.node) walk(bl.node);
     });
@@ -10490,14 +10546,14 @@ function publicFormControlCssFor(lists, editing) {
 function wordpressStyles(pg2) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
-  const pageMoves = animUsed([pg2.tree]);
+  const pageMoves = animUsed(pageTrees(pg2));
   const globalControls = publicFormControlsUsed(globalTrees);
-  const pageControls = publicFormControlsUsed([pg2.tree]);
+  const pageControls = publicFormControlsUsed(pageTrees(pg2));
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false) + publicFormControlCss(globalControls) + (globalMoves ? `
 ${ANIM_CSS}
 ${ANIM_CALM}` : "")),
-    page: tidy(treeRuleCss([pg2.tree], false) + publicFormControlCss({
+    page: tidy(treeRuleCss(pageTrees(pg2), false) + publicFormControlCss({
       select: pageControls.select && !globalControls.select,
       date: pageControls.date && !globalControls.date
     }) + (pageMoves && !globalMoves ? `
@@ -11129,6 +11185,9 @@ var cssRatio = (v) => {
   const s = String(v ?? "").trim();
   return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : "";
 };
+function slotCallerStack(stack, definition) {
+  return definition && stack.at(-1) === definition.id ? stack.slice(0, -1) : stack;
+}
 function renderNode(n, o) {
   if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
   o.formRouting?.count();
@@ -11213,6 +11272,7 @@ function renderNode(n, o) {
     ...o2,
     inst: null,
     cdef: null,
+    stack: slotCallerStack(o.stack || [], o.cdef),
     /* Direct placement slots are page-owned; slots inside nested definitions are not. */
     placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : void 0
   } : o2;
@@ -11555,7 +11615,7 @@ function inspectFormRouting(source, visit) {
   const pending = [
     source.header,
     source.footer,
-    ...source.pages.map((page2) => page2.tree),
+    ...source.pages.flatMap(pageTrees),
     ...(source.meta.components || []).map((component) => [component.node])
   ];
   let hasForms = false;
@@ -11577,7 +11637,7 @@ function inspectFormRouting(source, visit) {
       const { pg: pg2, col, item, pageNo } = target;
       const items = col && item ? [[col.id, item.id]] : [];
       const publicIds = { reserving: true, reserved: /* @__PURE__ */ new Set(), used: /* @__PURE__ */ new Set() };
-      const regions = [["header", state.header], ["page:" + pg2.id, pg2.tree], ["footer", state.footer]];
+      const regions = [["header", pageRegion(pg2, "header")], ["page:" + pg2.id, pg2.tree], ["footer", pageRegion(pg2, "footer")]];
       for (const [region, nodes2] of regions) for (const node of nodes2) {
         renderNode(node, { edit: false, publicIds, pg: pg2, col, item, pageNo, formRouting: { region, items, count, visit } });
       }
@@ -11874,7 +11934,7 @@ function jsonLdGraph(pg2, ctx = {}) {
     { "@type": "Organization", "@id": org, name: m.name, url: base + "/" },
     { "@type": "WebSite", "@id": site, name: m.name, url: base + "/", publisher: { "@id": org } }
   ];
-  if (crumbsShown([state.header, pg2.tree, state.footer])) {
+  if (crumbsShown([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")])) {
     const trail = crumbTrail(pg2, ctx);
     if (trail.length > 1) graph.push({
       "@type": "BreadcrumbList",
@@ -11922,14 +11982,14 @@ function buildPage(pg2, ctx = {}) {
     pages: ctx.pages || 1,
     pg: pg2
   };
-  const css = treeCss([state.header, pg2.tree, state.footer], false);
-  const moves = animUsed([state.header, pg2.tree, state.footer]);
-  const allNodes = [...state.header, ...pg2.tree, ...state.footer];
+  const css = treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false);
+  const moves = animUsed([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")]);
+  const allNodes = [...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")];
   const occupied = /* @__PURE__ */ new Set();
   eachNode(allNodes, (n) => occupied.add(domIdOf(n)));
   let mainId = "pagecraft-main";
   while (occupied.has(mainId)) mainId += "-content";
-  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([state.header, pg2.tree, state.footer], o);
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], o);
   const header = demoteMainTags(headerHtml);
   const pageBody = demoteMainTags(pageHtml);
   const footer = demoteMainTags(footerHtml);
@@ -11980,7 +12040,16 @@ ${ANIM_JS}
 `;
 }
 var PROPOSAL_LIMITS = { changes: 50, text: 1e4, title: 120, summary: 2e3 };
-var proposalTree = (region) => region === "header" ? state.header : region === "footer" ? state.footer : state.pages.find((pg2) => pg2.id === region)?.tree;
+var proposalRegions = () => [
+  ["header", state.header],
+  ["footer", state.footer],
+  ...state.pages.flatMap((pg2) => [
+    [pg2.id, pg2.tree],
+    ...Array.isArray(pg2.header) ? [["page-header:" + pg2.id, pg2.header]] : [],
+    ...Array.isArray(pg2.footer) ? [["page-footer:" + pg2.id, pg2.footer]] : []
+  ])
+];
+var proposalTree = (region) => proposalRegions().find(([key]) => key === region)?.[1];
 function proposalInstanceSlots(inst, def) {
   const first = slotsOf(def)[0]?.k;
   const slots = /* @__PURE__ */ new Map();
@@ -12007,8 +12076,8 @@ function* proposalTargets(region, list, path = []) {
   }
 }
 function proposalFind(nodeId) {
-  for (const region of ["header", "footer", ...state.pages.map((pg2) => pg2.id)]) {
-    for (const target of proposalTargets(region, proposalTree(region))) {
+  for (const [region, list] of proposalRegions()) {
+    for (const target of proposalTargets(region, list)) {
       if (target.node.id === nodeId) return target;
     }
   }
@@ -12173,7 +12242,8 @@ function proposalPrepare(inputs, options) {
         if (checked.problem) return fail(`${def.name} \xB7 ${pr.label} ${checked.problem}.`);
         values[k] = checked.value;
       }
-      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `page \u201C${state.pages.find((pg2) => pg2.id === region2).name}\u201D`;
+      const owner = state.pages.find((pg2) => pg2.id === region2 || "page-header:" + pg2.id === region2 || "page-footer:" + pg2.id === region2);
+      const where = region2 === "header" ? "the header" : region2 === "footer" ? "the footer" : `${region2.startsWith("page-header:") ? "header of " : region2.startsWith("page-footer:") ? "footer of " : ""}page \u201C${owner.name}\u201D`;
       const into = parent ? ` \xB7 ${proposalNodeLabel(parent.node)}${placement.slot ? ` \xB7 ${placement.slot}` : ""}` : "";
       changes.push({
         type: "insert",
@@ -12741,7 +12811,11 @@ function proposalApply(changes, proposalId = "", options) {
   pageFront,
   pageHref,
   pageMove,
+  pageRegion,
+  pageRegionMode,
+  pageRegionSet,
   pageSlugSet,
+  pageTrees,
   pagedPath,
   pagedRel,
   pager,

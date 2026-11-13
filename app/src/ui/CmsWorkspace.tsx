@@ -1290,7 +1290,7 @@ export function bindingImpact(collectionId: string, fieldId: string): string {
         visit(n.children || [], source);
       }
     };
-    visit(page.tree);
+    C.pageTrees(page).forEach(nodes => visit(nodes));
   }
   const bindings = affected.size
     ? 'Review these bindings: ' + [...affected].join(', ') + '.'

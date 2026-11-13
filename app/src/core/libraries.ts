@@ -587,7 +587,11 @@ export interface LibraryUpdatePlan {
 function instancesOf(doc: Doc, id: string) {
   const found: Node[] = [];
   const visit = (node: Node) => eachNode(node, n => { if (n.use === id) found.push(n); });
-  doc.pages.forEach(page => page.tree.forEach(visit));
+  doc.pages.forEach(page => {
+    page.tree.forEach(visit);
+    if (Array.isArray(page.header)) page.header.forEach(visit);
+    if (Array.isArray(page.footer)) page.footer.forEach(visit);
+  });
   doc.header.forEach(visit);
   doc.footer.forEach(visit);
   (doc.meta.components || []).forEach(def => visit(def.node));
