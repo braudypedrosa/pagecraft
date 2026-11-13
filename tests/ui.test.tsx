@@ -624,10 +624,11 @@ test('a box shorthand is shown as four sides and materialized when one side chan
 
   a.deepEqual(r.$$('input[type=number]').map(input => (input as HTMLInputElement).value),
     ['28', '0', '44', '0']);
-  a.equal(r.$('.row4 select[data-field-part="unit"]')?.parentElement?.className, 'row4',
-    'the unit selector shares the value row');
-  a.deepEqual(r.$$('.row4lab span').map(label => label.textContent),
-    ['top', 'right', 'bottom', 'left', 'unit']);
+  a.deepEqual(r.$$('input[type=number]').map(input => input.getAttribute('aria-label')),
+    ['Padding top', 'Padding right', 'Padding bottom', 'Padding left']);
+  const unit = r.$('select[data-field-part="unit"]') as HTMLSelectElement;
+  a.equal(unit.getAttribute('aria-label'), 'Padding unit');
+  a.equal(unit.value, 'px', 'the unit reflects the inherited desktop shorthand');
   a.equal(r.$('.rsp')!.classList.contains('ovr'), false, 'tablet inherits the desktop shorthand');
 
   r.type(r.$$('input[type=number]')[0], '36');

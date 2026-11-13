@@ -594,29 +594,30 @@ function BoxCtl({ n, c }: P) {
   };
 
   return <Field n={n} c={c}>
-    {/* The side names go above their own boxes. As one run of text underneath they named four
-        fields collectively and lined up with none of them, so which box was `right` was
-        something you worked out by counting. */}
-    <div class="row4lab" aria-hidden="true">
-      {SIDES.map(s => <span key={s}>{s}</span>)}
-      <span>unit</span>
-    </div>
-    <div class="row4">
-      {SIDES.map((s, k) => (
-        <input data-field-part={s} class="ctl" key={s} type="number" step="any" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
-          onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={w.done} />
-      ))}
-      <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
-        onChange={e => {
-          const select = e.target as HTMLSelectElement;
-          setChoice({ key: choiceKey, unit: select.value });
-          const root = select.parentElement!;
-          const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
-            .some(input => input.value.trim() !== '');
-          if (hasValue) { push(root); w.done(); }
-        }}>
-        {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
-      </select>
+    <div class="boxctl">
+      <div class="boxctl-sides">
+        {SIDES.map((s, k) => (
+          <label class="boxctl-side" key={s}>
+            <span aria-hidden="true">{s}</span>
+            <input data-field-part={s} class="ctl" type="number" step="any" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
+              onInput={e => push((e.target as HTMLElement).closest('.boxctl')!)} onBlur={w.done} />
+          </label>
+        ))}
+      </div>
+      <div class="boxctl-unit">
+        <span aria-hidden="true">Unit</span>
+        <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
+          onChange={e => {
+            const select = e.target as HTMLSelectElement;
+            setChoice({ key: choiceKey, unit: select.value });
+            const root = select.closest<HTMLElement>('.boxctl')!;
+            const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
+              .some(input => input.value.trim() !== '');
+            if (hasValue) { push(root); w.done(); }
+          }}>
+          {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
+        </select>
+      </div>
     </div>
   </Field>;
 }

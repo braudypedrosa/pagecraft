@@ -875,6 +875,12 @@ select.ctl{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
   padding-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.boxctl-sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap-1)}
+.boxctl-side{display:grid;gap:3px;min-width:0}
+.boxctl-side>span,.boxctl-unit>span{font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3)}
+.boxctl-side>.ctl{width:100%;min-width:0}
+.boxctl-unit{display:grid;grid-template-columns:minmax(0,1fr) 88px;align-items:center;gap:var(--gap-1);margin-top:var(--gap-1)}
+.boxctl-unit>.ctl,.boxctl-unit>.pc-custom-select-trigger{width:100%;min-width:0}
 .unit{display:flex;gap:0}
 .unit input{
   flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;
@@ -24494,13 +24500,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       });
       L2.repaintCss();
     };
-    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: [
-      /* @__PURE__ */ u2("div", { class: "row4lab", "aria-hidden": "true", children: [
-        SIDES.map((s3) => /* @__PURE__ */ u2("span", { children: s3 }, s3)),
-        /* @__PURE__ */ u2("span", { children: "unit" })
-      ] }),
-      /* @__PURE__ */ u2("div", { class: "row4", children: [
-        SIDES.map((s3, k3) => /* @__PURE__ */ u2(
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "boxctl", children: [
+      /* @__PURE__ */ u2("div", { class: "boxctl-sides", children: SIDES.map((s3, k3) => /* @__PURE__ */ u2("label", { class: "boxctl-side", children: [
+        /* @__PURE__ */ u2("span", { "aria-hidden": "true", children: s3 }),
+        /* @__PURE__ */ u2(
           "input",
           {
             "data-field-part": s3,
@@ -24511,11 +24514,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             value: vals[k3].n,
             placeholder: "0",
             title: s3,
-            onInput: (e3) => push(e3.target.closest(".f")),
+            onInput: (e3) => push(e3.target.closest(".boxctl")),
             onBlur: w3.done
-          },
-          s3
-        )),
+          }
+        )
+      ] }, s3)) }),
+      /* @__PURE__ */ u2("div", { class: "boxctl-unit", children: [
+        /* @__PURE__ */ u2("span", { "aria-hidden": "true", children: "Unit" }),
         /* @__PURE__ */ u2(
           "select",
           {
@@ -24526,7 +24531,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             onChange: (e3) => {
               const select = e3.target;
               setChoice({ key: choiceKey, unit: select.value });
-              const root = select.parentElement;
+              const root = select.closest(".boxctl");
               const hasValue = [...root.querySelectorAll("input")].some((input) => input.value.trim() !== "");
               if (hasValue) {
                 push(root);
@@ -24538,7 +24543,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           `${choiceKey}|${u4}`
         )
       ] })
-    ] });
+    ] }) });
   }
   var BORDER_TARGETS = [
     ["all", "All"],
