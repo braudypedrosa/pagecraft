@@ -1,0 +1,56 @@
+{
+  "case": "P1-BUTTON-HOST-WORDPRESS",
+  "status": "Bounded native mixed Button flow accepted",
+  "editor": "0.2.17-preview.20261022.97",
+  "cloudSource": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
+  "wordpressSource": "1207cf10c4b5a28da051611e737c10fe51d0121e",
+  "fixture": 616,
+  "baselineVersion": 22,
+  "savedButtonVersion": 23,
+  "finalVersion": 26,
+  "actions": [
+    "Create five test Buttons including two reusable instances",
+    "Create an explicit size27 and purple text override",
+    "Change source size20 weight700 text#123456 together with background#e8d9be radius18 padding18/30 border2solid#223344",
+    "Cancel then confirm Update typography",
+    "Undo and Redo",
+    "Desktop Tablet Mobile editor checks",
+    "Save and reload",
+    "Saved public1280/834/414 pointer and keyboard checks",
+    "Native history restored Gallery22",
+    "Native Settings restored shared Button typography",
+    "Guarded cleanup restored only two owned options to their exact original bytes"
+  ],
+  "verified": {
+    "ordinaryPeerAndInstancesReceiveTypography": true,
+    "localAppearanceRetained": true,
+    "explicitLocalOverrideRetained": true,
+    "bodyUnchanged": true,
+    "undoExact": true,
+    "redoExact": true,
+    "reloadExact": true,
+    "publicResponsiveValuesAndKeyboardRing": true,
+    "Gallery8Restored": true,
+    "noTestComponentDefinitionRemains": true,
+    "bothGlobalOptionsOriginalBytesExact": true,
+    "protectedContentMenusAccountsPreserved": true
+  },
+  "globalRestoration": {
+    "intent": "Page history intentionally preserves shared styles; this is not a defect.",
+    "originalButtonStyle": "Desktop15px400 with no colour, Tablet15px, Mobile15px",
+    "privateCleanupMethod": "Transaction and exact inspected-row comparisons; only two QA-owned option values/autoloads restored. No document, revision, account, menu or source rollback.",
+    "evidence": "qa-evidence/stale-global-css-authority-2026-10-22/mixed-button-final-native-guard.json"
+  },
+  "visualReview": [
+    "wordpress/editor-desktop.png",
+    "wordpress/saved-public-1280.png",
+    "wordpress/saved-public-414.png"
+  ],
+  "captureCorrection": "Initial blank document-origin clips and compositor strips were rejected and replaced by actual720px viewport screenshots.",
+  "limits": [
+    "Deliberately mixed QA colours verify propagation, not a customer visual palette.",
+    "This does not pass every finite Button setting or arbitrary state combination.",
+    "Two first canvas-selection attempts after colour editing required a second click; this remains a reproduction follow-up, not a confirmed product defect."
+  ],
+  "fullQAComplete": false
+}

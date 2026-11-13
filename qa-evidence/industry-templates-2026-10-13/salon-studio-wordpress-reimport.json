@@ -1,0 +1,46 @@
+{
+  "packageSha256": "09c30062936c1db94ccd104f371cec41bd0416d395064669edaa8645bbe6c9ae",
+  "result": {
+    "jobId": 2151,
+    "created": 0,
+    "updated": 5,
+    "absent": 0,
+    "projectId": "template:salon-studio:1.0.0",
+    "sourceVersion": 1,
+    "homepageId": 2057
+  },
+  "pages": [
+    {
+      "id": 2057,
+      "name": "Home",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/index-19/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2057"
+    },
+    {
+      "id": 2058,
+      "name": "Services",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/services-12/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2058"
+    },
+    {
+      "id": 2059,
+      "name": "Studio",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/studio/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2059"
+    },
+    {
+      "id": 2060,
+      "name": "Team",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/team/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2060"
+    },
+    {
+      "id": 2061,
+      "name": "Contact",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/contact-15/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2061"
+    }
+  ],
+  "wordpress": "7.1.3",
+  "php": "8.1.29"
+}

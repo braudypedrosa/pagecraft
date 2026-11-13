@@ -8,10 +8,13 @@
    to update-and-save and `change` to re-render, because repainting on every keystroke
    loses the caret. Same split here — which is also why they are uncontrolled: nothing
    re-renders mid-typing, so nothing fights the DOM value. */
-import { useState } from 'preact/hooks';
+import { useLayoutEffect, useState } from 'preact/hooks';
+import { refreshCustomSelects } from '../../../shared/custom-select.js';
+import type { Page } from '../core/types';
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { AssetField } from './AssetField';
+import { HelpTip } from './HelpTip';
 import { MotionPresence } from './MotionPresence';
 
 function PageRow({ i }: { i: number }) {
@@ -146,10 +149,48 @@ function DetailBindings({ colId }: { colId: string }) {
         {pick('bindTitle', 'Title from', '— The page title —')}
         {pick('bindDesc', 'Description from', '— The page description —')}
       </div>
-      <div class="note">One file per item, at <b>/{dc.slug}/&lt;slug&gt;</b>
-        {C.published(dc).length === dc.items.length ? '' : ` — ${dc.items.length - C.published(dc).length} held back`}.</div>
+      {C.templateFor(dc.id) === pg
+        ? <div class="note">One file per item, at <b>/{dc.slug}/&lt;slug&gt;</b>
+          {C.published(dc).length === dc.items.length ? '' : ` — ${dc.items.length - C.published(dc).length} held back`}.</div>
+        : <div class="note">Publishes nothing: “{C.templateFor(dc.id)!.name}” publishes {dc.name}. Make one of them an ordinary page.</div>}
     </>
   );
+}
+
+function PageRegionControl({ pg, kind }: { pg: Page; kind: 'header' | 'footer' }) {
+  const mode = C.pageRegionMode(pg, kind);
+  const title = kind === 'header' ? 'Header' : 'Footer';
+  useLayoutEffect(() => { refreshCustomSelects(); });
+  const change = async (element: HTMLSelectElement) => {
+    const next = element.value as 'shared' | 'custom' | 'hidden';
+    // Keep the saved choice visible while confirmation is open, including on Cancel.
+    element.value = mode; refreshCustomSelects();
+    if (!L.canStructure() || next === mode) return;
+    if (mode === 'custom' && (pg[kind]?.length || 0) > 0 && !await L.askConfirm(
+      next === 'shared' ? 'Use the shared ' + kind + '?' : 'Hide this ' + kind + '?',
+      'The custom ' + kind + ' on <b>' + C.esc(pg.name) + '</b> will be removed. '
+      + (next === 'shared' ? 'This page will follow the shared ' + kind + '. ' : '')
+      + 'Undo brings the custom content back until you reload.',
+      { ok: next === 'shared' ? 'Use shared ' + kind : 'Hide ' + kind })) return;
+    const current = C.state.pages.find(p => p.id === pg.id);
+    if (!current || !L.canStructure()) return;
+    C.edit(() => { C.pageRegionSet(current, kind, next); C.state.ui.mode = 'page'; }, title + ' for this page');
+    L.paint(); L.save(); L.renderModebar(); repaint('pages');
+  };
+  return <div class="f">
+    <label htmlFor={'page-region-' + kind}>{title} for this page</label>
+    <select class="ctl" id={'page-region-' + kind} value={mode} onChange={e => { void change(e.currentTarget); }}>
+      <option value="shared">Use shared {kind}</option>
+      <option value="custom">Customize for this page</option>
+      <option value="hidden">Hide on this page</option>
+    </select>
+    <p class="note">{mode === 'shared' ? 'Shared edits reach every page that uses this ' + kind + '.'
+      : mode === 'hidden' ? 'This page publishes without a ' + kind + '.'
+        : 'Only this page uses this copy. Shared edits do not replace it.'}</p>
+    {mode !== 'hidden' ? <button type="button" class="btn block" onClick={() => L.setMode(kind)}>
+      Edit {mode === 'custom' ? 'page' : 'shared'} {kind}
+    </button> : null}
+  </div>;
 }
 
 export function Pages() {
@@ -213,7 +254,10 @@ export function Pages() {
             Preview follows links by slug for the same reason. */}
         {/* through `pageSlugSet`, so every href pointing at the old slug follows. Writing
             `page().slug` directly is what left the review to report the breakage afterwards. */}
-        <div class="f"><label htmlFor="page-slug">Slug</label>
+        <div class="f"><div class="pc-label-with-help"><label htmlFor="page-slug">Slug</label>
+          <HelpTip label="Slug" text={C.isFront(pg)
+            ? 'The front page is fixed at index and served at /.'
+            : 'Sets the published path. Internal links update when this changes.'} /></div>
           {/* on change, not on input. Renaming rewrites every href that pointed at the old
               slug, and `field` commits on every keystroke — which would relink once per letter
               and refuse half of them as taken. The DOM holds the half-typed text; this reads it
@@ -232,10 +276,7 @@ export function Pages() {
               }
               repaint('pages'); L.renderModebar();
             }} />
-          <div class="note">{C.isFront(pg)
-              ? <>Fixed at <code>index</code> — a host serves it at the root.</>
-              : <>Published at <code>/{pg.slug || '…'}</code>.</>}
-            {C.isNotFound(pg) ? ' Your not-found page: out of the sitemap, and noindex.' : ''}</div>
+          {C.isNotFound(pg) ? <div class="note">Not-found page · excluded from the sitemap · noindex.</div> : null}
           {C.isFront(pg) ? null : (
             <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
               onClick={async () => {
@@ -252,6 +293,9 @@ export function Pages() {
               }}>Make this the front page</button>
           )}</div>
 
+        <PageRegionControl key={pg.id + ':header'} pg={pg} kind="header" />
+        <PageRegionControl key={pg.id + ':footer'} pg={pg} kind="footer" />
+
         <div class="f"><label htmlFor="page-title">Browser title</label>
           <input class="ctl" id="page-title" value={pg.title || ''} placeholder={pg.name}
             {...field('title', v => { C.page().title = v; })} /></div>
@@ -261,37 +305,41 @@ export function Pages() {
             style={{ minHeight: '56px' }}
             {...field('desc', v => { C.page().desc = v; })} /></div>
 
-        <div class="f"><label>Social share image</label>
-          <AssetField value={pg.ogImage} note="Falls back to the project image when empty."
+        <div class="f"><div class="pc-label-with-help"><label>Social share image</label>
+          <HelpTip label="Social share image" text="Falls back to the project image when empty." /></div>
+          <AssetField value={pg.ogImage}
             onChange={v => { C.edit(() => { C.page().ogImage = v; }); repaint('pages'); }} /></div>
 
         {/* Project settings has the site-wide version. This is the per-page one, which is
             where a page-specific meta tag, a schema block or a one-page script goes — there
             was nowhere for those before, only the project-wide block. */}
-        <div class="f"><label htmlFor="page-head-html">Extra &lt;head&gt; HTML</label>
+        <div class="f"><div class="pc-label-with-help"><label htmlFor="page-head-html">Extra &lt;head&gt; HTML</label>
+          <HelpTip label="Extra head HTML" text="Added on this page after the project-wide head HTML." /></div>
           <textarea class="ctl" id="page-head-html" value={pg.headHtml || ''}
             style={{ minHeight: '56px', fontFamily: 'var(--mono)', fontSize: 'var(--fs-1)' }}
             placeholder="&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;"
-            {...field('headHtml', v => { C.page().headHtml = v; })} />
-          <div class="note">This page only, after the project's block.</div></div>
+            {...field('headHtml', v => { C.page().headHtml = v; })} /></div>
 
         <div class="f">
-          <label htmlFor="page-collection">Detail template <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
-            — one page per item</span></label>
+          <div class="pc-label-with-help"><label htmlFor="page-collection">Detail template</label>
+            <HelpTip label="Detail template" text="Creates one published page per collection item." /></div>
           <select class="ctl" id="page-collection" value={pg.collection || ''}
             onChange={e => setCollection((e.target as HTMLSelectElement).value)}>
             <option value="">— An ordinary page —</option>
-            {cols.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name} · {c.items.length} item{c.items.length === 1 ? '' : 's'}
-              </option>
-            ))}
+            {cols.map(c => {
+              /* two templates for one collection would write the same files */
+              const other = C.templateFor(c.id);
+              const taken = !!other && other !== pg;
+              return (
+                <option key={c.id} value={c.id} disabled={taken && pg.collection !== c.id}>
+                  {c.name} · {taken ? `published by “${other!.name}”` : `${c.items.length} item${c.items.length === 1 ? '' : 's'}`}
+                </option>
+              );
+            })}
           </select>
           {pg.collection && C.findCollection(pg.collection)
             ? <DetailBindings colId={pg.collection} />
-            : cols.length
-              ? <div class="note">Becomes a template: one file per item.</div>
-              : null}
+            : null}
         </div>
         </>}
       </div></div>

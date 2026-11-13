@@ -1,0 +1,87 @@
+{
+  "baseCommit": "2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49",
+  "status": "Root source review accepted; local builds/static checks complete. Native and gallery acceptance pending.",
+  "source": "app/src/ui/inspector/ColorPop.tsx",
+  "test": "tests/color-picker-dialog-semantics.test.tsx",
+  "scope": "Add role dialog and accessible name Colour picker to existing picker root. No modal declaration or focus lifecycle changes.",
+  "justification": "Opening swatch advertises aria-haspopup dialog, but picker was a plain unnamed div and absent from dialog role queries. Existing focus-entry and Escape restoration already work and are preserved.",
+  "checks": {
+    "red": {
+      "exitCode": 1,
+      "testsFailed": 3
+    },
+    "focused": {
+      "exitCode": 0,
+      "files": 2,
+      "testsPassed": 75
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "diff": "pass",
+    "fullPreNative": {
+      "exitCode": 1,
+      "testsPassed": 2608,
+      "testsSkipped": 5,
+      "filesPassed": 248,
+      "filesSkipped": 2,
+      "testsFailed": 1,
+      "durationSeconds": 98.67,
+      "onlyFailure": "Expected reviewed gallery source fingerprint for ColorPop.tsx",
+      "evidence": "logs/full-pre-native.log"
+    },
+    "determinism": {
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ]
+    },
+    "audit": {
+      "exitCode": 0,
+      "vulnerabilities": 0
+    },
+    "demo": {
+      "exitCode": 0,
+      "components": 1,
+      "instances": 6,
+      "items": 4,
+      "findings": 0
+    },
+    "typecheckFinal": {
+      "exitCode": 0
+    },
+    "diffFinal": {
+      "exitCode": 0
+    }
+  },
+  "hashes": {
+    "app/src/ui/inspector/ColorPop.tsx": "23af25c3b2266cbb9129186dbd236db1a8dd056735f3f88b1bea6333c0af9ea6",
+    "tests/color-picker-dialog-semantics.test.tsx": "4ff43479d20c49b92d091b0def7b55194fa9fc901cc15d1c774038a942d8db17"
+  },
+  "limits": [
+    "No browser/native/rendered acceptance by this worker.",
+    "No baseline record, Main, commit or push actions.",
+    "Root owns later native verification and integration."
+  ],
+  "remaining": [
+    "Root actual named-dialog discovery and focus/keyboard/native acceptance.",
+    "Root gallery capture/compare/reviewed baseline, then final full suite.",
+    "Root integration/release decision."
+  ],
+  "freeze": {
+    "entries": 22,
+    "manifest": "source-tests-assets.sha256",
+    "servedProof": "served-ui-receipt.json"
+  },
+  "harness": {
+    "url": "http://localhost:4986/edit/s1",
+    "pid": 98219,
+    "sessionId": 97859,
+    "path": "tools/.qa-ui-4986.mjs",
+    "provenance": "Trusted4984 harness copied with port-only substitution; fresh fictional default fixture, no state injection. Started after final build to avoid cached stale UI.",
+    "servedAsset": "b69501648136e95edef21a9602f9b185a27ef5d085ac97be089f28228dc1390a",
+    "preserve": true
+  }
+}

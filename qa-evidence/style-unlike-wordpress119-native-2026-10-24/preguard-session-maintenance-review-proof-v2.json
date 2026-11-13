@@ -1,0 +1,156 @@
+{
+  "status": "PENDING root review. No exceptions automatically approved.",
+  "checks": {
+    "baselineToPreauthAllTablesExceptOptionsExact": true,
+    "preauthToPreAllTablesExceptUsermetaOptionsExact": true,
+    "allUsersPasswordsAndAccountFieldsExact": true,
+    "allOtherUsermetaRolesExact": true,
+    "onlyUser1SessionTokensChanged": true,
+    "administratorRoleExact": true,
+    "singleOldAndNewSession": true,
+    "newTokenDifferent": true,
+    "oldAndNewExactly7200Seconds": true,
+    "oldExpiredBeforeNewLogin": true,
+    "sessionNonTimePayloadExact": true,
+    "allProtectedSnapshotsByteExact": true
+  },
+  "failures": [],
+  "sessionException": {
+    "metadataID": 16,
+    "userID": 1,
+    "beforeRowSHA256": "e23354d4f994a09eaae6cf615f65141651e0970d9798cbd2c590d4bcb629b8c6",
+    "afterRowSHA256": "2b8614bd6207291ff50f34bbe9fbe1f2c21bcf5b9c7a69075ce7154d3aba1cac",
+    "oldTimes": {
+      "login": 1792827178,
+      "expiration": 1792834378
+    },
+    "newTimes": {
+      "login": 1792837706,
+      "expiration": 1792844906
+    },
+    "durationSeconds": 7200,
+    "rawTokensNeverReported": true
+  },
+  "boundaries": [
+    {
+      "boundary": "baseline119ToPreauth",
+      "beforeSQLSHA256": "615a0b7bce431b98c996aa282e9970e435e5e3e3551f17f4feb50bcf0a6c21f9",
+      "afterSQLSHA256": "c3a12c68c2ed33a64148eb2b3d5e0479f89f6ddf8d71b351e026c4ab86cba140",
+      "tableCount": 133,
+      "changedTables": [
+        "wp_options"
+      ],
+      "options": [
+        {
+          "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+          "beforeRowSHA256": "817b2c0b0414dbbab0011328ed04f1f17b91c269ea107d918ccba5a333966892",
+          "afterRowSHA256": "11f0f59bb80dcbbc917d450e43ec524018f92c640b63f28894bea05e98f90dcf",
+          "beforeID": 2439,
+          "afterID": 2447,
+          "valueByteExact": false,
+          "beforeValueSHA256": "812e42bd13785d13459e2d33dab6e095144800bd6ab524542db02e3110bfea08",
+          "afterValueSHA256": "2a3d8d30ed51f718c8697ea2b4b231422bc199963f2edfb2800dafbe596d63fd",
+          "autoloadByteExact": true,
+          "decodedDeltas": [
+            {
+              "path": "",
+              "before": {
+                "type": "str",
+                "length": 10,
+                "sha256": "6d2aa0be90ebbc2ff45ec94ec8a0d00c8bcaf5693734a3d56771282d02ebfee3"
+              },
+              "after": {
+                "type": "str",
+                "length": 10,
+                "sha256": "82e7214b942b4fe42bbe078e12b7f2fb82ae4bdb35ea2e0688844c46750143f7"
+              }
+            }
+          ],
+          "expirationBefore": 1792832965,
+          "expirationAfter": 1792838499,
+          "expirationDeltaSeconds": 5534
+        },
+        {
+          "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+          "beforeRowSHA256": "a279cfee5f09654edd2ca32d498963a89828e423462628d5771483fc8d067bcd",
+          "afterRowSHA256": "8bfe22339a492db79cf7cd34c214e939ae28e9791d4abe7a6f00fa9de0dfad95",
+          "beforeID": 2440,
+          "afterID": 2448,
+          "valueByteExact": true,
+          "beforeValueSHA256": "3add6fef82363d113bcc301ea52d39657935648802d193e2aad28cfc53613f55",
+          "afterValueSHA256": "3add6fef82363d113bcc301ea52d39657935648802d193e2aad28cfc53613f55",
+          "autoloadByteExact": true
+        },
+        {
+          "name": "cron",
+          "beforeRowSHA256": "1f8b2a195488fd403aa773217b2ebc467fba83206eccac6a8805f4f4ef88c673",
+          "afterRowSHA256": "085ac003c8c0ec9a0697af2f24d1e846b32f066624190c92d3dd8b5d59a872df",
+          "beforeID": 1,
+          "afterID": 1,
+          "valueByteExact": false,
+          "beforeValueSHA256": "97888905c4bfc572ceb92c31f0c7984c0027a4d28d1eb64a757d57cedf12de73",
+          "afterValueSHA256": "3d38a29e82d6d025f1006b04794b495bcb78d0a04729a8d2ad904474b07afff1",
+          "autoloadByteExact": true,
+          "cronEventIdentitiesExact": true,
+          "cronDeltas": [
+            {
+              "identity": "wp_privacy_delete_old_export_files/40cd750bba9870f18aada2478b24840a",
+              "before": {
+                "timestamp": 1792832390,
+                "payloadSHA256": "ab4c340b1ef1e59ad01233048aff0e15946afb7c2685c13a4a02f8d05793ebe3"
+              },
+              "after": {
+                "timestamp": 1792839590,
+                "payloadSHA256": "ab4c340b1ef1e59ad01233048aff0e15946afb7c2685c13a4a02f8d05793ebe3"
+              },
+              "payloadExact": true
+            }
+          ]
+        }
+      ],
+      "exactDDLChanges": [
+        {
+          "table": "wp_options",
+          "beforeAutoIncrement": 2441,
+          "afterAutoIncrement": 2449,
+          "onlyAutoIncrementChanged": true
+        }
+      ]
+    },
+    {
+      "boundary": "preauthToPre",
+      "beforeSQLSHA256": "c3a12c68c2ed33a64148eb2b3d5e0479f89f6ddf8d71b351e026c4ab86cba140",
+      "afterSQLSHA256": "4b150cdfe26a6dbdbbbbc504262785e8e20dcbd4820c72a3a435c6a60ffd8395",
+      "tableCount": 133,
+      "changedTables": [
+        "wp_usermeta"
+      ],
+      "options": [],
+      "exactDDLChanges": []
+    }
+  ],
+  "noWPCalls": true,
+  "fullQAComplete": false,
+  "maintenanceSourceOwnership": [
+    {
+      "file": "wp-includes/class-wp-theme.php",
+      "sha256": "cbef310938ba91e8e2055f296561afce199eab2a9aa5154ce86d46f2c0ca6656",
+      "lines": [
+        2017,
+        2064,
+        2074
+      ],
+      "scope": "Same named theme-pattern transient pair; cached value and autoload remain byte-exact. Actual bootstrap causality not directly observed."
+    },
+    {
+      "file": "wp-includes/functions.php",
+      "sha256": "cac8a17e293df99f0683a88debd3ba5e5cce274183a4e9fd3c9f18375747f41c",
+      "lines": [
+        8556,
+        8557,
+        8604
+      ],
+      "scope": "Same named hourly privacy-cleanup hook advanced7200seconds; identity and serialized event payload byte-exact."
+    }
+  ]
+}

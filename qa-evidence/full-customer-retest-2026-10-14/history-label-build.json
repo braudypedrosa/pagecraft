@@ -1,0 +1,317 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Independent semantic Add-history label verification for six palette aliases from committed parent c670 with exactly three reviewed source/test overlays.",
+  "parentCommit": "c670b5db32f512800cb575086100c5daecd3095a",
+  "exports": [
+    "/tmp/pagecraft-history-label-one-c670",
+    "/tmp/pagecraft-history-label-two-c670"
+  ],
+  "sourceScope": {
+    "status": "source frozen after root review; test overlay boundary corrected before builds",
+    "overlaidFiles": [
+      "builder.html",
+      "tests/editor-usability-feedback.test.mjs",
+      "tests/builder-drag.test.mjs"
+    ],
+    "overlayCount": 3,
+    "change": "Click and drag insertion explicitly label Columns, Flex, Grid, Link block, Slider, and Collection list while retaining generic history inference for other elements.",
+    "mainBuildsOrTestsRun": false,
+    "mainGeneratedFilesWritten": false,
+    "browserWorkPerformed": false
+  },
+  "overlayCount": 3,
+  "overlays": {
+    "builder.html": {
+      "sha256": "c09cdd5a4cadf6409058a83035aeaf7c0054befc495e1a29c361f5d98dd67d76",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/editor-usability-feedback.test.mjs": {
+      "sha256": "4eede8a862007f193e172bd32e63cbe693c081688b4bf9eeec450b71518d1470",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/builder-drag.test.mjs": {
+      "sha256": "c9bb2ef6d61490d5c56972b9125b6629bc026cc3977d5d0a62e065da8d97ac8c",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "redRegression": {
+      "command": "npx vitest run tests/editor-usability-feedback.test.mjs tests/builder-drag.test.mjs tests/history-labels.test.ts",
+      "cwd": "/tmp/pagecraft-history-label-red-harness-c670-20261017",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-history-semantic-add-red-final-harness-20261017.log",
+      "exitCode": 1,
+      "testFilesFailed": 2,
+      "testFilesPassed": 1,
+      "testsFailed": 7,
+      "testsPassed": 39,
+      "failure": "Unfixed c670 failed semantic behavior assertions: six drag labels were undefined and click insertion labeled Slider as Add column. The final harness accepted old source without a helper and did not fail during construction."
+    },
+    "priorLogsPreserved": [
+      "qa-evidence/full-customer-retest-2026-10-14/tests-history-semantic-add-red-20261017.log",
+      "qa-evidence/full-customer-retest-2026-10-14/tests-history-semantic-add-green-20261017.log",
+      "qa-evidence/full-customer-retest-2026-10-14/tests-history-semantic-add-green-final-20261017.log"
+    ],
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-history-label-one-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-one-npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-history-label-two-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-two-npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-history-label-one-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-one-package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-history-label-two-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-two-package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-history-label-one-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-one-demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-history-label-two-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-two-demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "focusedRegression": {
+      "command": "npx vitest run tests/editor-usability-feedback.test.mjs tests/builder-drag.test.mjs tests/history-labels.test.ts",
+      "one": {
+        "cwd": "/tmp/pagecraft-history-label-one-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-one-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 46,
+        "duration": "17.30s"
+      },
+      "two": {
+        "cwd": "/tmp/pagecraft-history-label-two-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-two-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 46,
+        "duration": "17.24s"
+      }
+    },
+    "uiBaselineReview": {
+      "status": "reviewed, recorded, copied to both exports, and verified",
+      "owner": "root agent",
+      "performed": true,
+      "recordedInThisTask": true,
+      "thresholdChanged": false,
+      "galleryEvidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/history-label-final",
+      "behaviorChecks": {
+        "passed": 30,
+        "total": 30
+      },
+      "imageComparison": {
+        "passed": 24,
+        "total": 24,
+        "changedPixels": 0
+      },
+      "manualCaptureReview": [
+        "cloud-fields-1440.png",
+        "builder-menus-1440.png",
+        "cloud-dialogs-768.png",
+        "builder-fields-768.png"
+      ],
+      "baselineFilesCopiedToEachExport": 25,
+      "baselineCopiesByteExactAcrossExports": true,
+      "independentTwoCheck": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-history-label-two-c670",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/history-label-two-baseline-check.log",
+        "exitCode": 0,
+        "imagesVerified": 24,
+        "sourceFilesVerified": 28
+      }
+    },
+    "goldenReview": {
+      "status": "existing WordPress golden passed in the final full suite",
+      "goldenFixtureChanged": false,
+      "runtimeChangedVsParent": false,
+      "note": "The semantic editor-history change is builder-only; exported runtime.js remained byte-identical to committed c670."
+    },
+    "dependencyAuditObservation": {
+      "npmCiHighSeverityCount": 3,
+      "remediationApplied": false,
+      "note": "Existing dev-only audit findings were previously investigated; this task made no dependency changes."
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "3a4808e3ff9c87903891a7d4f4d892f0f3009521e9402f299c28d87f079e36f0",
+        "two": "3a4808e3ff9c87903891a7d4f4d892f0f3009521e9402f299c28d87f079e36f0",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "069a40fecbdb892bbacd672aa319b30a7fb153fdfc89f854e40c855379a1254e",
+        "equalsParentCommitted": false
+      },
+      "dist/core.cjs": {
+        "one": "813f53d7a36b361538c3cc229e36f8160d3b995a7a873acf31eaf7e4f9ff543f",
+        "two": "813f53d7a36b361538c3cc229e36f8160d3b995a7a873acf31eaf7e4f9ff543f",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "813f53d7a36b361538c3cc229e36f8160d3b995a7a873acf31eaf7e4f9ff543f",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "48c13ce75e42dd532b5d8c189a1d5ca32103a0907c4e6016b34172910e1ab04f",
+        "two": "48c13ce75e42dd532b5d8c189a1d5ca32103a0907c4e6016b34172910e1ab04f",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "0391fdd9ba3e2edbd0f53a673dcd591602eaadef6f9e3bcb887c2d23ba1deb71",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "1131998806077314ac6f7b020d35756f516cee613f74972eeae7ec4475cdb503",
+        "two": "1131998806077314ac6f7b020d35756f516cee613f74972eeae7ec4475cdb503",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "1131998806077314ac6f7b020d35756f516cee613f74972eeae7ec4475cdb503",
+        "equalsParentCommitted": true
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "1309c0237fa91f2213726394b385be521e2f79edfb4a3de17649963d87d0ed63",
+        "two": "1309c0237fa91f2213726394b385be521e2f79edfb4a3de17649963d87d0ed63",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExactCount": 7,
+    "parentCommittedChangedExpected": [
+      "index.html",
+      "packages/editor/dist/editor.html"
+    ],
+    "untrackedGeneratedCount": 2,
+    "protectedReference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "protectedBefore": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "protectedCurrent": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "protectedMainExact": true,
+    "scopedDiffCheck": {
+      "command": "git diff --check -- builder.html tests/editor-usability-feedback.test.mjs tests/builder-drag.test.mjs",
+      "exitCode": 0
+    },
+    "initialFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-history-label-one-c670",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-history-label-full-one-20261017.log",
+      "exitCode": 1,
+      "testFilesPassed": 208,
+      "testFilesFailed": 1,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 211,
+      "testsPassed": 2377,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "testsTotal": 2383,
+      "duration": "46.52s",
+      "failure": "tests/ui-baselines.test.mjs requires root-owned built-in-browser gallery review after builder.html changed; all other tests passed."
+    },
+    "finalFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-history-label-one-c670",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-history-label-final-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 209,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 211,
+      "testsPassed": 2378,
+      "testsSkipped": 5,
+      "testsTotal": 2383,
+      "duration": "45.88s"
+    }
+  },
+  "status": "complete: dual builds, focused tests, root-reviewed UI baseline, final full suite, independent baseline check, determinism, and protected-file guards are green",
+  "remainingRisk": "The six-key allowlist must be maintained if another palette alias or default-child element needs a semantic Add label."
+}

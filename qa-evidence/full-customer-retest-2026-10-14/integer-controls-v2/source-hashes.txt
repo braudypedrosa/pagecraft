@@ -1,0 +1,5 @@
+7134189cba49c48e7ac81656244335f477922a81b595e5d13230f407a853421c  app/src/core/index.ts
+8570d1df80a684ec308843c13f5bbc67cc1b419436c675048169b76ea90951cb  app/src/core/types.ts
+74e17c537aa14b892da99dfa92229829c9588f786f9ed93aca7e927eca4a8060  app/src/ui/inspector/Controls.tsx
+04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2  app/src/ui/inspector/Inspector.tsx
+4d0a90c0b21ce7e633d6e96510935889b9f8f5d8cc8ebfac2807f96e0843ca61  tests/unit-control-validation.test.tsx

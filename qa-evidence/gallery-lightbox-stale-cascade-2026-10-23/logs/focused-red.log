@@ -1,0 +1,62 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --run tests/gallery-lightbox-contrast.test.ts
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (686 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3
+
+ ❯ tests/gallery-lightbox-contrast.test.ts (4 tests | 3 failed) 7ms
+     × resting control stays legible over the brightest and darkest image pixels 5ms
+     × hover control stays legible over the brightest and darkest image pixels 0ms
+     × controls preserve their touch target and use a two-tone keyboard focus indicator 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gallery-lightbox-contrast.test.ts > Gallery lightbox control contrast > resting control stays legible over the brightest and darkest image pixels
+AssertionError: .pagecraft-lightbox .pagecraft-lightbox-btn should have an emitted CSS rule: expected null not to be null
+ ❯ declarations tests/gallery-lightbox-contrast.test.ts:10:68
+      8|   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      9|   const match = css.match(new RegExp(`${escaped}\\{([^}]*)\\}`));
+     10|   expect(match, `${selector} should have an emitted CSS rule`).not.toB…
+       |                                                                    ^
+     11|   return match![1];
+     12| }
+ ❯ tests/gallery-lightbox-contrast.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/gallery-lightbox-contrast.test.ts > Gallery lightbox control contrast > hover control stays legible over the brightest and darkest image pixels
+AssertionError: .pagecraft-lightbox .pagecraft-lightbox-btn:hover should have an emitted CSS rule: expected null not to be null
+ ❯ declarations tests/gallery-lightbox-contrast.test.ts:10:68
+      8|   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      9|   const match = css.match(new RegExp(`${escaped}\\{([^}]*)\\}`));
+     10|   expect(match, `${selector} should have an emitted CSS rule`).not.toB…
+       |                                                                    ^
+     11|   return match![1];
+     12| }
+ ❯ tests/gallery-lightbox-contrast.test.ts:42:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/gallery-lightbox-contrast.test.ts > Gallery lightbox control contrast > controls preserve their touch target and use a two-tone keyboard focus indicator
+AssertionError: .pagecraft-lightbox .pagecraft-lightbox-btn should have an emitted CSS rule: expected null not to be null
+ ❯ declarations tests/gallery-lightbox-contrast.test.ts:10:68
+      8|   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      9|   const match = css.match(new RegExp(`${escaped}\\{([^}]*)\\}`));
+     10|   expect(match, `${selector} should have an emitted CSS rule`).not.toB…
+       |                                                                    ^
+     11|   return match![1];
+     12| }
+ ❯ tests/gallery-lightbox-contrast.test.ts:52:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  00:19:15
+   Duration  514ms (transform 278ms, setup 0ms, import 329ms, tests 7ms, environment 0ms)

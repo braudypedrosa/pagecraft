@@ -1,0 +1,11 @@
+{
+  "html": "QA first column &lt;&gt;&amp; \" <img draggable=\"false\" role=\"img\" class=\"emoji\" alt=\"🌿\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f33f.svg\">",
+  "images": [
+    {
+      "alt": "🌿",
+      "class": "emoji",
+      "loaded": true
+    }
+  ],
+  "text": "QA first column <>& \" "
+}

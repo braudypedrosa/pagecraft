@@ -1,0 +1,10 @@
+{
+  "base": "1767ce3a4078eed1c2d3ef76a0645cff689e796a",
+  "trackedFilesChecked": 7409,
+  "allOtherTrackedWorkingBytesPreserved": true,
+  "generatedIndexOnly": [
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "nativeWordPressAcceptance": "Pending installed121"
+}

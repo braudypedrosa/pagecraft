@@ -1,0 +1,35 @@
+{
+  "build-initial": {
+    "exitCode": 0
+  },
+  "editor-initial": {
+    "exitCode": 0
+  },
+  "full-pre-native": {
+    "exitCode": 1
+  },
+  "build-final-1": {
+    "exitCode": 0
+  },
+  "editor-final-1": {
+    "exitCode": 0
+  },
+  "build-final-2": {
+    "exitCode": 0
+  },
+  "editor-final-2": {
+    "exitCode": 0
+  },
+  "audit": {
+    "exitCode": 0
+  },
+  "demo": {
+    "exitCode": 0
+  },
+  "typecheck-final": {
+    "exitCode": 0
+  },
+  "diff-check": {
+    "exitCode": 0
+  }
+}

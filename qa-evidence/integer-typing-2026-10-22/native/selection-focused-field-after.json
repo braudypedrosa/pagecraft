@@ -1,0 +1,69 @@
+{
+  "rows": [
+    {
+      "device": "Desktop",
+      "modebar": "Home\nSettings & SEO\nSection\n›\nRow · 1 col\n›\nColumn\n›\nGallery\nDesktop base",
+      "inspector": "Heading\nHeading text\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nLink\nNo link",
+      "panels": 1
+    },
+    {
+      "device": "Tablet",
+      "modebar": "Home\nSettings & SEO\nSection\n›\nRow · 1 col\n›\nColumn\n›\nGallery\nTablet override",
+      "inspector": "Heading\nHeading text\nShared\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nInherited\nLink\nNo link",
+      "panels": 1
+    },
+    {
+      "device": "Mobile",
+      "modebar": "Home\nSettings & SEO\nSection\n›\nRow · 1 col\n›\nColumn\n›\nGallery\nMobile override",
+      "inspector": "Heading\nHeading text\nShared\nFrom Workshop title shown in listings and the calendar · Community workshops, events and accessibility resources\nText style\nSection title\nUpdate typography · 3 uses\nDetach\nHTML tag\nH2\nAlignment\nInherited\nLink\nNo link",
+      "panels": 1
+    }
+  ],
+  "errorsBefore": [
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:02:38.004Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    },
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:07:07.240Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    }
+  ],
+  "errorsAfter": [
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:02:38.004Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    },
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:07:07.240Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    },
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:26:26.894Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    },
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:26:27.996Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    },
+    {
+      "level": "error",
+      "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?\n    at b (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11125:42)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11334:11)\n    at K (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11333:67)\n    at T (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11177:118)\n    at L (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11171:15)\n    at q (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11259:279)\n    at R (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:11341:165)\n    at Object.renderInspector [as renderRight] (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:25411:9)\n    at renderRight (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:30122:31)\n    at select (http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js:27983:3)",
+      "timestamp": "2026-10-21T19:26:29.108Z",
+      "url": "http://localhost:4982/brand/builder-assets/c126c10861dcf6502709f348e610b71737984ae30ed2f16fcdc6920d4b6dd3ec.js"
+    }
+  ],
+  "newErrorCount": 3
+}

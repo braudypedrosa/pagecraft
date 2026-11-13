@@ -1,18 +1,30 @@
 import type { Doc } from '../../app/src/core/types.ts';
-import type { AuthStore } from './auth.ts';
+import type { AccountPlan, AuthStore } from './auth.ts';
 import { slugFrom, validSlug, type Site, type Store } from './store.ts';
 import type { Queryable } from './store-pg.ts';
 import type { PagecraftGateway } from './store-gateway.ts';
-import { FREE_PLAN } from './plans.ts';
+import { FREE_PLAN, planEntitlements } from './plans.ts';
 
 export const OWNED_SITE_LIMIT = FREE_PLAN.ownedSites;
 export type CreateOwnedResult =
   | { ok: true; site: Site }
   | { ok: false; reason: 'site_limit_reached' | 'profile_missing' };
 
+/* The limit counts sites a person created. Being added to someone else's site, even as an
+   owner, must not use up their allowance, or anyone could fill it for them without asking.
+   No column records who added an owner, so the creator is the author of the site's first
+   revision: every created site writes one. A site with no recorded author still counts. */
 export interface OwnedSiteStore {
   create(input: { ownerId: string; host: string; slug?: string; name: string; doc: Doc }): Promise<CreateOwnedResult>;
+  /** Owned sites that count toward the limit. */
+  owned(ownerId: string): Promise<number>;
 }
+
+const OWNED_COUNT_SQL = `select count(*)::integer as count from site_users membership
+  where membership.user_id = $1 and membership.role = 'owner'
+    and coalesce((select first.saved_by from site_revisions first
+      where first.site_id = membership.site_id order by first.version limit 1),
+      membership.user_id) = membership.user_id`;
 
 export class MemoryOwnedSiteStore implements OwnedSiteStore {
   private queues = new Map<string, Promise<void>>();
@@ -28,9 +40,10 @@ export class MemoryOwnedSiteStore implements OwnedSiteStore {
     this.queues.set(input.ownerId, queued);
     await previous;
     try {
-      if (!await this.auth.userById(input.ownerId)) return { ok: false, reason: 'profile_missing' } as const;
-      const memberships = await this.auth.membershipsForUser(input.ownerId);
-      if (memberships.filter(item => item.role === 'owner').length >= OWNED_SITE_LIMIT) {
+      const owner = await this.auth.userById(input.ownerId);
+      if (!owner) return { ok: false, reason: 'profile_missing' } as const;
+      const limit = planEntitlements(owner.plan).ownedSites;
+      if (limit !== null && await this.owned(input.ownerId) >= limit) {
         return { ok: false, reason: 'site_limit_reached' } as const;
       }
       const site = await this.store.create({ ...input, savedBy: input.ownerId });
@@ -46,6 +59,17 @@ export class MemoryOwnedSiteStore implements OwnedSiteStore {
       release();
       if (this.queues.get(input.ownerId) === queued) this.queues.delete(input.ownerId);
     }
+  }
+
+  async owned(ownerId: string) {
+    let count = 0;
+    for (const membership of await this.auth.membershipsForUser(ownerId)) {
+      if (membership.role !== 'owner') continue;
+      const history = await this.store.history(membership.siteId);
+      const creator = history[history.length - 1]?.savedBy;
+      if (!creator || creator === ownerId) count++;
+    }
+    return count;
   }
 }
 
@@ -73,14 +97,14 @@ export class PgOwnedSiteStore implements OwnedSiteStore {
       const client = this.db.connect ? await this.db.connect() : this.db;
       try {
         await client.query('begin');
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [input.ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [input.ownerId]);
         if (!owner.rows[0]) {
           await client.query('rollback');
           return { ok: false, reason: 'profile_missing' } as const;
         }
-        const count = await client.query<{ count: string }>(
-          `select count(*)::text as count from site_users where user_id = $1 and role = 'owner'`, [input.ownerId]);
-        if (Number(count.rows[0]?.count || 0) >= OWNED_SITE_LIMIT) {
+        const count = await client.query<{ count: number }>(OWNED_COUNT_SQL, [input.ownerId]);
+        const limit = planEntitlements(owner.rows[0].plan).ownedSites;
+        if (limit !== null && Number(count.rows[0]?.count || 0) >= limit) {
           await client.query('rollback');
           return { ok: false, reason: 'site_limit_reached' } as const;
         }
@@ -107,6 +131,11 @@ export class PgOwnedSiteStore implements OwnedSiteStore {
       }
     }
     throw new Error('could not find a free path for this site');
+  }
+
+  async owned(ownerId: string) {
+    const { rows } = await this.db.query<{ count: number }>(OWNED_COUNT_SQL, [ownerId]);
+    return Number(rows[0]?.count || 0);
   }
 }
 
@@ -140,5 +169,9 @@ export class GatewayOwnedSiteStore implements OwnedSiteStore {
       }
     }
     throw new Error('could not find a free path for this site');
+  }
+
+  async owned(ownerId: string) {
+    return Number(await this.gateway.call<number>('account.ownedSiteCount', { ownerId }));
   }
 }

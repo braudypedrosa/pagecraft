@@ -1,0 +1,790 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Combined isolated verification of the reviewed Navigator action-space CSS fix and Gallery lightbox keyboard focus boundary wrap from committed parent 1c6043f.",
+  "parentCommit": "1c6043fdd30faa790964ce304710563db5a0908e",
+  "exports": [
+    "/tmp/pagecraft-navigation-lightbox-one-1c",
+    "/tmp/pagecraft-navigation-lightbox-two-1c"
+  ],
+  "sourceScope": {
+    "status": "frozen after root review",
+    "overlaidFiles": [
+      "builder.html",
+      "app/src/core/index.ts",
+      "tests/gallery-lightbox-keyboard-runtime.test.ts"
+    ],
+    "overlayCount": 3,
+    "mainBuildsOrTestsRun": false,
+    "mainGeneratedFilesWritten": false,
+    "sourceEditedDuringIsolation": false
+  },
+  "overlayCount": 3,
+  "overlays": {
+    "builder.html": {
+      "sha256": "63743c2a1af22fd2caf2116d18fc2443df51fe2e74b6d6ab629e4c2a3d729eca",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "app/src/core/index.ts": {
+      "sha256": "5521c96a98b570ad10156ecbc0d4231c5ee6e527f2ab3219cde93f3fac661b2d",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/gallery-lightbox-keyboard-runtime.test.ts": {
+      "sha256": "d387f89a27322d965f481493cb010595b935a82b7d3f5d5f8a7f81a85e46aada",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "focusedRegression": {
+      "command": "npx vitest run tests/gallery-lightbox-keyboard-runtime.test.ts tests/core.test.ts -t 'lightbox'",
+      "one": {
+        "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 2,
+        "testsPassed": 7,
+        "testsSkipped": 651,
+        "duration": "727ms"
+      },
+      "two": {
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 2,
+        "testsPassed": 7,
+        "testsSkipped": 651,
+        "duration": "741ms"
+      }
+    },
+    "runtimeRegressionRedGreen": {
+      "red": {
+        "log": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-lightbox-keyboard-red-20261017.log",
+        "exitCode": 1,
+        "testFilesFailed": 1,
+        "testsFailed": 2
+      },
+      "green": {
+        "log": "qa-evidence/full-customer-retest-2026-10-14/tests-gallery-lightbox-keyboard-green-20261017.log",
+        "exitCode": 0,
+        "testFilesPassed": 2,
+        "testsPassed": 7,
+        "testsSkipped": 651
+      }
+    },
+    "uiBaselineReview": {
+      "status": "reviewed, recorded, and verified",
+      "owner": "root agent",
+      "performed": true,
+      "recordedInThisTask": true,
+      "thresholdChanged": false,
+      "galleryEvidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/navigation-lightbox-final",
+      "behaviorChecks": {
+        "passed": 30,
+        "total": 30
+      },
+      "imageComparison": {
+        "passed": 24,
+        "total": 24,
+        "changedPixels": 0
+      },
+      "manualCaptureReviewCount": 4,
+      "canonicalDelta": {
+        "manifestChangedLines": 4,
+        "capturedAtUpdated": true,
+        "builderSourceHashUpdated": true,
+        "pngsChangedVsParent": 0,
+        "pngsUnchangedVsParent": 24
+      },
+      "wrongRouteAttempt": {
+        "evidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/navigation-lightbox-wrong-route-checks.json",
+        "classification": "Harness error: base omitted /internal/components; no product defect inferred",
+        "cloudChecksPassed": 0,
+        "cloudChecksTotal": 15
+      },
+      "finalCorrectBase": {
+        "checksPassed": 30,
+        "checksTotal": 30
+      }
+    },
+    "goldenReview": {
+      "status": "reviewed, approved, and verified",
+      "approvalState": "approved",
+      "owner": "root agent",
+      "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+      "mainFixtureChanged": true,
+      "candidateGeneration": {
+        "command": "PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector'",
+        "one": {
+          "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+          "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-golden-candidate.log",
+          "exitCode": 0,
+          "testsPassed": 1,
+          "testsSkipped": 29
+        },
+        "two": {
+          "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+          "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-golden-candidate.log",
+          "exitCode": 0,
+          "testsPassed": 1,
+          "testsSkipped": 29
+        }
+      },
+      "parentSha256": "1c8e04fdffebe6bd3bb76a3f95bd8f6aa0e7490a56df0d19602ea30f62d4a7ab",
+      "candidateOneSha256": "7a82ffbef5e75ce2673ff81928bc0fd07f86a5b27bb8bd46bc5ca203878fff80",
+      "candidateTwoSha256": "7a82ffbef5e75ce2673ff81928bc0fd07f86a5b27bb8bd46bc5ca203878fff80",
+      "candidatesByteExact": true,
+      "schemaShapeExact": true,
+      "recursiveChangedLeafCount": 19,
+      "recursiveChangedPaths": [
+        {
+          "path": "artifact.routes[1].runtime",
+          "old": {
+            "length": 39650,
+            "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838"
+          },
+          "new": {
+            "length": 39946,
+            "sha256": "2c739aeece36ab3ee1f2e0b4bd9a23e909adb2af7198b18690d7cc88f70ce4ed"
+          }
+        },
+        {
+          "path": "artifact.routes[1].scripts[6].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "artifact.routes[1].scripts[6].occurrenceId",
+          "old": "script-5d70802c39ca61bc85eba4a929d32450",
+          "new": "script-95d3cd8dc40a47574afe4432ad971c01"
+        },
+        {
+          "path": "artifact.routes[1].scripts[6].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-5d70802c39ca61bc85eba4a929d32450%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-95d3cd8dc40a47574afe4432ad971c01%%"
+        },
+        {
+          "path": "artifact.routes[1].sourceHash",
+          "old": "2b99f60282c33b04bb90a7e1cb2acc23b9e230155399d2d4c7f36bcced2d232e",
+          "new": "061678ea22e0154bea12cadec97124a1042823fd05caf907ffb4b4445eb4bfb8"
+        },
+        {
+          "path": "artifact.routes[2].runtime",
+          "old": {
+            "length": 39650,
+            "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838"
+          },
+          "new": {
+            "length": 39946,
+            "sha256": "2c739aeece36ab3ee1f2e0b4bd9a23e909adb2af7198b18690d7cc88f70ce4ed"
+          }
+        },
+        {
+          "path": "artifact.routes[2].scripts[6].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "artifact.routes[2].scripts[6].occurrenceId",
+          "old": "script-2dd550c005755f1361b84f97099174cd",
+          "new": "script-56c9b88d65dd3754238a371468cb5c21"
+        },
+        {
+          "path": "artifact.routes[2].scripts[6].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-2dd550c005755f1361b84f97099174cd%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-56c9b88d65dd3754238a371468cb5c21%%"
+        },
+        {
+          "path": "artifact.routes[2].sourceHash",
+          "old": "9ff31fdc4b0240123e0ea63801794db18e9a568ea5a7535b325afd5c2e6d3735",
+          "new": "0f5266f699b4c5b8c09cc3d33570663be915f3d0282a9ddc9dc1726869d87e82"
+        },
+        {
+          "path": "artifact.routes[3].runtime",
+          "old": {
+            "length": 39650,
+            "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838"
+          },
+          "new": {
+            "length": 39946,
+            "sha256": "2c739aeece36ab3ee1f2e0b4bd9a23e909adb2af7198b18690d7cc88f70ce4ed"
+          }
+        },
+        {
+          "path": "artifact.routes[3].scripts[6].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "artifact.routes[3].scripts[6].occurrenceId",
+          "old": "script-3820e768b337c15c85297b42f636aa04",
+          "new": "script-67c6160b8496afe0a3e041c11be36df0"
+        },
+        {
+          "path": "artifact.routes[3].scripts[6].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-3820e768b337c15c85297b42f636aa04%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-67c6160b8496afe0a3e041c11be36df0%%"
+        },
+        {
+          "path": "artifact.routes[3].sourceHash",
+          "old": "b55bff770156370ef4840c2d65f14820429ced049e79cd1f4950efb4092c680e",
+          "new": "94b252cca9c0a9fbfcff143f435e18b91099d480f95809cf78b7dbd41b704afe"
+        },
+        {
+          "path": "desired.deployment.envelope",
+          "old": {
+            "length": 730,
+            "sha256": "90b198725993e0b3f1c7f0a74fd0807c2d080cce58bc5691a4de9bece738a2b9"
+          },
+          "new": {
+            "length": 730,
+            "sha256": "c8b634c1439c4dcff4b29b532a228d8714e4c93a408105c4f0dc6cc0a9e28551"
+          }
+        },
+        {
+          "path": "desired.deployment.signature",
+          "old": "mGqRYnlkvGUNwR5k13yiwNOg0i1UgBfpUTMysQiUnc8dpihGmxfpXeszhdQLD44iOLYXQR1CJVn5lvxmxQa0Cg",
+          "new": "Rxp2WccJRuAQyLs1r9zzBBI014c1QXSSthQt2PONbuHw2-hE-fchXy3pdX716oBjqD1i3lMX8PQw8gtQGbatAQ"
+        },
+        {
+          "path": "desired.release.manifest",
+          "old": {
+            "length": 18784,
+            "sha256": "98014fe95b03f5b17e5024afe45c77a51358ecae97b27978e949b1f648cfa4bf"
+          },
+          "new": {
+            "length": 18784,
+            "sha256": "9904bc3cf3435c984be7541bc9a125c6e53cc10a452b9b36ab486e6f219295b0"
+          }
+        },
+        {
+          "path": "desired.release.signature",
+          "old": "F9qVPSv18XlRPvslzBI1D0UUrDLxhM1E_5mIcwUjQTMsJXNc6mDqhSpOD30Rr-kvMi_bO5Cbs9txXKYJFiMeAA",
+          "new": "AU2at-T5fRseSY8v0cRiQRRoNc7M8Y57V2mDGqmcfwyaV6RHltSgrZa1CfmJp7kZab0D7TE84dyZLSNGzjyVCA"
+        }
+      ],
+      "runtimeDelta": [
+        {
+          "routeIndex": 1,
+          "path": "/nested/about",
+          "oldLength": 39650,
+          "newLength": 39946,
+          "insertedLength": 296,
+          "insertedSha256": "4a5222c3daef4e2bb5fe4385728f56bef62a4085f07ca874c060d701eb0c1aa3",
+          "removedLength": 0,
+          "newEqualsOldAfterRemovingInsertion": true,
+          "insertedLineCount": 4
+        },
+        {
+          "routeIndex": 2,
+          "path": "/nested/about/page-2",
+          "oldLength": 39650,
+          "newLength": 39946,
+          "insertedLength": 296,
+          "insertedSha256": "4a5222c3daef4e2bb5fe4385728f56bef62a4085f07ca874c060d701eb0c1aa3",
+          "removedLength": 0,
+          "newEqualsOldAfterRemovingInsertion": true,
+          "insertedLineCount": 4
+        },
+        {
+          "routeIndex": 3,
+          "path": "/nested/about/page-3",
+          "oldLength": 39650,
+          "newLength": 39946,
+          "insertedLength": 296,
+          "insertedSha256": "4a5222c3daef4e2bb5fe4385728f56bef62a4085f07ca874c060d701eb0c1aa3",
+          "removedLength": 0,
+          "newEqualsOldAfterRemovingInsertion": true,
+          "insertedLineCount": 4
+        }
+      ],
+      "allChangedRuntimesShareOneInsertion": true,
+      "decodedReleaseManifestChangedPaths": [
+        {
+          "path": "artifactBytes",
+          "old": 359768,
+          "new": 360668
+        },
+        {
+          "path": "artifactHash",
+          "old": "3f22f28d3fb1a5c5f64a533a5bd07664576c74213943d5f93f39b0cebcc17eac",
+          "new": "62b85c5bf8a2608d4bb1bd91c0999e6073a3e932e7b54045bae22f2abe528226"
+        },
+        {
+          "path": "files[1].bytes",
+          "old": 106836,
+          "new": 107136
+        },
+        {
+          "path": "files[1].hash",
+          "old": "b925c40102f1abc4f902c2fb29efbfb64e5817594d3cd53fae4cdf36e7a9c72a",
+          "new": "6b4942e3a9c1917aa55b18ff9f5f5e01a646ec9c8c3822ef7152d9d96f9902c8"
+        },
+        {
+          "path": "files[2].bytes",
+          "old": 107114,
+          "new": 107414
+        },
+        {
+          "path": "files[2].hash",
+          "old": "5d0e7140146353ff8f0134d9daa8fbe50a44f0781b88a4066d38a9cecab1f25f",
+          "new": "2597c65989d8968a8e4dbbdabcf2347388d9e1ac1eb5c3f5f02a41ebabc54f49"
+        },
+        {
+          "path": "files[3].bytes",
+          "old": 107114,
+          "new": 107414
+        },
+        {
+          "path": "files[3].hash",
+          "old": "8cbef09b3932c0bda58471a9a86979dd64bf6c3b8893a9a50127d4c76f829b28",
+          "new": "405c7415d76684c423fe06c0c25563faab6581e979b6c0b50da4ad53010cfce2"
+        },
+        {
+          "path": "scripts[6].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "scripts[6].occurrenceId",
+          "old": "script-5d70802c39ca61bc85eba4a929d32450",
+          "new": "script-95d3cd8dc40a47574afe4432ad971c01"
+        },
+        {
+          "path": "scripts[6].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-5d70802c39ca61bc85eba4a929d32450%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-95d3cd8dc40a47574afe4432ad971c01%%"
+        },
+        {
+          "path": "scripts[14].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "scripts[14].occurrenceId",
+          "old": "script-3820e768b337c15c85297b42f636aa04",
+          "new": "script-67c6160b8496afe0a3e041c11be36df0"
+        },
+        {
+          "path": "scripts[14].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-3820e768b337c15c85297b42f636aa04%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-67c6160b8496afe0a3e041c11be36df0%%"
+        },
+        {
+          "path": "scripts[22].hash",
+          "old": "d9161ade00db28897f43323838d432e246271fda4996aee3a05618169a9d612d",
+          "new": "e77f6e8906454f5503f2bcd8ebd5daf8f91242cb04c0104dae60d66865ac01c0"
+        },
+        {
+          "path": "scripts[22].occurrenceId",
+          "old": "script-2dd550c005755f1361b84f97099174cd",
+          "new": "script-56c9b88d65dd3754238a371468cb5c21"
+        },
+        {
+          "path": "scripts[22].token",
+          "old": "%%PAGECRAFT_RUNTIME:script-2dd550c005755f1361b84f97099174cd%%",
+          "new": "%%PAGECRAFT_RUNTIME:script-56c9b88d65dd3754238a371468cb5c21%%"
+        }
+      ],
+      "decodedDeploymentChangedPaths": [
+        {
+          "path": "artifactHash",
+          "old": "3f22f28d3fb1a5c5f64a533a5bd07664576c74213943d5f93f39b0cebcc17eac",
+          "new": "62b85c5bf8a2608d4bb1bd91c0999e6073a3e932e7b54045bae22f2abe528226"
+        },
+        {
+          "path": "releaseManifestHash",
+          "old": "aba04c4b0d8b8ec50af01da6438011f0eb8b0d23a3214bd80dfcafa9891bcac4",
+          "new": "d72584a5c695999a6223da482ec8dbd2115ceb54f5c466454267dea0f68d048b"
+        }
+      ],
+      "normalizationChecks": {
+        "artifactSemanticDataExactAfterParentRuntimeReplacementAndDerivedFieldRemoval": true,
+        "releaseManifestNonDerivedFieldsExact": true,
+        "deploymentEnvelopeNonDerivedFieldsExact": true,
+        "candidateSignatureVerificationPassedInBothExports": true,
+        "unexpectedChangedPaths": []
+      },
+      "performed": true,
+      "mainFixtureSha256": "7a82ffbef5e75ce2673ff81928bc0fd07f86a5b27bb8bd46bc5ca203878fff80",
+      "mainEqualsApprovedCandidate": true,
+      "rootReview": {
+        "approved": true,
+        "recursiveChangedLeafCount": 19,
+        "derivedLeavesOnly": true,
+        "identicalRuntimeInsertions": 3,
+        "runtimeInsertionLineCount": 4,
+        "normalizedSemanticContentExact": true,
+        "unexpectedChangedPaths": []
+      },
+      "finalVerificationTwo": {
+        "command": "npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector'",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-golden-verified.log",
+        "exitCode": 0,
+        "testsPassed": 1,
+        "testsSkipped": 29
+      }
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "069a40fecbdb892bbacd672aa319b30a7fb153fdfc89f854e40c855379a1254e",
+        "two": "069a40fecbdb892bbacd672aa319b30a7fb153fdfc89f854e40c855379a1254e",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "02df4990d83719c3ad18a84e971802ca71e88a14d7711e1a3de8685518c81665",
+        "equalsParentCommitted": false
+      },
+      "dist/core.cjs": {
+        "one": "813f53d7a36b361538c3cc229e36f8160d3b995a7a873acf31eaf7e4f9ff543f",
+        "two": "813f53d7a36b361538c3cc229e36f8160d3b995a7a873acf31eaf7e4f9ff543f",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "0391fdd9ba3e2edbd0f53a673dcd591602eaadef6f9e3bcb887c2d23ba1deb71",
+        "two": "0391fdd9ba3e2edbd0f53a673dcd591602eaadef6f9e3bcb887c2d23ba1deb71",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "dc6d7d3fd6ea284d5ece9290c4bde5049281647abf002aba008a7dfe99b2984b",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "1131998806077314ac6f7b020d35756f516cee613f74972eeae7ec4475cdb503",
+        "two": "1131998806077314ac6f7b020d35756f516cee613f74972eeae7ec4475cdb503",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "equalsParentCommitted": false
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "1309c0237fa91f2213726394b385be521e2f79edfb4a3de17649963d87d0ed63",
+        "two": "1309c0237fa91f2213726394b385be521e2f79edfb4a3de17649963d87d0ed63",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExactCount": 5,
+    "parentCommittedChangedExpected": [
+      "index.html",
+      "dist/core.cjs",
+      "packages/editor/dist/editor.html",
+      "packages/editor/dist/runtime.js"
+    ],
+    "untrackedGeneratedCount": 2,
+    "protectedReference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "protectedBefore": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "protectedCurrent": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "allMainProtectedBytesPreserved": true,
+    "initialFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-navigation-lightbox-initial-20261017.log",
+      "exitCode": 1,
+      "testFilesPassed": 207,
+      "testFilesFailed": 2,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 211,
+      "testsPassed": 2369,
+      "testsFailed": 2,
+      "testsSkipped": 5,
+      "testsTotal": 2376,
+      "duration": "46.83s",
+      "failures": [
+        "tests/ui-baselines.test.mjs requires gallery review after builder.html changed.",
+        "server/tests/releases.test.ts requires review of the signed WordPress golden after the lightbox runtime changed."
+      ]
+    },
+    "fullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-navigation-lightbox-reviewed-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 209,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 211,
+      "testsPassed": 2371,
+      "testsSkipped": 5,
+      "testsTotal": 2376,
+      "duration": "45.81s"
+    },
+    "reviewedCanonicalCopy": {
+      "initialAttempt": {
+        "status": "failed before copying",
+        "reason": "The first root copy script targeted the wrong directory; it exited without unexpected writes."
+      },
+      "correctedCopy": {
+        "fileCount": 26,
+        "goldenCount": 1,
+        "baselineManifestCount": 1,
+        "baselinePngCount": 24,
+        "oneExact": true,
+        "twoExact": true,
+        "files": {
+          "server/tests/fixtures/wordpress-artifact-v1.json": {
+            "mainSha256": "7a82ffbef5e75ce2673ff81928bc0fd07f86a5b27bb8bd46bc5ca203878fff80",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-actions-1440.png": {
+            "mainSha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-actions-768.png": {
+            "mainSha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-dialogs-1440.png": {
+            "mainSha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-dialogs-768.png": {
+            "mainSha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-feedback-1440.png": {
+            "mainSha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-feedback-768.png": {
+            "mainSha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-fields-1440.png": {
+            "mainSha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-fields-768.png": {
+            "mainSha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-menus-1440.png": {
+            "mainSha256": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-menus-768.png": {
+            "mainSha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-tables-1440.png": {
+            "mainSha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/builder-tables-768.png": {
+            "mainSha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-actions-1440.png": {
+            "mainSha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-actions-768.png": {
+            "mainSha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-dialogs-1440.png": {
+            "mainSha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-dialogs-768.png": {
+            "mainSha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-feedback-1440.png": {
+            "mainSha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-feedback-768.png": {
+            "mainSha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-fields-1440.png": {
+            "mainSha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-fields-768.png": {
+            "mainSha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-menus-1440.png": {
+            "mainSha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-menus-768.png": {
+            "mainSha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-tables-1440.png": {
+            "mainSha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/cloud-tables-768.png": {
+            "mainSha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+            "oneExact": true,
+            "twoExact": true
+          },
+          "public/internal-ui-baselines/manifest.json": {
+            "mainSha256": "34fd3cdb0dd344edc6a275bfa39acac497cba7f9d62eef3ba3aa38129c034912",
+            "oneExact": true,
+            "twoExact": true
+          }
+        }
+      }
+    },
+    "canonicalBaselineCheck": {
+      "one": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-one-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-one-baseline-check.log",
+        "exitCode": 0,
+        "imagesVerified": 24,
+        "sourceFilesVerified": 28
+      },
+      "two": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-navigation-lightbox-two-1c",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/navigation-lightbox-two-baseline-check.log",
+        "exitCode": 0,
+        "imagesVerified": 24,
+        "sourceFilesVerified": 28
+      }
+    }
+  }
+}

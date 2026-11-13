@@ -1,0 +1,49 @@
+{
+  "fitCover": "cover",
+  "columns": [
+    {
+      "input": "0",
+      "field": {
+        "valid": true,
+        "value": "1"
+      },
+      "render": {
+        "cols": "1200px",
+        "variable": "1"
+      }
+    },
+    {
+      "input": "-2",
+      "field": {
+        "valid": true,
+        "value": "1"
+      },
+      "render": {
+        "cols": "1200px",
+        "variable": "1"
+      }
+    },
+    {
+      "input": "2.5",
+      "field": {
+        "valid": true,
+        "value": "3"
+      },
+      "render": {
+        "cols": "384px 384px 384px",
+        "variable": "3"
+      }
+    },
+    {
+      "input": "4",
+      "field": {
+        "valid": true,
+        "value": "4"
+      },
+      "render": {
+        "cols": "282px 282px 282px 282px",
+        "variable": "4"
+      }
+    }
+  ]
+}

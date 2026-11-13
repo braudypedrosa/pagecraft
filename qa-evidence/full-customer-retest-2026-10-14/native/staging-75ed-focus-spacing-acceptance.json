@@ -1,0 +1,262 @@
+{
+  "environment": "staging",
+  "sourceCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "padding": [
+    {
+      "breakpoint": "Desktop",
+      "unit": "px",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": {
+        "paddingTop": "0px"
+      },
+      "passed": true
+    },
+    {
+      "breakpoint": "Desktop",
+      "unit": "rem",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": {
+        "paddingTop": "0px"
+      },
+      "passed": true
+    },
+    {
+      "breakpoint": "Desktop",
+      "unit": "%",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": {
+        "paddingTop": "0px"
+      },
+      "passed": true
+    },
+    {
+      "breakpoint": "Desktop",
+      "unit": "em",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": {
+        "paddingTop": "0px"
+      },
+      "passed": true
+    },
+    {
+      "breakpoint": "Tablet",
+      "unit": "rem",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": "0px",
+      "passed": true
+    },
+    {
+      "breakpoint": "Mobile",
+      "unit": "%",
+      "input": {
+        "min": "0",
+        "valid": true,
+        "value": "0"
+      },
+      "computed": "0px",
+      "passed": true
+    }
+  ],
+  "focus": [
+    {
+      "kind": "node",
+      "breakpoint": "Desktop",
+      "input": "keyboard Tab",
+      "render": {
+        "bg": "rgb(187, 204, 221)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "node",
+      "breakpoint": "Desktop",
+      "input": "pointer image click and pointer Close",
+      "render": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": false,
+        "hover": false,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "node",
+      "breakpoint": "Tablet",
+      "input": "keyboard Tab",
+      "render": {
+        "bg": "rgb(187, 204, 221)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "node",
+      "breakpoint": "Mobile",
+      "input": "keyboard Tab",
+      "render": {
+        "bg": "rgb(187, 204, 221)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus plus node Hover",
+      "breakpoint": "Desktop",
+      "input": "keyboard focus with pointer over Gallery",
+      "render": {
+        "bg": "rgb(240, 204, 187)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus",
+      "breakpoint": "Desktop",
+      "input": "keyboard focus with pointer outside Gallery",
+      "render": {
+        "bg": "rgb(204, 238, 204)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": false,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus plus node Hover",
+      "breakpoint": "Tablet",
+      "input": "keyboard focus with pointer over Gallery",
+      "render": {
+        "bg": "rgb(240, 204, 187)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus",
+      "breakpoint": "Tablet",
+      "input": "keyboard focus with pointer outside Gallery",
+      "render": {
+        "bg": "rgb(204, 238, 204)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": false,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus plus node Hover",
+      "breakpoint": "Mobile",
+      "input": "keyboard focus with pointer over Gallery",
+      "render": {
+        "bg": "rgb(240, 204, 187)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": true,
+        "parentFocus": false,
+        "within": true
+      }
+    },
+    {
+      "kind": "class Focus",
+      "breakpoint": "Mobile",
+      "input": "keyboard focus with pointer outside Gallery",
+      "render": {
+        "bg": "rgb(204, 238, 204)",
+        "colour": "rgb(36, 44, 39)",
+        "frameCount": 2,
+        "frameFocused": true,
+        "hover": false,
+        "parentFocus": false,
+        "within": true
+      }
+    }
+  ],
+  "restored": true,
+  "negativeMargin": {
+    "input": {
+      "min": "",
+      "value": "-1.25"
+    },
+    "computed": "-20px"
+  },
+  "undoRedo": {
+    "changed": "18px",
+    "undo": "0px",
+    "redo": "18px"
+  },
+  "lightboxDisabled": {
+    "focusChoices": 0,
+    "resting": "true"
+  },
+  "lightboxReenabled": {
+    "focusColour": null,
+    "input": "#bbccdd"
+  },
+  "cleanupHistory": [
+    "Undo: Change gallery colour (⌘Z)",
+    "Undo: Change project settings (⌘Z)",
+    "Undo: Change gallery size (⌘Z)"
+  ],
+  "restoredFresh": {
+    "gallery": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "classes": "pagecraft-gallery pagecraft-gallery-fixed pagecraft-fzf4v1jd",
+      "gap": "20px",
+      "margin": "0px",
+      "padding": "0px"
+    },
+    "animation": "— none —",
+    "transition": "None",
+    "temporaryClassCount": 0,
+    "idsExact": true
+  },
+  "passed": true
+}

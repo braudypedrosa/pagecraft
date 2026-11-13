@@ -1,0 +1,41 @@
+[
+  {
+    "device": "Desktop",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "40px",
+    "label": "Workshop status",
+    "overflow": false,
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "stroke": "2.5px",
+    "tag": "svg",
+    "width": "40px"
+  },
+  {
+    "device": "Tablet",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "40px",
+    "label": "Workshop status",
+    "overflow": false,
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "stroke": "2.5px",
+    "tag": "svg",
+    "width": "40px"
+  },
+  {
+    "device": "Mobile",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "40px",
+    "label": "Workshop status",
+    "overflow": false,
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "stroke": "2.5px",
+    "tag": "svg",
+    "width": "40px"
+  }
+]

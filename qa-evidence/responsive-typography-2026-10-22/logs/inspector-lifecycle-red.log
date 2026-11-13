@@ -1,0 +1,35 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/responsive-typography-67c6838
+
+ ❯ tests/inspector-first-click-after-blur.test.tsx (2 tests | 1 failed) 150ms
+   × the first component override does not consume the adjacent variant click 106ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-first-click-after-blur.test.tsx > the first component override does not consume the adjacent variant click
+AssertionError: fixture teardown drains frame callbacks before jsdom globals are removed
+
+1 !== 0
+
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/inspector-first-click-after-blur.test.tsx:38:12
+     36|   try {
+     37|     await settle();
+     38|     assert.equal(pendingFrames.size, 0, 'fixture teardown drains frame…
+       |            ^
+     39|   } finally {
+     40|     await frame();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  13:51:09
+   Duration  1.26s (transform 355ms, setup 0ms, import 419ms, tests 150ms, environment 578ms)

@@ -1,0 +1,58 @@
+{
+  "client": 414,
+  "pageScroll": 670,
+  "panels": [
+    {
+      "display": "block",
+      "hidden": false,
+      "idle": false
+    },
+    {
+      "display": "none",
+      "hidden": false,
+      "idle": true
+    },
+    {
+      "display": "none",
+      "hidden": false,
+      "idle": true
+    },
+    {
+      "display": "none",
+      "hidden": false,
+      "idle": true
+    },
+    {
+      "display": "none",
+      "hidden": false,
+      "idle": true
+    }
+  ],
+  "tabs": [
+    {
+      "label": "Access & booking <draft>",
+      "selected": "true",
+      "width": 171.28125
+    },
+    {
+      "label": "Quiet room",
+      "selected": "false",
+      "width": 77.046875
+    },
+    {
+      "label": "Pricing",
+      "selected": "false",
+      "width": 49.328125
+    },
+    {
+      "label": "Details",
+      "selected": "false",
+      "width": 49.84375
+    },
+    {
+      "label": "AccessibilitySupportAndQuietRoomBookingInformationForEveryVisitorAtTheCommunityWorkshop",
+      "selected": "false",
+      "width": 649.828125
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "format": "pagecraft.cms-context-source-exports.v1",
+  "capturedAt": "2026-10-17T04:52:00+08:00",
+  "source": {
+    "repository": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft",
+    "branch": "development",
+    "commit": "b10d85da5fcd5648df8c2f17152426cc237fc60f",
+    "tree": "fc70dda55f1dfeb4e63634c6da8cb01865fd2330",
+    "workingTreePreserved": true,
+    "buildPerformed": false,
+    "generatedMainBytesTouched": false
+  },
+  "isolatedExports": [
+    {
+      "name": "one",
+      "path": "/tmp/pagecraft-cms-context-one-b10d85da",
+      "origin": "git archive b10d85da5fcd5648df8c2f17152426cc237fc60f",
+      "packageLockSha256": "821cbbc5008e3a211eef5b1d1b8534a64affb991558f22bbf708c69a120b9bd5",
+      "npmVersion": "11.12.1",
+      "npmCi": "passed",
+      "npmCiLog": "/tmp/pagecraft-cms-context-one-b10d85da/npm-ci.log",
+      "npmCiLogSha256": "e34299b4f4015917fee5e9c2b48fbe1a5fa30be1ffc3cc8f096f9aeeeee29ff6"
+    },
+    {
+      "name": "two",
+      "path": "/tmp/pagecraft-cms-context-two-b10d85da",
+      "origin": "git archive b10d85da5fcd5648df8c2f17152426cc237fc60f",
+      "packageLockSha256": "821cbbc5008e3a211eef5b1d1b8534a64affb991558f22bbf708c69a120b9bd5",
+      "npmVersion": "11.12.1",
+      "npmCi": "passed",
+      "npmCiLog": "/tmp/pagecraft-cms-context-two-b10d85da/npm-ci.log",
+      "npmCiLogSha256": "c72050faa6f1184bd308a19278bfbcea79682b4fa9099a44315e1e7b7cb00b68"
+    }
+  ],
+  "galleryAcceptanceProcedure": {
+    "browserBoundary": "Use an already selected Codex built-in browser tab; do not launch Chrome or another browser and do not create a browser process.",
+    "behaviorEvidence": "Reuse qa-evidence/full-customer-retest-2026-10-14/gallery/behavior-checks.json; all 30 checks must already be passed before capture.",
+    "captureEntryPoint": "qa-evidence/full-customer-retest-2026-10-14/native/capture-gallery-current-batched.mjs",
+    "captureDocs": "qa-evidence/full-customer-retest-2026-10-14/native/capture-gallery-current-batched.md",
+    "captureImport": "const { captureGalleryBatch, readBehaviorChecks } = await import('./qa-evidence/full-customer-retest-2026-10-14/native/capture-gallery-current-batched.mjs?v=20261015');",
+    "captureCallShape": "await captureGalleryBatch(tab, './qa-evidence/full-customer-retest-2026-10-14/gallery/current', checks, { widths: [1440], hosts: ['cloud'], sections: ['fields', 'actions', 'tables', 'menus', 'dialogs', 'feedback'] });",
+    "batchRule": "At most six images per invocation; run non-overlapping batches for remaining host/width combinations. Device scale factor 1, screenshot scale 1, fromSurface true, reduced motion, measured document height.",
+    "alternateFinalEntryPoint": "tools/capture-ui-gallery-acceptance-final.mjs",
+    "comparisonEntryPoint": "node tools/ui-baselines.mjs compare <capture-directory>",
+    "baselineCheckEntryPoint": "node tools/ui-baselines.mjs check",
+    "recordEntryPoint": "node tools/ui-baselines.mjs record <capture-directory> --reviewed",
+    "reviewGate": "Inspect every changed screenshot and the comparison before recording reviewed baselines.",
+    "acceptedEvidence": {
+      "behavior": "qa-evidence/full-customer-retest-2026-10-14/gallery/rich-label-inline-final-behavior-checks.json",
+      "comparison": "qa-evidence/full-customer-retest-2026-10-14/gallery/rich-label-inline-final/exact-comparison.json",
+      "capture": "qa-evidence/full-customer-retest-2026-10-14/gallery/rich-label-inline-final/capture.json",
+      "scope": "30/30 behavior checks; 24/24 byte- and pixel-exact images; manifest covers 24 images and 28 source files"
+    },
+    "browserActionPerformed": false
+  },
+  "checks": {
+    "jsonValid": true,
+    "bothExportsAtRequestedCommit": true,
+    "bothIndependentNpmCiPassed": true,
+    "noSourceEdits": true,
+    "noBuildInSharedCheckout": true,
+    "noBrowserAction": true
+  },
+  "authorizedCurrentCheckoutOverlay": {
+    "sourceCommitContext": "b10d85da5fcd5648df8c2f17152426cc237fc60f archive plus explicitly authorized current-checkout eight-file overlay",
+    "files": {
+      "app/src/core/index.ts": "64318218c6fa528e41d13eac7b4a29f8e6cc032c076f4468298c625c60e720a4",
+      "builder.html": "ad363e9c28f995305413785bd7b2ee0610e083b18a688246b175c91888a68615",
+      "tests/core.test.ts": "e5b68e42550556f833343ed23aa4ce85ce5b620eeacb059c0395533533472182",
+      "tests/builder-cms-selection.test.mjs": "816f23fd9e36f85f323b952b3b34a1d08569a01587ba2ee917ab9f37eec1cd8d",
+      "app/src/ui/inspector/cms-source-change.ts": "fe7012b6a460829d6d19bf25eb917ca923a6265eedaaa816680197b2d8655a6c",
+      "app/src/ui/inspector/Inspector.tsx": "32c31ea886d9c4c18c47ae969449b6044d3a27dcde43981a8bf0076c3fd5528e",
+      "app/src/ui/inspector/Controls.tsx": "df21324c8c8e9a86b68e39284f20c5a12bc468ff8acb836c3f9c985683b459a2",
+      "tests/cms-source-change.test.tsx": "e5f957e07ab837362b76cd8ae78503632e3608e940835ff26f8092c6a9f6d925"
+    },
+    "sameHashesInBothExports": true,
+    "provenanceNote": "The CMS-selection test and three CMS source/test files are untracked in the shared checkout and the CMS-selection test is absent from the b10 tree; they are recorded as the authorized current-checkout overlay, not as b10 commit paths."
+  },
+  "isolatedBuildVerification": {
+    "exportOne": {
+      "fullNpmTest": {
+        "command": "npm test",
+        "log": "/tmp/pagecraft-cms-context-one-b10d85da/npm-test.log",
+        "status": "failed_reviewed_ui_baseline_gate",
+        "result": "2300 passed, 2 skipped, 1 failed across 203 files; build and typecheck completed before Vitest",
+        "failure": "tests/ui-baselines.test.mjs requires gallery review for builder.html and app/src/ui/inspector/Inspector.tsx"
+      },
+      "demoBuild": {
+        "command": "npm run build",
+        "log": "/tmp/pagecraft-cms-context-one-b10d85da/demo-build.log",
+        "status": "passed"
+      }
+    },
+    "exportTwo": {
+      "packageBuild": {
+        "command": "npm run build:editor-package",
+        "log": "/tmp/pagecraft-cms-context-two-b10d85da/package-build.log",
+        "status": "passed"
+      },
+      "demoBuild": {
+        "command": "npm run build",
+        "log": "/tmp/pagecraft-cms-context-two-b10d85da/demo-build.log",
+        "status": "passed"
+      }
+    },
+    "stableGeneratedOutputHashesMatch": true,
+    "stableGeneratedOutputs": {
+      "index.html": "704c9b591f98e3f934408018c7f0d72a3be18a0520608caff366e2272603f9b3",
+      "dist/core.cjs": "72ed66cd920e9d8cdec16cbec5430e3f430df09dbe3455f2290015800063f42a",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "e52b917224836a1fa08833caecf6d59bc17a313057d070b5bd5ce8a88d78c365",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "3d2adfcd62e3f866eeef09510b0d9da34de103e2db6ef6979013c33ccb200120"
+    },
+    "protected11MainBytesUnchanged": true,
+    "protected11Comparison": "Current shared checkout hashes match qa-evidence/full-customer-retest-2026-10-14/cms-context-generated-recovery.json after hashes for all 11 protected generated paths; isolated builds wrote only under /tmp exports."
+  },
+  "galleryLoopbackServer": {
+    "status": "running",
+    "url": "http://localhost:4949/internal/components?host=cloud",
+    "bind": "127.0.0.1:4949",
+    "process": "node --experimental-strip-types /tmp/pagecraft-cms-gallery-server.mts",
+    "pid": 10921,
+    "session": "functions.exec PTY session 82714",
+    "editorHtml": "/tmp/pagecraft-cms-context-one-b10d85da/index.html",
+    "stores": "MemoryStore, MemoryAuthStore, MemoryAssetStore; fictional accountAuth identity; componentGallery enabled",
+    "dataBoundary": "No hosted database, credentials, provider environment, API authoring, or browser actions; loopback disposable fixture only.",
+    "healthCheck": "HTTP 200 with Host: localhost; HTTP 404 without the configured editor Host is expected."
+  },
+  "postReviewBaselineVerification": {
+    "baselineSource": "shared checkout public/internal-ui-baselines",
+    "fileCount": 25,
+    "manifestSha256": "c90afaf20d2b02b71b2b9e9b0f80be6a3510c9204d6113410cc6cd84b28d55e0",
+    "copiedTo": [
+      "/tmp/pagecraft-cms-context-one-b10d85da/public/internal-ui-baselines",
+      "/tmp/pagecraft-cms-context-two-b10d85da/public/internal-ui-baselines"
+    ],
+    "copyHashesIdentical": true,
+    "exportOne": {
+      "fullNpmTest": {
+        "command": "npm test",
+        "log": "/tmp/pagecraft-cms-context-one-b10d85da/npm-test-post-review.log",
+        "status": "passed",
+        "testFiles": "201 passed, 2 skipped",
+        "tests": "2301 passed, 5 skipped"
+      }
+    },
+    "exportTwo": {
+      "baselineCheck": {
+        "command": "node tools/ui-baselines.mjs check",
+        "log": "/tmp/pagecraft-cms-context-two-b10d85da/ui-baselines-check-post-review.log",
+        "status": "passed",
+        "result": "24 images, 28 source files"
+      }
+    },
+    "stableGeneratedOutputHashesMatch": true,
+    "protected11MainBytesUnchanged": true,
+    "mainBuildOrTest": "No build, test, package script, source edit, commit, runtime, browser, or deployment was run in the shared checkout."
+  },
+  "reviewedB10GalleryComparison": {
+    "archive": "/tmp/pagecraft-gallery-reviewed-b10",
+    "sourceCommit": "b10d85da5fcd5648df8c2f17152426cc237fc60f",
+    "packageLockSha256": "821cbbc5008e3a211eef5b1d1b8534a64affb991558f22bbf708c69a120b9bd5",
+    "nodeModules": "symlink to /tmp/pagecraft-cms-context-one-b10d85da/node_modules; no build performed",
+    "baselineCheck": {
+      "command": "node tools/ui-baselines.mjs check",
+      "cwd": "/tmp/pagecraft-gallery-reviewed-b10",
+      "status": "passed",
+      "result": "24 reviewed images and 28 source files; exit 0",
+      "reason": "The earlier failed result was run from the shared candidate checkout after the archive workdir was unavailable; it was not the b10 archive check."
+    },
+    "server": {
+      "status": "running",
+      "url": "http://localhost:4950/internal/components?host=cloud",
+      "bind": "127.0.0.1:4950",
+      "process": "node --experimental-strip-types /tmp/pagecraft-gallery-reviewed-server.mts",
+      "ptySession": "85679",
+      "editorHtml": "/tmp/pagecraft-gallery-reviewed-b10/index.html",
+      "stores": "MemoryStore, MemoryAuthStore, MemoryAssetStore; fictional accountAuth identity; componentGallery enabled"
+    },
+    "galleryGeneratorHashes": {
+      "server/src/component-gallery.ts": {"currentCandidate": "f5aea66c3554fa97d3cbfa566c6bf7cad03c7bbc9daf1e89262174f3a80cf1f9", "b10": "f5aea66c3554fa97d3cbfa566c6bf7cad03c7bbc9daf1e89262174f3a80cf1f9", "same": true},
+      "tools/capture-ui-gallery.mjs": {"currentCandidate": "fd9d2b6ad6fa879baaf0e0a97d457d43f5a661bc6e304702fb9bf7d0c6a6f030", "b10": "fd9d2b6ad6fa879baaf0e0a97d457d43f5a661bc6e304702fb9bf7d0c6a6f030", "same": true},
+      "tools/gallery-behavior-checks.mjs": {"currentCandidate": "e00d6cebe18b263502cfa8f03e4f92aee264d72808b762dd8cb76d65bd780190", "b10": "e00d6cebe18b263502cfa8f03e4f92aee264d72808b762dd8cb76d65bd780190", "same": true},
+      "app/src/ui/inspector/Inspector.tsx": {"currentCandidate": "32c31ea886d9c4c18c47ae969449b6044d3a27dcde43981a8bf0076c3fd5528e", "b10": "ec50412dca9e4fd791a5f26f5fbe9e8110b501ac029c2e0e4ca62191df793675", "same": false},
+      "app/src/ui/inspector/Controls.tsx": {"currentCandidate": "df21324c8c8e9a86b68e39284f20c5a12bc468ff8acb836c3f9c985683b459a2", "b10": "d78cd7ecde728dda376d693449ce03ce3fb57e7380a7456de2b5c1b4b09694f9", "same": false},
+      "builder.html": {"currentCandidate": "ad363e9c28f995305413785bd7b2ee0610e083b18a688246b175c91888a68615", "b10": "0337aa73e00290f36be0ee1258e7394e74df3b4f06dff1ddea1abe18293ff885", "same": false}
+    },
+    "baselineMigration": "not performed; no browser action and no baseline record"
+  }
+}

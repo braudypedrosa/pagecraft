@@ -1,0 +1,35 @@
+{
+  "authored": "<b id=\"qa-code-literal\">literal</b> & \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n",
+  "results": [
+    {
+      "device": "Desktop",
+      "classes": "pagecraft-code pagecraft-8771r1lu",
+      "header": "example.txtCopy",
+      "html": "&lt;b id=\"qa-code-literal\"&gt;literal&lt;/b&gt; &amp; \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n",
+      "htmlElements": 0,
+      "overflow": false,
+      "tag": "FIGURE",
+      "text": "<b id=\"qa-code-literal\">literal</b> & \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n"
+    },
+    {
+      "device": "Tablet",
+      "classes": "pagecraft-code pagecraft-8771r1lu",
+      "header": "example.txtCopy",
+      "html": "&lt;b id=\"qa-code-literal\"&gt;literal&lt;/b&gt; &amp; \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n",
+      "htmlElements": 0,
+      "overflow": false,
+      "tag": "FIGURE",
+      "text": "<b id=\"qa-code-literal\">literal</b> & \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n"
+    },
+    {
+      "device": "Mobile",
+      "classes": "pagecraft-code pagecraft-8771r1lu",
+      "header": "example.txtCopy",
+      "html": "&lt;b id=\"qa-code-literal\"&gt;literal&lt;/b&gt; &amp; \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n",
+      "htmlElements": 0,
+      "overflow": false,
+      "tag": "FIGURE",
+      "text": "<b id=\"qa-code-literal\">literal</b> & \"x\"\n'apostrophe' `backtick`\n// line comment\n/* block */\n\nlast line\n"
+    }
+  ]
+}

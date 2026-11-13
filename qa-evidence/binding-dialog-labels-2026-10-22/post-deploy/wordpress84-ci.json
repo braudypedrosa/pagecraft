@@ -1,0 +1,12 @@
+{
+  "commit": "3604eb74b0bc6dd6e042ecd2fc1e4c7b2657f8fb",
+  "run": 39646072783,
+  "conclusion": "success",
+  "php": [
+    "8.1",
+    "8.2",
+    "8.3"
+  ],
+  "rootIndependentlyChecked": true,
+  "productionPromoted": false
+}

@@ -1,0 +1,11 @@
+{
+  "base": "8f1a3b1e9064f5f2a2806c8658e0dc9ca2717511",
+  "files": {
+    "app/src/core/anim.ts": "86463d8b68956807eb52dafd831483005c94af2205b956cda45d82943ba8036f",
+    "tests/animation-runtime.test.ts": "6bf2ca90c1a7326550f902520b1e96aea75087b40742b9ba86339f6ec90ab085"
+  },
+  "focusedPassed": 17,
+  "typecheckExit": 0,
+  "ownership": "WeakMap; media query scans only connected visible or active elements. Detached safety/re-entry regression does not claim garbage collection measurement.",
+  "buildsPerformed": false
+}

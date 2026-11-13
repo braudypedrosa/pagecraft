@@ -1,0 +1,92 @@
+[
+  {
+    "device": "Desktop",
+    "computed": {
+      "align": "stretch",
+      "bodyClient": 1280,
+      "bodyScroll": 1280,
+      "columns": [
+        {
+          "flex": "66.6666 1 0%",
+          "headings": [
+            "QA first column <>& \" 🌿"
+          ],
+          "text": "QA first column <>& \" 🌿",
+          "width": 784
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "headings": [
+            "QA second column retained"
+          ],
+          "text": "QA second column retained",
+          "width": 392
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "24px",
+      "width": 1200,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Tablet",
+    "computed": {
+      "align": "stretch",
+      "bodyClient": 834,
+      "bodyScroll": 834,
+      "columns": [
+        {
+          "flex": "66.6666 1 0%",
+          "headings": [
+            "QA first column <>& \" 🌿"
+          ],
+          "text": "QA first column <>& \" 🌿",
+          "width": 500
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "headings": [
+            "QA second column retained"
+          ],
+          "text": "QA second column retained",
+          "width": 250
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "36px",
+      "width": 786,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Mobile",
+    "computed": {
+      "align": "stretch",
+      "bodyClient": 414,
+      "bodyScroll": 414,
+      "columns": [
+        {
+          "flex": "66.6666 1 100%",
+          "headings": [
+            "QA first column <>& \" 🌿"
+          ],
+          "text": "QA first column <>& \" 🌿",
+          "width": 374
+        },
+        {
+          "flex": "33.3333 1 100%",
+          "headings": [
+            "QA second column retained"
+          ],
+          "text": "QA second column retained",
+          "width": 374
+        }
+      ],
+      "distribution": "space-around",
+      "gap": "12px",
+      "width": 374,
+      "wrap": "wrap"
+    }
+  }
+]

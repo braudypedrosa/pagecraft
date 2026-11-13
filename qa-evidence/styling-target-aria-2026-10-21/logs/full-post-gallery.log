@@ -1,0 +1,40 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/styling-target-aria-aa664f2/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (612 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/styling-target-aria-aa664f2/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/styling-target-aria-aa664f2
+
+(node:42872) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ server/tests/submissions.test.ts (16 tests | 1 failed) 32065ms
+   × failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200 30140ms
+(node:42869) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:43342) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/submissions.test.ts > failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/submissions.test.ts:247:1
+    245| });
+    246|
+    247| test('failed attempts never fill the inbox: only successful entries co…
+       | ^
+    248|   const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+    249|   try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 228 passed | 2 skipped (231)
+      Tests  1 failed | 2497 passed | 5 skipped (2503)
+   Start at  08:08:12
+   Duration  76.54s (transform 24.79s, setup 0ms, import 169.45s, tests 559.04s, environment 85.55s)

@@ -1,0 +1,52 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/color-picker-semantics-2aedc6d
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx (3 tests | 3 failed) 193ms
+   × solid picker exposes the advertised named nonmodal dialog and receives focus 98ms
+   × solid/gradient picker exposes the advertised named nonmodal dialog and receives focus 47ms
+   × named dialog retains keyboard colour editing and Escape restores the actual swatch 47ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > solid picker exposes the advertised named nonmodal dialog and receives focus
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > solid/gradient picker exposes the advertised named nonmodal dialog and receives focus
+AssertionError: the actual opened picker must be discoverable as a dialog
+
+0 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/color-picker-dialog-semantics.test.tsx:30:10
+     28|   assert.equal(anchor.getAttribute('aria-expanded'), 'true');
+     29|   const dialogs = r.$$('[role="dialog"]');
+     30|   assert.equal(dialogs.length, 1, 'the actual opened picker must be di…
+       |          ^
+     31|   const dialog = dialogs[0];
+     32|   assert.equal(dialog.getAttribute('aria-label'), 'Colour picker');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/color-picker-dialog-semantics.test.tsx > named dialog retains keyboard colour editing and Escape restores the actual swatch
+TypeError: Cannot read properties of null (reading 'dispatchEvent')
+ ❯ tests/color-picker-dialog-semantics.test.tsx:49:19
+     47|   const hue = r.$('[role="dialog"] [aria-label="Hue"]')!;
+     48|   const before = node.css.d[key];
+     49|   act(() => { hue.dispatchEvent(new KeyboardEvent('keydown', { key: 'A…
+       |                   ^
+     50|   assert.notEqual(node.css.d[key], before);
+     51|   const edited = node.css.d[key], depth = C.hist.u.length;
+ ❯ cb ../integer-typing-218f115/node_modules/preact/test-utils/src/index.js:92:11
+ ❯ tests/color-picker-dialog-semantics.test.tsx:49:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  03:55:34
+   Duration  1.08s (transform 270ms, setup 0ms, import 318ms, tests 193ms, environment 468ms)

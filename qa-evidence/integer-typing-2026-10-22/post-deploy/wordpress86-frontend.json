@@ -1,0 +1,31 @@
+{
+  "rows": [
+    {
+      "requested": 1280,
+      "columns": "402.656px 402.672px 402.656px",
+      "images": 2,
+      "overflow": false,
+      "width": 1280
+    },
+    {
+      "requested": 768,
+      "columns": "232px 232px 232px",
+      "images": 2,
+      "overflow": false,
+      "width": 768
+    },
+    {
+      "requested": 414,
+      "columns": "119.328px 119.328px 119.344px",
+      "images": 2,
+      "overflow": false,
+      "width": 414
+    }
+  ],
+  "cleanup": {
+    "tabId": "53",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "changedLeaves": 12,
+  "cssChanges": [
+    {
+      "path": "/artifact/routes/0/css",
+      "oldBytes": 33159,
+      "newBytes": 33181,
+      "addition": "  grid-column:1 / -1;\n"
+    },
+    {
+      "path": "/artifact/routes/1/css",
+      "oldBytes": 52662,
+      "newBytes": 52684,
+      "addition": "  grid-column:1 / -1;\n"
+    },
+    {
+      "path": "/artifact/routes/2/css",
+      "oldBytes": 52662,
+      "newBytes": 52684,
+      "addition": "  grid-column:1 / -1;\n"
+    },
+    {
+      "path": "/artifact/routes/3/css",
+      "oldBytes": 52662,
+      "newBytes": 52684,
+      "addition": "  grid-column:1 / -1;\n"
+    }
+  ],
+  "derivedLeafPaths": [
+    "/desired/release/manifest",
+    "/desired/release/signature",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/sourceHash"
+  ],
+  "unchangedHtmlContentAndAllOtherLeaves": true,
+  "goldenBeforeSha256": "b5369fd903b0fbe5094eb3b7d5f413dc1fcd0ab6bc9acfdf2e0b2f4df6a79761",
+  "goldenAfterSha256": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343"
+}

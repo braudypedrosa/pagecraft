@@ -1,0 +1,73 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365
+
+ ❯ tests/list-nowrap-scroll.test.ts (11 tests | 3 failed) 544ms
+   × factory Mobile nowrap preserves authored 100% basis and grow while disabling only fallback shrink 145ms
+   × Desktop nowrap inherits through Tablet and explicit Mobile wrap restores ordinary layout policy 31ms
+   × nowrap ink padding remains a fallback beneath authored shorthand, sides and class padding 40ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/list-nowrap-scroll.test.ts > factory Mobile nowrap preserves authored 100% basis and grow while disabling only fallback shrink
+AssertionError: Expected values to be strictly equal:
+
+'' !== '4px'
+
+
+- Expected
++ Received
+
+- 4px
+
+ ❯ tests/list-nowrap-scroll.test.ts:50:12
+     48|     assert.equal(o.style().getPropertyValue('--pc-list-overflow-x'), '…
+     49|     assert.equal(o.style().getPropertyValue('--pc-list-item-shrink'), …
+     50|     assert.equal(o.style().getPropertyValue('--pc-list-padding'), '4px…
+       |            ^
+     51|     assert.equal(o.style().padding, 'var(--pc-list-padding,0)');
+     52|     assert.equal(o.style().overflowX, 'var(--pc-list-overflow-x,visibl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/list-nowrap-scroll.test.ts > Desktop nowrap inherits through Tablet and explicit Mobile wrap restores ordinary layout policy
+AssertionError: Expected values to be strictly equal:
+
+'' !== '4px'
+
+
+- Expected
++ Received
+
+- 4px
+
+ ❯ tests/list-nowrap-scroll.test.ts:67:169
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/list-nowrap-scroll.test.ts > nowrap ink padding remains a fallback beneath authored shorthand, sides and class padding
+AssertionError: Expected values to be strictly equal:
+
+'' !== '4px'
+
+
+- Expected
++ Received
+
+- 4px
+
+ ❯ tests/list-nowrap-scroll.test.ts:201:12
+    199|   try {
+    200|     assert.equal(o.style().paddingTop, '11px', 'individual side remain…
+    201|     assert.equal(o.style().getPropertyValue('--pc-list-padding'), '4px…
+       |            ^
+    202|   } finally { o.close(); }
+    203|   delete list.css.m['padding-top'];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 8 passed (11)
+   Start at  07:38:50
+   Duration  1.47s (transform 237ms, setup 0ms, import 797ms, tests 544ms, environment 0ms)

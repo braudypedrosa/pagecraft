@@ -1,0 +1,50 @@
+{
+  "cases": [
+    {
+      "device": "Desktop",
+      "card": 280,
+      "client": 1185,
+      "count": 18,
+      "direction": "ltr",
+      "height": 207,
+      "maxWidth": "100%",
+      "overflowX": "auto",
+      "padding": "4px",
+      "pageOverflow": false,
+      "scroll": 5456,
+      "scrollHeight": 209,
+      "wrap": "nowrap"
+    },
+    {
+      "device": "Tablet",
+      "card": 375.5,
+      "client": 775,
+      "count": 18,
+      "direction": "ltr",
+      "height": 1099,
+      "maxWidth": "none",
+      "overflowX": "visible",
+      "padding": "0px",
+      "pageOverflow": false,
+      "scroll": 775,
+      "scrollHeight": 1103,
+      "wrap": "wrap"
+    },
+    {
+      "device": "Mobile",
+      "card": 355,
+      "client": 363,
+      "count": 18,
+      "direction": "ltr",
+      "height": 93,
+      "maxWidth": "100%",
+      "overflowX": "auto",
+      "padding": "4px",
+      "pageOverflow": false,
+      "scroll": 6738,
+      "scrollHeight": 93,
+      "wrap": "nowrap"
+    }
+  ],
+  "errors": []
+}

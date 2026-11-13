@@ -34,7 +34,10 @@ const rig = async () => {
   const req = (path: string, init: RequestInit = {}, cookie?: string) =>
     app.request(new Request(`http://admin.test${path}`, {
       ...init,
-      headers: { host: 'admin.test', 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }
+      headers: {
+        host: 'admin.test', 'content-type': 'application/json', ...(cookie ? { cookie } : {}),
+        ...(init.headers || {}),
+      }
     }));
 
   /** sign in as an address that already has an account */
@@ -55,8 +58,15 @@ const rig = async () => {
     req(`/api/sites/${site.id}/people`, { method: 'POST', body: JSON.stringify({ email, role }) }, cookie);
   const remove = (cookie: string, userId: string) =>
     req(`/api/sites/${site.id}/people/${userId}`, { method: 'DELETE' }, cookie);
+  const pending = async (cookie: string) => (await (await req('/api/invitations', {}, cookie)).json() as {
+    invitations: { id: string; kind: string; resourceId: string }[];
+  }).invitations;
+  const decide = (cookie: string, id: string, decision: 'accept' | 'decline') =>
+    req(`/api/invitations/${id}/${decision}`, {
+      method: 'POST', headers: { origin: 'http://admin.test' },
+    }, cookie);
 
-  return { app, store, auth, site, req, signIn, member, people, invite, remove };
+  return { app, store, auth, site, req, signIn, member, people, invite, remove, pending, decide };
 };
 
 /* ------------------------------------------------------------------ the flow */
@@ -79,16 +89,28 @@ test('an owner invites an address, and that address can then sign in and edit', 
   a.equal(m!.role, 'content');
 });
 
-test('inviting somebody who already has an account changes their role', async () => {
-  const { signIn, member, invite, people } = await rig();
+test('inviting somebody who already has an account changes their role only after acceptance', async () => {
+  const { auth, site, signIn, member, invite, people, pending, decide } = await rig();
   const owner = await member('owner@acme.test', 'owner');
   const client = await member('client@acme.test', 'content');
-  const cookie = await signIn(owner.email);
+  const ownerCookie = await signIn(owner.email);
 
-  a.equal((await invite(cookie, client.email, 'owner')).status, 201);
-  const list = await (await people(cookie)).json() as { userId: string; role: Role }[];
-  a.equal(list.find(p => p.userId === client.id)!.role, 'owner', 'granted again, not duplicated');
+  const invitation = await invite(ownerCookie, client.email, 'owner');
+  a.equal(invitation.status, 201);
+  a.equal((await invitation.json() as { awaitingAcceptance: boolean }).awaitingAcceptance, true);
+  let list = await (await people(ownerCookie)).json() as { userId: string; role: Role }[];
+  a.equal(list.find(p => p.userId === client.id)!.role, 'content', 'invitation is not ownership');
   a.equal(list.length, 2);
+
+  const clientCookie = await signIn(client.email);
+  const waiting = await pending(clientCookie);
+  a.deepEqual(waiting.map(item => [item.kind, item.resourceId]), [['site_owner', site.id]]);
+  a.equal((await decide(ownerCookie, waiting[0].id, 'accept')).status, 404, 'inviter cannot accept for recipient');
+  a.deepEqual(await (await decide(clientCookie, waiting[0].id, 'accept')).json(), { status: 'accepted' });
+  a.equal((await auth.membership(site.id, client.id))?.role, 'owner');
+  list = await (await people(ownerCookie)).json() as { userId: string; role: Role }[];
+  a.equal(list.find(p => p.userId === client.id)!.role, 'owner');
+  a.equal(list.length, 2, 'acceptance upgrades the existing row, not duplicates it');
 });
 
 test('the list says who has access, in a readable order', async () => {
@@ -196,13 +218,18 @@ test('the last owner cannot be removed, because nobody could manage the site aft
 });
 
 test('a second owner makes the first removable', async () => {
-  const { signIn, member, invite, remove, people } = await rig();
+  const { signIn, member, invite, remove, people, pending, decide } = await rig();
   const first = await member('first@acme.test', 'owner');
   const cookie = await signIn(first.email);
   const second = await (await invite(cookie, 'second@acme.test', 'owner')).json() as { userId: string };
 
+  a.equal((await remove(cookie, first.id)).status, 409, 'pending invitation is not a second owner');
+  const secondCookie = await signIn('second@acme.test');
+  const waiting = await pending(secondCookie);
+  a.equal(waiting.length, 1);
+  a.deepEqual(await (await decide(secondCookie, waiting[0].id, 'accept')).json(), { status: 'accepted' });
   a.equal((await remove(cookie, first.id)).status, 200);
-  const list = await (await people(await signIn('second@acme.test'))).json() as { userId: string }[];
+  const list = await (await people(secondCookie)).json() as { userId: string }[];
   a.deepEqual(list.map(p => p.userId), [second.userId]);
 });
 
@@ -228,4 +255,38 @@ test('another owner may demote you, which is the way that is meant to work', asy
   a.equal((await invite(cookie, one.email, 'content')).status, 201);
   const list = await (await people(cookie)).json() as { email: string; role: Role }[];
   a.equal(list.find(p => p.email === one.email)!.role, 'content');
+});
+
+test('an owner changing their own role is told to ask another owner, not that they are the last one', async () => {
+  const { app, auth, site, signIn, member } = await rig();
+  const one = await member('one@acme.test', 'owner');
+  const cookie = await signIn(one.email);
+  const demote = () => app.request(new Request(`http://admin.test/sites/${site.id}/people/${one.id}/role`, {
+    method: 'POST', body: 'role=content',
+    headers: { host: 'admin.test', origin: 'http://admin.test', cookie, 'content-type': 'application/x-www-form-urlencoded' },
+  }));
+  a.match((await demote()).headers.get('location') || '', /\?error=people_last_owner$/, 'alone, they really are the last owner');
+  await member('two@acme.test', 'owner');
+  const res = await demote();
+  a.match(res.headers.get('location') || '', /\?error=people_self_role$/);
+  a.equal((await auth.membership(site.id, one.id))!.role, 'owner', 'still refused');
+  const page = await app.request(new Request(`http://admin.test${res.headers.get('location')}`, { headers: { host: 'admin.test', cookie } }));
+  a.match(await page.text(), /You can’t change your own role\. Ask another owner to do it\./);
+});
+
+test('inviting through the API is rate limited like the People form', async () => {
+  /* Each invitation can create an account and grant ownership, so it is limited per caller,
+     per site, and per recipient, and one recipient gets one change a minute. */
+  const { signIn, member, invite } = await rig();
+  const owner = await member('owner@acme.test', 'owner');
+  const cookie = await signIn(owner.email);
+  a.equal((await invite(cookie, 'client@acme.test')).status, 201);
+  const again = await invite(cookie, 'client@acme.test', 'owner');
+  a.equal(again.status, 429, 'the same recipient twice in a minute');
+  a.equal(again.headers.get('retry-after'), '60');
+  const statuses: number[] = [];
+  for (let i = 0; i < 25; i++) statuses.push((await invite(cookie, `person${i}@acme.test`)).status);
+  /* Twenty attempts an hour per site and per owner, and the refused one above was an attempt. */
+  a.deepEqual(statuses.slice(0, 18), Array(18).fill(201));
+  a.ok(statuses.slice(18).every(status => status === 429), statuses.join(','));
 });

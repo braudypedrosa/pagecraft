@@ -1,0 +1,4 @@
+{
+  "accepted": false,
+  "reason": "Browser-control execution exceeded its 30-second limit after changing the limit to4; the session reset and the in-memory aggregate was lost. No aggregate evidence is credited. Recheck each bounded count separately and write each result immediately."
+}

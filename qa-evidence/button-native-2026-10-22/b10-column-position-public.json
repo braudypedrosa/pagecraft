@@ -1,0 +1,53 @@
+{
+  "rows": [
+    {
+      "position": "Default",
+      "dom": {
+        "bottomGap": 451.75,
+        "height": 70.375,
+        "marginTop": "0px",
+        "order": [
+          "pagecraft-button-mbo6o5fc",
+          "pagecraft-button-mbou56ab",
+          "pagecraft-button-mbphg7px",
+          "pagecraft-button-mb2wp2lg"
+        ],
+        "parentHeight": 700,
+        "top": 177.875
+      }
+    },
+    {
+      "position": "In the normal flow",
+      "dom": {
+        "bottomGap": 451.75,
+        "height": 70.375,
+        "marginTop": "0px",
+        "order": [
+          "pagecraft-button-mbo6o5fc",
+          "pagecraft-button-mbou56ab",
+          "pagecraft-button-mbphg7px",
+          "pagecraft-button-mb2wp2lg"
+        ],
+        "parentHeight": 700,
+        "top": 177.875
+      }
+    },
+    {
+      "position": "Push to column bottom",
+      "dom": {
+        "bottomGap": 0,
+        "height": 70.375,
+        "marginTop": "451.75px",
+        "order": [
+          "pagecraft-button-mbo6o5fc",
+          "pagecraft-button-mbou56ab",
+          "pagecraft-button-mbphg7px",
+          "pagecraft-button-mb2wp2lg"
+        ],
+        "parentHeight": 700,
+        "top": 629.625
+      }
+    }
+  ],
+  "setup": "Native Column Custom CSS min-height700px; source moved to last child via HUD; Mobile Position selected natively."
+}

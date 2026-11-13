@@ -1,0 +1,301 @@
+[
+  {
+    "language": "Plain text",
+    "authored": "text <tag> & 12\n# note",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "text &lt;tag&gt; &amp; 12\n# note",
+    "text": "text <tag> & 12\n# note",
+    "tokens": []
+  },
+  {
+    "language": "HTML",
+    "authored": "<!-- note -->\n<div class=\"card\">Hello &amp; world</div>",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\">&lt;!-- note --&gt;</span>\n&lt;<span class=\"pc-c-kw\">div</span> <span class=\"pc-c-key\">class</span>=<span class=\"pc-c-str\">\"card\"</span>&gt;Hello &amp;amp; world&lt;/<span class=\"pc-c-kw\">div</span>&gt;",
+    "text": "<!-- note -->\n<div class=\"card\">Hello &amp; world</div>",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "<!-- note -->"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "div"
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "class"
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"card\""
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "div"
+      }
+    ]
+  },
+  {
+    "language": "CSS",
+    "authored": "/* note */\n.card { color: red; width: 12px; }",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\">/* note */</span>\n.card { <span class=\"pc-c-key\">color</span>: red; <span class=\"pc-c-key\">width</span>: <span class=\"pc-c-num\">12px</span>; }",
+    "text": "/* note */\n.card { color: red; width: 12px; }",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "/* note */"
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "color"
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "width"
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12px"
+      }
+    ]
+  },
+  {
+    "language": "JavaScript",
+    "authored": "// note\nconst count = 12;\nfunction greet(name) { return \"Hi \" + name; }",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\">// note</span>\n<span class=\"pc-c-kw\">const</span> count = <span class=\"pc-c-num\">12</span>;\n<span class=\"pc-c-kw\">function</span> <span class=\"pc-c-fn\">greet</span>(name) { <span class=\"pc-c-kw\">return</span> <span class=\"pc-c-str\">\"Hi \"</span> + name; }",
+    "text": "// note\nconst count = 12;\nfunction greet(name) { return \"Hi \" + name; }",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "// note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "const"
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "function"
+      },
+      {
+        "cls": "pc-c-fn",
+        "text": "greet"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "return"
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"Hi \""
+      }
+    ]
+  },
+  {
+    "language": "TypeScript",
+    "authored": "// note\ninterface Item { name: string; count: number }\nconst item: Item = { name: \"Hi\", count: 12 };",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\">// note</span>\n<span class=\"pc-c-kw\">interface</span> Item { name: string; count: number }\n<span class=\"pc-c-kw\">const</span> item: Item = { name: <span class=\"pc-c-str\">\"Hi\"</span>, count: <span class=\"pc-c-num\">12</span> };",
+    "text": "// note\ninterface Item { name: string; count: number }\nconst item: Item = { name: \"Hi\", count: 12 };",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "// note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "interface"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "const"
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"Hi\""
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12"
+      }
+    ]
+  },
+  {
+    "language": "JSON",
+    "authored": "{\"name\":\"Hi\",\"count\":12,\"enabled\":true,\"empty\":null}",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "{<span class=\"pc-c-key\">\"name\"</span>:<span class=\"pc-c-str\">\"Hi\"</span>,<span class=\"pc-c-key\">\"count\"</span>:<span class=\"pc-c-num\">12</span>,<span class=\"pc-c-key\">\"enabled\"</span>:<span class=\"pc-c-kw\">true</span>,<span class=\"pc-c-key\">\"empty\"</span>:<span class=\"pc-c-kw\">null</span>}",
+    "text": "{\"name\":\"Hi\",\"count\":12,\"enabled\":true,\"empty\":null}",
+    "tokens": [
+      {
+        "cls": "pc-c-key",
+        "text": "\"name\""
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"Hi\""
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "\"count\""
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12"
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "\"enabled\""
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "true"
+      },
+      {
+        "cls": "pc-c-key",
+        "text": "\"empty\""
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "null"
+      }
+    ]
+  },
+  {
+    "language": "Shell",
+    "authored": "# note\necho \"Hi\"\nCOUNT=12",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\"># note</span>\n<span class=\"pc-c-kw\">echo</span> <span class=\"pc-c-str\">\"Hi\"</span>\nCOUNT=<span class=\"pc-c-num\">12</span>",
+    "text": "# note\necho \"Hi\"\nCOUNT=12",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "# note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "echo"
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"Hi\""
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12"
+      }
+    ]
+  },
+  {
+    "language": "Python",
+    "authored": "# note\ndef greet(name):\n    return \"Hi \" + name\ncount = 12",
+    "attrs": [
+      [
+        "id",
+        "pagecraft-code-8771r1lu"
+      ],
+      [
+        "class",
+        "pagecraft-code pagecraft-8771r1lu"
+      ]
+    ],
+    "html": "<span class=\"pc-c-com\"># note</span>\n<span class=\"pc-c-kw\">def</span> <span class=\"pc-c-fn\">greet</span>(name):\n    <span class=\"pc-c-kw\">return</span> <span class=\"pc-c-str\">\"Hi \"</span> + name\ncount = <span class=\"pc-c-num\">12</span>",
+    "text": "# note\ndef greet(name):\n    return \"Hi \" + name\ncount = 12",
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "text": "# note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "def"
+      },
+      {
+        "cls": "pc-c-fn",
+        "text": "greet"
+      },
+      {
+        "cls": "pc-c-kw",
+        "text": "return"
+      },
+      {
+        "cls": "pc-c-str",
+        "text": "\"Hi \""
+      },
+      {
+        "cls": "pc-c-num",
+        "text": "12"
+      }
+    ]
+  }
+]

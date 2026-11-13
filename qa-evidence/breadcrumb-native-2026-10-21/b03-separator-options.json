@@ -1,0 +1,106 @@
+[
+  {
+    "symbol": "›",
+    "reads": [
+      {
+        "overflow": false,
+        "pseudo": "\"›\"",
+        "separator": "chevron",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 1280
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"›\"",
+        "separator": "chevron",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 834
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"›\"",
+        "separator": "chevron",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 414
+      }
+    ]
+  },
+  {
+    "symbol": "/",
+    "reads": [
+      {
+        "overflow": false,
+        "pseudo": "\"/\"",
+        "separator": "slash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 1280
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"/\"",
+        "separator": "slash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 834
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"/\"",
+        "separator": "slash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 414
+      }
+    ]
+  },
+  {
+    "symbol": "·",
+    "reads": [
+      {
+        "overflow": false,
+        "pseudo": "\"·\"",
+        "separator": "dot",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 1280
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"·\"",
+        "separator": "dot",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 834
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"·\"",
+        "separator": "dot",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 414
+      }
+    ]
+  },
+  {
+    "symbol": "—",
+    "reads": [
+      {
+        "overflow": false,
+        "pseudo": "\"—\"",
+        "separator": "dash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 1280
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"—\"",
+        "separator": "dash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 834
+      },
+      {
+        "overflow": false,
+        "pseudo": "\"—\"",
+        "separator": "dash",
+        "text": "Workshop archiveCurrent workshop",
+        "w": 414
+      }
+    ]
+  }
+]

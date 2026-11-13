@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-integer-counts-0a8c0c1
+
+
+ Test Files  4 passed (4)
+      Tests  682 passed (682)
+   Start at  01:50:59
+   Duration  1.28s (transform 626ms, setup 0ms, import 800ms, tests 428ms, environment 767ms)

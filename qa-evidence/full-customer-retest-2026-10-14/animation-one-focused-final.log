@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-animation-one-23939
+
+
+ Test Files  4 passed (4)
+      Tests  22 passed (22)
+   Start at  14:14:44
+   Duration  1.28s (transform 1.07s, setup 0ms, import 1.29s, tests 417ms, environment 2.34s)
+

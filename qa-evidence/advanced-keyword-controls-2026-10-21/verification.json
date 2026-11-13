@@ -1,0 +1,49 @@
+{
+  "base": "2d19d89c3f14a3f804ba9d0c714dcaf114afe35d",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/advanced-keyword-controls",
+  "scope": {
+    "properties": [
+      "top:auto",
+      "z-index:auto",
+      "max-width:none",
+      "position:Default"
+    ],
+    "coreChanged": false,
+    "typesChanged": false,
+    "cssChanged": false,
+    "mainMutated": false,
+    "browserUsedByWorker": false,
+    "baselineChanged": true
+  },
+  "checks": {
+    "redRegression": "7 failed and 19 passed before implementation.",
+    "focused": "passed on final candidate: 8 files; 56 tests.",
+    "typecheck": "passed on final candidate.",
+    "fullSuite": "passed: 223 files, 2 skipped; 2,480 tests, 5 skipped.",
+    "editorBuildTwice": "passed on final candidate; all 11 required artifact hashes identical.",
+    "postSuiteGeneratedIntegrity": "passed; all 11 hashes identical after the full suite.",
+    "demo": "passed: 1 component, 6 instances, 4 collection items, 0 findings; unrelated generated drift restored to base.",
+    "uiBaselineGate": "passed: 24 images and 28 source files after reviewed manifest recording.",
+    "npmAudit": "passed: 0 vulnerabilities.",
+    "npmAuditProduction": "passed: 0 vulnerabilities.",
+    "impeccableDetector": "passed with zero findings for Controls.tsx and Inspector.tsx.",
+    "diffCheck": "passed.",
+    "qaHarness": "native review completed on http://localhost:4952/ with fictional QA UI Foundations fixture; final session 57948, PID 8384.",
+    "nativeAcceptance": "passed: Default Position, Top Auto, Z-index Auto and Max width None across Desktop/Tablet/Mobile, save/reload, clear, numeric draft, shared class, and browser validity."
+  },
+  "limitations": [
+    "Exact browser version probing was unavailable; A/B repeatability is limited to the observed session, as recorded in gallery-ab-review.json.",
+    "Main integration, CI, deployment, and WordPress packaging remain root-owned."
+  ],
+  "sourceFiles": {
+    "app/src/ui/inspector/Controls.tsx": "997a0663d80da03de40d1a1367184b0604a8732f1f01ec2a697306a68b4749fd",
+    "app/src/ui/inspector/Inspector.tsx": "afb612d44c25660b700af8f150edac5359da6c057e895d4ae078dcab22ca6444",
+    "tests/unit-control-validation.test.tsx": "07ae76ef8a3a6111565babc9b0c5fd6afb84f0f19fbf763aeed9b09cd126f6b6",
+    "tests/responsive-semantic-resets.test.tsx": "200e9af4a25ce660e0491881984c9c304fe7654863f33b5b2a0b1d0e7c356852"
+  },
+  "reviewedArtifacts": {
+    "public/internal-ui-baselines/manifest.json": "863a25849366a8d20edf89b8e2d82bdf02e6fbf4be8dd210a26cb387b5caa4f9",
+    "qa-evidence/advanced-keyword-controls-2026-10-21/gallery-ab-review.json": "088d481c86c397edb9cf07c0b8080552d538b49e42d7e234783bc929cb6e3753",
+    "Main qa-evidence/full-customer-retest-2026-10-14/native/local-advanced-keywords-final-acceptance.json": "0b29c2b35093b1454ee82272b1596afa9543f5cc69ad323a8368a03391fc3718"
+  }
+}

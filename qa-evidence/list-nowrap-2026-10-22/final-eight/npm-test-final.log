@@ -1,0 +1,22 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=2
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (682 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365
+
+(node:69160) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69165) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69287) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  252 passed | 2 skipped (254)
+      Tests  2634 passed | 5 skipped (2639)
+   Start at  10:32:43
+   Duration  101.49s (transform 2.68s, setup 0ms, import 29.33s, tests 128.74s, environment 21.09s)

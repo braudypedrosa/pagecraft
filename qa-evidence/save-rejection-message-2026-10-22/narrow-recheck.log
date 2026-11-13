@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /private/tmp/pagecraft-save-error-contract.dxjdy1wr
+
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  22:46:50
+   Duration  5.71s (transform 899ms, setup 0ms, import 1.19s, tests 5.50s, environment 751ms)

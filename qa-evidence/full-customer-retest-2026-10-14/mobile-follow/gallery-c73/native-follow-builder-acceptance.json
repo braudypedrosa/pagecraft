@@ -1,0 +1,271 @@
+{
+  "baseCommit": "c73b97a1548d7448074678f73907441c0fe6b3c0",
+  "environment": "isolated loopback candidate; disposable MemoryStore and assigned-Pro identity",
+  "url": "http://localhost:4951/edit/s1",
+  "cases": [
+    {
+      "kind": "New navigation defaults Follow",
+      "value": "Follow navigation",
+      "passed": true
+    },
+    {
+      "kind": "Managed action returns exact parent",
+      "parentId": "n6g24x1qj",
+      "passed": true
+    },
+    {
+      "kind": "Managed layout follows parent label and URL",
+      "links": [
+        {
+          "href": "https://example.com/projects?view=menu&from=follow",
+          "text": "Projects & places"
+        },
+        {
+          "href": "index.html",
+          "text": "About"
+        },
+        {
+          "href": "index.html",
+          "text": "Contact"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "kind": "Undo Redo preserves managed links and exact parent action",
+      "phases": [
+        {
+          "phase": "changed",
+          "links": [
+            "Projects & places",
+            "About",
+            "Contact"
+          ],
+          "colour": "rgb(52, 86, 120)"
+        },
+        {
+          "phase": "undo",
+          "links": [
+            "Projects & places",
+            "About",
+            "Contact"
+          ],
+          "colour": "rgb(17, 19, 17)"
+        },
+        {
+          "phase": "redo",
+          "links": [
+            "Projects & places",
+            "About",
+            "Contact"
+          ],
+          "colour": "rgb(52, 86, 120)"
+        }
+      ],
+      "actionEnabled": true,
+      "passed": true
+    },
+    {
+      "kind": "Atomic mode Undo Redo",
+      "passed": true
+    },
+    {
+      "kind": "Separate custom layout persists exact IDs and content after save reload",
+      "passed": true
+    },
+    {
+      "kind": "Shared Follow layout uses exact second owner and first on reopen",
+      "passed": true
+    },
+    {
+      "kind": "Responsive preview has expected toggles and unique IDs",
+      "passed": true
+    },
+    {
+      "kind": "Runtime full width, authoritative links and no nested navigation",
+      "passed": true
+    },
+    {
+      "kind": "Escape closes and restores focus",
+      "passed": true
+    }
+  ],
+  "fullQA": false,
+  "historyStyle": [
+    {
+      "phase": "changed",
+      "links": [
+        "Projects & places",
+        "About",
+        "Contact"
+      ],
+      "colour": "rgb(52, 86, 120)"
+    },
+    {
+      "phase": "undo",
+      "links": [
+        "Projects & places",
+        "About",
+        "Contact"
+      ],
+      "colour": "rgb(17, 19, 17)"
+    },
+    {
+      "phase": "redo",
+      "links": [
+        "Projects & places",
+        "About",
+        "Contact"
+      ],
+      "colour": "rgb(52, 86, 120)"
+    }
+  ],
+  "customBefore": {
+    "ids": [
+      "n6jrmilt5",
+      "n6jrmimn9",
+      "n6jrmindq",
+      "n6jrmipd0",
+      "n6jrmiqic",
+      "n6jrmirgd",
+      "n6jsfjsn9",
+      "n6jsfjtw3",
+      "n6jsfju9"
+    ],
+    "heading": [
+      "A custom welcome"
+    ]
+  },
+  "modeHistory": [
+    {
+      "phase": "follow",
+      "mode": "Follow navigation"
+    },
+    {
+      "phase": "undo",
+      "mode": "Custom content"
+    },
+    {
+      "phase": "redo",
+      "mode": "Follow navigation"
+    }
+  ],
+  "followAfterSwitch": {
+    "links": [
+      "Projects & places",
+      "About",
+      "Contact"
+    ],
+    "colour": "rgb(52, 86, 120)",
+    "customHeadingAbsent": true
+  },
+  "customAfter": {
+    "ids": [
+      "n6jrmilt5",
+      "n6jrmimn9",
+      "n6jrmindq",
+      "n6jrmipd0",
+      "n6jrmiqic",
+      "n6jrmirgd",
+      "n6jsfjsn9",
+      "n6jsfjtw3",
+      "n6jsfju9"
+    ],
+    "heading": [
+      "A custom welcome"
+    ]
+  },
+  "secondOwnerPreview": [
+    "Second navigation",
+    "About",
+    "Contact"
+  ],
+  "secondOwnerReturn": {
+    "label": "Second navigation",
+    "accessibleName": "Secondary"
+  },
+  "firstOwnerReopen": [
+    "Projects & places",
+    "About",
+    "Contact"
+  ],
+  "preview": [
+    {
+      "bp": "Desktop",
+      "visibleToggleCount": 0,
+      "duplicateIds": []
+    },
+    {
+      "bp": "Tablet",
+      "visibleToggleCount": 0,
+      "duplicateIds": []
+    },
+    {
+      "bp": "Mobile",
+      "visibleToggleCount": 2,
+      "duplicateIds": []
+    }
+  ],
+  "mainOpen": {
+    "controls": "pagecraft-nav-menu-6g24x1qj-menu-content",
+    "panel": {
+      "links": [
+        {
+          "colour": "rgb(52, 86, 120)",
+          "href": "https://example.com/projects?view=menu&from=follow",
+          "text": "Projects & places"
+        },
+        {
+          "colour": "rgb(52, 86, 120)",
+          "href": "index.html",
+          "text": "About"
+        },
+        {
+          "colour": "rgb(52, 86, 120)",
+          "href": "index.html",
+          "text": "Contact"
+        }
+      ],
+      "navs": 0,
+      "text": "Projects & placesAboutContact",
+      "viewport": 414,
+      "width": 372.625
+    }
+  },
+  "mainEscape": {
+    "expanded": "false",
+    "focused": true
+  },
+  "secondaryOpen": [
+    "Second navigation",
+    "About",
+    "Contact"
+  ],
+  "panelGeometry": [
+    {
+      "hidden": false,
+      "viewport": 414,
+      "width": 414
+    }
+  ],
+  "customAfterSavedReload": {
+    "ids": [
+      "n6jrmilt5",
+      "n6jrmimn9",
+      "n6jrmindq",
+      "n6jrmipd0",
+      "n6jrmiqic",
+      "n6jrmirgd",
+      "n6jsfjsn9",
+      "n6jsfjtw3",
+      "n6jsfju9"
+    ],
+    "heading": [
+      "A custom welcome"
+    ]
+  },
+  "customSavedExact": true,
+  "passed": true,
+  "fixtureSetup": "Initial gallery-only server lacked MemoryOwnedSiteStore and correctly rejected creation; configured the standard in-memory owned-site dependency and local assigned-Pro identity, restarted disposable loopback server, then all site/menu authoring used builder UI. No database/API/storage authoring shortcuts.",
+  "scope": "New Follow defaults, parent labels/URL, editable layout, colour Undo/Redo, reversible modes/custom IDs, exact duplicated owner context, saved reload, D/T/M toggle/ID integrity and runtime full-width/Escape. WP Follow native, nested native hierarchy and wider navigation controls remain open."
+}

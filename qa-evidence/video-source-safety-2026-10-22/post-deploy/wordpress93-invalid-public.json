@@ -1,0 +1,29 @@
+{
+  "edit": {
+    "html": "<div id=\"n7ww0h17v\" data-id=\"n7ww0h17v\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-7ww0h17v\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+    "players": 0
+  },
+  "public": {
+    "414": {
+      "html": "<div id=\"pagecraft-video-7ww0h17v\" class=\"pagecraft-video pagecraft-7ww0h17v\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "pageOverflow": false,
+      "players": 0
+    },
+    "834": {
+      "html": "<div id=\"pagecraft-video-7ww0h17v\" class=\"pagecraft-video pagecraft-7ww0h17v\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "pageOverflow": false,
+      "players": 0
+    },
+    "1280": {
+      "html": "<div id=\"pagecraft-video-7ww0h17v\" class=\"pagecraft-video pagecraft-7ww0h17v\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "pageOverflow": false,
+      "players": 0
+    }
+  },
+  "cleanup": {
+    "tab": "29",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

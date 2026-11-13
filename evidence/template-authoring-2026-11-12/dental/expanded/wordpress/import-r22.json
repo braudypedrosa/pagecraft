@@ -1,0 +1,209 @@
+{
+    "site": "http://127.0.0.1:4397",
+    "packageSha256": "1eec7af5e63881b0f639b5b4f6f5b623096c045fd66e99f46753a716d190bffc",
+    "importResult": {
+        "jobId": 48,
+        "created": 0,
+        "updated": 6,
+        "absent": 0,
+        "projectId": "template:dental-clinic-a2:0.1.0",
+        "sourceVersion": 22,
+        "homepageId": 17
+    },
+    "beforePageIds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+    ],
+    "afterPageIds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+    ],
+    "pages": [
+        {
+            "id": 17,
+            "sourceId": "dental-index",
+            "title": "Home",
+            "status": "draft",
+            "documentVersion": 4,
+            "sectionCount": 8,
+            "forms": [],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=17&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=17"
+        },
+        {
+            "id": 18,
+            "sourceId": "dental-treatments",
+            "title": "Treatments",
+            "status": "draft",
+            "documentVersion": 3,
+            "sectionCount": 6,
+            "forms": [],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=18&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=18"
+        },
+        {
+            "id": 19,
+            "sourceId": "dental-care-team",
+            "title": "Care Team",
+            "status": "draft",
+            "documentVersion": 3,
+            "sectionCount": 5,
+            "forms": [],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=19&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=19"
+        },
+        {
+            "id": 20,
+            "sourceId": "dental-first-visit",
+            "title": "Your First Visit",
+            "status": "draft",
+            "documentVersion": 3,
+            "sectionCount": 5,
+            "forms": [],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=20&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=20"
+        },
+        {
+            "id": 21,
+            "sourceId": "dental-patient-information",
+            "title": "Patient Information",
+            "status": "draft",
+            "documentVersion": 3,
+            "sectionCount": 6,
+            "forms": [],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=21&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=21"
+        },
+        {
+            "id": 22,
+            "sourceId": "dental-contact",
+            "title": "Contact",
+            "status": "draft",
+            "documentVersion": 3,
+            "sectionCount": 4,
+            "forms": [
+                {
+                    "action": "",
+                    "method": "post",
+                    "mode": "external"
+                }
+            ],
+            "formTags": [],
+            "previewUrl": "http://127.0.0.1:4397/?page_id=22&preview=true",
+            "editorUrl": "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=22"
+        }
+    ],
+    "media": [
+        {
+            "id": 5,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/bp-mark-ink.svg",
+            "fileExists": true,
+            "sha256": "773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be"
+        },
+        {
+            "id": 6,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/care-team-portrait-01.webp",
+            "fileExists": true,
+            "sha256": "4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18"
+        },
+        {
+            "id": 7,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/care-team-portrait-02.webp",
+            "fileExists": true,
+            "sha256": "cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188"
+        },
+        {
+            "id": 8,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/comfortable-consultation.webp",
+            "fileExists": true,
+            "sha256": "b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b"
+        },
+        {
+            "id": 9,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/everyday-care-adult.webp",
+            "fileExists": true,
+            "sha256": "bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce"
+        },
+        {
+            "id": 10,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/everyday-oral-care.webp",
+            "fileExists": true,
+            "sha256": "2f834a7efa58df29d831d636b5468cf1a3fb072bf44b5645bcb272530abfd8bd"
+        },
+        {
+            "id": 11,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/family-care-hero.webp",
+            "fileExists": true,
+            "sha256": "b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd"
+        },
+        {
+            "id": 12,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/first-visit-child.webp",
+            "fileExists": true,
+            "sha256": "42c510f6b1b7cfd8aa85b930827e90589f835449b6d0d83693a1e78503510858"
+        },
+        {
+            "id": 13,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/l2-horizontal-primary.svg",
+            "fileExists": true,
+            "sha256": "a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9"
+        },
+        {
+            "id": 14,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/l2-mark-primary.svg",
+            "fileExists": true,
+            "sha256": "8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020"
+        },
+        {
+            "id": 15,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/light-filled-treatment-room.webp",
+            "fileExists": true,
+            "sha256": "b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9"
+        },
+        {
+            "id": 16,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/welcoming-reception.webp",
+            "fileExists": true,
+            "sha256": "66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875"
+        },
+        {
+            "id": 49,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/approach-conversation.webp",
+            "fileExists": true,
+            "sha256": "375b16b6ee3aaacb5ca5a70b5bafc0e0b927a2363e00311c0ccb33516a6f8356"
+        },
+        {
+            "id": 50,
+            "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/care-team-scene.webp",
+            "fileExists": true,
+            "sha256": "14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a"
+        }
+    ],
+    "mediaCount": 14,
+    "baselinePages": [
+        {
+            "id": 2,
+            "status": "publish"
+        },
+        {
+            "id": 3,
+            "status": "draft"
+        }
+    ],
+    "frontPage": "0",
+    "headerId": "26",
+    "footerId": "27"
+}

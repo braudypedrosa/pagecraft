@@ -1,0 +1,56 @@
+[
+  {
+    "hiddenDevice": "Desktop",
+    "device": "Desktop",
+    "display": "none",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Desktop",
+    "device": "Tablet",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Desktop",
+    "device": "Mobile",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Tablet",
+    "device": "Desktop",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Tablet",
+    "device": "Tablet",
+    "display": "none",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Tablet",
+    "device": "Mobile",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Mobile",
+    "device": "Desktop",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Mobile",
+    "device": "Tablet",
+    "display": "block",
+    "present": true
+  },
+  {
+    "hiddenDevice": "Mobile",
+    "device": "Mobile",
+    "display": "none",
+    "present": true
+  }
+]

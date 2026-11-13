@@ -1,0 +1,12 @@
+{
+  "afterDeleteUndoArrow": {
+    "count": 18,
+    "height": 101,
+    "left": 40,
+    "padding": "8px",
+    "pageOverflow": false,
+    "scrollHeight": 101
+  },
+  "returnedToEditing": true,
+  "errors": []
+}

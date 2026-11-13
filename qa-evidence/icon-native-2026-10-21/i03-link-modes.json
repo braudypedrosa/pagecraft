@@ -1,0 +1,27 @@
+{
+  "internal": {
+    "href": "community-workshops-and-accessibility-resources.html",
+    "label": "Workshop status",
+    "rel": "noopener",
+    "tag": "A",
+    "target": "_blank"
+  },
+  "email": {
+    "href": "mailto:qa@example.test",
+    "label": "Workshop status",
+    "tag": "A",
+    "target": "_blank"
+  },
+  "phone": {
+    "href": "tel:+1 555 0100",
+    "label": "Workshop status",
+    "tag": "A"
+  },
+  "unsafeReload": {
+    "href": null,
+    "label": "Workshop status",
+    "role": "img",
+    "tag": "svg"
+  },
+  "transmitted": false
+}

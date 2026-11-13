@@ -1,0 +1,81 @@
+{
+  "status": "Bounded native WordPress preview98 Gallery stale-cascade acceptance passed",
+  "wordpressCommit": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "cloudCoreCommit": "b927f6435cb5d3a0903f386b62741ecc2376b1c5",
+  "editorVersion": "0.2.17-preview.20261023.98",
+  "environment": "Local WordPress QA, saved page 616, public browser tab53",
+  "computedEvidence": [
+    {
+      "device": {
+        "name": "desktop",
+        "width": 1280
+      },
+      "checks": {
+        "rest72": true,
+        "hover88": true,
+        "closeTopRight14TransformNone46": true,
+        "keyboardFocusWhite2Offset2Shadow5": true
+      }
+    },
+    {
+      "device": {
+        "name": "tablet",
+        "width": 834
+      },
+      "checks": {
+        "rest72": true,
+        "hover88": true,
+        "closeTopRight14TransformNone46": true,
+        "keyboardFocusWhite2Offset2Shadow5": true
+      }
+    },
+    {
+      "device": {
+        "name": "mobile",
+        "width": 414
+      },
+      "checks": {
+        "rest72": true,
+        "hover88": true,
+        "closeTopRight14TransformNone46": true,
+        "keyboardFocusWhite2Offset2Shadow5": true
+      }
+    }
+  ],
+  "rootObservedNativeActions": [
+    "Enter on Next changes the image from quiet table to terrace",
+    "ArrowLeft returns to quiet table",
+    "Escape closes the lightbox and restores focus to the original first Gallery link"
+  ],
+  "actionEvidenceProvenance": "Root agent native browser acceptance report; screenshots and computed records supplied by root. This evidence worker did not operate the browser.",
+  "responsiveCleanupEvidence": "wordpress-responsive-cleanup.json",
+  "screenshots": {
+    "wordpress-desktop-keyboard.png": "6292d4e7fe99b8d5a86ecd315fb5984ceb1162c6d2535e3ecdede74be59dcac8",
+    "wordpress-tablet-keyboard.png": "f93d00e11b22458fd091ce38b09d7649992ea0dc098b1de4a0d221ca47fc3d2d",
+    "wordpress-mobile-keyboard.png": "bc22a8aeea3242f0dffddd642517d5a6d02a0da84911676db57d6ef4c49f9711"
+  },
+  "postNativeGuard": {
+    "evidence": "wordpress-post-native-guard.json",
+    "sha256": "867d60e13917b4a22010c85cb2a5b36fd0bf56156427ea6310214ebd33942613",
+    "checksPassed": 29,
+    "failures": 0,
+    "actualRevisions": 387,
+    "baselineRevisions": 385,
+    "newRevisions": [
+      670,
+      671
+    ],
+    "qa616Version": 28,
+    "savedSourceDocumentByteExact": true
+  },
+  "revisionCountCorrection": "Actual SQL count is 387, not the earlier estimate of 389. Two native saves created two revisions.",
+  "themeOrderingChanged": false,
+  "genericFoundationArchitecture": "OPEN",
+  "fullQAComplete": false,
+  "limits": [
+    "Bounded Gallery lightbox contrast, control placement, keyboard and stale global CSS precedence only.",
+    "Does not certify every Gallery/shared Advanced/Motion setting or all generic component CSS precedence.",
+    "Physical touch devices and full builder/customer flow coverage remain open.",
+    "Production environment was not changed."
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "baseCommit": "b01176d93be64ae6a357e3cf74b30870aae2fc4b",
+  "fixtureNode": "nfajv05kk",
+  "nativeAuthoringOnly": true,
+  "localOverridesAllStates": [
+    {
+      "device": "Desktop",
+      "resting": {
+        "color": "rgb(17, 34, 51)",
+        "keyboard": false
+      },
+      "hover": {
+        "color": "rgb(155, 63, 33)",
+        "hover": true,
+        "keyboard": false
+      },
+      "focus": {
+        "color": "rgb(36, 95, 47)",
+        "keyboard": true
+      }
+    },
+    {
+      "device": "Tablet",
+      "resting": {
+        "color": "rgb(17, 34, 51)",
+        "keyboard": false
+      },
+      "hover": {
+        "color": "rgb(155, 63, 33)",
+        "hover": true,
+        "keyboard": false
+      },
+      "focus": {
+        "color": "rgb(36, 95, 47)",
+        "keyboard": true
+      }
+    },
+    {
+      "device": "Mobile",
+      "resting": {
+        "color": "rgb(17, 34, 51)",
+        "keyboard": false
+      },
+      "hover": {
+        "color": "rgb(155, 63, 33)",
+        "hover": true,
+        "keyboard": false
+      },
+      "focus": {
+        "color": "rgb(36, 95, 47)",
+        "keyboard": true
+      }
+    }
+  ],
+  "clearLocalFocusRestoresClass": [
+    {
+      "device": "Desktop",
+      "color": "rgb(112, 64, 144)",
+      "keyboard": true
+    },
+    {
+      "device": "Tablet",
+      "color": "rgb(34, 85, 119)",
+      "keyboard": true
+    },
+    {
+      "device": "Mobile",
+      "color": "rgb(102, 119, 34)",
+      "keyboard": true
+    }
+  ],
+  "explicitResponsiveFocus": [
+    {
+      "device": "Desktop",
+      "viewport": 1280,
+      "color": "rgb(112, 64, 144)",
+      "keyboard": true
+    },
+    {
+      "device": "Tablet",
+      "viewport": 834,
+      "color": "rgb(34, 68, 136)",
+      "keyboard": true
+    },
+    {
+      "device": "Mobile",
+      "viewport": 414,
+      "color": "rgb(136, 102, 34)",
+      "keyboard": true
+    }
+  ],
+  "clearTabletOverride": {
+    "color": "rgb(34, 85, 119)",
+    "keyboard": true,
+    "width": 834
+  },
+  "mobileExplicitSurvives": {
+    "color": "rgb(136, 102, 34)",
+    "keyboard": true,
+    "width": 414
+  },
+  "savedReload": [
+    {
+      "device": "Desktop",
+      "color": "rgb(112, 64, 144)",
+      "keyboard": true,
+      "width": 1280
+    },
+    {
+      "device": "Tablet",
+      "color": "rgb(34, 85, 119)",
+      "keyboard": true,
+      "width": 834
+    },
+    {
+      "device": "Mobile",
+      "color": "rgb(136, 102, 34)",
+      "keyboard": true,
+      "width": 414
+    }
+  ],
+  "clearLocalBaseHoverRestoresClass": [
+    {
+      "device": "Desktop",
+      "base": {
+        "color": "rgb(51, 68, 85)",
+        "width": 1280
+      },
+      "hover": {
+        "color": "rgb(32, 80, 128)",
+        "hover": true,
+        "keyboard": false
+      }
+    },
+    {
+      "device": "Tablet",
+      "base": {
+        "color": "rgb(51, 68, 85)",
+        "width": 834
+      },
+      "hover": {
+        "color": "rgb(32, 80, 128)",
+        "hover": true,
+        "keyboard": false
+      }
+    },
+    {
+      "device": "Mobile",
+      "base": {
+        "color": "rgb(51, 68, 85)",
+        "width": 414
+      },
+      "hover": {
+        "color": "rgb(32, 80, 128)",
+        "hover": true,
+        "keyboard": false
+      }
+    }
+  ],
+  "responsiveClassBaseHover": {
+    "desktop": {
+      "base": {
+        "color": "rgb(51, 68, 85)",
+        "width": 1280
+      },
+      "hover": {
+        "color": "rgb(32, 80, 128)",
+        "hover": true
+      }
+    },
+    "tablet": {
+      "device": "Tablet",
+      "base": {
+        "color": "rgb(85, 102, 119)",
+        "width": 834
+      },
+      "hover": {
+        "color": "rgb(119, 85, 51)",
+        "hover": true,
+        "keyboard": false
+      }
+    },
+    "mobile": {
+      "device": "Mobile",
+      "base": {
+        "color": "rgb(119, 136, 153)",
+        "width": 414
+      },
+      "hover": {
+        "color": "rgb(51, 119, 85)",
+        "hover": true,
+        "keyboard": false
+      }
+    }
+  },
+  "tokenFocus": {
+    "color": "rgb(17, 19, 17)",
+    "keyboard": true,
+    "width": 1280
+  },
+  "rejectedFastSamples": "Two immediately chained Preview/viewport samples observed old Mobile width under Desktop label. Rejected as acceptance; settled actual widths1280/834/414 recorded above. No product cause established."
+}

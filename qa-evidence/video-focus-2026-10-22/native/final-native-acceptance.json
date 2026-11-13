@@ -1,0 +1,80 @@
+{
+  "builderKeyboard": {
+    "active": "IFRAME",
+    "focusWithin": true,
+    "marked": true,
+    "radius": "40px"
+  },
+  "builderBlur": {
+    "active": "A",
+    "focusWithin": false,
+    "marked": false,
+    "radius": "16px"
+  },
+  "exportedStandalone": {
+    "tabId": "40",
+    "views": [
+      {
+        "width": 1280,
+        "keyboard": {
+          "active": "IFRAME",
+          "marked": true,
+          "overflow": false,
+          "radius": "40px"
+        },
+        "blur": {
+          "marked": false,
+          "radius": "16px"
+        },
+        "pointer": {
+          "marked": false,
+          "radius": "16px"
+        }
+      },
+      {
+        "width": 834,
+        "keyboard": {
+          "active": "IFRAME",
+          "marked": true,
+          "overflow": false,
+          "radius": "40px"
+        },
+        "blur": {
+          "marked": false,
+          "radius": "16px"
+        },
+        "pointer": {
+          "marked": false,
+          "radius": "16px"
+        }
+      },
+      {
+        "width": 414,
+        "keyboard": {
+          "active": "IFRAME",
+          "marked": true,
+          "overflow": false,
+          "radius": "40px"
+        },
+        "blur": {
+          "marked": false,
+          "radius": "16px"
+        },
+        "pointer": {
+          "marked": false,
+          "radius": "16px"
+        }
+      }
+    ],
+    "cleanup": [
+      {},
+      {},
+      {}
+    ]
+  },
+  "limits": [
+    "Native global Tab shortcut did not leave embedded provider during13probes. Keyboard blur verified by native input on next sibling link.",
+    "Iframe pointer input in scaled builder canvas blocked by browser coordinate guard; standalone export pointer activation verified.",
+    "Cross-origin internal pointerdown event propagation is not claimed."
+  ]
+}

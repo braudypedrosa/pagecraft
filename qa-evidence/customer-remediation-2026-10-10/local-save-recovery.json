@@ -1,0 +1,19 @@
+{
+  "environment": "isolated local fixture",
+  "before": {
+    "firstTabSaved": "QA winner — saved in first tab",
+    "staleTab": "QA stale second-tab edit",
+    "conflict": "version 8 versus host 9; no save",
+    "reload": "Reload theirs remained blocked by unsaved guard"
+  },
+  "after": {
+    "firstTabSaved": "QA winner preserved after recovery",
+    "staleTab": "QA stale version must be discarded",
+    "conflict": "version 1 versus host 2; no save",
+    "reloadedHeading": [
+      "QA winner preserved after recovery"
+    ],
+    "result": "Explicit Reload theirs completed and preserved winning content"
+  },
+  "backupDownload": "Attempted through button, but built-in browser download event timed out; downloaded file not verified"
+}

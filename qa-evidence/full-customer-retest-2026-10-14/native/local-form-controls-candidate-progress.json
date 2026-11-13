@@ -1,0 +1,80 @@
+{
+  "environment": "isolated candidate localhost4944",
+  "tests": [
+    {
+      "case": "long submit label Desktop",
+      "actual": {
+        "button": 643.5625,
+        "doc": 1280,
+        "form": 1200,
+        "height": 46,
+        "scroll": 1280,
+        "whiteSpace": "normal",
+        "wrap": "anywhere"
+      }
+    },
+    {
+      "case": "long submit label Tablet",
+      "actual": {
+        "button": 643.5625,
+        "doc": 834,
+        "form": 786,
+        "height": 46,
+        "scroll": 834,
+        "whiteSpace": "normal",
+        "wrap": "anywhere"
+      }
+    },
+    {
+      "case": "long submit label Mobile",
+      "actual": {
+        "button": 374,
+        "doc": 414,
+        "form": 374,
+        "height": 70,
+        "scroll": 414,
+        "whiteSpace": "normal",
+        "wrap": "anywhere"
+      }
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "previewOmission": {
+    "runtimeBefore": {
+      "dateType": "date",
+      "nativeSelect": true,
+      "scripts": [
+        1976
+      ]
+    },
+    "runtimeAfter": {
+      "dateType": "text",
+      "keyboardDate": "2026-10-21",
+      "keyboardSelectEnd": "Studio",
+      "keyboardSelectTypeahead": "Accessibility and community planning with a very long option label for small mobile screens"
+    },
+    "cssAfter": {
+      "stylesLackSelectAndDate": true,
+      "result": "failed: native and custom controls both visible, SVG unstyled"
+    },
+    "formDataProbe": "Browser read-only evaluator has no FormData constructor; native submission not attempted. DOM named values verified; actual FormData covered only by automated runtime regression."
+  },
+  "newDateValidationDefect": {
+    "case": "valid calendar selection then impossible date typed",
+    "initialSelected": "2026-10-21",
+    "typed": "2026-02-30",
+    "afterBlur": {
+      "value": "2026-10-21",
+      "valid": false,
+      "message": "Enter a date in YYYY-MM-DD format.",
+      "aria": "true"
+    },
+    "afterInvalidSubmit": {
+      "value": "2026-10-21",
+      "valid": true,
+      "aria": "false",
+      "focus": "pagecraft-form-qa-ui-contact-f2"
+    },
+    "actualSubmission": false
+  }
+}

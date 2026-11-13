@@ -1,0 +1,2 @@
+tests/component-bool-rendering.test.ts(153,15): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Partial<AccordionProps & BoxProps & ButtonProps & CodeProps & ColumnProps & CrumbsProps & DividerProps & ... 16 more ... & VideoProps>'.
+  No index signature with a parameter of type 'string' was found on type 'Partial<AccordionProps & BoxProps & ButtonProps & CodeProps & ColumnProps & CrumbsProps & DividerProps & ... 16 more ... & VideoProps>'.

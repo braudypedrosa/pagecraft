@@ -1,0 +1,138 @@
+{
+  "format": "pagecraft.rich-conditions-modal-toast.combined.v1",
+  "date": "2026-10-21",
+  "baseCommit": "d2c244492b100450fdadd5ee66d39ffabc0da919",
+  "status": "Combined local candidate accepted by root native/gallery review and final automated checks; integration/release pending.",
+  "scope": [
+    "app/src/core/index.ts",
+    "app/src/core/safe-html.ts",
+    "build.mjs",
+    "packages/editor/build.mjs",
+    "package.json",
+    "package-lock.json",
+    "tests/rich-condition-values.test.ts",
+    "NOTICE",
+    "vendor/entities/LICENSE",
+    "shared/action-feedback.js",
+    "tests/action-feedback.test.ts",
+    "tests/modal-notification-layout.test.ts"
+  ],
+  "richPolicy": "See verification.json; the rich-only source/package/license files are unchanged.",
+  "modalToast": "Root copied the reviewed shared/action-feedback.js and matching tests from the separate isolated candidate; this worker did not edit those files. See ../modal-toast-2026-10-21.",
+  "checks": {
+    "focused": {
+      "filesPassed": 5,
+      "testsPassed": 48,
+      "log": "logs/combined-focused.log"
+    },
+    "typecheck": {
+      "passed": true,
+      "log": "logs/combined-typecheck.log"
+    },
+    "deterministicBuild": {
+      "artifacts": 11,
+      "exact": true,
+      "first": "generated-combined-build-1.sha256",
+      "second": "generated-combined-build-2.sha256"
+    },
+    "pureCoreCjs": "40ced053899f7e4f7477969095c0c1402f78b35f2cbb244a0a533f5b7cca829f remains byte-identical to the rich-only final build.",
+    "demo": {
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/combined-demo.log"
+    },
+    "audit": {
+      "allSeverities": 0,
+      "log": "logs/combined-audit.json"
+    },
+    "fullPreGallery": {
+      "result": "expected single fingerprint gate failure",
+      "filesPassed": 233,
+      "filesSkipped": 2,
+      "filesFailed": 1,
+      "testsPassed": 2520,
+      "testsSkipped": 5,
+      "testsFailed": 1,
+      "onlyFailure": "tests/ui-baselines.test.mjs requires review of shared/action-feedback.js",
+      "durationSeconds": 158.08,
+      "log": "logs/combined-full-pre-gallery-max-workers-2.log"
+    },
+    "freshNativeAndGallery": {
+      "rootNativeGeometry": "Actual1280x720 and768x480 dialogs: notices use relative layout below footer; target button receives hit testing; compact notices scroll and body remains overflow:auto.",
+      "rootRichNative": "All4operators, real reload and actualMobile414/nooverflow accepted; root-supplied native/local-final-acceptance.json.",
+      "galleryBehaviorChecks": 30,
+      "galleryCaptures": 24,
+      "galleryByteAndPixelIdentical": 24,
+      "baselineGate": {
+        "images": 24,
+        "sourceFiles": 28,
+        "result": "pass"
+      },
+      "evidence": [
+        "../modal-toast-2026-10-21/native/combined-live-notice-desktop.json",
+        "../modal-toast-2026-10-21/native/combined-live-notices-compact.json",
+        "../modal-toast-2026-10-21/gallery-exact-comparison.json",
+        "../modal-toast-2026-10-21/gallery/behavior-checks.json"
+      ],
+      "retryCaveat": "One initial gallery Retry refresh click did not clear the error; a later direct click did. Cause remains unconfirmed. Three fresh readiness-gated native probes cleared it. No product change inferred. See ../modal-toast-2026-10-21/gallery/refresh-recovery-probes.json."
+    },
+    "sourceFreezeAfterFullSuite": "All combined source and generated artifact hashes were rechecked and remained exact.",
+    "fullFinalReviewed": {
+      "result": "pass",
+      "filesPassed": 234,
+      "filesSkipped": 2,
+      "testsPassed": 2521,
+      "testsSkipped": 5,
+      "durationSeconds": 100.27,
+      "maxWorkers": 2,
+      "includes": [
+        "TypeScript",
+        "direct package build-order regression",
+        "complete Vitest suite"
+      ],
+      "log": "logs/combined-full-final-reviewed-max-workers-2.log"
+    },
+    "sourceFreezeAfterFinalSuite": "All combined source and11generated artifact hashes rechecked unchanged after the final all-green command."
+  },
+  "native": {
+    "harness": "http://localhost:4964/edit/s1",
+    "pid": 12812,
+    "session": 93905,
+    "freshCombinedAssets": true,
+    "richOnlyProof": "native/local-final-acceptance.json predates the additional modal-toast UI patch; root owns combined acceptance."
+  },
+  "hashes": {
+    "app/src/core/index.ts": "3ada3fc146ea5d22fdf2d9cb40dda457df7447980775ccb7ad7dd5c08c78e3b2",
+    "app/src/core/safe-html.ts": "d004a165e90f99cdb732a86b0885b95992853069b4d6ec496a6fcc3fb5e22eb6",
+    "build.mjs": "7aaf53f8d4af904d06bb37edf8c857e40cdeed6315e1d53f8b99b5ac2e093600",
+    "packages/editor/build.mjs": "211835ee3250d5d8b66237bc87561ae7df47b7dbb2bd6ecd3186b7f5d4e35ece",
+    "package.json": "f07ed4888e7d973472af57b72677db396d41df2cbe5e444b027d54fbfcbde7ae",
+    "package-lock.json": "add0b488e906c263780f73e1875f9a0ea15d22d2989e71c634c9351142190d98",
+    "tests/rich-condition-values.test.ts": "53b19c39c226060ec74d34b4b4d0337fa9c3b58cba55037bef909fc0d2f5b2b9",
+    "NOTICE": "6d58ac85dc5632a07c0c756322e802c6bea4e8e76f0b66627b3acf2ea3b15ae4",
+    "vendor/entities/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "shared/action-feedback.js": "732e26184ba61d4310c7d956856a2a617e106dc7574774fa2a6e74f990a946a7",
+    "tests/action-feedback.test.ts": "33b3cbc0d0ad2656b1fdf2aefafd56a56015288e96471e1efd3d7e85d76902da",
+    "tests/modal-notification-layout.test.ts": "3cc9e00a4100f046bb8061f0ce0466887ddf63d96bb5d4e108ea95d12edde67e",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19",
+    "index.html": "bc5ac5566f4920f23c68de85a5b8863e787536430b246b2fee44dc1c5aa7ca03",
+    "dist/core.cjs": "40ced053899f7e4f7477969095c0c1402f78b35f2cbb244a0a533f5b7cca829f",
+    "packages/editor/dist/editor.html": "865864a684f001d22fa38fca988282bb6dcedcc4a18afb10f2ec3cd585753f4c",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "e253a5ba0716c376d2f0fe7dab06b292da829a28434326f9a6ce4f322586c5d2",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+  },
+  "sourceMutationsByThisWorker": "No source edits in the combined phase. Only build outputs and bounded evidence were written.",
+  "delivery": "No Main, WordPress, browser, database, commit or push changes by this worker.",
+  "reviewedBaseline": {
+    "file": "public/internal-ui-baselines/manifest.json",
+    "sha256": "3037af52f80070268a4ef6ec8e01a11579e4b54ecebcef8404d36a85dd87901e",
+    "recordedBy": "root after fresh actual built-in-browser capture/review"
+  }
+}

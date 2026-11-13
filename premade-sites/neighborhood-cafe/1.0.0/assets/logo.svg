@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-labelledby="title">
+  <title id="title">Morning Field café</title>
+  <rect width="640" height="160" fill="#f7f1e5"/>
+  <rect width="160" height="160" rx="80" fill="#31513f"/>
+  <path d="M45 104V57l35 29 35-29v47" fill="none" stroke="#f4ead8" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M119 71c18 0 27 9 27 25s-9 25-27 25" fill="none" stroke="#d9784b" stroke-width="10" stroke-linecap="round"/>
+  <text x="192" y="82" fill="#1d3026" font-family="Georgia,serif" font-size="58">Morning Field</text>
+  <text x="195" y="120" fill="#6b6f62" font-family="Arial,sans-serif" font-size="20" letter-spacing="5">NEIGHBORHOOD CAFÉ</text>
+</svg>

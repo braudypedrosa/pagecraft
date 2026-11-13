@@ -1,0 +1,119 @@
+{
+  "baseCommit": "1f4b2ccd2dcfeb5e994a17c716af6284e06fe041",
+  "status": "Implementation and local verification complete; root-owned native verification remains pending for the final range-preserving build.",
+  "ownership": {
+    "worker": [
+      "builder.html",
+      "tests/customer-editor-regressions.test.mjs",
+      "tests/richtext-list-normalization.test.mjs",
+      "generated outputs",
+      "qa-evidence/richtext-list-safety-2026-10-22"
+    ],
+    "root": [
+      "app/src/core/index.ts",
+      "app/src/core/safe-html.ts",
+      "tests/rich-text-render-safety.test.ts",
+      "gallery interaction and capture evidence"
+    ]
+  },
+  "workerRed": {
+    "command": "npx vitest run tests/richtext-list-normalization.test.mjs --maxWorkers=1",
+    "exitCode": 1,
+    "testsFailed": 4,
+    "failure": "All four tests failed because normalizeRichListStructure was absent."
+  },
+  "rootCoreRedGreen": {
+    "redLog": {
+      "path": "logs/core-safety-red.log",
+      "sha256": "5875ffd4d25bfc09dae2d72a10b08c16e5ced6897e8b02faa5420ef8e5aacc50"
+    },
+    "greenLog": {
+      "path": "logs/core-safety-green.log",
+      "sha256": "9cd549a2dd712386ece2b04b57979a8f2e08a0d5080ee23992345fe8bdbfdade"
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "logs/typecheck.log"
+    },
+    "relatedRichText": {
+      "command": "npx vitest run tests/richtext-list-normalization.test.mjs tests/customer-editor-regressions.test.mjs tests/rich-text-render-safety.test.ts tests/render-safety.test.ts tests/rich-text-focus-state.test.ts tests/rich-text-link-state.test.ts tests/proposals.test.ts --maxWorkers=1",
+      "exitCode": 0,
+      "filesPassed": 7,
+      "testsPassed": 62,
+      "evidence": "logs/related-richtext.log"
+    },
+    "wordpressGoldenCheckOnly": {
+      "command": "npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector' --maxWorkers=1",
+      "exitCode": 0,
+      "testsPassed": 1,
+      "testsSkipped": 29,
+      "updated": false,
+      "evidence": "logs/wordpress-golden-check.log"
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    "fullSuite": {
+      "command": "npm test",
+      "exitCode": 0,
+      "filesPassed": 255,
+      "filesSkipped": 2,
+      "testsPassed": 2662,
+      "testsSkipped": 5,
+      "evidence": "logs/full-suite.log",
+      "sha256": "e2e0ae6c6653767ca281b4dc27ffadda7b370768694cb328bded35ec65bb4d31"
+    }
+  },
+  "determinism": {
+    "sequence": "node build.mjs, then node packages/editor/build.mjs; repeated twice",
+    "buildExitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "artifacts": 10,
+    "allFilesExist": true,
+    "receiptsMatch": true,
+    "receipts": [
+      "generated-build-1.sha256",
+      "generated-build-2.sha256"
+    ]
+  },
+  "freeze": {
+    "manifest": "freeze-17.sha256",
+    "entries": 17,
+    "verified": true,
+    "includes": "Seven source, test and unchanged WordPress golden files plus ten generated outputs."
+  },
+  "galleryGate": {
+    "sourceChanged": "builder.html",
+    "fullSuiteRun": true,
+    "rootEvidence": "30 of 30 built-in-browser interactions and 24 of 24 capture comparisons matched; reviewed manifest check passed.",
+    "manifest": "public/internal-ui-baselines/manifest.json",
+    "manifestSha256": "4bdbe16021d683cfba34b4accdaa59dced8c5c2788678af48cd36255ce6171aa"
+  },
+  "limits": [
+    "No worker browser, Main, WordPress, dependency, commit, push or deployment work.",
+    "No WordPress golden update.",
+    "Root owns the public-output sanitization slice, refreshed gallery manifest, gallery evidence and native verification.",
+    "Native verification of the final range-preserving build remains pending with root; the worker does not claim native acceptance.",
+    "All fourteen broad QA areas remain open."
+  ],
+  "manifestHashes": {
+    "sourceTestsGolden": "0695a86ff6896b92b3717e28f0c96e11dbd971a3a2fcf3ad7579e7c63d52d6a6",
+    "generatedBuild1": "bd4e41746c2e685d786d042c01bf94eb4f866f61bdbd1205a968ad1ec3b25b5b",
+    "generatedBuild2": "bd4e41746c2e685d786d042c01bf94eb4f866f61bdbd1205a968ad1ec3b25b5b",
+    "freeze17": "a93d06ca7f5d9173fa730d94ed203dbc51741d3fd20adf57577e5fa6af30e98d"
+  },
+  "finalFreeze": {
+    "manifest": "freeze-17.sha256",
+    "sha256": "a93d06ca7f5d9173fa730d94ed203dbc51741d3fd20adf57577e5fa6af30e98d",
+    "verifiedAfterFullSuite": true,
+    "galleryManifestReceipt": "gallery-manifest.sha256"
+  }
+}

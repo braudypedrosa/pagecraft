@@ -1,0 +1,25 @@
+{
+  "baseCommit": "2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49",
+  "status": "Root source, native and gallery acceptance complete; final full suite passes. Ready for root integration, uncommitted and undeployed.",
+  "frozenEntries": 22,
+  "drift": [],
+  "hashes": {
+    "source-tests-assets.sha256": "eaebaf8caac2b928b53f5f52486f5e8159849a8fbb2d8a20151c5abb055d3602",
+    "reviewed-baseline.previous.sha256": "568fe4b25bf24aa3d4e3f48f4cc609c0efcbf8dd49bd17bae8992cd2c9ac9fa9",
+    "reviewed-baseline.sha256": "8ba2ba025a0ed6e124f65b1bc1c0135cfe95d9442fe39917254b4826d4e5fade",
+    "outside-generated-build-1.sha256": "5aa0f5aa6812955728dd7e4a2989ad6dcd58e62c86ded069158f25cea1727964",
+    "outside-generated-build-2.sha256": "5aa0f5aa6812955728dd7e4a2989ad6dcd58e62c86ded069158f25cea1727964",
+    "logs/full-final.log": "076ddb376ec89908400e856555f89381af1ba719ee7c4eadeada8b2523a5d6bc",
+    "logs/outside-audit.log": "55859f08822fae9902e90fbd4a2585b59764bd4fb29d04a039184d35b78b29db",
+    "logs/baseline-final.log": "e1635ae81d3534eb044cefffc8892dcc7645698d4b06e8b8fbe2c8d18a705522",
+    "served-ui-final-receipt.json": "79fda3d4928e5e53f907600155ab4adc362e3c1e338fbddb086c30d58a16e030",
+    "native/final-outside-focus.json": "b84da0c8900333f70e155b47959620e5e5adf11c94302d737752c06f907c294d",
+    "native/final-escape.json": "8751cb846503a06dedb9cd6ff8b5925eee895cd3095a6ded659095a81d4da2a9",
+    "native/final-keyboard-reload.json": "809ed114b7b54966acd5ce92c2bea2836d6eebb365c7a395cd9ada6975345b8a",
+    "gallery/behavior-checks.json": "6bc789be6773dd579d91537e0bf391b5d56b4a7ae3ff1be22846fdc4eaf738ff",
+    "gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "gallery/cleanup.json": "2d03d5b33f7c401957d3f3ae4458c1634efcb6f6a3394b5b30c6c92894f60272"
+  },
+  "sourceHash": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
+  "testHash": "b08c16136c56f06cb42f6546d64bd288e1f7e24a0bc462153e831258b9af0e48"
+}

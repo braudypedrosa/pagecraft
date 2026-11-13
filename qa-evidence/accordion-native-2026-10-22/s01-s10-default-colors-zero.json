@@ -1,0 +1,29 @@
+[
+  {
+    "device": "Desktop",
+    "answer": "rgb(17, 19, 17)",
+    "divider": "rgb(17, 19, 17)",
+    "gap": "0px",
+    "marker": "rgb(17, 19, 17)",
+    "question": "rgb(17, 19, 17)",
+    "radius": "0px"
+  },
+  {
+    "device": "Tablet",
+    "answer": "rgb(17, 19, 17)",
+    "divider": "rgb(17, 19, 17)",
+    "gap": "0px",
+    "marker": "rgb(17, 19, 17)",
+    "question": "rgb(17, 19, 17)",
+    "radius": "0px"
+  },
+  {
+    "device": "Mobile",
+    "answer": "rgb(17, 19, 17)",
+    "divider": "rgb(17, 19, 17)",
+    "gap": "0px",
+    "marker": "rgb(17, 19, 17)",
+    "question": "rgb(17, 19, 17)",
+    "radius": "0px"
+  }
+]

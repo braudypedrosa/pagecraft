@@ -1,0 +1,32 @@
+{
+  "themeSource": "9880f71499a3e8812da9a4695bb933460d1bfa48",
+  "builderSource": "d29371bf52bc65f720d1a4ed3d26b91293ad614f",
+  "checks": [
+    {
+      "globalWrappers": [
+        {
+          "class": "pagecraft-main",
+          "id": ""
+        },
+        {
+          "class": "pagecraft-main",
+          "id": ""
+        }
+      ],
+      "hash": "#pagecraft-main",
+      "mainIds": 1,
+      "scrollY": 101,
+      "targetInContent": true,
+      "targetInHeader": false
+    }
+  ],
+  "mobileMenu": {
+    "mainIds": 1,
+    "toggleExpanded": "true",
+    "visibleLinks": [
+      "Menu",
+      "Story",
+      "Visit"
+    ]
+  }
+}

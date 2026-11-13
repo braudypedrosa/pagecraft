@@ -160,6 +160,9 @@ export function planImport(
 
     for (const { target, index } of columns) {
       if (RESERVED.includes(target)) continue;
+      /* A short row stops before its trailing cells, which is not the same as emptying them: an
+         update keeps what it does not reach. A cell that is there and empty still clears. */
+      if (existing && index >= row.length) continue;
       item.values[target] = (row[index] ?? '').trim();
     }
     const draft = cell(IMPORT_DRAFT);

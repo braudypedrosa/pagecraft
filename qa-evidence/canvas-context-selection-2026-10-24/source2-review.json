@@ -1,0 +1,22 @@
+{
+  "base": "cfa3ca348ea7a0b15e2327cdefa7a348a4c7d2ad",
+  "files": {
+    "builder.html": "e0d67828adcd55a32ccac48bcfa94f3672e3ec76096ce181b5919d76e0de607d",
+    "tests/canvas-context-selection.test.mjs": "1025763d4af2ee5d51c4d66a85dcf1740c601ff6dd2fd817c750e79c117e74e6"
+  },
+  "redCorrectedHarness": {
+    "failed": 2,
+    "passed": 2
+  },
+  "focused": {
+    "files": 4,
+    "passed": 18,
+    "exit": 0
+  },
+  "typecheckExit": 0,
+  "scope": "Secondary pointer selection only; no builds/generated/Core/schema/golden/PHP changes.",
+  "limits": [
+    "Source-executed real handlers/Core/menu DOM in jsdom, not native after-fix acceptance.",
+    "Initial readonly document assignment harness error retained separately."
+  ]
+}

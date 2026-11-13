@@ -1,0 +1,11 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+(node:60021) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  4 passed (4)
+      Tests  34 passed (34)
+   Start at  05:54:11
+   Duration  1.14s (transform 1.13s, setup 0ms, import 1.37s, tests 506ms, environment 2.04s)
+

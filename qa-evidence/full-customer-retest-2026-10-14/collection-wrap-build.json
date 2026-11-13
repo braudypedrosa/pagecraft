@@ -1,0 +1,24 @@
+{
+  "parentCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "status": "Focused red/green passed; combined build and staging acceptance pending",
+  "isolate": "/tmp/pagecraft-collection-wrap-red-75ed",
+  "method": "Clean git archive: test-only red, exact core overlay green; each resolved cwd asserted outside main",
+  "red": {
+    "exitCode": 1,
+    "log": "tests-collection-wrap-red-75ed.log",
+    "assertion": "desktop Slider cannot wrap its slide track"
+  },
+  "green": {
+    "exitCode": 0,
+    "testsPassed": 1,
+    "log": "tests-collection-wrap-green-75ed.log",
+    "scope": "D/T/M control availability and exact responsive Grid state restored"
+  },
+  "source": {
+    "app/src/core/index.ts": "75956b22f1eb0fa3dc820fe72067b42d64d13f3cd95362e0416b179bb86204b4",
+    "tests/collection-slider-controls.test.tsx": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d"
+  },
+  "protectedMainGenerated11Exact": true,
+  "nativeBefore": "native/staging-75ed-collection-layout-in-progress.json",
+  "historicalHarnessCorrection": "Initial green comparison started before Inspector materialized an empty collections array. Baseline now follows initial view; raw failing log retained as tests-collection-wrap-green-pre-baseline-75ed.log. No application issue inferred."
+}

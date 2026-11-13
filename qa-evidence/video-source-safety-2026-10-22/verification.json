@@ -1,0 +1,167 @@
+{
+  "baseCommit": "37f65d4b83de12d6959bfa982c935bc945e31461",
+  "status": "Implementation and local verification complete; root-owned native acceptance pending.",
+  "scope": {
+    "owned": [
+      "app/src/core/index.ts",
+      "tests/video-source-safety.test.ts",
+      "generated outputs",
+      "qa-evidence/video-source-safety-2026-10-22"
+    ],
+    "excluded": [
+      "Main",
+      "browser",
+      "builder.html",
+      "Inspector",
+      "WordPress writes",
+      "golden updates",
+      "dependencies",
+      "commit",
+      "push"
+    ]
+  },
+  "contract": {
+    "allowed": [
+      "canonical YouTube",
+      "canonical Vimeo",
+      "credential-free HTTP and HTTPS custom embeds",
+      "absolute and relative supported video files",
+      "Pagecraft asset tokens",
+      "data:video URLs",
+      "relative filenames with encoded spaces"
+    ],
+    "rejected": [
+      "arbitrary relative text",
+      "protocol-relative URLs",
+      "credential-bearing URLs",
+      "malformed absolute URLs",
+      "JavaScript and VBScript URLs",
+      "HTML and SVG data URLs",
+      "FTP, file, blob, mailto and other unsupported schemes",
+      "leading slash or backslash network-path mixtures",
+      "literal ASCII controls",
+      "leading percent-encoded ASCII controls"
+    ],
+    "invalidRendering": "Request-free Unsupported video URL placeholder in edit and public output.",
+    "draftRecovery": "The authored props.src value is not mutated."
+  },
+  "red": {
+    "exitCode": 1,
+    "testsFailed": 17,
+    "testsPassed": 8,
+    "evidence": "logs/red.log"
+  },
+  "checks": {
+    "focused": {
+      "exitCode": 0,
+      "filesPassed": 2,
+      "testsPassed": 52,
+      "evidence": "logs/url-normalization-green.log"
+    },
+    "related": {
+      "exitCode": 0,
+      "filesPassed": 7,
+      "testsPassed": 786,
+      "evidence": "logs/related-final.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck-final.log"
+    },
+    "wordpressGolden": {
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 29,
+      "updated": false,
+      "evidence": "logs/wordpress-golden-check-final.log"
+    },
+    "fullSuiteFirst": {
+      "exitCode": 1,
+      "filesPassed": 255,
+      "filesFailed": 2,
+      "testsPassed": 2678,
+      "testsFailed": 1,
+      "testsSkipped": 19,
+      "failures": [
+        "gateway-db PGlite beforeAll exceeded 10 seconds",
+        "submissions failed-attempt cap test exceeded 30 seconds"
+      ],
+      "evidence": "logs/full-suite.log"
+    },
+    "isolatedTimeoutSuites": {
+      "exitCode": 0,
+      "filesPassed": 2,
+      "testsPassed": 30,
+      "evidence": "logs/isolated-server-timeouts.log"
+    },
+    "fullSuiteRetry": {
+      "exitCode": 0,
+      "filesPassed": 257,
+      "filesSkipped": 2,
+      "testsPassed": 2693,
+      "testsSkipped": 5,
+      "evidence": "logs/full-suite-retry.log"
+    },
+    "diffCheck": {
+      "exitCode": 0
+    },
+    "fullSuiteFinal": {
+      "exitCode": 0,
+      "filesPassed": 257,
+      "filesSkipped": 2,
+      "testsPassed": 2701,
+      "testsSkipped": 5,
+      "evidence": "logs/full-suite-final.log"
+    }
+  },
+  "builds": {
+    "sequence": "node build.mjs then node packages/editor/build.mjs, repeated twice",
+    "exitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "artifacts": 10,
+    "allExist": true,
+    "receiptsMatch": true,
+    "generatedReceiptSha256": "e795aa0690cc44bde7eec560f95686f8ae8bb30488c63d72bb5119c96d67421b",
+    "receipts": [
+      "generated-final-1.sha256",
+      "generated-final-2.sha256"
+    ]
+  },
+  "freeze": {
+    "entries": 13,
+    "verified": true,
+    "manifest": "freeze-final-13.sha256",
+    "manifestSha256": "38cab922af44dbfdcb9f81e1a7c3742f241c5c29a4f42ba04307c5eaf6e162ad",
+    "sourceTestsGoldenSha256": "2aed43721a544d4b7eb25eeed5da634ec4fab0917032785c98fd0d459551ba69"
+  },
+  "playsinline": {
+    "finding": "Unmuted non-autoplay file video output lacks playsinline because the attribute is currently coupled to muted or autoplay.",
+    "changed": false,
+    "reason": "Independent behavior, outside the bounded URL-validation fix."
+  },
+  "limits": [
+    "Root owns UI feedback and final native acceptance.",
+    "Malicious sources were evaluated only as strings in unit tests and were not executed in a browser.",
+    "No native acceptance is claimed.",
+    "Full QA remains open."
+  ],
+  "normalizationFollowup": {
+    "evidence": "Node URL normalization maps two leading backslashes, backslash-slash and slash-backslash to cross-origin URLs, and removes embedded tab/newline characters from a JavaScript scheme.",
+    "red": {
+      "exitCode": 1,
+      "testsFailed": 7,
+      "testsPassed": 26,
+      "evidence": "logs/url-normalization-red.log"
+    },
+    "green": {
+      "exitCode": 0,
+      "filesPassed": 2,
+      "testsPassed": 52,
+      "evidence": "logs/url-normalization-green.log"
+    }
+  }
+}

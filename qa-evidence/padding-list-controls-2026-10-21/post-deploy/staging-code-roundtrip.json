@@ -1,0 +1,26 @@
+{
+  "quietStage83": {
+    "alerts": 0,
+    "invalid": null,
+    "value": "12"
+  },
+  "errorStage83": {
+    "invalid": "true",
+    "linked": "P0-0",
+    "message": "Enter up to four sizes, such as 8px 12px."
+  },
+  "codeMobileDefaultStage83": "12px 13px",
+  "stageCodeLive83": "13px 14px 15px 16px",
+  "stageCodeRoundtrip83": [
+    {
+      "device": "Desktop",
+      "input": "16px 20px 24px 28px",
+      "computed": "16px 20px 24px 28px"
+    },
+    {
+      "device": "Mobile",
+      "input": "13px 14px 15px 16px",
+      "computed": "13px 14px 15px 16px"
+    }
+  ]
+}

@@ -53,10 +53,17 @@ function wordpressFetch(doc: Doc) {
     if (path === '/menus/primary' && method === 'GET') return json({ id: 'primary', name: 'Primary', items: [] });
     if (path === '/menus/primary' && method === 'PUT') return json({ id: 'primary', name: 'Primary', items: [] });
     if (path === '/media' && method === 'GET') return json([
-      { id: '51', name: 'hero.webp', mimeType: 'image/webp', url: 'https://wp.test/hero.webp', size: 123 }
+      { id: '51', name: 'hero.webp', mimeType: 'image/webp', url: 'https://wp.test/hero.webp', size: 123,
+        usageKnown: true, usageCount: 2, canDelete: false,
+        usedBy: [{ id: '42', type: 'page', title: 'Home', status: 'publish', parentId: null,
+          references: ['managed_document', 'featured_image'] }] },
+      { id: 'legacy', name: 'legacy.webp', mimeType: 'image/webp', url: 'https://wp.test/legacy.webp', size: 20 },
+      { id: 'unsafe', name: 'unsafe.webp', mimeType: 'image/webp', url: 'https://wp.test/unsafe.webp', size: 20,
+        usageKnown: true, usageCount: 2, canDelete: true, usedBy: [] }
     ]);
     if (path === '/media' && method === 'POST') return json({
-      id: '52', name: 'new.webp', mimeType: 'image/webp', url: 'https://wp.test/new.webp', size: 3
+      id: '52', name: 'new.webp', mimeType: 'image/webp', url: 'https://wp.test/new.webp', size: 3,
+      usageKnown: true, usageCount: 0, canDelete: true, usedBy: []
     }, 201);
     if (path === '/media/51' && method === 'GET') return new Response(new Blob(['img'], { type: 'image/webp' }));
     if (path === '/media/51' && method === 'DELETE') return json({ removed: '51' });
@@ -94,6 +101,7 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   a.equal(host.features.projectExport, false);
   a.equal(host.features.media, 'wordpress');
   a.equal(host.features.dynamicContent, 'wordpress');
+  a.equal(host.features.managedForms, false);
   a.equal(host.authentication.can('edit_document'), true);
   a.equal(host.authentication.can('manage_pages'), false);
   const session = await host.authentication.session();
@@ -123,9 +131,23 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   const menu = await host.menus.get('primary');
   a.equal((await host.menus.save(menu)).id, 'primary');
 
-  a.equal((await host.assets.list())[0].mimeType, 'image/webp');
+  const media = await host.assets.list();
+  a.equal(media[0].mimeType, 'image/webp');
+  a.deepEqual({ known: media[0].usageKnown, count: media[0].usageCount, canDelete: media[0].canDelete,
+    references: media[0].usedBy?.[0].references }, {
+    known: true, count: 2, canDelete: false, references: ['managed_document', 'featured_image']
+  });
+  a.deepEqual({ known: media[1].usageKnown, count: media[1].usageCount, canDelete: media[1].canDelete,
+    usedBy: media[1].usedBy }, { known: false, count: null, canDelete: false, usedBy: [] },
+  'legacy WordPress rows fail closed when the host cannot prove usage');
+  a.deepEqual({ known: media[2].usageKnown, count: media[2].usageCount, canDelete: media[2].canDelete,
+    usedBy: media[2].usedBy }, { known: false, count: null, canDelete: false, usedBy: [] },
+  'internally inconsistent WordPress usage fails closed');
   a.equal((await host.assets.download('51')).size, 3);
-  a.equal((await host.assets.upload(new Blob(['new'], { type: 'image/webp' }), 'new.webp')).id, '52');
+  const uploaded = await host.assets.upload(new Blob(['new'], { type: 'image/webp' }), 'new.webp');
+  a.deepEqual({id: uploaded.id, known: uploaded.usageKnown, count: uploaded.usageCount,
+    canDelete: uploaded.canDelete, usedBy: uploaded.usedBy},
+  {id: '52', known: true, count: 0, canDelete: true, usedBy: []});
   await host.assets.remove('51');
 
   a.equal((await host.settings.read()).theme, 'pagecraft');
@@ -143,6 +165,107 @@ test('WordPress adapter covers pages, revisions, menus, media, settings, nonces 
   const lastHeaders = new Headers(fixture.calls.at(-1)!.init.headers);
   a.equal(lastHeaders.get('X-WP-Nonce'), 'nonce-two', 'nonce rotation changes transport authorization only');
   a.ok(fixture.calls.every(call => call.url.startsWith('https://wp.test/wp-json/pagecraft/v1/')));
+});
+
+test('an expired WordPress REST nonce is refreshed once and the request retried', async () => {
+  /* WordPress stops accepting the nonce the editor opened with after 12 to 24 hours. */
+  const doc = currentDocument();
+  const calls: { url: string; nonce: string | null }[] = [];
+  let valid = 'a1b2c3d4e5', handed = 'a1b2c3d4e5';
+  const host = createWordPressHostAdapter({
+    restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'nonce-stale',
+    nonceUrl: 'https://wp.test/wp-admin/admin-ajax.php?action=rest-nonce',
+    fetch: async (input, init = {}) => {
+      const url = String(input);
+      const nonce = new Headers(init.headers).get('X-WP-Nonce');
+      calls.push({ url, nonce });
+      if (url.includes('admin-ajax.php')) return new Response(handed);
+      if (nonce !== valid) return json({ code: 'rest_cookie_invalid_nonce', message: 'Cookie check failed' }, 403);
+      return json({ version: 10 });
+    }
+  });
+
+  a.equal((await host.documents.save({ document: doc, version: 9 })).version, 10);
+  a.deepEqual(calls.map(c => [new URL(c.url).pathname, c.nonce]), [
+    ['/wp-json/pagecraft/v1/pages/42/document', 'nonce-stale'],
+    ['/wp-admin/admin-ajax.php', null],
+    ['/wp-json/pagecraft/v1/pages/42/document', 'a1b2c3d4e5']
+  ]);
+
+  /* a login that has really ended answers `0`: one retry at most, and the refusal stands */
+  valid = 'never'; handed = '0'; calls.length = 0;
+  await a.rejects(host.documents.save({ document: doc, version: 10 }),
+    (e: any) => e.status === 403 && e.payload.code === 'rest_cookie_invalid_nonce');
+  a.equal(calls.filter(c => c.url.includes('/document')).length, 1, 'no retry without a fresh nonce');
+
+  /* and any other 403 is not a nonce problem, so nothing is asked for */
+  calls.length = 0;
+  const plain = createWordPressHostAdapter({
+    restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'n',
+    nonceUrl: 'https://wp.test/wp-admin/admin-ajax.php?action=rest-nonce',
+    fetch: async input => { calls.push({ url: String(input), nonce: null }); return json({ code: 'rest_forbidden' }, 403); }
+  });
+  await a.rejects(plain.documents.save({ document: doc, version: 1 }));
+  a.equal(calls.length, 1);
+});
+
+test('a save sent as the tab closes goes as keepalive only when the body is small enough', async () => {
+  const seen: (boolean | undefined)[] = [];
+  const host = createWebHostAdapter({
+    siteId: 'site-1', role: 'owner',
+    fetch: async (_input, init = {}) => { seen.push(init.keepalive); return json({ version: 2 }); }
+  });
+  const small = currentDocument();
+  await host.documents.save({ document: small, version: 1, keepalive: true });
+  const big = currentDocument();
+  big.meta.css = 'x'.repeat(70_000);
+  await host.documents.save({ document: big, version: 1, keepalive: true });
+  await host.documents.save({ document: small, version: 1 });
+  a.deepEqual(seen, [true, undefined, undefined], 'browsers refuse a keepalive body over 64 KiB outright');
+});
+
+test('Web saves acknowledge only responses with a finite numeric version', async () => {
+  const document = currentDocument();
+  const invalidResponses: Array<[string, () => Response]> = [
+    ['malformed JSON', () => new Response('{', { status: 200, headers: { 'content-type': 'application/json' } })],
+    ['JSON null', () => json(null)],
+    ['a missing version', () => json({})],
+    ['a nonnumeric version', () => json({ version: '10' })],
+  ];
+
+  for (const [label, response] of invalidResponses) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1', role: 'owner', fetch: async () => response(),
+    });
+    await a.rejects(
+      host.documents.save({ document, version: 9 }),
+      /Invalid Cloud save response: expected a finite numeric version/,
+      label,
+    );
+  }
+
+  for (const version of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1',
+      role: 'owner',
+      transport: {
+        async request<T>() {
+          return { status: 200, headers: new Headers(), body: { version } as T };
+        },
+      },
+    });
+    await a.rejects(
+      host.documents.save({ document, version: 9 }),
+      /Invalid Cloud save response: expected a finite numeric version/,
+    );
+  }
+
+  for (const version of [0, 10]) {
+    const host = createWebHostAdapter({
+      siteId: 'site-1', role: 'owner', fetch: async () => json({ version }),
+    });
+    a.deepEqual(await host.documents.save({ document, version: 9 }), { version });
+  }
 });
 
 test('WordPress adapter can target a native global-element document without changing other host services', async () => {
@@ -196,6 +319,7 @@ test('web and WordPress hosts adopt and compile the identical document identical
   a.equal(web.features.hostedPublishing, true);
   a.equal(web.features.projectExport, true);
   a.equal(web.features.pages, 'pagecraft');
+  a.equal(web.features.managedForms, false);
   const fixture = wordpressFetch(doc);
   const wordpress = createWordPressHostAdapter({
     restUrl: 'https://wp.test/wp-json/pagecraft/v1', pageId: 42, nonce: 'n', fetch: fixture.fetcher

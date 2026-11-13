@@ -3,7 +3,7 @@
  */
 export const ACTION_FEEDBACK_CSS = `
 .pc-notifications{position:fixed;inset:auto 20px 20px auto;z-index:20000;display:flex;flex-direction:column;gap:10px;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;pointer-events:none;margin:0;padding:0;border:0;background:transparent;color:#f5f7f8;font:500 13px/1.5 Manrope,system-ui,sans-serif}
-.pc-notifications:empty{display:none}.pc-notification{display:flex;align-items:flex-start;gap:10px;padding:14px 12px 14px 16px;background:#171a17;border-radius:8px;box-shadow:0 10px 28px -10px #0006;pointer-events:auto;overflow-wrap:anywhere}.pc-notification[data-tone="error"]{background:#752922}.pc-notification-icon{width:18px;height:18px;flex:0 0 18px;margin-top:1px}.pc-notification[data-tone="success"] .pc-notification-icon{color:#b7f34a}.pc-notification-message{flex:1;min-width:0}.pc-notification button{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;min-height:28px!important;height:28px!important;padding:5px!important;margin:-3px 0 -3px 2px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:inherit!important;cursor:pointer!important;opacity:1!important}.pc-notification button:hover{background:#ffffff1c!important}.pc-notification button:focus-visible{background:#ffffff1c!important}.pc-notification button svg{width:16px;height:16px}.pc-notification[data-tone="progress"] .pc-notification-icon,[data-pc-pending]::before{animation:pc-action-spin .8s linear infinite}[data-pc-pending]{cursor:progress!important;opacity:.85!important}[data-pc-pending]::before{content:"";display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:middle;margin-inline-end:6px}[data-pc-pending-icon]{display:grid!important;place-items:center!important;padding:0!important;overflow:hidden!important}[data-pc-pending-icon]>*{display:none!important}[data-pc-pending-icon]::before{grid-area:1 / 1;margin:0;transform-origin:center}.pc-action-status{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.pc-action-status[data-tone="success"]{color:#24543a}.pc-action-status[data-tone="error"]{color:#8f312b}.pc-action-status svg{width:16px;height:16px;flex-shrink:0}@keyframes pc-action-spin{to{transform:rotate(360deg)}}@media(max-width:560px){.pc-notifications{inset:auto 16px 16px 16px;width:auto;max-height:50dvh}}@media(prefers-reduced-motion:reduce){.pc-notification-icon,[data-pc-pending]::before{animation:none!important}}
+.pc-notifications[data-dialog]{position:relative;inset:auto;width:auto;max-height:min(180px,30dvh);min-height:0;pointer-events:auto;flex:0 1 auto;margin:var(--pc-space-3,12px)}.pc-notifications[data-dialog]>.pc-notification{flex-shrink:0}.pc-notifications:empty{display:none}.pc-notification{display:flex;align-items:flex-start;gap:10px;padding:14px 12px 14px 16px;background:#171a17;border-radius:8px;box-shadow:0 10px 28px -10px #0006;pointer-events:auto;overflow-wrap:anywhere}.pc-notification[data-tone="error"]{background:#752922}.pc-notification-icon{width:18px;height:18px;flex:0 0 18px;margin-top:1px}.pc-notification[data-tone="success"] .pc-notification-icon{color:#b7f34a}.pc-notification-message{flex:1;min-width:0}.pc-notification button{display:grid!important;place-items:center!important;flex:0 0 28px!important;width:28px!important;min-height:28px!important;height:28px!important;padding:5px!important;margin:-3px 0 -3px 2px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:inherit!important;cursor:pointer!important;opacity:1!important}.pc-notification button:hover{background:#ffffff1c!important}.pc-notification button:focus-visible{background:#ffffff1c!important}.pc-notification button svg{width:16px;height:16px}.pc-notification[data-tone="progress"] .pc-notification-icon,[data-pc-pending]::before{animation:pc-action-spin .8s linear infinite}[data-pc-pending]{cursor:progress!important;opacity:.85!important}[data-pc-pending]::before{content:"";display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:middle;margin-inline-end:6px}[data-pc-pending-icon]{display:grid!important;place-items:center!important;padding:0!important;overflow:hidden!important}[data-pc-pending-icon]>*{display:none!important}[data-pc-pending-icon]::before{grid-area:1 / 1;margin:0;transform-origin:center}.pc-action-status{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.pc-action-status[data-tone="success"]{color:#24543a}.pc-action-status[data-tone="error"]{color:#8f312b}.pc-action-status svg{width:16px;height:16px;flex-shrink:0}@keyframes pc-action-spin{to{transform:rotate(360deg)}}@media(max-width:560px){.pc-notifications{inset:auto 16px 16px 16px;width:auto;max-height:50dvh}}@media(prefers-reduced-motion:reduce){.pc-notification-icon,[data-pc-pending]::before{animation:none!important}}
 `;
 
 export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
@@ -12,7 +12,22 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const style = document.createElement('style');
   style.id = 'pc-action-feedback-styles'; style.textContent = css; document.head.append(style);
   let host;
-  const records = new Map(), pending = new WeakMap(), keys = new WeakMap(), jobs = new Set();
+  const records = new Map(), pending = new WeakMap(), keys = new WeakMap(), jobs = new Set(), activeActions = new Set();
+  // Failure messages remain available after their short-lived notification closes.
+  // Keep them in this page session, not in a project or browser storage.
+  const problems = new Map();
+  const problemChanged = () => window.dispatchEvent(new CustomEvent('pc-feedback-problems'));
+  const rememberProblem = (message, options = {}) => {
+    const id = options.id || 'problem-'+(++sequence);
+    problems.delete(id);
+    problems.set(id, {id,message:String(message),at:Date.now(),label:options.label || '',recover:options.recover,available:options.available});
+    if(problems.size>20)problems.delete(problems.keys().next().value);
+    problemChanged();
+    return id;
+  };
+  const resolveProblem = id => { if(problems.delete(id))problemChanged(); };
+  const readProblems = () => [...problems.values()].reverse().map(({id,message,at,label,recover,available})=>({id,message,at,label,canRecover:typeof recover==='function'&&(!available||available())}));
+  const recoverProblem = id => { const problem=problems.get(id);if(typeof problem?.recover!=='function'||(problem.available&&!problem.available()))return false;problem.recover();return true; };
   let sequence = 0;
   const paths = {
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
@@ -26,6 +41,32 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     if (!host) return;
     const parent=destination();
     if(host.parentElement!==parent)parent.append(host);
+    const inDialog=parent!==document.body;
+    host.toggleAttribute('data-dialog',inDialog);
+    if(inDialog){
+      // A notice is part of the dialog layout, not an overlay on its choices or actions.
+      // Keep it inside the focus trap while the existing body yields scrollable space.
+      if(host.hasAttribute('popover')){
+        if(host.matches(':popover-open'))host.hidePopover();
+        host.removeAttribute('popover');
+      }
+      for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
+      return;
+    }
+    // Keep editor feedback in the canvas, above its zoom controls. Inspector actions
+    // remain visible; other Cloud surfaces and dialogs retain their usual placement.
+    const stage=parent===document.body ? document.getElementById('stage') : null;
+    const bounds=stage?.getBoundingClientRect();
+    if(bounds?.width>160 && bounds.height>0){
+      const dim=document.getElementById('dim')?.getBoundingClientRect();
+      const bottom=dim?.height ? Math.max(20,window.innerHeight-dim.top+12) : 20;
+      host.style.right=Math.max(16,window.innerWidth-bounds.right+16)+'px';
+      host.style.bottom=bottom+'px';
+      host.style.width=Math.min(420,bounds.width-32)+'px';
+      host.style.maxHeight=Math.max(80,window.innerHeight-Math.max(52,bounds.top)-16-bottom)+'px';
+    }else{
+      for(const property of ['right','bottom','width','max-height'])host.style.removeProperty(property);
+    }
     if(typeof host.showPopover==='function'&&host.childElementCount){
       host.setAttribute('popover','manual');
       if(host.matches(':popover-open'))host.hidePopover();
@@ -65,15 +106,27 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
     const resume = () => { if(!record.remaining||record.node.matches(':hover')||record.node.contains(document.activeElement))return; record.started=Date.now();record.timer=setTimeout(dismiss,record.remaining); };
     clearTimeout(record.timer); record.timer=0;
     const tone=options.tone || 'info'; record.node.dataset.tone=tone;
+    if(tone==='error')rememberProblem(message,{id,label:options.label,recover:options.recover,available:options.available});
+    else if(tone==='success')resolveProblem(id);
     record.mark.innerHTML=icon(tone); record.text.setAttribute('role',tone==='error'?'alert':'status');
     record.text.textContent=String(message); place();
     // Five seconds is the shared default for completed notices, including failures.
     // Progress remains until its work resolves; exceptional notices can explicitly use
     // `duration: 0` when the user must act on them before they disappear.
-    record.remaining=options.duration ?? (tone==='progress'?0:5000); resume();
+    record.duration=options.duration ?? (tone==='progress'?0:5000);
+    record.remaining=record.duration; resume();
     // Keep the stack bounded while preserving only work that is still in progress.
     if(records.size>5) for(const [key,r] of records) { if(records.size<=5)break;if(key!==id&&r.node.dataset.tone!=='progress'){clearTimeout(r.timer);records.delete(key);const motion=window.__pcMotion;if(motion)motion.exit(r.node,{kind:'notification',remove:true});else r.node.remove();} }
-    return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone}), success:value=>notify(value,{id,tone:'success'}), error:value=>notify(value,{id,tone:'error'}) };
+    const context={label:options.label,recover:options.recover,available:options.available};
+    return { dismiss, update:(value,tone='progress')=>notify(value,{id,tone,...context}), success:value=>notify(value,{id,tone:'success',...context}), error:value=>notify(value,{id,tone:'error',...context}) };
+  };
+  const dismissTransient = () => {
+    for(const [id,record] of records){
+      if(!['info','success'].includes(record.node.dataset.tone)||!(record.duration>0))continue;
+      clearTimeout(record.timer);records.delete(id);
+      // A new picker must not inherit a previous result while its exit is animating.
+      window.__pcMotion?.cancel(record.node);record.node.remove();
+    }
   };
   const isIconOnly = control => {
     if (!control) return false;
@@ -87,13 +140,22 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   };
   const begin = (button, message, key, options = {}) => {
     if (button && pending.has(button)) return null;
-    if(button&&!keys.has(button))keys.set(button,'button-'+(++sequence));
-    const notice=options.announce === false ? {update:()=>{},success:()=>{},error:()=>{},dismiss:()=>{}} : notify(message,{tone:'progress',...(key?{id:'job-'+key}:button?{id:keys.get(button)}:{})});
+    // Modal and panel controls are often rebuilt between attempts. A DOM id names the
+    // same logical action across those replacements; anonymous controls remain isolated
+    // by object identity. An explicit key still owns identity when the caller supplies one.
+    if(button&&!button.id&&!keys.has(button))keys.set(button,'button-'+(++sequence));
+    const actionId=key?'job-'+key:button?.id?'button-id-'+button.id:button?keys.get(button):undefined;
+    if(actionId&&activeActions.has(actionId))return null;
+    if(actionId)activeActions.add(actionId);
+    const label=button?.getAttribute('aria-label') || button?.textContent?.trim() || button?.getAttribute('title') || '';
+    const recover=button ? ()=>{if(button.isConnected){button.scrollIntoView?.({block:'nearest'});button.focus();}} : undefined;
+    const available=button ? ()=>button.isConnected&&!button.disabled&&!button.closest('[hidden],dialog:not([open])') : undefined;
+    const notice=options.announce === false ? {update:()=>{},success:()=>{},error:()=>{},dismiss:()=>{}} : notify(message,{tone:'progress',label,recover,available,...(actionId?{id:actionId}:{})});
     const iconOnly=isIconOnly(button);
     const snapshot=button?{html:button.innerHTML,disabled:button.disabled,busy:button.getAttribute('aria-busy'),label:button.getAttribute('aria-label'),ariaDisabled:button.getAttribute('aria-disabled'),iconOnly}:null;
     let done=false;
     if(button){pending.set(button,true);button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-disabled','true');button.setAttribute('aria-label',message);button.setAttribute('data-pc-pending','');if(iconOnly){button.setAttribute('data-pc-pending-icon','');button.replaceChildren();}else button.textContent=message;}
-    const restore=()=>{if(done)return false;done=true;if(button){pending.delete(button);button.innerHTML=snapshot.html;button.disabled=snapshot.disabled;button.removeAttribute('data-pc-pending');button.removeAttribute('data-pc-pending-icon');for(const [name,value] of [['aria-busy',snapshot.busy],['aria-label',snapshot.label],['aria-disabled',snapshot.ariaDisabled]]){if(value===null)button.removeAttribute(name);else button.setAttribute(name,value);}}return true;};
+    const restore=()=>{if(done)return false;done=true;if(actionId)activeActions.delete(actionId);if(button){pending.delete(button);button.innerHTML=snapshot.html;button.disabled=snapshot.disabled;button.removeAttribute('data-pc-pending');button.removeAttribute('data-pc-pending-icon');for(const [name,value] of [['aria-busy',snapshot.busy],['aria-label',snapshot.label],['aria-disabled',snapshot.ariaDisabled]]){if(value===null)button.removeAttribute(name);else button.setAttribute(name,value);}}return true;};
     return { update:notice.update, success:message=>{if(restore())notice.success(message);}, error:message=>{if(restore())notice.error(message);}, cancel:()=>{if(restore())notice.dismiss();} };
   };
   // Foreground work enters here once, at the user-action boundary, not once per fetch.
@@ -102,7 +164,7 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const run = async (options, work) => {
     const key = options.key || options.button;
     if (key && jobs.has(key)) return {status:'busy'};
-    const action = begin(options.button || null, options.pending, options.key);
+    const action = begin(options.button || null, options.pending, options.key, options);
     if (!action) return {status:'busy'};
     if (key) jobs.add(key);
     try {
@@ -126,10 +188,16 @@ export function installActionFeedback(css = ACTION_FEEDBACK_CSS) {
   const flash = (message, path = location.pathname) => { try { sessionStorage.setItem('pc-action-result',JSON.stringify({message,at:Date.now(),path})); } catch {} };
   const restoreFlash = () => { try { const raw=sessionStorage.getItem('pc-action-result'); if(!raw)return;sessionStorage.removeItem('pc-action-result');const value=JSON.parse(raw);if(value.path===location.pathname&&Date.now()-value.at<60000)notify(value.message,{tone:'success',id:'navigation-result'}); } catch {} };
   if(document.body)restoreFlash();else document.addEventListener('DOMContentLoaded',restoreFlash,{once:true});
-  const observer = new MutationObserver(()=>{if(host&&host.parentElement!==destination())place();});
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden']});
-  const destroy=()=>{observer.disconnect();for(const record of records.values())clearTimeout(record.timer);records.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
-  const api={notify,begin,run,flash,destroy}; window.__pcFeedback=api;
+  const observer = new MutationObserver(changes=>{
+    const parent=host?.parentElement;
+    if(host?.childElementCount && (parent!==destination() || changes.some(change=>
+      change.target===document.body || ['right','rightAux','stage','modal','ask'].includes(change.target.id)
+      || (parent?.matches?.('.pc-dialog')&&change.target instanceof Element&&!host.contains(change.target)&&change.target.closest('.pc-dialog')===parent))))place();
+  });
+  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','class']});
+  window.addEventListener('resize',place);
+  const destroy=()=>{observer.disconnect();window.removeEventListener('resize',place);for(const record of records.values())clearTimeout(record.timer);records.clear();problems.clear();activeActions.clear();host?.remove();style.remove();document.removeEventListener('DOMContentLoaded',restoreFlash);delete window.__pcFeedback;};
+  const api={notify,dismissTransient,begin,run,flash,destroy,rememberProblem,resolveProblem,problems:readProblems,recoverProblem}; window.__pcFeedback=api;
   return api;
 }
 export const ACTION_FEEDBACK_BOOT_SCRIPT = `(${installActionFeedback.toString()})(${JSON.stringify(ACTION_FEEDBACK_CSS)});`;

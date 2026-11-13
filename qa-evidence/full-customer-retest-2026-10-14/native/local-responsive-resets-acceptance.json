@@ -1,0 +1,106 @@
+{
+  "base": "50c8446fba4f63d560dff3f702bcec3535b60e18",
+  "cases": [
+    {
+      "device": "Desktop",
+      "button": {
+        "marginTop": "548px",
+        "parentH": 1000,
+        "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+        "y": 620
+      },
+      "image": {
+        "filter": "grayscale(1)",
+        "loaded": true,
+        "naturalWidth": 1536,
+        "width": 588
+      }
+    },
+    {
+      "device": "Tablet",
+      "button": {
+        "marginTop": "0px",
+        "parentH": 1000,
+        "shadow": "none",
+        "y": 72
+      },
+      "image": {
+        "filter": "none",
+        "loaded": true,
+        "naturalWidth": 1536,
+        "width": 381
+      }
+    },
+    {
+      "device": "Mobile",
+      "button": {
+        "marginTop": "0px",
+        "parentH": 309.328125,
+        "shadow": "none",
+        "y": 48
+      },
+      "image": {
+        "filter": "none",
+        "loaded": true,
+        "naturalWidth": 1536,
+        "width": 374
+      }
+    }
+  ],
+  "buttonDefaultPosition": "Position\nDefault",
+  "buttonDefaultTransform": "Transform\nDefault",
+  "defaultShadow": "Shadow\nDefault",
+  "tabletShadowNone": "Shadow\nOverride\nNone",
+  "tabletNormalFlow": "Position\nOverride\nIn the normal flow",
+  "imageDefaultFilter": "Filter\nInherited\nDefault",
+  "tabletFilterNone": "Filter\nOverride\nNone",
+  "resetTabletShadow": "Shadow\nInherited\nSoft",
+  "resetTabletPosition": "Position\nInherited\nPush to column bottom",
+  "resetTabletFilter": "Filter\nInherited\nGreyscale",
+  "mobileFilterNone": "Filter\nOverride\nNone",
+  "mobileShadowNone": "Shadow\nOverride\nNone",
+  "mobileNormalFlow": "Position\nOverride\nIn the normal flow",
+  "sharedControlNames": {
+    "Weight": 1,
+    "Transform": 1,
+    "Default HTML tag": 0
+  },
+  "sharedControlNamesBeforeFullLabelFix": {
+    "Weight": 1,
+    "Transform": 1,
+    "Default HTML tag": 0
+  },
+  "semanticCoreSha256": "6039ecc117d0255fd24587920ba1bec33251bcd4bca5dbb295d3d40e24c63780",
+  "limitations": [
+    "Default HTML tag and unit controls still had generic accessible names in this checkpoint; additional label fix pending.",
+    "Real image uploaded through native chooser; no request injection."
+  ],
+  "afterResetTablet": {
+    "button": {
+      "marginTop": "686px",
+      "parentH": 1000,
+      "shadow": "rgba(17, 19, 17, 0.18) 0px 8px 20px -8px",
+      "y": 758
+    },
+    "image": {
+      "filter": "grayscale(1)",
+      "loaded": true,
+      "naturalWidth": 1536,
+      "width": 381
+    }
+  },
+  "independentMobile": {
+    "button": {
+      "marginTop": "0px",
+      "parentH": 309.328125,
+      "shadow": "none",
+      "y": 48
+    },
+    "image": {
+      "filter": "none",
+      "loaded": true,
+      "naturalWidth": 1536,
+      "width": 374
+    }
+  }
+}

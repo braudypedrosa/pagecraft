@@ -161,13 +161,19 @@ test('the map does not grow without limit', () => {
   a.ok(t.size() < 100, `expected a sweep, still holding ${t.size()}`);
 });
 
-test('active attacker-controlled keys are capped too', () => {
+test('active attacker-controlled keys are capped too, by forgetting the stalest rather than refusing newcomers', () => {
+  /* Refusing every new key once the map is full would let one caller with many addresses lock
+     everybody else out of signing in. */
   const t = throttle(1, 60_000, 3);
   a.equal(t.take('one', 1), true);
-  a.equal(t.take('two', 1), true);
-  a.equal(t.take('three', 1), true);
-  a.equal(t.take('four', 1), false);
+  a.equal(t.take('two', 2), true);
+  a.equal(t.take('three', 3), true);
+  a.equal(t.take('two', 4), false, 'still limited, and now the most recently seen');
+  a.equal(t.take('four', 5), true, 'a new key is answered normally');
   a.equal(t.size(), 3);
+  a.equal(t.limited('one', 6), false, 'the stalest key was the one forgotten');
+  a.equal(t.limited('two', 6), true, 'an active limit survives the eviction');
+  a.equal(t.limited('three', 6), true);
 });
 
 test('the public login body and address have hard limits', async () => {

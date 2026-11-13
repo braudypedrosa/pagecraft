@@ -1,0 +1,180 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-insertion-ca2a2cf
+
+ ❯ tests/mobile-menu-placement.test.mjs (10 tests | 8 failed) 168ms
+   × body menu near the bottom opens above its trigger instead of an 80px ancestor-anchored strip 89ms
+   × normal and transformed headers keep below-header placement using actual viewport bounds 10ms
+   × short content stays below when it fits even if more space exists above 8ms
+   × short viewport and long content use the larger scrollable side 8ms
+   × long header content stays below and is bounded by the available viewport 9ms
+   × resize recomputes placement and window scroll follows the actual trigger 8ms
+   × custom built menu uses the same placement and restores its content on close 8ms
+   × follow built menu uses the same placement and restores its content on close 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > body menu near the bottom opens above its trigger instead of an 80px ancestor-anchored strip
+AssertionError: expected { top: 588, maxHeight: NaN } to deeply equal { top: 314, maxHeight: 544 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 544,
+-   "top": 314,
++   "maxHeight": NaN,
++   "top": 588,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:32:21
+     30| test('body menu near the bottom opens above its trigger instead of an …
+     31|  const r = runtime(); r.toggle.click();
+     32|  expect(r.bounds()).toEqual({ top: 314, maxHeight: 544 });
+       |                     ^
+     33|  expect(r.bounds().top + 230).toBe(544);
+     34|  expect(r.panel().textContent).toContain('WorkAboutContact');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > normal and transformed headers keep below-header placement using actual viewport bounds
+AssertionError: expected { top: 72, maxHeight: NaN } to deeply equal { top: 72, maxHeight: 596 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 596,
++   "maxHeight": NaN,
+    "top": 72,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:40:22
+     38|  for (const transformed of [false, true]) {
+     39|   const r = runtime({ header: true, top: 28, bottom: 72, transformed }…
+     40|   expect(r.bounds()).toEqual({ top: 72, maxHeight: 596 });
+       |                      ^
+     41|  }
+     42| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > short content stays below when it fits even if more space exists above
+AssertionError: expected { top: 588, maxHeight: NaN } to deeply equal { top: 404, maxHeight: 264 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 264,
+-   "top": 404,
++   "maxHeight": NaN,
++   "top": 588,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:46:21
+     44| test('short content stays below when it fits even if more space exists…
+     45|  const r = runtime({ top: 360, bottom: 404, natural: 200 }); r.toggle.…
+     46|  expect(r.bounds()).toEqual({ top: 404, maxHeight: 264 });
+       |                     ^
+     47| });
+     48|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > short viewport and long content use the larger scrollable side
+AssertionError: expected { top: 200, maxHeight: NaN } to deeply equal { top: +0, maxHeight: 180 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 180,
+-   "top": 0,
++   "maxHeight": NaN,
++   "top": 200,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:51:21
+     49| test('short viewport and long content use the larger scrollable side',…
+     50|  const r = runtime({ top: 180, bottom: 224, height: 280, natural: 900 …
+     51|  expect(r.bounds()).toEqual({ top: 0, maxHeight: 180 });
+       |                     ^
+     52|  expect(r.panel().querySelectorAll('a')).toHaveLength(3);
+     53| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > long header content stays below and is bounded by the available viewport
+AssertionError: expected { top: 72, maxHeight: NaN } to deeply equal { top: 72, maxHeight: 596 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 596,
++   "maxHeight": NaN,
+    "top": 72,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:57:21
+     55| test('long header content stays below and is bounded by the available …
+     56|  const r = runtime({ header: true, top: 28, bottom: 72, natural: 1800 …
+     57|  expect(r.bounds()).toEqual({ top: 72, maxHeight: 596 });
+       |                     ^
+     58| });
+     59|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > resize recomputes placement and window scroll follows the actual trigger
+AssertionError: expected { top: 588, maxHeight: NaN } to deeply equal { top: 84, maxHeight: 584 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 584,
+-   "top": 84,
++   "maxHeight": NaN,
++   "top": 588,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:64:21
+     62|  r.geometry.top = 40; r.geometry.bottom = 84;
+     63|  r.w.dispatchEvent(new r.w.Event('resize'));
+     64|  expect(r.bounds()).toEqual({ top: 84, maxHeight: 584 });
+       |                     ^
+     65|  r.geometry.top = 520; r.geometry.bottom = 564;
+     66|  r.w.dispatchEvent(new r.w.Event('scroll'));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  tests/mobile-menu-placement.test.mjs > custom built menu uses the same placement and restores its content on close
+ FAIL  tests/mobile-menu-placement.test.mjs > follow built menu uses the same placement and restores its content on close
+AssertionError: expected { top: 588, maxHeight: NaN } to deeply equal { top: 314, maxHeight: 544 }
+
+- Expected
++ Received
+
+  {
+-   "maxHeight": 544,
+-   "top": 314,
++   "maxHeight": NaN,
++   "top": 588,
+  }
+
+ ❯ tests/mobile-menu-placement.test.mjs:74:38
+     72| for (const mode of ['custom', 'follow']) test(`${mode} built menu uses…
+     73|  const r = runtime({ props: { mobileMenuMode: mode } }), content = r.o…
+     74|  r.toggle.click();expect(r.bounds()).toEqual({ top: 314, maxHeight: 54…
+       |                                      ^
+     75|  r.d.dispatchEvent(new r.w.KeyboardEvent('keydown', { key: 'Escape', b…
+     76|  expect(r.panel()).toBeNull();expect(content.parentElement).toBe(r.own…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 2 passed (10)
+   Start at  19:35:22
+   Duration  997ms (transform 209ms, setup 0ms, import 711ms, tests 168ms, environment 0ms)

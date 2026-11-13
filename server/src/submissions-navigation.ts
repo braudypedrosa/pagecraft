@@ -39,11 +39,6 @@ export function submissionsNavigation(prepared: Record<string, string>) {
       if(event.target.matches('dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();return;}
 
       const link=event.target.closest('a');if(!link||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-      if(link.matches('.pc-sub-export')){
-        event.preventDefault();
-        const action=window.__pcFeedback.begin(link,'Preparing CSV…');if(!action)return;
-        (async()=>{try{const response=await fetch(link.href,{credentials:'same-origin'});if(!response.ok||response.redirected||!response.headers.get('content-type')?.includes('text/csv'))throw new Error('CSV export failed. Please try again.');const blob=await response.blob();const url=URL.createObjectURL(blob);const download=document.createElement('a');download.href=url;download.download='submissions.csv';document.body.append(download);download.click();download.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);action.success('CSV export ready. Download started.');}catch(error){action.error(error.message||'CSV export failed. Please try again.');}})();return;
-      }
       const url=new URL(link.href);if(url.origin!==location.origin||url.pathname!==base)return;
       event.preventDefault();go(url.href,true,link.hasAttribute('data-inbox-refresh'),link);
     });

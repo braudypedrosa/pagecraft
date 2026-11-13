@@ -1,0 +1,42 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/button-class-specificity
+
+ ❯ tests/button-variant-style-precedence.test.ts (7 tests | 2 failed) 195ms
+     × an inherited local Button surface beats responsive class surfaces when editing is false 19ms
+     × an inherited local Button surface beats responsive class surfaces when editing is true 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/button-variant-style-precedence.test.ts > button variant style precedence > an inherited local Button surface beats responsive class surfaces when editing is false
+ FAIL  tests/button-variant-style-precedence.test.ts > button variant style precedence > an inherited local Button surface beats responsive class surfaces when editing is true
+AssertionError: expected [ '15px', 'rgb(32, 48, 64)', …(2) ] to deeply equal [ '27px', 'rgb(170, 187, 204)', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "27px",
+-   "rgb(170, 187, 204)",
+-   "7px",
+-   "23px",
++   "15px",
++   "rgb(32, 48, 64)",
++   "3px",
++   "15px",
+  ]
+
+ ❯ tests/button-variant-style-precedence.test.ts:143:113
+    141|     for (const breakpoint of ['d', 't', 'm'] as const) {
+    142|       const dom = new JSDOM(`<style>${responsiveRules(C.treeCss([[loca…
+    143|       expect(values(dom.window.getComputedStyle(dom.window.document.qu…
+       |                                                                                                                 ^
+    144|       expect(values(dom.window.getComputedStyle(dom.window.document.qu…
+    145|       dom.window.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed (7)
+   Start at  20:14:25
+   Duration  921ms (transform 191ms, setup 0ms, import 614ms, tests 195ms, environment 0ms)

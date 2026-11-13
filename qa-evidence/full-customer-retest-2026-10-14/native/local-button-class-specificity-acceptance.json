@@ -1,0 +1,210 @@
+{
+  "editor": {
+    "Desktop": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "2px",
+        "label": "Shared peer",
+        "padding": "13px",
+        "radius": "19px",
+        "style": "solid"
+      }
+    ],
+    "Tablet": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "3px",
+        "label": "Shared peer",
+        "padding": "15px",
+        "radius": "15px",
+        "style": "solid"
+      }
+    ],
+    "Mobile": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "4px",
+        "label": "Shared peer",
+        "padding": "11px",
+        "radius": "11px",
+        "style": "solid"
+      }
+    ]
+  },
+  "preview": {
+    "Desktop": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "2px",
+        "label": "Shared peer",
+        "padding": "13px",
+        "radius": "19px",
+        "style": "solid"
+      }
+    ],
+    "Tablet": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "3px",
+        "label": "Shared peer",
+        "padding": "15px",
+        "radius": "15px",
+        "style": "solid"
+      }
+    ],
+    "Mobile": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "4px",
+        "label": "Shared peer",
+        "padding": "11px",
+        "radius": "11px",
+        "style": "solid"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "Desktop editor local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Desktop Preview local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Desktop reset returns class radius",
+      "passed": true
+    },
+    {
+      "name": "Tablet editor local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Tablet Preview local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Tablet reset returns class radius",
+      "passed": true
+    },
+    {
+      "name": "Mobile editor local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Mobile Preview local surface precedence",
+      "passed": true
+    },
+    {
+      "name": "Mobile reset returns class radius",
+      "passed": true
+    }
+  ],
+  "reset": {
+    "Desktop": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "19px",
+        "style": "dashed"
+      },
+      {
+        "border": "2px",
+        "label": "Shared peer",
+        "padding": "13px",
+        "radius": "19px",
+        "style": "solid"
+      }
+    ],
+    "Tablet": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "15px",
+        "style": "dashed"
+      },
+      {
+        "border": "3px",
+        "label": "Shared peer",
+        "padding": "15px",
+        "radius": "15px",
+        "style": "solid"
+      }
+    ],
+    "Mobile": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "11px",
+        "style": "dashed"
+      },
+      {
+        "border": "4px",
+        "label": "Shared peer",
+        "padding": "11px",
+        "radius": "11px",
+        "style": "solid"
+      }
+    ]
+  },
+  "allPassed": true,
+  "final": {
+    "inspector": "27",
+    "rendered": [
+      {
+        "border": "7px",
+        "label": "Local action",
+        "padding": "23px",
+        "radius": "27px",
+        "style": "dashed"
+      },
+      {
+        "border": "4px",
+        "label": "Shared peer",
+        "padding": "11px",
+        "radius": "11px",
+        "style": "solid"
+      }
+    ]
+  }
+}

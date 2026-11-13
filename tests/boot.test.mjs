@@ -355,17 +355,26 @@ test('the editor chrome keeps navigation compact and the whole Add library reach
   const { window: w, doc } = await boot();
   const C = w.__CORE;
   w.renderPalette();
-  const categories = [...doc.querySelectorAll('#paneAdd .addSwitcher button')];
+  const category = doc.querySelector('#paneAdd #add-category-select');
+  const categories = [...category.options];
   a.deepEqual(categories.map(x => x.textContent.trim()),
     ['Elements', 'Templates', 'Components', 'Blocks']);
-  a.deepEqual(categories.map(x => x.querySelector('svg')?.getAttribute('width')),
-    ['14', '14', '14', '14']);
-  a.equal(categories[0].getAttribute('aria-selected'), 'true');
-  categories[1].click();
+  a.equal(category.value, 'widgets');
+  a.equal(category.labels[0].textContent, 'Add');
+  category.value = 'templates';
+  category.dispatchEvent(new w.Event('change', { bubbles: true }));
   await new Promise(r => setTimeout(r, 0));
   a.equal(C.state.ui.atab, 'templates');
-  a.equal(doc.querySelector('#paneAdd .addSwitcher button[aria-selected="true"]').textContent.trim(), 'Templates');
-  a.match(doc.querySelector('#paneAdd .addContext').textContent, /Ready-made sections/);
+  a.equal(doc.querySelector('#paneAdd #add-category-select').value, 'templates');
+  a.equal(doc.querySelector('#paneAdd #add-category-panel').getAttribute('aria-label'), 'Templates to add');
+  a.equal(doc.querySelector('#paneAdd .addContext'), null, 'category descriptions do not take up panel space');
+  C.state.ui.atab = 'widgets';
+  w.renderPalette();
+  const starterShortcut = [...doc.querySelectorAll('#paneAdd button')].find(button => button.textContent.trim() === 'Browse starter sections');
+  starterShortcut.click();
+  await new Promise(r => setTimeout(r, 0));
+  a.equal(doc.querySelector('.pc-add-category-picker [role="combobox"]').textContent.trim(), 'Templates',
+    'internal navigation must keep the enhanced category label in sync');
   C.state.ui.atab = 'widgets';
   w.renderPalette();
   a.equal(doc.querySelector('#projBtn'), null, 'Project is duplicated in the top bar');
@@ -464,7 +473,7 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
 
   const launch = doc.createElement('button');
   launch.textContent = 'Launch'; doc.body.appendChild(launch); launch.focus();
-  w.openModal('Test dialog', '<button id="dialogAction">Action</button>', '<button id="dialogLast">Last</button>');
+  w.openModal('Test dialog', '<input id="pendingDialogValue" value="Unsaved dialog draft"><button id="dialogAction">Action</button>', '<button id="dialogLast">Last</button>');
   const modal = doc.querySelector('#modalBox');
   a.equal(modal.getAttribute('role'), 'dialog');
   a.equal(modal.getAttribute('aria-modal'), 'true');
@@ -489,12 +498,18 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
   a.equal(doc.querySelector('#modal').hasAttribute('inert'), true,
     'the underlying dialog is inert while a nested confirmation is open');
   a.equal(doc.querySelector('#modal').getAttribute('aria-hidden'), 'true');
+  a.equal(w.getComputedStyle(doc.querySelector('#modal')).visibility, 'hidden',
+    'only the focused prompt is visible, with no second dialog card behind it');
+  const pendingValue = doc.querySelector('#pendingDialogValue');
   a.equal(doc.activeElement, first, 'the first choice receives focus');
   first.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
   a.equal(await picked, 'alpha', 'Enter resolves the picker value, not a hidden Yes button');
   a.equal(doc.activeElement, action, 'closing the nested picker returns focus to its launcher');
   a.equal(doc.querySelector('#modal').hasAttribute('inert'), false);
   a.equal(doc.querySelector('#modal').hasAttribute('aria-hidden'), false);
+  a.equal(w.getComputedStyle(doc.querySelector('#modal')).visibility, 'visible');
+  a.equal(doc.querySelector('#pendingDialogValue'), pendingValue, 'the original dialog input stays mounted');
+  a.equal(pendingValue.value, 'Unsaved dialog draft', 'returning from a prompt preserves the unsaved dialog value');
 
   modal.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
   a.equal(doc.querySelector('#modal').hidden, true);
@@ -502,6 +517,29 @@ test('generic dialogs isolate shortcuts, trap focus, restore focus, and pickers 
   a.equal(doc.activeElement, launch, 'focus returns to the control that opened the dialog');
   a.equal(doc.querySelector('#app').hasAttribute('inert'), false);
   launch.remove();
+});
+
+test('Enter on a focused prompt exit never activates its confirmation', async () => {
+  const { window: w, doc } = await boot();
+  for (const id of ['askNo', 'askX']) {
+    let resolved = false;
+    const pending = w.askConfirm('Publish?', 'Review before publishing.').then(value => {
+      resolved = true; return value;
+    });
+    const exit = doc.querySelector('#' + id); exit.focus();
+    const enter = new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    exit.dispatchEvent(enter);
+    await Promise.resolve();
+    a.equal(enter.defaultPrevented, false, 'the focused exit retains its native keyboard activation');
+    a.equal(resolved, false, 'Enter does not activate the unrelated confirmation button');
+    exit.click(); // jsdom does not synthesize native button activation from KeyboardEvent.
+    a.equal(await pending, false, 'the native exit click cancels the action');
+  }
+  const named = w.askText('Name', 'Site name', 'Draft name');
+  doc.querySelector('#askIn').dispatchEvent(new w.KeyboardEvent('keydown', {
+    key: 'Enter', bubbles: true, cancelable: true
+  }));
+  a.equal(await named, 'Draft name', 'Enter in a prompt input still submits its value');
 });
 
 test('status messages and narrow-workspace controls expose accessible hooks', async () => {
@@ -521,8 +559,9 @@ test('status messages and narrow-workspace controls expose accessible hooks', as
     'the WordPress Navigator exposes an explicit return to the Add panel');
   a.match(html, /\.panelHead \.panelHeadAction\{[\s\S]*?align-items:center;justify-content:center/,
     'the Navigator return action centers its icon and label as one control');
-  a.match(html, /@media\(max-width:1024px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/);
-  a.match(html, /@media\(max-width:600px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
+  a.match(html, /@media\(max-width:1360px\)[\s\S]*?body:not\(\.library-focus\) \.left\{display:none\}/,
+    'small laptops keep one working panel beside the canvas');
+  a.match(html, /@media\(max-width:767px\)[\s\S]*?\.left,\.right\{[\s\S]*?position:absolute/);
 });
 
 test('project and CMS text fields close their undo transactions on blur', async () => {
@@ -716,6 +755,98 @@ test('Preview runs the same Tabs, Gallery, Code, Slider, Video, navigation and a
   w.togglePreview();
 });
 
+test('Preview keeps the exact parent links while editing a Follow mobile-menu component', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const frame = doc.querySelector('#canvas');
+  if (!frame.contentDocument.getElementById('s-root')) {
+    frame.contentDocument.open();
+    frame.contentDocument.write(frame.srcdoc);
+    frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  if (doc.querySelector('#savedTag').textContent === '—') w.bindTop();
+  const nav = C.N('nav', { items: [
+    { id: 'work', label: 'Work', href: '/work' },
+    { id: 'about', label: 'About', href: '/about' },
+    { id: 'contact', label: 'Contact', href: '/contact' },
+  ] });
+  C.state.header = [nav];
+  C.page().tree = [];
+  C.state.footer = [];
+  const follow = C.ensureMobileMenuComponent(nav, 'follow');
+  nav.props.mobileMenuMode = 'follow';
+  a.equal(C.prepareMobileMenuEdit(nav, follow.id), true);
+  a.equal(C.componentOpen(follow.id), true);
+  w.render();
+
+  const labels = () => [...frame.contentDocument.querySelectorAll('.pagecraft-managed-mobile-links a')]
+    .map(link => link.textContent.trim());
+  a.deepEqual(labels(), ['Work', 'About', 'Contact'], 'component edit resolves its exact parent');
+
+  a.equal(doc.body.classList.contains('preview'), false);
+  doc.querySelector('#previewBtn').click();
+  a.equal(doc.body.classList.contains('preview'), true, 'the toolbar control enters Preview');
+  a.deepEqual(labels(), ['Work', 'About', 'Contact'], 'Preview must keep the exact parent context');
+
+  doc.querySelector('#previewBtn').click();
+  C.componentClose();
+});
+
+test('the canvas runs only the editor’s own nonce-bearing scripts, and Preview frames an Embed', async () => {
+  const { window: w, doc } = await boot();
+  const C = w.__CORE;
+  const frame = doc.querySelector('#canvas');
+  /* The canvas shares the editor's origin, so the policy is part of its document from the
+     first byte: no inline handlers, no javascript: URLs, no plugins, no <base>. */
+  if (!frame.contentDocument.getElementById('s-root')) {
+    // jsdom does not navigate srcdoc; load it the way the Preview case above does
+    frame.contentDocument.open(); frame.contentDocument.write(frame.srcdoc); frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  const meta = frame.srcdoc.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/);
+  a.ok(meta, 'the canvas srcdoc declares a policy');
+  const nonce = (meta[1].match(/'nonce-([^']+)'/) || [])[1];
+  a.ok(nonce && nonce.length >= 16, 'scripts need a nonce');
+  a.match(meta[1], /object-src 'none'/);
+  a.match(meta[1], /base-uri 'none'/);
+  a.doesNotMatch(meta[1], /unsafe-inline|unsafe-eval/);
+  a.equal(frame.contentDocument.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'), meta[1]);
+  a.equal(frame.srcdoc.split(nonce).length, 2, 'the nonce is in the policy and nowhere else');
+
+  const cd = frame.contentDocument;
+  const scripts = [];
+  const watch = new frame.contentWindow.MutationObserver(records => records.forEach(r =>
+    r.addedNodes.forEach(n => { if (n.nodeName === 'SCRIPT') scripts.push(n); })));
+  watch.observe(cd.body, { childList: true });
+  const embed = C.N('embed', { html: '<img src=x onerror="window.__ran=1"><p>Widget</p>' });
+  const tabs = C.N('tabs');
+  C.state.header = []; C.state.footer = [];
+  C.page().tree = [C.N('section', {}, {}, [C.N('row', {}, {}, [C.N('column', {}, {}, [tabs, embed])])])];
+  if (!doc.body.classList.contains('preview')) w.togglePreview();
+  await new Promise(r => setTimeout(r, 0));
+  watch.disconnect();
+  a.ok(scripts.length > 0, 'Preview injected its runtime');
+  scripts.forEach(s => a.equal(s.nonce, nonce, 'every injected payload carries the nonce'));
+  const embedded = cd.querySelector('iframe[data-embed-frame]');
+  a.ok(embedded, 'Preview draws an Embed in a frame of its own');
+  a.equal(embedded.getAttribute('sandbox'), 'allow-scripts');
+  a.equal(cd.querySelector('#s-root img[onerror]'), null, 'and none of its markup is canvas markup');
+  w.togglePreview();
+
+  /* The lock bar names a component: as text. */
+  const evil = C.N('box');
+  C.page().tree = [evil];
+  const cid = C.componentFromNode(evil.id, '<img src=x onerror=alert(1)>');
+  C.componentOpen(cid);
+  w.paint();
+  const chip = cd.querySelector('.s-lockchip.on');
+  a.match(chip.textContent, /Editing component — <img src=x onerror=alert\(1\)>/);
+  a.equal(chip.querySelector('img'), null);
+  C.componentClose();
+  w.paint();
+});
+
 test('the server media picker wires trash to durable DELETE before removing the card', async () => {
   const base = await boot();
   const server = {
@@ -814,22 +945,28 @@ test('default component instances always offer variant creation and assignment',
   const original=C.state.meta.components;
   const page=C.state.pages[0];
   const inst=C.N('box'); inst.use='qa-variant-picker';
-  const def={id:inst.use,name:'QA variants',node:C.N('box'),props:[]};
+  const def={id:inst.use,name:'QA variants',node:C.N('box'),props:[
+    {k:'button-variant',label:'Variant',t:'select',def:'solid',opts:[['solid','Solid'],['outline','Outline']]}
+  ]};
   C.state.meta.components=[...(original||[]),def]; page.tree.push(inst);
   try {
     C.state.ui.mode='page'; C.state.ui.stab='content'; C.selSet([inst.id]); w.renderRight();
-    let select=doc.querySelector('select[aria-label="Variant"]');
+    let select=doc.querySelector('select[aria-label="Component variant"]');
     a.ok(select,'Default instances must expose the variant picker');
+    a.equal(select.closest('.f').querySelector('label').textContent,'Component variant');
+    const propertySelect=doc.querySelector('select[aria-label="Variant"]');
+    a.ok(propertySelect,'A property named Variant keeps its accessible name');
+    a.notEqual(select,propertySelect,'Component and property variant selectors have unique names');
     a.equal(select.options[0].textContent,'Default');
     const save=[...doc.querySelectorAll('#right button')].find(b=>b.textContent==='Save as variant');
     a.ok(save); a.equal(save.disabled,false);
     const variant=C.variantFromInstance(inst,'QA preset');
     C.variantSet(inst,null); w.renderRight();
-    select=doc.querySelector('select[aria-label="Variant"]');
+    select=doc.querySelector('select[aria-label="Component variant"]');
     a.equal(select.options.length,2);
     select.value=variant; select.dispatchEvent(new w.Event('change',{bubbles:true}));
     a.equal(inst.variant,variant,'The picker assigns a saved variant');
-    select=doc.querySelector('select[aria-label="Variant"]');
+    select=doc.querySelector('select[aria-label="Component variant"]');
     select.value=''; select.dispatchEvent(new w.Event('change',{bubbles:true}));
     a.equal(inst.variant,undefined,'Default removes the variant assignment');
   } finally {page.tree.splice(page.tree.indexOf(inst),1); C.state.meta.components=original; C.selSet([]); w.render();}
@@ -907,6 +1044,44 @@ test('inline editing cannot overwrite a CMS-bound component value', async () => 
   }
 });
 
+test('inline editing creates one undo step on first input and none for entry or exit alone', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  const frame=doc.querySelector('#canvas');
+  if (!frame.contentDocument.querySelector('#s-root')) {
+    const initial=frame.srcdoc;
+    frame.contentDocument.open();frame.contentDocument.write(initial);frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));await new Promise(r=>setTimeout(r,20));
+  }
+  const pg=C.state.pages[C.state.cur], original='<p>Garden &#38; rooms</p>   ';
+  const node=C.N('text',{html:original});
+  const priorUndo=C.hist.u.splice(0),priorRedo=C.hist.r.splice(0);
+  pg.tree.push(node);C.state.ui.mode='page';C.selSet([node.id]);w.render();w.paintHistory();
+  try {
+    w.enterEdit(node.id);
+    a.equal(C.hist.u.length,0,'view-only entry creates no history');
+    a.equal(doc.querySelector('#undoBtn').disabled,true);
+    a.equal(node.props.html,original,'browser normalization does not rewrite the stored value');
+    w.exitEdit();
+    a.equal(C.hist.u.length,0,'view-only exit creates no history');
+    a.equal(node.props.html,original);
+
+    w.enterEdit(node.id);
+    const host=frame.contentDocument.getElementById(node.id);
+    host.querySelector('p').append('!');host.dispatchEvent(new w.Event('input',{bubbles:true}));
+    a.equal(C.hist.u.length,1);a.match(doc.querySelector('#undoBtn').getAttribute('aria-label'),/Undo: Change rich text text/);
+    host.querySelector('p').append('?');host.dispatchEvent(new w.Event('input',{bubbles:true}));
+    a.equal(C.hist.u.length,1,'one editing session keeps one pre-mutation checkpoint');
+    w.exitEdit();doc.querySelector('#undoBtn').click();
+    a.equal(C.locate(node.id).node.props.html,original,'Undo restores the original stored bytes');
+  } finally {
+    w.exitEdit();
+    const current=C.state.pages.find(page=>page.id===pg.id)||C.state.pages[C.state.cur];
+    current.tree=current.tree.filter(item=>item.id!==node.id);
+    C.hist.u.splice(0,C.hist.u.length,...priorUndo);C.hist.r.splice(0,C.hist.r.length,...priorRedo);
+    C.selSet([]);w.render();w.paintHistory();
+  }
+});
+
 test('focused native controls keep their activation keys out of canvas shortcuts', async () => {
   const {window:w,doc}=await boot();
   const C=w.__CORE, pg=C.state.pages[C.state.cur], node=C.N('heading');
@@ -944,6 +1119,32 @@ test('hidden workspaces preserve canvas geometry and restore it when shown after
   a.ok(parseFloat(wrap.style.width)>500);a.ok(parseFloat(canvas.style.height)>500);
   a.notEqual(canvas.getAttribute('style'),before);
  } finally {delete stage.clientWidth;delete wrap.clientHeight;}
+});
+
+test('preview readiness clears the visual success banner but retains actionable asset failures', async () => {
+  const {window:w,doc}=await boot();
+  const frame=doc.querySelector('#canvas'), strip=doc.querySelector('#canvasPreviewState');
+  if (!frame.contentDocument.getElementById('s-root')) {
+    frame.contentDocument.open();frame.contentDocument.write(frame.srcdoc);frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+  }
+  const cd=frame.contentDocument;
+  Object.defineProperty(cd,'images',{configurable:true,value:[]});
+  doc.body.classList.add('preview');
+  const settle=()=>new Promise(resolve=>w.requestAnimationFrame(()=>w.requestAnimationFrame(()=>w.requestAnimationFrame(resolve))));
+  try {
+    w.watchCanvasPreview('');await settle();
+    a.equal(strip.hidden,false,'success remains available to assistive technology');
+    a.equal(strip.classList.contains('is-ready'),true,'success does not cover the page');
+    a.equal(strip.querySelector('[role=status]').textContent,'Preview displayed.');
+    w.watchCanvasPreview('asset:missing-preview-regression');await settle();
+    a.equal(strip.classList.contains('is-ready'),false,'a later asset failure becomes visible');
+    a.equal(strip.querySelector('button').hidden,false,'failed assets retain their retry action');
+    w.watchCanvasPreview('');await settle();
+    a.equal(strip.classList.contains('is-ready'),true,'recovery clears the failure banner');
+  } finally {
+    delete cd.images;doc.body.classList.remove('preview');w.watchCanvasPreview('');
+  }
 });
 
 test('component Done is a UI transition; it adds neither history nor a content edit',async()=>{
@@ -1011,4 +1212,55 @@ test('media usage navigation opens the page without changing content or Undo', a
   a.equal(C.state.ui.sel,node.id);
   a.equal(C.hist.u.length,depth);
   a.equal(JSON.stringify(C.doc()),before);
+});
+
+test('inline editing an instance writes its property, and refuses text the definition owns', async () => {
+  const {window:w,doc}=await boot(), C=w.__CORE;
+  const frame=doc.querySelector('#canvas');
+  if (!frame.contentDocument.querySelector('#s-root')) {
+    const initial=frame.srcdoc;
+    frame.contentDocument.open(); frame.contentDocument.write(initial); frame.contentDocument.close();
+    frame.dispatchEvent(new w.Event('load'));
+    await new Promise(r=>setTimeout(r,20));
+  }
+  // jsdom has no innerText; the editor reads a heading's words through it
+  Object.defineProperty(frame.contentWindow.HTMLElement.prototype,'innerText',{configurable:true,
+    get(){return this.textContent;},set(v){this.textContent=v;}});
+  const original=C.state.meta.components, pg=C.state.pages[C.state.cur];
+  const history=C.hist.u.length,priorRedo=[...C.hist.r];
+  const bound=C.N('heading'); bound.use='qa-inline-prop';
+  const fixed=C.N('heading'); fixed.use='qa-inline-fixed';
+  C.state.meta.components=[...(original||[]),
+    {id:'qa-inline-prop',name:'Inline QA',node:Object.assign(C.N('heading'),{bind:{text:{src:'prop',path:'title'}}}),
+      props:[{k:'title',t:'text',label:'Title',def:'Fallback'}]},
+    {id:'qa-inline-fixed',name:'Fixed QA',node:C.N('heading',{text:'Owned by the definition'}),props:[]}];
+  pg.tree.push(bound,fixed);
+  try {
+    C.state.ui.mode='page'; w.render();
+    w.enterEdit(bound.id);
+    let host=frame.contentDocument.getElementById(bound.id);
+    a.ok(host,'the instance is on the canvas');
+    w.exitEdit();
+    a.equal(C.hist.u.length,history,'viewing inherited component text creates no undo step');
+    a.equal(bound.vals,undefined,'viewing inherited component text creates no own value');
+
+    w.enterEdit(bound.id);host=frame.contentDocument.getElementById(bound.id);
+    host.textContent='Typed on the canvas';
+    w.exitEdit();
+    a.equal(C.hist.u.length,history+1,'the first real property mutation creates one undo step');
+    a.equal(bound.vals?.title,'Typed on the canvas','the words land in the property the root reads');
+    a.match(C.buildPage(pg),/>Typed on the canvas</,'so they are what renders, not what snaps back');
+    let before=null;
+    for(const page of C.hist.u.at(-1).pages) C.eachNode(page.tree,node=>{if(node.id===bound.id)before=node;});
+    a.equal(before?.vals,undefined,'the Undo snapshot retains the inherited property shape');
+
+    const fixedHistory=C.hist.u.length;
+    w.enterEdit(fixed.id);
+    a.match(doc.querySelector('#toast').textContent,/belongs to the component/);
+    a.equal(C.hist.u.length,fixedHistory,'no inline-edit transaction is opened');
+  } finally {
+    pg.tree.splice(pg.tree.indexOf(bound),2);C.state.meta.components=original;
+    C.hist.u.splice(history);C.hist.r.splice(0,C.hist.r.length,...priorRedo);
+    C.selSet([]);w.render();w.paintHistory();
+  }
 });

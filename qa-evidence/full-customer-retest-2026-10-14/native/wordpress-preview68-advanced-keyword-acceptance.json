@@ -1,0 +1,56 @@
+{
+  "cloud": "e383c592412655fcac4aeefd5675f4bd00c3d70e",
+  "baselineVersion": 36,
+  "frontend": [
+    {
+      "width": 1440,
+      "css": null,
+      "max": "240px",
+      "top": "24px",
+      "z": "10"
+    },
+    {
+      "width": 834,
+      "css": null,
+      "max": "none",
+      "top": "0px",
+      "z": "auto"
+    },
+    {
+      "width": 390,
+      "css": null,
+      "max": "none",
+      "top": "0px",
+      "z": "auto"
+    }
+  ],
+  "reloadChoices": [
+    "Relative",
+    "Auto",
+    "Auto",
+    "Default",
+    "None"
+  ],
+  "clearedTablet": {
+    "max": "240px",
+    "top": "24px",
+    "z": "10"
+  },
+  "restored": {
+    "ids": [
+      "nxo96g5qr",
+      "nxo96g47r",
+      "nxo96g3zt",
+      "nxo96g28f",
+      "ny2qsh9qo",
+      "ny2qsh6e8",
+      "ny5zleam3",
+      "ny2qsh74a",
+      "ny6igvbfj",
+      "ny2qsh8kv",
+      "ny6kabci2"
+    ],
+    "cssSha256": "a8ed037aa8851156d8aeacd9fc751778ef748c084b7085d2092410c761b11866",
+    "saveEnabled": false
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "device": "Desktop",
+    "html": "<table class=\"pagecraft-table\" data-rules=\"rows\"><caption>Workshop schedule</caption><thead><tr><th scope=\"col\">Session</th><th scope=\"col\">Time</th><th scope=\"col\">Room</th></tr></thead><tbody><tr><td>Morning</td><td>09:00</td><td>Garden</td></tr><tr><td>Afternoon</td><td>14:00</td><td>Studio</td></tr></tbody></table>",
+    "overflow": false
+  },
+  {
+    "device": "Tablet",
+    "html": "<table class=\"pagecraft-table\" data-rules=\"rows\"><caption>Workshop schedule</caption><thead><tr><th scope=\"col\">Session</th><th scope=\"col\">Time</th><th scope=\"col\">Room</th></tr></thead><tbody><tr><td>Morning</td><td>09:00</td><td>Garden</td></tr><tr><td>Afternoon</td><td>14:00</td><td>Studio</td></tr></tbody></table>",
+    "overflow": false
+  },
+  {
+    "device": "Mobile",
+    "html": "<table class=\"pagecraft-table\" data-rules=\"rows\"><caption>Workshop schedule</caption><thead><tr><th scope=\"col\">Session</th><th scope=\"col\">Time</th><th scope=\"col\">Room</th></tr></thead><tbody><tr><td>Morning</td><td>09:00</td><td>Garden</td></tr><tr><td>Afternoon</td><td>14:00</td><td>Studio</td></tr></tbody></table>",
+    "overflow": false
+  }
+]

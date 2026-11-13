@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/integer-typing-218f115
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 3 skipped (4)
+   Start at  03:26:06
+   Duration  180ms (transform 20ms, setup 0ms, import 68ms, tests 5ms, environment 0ms)

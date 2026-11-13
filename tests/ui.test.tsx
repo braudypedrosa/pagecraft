@@ -21,6 +21,8 @@ import { Cms } from '../app/src/ui/Cms';
 import { ColorTokens } from '../app/src/ui/ColorTokens';
 import { StyleClasses } from '../app/src/ui/StyleClasses';
 import { TextStyles } from '../app/src/ui/TextStyles';
+import { registerPainter } from '../app/src/ui/ctx';
+import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import { rig, type Rig } from './ui.setup';
 import type { Control, NavItem } from '../app/src/core/types';
@@ -313,19 +315,21 @@ test('every template group is offered from the page, header and footer alike', (
     a.ok(groups.includes('Header'), `Header offered in ${mode} mode`);
     a.ok(groups.includes('Footer'), `Footer offered in ${mode} mode`);
     a.ok(groups.includes('Hero'), `page sections offered in ${mode} mode`);
-    a.equal(r.$$('.pvcard').length, C.PATTERNS.length, `all ${C.PATTERNS.length} cards in ${mode} mode`);
+    a.equal(r.$$('.pvcard:not(.pc-add-starter)').length, C.PATTERNS.length,
+      `all ${C.PATTERNS.length} library cards in ${mode} mode`);
+    a.equal(r.$$('.pc-add-starter').length, 3, `three starter shortcuts in ${mode} mode`);
   });
 });
 
-test('the Header and Footer groups lead the list', () => {
+test('starter sections lead into the Header and Footer groups', () => {
   /* Two groups against twelve: in declaration order they sat at the bottom of a long
      scroll, which is close to where they were when they did not appear at all. */
   C.state.ui.mode = 'page';
   C.state.ui.atab = 'templates';
   r.draw(<Add />);
   const groups = r.$$('.plabel').map(e => e.textContent);
-  a.deepEqual(groups.slice(0, 2), ['Header', 'Footer']);
-  a.equal(groups[2], 'Hero', 'and the page sections keep their own order behind them');
+  a.deepEqual(groups.slice(0, 3), ['Starter sections', 'Header', 'Footer']);
+  a.equal(groups[3], 'Hero', 'and the page sections keep their own order behind them');
   a.equal(new Set(groups).size, groups.length, 'no group listed twice');
 });
 
@@ -620,10 +624,11 @@ test('a box shorthand is shown as four sides and materialized when one side chan
 
   a.deepEqual(r.$$('input[type=number]').map(input => (input as HTMLInputElement).value),
     ['28', '0', '44', '0']);
-  a.equal(r.$('.row4 select[data-field-part="unit"]')?.parentElement?.className, 'row4',
-    'the unit selector shares the value row');
-  a.deepEqual(r.$$('.row4lab span').map(label => label.textContent),
-    ['top', 'right', 'bottom', 'left', 'unit']);
+  a.deepEqual(r.$$('input[type=number]').map(input => input.getAttribute('aria-label')),
+    ['Padding top', 'Padding right', 'Padding bottom', 'Padding left']);
+  const unit = r.$('select[data-field-part="unit"]') as HTMLSelectElement;
+  a.equal(unit.getAttribute('aria-label'), 'Padding unit');
+  a.equal(unit.value, 'px', 'the unit reflects the inherited desktop shorthand');
   a.equal(r.$('.rsp')!.classList.contains('ovr'), false, 'tablet inherits the desktop shorthand');
 
   r.type(r.$$('input[type=number]')[0], '36');
@@ -749,12 +754,15 @@ test('the external link control stores a target-neutral WordPress route rather t
   a.ok(picker, 'an indexed target makes the optional picker available');
   const label = r2.$(`label[for="${picker.id}"]`);
   a.equal(label?.textContent, 'WordPress content', 'the picker has a visible programmatic label');
-  a.ok(picker.getAttribute('aria-describedby'), 'ownership guidance is associated with the picker');
+  const helpId = picker.getAttribute('aria-describedby');
+  a.ok(helpId, 'ownership guidance is associated with the picker');
+  const help = document.getElementById(helpId!);
+  a.match(help?.textContent || '', /WordPress owns this content/,
+    'the associated tooltip preserves the ownership boundary');
   a.deepEqual(r2.$$('.wp-link-picker optgroup').map(group => group.getAttribute('label')), [
     'Staging · https://stage.example.test/preview',
     'Production · https://www.example.test'
   ]);
-  a.match(r2.$('.wp-link-picker')!.textContent || '', /editable only in WordPress/);
   a.doesNotMatch(r2.$('.wp-link-picker')!.textContent || '', /Preview-only native/,
     'query-bearing native destinations are not offered because dropping the query would change the link');
 
@@ -770,7 +778,7 @@ test('the external link control stores a target-neutral WordPress route rather t
     'the neutral reference is detected again after editor state reloads');
   a.equal(r2.$('input[aria-label="Custom or external URL"]'), null,
     'an internal typed reference is not exposed as a raw custom scheme');
-  a.equal(r2.$('.wp-link-picker a, .wp-link-picker button'), null,
+  a.equal(r2.$('.wp-link-picker a, .wp-link-picker button:not(.pc-help-trigger)'), null,
     'the catalogue has no native-content edit affordance');
   r2.host.remove();
 });
@@ -844,9 +852,11 @@ test('a toggle explains a setting with accessible helper text', () => {
   r.draw(<Ctl n={n} c={c} />);
 
   const toggle = r.$('.sw-tog')!;
-  const help = r.$('.note')!;
+  const help = document.getElementById(toggle.getAttribute('aria-describedby')!)!;
   a.equal(help.textContent, c.note);
-  a.equal(toggle.getAttribute('aria-describedby'), help.id);
+  a.equal(help.hidden, true, 'guidance stays out of the layout until requested');
+  a.equal(r.$('.note'), null);
+  a.equal(r.$('.pc-help-trigger')!.getAttribute('aria-describedby'), help.id);
 });
 
 /* ------------------------------------------------------------ fan-out through the panel */
@@ -949,8 +959,11 @@ test('Add tiles, inspector groups, and Navigator rows have keyboard semantics', 
   C.state.ui.atab = 'widgets';
   r.draw(() => <Add />, 'add');
   a.equal(r.$('.pitem')!.tagName, 'BUTTON');
-  const firstTab = r.$('.addSwitcher [role="tab"]')!;
-  firstTab.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  const category = r.$('#add-category-select') as HTMLSelectElement;
+  a.equal(category.tagName, 'SELECT');
+  a.equal(category.labels?.[0]?.textContent, 'Add');
+  category.value = 'templates';
+  category.dispatchEvent(new window.Event('change', { bubbles: true }));
   a.equal(C.state.ui.atab, 'templates');
 
   const n = heading();
@@ -991,6 +1004,35 @@ test('page and collection rows expose a primary button without nesting their act
   a.equal(r.$('.brow-main button'), null, 'the collection picker does not contain its delete button');
 });
 
+test('the Detail template picker does not offer a collection another page already publishes', () => {
+  const posts = C.collectionAdd('Posts')!;
+  C.collectionAdd('Events');
+  const template = C.pageDup(0)!;
+  template.name = 'Post';
+  template.collection = posts.id;
+  C.state.cur = 0;
+  r.draw(<Pages />);
+  const option = (id: string) => [...(r.$('#page-collection') as HTMLSelectElement).options].find(o => o.value === id)!;
+  a.equal(option(posts.id).disabled, true);
+  a.match(option(posts.id).textContent!, /published by “Post”/);
+  a.equal(option(C.findCollection('events')!.id).disabled, false);
+
+  /* on the template itself, its own collection stays chosen and choosable */
+  C.state.cur = C.state.pages.indexOf(template);
+  r.draw(<Pages />);
+  a.equal(option(posts.id).disabled, false);
+  a.match(r.$('#page-collection')!.parentElement!.querySelector('.note')!.textContent!, /One file per item, at \/posts\//);
+
+  /* a second template keeps its choice, and says it publishes nothing */
+  const copy = C.pageDup(C.state.pages.indexOf(template))!;
+  C.state.cur = C.state.pages.indexOf(copy);
+  r.draw(<Pages />);
+  a.equal(option(posts.id).disabled, false);
+  const notes = [...r.host.querySelectorAll('.note')].map(n => n.textContent);
+  a.ok(notes.some(n => /Publishes nothing: “Post” publishes Posts/.test(n!)), notes.join(' | '));
+  a.ok(!notes.some(n => /One file per item/.test(n!)));
+});
+
 test('page, token, class, and text-style typing closes one undo transaction on blur', () => {
   r.draw(() => <Pages />, 'pages');
   const pageName = r.$('#page-name')!;
@@ -1025,6 +1067,100 @@ test('page, token, class, and text-style typing closes one undo transaction on b
   a.ok(r.names().includes('endTx'));
 });
 
+test('an unsafe colour-token deletion reports the CSS problem without history or success', async () => {
+  const id = C.colorAdd('Unsafe accent', '#00ddaa');
+  C.state.meta.css = `.broken{color:var( --c-${id}, #fff}`;
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.calls.length = 0;
+  r.draw(<ColorTokens />);
+  const value = r.$('input[aria-label="Unsafe accent colour value"]')!;
+  const remove = value.closest('.arow')!.querySelector('button[title^="Delete"]');
+
+  await act(async () => { r.click(remove); await Promise.resolve(); });
+
+  a.ok(C.findColor(id), 'the token remains');
+  a.equal(C.hist.u.length, 0, 'the rejected action creates no Undo entry');
+  a.equal(r.names().includes('askConfirm'), false, 'unsafe CSS is rejected before confirmation');
+  const toasts = r.calls.filter(call => call[0] === 'toast');
+  a.equal(toasts.length, 1);
+  a.match(String(toasts[0][1]), /cannot safely rewrite/);
+  a.deepEqual(toasts[0][2], { tone: 'error' });
+  a.equal(toasts.some(call => String(call[1]).includes('Token deleted')), false);
+});
+
+test('colour changes refresh the mounted text-style palette', async () => {
+  const styleId = C.styleAdd('Palette QA');
+  const tokenId = C.colorAdd('Palette accent', '#106b50');
+  const stylesHost = document.createElement('div');
+  document.body.appendChild(stylesHost);
+  const drawStyles = () => render(<TextStyles />, stylesHost);
+  registerPainter('styles', drawStyles);
+
+  try {
+    act(drawStyles);
+    const expand = stylesHost.querySelector(`button[aria-label="Expand Palette QA"]`)!;
+    act(() => r.click(expand));
+    a.ok(stylesHost.querySelector('button[title="Palette accent"]'));
+
+    r.draw(() => <ColorTokens />, 'colors');
+    const value = r.$('input[aria-label="Palette accent colour value"]')!;
+    const tokenRow = value.closest('.arow')!;
+    const name = tokenRow.querySelector('input[aria-label="Colour token name"]')!;
+    r.type(name, 'Renamed accent');
+    a.ok(stylesHost.querySelector('button[title="Renamed accent"]'), 'name refreshed');
+
+    r.type(value, '#225577');
+    const changed = stylesHost.querySelector('button[title="Renamed accent"]') as HTMLElement;
+    a.match(changed.getAttribute('style') || '', /(?:#225577|rgb\(34, 85, 119\))/,
+      'value refreshed');
+
+    const remove = tokenRow.querySelector('button[title^="Delete"]');
+    await act(async () => { r.click(remove); await Promise.resolve(); });
+    a.equal(C.findColor(tokenId), null);
+    a.equal(stylesHost.querySelector('button[title="Renamed accent"]'), null, 'delete refreshed');
+    a.ok(C.findStyle(styleId), 'the text style remains');
+
+    const add = r.$$('button').find(button => button.textContent?.includes('Add colour'))!;
+    await act(async () => { r.click(add); await Promise.resolve(); });
+    a.ok(stylesHost.querySelector('button[title="Stub name"]'), 'add refreshed');
+  } finally {
+    act(() => render(null, stylesHost));
+    stylesHost.remove();
+    registerPainter('styles', () => {});
+  }
+});
+
+test('a stale text-style palette button cannot author a deleted token reference', () => {
+  const styleId = C.styleAdd('Stale palette QA');
+  const tokenId = C.colorAdd('Soon deleted', '#106b50');
+  const stylesHost = document.createElement('div');
+  document.body.appendChild(stylesHost);
+  const drawStyles = () => render(<TextStyles />, stylesHost);
+  registerPainter('styles', drawStyles);
+
+  try {
+    act(drawStyles);
+    act(() => r.click(stylesHost.querySelector('button[aria-label="Expand Stale palette QA"]')));
+    const stale = stylesHost.querySelector('button[title="Soon deleted"]')!;
+    a.equal(C.colorDelete(tokenId), true);
+    r.calls.length = 0;
+
+    act(() => r.click(stale));
+
+    a.equal(C.findStyle(styleId)!.css.d?.color, undefined);
+    a.equal(r.names().includes('tx'), false);
+    a.equal(r.names().includes('save'), false);
+    const toasts = r.calls.filter(call => call[0] === 'toast');
+    a.equal(toasts.length, 1);
+    a.match(String(toasts[0][1]), /no longer exists/);
+    a.deepEqual(toasts[0][2], { tone: 'error' });
+  } finally {
+    act(() => render(null, stylesHost));
+    stylesHost.remove();
+    registerPainter('styles', () => {});
+  }
+});
+
 test('style classes can be created from project settings', async () => {
   const before = C.classes().length;
   r.draw(() => <StyleClasses />, 'classes');
@@ -1036,8 +1172,55 @@ test('style classes can be created from project settings', async () => {
 
   a.equal(C.classes().length, before + 1);
   a.equal(C.classes().at(-1)?.name, 'Stub name');
+  a.equal(C.historyLabel('undo'), 'Add class style');
   a.ok(r.names().includes('askText'));
   a.ok(r.names().includes('toast'));
+});
+
+test('style-class delete and reorder keep useful Undo and Redo labels', async () => {
+  const heading = C.insert('heading', null, 0)!;
+  const first = C.classAdd('First', { d: { color: '#111111' } });
+  const second = C.classAdd('Second', { d: { color: '#222222' } });
+  C.classApply(heading, first); C.classApply(heading, second);
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.draw(() => <StyleClasses />, 'classes');
+
+  r.click(r.$$('button[title^="Raise precedence"]')[1]);
+  a.equal(C.historyLabel('undo'), 'Reorder class styles');
+
+  const remove = r.$$('button[title^="Delete"]')[0];
+  r.click(remove);
+  await Promise.resolve();
+  await Promise.resolve();
+  a.equal(C.historyLabel('undo'), 'Delete class');
+  C.undo();
+  a.equal(C.historyLabel('redo'), 'Delete class');
+  C.redo();
+  a.equal(C.historyLabel('undo'), 'Delete class');
+});
+
+test('style-class delete explains an unsupported compound state without mutating history', async () => {
+  C.ensureTokens().classes = [];
+  const heading = C.insert('heading', null, 0)!;
+  const gone = C.classAdd('Low focus');
+  const high = C.classAdd('High hover');
+  C.findClass(gone)!.st = { focus: { d: { color: '#b42318' }, t: {}, m: {} } };
+  C.findClass(high)!.st = { hover: { d: { color: '#1d4ed8' }, t: {}, m: {} } };
+  C.classApply(heading, gone); C.classApply(heading, high);
+  C.hist.u.length = 0; C.hist.r.length = 0;
+  r.calls.length = 0;
+  r.draw(() => <StyleClasses />, 'classes');
+
+  r.click(r.$$('button[title^="Delete"]')[0]);
+  await Promise.resolve();
+
+  a.ok(C.findClass(gone), 'unsupported class remains');
+  a.deepEqual(heading.cls, [gone, high], 'element classes remain untouched');
+  a.equal(C.hist.u.length, 0, 'rejected deletion creates no Undo entry');
+  a.equal(r.names().includes('askConfirm'), false, 'UI does not promise look preservation');
+  const toast = r.arg('toast');
+  a.match(String(toast?.[0]), /Hover and Focus styles/);
+  a.deepEqual(toast?.[1], { tone: 'error' });
 });
 
 test('style-class rows omit implementation-detail declaration counts', () => {
@@ -1076,6 +1259,62 @@ test('form repeaters disclose one field and preserve values across switching and
   a.equal((r.$('input[placeholder="Label"]') as HTMLInputElement).value, 'Guest name');
 });
 
+test('duplicating a form field avoids every effective fallback submission name', async () => {
+  const n = C.insert('form', null, 0)!;
+  n.props.fields = [
+    { type: 'text', label: 'Name', name: '' },
+    { type: 'text', label: 'Other', name: 'name-2' }
+  ];
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  r.draw(<Ctl n={n} c={c} />);
+  await act(() => r.click(r.$$('.repeater-head [title="Duplicate"]')[0]));
+
+  const fields = n.props.fields as any[];
+  a.equal(fields[1].name, 'name-3');
+  const effective = fields.map((field, index) => C.formFieldName(field, index));
+  a.equal(new Set(effective).size, effective.length);
+});
+
+test('Grid hides field Width at the active responsive breakpoint without clearing it', async () => {
+  const n = C.insert('form', null, 0)!;
+  const fields = n.props.fields as any[];
+  fields[0].width = 33;
+  const layout = C.classAdd('Tablet form grid');
+  C.findClass(layout)!.css.t = { '--f-layout': 'grid' };
+  C.classApply(n, layout);
+  const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
+  const draw = () => r.draw(<Ctl n={n} c={c} />);
+
+  draw();
+  await act(() => r.click(r.$$('.repeater-toggle')[0]));
+  a.ok(r.$('select[aria-label="Field width"]'), 'Desktop remains flex and offers Width');
+  C.state.ui.dev = 'tablet';
+  draw();
+  a.equal(r.$('select[aria-label="Field width"]'), null, 'the class-backed Tablet grid hides Width');
+  a.equal(fields[0].width, 33, 'the hidden setting remains stored');
+  C.state.ui.dev = 'desktop';
+  draw();
+  a.equal((r.$('select[aria-label="Field width"]') as HTMLSelectElement).value, '33');
+});
+
+test('Form Grid columns appears only where the effective responsive layout is Grid', () => {
+  const n = C.insert('form', null, 0)!;
+  C.selSet([n.id]);
+  C.state.ui.stab = 'style';
+  const draw = () => r.draw(() => <Inspector />, 'right');
+  const gridColumns = () => r.$('select[aria-label="Grid columns"]');
+
+  draw();
+  a.equal(gridColumns(), null, 'the default Wrapped fields layout has no Grid columns question');
+  n.css.d['--f-layout'] = 'grid';
+  draw();
+  a.ok(gridColumns(), 'Grid exposes its column count');
+  n.css.t['--f-layout'] = 'flex';
+  C.state.ui.dev = 'tablet';
+  draw();
+  a.equal(gridColumns(), null, 'a responsive Wrapped fields override hides the inherited Grid question');
+});
+
 test('adding and moving a repeater keeps the edited row open', async () => {
   const n = C.insert('form', null, 0)!;
   const c: Control = { t: 'fields', k: 'fields', label: 'Fields' };
@@ -1106,18 +1345,28 @@ test('descriptive and dynamic selectors use the full panel while short reviewed 
   a.equal(r.$('.f-inline'), null, 'future selectors are full width unless explicitly reviewed');
 });
 
-test('Cloud forms expose native submissions instead of external or WordPress handling', () => {
+test('Cloud form controls describe the actual submission destination', () => {
   const n = C.insert('form', null, 0)!;
   C.state.ui.sel = n.id;
   try {
     C.setCloudFormEndpoint('https://cloud.test/forms/site');
     r.draw(<Inspector />);
-    a.match(r.host.textContent || '', /Saved to Submissions/);
-    a.doesNotMatch(r.host.textContent || '', /External HTTPS|WordPress managed|Where submissions go/);
+    a.match(r.host.textContent || '', /Submissions inbox/);
+    a.match(r.host.textContent || '', /Where submissions go/);
+    a.match(r.host.textContent || '', /Method/);
     a.equal(r.$('select option[value="wordpress"]'), null);
+    n.props.action = 'https://provider.test/inquiry';
+    r.draw(<Inspector />);
+    a.match(r.host.textContent || '', /Sends entries to the configured external HTTPS destination/);
+    a.doesNotMatch(r.host.textContent || '', /Submissions inbox when published/);
+    n.props.action = '';
+    n.props.method = 'get';
+    r.draw(<Inspector />);
+    a.match(r.host.textContent || '', /Add an HTTPS destination for this search/);
     C.setCloudFormEndpoint('');
     r.draw(<Inspector />);
-    a.ok(r.$('select option[value="wordpress"]'), 'portable host keeps its existing receiver choices');
+    a.equal(r.$('select option[value="wordpress"]'), null,
+      'a portable host without a receiver does not offer WordPress-managed submissions');
   } finally { C.setCloudFormEndpoint(''); }
 });
 

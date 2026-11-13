@@ -8,9 +8,13 @@ import {
   type HostedPublishPreparer,
 } from "../src/app.ts";
 import { MemoryStore } from "../src/store.ts";
-import { MemoryAuthStore } from "../src/auth.ts";
+import { hashToken, MemoryAuthStore, newToken } from "../src/auth.ts";
 import { MemoryOwnedSiteStore } from "../src/accounts.ts";
-import { TestHumanChallenge } from "../src/turnstile.ts";
+import {
+  type HumanChallenge,
+  SupabaseHumanChallenge,
+  TestHumanChallenge,
+} from "../src/turnstile.ts";
 import type { AccountAuth, VerifiedIdentity } from "../src/account-auth.ts";
 import type { Context } from "hono";
 import { MemoryHostedPublicationStore } from "../src/publications.ts";
@@ -40,6 +44,9 @@ class FakeAccountAuth implements AccountAuth {
   oauthRedirectTo: string | null = null;
   emailRedirectTo: string | null = null;
   passwordUpdate: { password: string; currentPassword?: string } | null = null;
+  confirmations: { code?: string; tokenHash?: string; type?: string }[] = [];
+  forgotten: string[] = [];
+  resets = 0;
   async identity(_c: Context) {
     return this.current;
   }
@@ -56,6 +63,8 @@ class FakeAccountAuth implements AccountAuth {
       captchaToken: string;
     },
   ) {
+    // Like Supabase with Turnstile on: only a real token gets past Auth.
+    if (input.captchaToken !== "pagecraft-test-human") return "challenge" as const;
     this.signup = {
       email: input.email,
       name: input.name,
@@ -63,7 +72,11 @@ class FakeAccountAuth implements AccountAuth {
     };
     return "confirmation_required" as const;
   }
-  async signIn(_c: Context, input: { email: string; password: string }) {
+  async signIn(
+    _c: Context,
+    input: { email: string; password: string; captchaToken: string },
+  ) {
+    if (input.captchaToken !== "pagecraft-test-human") return "challenge" as const;
     if (input.password !== "correct horse battery") return null;
     return this.current = {
       authUserId: "auth-1",
@@ -71,11 +84,19 @@ class FakeAccountAuth implements AccountAuth {
       name: "Builder",
     };
   }
-  async confirm() {
+  async confirm(
+    _c: Context,
+    input: { code?: string; tokenHash?: string; type?: string },
+  ) {
+    this.confirmations.push(input);
     return this.current;
   }
-  async forgot() {}
+  async forgot(_c: Context, input: { email: string; captchaToken: string }) {
+    if (input.captchaToken !== "pagecraft-test-human") return "challenge" as const;
+    this.forgotten.push(input.email);
+  }
   async reset(_c: Context, password: string) {
+    this.resets++;
     return password.length >= 12;
   }
   async updateEmail(_c: Context, input: { email: string; redirectTo: string }) {
@@ -97,7 +118,12 @@ class FakeAccountAuth implements AccountAuth {
   }
 }
 
-const rig = (options: { assets?: AssetStore; siteTemplates?: SiteTemplateStore } = {}) => {
+const rig = (options: {
+  assets?: AssetStore;
+  siteTemplates?: SiteTemplateStore;
+  challenge?: HumanChallenge;
+  trustCloudflare?: boolean;
+} = {}) => {
   const store = new MemoryStore(),
     auth = new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
@@ -106,7 +132,8 @@ const rig = (options: { assets?: AssetStore; siteTemplates?: SiteTemplateStore }
     auth,
     accountAuth,
     ownedSites: new MemoryOwnedSiteStore(store, auth),
-    challenge: new TestHumanChallenge(),
+    challenge: options.challenge || new TestHumanChallenge(),
+    trustCloudflare: options.trustCloudflare,
     turnstileSiteKey: "test-site-key",
     editorHost: "admin.test",
     editorOrigin: "http://admin.test",
@@ -508,8 +535,8 @@ test("dashboard create modal independently keeps only the latest template versio
     templates,
   );
 
-  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Independent Studio"/);
-  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Coastal Rental Collection"/);
+  a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Northline · Creative Studio"/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Marea · Coastal Stays"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);
@@ -522,7 +549,7 @@ test("dashboard create modal independently keeps only the latest template versio
   a.match(html, /pc-path-grid/);
   a.match(html, /pc-path-template-sheet/);
   a.match(html, /\.pc-create-modal \.pc-template-choice:has\(input:checked\)\{border-color:var\(--pc-text\);box-shadow:none\}/);
-  a.match(html, /\.pc-template-picker\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  a.match(html, /\.pc-template-picker\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
   a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-layout\{grid-template-columns:1fr;gap:24px\}/);
   a.match(html, /\.pc-create-modal\[data-step="details"\] \.pc-details-summary\{[^}]*flex-direction:row;[^}]*border-bottom:1px solid var\(--pc-line\);border-radius:0;background:transparent\}/);
   a.match(html, /data-create-title/);
@@ -576,7 +603,7 @@ test("premade library includes the latest release of every curated site", async 
   a.doesNotMatch(html, /pc-template-picker is-single/);
 });
 
-test("a Cloud curated site links template images without uploads or quota usage", async () => {
+test("a Cloud curated site charges optimized template images to its owner's media quota", async () => {
   const assets = new ConcurrentAssetStore();
   const siteTemplates = new FileSiteTemplateStore(
     resolve(process.cwd(), "premade-sites"),
@@ -617,15 +644,26 @@ test("a Cloud curated site links template images without uploads or quota usage"
   a.ok(result.files.includes("index.html"));
   a.ok(result.files.includes("about.html"));
   const installed = await assets.list(site.id);
-  a.equal(installed.length, 0);
-  a.equal(assets.peak, 0, "template creation performs no image uploads");
+  a.equal(installed.length, 5, "every template image is in the site's own media library");
+  a.equal(assets.peak, 3, "template uploads use bounded concurrency");
+  a.ok(installed.every((asset) => /^a[a-f0-9]{12}$/.test(asset.id)));
+  a.ok(installed.every((asset) => /^[a-f0-9]{64}$/.test(asset.contentHash || "")),
+    "copied images keep the content hash the production gateway requires");
   const serialized = JSON.stringify(site.doc);
-  a.doesNotMatch(serialized, /asset:/);
-  a.match(serialized, /http:\/\/admin.test\/templates\/independent-studio\/2\.0\.9\/preview\/assets\//);
+  a.doesNotMatch(serialized, /\/templates\//, "no image is loaded from the editor host's package");
+  a.ok(installed.every((asset) => serialized.includes(`asset:${asset.id}`)));
+  const storedBytes = (await Promise.all(installed.map(asset => assets.get(site.id, asset.id))))
+    .reduce((total, asset) => total + (asset?.bytes.byteLength || 0), 0);
   a.deepEqual(await assets.usage(owner.id), {
-    usedBytes: 0,
+    usedBytes: storedBytes,
     limitBytes: 100 * 1024 * 1024,
   });
+  a.ok(storedBytes > 0 && storedBytes < 100 * 1024 * 1024,
+    "the owner is charged for the prepared bytes actually retained");
+  a.deepEqual(await assets.usage("unrelated-owner"), {
+    usedBytes: 0,
+    limitBytes: 100 * 1024 * 1024,
+  }, "template media is charged only to the site's owner");
 
   const edited = structuredClone(site.doc);
   const pending: PageNode[] = [...edited.pages[0].tree];
@@ -654,7 +692,7 @@ test("a Cloud curated site links template images without uploads or quota usage"
 
   const dashboard = await request("/");
   const html = await dashboard.text();
-  a.match(html, /Independent Studio/);
+  a.match(html, /Northline · Creative Studio/);
   a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
@@ -678,6 +716,9 @@ test("a Cloud curated site links template images without uploads or quota usage"
   );
   a.equal(preview.status, 200);
   a.match(preview.headers.get("content-security-policy") || "", /script-src/);
+  // Its scripts run in an opaque origin, never with the editor's cookie or API.
+  a.match(preview.headers.get("content-security-policy") || "", /^sandbox allow-scripts;/);
+  a.doesNotMatch(preview.headers.get("content-security-policy") || "", /allow-same-origin/);
   const previewHtml = await preview.text();
   a.match(previewHtml, /scrollbar-width:none/);
   a.match(previewHtml, /Direction is made in the open\./);
@@ -921,7 +962,31 @@ test("site People lets owners invite and manage collaborators while content sees
     { role: "owner" },
   );
   a.equal(promoted.status, 303);
+  a.match(promoted.headers.get("location") || "", /Ownership\+invitation\+sent/);
+  a.equal((await auth.membership(site.id, collaborator!.id))?.role, "content",
+    "owner promotion waits for recipient consent");
+  a.match(await (await request(`/sites/${site.id}/people`)).text(), /Awaiting acceptance/);
+
+  accountAuth.current = {
+    authUserId: "auth-collaborator",
+    email: "collaborator@example.test",
+    name: "Collaborator",
+  };
+  await auth.ensureAuthUser("auth-collaborator", "collaborator@example.test", "Collaborator");
+  const ownershipInvitations = await (await request("/api/invitations")).json() as {
+    invitations: { id: string; kind: string; resourceId: string }[];
+  };
+  a.deepEqual(ownershipInvitations.invitations.map(item => [item.kind, item.resourceId]), [["site_owner", site.id]]);
+  a.deepEqual(await (await request(`/api/invitations/${ownershipInvitations.invitations[0].id}/accept`, {
+    method: "POST",
+  })).json(), { status: "accepted" });
   a.equal((await auth.membership(site.id, collaborator!.id))?.role, "owner");
+
+  accountAuth.current = {
+    authUserId: "auth-owner",
+    email: "owner@example.test",
+    name: "Owner",
+  };
   const demoted = await form(
     `/sites/${site.id}/people/${collaborator!.id}/role`,
     { role: "content" },
@@ -1003,15 +1068,21 @@ test("invitation confirmation requires a password and preserves the safe People 
     confirmed.headers.get("location"),
     "/reset-password?next=%2Fsites%2Fsite-one%2Fpeople",
   );
+  const marker = (confirmed.headers.get("set-cookie") || "").split(";")[0];
+  a.match(marker, /^pc_recovery=/);
   const reset = await request(
     "/reset-password?next=%2Fsites%2Fsite-one%2Fpeople",
+    { headers: { cookie: marker } },
   );
   a.equal(reset.status, 200);
   a.match(await reset.text(), /name="next" value="\/sites\/site-one\/people"/);
 
   const updated = await request("/auth/reset-password", {
     method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      cookie: marker,
+    },
     body: new URLSearchParams({
       next: "/sites/site-one/people",
       password: "correct horse battery",
@@ -1156,7 +1227,7 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /0 of 3 used/);
   a.match(html, /0 KB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
-  a.match(html, /Joined Jan 12, 2026/);
+  a.match(html, /Joined <time datetime="2026-01-12T00:00:00.000Z" data-local="date">Jan 12, 2026<\/time>/, "a UTC date the browser rewrites in its own time zone");
   a.match(html, /role="tablist" aria-label="Account settings"/);
   a.match(html, /aria-label="Sites navigation"/);
   a.doesNotMatch(html, /\.pc-settings-section\{[^}]*border-bottom:1px solid/);
@@ -1611,4 +1682,311 @@ test('private read overlap never exposes data without fresh membership and histo
   await auth.revoke(site.id,user.id);
   const revoked=await request(`/edit/${site.id}`);
   a.equal(revoked.status,404);a.doesNotMatch(await revoked.text(),/Private read QA/);
+});
+
+/* ------------------------------------------------------------ security regressions */
+
+const HUMAN = "pagecraft-test-human";
+const posted = (body: Record<string, string>, headers: Record<string, string> = {}) => ({
+  method: "POST",
+  headers: { "content-type": "application/x-www-form-urlencoded", ...headers },
+  body: new URLSearchParams(body),
+});
+
+test("a spoofed CF-Connecting-IP is ignored unless Cloudflare is trusted, and X-Forwarded-For is used", async () => {
+  /* The sign-in source limit is 30 per 15 minutes. Each attempt uses a new address, so only
+     the source limit can refuse one. */
+  const attempts = async (
+    request: ReturnType<typeof rig>["request"],
+    headers: (i: number) => Record<string, string>,
+    count = 31,
+  ) => {
+    const locations: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const response = await request("/auth/login", posted({
+        email: `person${i}@example.test`,
+        password: "correct horse battery",
+        "cf-turnstile-response": HUMAN,
+      }, headers(i)));
+      locations.push(response.headers.get("location") || "");
+    }
+    return locations;
+  };
+  const untrusted = rig();
+  const spoofed = await attempts(untrusted.request, (i) => ({
+    "x-forwarded-for": "203.0.113.7",
+    "cf-connecting-ip": `198.51.100.${i}`,
+  }));
+  a.deepEqual(spoofed.slice(0, 30), Array(30).fill("/"));
+  a.equal(spoofed[30], "/sign-in?error=auth&next=%2F", "a new CF-Connecting-IP does not reset the limit");
+  const elsewhere = await attempts(untrusted.request, () => ({ "x-forwarded-for": "203.0.113.8, 10.0.0.1" }), 1);
+  a.deepEqual(elsewhere, ["/"], "the leftmost X-Forwarded-For is the source");
+
+  const trusted = rig({ trustCloudflare: true });
+  const viaCloudflare = await attempts(trusted.request, (i) => ({
+    "x-forwarded-for": "203.0.113.7",
+    "cf-connecting-ip": `198.51.100.${i}`,
+  }));
+  a.deepEqual(viaCloudflare, Array(31).fill("/"), "behind Cloudflare its header is the client");
+
+  /* No proxy header at all: the socket peer. */
+  const direct = rig();
+  const fromSocket = async (address: string, i: number) =>
+    (await direct.app.request(new Request("http://admin.test/auth/login", {
+      method: "POST",
+      headers: { host: "admin.test", origin: "http://admin.test", "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ email: `socket${i}@example.test`, password: "correct horse battery", "cf-turnstile-response": HUMAN }),
+    }), undefined, { incoming: { socket: { remoteAddress: address } } })).headers.get("location");
+  for (let i = 0; i < 30; i++) a.equal(await fromSocket("192.0.2.1", i), "/");
+  a.equal(await fromSocket("192.0.2.1", 30), "/sign-in?error=auth&next=%2F");
+  a.equal(await fromSocket("192.0.2.2", 31), "/", "another peer has its own allowance");
+});
+
+test("sign-in checks the human challenge first, so forms without one cannot lock an address out", async () => {
+  const { request } = rig();
+  for (let i = 0; i < 12; i++) {
+    const empty = await request("/auth/login", posted({ email: "victim@example.test", password: "guess" }));
+    a.equal(empty.headers.get("location"), "/sign-in?error=challenge&next=%2F");
+  }
+  const victim = await request("/auth/login", posted({
+    email: "victim@example.test", password: "correct horse battery", "cf-turnstile-response": HUMAN,
+  }));
+  a.equal(victim.headers.get("location"), "/", "twelve empty forms later the owner still signs in");
+
+  /* Wrong passwords that passed the challenge still count. */
+  for (let i = 0; i < 8; i++) {
+    const wrong = await request("/auth/login", posted({
+      email: "guessed@example.test", password: "wrong password", "cf-turnstile-response": HUMAN,
+    }));
+    a.equal(wrong.headers.get("location"), "/sign-in?error=auth&next=%2F");
+  }
+  const locked = await request("/auth/login", posted({
+    email: "guessed@example.test", password: "correct horse battery", "cf-turnstile-response": HUMAN,
+  }));
+  a.equal(locked.headers.get("location"), "/sign-in?error=auth&next=%2F", "eight wrong passwords lock the address");
+});
+
+test("a token Supabase refuses counts against nothing, for sign-in, recovery or signup", async () => {
+  /* Production's verifier only checks that a token was sent; Supabase rejects forged ones. */
+  const { request, accountAuth } = rig({ challenge: new SupabaseHumanChallenge() });
+  for (let i = 0; i < 10; i++) {
+    const forged = await request("/auth/login", posted({
+      email: "victim@example.test", password: "guess", "cf-turnstile-response": "forged",
+    }));
+    a.equal(forged.headers.get("location"), "/sign-in?error=challenge&next=%2F");
+    await request("/auth/forgot-password", posted({ email: "victim@example.test", "cf-turnstile-response": "forged" }));
+    await request("/auth/forgot-password", posted({ email: "victim@example.test" }));
+  }
+  const signedIn = await request("/auth/login", posted({
+    email: "victim@example.test", password: "correct horse battery", "cf-turnstile-response": HUMAN,
+  }));
+  a.equal(signedIn.headers.get("location"), "/");
+  a.deepEqual(accountAuth.forgotten, []);
+  for (let i = 0; i < 9; i++) {
+    await request("/auth/forgot-password", posted({ email: "victim@example.test", "cf-turnstile-response": HUMAN }));
+  }
+  a.equal(accountAuth.forgotten.length, 8, "accepted requests are still limited per address");
+
+  /* A fresh rig: the forged requests above used this source's own allowance, which is right. */
+  const fresh = rig({ challenge: new SupabaseHumanChallenge() });
+  const signup = (token: string) => fresh.request("/auth/signup", posted({
+    name: "New", email: "new@example.test", password: "correct horse battery",
+    passwordConfirm: "correct horse battery", "cf-turnstile-response": token,
+  }));
+  for (let i = 0; i < 10; i++) {
+    a.equal((await signup("forged")).headers.get("location"), "/sign-up?error=challenge");
+  }
+  await signup(HUMAN);
+  a.equal(fresh.accountAuth.signup?.email, "new@example.test");
+});
+
+test("a sign-in destination must resolve to this site, whatever a browser would strip from it", async () => {
+  const { request, accountAuth } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder" };
+  for (const unsafe of [
+    "/\t/evil.test", "/\n/evil.test", "/\r/evil.test", "/\\evil.test", "/\\/evil.test",
+    "//evil.test", "https://evil.test/", "/\u0000/evil.test", "evil.test",
+  ]) {
+    const callback = await request(`/auth/confirm?code=valid&next=${encodeURIComponent(unsafe)}`);
+    a.equal(callback.headers.get("location"), "/", JSON.stringify(unsafe));
+    const page = await (await request(`/sign-in?next=${encodeURIComponent(unsafe)}`)).text();
+    a.match(page, /name="next" value="\/"/, JSON.stringify(unsafe));
+  }
+  const kept = await request(`/auth/confirm?code=valid&next=${encodeURIComponent("/sites/a/people?tab=x#top")}`);
+  a.equal(kept.headers.get("location"), "/sites/a/people?tab=x#top");
+});
+
+test("an emailed token_hash link verifies nothing until this site's own form posts it", async () => {
+  const { request, accountAuth } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder" };
+  const opened = await request("/auth/confirm?token_hash=hash-1&type=signup&next=%2Fsites");
+  a.equal(opened.status, 200);
+  const html = await opened.text();
+  a.match(html, /Continue to sign in/);
+  a.match(html, /<form class="stack" method="post" action="\/auth\/confirm">/);
+  a.match(html, /name="token_hash" value="hash-1"/);
+  a.match(html, /name="type" value="signup"/);
+  a.match(html, /name="next" value="\/sites"/);
+  a.deepEqual(accountAuth.confirmations, [], "opening the link alone signs nobody in");
+
+  const forged = await request("/auth/confirm", posted(
+    { token_hash: "hash-1", type: "signup" }, { origin: "https://attacker.test" },
+  ));
+  a.equal(forged.status, 403, "another site cannot submit the form for a visitor");
+  a.deepEqual(accountAuth.confirmations, []);
+
+  const continued = await request("/auth/confirm", posted({ token_hash: "hash-1", type: "signup", next: "/sites" }));
+  a.equal(continued.status, 303);
+  a.equal(continued.headers.get("location"), "/sites");
+  a.deepEqual(accountAuth.confirmations, [{ tokenHash: "hash-1", type: "signup" }]);
+
+  const code = await request("/auth/confirm?code=pkce-code&next=%2Fsites");
+  a.equal(code.headers.get("location"), "/sites", "the PKCE code is still exchanged directly");
+  a.deepEqual(accountAuth.confirmations[1], { code: "pkce-code", type: undefined });
+});
+
+test("setting a password without the current one needs a fresh recovery link, for that same identity", async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder", providers: ["email"] };
+  const user = await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
+  const newPassword = { password: "a long replacement passphrase", passwordConfirm: "a long replacement passphrase" };
+
+  const page = await request("/reset-password");
+  a.equal(page.status, 302);
+  a.equal(page.headers.get("location"), "/account?tab=security&error=reset");
+  const blind = await request("/auth/reset-password", posted(newPassword));
+  a.equal(blind.headers.get("location"), "/account?tab=security&error=reset");
+  a.equal(accountAuth.resets, 0, "a session alone cannot skip the current password");
+
+  const confirmed = await request("/auth/confirm", posted({ token_hash: "recovery-1", type: "recovery" }));
+  a.equal(confirmed.headers.get("location"), "/reset-password?next=%2F");
+  const setCookie = confirmed.headers.get("set-cookie") || "";
+  a.match(setCookie, /^pc_recovery=[^;]+; Max-Age=900; Path=\/; HttpOnly; SameSite=Lax/);
+  const marker = setCookie.split(";")[0];
+  a.equal((await request("/reset-password", { headers: { cookie: marker } })).status, 200);
+  const tampered = marker.slice(0, -1) + (marker.endsWith("A") ? "B" : "A");
+  a.equal(
+    (await request("/reset-password", { headers: { cookie: tampered } })).headers.get("location"),
+    "/account?tab=security&error=reset",
+    "a tampered marker is no marker",
+  );
+
+  accountAuth.current = { authUserId: "auth-2", email: "other@example.test", name: "Other" };
+  a.equal(
+    (await request("/reset-password", { headers: { cookie: marker } })).headers.get("location"),
+    "/account?tab=security&error=reset",
+    "the marker belongs to the identity the link verified",
+  );
+
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder", providers: ["email"] };
+  await auth.createManualImportCredential({
+    id: "wp-credential", ownerId: user.id, installationId: "wp-install",
+    accessTokenDigest: hashToken(newToken()), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken(newToken()),
+  });
+  const reset = await request("/auth/reset-password", posted(newPassword, { cookie: marker }));
+  a.equal(reset.headers.get("location"), "/?message=Password+updated.");
+  a.match(reset.headers.get("set-cookie") || "", /pc_recovery=;/, "the marker is spent");
+  a.equal(accountAuth.resets, 1);
+  a.deepEqual(await auth.manualImportsForOwner(user.id), [], "a reset disconnects WordPress");
+});
+
+test("owners see and disconnect their WordPress sites, and a password change disconnects them all", async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder", providers: ["email"] };
+  const user = await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
+  const other = await auth.createUser("other@example.test", "Other");
+  const credential = (ownerId: string, installationId: string) => auth.createManualImportCredential({
+    id: crypto.randomUUID(), ownerId, installationId,
+    accessTokenDigest: hashToken(newToken()), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken(newToken()),
+  });
+  const first = await credential(user.id, "wp-first-install");
+  await credential(user.id, "wp-second-install");
+  const theirs = await credential(other.id, "wp-their-install");
+
+  const listed = await (await request("/account?tab=security")).text();
+  a.match(listed, /Connected WordPress sites/);
+  a.match(listed, /wp-first-install/);
+  a.match(listed, /wp-second-install/);
+  a.doesNotMatch(listed, /wp-their-install/);
+  a.ok(listed.includes(`action="/account/wordpress/${first.id}/revoke"`));
+
+  const foreign = await request(`/account/wordpress/${theirs.id}/revoke`, { method: "POST" });
+  a.equal(foreign.headers.get("location"), "/account?tab=security&error=wordpress_missing");
+  a.equal((await auth.manualImportsForOwner(other.id)).length, 1, "nobody revokes another owner's site");
+  const crossSite = await request(`/account/wordpress/${first.id}/revoke`, { method: "POST", headers: { origin: "https://attacker.test" } });
+  a.equal(crossSite.status, 403);
+
+  const revoked = await request(`/account/wordpress/${first.id}/revoke`, { method: "POST" });
+  a.equal(revoked.headers.get("location"), "/account?tab=security&message=WordPress+site+disconnected.");
+  a.deepEqual((await auth.manualImportsForOwner(user.id)).map((item) => item.installationId), ["wp-second-install"]);
+  a.equal(await auth.manualImportByRefresh(first.refreshTokenDigest), null, "a revoked site cannot refresh");
+
+  const changed = await request("/account/password", posted({
+    currentPassword: "correct horse battery",
+    password: "a long replacement passphrase",
+    passwordConfirm: "a long replacement passphrase",
+  }));
+  a.equal(
+    changed.headers.get("location"),
+    "/account?tab=security&message=Password+updated.+Connected+WordPress+sites+were+disconnected.",
+  );
+  a.deepEqual(await auth.manualImportsForOwner(user.id), []);
+  a.equal((await auth.manualImportsForOwner(other.id)).length, 1);
+  a.match(await (await request("/account?tab=security")).text(), /No WordPress sites are connected\./);
+});
+
+test("anyone may leave a site except its last owner", async () => {
+  const { request, accountAuth, auth, store } = rig();
+  const site = await store.create({ host: "leave.invalid", name: "Leave", doc: doc() });
+  const owner = await auth.ensureAuthUser("auth-owner", "owner@example.test", "Owner");
+  const editor = await auth.ensureAuthUser("auth-editor", "editor@example.test", "Editor");
+  await auth.grant(site.id, owner.id, "owner");
+  await auth.grant(site.id, editor.id, "content");
+  const as = (authUserId: string, email: string) => {
+    accountAuth.current = { authUserId, email, name: "" };
+  };
+  const leave = () => request(`/sites/${site.id}/people/leave`, { method: "POST" });
+
+  as("auth-owner", "owner@example.test");
+  const ownersPage = await (await request(`/sites/${site.id}/people`)).text();
+  a.doesNotMatch(ownersPage, /people\/leave/, "the final owner is not offered a way out");
+  const last = await leave();
+  a.equal(last.headers.get("location"), `/sites/${site.id}/people?error=people_last_owner`);
+  a.equal((await auth.membership(site.id, owner.id))?.role, "owner");
+
+  as("auth-editor", "editor@example.test");
+  a.ok((await (await request(`/sites/${site.id}/people`)).text()).includes(`action="/sites/${site.id}/people/leave"`));
+  const left = await leave();
+  a.equal(left.headers.get("location"), "/?message=You+left+the+site.");
+  a.equal(await auth.membership(site.id, editor.id), null);
+  a.equal((await leave()).status, 404, "a former member learns nothing more");
+
+  /* An owner put on a site without asking can leave once another owner remains. */
+  await auth.grant(site.id, editor.id, "owner");
+  const forced = await leave();
+  a.equal(forced.headers.get("location"), "/?message=You+left+the+site.");
+  a.equal(await auth.membership(site.id, editor.id), null);
+});
+
+test("sites somebody else created and added you to as owner do not use your allowance", async () => {
+  const { request, accountAuth, auth, store } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder" };
+  const user = await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
+  const stranger = await auth.createUser("stranger@example.test", "Stranger");
+  for (const name of ["forced-one", "forced-two", "forced-three"]) {
+    const site = await store.create({ host: `${name}.invalid`, name, doc: doc(), savedBy: stranger.id });
+    await auth.grant(site.id, stranger.id, "owner");
+    await auth.grant(site.id, user.id, "owner");
+  }
+  a.match(await (await request("/")).text(), /0 of 3 owned sites/);
+  const make = (name: string) => request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name, doc: doc() }),
+  });
+  for (const name of ["Mine one", "Mine two", "Mine three"]) a.equal((await make(name)).status, 201, name);
+  a.equal((await make("Mine four")).status, 409, "the sites they created still count");
+  a.match(await (await request("/")).text(), /3 of 3 owned sites/);
 });

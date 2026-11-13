@@ -1,0 +1,23 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent creative practices using the existing Northline Studio template",
+    "primaryAction": "Preserve the approved Northline site while correcting confirmed accessibility and Home heading-wrap findings",
+    "pages": [
+      "index",
+      "about",
+      "services",
+      "contact"
+    ],
+    "content": "Keep the released copy, composition, features, and identities unchanged. Correct the red token contrast and let the native Home heading use its full column width so long editable copy wraps between words.",
+    "imagery": "Reuse the five released Northline assets without substitution.",
+    "provenance": []
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

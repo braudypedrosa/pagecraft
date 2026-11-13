@@ -2,9 +2,10 @@ import { test, expect } from 'vitest';
 import { createApp } from '../src/app.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAuthStore, hashToken, newToken } from '../src/auth.ts';
-import { LiveReviewStore } from '../src/live-reviews.ts';
+import { LiveReviewStore, digest, secret } from '../src/live-reviews.ts';
 import { blankDoc } from '../src/render.ts';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 async function setup() {
@@ -60,7 +61,9 @@ test('review data survives restart and concurrent writes without losing pins', a
     const link = await store.createLink('site', 'public');
     await Promise.all(Array.from({ length: 12 }, (_, i) => store.addPin({ ...pin, device: 'desktop', siteId: 'site', author: { id: 'a', name: 'A' }, body: 'Comment ' + i })));
     const restored = new LiveReviewStore(file);
-    expect(await restored.link(link.token)).toEqual(link); expect(await restored.pins('site')).toHaveLength(12);
+    expect(await restored.link(link.token)).toEqual(link);
+    const pins = await restored.pins('site'); expect(pins).toHaveLength(12);
+    expect(pins.map(row => row.number).sort((a, b) => Number(a) - Number(b))).toEqual(Array.from({ length: 12 }, (_, index) => index + 1));
   } finally { await rm(dir, { recursive: true }); }
 });
 test('live previews follow saved versions and keep pins; foreign-site pins and removed members fail closed', async () => {
@@ -108,4 +111,197 @@ test('owners, reviewers and developers can annotate; only owners and developers 
     const created = await response.json();
     expect((await s.req(path + '/resolve', cookie, {pinId:created.id,done:true})).status).toBe(user === s.reviewer ? 403 : 200);
   }
+});
+
+const author = (name: string) => ({ id: name, name });
+const sitePin = { ...pin, device: 'desktop' as const, siteId: 'site', author: author('A') };
+
+test('only owners can remove and restore comments, while removed threads stay recoverable and hidden from everyone else', async () => {
+  const s = await setup(), link = await s.reviews.createLink(s.site.id, 'public'), path = '/review/' + link.token;
+  const guestToken = await s.reviews.addGuest(s.site.id, 'Guest Reviewer');
+  const guestCookie = 'pc_review_guest_' + s.site.id + '=' + guestToken;
+  const first = await s.reviews.addPin({ ...pin, device: 'desktop', siteId: s.site.id, author: author('Reviewer') });
+  await s.reviews.reply(s.site.id, first.id, author('Owner'), 'Retained reply');
+
+  for (const cookie of [s.cookies.get(s.developer.id)!, s.cookies.get(s.reviewer.id)!, guestCookie, '']) {
+    expect((await s.req(path + '/remove', cookie, { pinId: first.id })).status).toBe(403);
+    expect((await s.req(path + '/restore', cookie, { pinId: first.id })).status).toBe(403);
+  }
+  const removed = await s.req(path + '/remove', s.cookies.get(s.owner.id), { pinId: first.id });
+  expect(removed.status).toBe(200);
+  expect(await removed.json()).toMatchObject({ id: first.id, removedBy: { id: s.owner.id }, replies: [{ body: 'Retained reply' }] });
+  expect((await s.req(path + '/remove', s.cookies.get(s.owner.id), { pinId: first.id })).status).toBe(200);
+
+  const second = await s.reviews.addPin({ ...pin, device: 'desktop', siteId: s.site.id, author: author('Reviewer'), body: 'Still visible' });
+  const ownerState = await (await s.req(path + '/state', s.cookies.get(s.owner.id))).json();
+  expect(ownerState.pins.map((row: any) => [row.id, row.number, !!row.removedAt])).toEqual([[first.id, 1, true], [second.id, 2, false]]);
+  for (const cookie of [s.cookies.get(s.developer.id)!, s.cookies.get(s.reviewer.id)!, guestCookie]) {
+    const state = await (await s.req(path + '/state', cookie)).json();
+    expect(state.pins.map((row: any) => [row.id, row.number])).toEqual([[second.id, 2]]);
+  }
+  expect((await s.req(path + '/reply', s.cookies.get(s.reviewer.id), { pinId: first.id, body: 'No' })).status).toBe(409);
+  expect((await s.req(path + '/resolve', s.cookies.get(s.developer.id), { pinId: first.id, done: true })).status).toBe(409);
+  expect((await s.req(path + '/remove', s.cookies.get(s.owner.id), { pinId: randomUUID() })).status).toBe(404);
+  expect((await s.req(path + '/restore', s.cookies.get(s.owner.id), { pinId: randomUUID() })).status).toBe(404);
+
+  const restored = await s.req(path + '/restore', s.cookies.get(s.owner.id), { pinId: first.id });
+  expect(restored.status).toBe(200);
+  expect(await restored.json()).toMatchObject({ id: first.id, replies: [{ body: 'Retained reply' }] });
+  expect((await s.req(path + '/restore', s.cookies.get(s.owner.id), { pinId: first.id })).status).toBe(200);
+  const guestState = await (await s.req(path + '/state', guestCookie)).json();
+  expect(guestState.pins.map((row: any) => [row.id, row.number])).toEqual([[first.id, 1], [second.id, 2]]);
+});
+
+test('removed comment tombstones and replies survive store reload and restore', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), one = new LiveReviewStore(file);
+    const row = await one.addPin(sitePin);
+    await one.reply('site', row.id, author('B'), 'Still here');
+    await one.setRemoved('site', row.id, author('Owner'), true);
+    const removed = (await new LiveReviewStore(file).pins('site'))[0];
+    expect(removed).toMatchObject({ id: row.id, removedBy: author('Owner'), replies: [{ body: 'Still here' }] });
+    await new LiveReviewStore(file).setRemoved('site', row.id, author('Owner'), false);
+    const restored = (await new LiveReviewStore(file).pins('site'))[0];
+    expect(restored.removedAt).toBeUndefined();
+    expect(restored.removedBy).toBeUndefined();
+    expect(restored.replies).toEqual([expect.objectContaining({ body: 'Still here' })]);
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test('legacy unnumbered pins stay first and keep fallback numbers after new notes, removal, restore and reload', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), createdAt = '2026-09-01T00:00:00.000Z';
+    const legacyPins = ['First legacy', 'Second legacy'].map(body => ({ ...sitePin, id: randomUUID(), body, createdAt, done: false, replies: [] }));
+    await writeFile(file, JSON.stringify({ links: [], pins: legacyPins, invites: [], guests: [] }));
+    const store = new LiveReviewStore(file), initial = await store.pins('site');
+    expect(initial).toHaveLength(2);
+    expect(initial.every(row => row.number === undefined)).toBe(true);
+    const legacyOrder = initial.map(row => row.id);
+
+    const third = await store.addPin({ ...sitePin, body: 'Third numbered' });
+    expect(third.number).toBe(3);
+    await store.setRemoved('site', legacyOrder[0], author('Owner'), true);
+    let reloaded = await new LiveReviewStore(file).pins('site');
+    expect(reloaded.map(row => row.id)).toEqual([...legacyOrder, third.id]);
+    expect(reloaded.map((row, index) => row.number || index + 1)).toEqual([1, 2, 3]);
+    expect(reloaded[0].removedBy).toEqual(author('Owner'));
+
+    await new LiveReviewStore(file).setRemoved('site', legacyOrder[0], author('Owner'), false);
+    const fourth = await new LiveReviewStore(file).addPin({ ...sitePin, body: 'Fourth numbered' });
+    expect(fourth.number).toBe(4);
+    reloaded = await new LiveReviewStore(file).pins('site');
+    expect(reloaded.map(row => row.id)).toEqual([...legacyOrder, third.id, fourth.id]);
+    expect(reloaded.map((row, index) => row.number || index + 1)).toEqual([1, 2, 3, 4]);
+    expect(reloaded[0].removedAt).toBeUndefined();
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test('independent tombstones survive stale resolves and replies that overlap owner removal', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), ownerStore = new LiveReviewStore(file), developerStore = new LiveReviewStore(file);
+    const row = await ownerStore.addPin(sitePin);
+    let resolveReached!: () => void, releaseResolve!: () => void;
+    const atResolveWrite = new Promise<void>(resolve => { resolveReached = resolve; });
+    const holdResolveWrite = new Promise<void>(resolve => { releaseResolve = resolve; });
+    const developerRecords = (developerStore as any).records;
+    const write = developerRecords.write.bind(developerRecords);
+    developerRecords.write = async (path: string, value: unknown) => {
+      if (path.startsWith('pins/') && (value as any).done === true) { resolveReached(); await holdResolveWrite; }
+      return write(path, value);
+    };
+    const resolving = developerStore.resolve('site', row.id, author('Developer'), true);
+    await atResolveWrite;
+    await ownerStore.setRemoved('site', row.id, author('Owner'), true);
+    releaseResolve(); await resolving;
+
+    let stored = (await new LiveReviewStore(file).pins('site'))[0];
+    expect(stored).toMatchObject({ id: row.id, done: true, removedBy: author('Owner') });
+    await expect(new LiveReviewStore(file).reply('site', row.id, author('Reviewer'), 'Too late')).rejects.toThrow('removed_pin');
+
+    await ownerStore.setRemoved('site', row.id, author('Owner'), false);
+    const reviewerStore = new LiveReviewStore(file), reviewerRecords = (reviewerStore as any).records;
+    const reviewerWrite = reviewerRecords.write.bind(reviewerRecords);
+    let replyReached!: () => void, releaseReply!: () => void;
+    const atReplyWrite = new Promise<void>(resolve => { replyReached = resolve; });
+    const holdReplyWrite = new Promise<void>(resolve => { releaseReply = resolve; });
+    reviewerRecords.write = async (path: string, value: unknown) => {
+      if (path.startsWith('replies/')) { replyReached(); await holdReplyWrite; }
+      return reviewerWrite(path, value);
+    };
+    const replying = reviewerStore.reply('site', row.id, author('Reviewer'), 'Started before removal');
+    await atReplyWrite;
+    await ownerStore.setRemoved('site', row.id, author('Owner'), true);
+    releaseReply(); await replying;
+
+    stored = (await new LiveReviewStore(file).pins('site'))[0];
+    expect(stored.removedBy).toEqual(author('Owner'));
+    expect(stored.replies).toEqual([expect.objectContaining({ body: 'Started before removal' })]);
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test('a link revoked in one process is refused by the others, and their later writes do not restore it', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), one = new LiveReviewStore(file), two = new LiveReviewStore(file);
+    const link = await one.createLink('site', 'public');
+    expect(await two.link(link.token)).toEqual(link);
+    await one.revoke('site', link.id);
+    expect(await two.link(link.token)).toBeNull();
+    // The other process keeps writing; none of it brings the link back.
+    await two.addPin(sitePin); await two.createLink('site', 'private'); await two.invite('site', 'r@example.test', 'private');
+    expect(await one.link(link.token)).toBeNull();
+    expect((await new LiveReviewStore(file).links('site')).find(l => l.id === link.id)?.active).toBe(false);
+
+    // Replies to one pin from two processes at once both land, and resolving keeps them.
+    const row = await one.addPin(sitePin);
+    await Promise.all([one.reply('site', row.id, author('A'), 'From one'), two.reply('site', row.id, author('B'), 'From two')]);
+    await two.resolve('site', row.id, author('B'), true);
+    const stored = (await one.pins('site')).find(p => p.id === row.id)!;
+    expect(stored.replies.map(r => r.body).sort()).toEqual(['From one', 'From two']);
+    expect(stored).toMatchObject({ done: true, resolvedBy: author('B') });
+    await expect(one.reply('other-site', row.id, author('A'), 'Wrong site')).rejects.toThrow('missing_pin');
+
+    await one.invite('site', 'dev@example.test', 'developer');
+    expect(await two.invited('site', 'dev@example.test', 'developer')).toBe(true);
+    expect(await two.invited('site', 'dev@example.test', 'private')).toBe(false);
+    await two.removeInvite('site', 'dev@example.test');
+    expect(await one.invited('site', 'dev@example.test')).toBe(false);
+    const guest = await one.addGuest('site', 'Guest');
+    expect(await two.guest('site', guest)).toEqual({ id: 'guest:' + digest(guest), name: 'Guest' });
+    expect(await two.guest('other-site', guest)).toBeNull();
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test('the old live-review file is split into records on first use, and a revocation it holds wins', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'live-review-'));
+  try {
+    const file = join(dir, 'reviews.json'), guestToken = secret();
+    const link = (access: 'public' | 'private', active: boolean) => ({ id: randomUUID(), siteId: 'site', token: secret(), access, active, createdAt: '2026-09-01T00:00:00.000Z' });
+    const live = link('public', true), revoked = link('private', false);
+    const reply = (body: string, createdAt: string) => ({ id: randomUUID(), author: author('A'), body, createdAt });
+    const legacy = {
+      links: [live, revoked],
+      pins: [{ ...sitePin, id: randomUUID(), createdAt: '2026-09-01T00:01:00.000Z', done: false, replies: [reply('First', '2026-09-01T00:02:00.000Z'), reply('Second', '2026-09-01T00:03:00.000Z')] }],
+      invites: [{ siteId: 'site', email: 'r@example.test', kind: 'private' }],
+      guests: [{ digest: digest(guestToken), siteId: 'site', name: 'Guest', expires: Date.now() + 60_000 }, { digest: digest(secret()), siteId: 'site', name: 'Gone', expires: Date.now() - 1 }],
+    };
+    await writeFile(file, JSON.stringify(legacy));
+    const one = new LiveReviewStore(file), two = new LiveReviewStore(file);
+    const [links, pins] = await Promise.all([one.links('site'), two.pins('site')]);
+    expect(links).toHaveLength(2);
+    expect(pins).toEqual(legacy.pins);
+    expect(await one.link(live.token)).toEqual(live);
+    expect(await one.link(revoked.token)).toBeNull();
+    expect(await two.invited('site', 'r@example.test', 'private')).toBe(true);
+    expect(await two.guest('site', guestToken)).toMatchObject({ name: 'Guest' });
+    await expect(stat(file)).rejects.toThrow(/ENOENT/);
+    expect(JSON.parse(await readFile(file + '.migrated', 'utf8'))).toEqual(legacy);
+
+    // A process still on the old code revokes the live link and writes the file again.
+    await writeFile(file, JSON.stringify({ ...legacy, links: [{ ...live, active: false }, revoked] }));
+    expect(await new LiveReviewStore(file).link(live.token)).toBeNull();
+  } finally { await rm(dir, { recursive: true }); }
 });

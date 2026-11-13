@@ -1,0 +1,11 @@
+{
+  "url": "http://localhost:4984/edit/s1",
+  "pid": 90183,
+  "preservedTab": "49",
+  "indexSha256": "7b7a7c4d7636f9ebbed10891346f6bda2b60c1d853d72e9b5047e83bf7ccdc50",
+  "builderAssetPath": "/brand/builder-assets/f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34.js",
+  "servedSha256": "f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34",
+  "matchesFinalBuiltIndex": true,
+  "noServerRestart": true,
+  "obsolete4982": "Stopped by root after closing tab48; see native/old-fixture-cleanup.json."
+}

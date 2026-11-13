@@ -1,0 +1,60 @@
+{
+  "before": [
+    {
+      "alt": "QA reused coffee table",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    },
+    {
+      "alt": "QA reused terrace",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png"
+    }
+  ],
+  "append": [
+    {
+      "alt": "QA reused coffee table",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    },
+    {
+      "alt": "QA reused terrace",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png"
+    },
+    {
+      "alt": "",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    }
+  ],
+  "undo": [
+    {
+      "alt": "QA reused coffee table",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    },
+    {
+      "alt": "QA reused terrace",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png"
+    }
+  ],
+  "redo": [
+    {
+      "alt": "QA reused coffee table",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    },
+    {
+      "alt": "QA reused terrace",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png"
+    },
+    {
+      "alt": "",
+      "loaded": true,
+      "src": "http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png"
+    }
+  ]
+}

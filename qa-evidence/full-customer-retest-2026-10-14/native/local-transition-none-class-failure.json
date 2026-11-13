@@ -1,0 +1,9 @@
+{
+  "classTransition": "Standard,0.25s",
+  "elementTransition": "Fast,0.15s",
+  "selectNone": "Transition\nNone",
+  "actual": {
+    "duration": "0.25s",
+    "property": "all"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "app/src/core/anim.ts": "86463d8b68956807eb52dafd831483005c94af2205b956cda45d82943ba8036f",
+  "tests/animation-runtime.test.ts": "6bf2ca90c1a7326550f902520b1e96aea75087b40742b9ba86339f6ec90ab085",
+  "server/tests/fixtures/wordpress-artifact-v1.json": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430"
+}

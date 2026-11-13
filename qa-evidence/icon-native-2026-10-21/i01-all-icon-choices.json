@@ -1,0 +1,810 @@
+{
+  "excludedAttempt": "Initial inventory included 3 CMS binding buttons; strict selector refused without mutation; filtered actual unlabelled title-bearing palette buttons.",
+  "choices": [
+    {
+      "name": "check",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M20 6.5L9.2 17.3 4 12.1\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M20 6.5L9.2 17.3 4 12.1\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "check-circle",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M8.2 12.4l2.6 2.6 5-5.6\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M8.2 12.4l2.6 2.6 5-5.6\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "plus",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 5v14M5 12h14\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 5v14M5 12h14\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "minus",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M5 12h14\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M5 12h14\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "close",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M6 6l12 12M18 6L6 18\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M6 6l12 12M18 6L6 18\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "arrow-right",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M4 12h15M13.2 6l6 6-6 6\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M4 12h15M13.2 6l6 6-6 6\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "arrow-up-right",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M7 17L17.2 6.8M8.4 6.8h8.8v8.8\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M7 17L17.2 6.8M8.4 6.8h8.8v8.8\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "chevron-down",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M6 9.5l6 6 6-6\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M6 9.5l6 6 6-6\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "chevron-right",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M9.5 6l6 6-6 6\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M9.5 6l6 6-6 6\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "menu",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M4 7h16M4 12h16M4 17h16\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M4 7h16M4 12h16M4 17h16\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "search",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"11\" cy=\"11\" r=\"6.4\"></circle><path d=\"M15.8 15.8l4.7 4.7\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"11\" cy=\"11\" r=\"6.4\"></circle><path d=\"M15.8 15.8l4.7 4.7\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "settings",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"3.1\"></circle><path d=\"M12 2.6v3.1M12 18.3v3.1M4.4 7.2l2.7 1.6M16.9 15.2l2.7 1.6M4.4 16.8l2.7-1.6M16.9 8.8l2.7-1.6\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"3.1\"></circle><path d=\"M12 2.6v3.1M12 18.3v3.1M4.4 7.2l2.7 1.6M16.9 15.2l2.7 1.6M4.4 16.8l2.7-1.6M16.9 8.8l2.7-1.6\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "external",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M14 4h6v6M20 4l-8.6 8.6M17 14.4v5.1H4.5V7h5.1\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M14 4h6v6M20 4l-8.6 8.6M17 14.4v5.1H4.5V7h5.1\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "download",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 4v11.4M7.4 11l4.6 4.6L16.6 11M4.4 19.6h15.2\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 4v11.4M7.4 11l4.6 4.6L16.6 11M4.4 19.6h15.2\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "star",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 3.2l2.7 5.6 6.1.9-4.4 4.4 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.4 6.1-.9z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 3.2l2.7 5.6 6.1.9-4.4 4.4 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.4 6.1-.9z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "heart",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 20.2C9.5 18.4 4.6 14.9 4.6 11a3.9 3.9 0 017.4-1.8A3.9 3.9 0 0119.4 11c0 3.9-4.9 7.4-7.4 9.2z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 20.2C9.5 18.4 4.6 14.9 4.6 11a3.9 3.9 0 017.4-1.8A3.9 3.9 0 0119.4 11c0 3.9-4.9 7.4-7.4 9.2z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "zap",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M13.4 2.4L4.6 14.2H10l-1.4 7.4 8.8-11.8h-5.4z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "sparkle",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M10 3.2l1.7 4.6 4.6 1.7-4.6 1.7L10 15.8 8.3 11.2 3.7 9.5l4.6-1.7z\"></path><path d=\"M17.6 14.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M10 3.2l1.7 4.6 4.6 1.7-4.6 1.7L10 15.8 8.3 11.2 3.7 9.5l4.6-1.7z\"></path><path d=\"M17.6 14.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "info",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 11.1v5.6M12 7.5v.9\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 11.1v5.6M12 7.5v.9\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "alert",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 3.6l8.8 15.8H3.2z\"></path><path d=\"M12 9.4v4.4M12 16.6v.9\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 3.6l8.8 15.8H3.2z\"></path><path d=\"M12 9.4v4.4M12 16.6v.9\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "shield",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 3l8 3v5.9c0 5-3.4 8.1-8 9.1-4.6-1-8-4.1-8-9.1V6z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "lock",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<rect x=\"4.8\" y=\"10.9\" width=\"14.4\" height=\"9.4\" rx=\"2\"></rect><path d=\"M8.2 10.9V8a3.8 3.8 0 017.6 0v2.9\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<rect x=\"4.8\" y=\"10.9\" width=\"14.4\" height=\"9.4\" rx=\"2\"></rect><path d=\"M8.2 10.9V8a3.8 3.8 0 017.6 0v2.9\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "mail",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"M3.6 6.6L12 12.5l8.4-5.9\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect><path d=\"M3.6 6.6L12 12.5l8.4-5.9\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "phone",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M6.1 3.2h2.8l1.9 4.7-2.1 1.4a12.3 12.3 0 005.9 5.9l1.4-2.1 4.7 1.9v2.8a2 2 0 01-2.2 2A16.6 16.6 0 014.1 5.4a2 2 0 012-2.2z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M6.1 3.2h2.8l1.9 4.7-2.1 1.4a12.3 12.3 0 005.9 5.9l1.4-2.1 4.7 1.9v2.8a2 2 0 01-2.2 2A16.6 16.6 0 014.1 5.4a2 2 0 012-2.2z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "chat",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M20 14.8a2 2 0 01-2 2H8.6L4 20.6V6a2 2 0 012-2h12a2 2 0 012 2z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M20 14.8a2 2 0 01-2 2H8.6L4 20.6V6a2 2 0 012-2h12a2 2 0 012 2z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "map-pin",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 21.2C12 21.2 5 15.1 5 10.4a7 7 0 1114 0c0 4.7-7 10.8-7 10.8z\"></path><circle cx=\"12\" cy=\"10.2\" r=\"2.6\"></circle>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 21.2C12 21.2 5 15.1 5 10.4a7 7 0 1114 0c0 4.7-7 10.8-7 10.8z\"></path><circle cx=\"12\" cy=\"10.2\" r=\"2.6\"></circle>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "clock",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 6.9v5.5l3.6 2.2\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 6.9v5.5l3.6 2.2\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "calendar",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<rect x=\"3.6\" y=\"5.1\" width=\"16.8\" height=\"15.3\" rx=\"2\"></rect><path d=\"M3.6 10.1h16.8M8.2 3v4.1M15.8 3v4.1\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<rect x=\"3.6\" y=\"5.1\" width=\"16.8\" height=\"15.3\" rx=\"2\"></rect><path d=\"M3.6 10.1h16.8M8.2 3v4.1M15.8 3v4.1\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "users",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"9.2\" cy=\"8\" r=\"3.4\"></circle><path d=\"M2.6 20a6.6 6.6 0 0113.2 0\"></path><path d=\"M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"9.2\" cy=\"8\" r=\"3.4\"></circle><path d=\"M2.6 20a6.6 6.6 0 0113.2 0\"></path><path d=\"M16.2 5.2a3.4 3.4 0 010 5.6M17.6 14.5A6.6 6.6 0 0121.4 20\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "code",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M8.4 7.4L3.8 12l4.6 4.6M15.6 7.4L20.2 12l-4.6 4.6M13.7 4.4l-3.4 15.2\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "layers",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 3l9 4.8-9 4.8-9-4.8z\"></path><path d=\"M3 12.6l9 4.8 9-4.8\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 3l9 4.8-9 4.8-9-4.8z\"></path><path d=\"M3 12.6l9 4.8 9-4.8\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "box",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z\"></path><path d=\"M3.6 7.6L12 12l8.4-4.4M12 12v8.8\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M12 3.2l8.4 4.4v8.8L12 20.8l-8.4-4.4V7.6z\"></path><path d=\"M3.6 7.6L12 12l8.4-4.4M12 12v8.8\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "chart",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<path d=\"M3 20.2h18\"></path><path d=\"M6.6 20.2v-6.4M12 20.2V7.4M17.4 20.2v-9.2\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<path d=\"M3 20.2h18\"></path><path d=\"M6.6 20.2v-6.4M12 20.2V7.4M17.4 20.2v-9.2\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "globe",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M3.2 9.4h17.6M3.2 14.6h17.6\"></path><path d=\"M12 3c-2.4 2.6-3.7 5.7-3.7 9s1.3 6.4 3.7 9c2.4-2.6 3.7-5.7 3.7-9S14.4 5.6 12 3z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M3.2 9.4h17.6M3.2 14.6h17.6\"></path><path d=\"M12 3c-2.4 2.6-3.7 5.7-3.7 9s1.3 6.4 3.7 9c2.4-2.6 3.7-5.7 3.7-9S14.4 5.6 12 3z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "name": "play",
+      "match": true,
+      "palette": {
+        "classes": "on",
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>"
+      },
+      "rendered": {
+        "rect": {
+          "bottom": 548.25,
+          "height": 30,
+          "left": 20,
+          "right": 50,
+          "top": 518.25,
+          "width": 30,
+          "x": 20,
+          "y": 518.25
+        },
+        "shape": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path>",
+        "svg": true,
+        "viewBox": "0 0 24 24"
+      }
+    }
+  ]
+}

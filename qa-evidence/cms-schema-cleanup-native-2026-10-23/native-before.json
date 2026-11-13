@@ -1,0 +1,13 @@
+{
+  "source": "9595855d62bc83302c19d608a16b402c450a0117",
+  "baselineVersion": 1278,
+  "baselineSHA256": "0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7",
+  "before": {
+    "titles": [
+      "Epsilon"
+    ],
+    "current": "2"
+  },
+  "warning": "Delete Category and its stored values? Review these bindings: QA Modules / Image · Authored fallback . 1 Collection List filter will reset to show every item.",
+  "suspicion": "QA Modules image belongs to qa-shared-spaces, not qa-mixed-conditions-107; same localfield ID field"
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "dist/core.cjs",
+    "identical": false,
+    "dependencyPathCommentsOnly": true
+  },
+  {
+    "path": "index.html",
+    "identical": false,
+    "dependencyPathCommentsOnly": true
+  },
+  {
+    "path": "packages/editor/dist/editor.html",
+    "identical": false,
+    "dependencyPathCommentsOnly": true
+  }
+]

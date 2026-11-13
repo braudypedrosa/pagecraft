@@ -1,0 +1,63 @@
+{
+  "check": "3 suggestions\nHide details\n“QA Rich text and typography 2026-10-22” has no meta description, so search results pick their own snippet.\nQA Rich text and typography 2026-10-22\nA video in the page has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.\nQA Rich text and typography 2026-10-22 · page\nShow me\n“QA Rich text and typography 2026-10-22” has no H1, so its main subject is unstated.\nQA Rich text and typography 2026-10-22",
+  "showMeTarget": "naejii192",
+  "views": {
+    "414": {
+      "box": [
+        359,
+        201.9375
+      ],
+      "html": "<div id=\"pagecraft-video-aejii192\" class=\"pagecraft-video pagecraft-aejii192\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+      "offset": [
+        0,
+        0
+      ],
+      "pageOverflow": false,
+      "placeholder": [
+        359,
+        201.9375
+      ],
+      "players": 0
+    },
+    "834": {
+      "box": [
+        771,
+        433.6875
+      ],
+      "html": "<div id=\"pagecraft-video-aejii192\" class=\"pagecraft-video pagecraft-aejii192\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+      "offset": [
+        0,
+        0
+      ],
+      "pageOverflow": false,
+      "placeholder": [
+        771,
+        433.6875
+      ],
+      "players": 0
+    },
+    "1280": {
+      "box": [
+        1217,
+        684.5625
+      ],
+      "html": "<div id=\"pagecraft-video-aejii192\" class=\"pagecraft-video pagecraft-aejii192\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+      "offset": [
+        0,
+        0
+      ],
+      "pageOverflow": false,
+      "placeholder": [
+        1217,
+        684.5625
+      ],
+      "players": 0
+    }
+  },
+  "cleanup": {
+    "tab": "36",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

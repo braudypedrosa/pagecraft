@@ -1,0 +1,30 @@
+{
+  "classDuration": "0.25s",
+  "localFast": "0.15s",
+  "localNone": {
+    "ui": "Transition\nNone",
+    "duration": "0s",
+    "property": "none"
+  },
+  "controlLabels": {
+    "Size unit": 1,
+    "Weight": 1,
+    "Line height unit": 1,
+    "Letter spacing unit": 1,
+    "Font": 1,
+    "Default HTML tag": 1,
+    "Transform": 1,
+    "Size value": 1,
+    "Line height value": 1,
+    "Letter spacing value": 1,
+    "Colour": 1
+  },
+  "savedPreviewNone": {
+    "duration": "0s",
+    "property": "none"
+  },
+  "defaultRestoresClass": {
+    "duration": "0.25s",
+    "property": "all"
+  }
+}

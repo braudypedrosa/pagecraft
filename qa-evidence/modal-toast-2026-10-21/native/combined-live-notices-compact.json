@@ -1,0 +1,63 @@
+{
+  "body": {
+    "bottom": 284.890625,
+    "height": 194.890625,
+    "left": 175,
+    "right": 593,
+    "top": 90,
+    "width": 418,
+    "x": 175,
+    "y": 90
+  },
+  "bodyOverflow": "auto",
+  "button": {
+    "bottom": 200,
+    "height": 41,
+    "left": 199,
+    "right": 559,
+    "top": 159,
+    "width": 360,
+    "x": 199,
+    "y": 159
+  },
+  "dialog": {
+    "bottom": 456,
+    "height": 432,
+    "left": 174,
+    "right": 594,
+    "top": 24,
+    "width": 420,
+    "x": 174,
+    "y": 24
+  },
+  "footer": {
+    "bottom": 357.890625,
+    "height": 73,
+    "left": 175,
+    "right": 593,
+    "top": 284.890625,
+    "width": 418,
+    "x": 175,
+    "y": 284.890625
+  },
+  "hitButton": true,
+  "notice": {
+    "bottom": 443,
+    "height": 73.109375,
+    "left": 187,
+    "right": 581,
+    "top": 369.890625,
+    "width": 394,
+    "x": 187,
+    "y": 369.890625
+  },
+  "noticeMessages": [
+    "“HTML tag” now varies between instances",
+    "“HTML tag” now varies between instances"
+  ],
+  "noticeScrollHeight": 110,
+  "viewport": {
+    "height": 480,
+    "width": 768
+  }
+}

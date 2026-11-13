@@ -1,0 +1,6 @@
+{
+  "shadow": "DesktopSoft→TabletNone immediatelyInheritedSoft",
+  "filter": "Fresh DesktopGreyscale confirmed; switchTablet→InheritedGreyscale confirmed; selectNone→InheritedGreyscale (failed reset).",
+  "position": "Position\nInherited\nPush to column bottom",
+  "filterInitialRead": "Rejected: immediate batched device-change read showed inheritedNone and did not prove expected wider Greyscale state."
+}

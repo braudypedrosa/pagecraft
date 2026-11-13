@@ -1,0 +1,156 @@
+{
+  "generatedCount": 11,
+  "allGeneratedDeterministic": true,
+  "mainProtected11AllExact": true,
+  "allSourcesExactAcrossExports": true,
+  "wordpressGolden": {
+    "one": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "two": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "main": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "allExact": true
+  },
+  "generated": {
+    "index.html": {
+      "one": "825599493808a8a60947891eae779eb4f900cdf63fe0e4302212a1b936fb50ca",
+      "two": "825599493808a8a60947891eae779eb4f900cdf63fe0e4302212a1b936fb50ca",
+      "sameAcrossExports": true,
+      "parent": "09487cf925f32cfa68fc6de064417eca8364304b96e0ae64d1d5e3f2b6130742",
+      "changedFromParent": true,
+      "main": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "mainExpected": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "mainExact": true
+    },
+    "dist/core.cjs": {
+      "one": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+      "two": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7",
+      "sameAcrossExports": true,
+      "parent": "bb3e158cf1515d5ec2f0ab2a78cd3d58292ae88ae184572f9b60cb546f532e76",
+      "changedFromParent": true,
+      "main": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "mainExpected": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "mainExact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "sameAcrossExports": true,
+      "parent": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "changedFromParent": false,
+      "main": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "mainExpected": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "mainExact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "one": "4ea17bb13505a166d071a7b27b5d4a55cd4ab8636dfd1a3f4a1a64e1774ce7e8",
+      "two": "4ea17bb13505a166d071a7b27b5d4a55cd4ab8636dfd1a3f4a1a64e1774ce7e8",
+      "sameAcrossExports": true,
+      "parent": "c76cbeb5656d235d3d9cf868c06c4f748d8c305feada69a3ca67a239ab364b28",
+      "changedFromParent": true,
+      "main": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "mainExpected": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "mainExact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "sameAcrossExports": true,
+      "parent": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "changedFromParent": false,
+      "main": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "mainExpected": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "mainExact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "sameAcrossExports": true,
+      "parent": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "changedFromParent": false,
+      "main": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "mainExpected": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "mainExact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "two": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "sameAcrossExports": true,
+      "parent": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "changedFromParent": false,
+      "main": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "mainExpected": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "mainExact": true
+    },
+    "dist/demo/index.html": {
+      "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "sameAcrossExports": true,
+      "parent": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "changedFromParent": false,
+      "main": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "mainExpected": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "mainExact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "sameAcrossExports": true,
+      "parent": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "changedFromParent": false,
+      "main": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "mainExpected": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "mainExact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "sameAcrossExports": true,
+      "parent": null,
+      "changedFromParent": true,
+      "main": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "mainExpected": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "mainExact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+      "two": "dba90bfc4b90e91739cc1df4cc603f2e5f4b6c3b4b533cb024b932de29b8227b",
+      "sameAcrossExports": true,
+      "parent": null,
+      "changedFromParent": true,
+      "main": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "mainExpected": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "mainExact": true
+    }
+  },
+  "sources": {
+    "app/src/core/index.ts": {
+      "expected": "7134189cba49c48e7ac81656244335f477922a81b595e5d13230f407a853421c",
+      "one": "7134189cba49c48e7ac81656244335f477922a81b595e5d13230f407a853421c",
+      "two": "7134189cba49c48e7ac81656244335f477922a81b595e5d13230f407a853421c",
+      "allExact": true
+    },
+    "app/src/core/types.ts": {
+      "expected": "8570d1df80a684ec308843c13f5bbc67cc1b419436c675048169b76ea90951cb",
+      "one": "8570d1df80a684ec308843c13f5bbc67cc1b419436c675048169b76ea90951cb",
+      "two": "8570d1df80a684ec308843c13f5bbc67cc1b419436c675048169b76ea90951cb",
+      "allExact": true
+    },
+    "app/src/ui/inspector/Controls.tsx": {
+      "expected": "74e17c537aa14b892da99dfa92229829c9588f786f9ed93aca7e927eca4a8060",
+      "one": "74e17c537aa14b892da99dfa92229829c9588f786f9ed93aca7e927eca4a8060",
+      "two": "74e17c537aa14b892da99dfa92229829c9588f786f9ed93aca7e927eca4a8060",
+      "allExact": true
+    },
+    "app/src/ui/inspector/Inspector.tsx": {
+      "expected": "04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2",
+      "one": "04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2",
+      "two": "04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2",
+      "allExact": true
+    },
+    "tests/unit-control-validation.test.tsx": {
+      "expected": "4d0a90c0b21ce7e633d6e96510935889b9f8f5d8cc8ebfac2807f96e0843ca61",
+      "one": "4d0a90c0b21ce7e633d6e96510935889b9f8f5d8cc8ebfac2807f96e0843ca61",
+      "two": "4d0a90c0b21ce7e633d6e96510935889b9f8f5d8cc8ebfac2807f96e0843ca61",
+      "allExact": true
+    }
+  }
+}

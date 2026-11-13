@@ -1,0 +1,17 @@
+{
+  "status": "HOLD: combined candidate built and frozen, but final native acceptance is pending browser-input recovery/manual diagnostic. Not accepted or release-ready.",
+  "sourceManifestSha256": "3b5ef1b8f7822632314d416e6fc4ce978d01283d4e4e595e46ebec9f6d6ad1ba",
+  "frozenEntries": 19,
+  "drift": [],
+  "artifactCount": 11,
+  "artifactReceiptsEqual": true,
+  "currentArtifactsMatch": true,
+  "harness": {
+    "port": 4993,
+    "pid": 15912,
+    "command": "node --experimental-strip-types tools/.qa-ui-4993.mjs",
+    "cwd": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365",
+    "preserved": true
+  },
+  "noSourceBuildBaselineBrowserActionsDuringHold": true
+}

@@ -1,0 +1,156 @@
+{
+  "format": "pagecraft.template-library-audit.v1",
+  "generatedAt": "2026-10-13T13:16:28.271Z",
+  "scope": "Exact bookkeeping-practice@1.0.0 draft artifact; source and archived files were read only.",
+  "summary": {
+    "templates": 1,
+    "pages": 4,
+    "archivedHashesValid": 1,
+    "archivedPackagesValid": 1,
+    "nativeSourcesEqual": 1,
+    "sourceAssetsEqual": 1,
+    "currentCheckPasses": 1,
+    "renderErrors": 0,
+    "rendererWarnings": 0,
+    "configuredIntegrationFindings": 1
+  },
+  "interpretation": "Released archive integrity is independent from current rebuild reproducibility. Integrity requires importer validation, archive/config/manifest agreement, catalog agreement for releases, and source document/assets/provenance parity. Drafts remain valid only when they reproduce the current build exactly.",
+  "risks": [
+    "A released archive can remain valid while a newer renderer produces different generated HTML or CSS. Rebuild differences are recorded and must not overwrite immutable releases.",
+    "The schema-compatible pagecraft-core renderer tag remains stable for existing WordPress readers. New packages add an independent renderer revision, and updated readers reject unknown revisions.",
+    "Configured form prerequisites are exempted only by exact template version, page slug and node ID. Unexpected missing actions remain errors."
+  ],
+  "limitations": "This is a static archive, reconstruction, render, image-reference and link-target audit. It does not replace real browser, Cloud or WordPress import/edit/save/reopen/publication checks.",
+  "templates": [
+    {
+      "id": "bookkeeping-practice",
+      "version": "1.0.0",
+      "artifactState": "draft",
+      "pages": 4,
+      "catalog": {
+        "packageSha256": null,
+        "equalsArchivedManifest": null
+      },
+      "archive": {
+        "packageSha256": "82be8c808123ae17e4a14826f4fd70664164704fc4f9529452ebe12871bbe53b",
+        "hashMatchesCatalog": null,
+        "hashMatchesArchivedManifest": true,
+        "validatesWithCurrentImporter": true,
+        "validationError": null,
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "manifestMatchesArchiveAndConfig": true,
+        "integrityValid": true
+      },
+      "sourceParity": {
+        "nativeDocumentEqual": true,
+        "archivedDocumentSha256": "026fe258eb72a025ffaeb95dd53f47d70730e4f847e7df9110c0137b926931f9",
+        "sourceDocumentSha256": "026fe258eb72a025ffaeb95dd53f47d70730e4f847e7df9110c0137b926931f9",
+        "provenanceEqual": true,
+        "assetsEqual": true,
+        "assets": [
+          {
+            "id": "logo",
+            "sourceSha256": "d771bddf42fd67c7dad3e73ab6b97bbf5c008d6d86b7e50a289e7beb7c0b2a12",
+            "archivedSha256": "d771bddf42fd67c7dad3e73ab6b97bbf5c008d6d86b7e50a289e7beb7c0b2a12",
+            "bytes": 1069,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "logo-light",
+            "sourceSha256": "ab710057e9236a65916120266213baed198ef8ba5fabb3f20930927bdd0fd31b",
+            "archivedSha256": "ab710057e9236a65916120266213baed198ef8ba5fabb3f20930927bdd0fd31b",
+            "bytes": 1069,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "ledger-desk",
+            "sourceSha256": "0e52d2bfe4a7587ae616365e08e44d12dffe3670930a276f96eded7b06276804",
+            "archivedSha256": "0e52d2bfe4a7587ae616365e08e44d12dffe3670930a276f96eded7b06276804",
+            "bytes": 98234,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "records-in-hand",
+            "sourceSha256": "4926ab30a78ff89721e9e92042b406b7249a616bd7b147d96a411b38ea80f0fd",
+            "archivedSha256": "4926ab30a78ff89721e9e92042b406b7249a616bd7b147d96a411b38ea80f0fd",
+            "bytes": 127842,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "archive-studio",
+            "sourceSha256": "d0f23e334adcc3ac485ba4076c5bd0e7a6b669475b40d150ff4c6d82fce564c8",
+            "archivedSha256": "d0f23e334adcc3ac485ba4076c5bd0e7a6b669475b40d150ff4c6d82fce564c8",
+            "bytes": 166130,
+            "metadataEqual": true,
+            "equal": true
+          }
+        ]
+      },
+      "currentCompiler": {
+        "packageSha256": "82be8c808123ae17e4a14826f4fd70664164704fc4f9529452ebe12871bbe53b",
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "equalsArchivedPackage": true,
+        "outerManifestDifferences": [],
+        "packageManifestDifferences": {
+          "topLevel": [],
+          "files": []
+        },
+        "globalCssLineDifferences": {
+          "removed": [],
+          "added": []
+        }
+      },
+      "checkCommand": {
+        "passes": true,
+        "firstFailure": null,
+        "rebuildReproducible": true
+      },
+      "render": {
+        "pages": 4,
+        "rendererFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "ledger-loom-consultation-form-231"
+          }
+        ],
+        "errors": [],
+        "warnings": [],
+        "configuredIntegrationFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "ledger-loom-consultation-form-231"
+          }
+        ],
+        "checkedLinks": 51,
+        "linkErrors": [],
+        "referencedImagePaths": 5,
+        "expectedImagePaths": 5,
+        "missingImagePaths": [],
+        "unreferencedImagePaths": [],
+        "externalOrConfiguredTargets": []
+      }
+    }
+  ]
+}

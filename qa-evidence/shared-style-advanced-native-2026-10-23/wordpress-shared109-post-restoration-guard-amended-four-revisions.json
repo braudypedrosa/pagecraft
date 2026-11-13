@@ -1,0 +1,94 @@
+{
+  "status": "FAILED: audit requires root review",
+  "checks": {
+    "133Tables": true,
+    "onlyExpectedTablesChanged": true,
+    "onlyExistingPost616Changed": true,
+    "post616OnlyTimestampsChanged": true,
+    "noPostsOrMetaRemoved": true,
+    "expectedFourSpecificNewRevisions705to708": true,
+    "newRevisionsOnly616": true,
+    "116NewMetaOnlySpecificNewRevisions": true,
+    "all420PreviousRevisionRowsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "restoredDocumentAndAllCompiledArtifactsExact": true,
+    "qa616Version49": true,
+    "total424Revisions": true,
+    "storedCompiler98Exact": true,
+    "protectedSnapshotExactExceptCount": true,
+    "original487Version73": true,
+    "allAccountsAndSessionsExact": true,
+    "allPagecraftGlobalOptionsExact": true,
+    "approvedSavedSubtreeExact": true,
+    "newRevisionSourcesExactApprovedNativeDocuments": true,
+    "exactMetadataPairs705706and707708": false,
+    "exactPostContentPairs705708and706707": true,
+    "matchingSnapshots705707AndTransitionOnly706708": true,
+    "builderInstalled103Exact": true,
+    "themeInstalled103Exact": true,
+    "importerInstalled103Exact": true,
+    "historical142Exact": true,
+    "runtime217eExact": true,
+    "PHP12Exact": true
+  },
+  "failures": [
+    "exactMetadataPairs705706and707708"
+  ],
+  "actualVersion": 49,
+  "actualRevisions": 424,
+  "newRevisions": [
+    {
+      "id": 705,
+      "version": "47",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes",
+      "kind": "verified safety snapshot"
+    },
+    {
+      "id": 706,
+      "version": "47",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes",
+      "kind": "WordPress post-content transition revision; excluded by EditorRevisionSnapshots compiled hash check"
+    },
+    {
+      "id": 707,
+      "version": "48",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Box/Heading subtree",
+      "kind": "verified safety snapshot"
+    },
+    {
+      "id": 708,
+      "version": "48",
+      "exactBaselineOrApprovedSavedSubtree": true,
+      "sourceScope": "original 8 nodes plus exact native Section/Box/Heading subtree",
+      "kind": "WordPress post-content transition revision; excluded by EditorRevisionSnapshots compiled hash check"
+    }
+  ],
+  "newMetaCount": 116,
+  "changedExistingMetaIds": [
+    11146
+  ],
+  "changedPost616Fields": [
+    "post_date",
+    "post_modified",
+    "post_modified_gmt"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2173,
+      "afterRowId": 2177,
+      "autoloadExact": true,
+      "field": "time",
+      "before": 1792713700,
+      "after": 1792715311,
+      "otherFieldsExact": true
+    }
+  ],
+  "baselineSQLSHA256": "c969be087876938b3fe02b9e83e41f77fd669e622863d15f1b9180900bcb6ad2",
+  "postSQLSHA256": "99401d4efa8cf150994eb1abd2047ed13ab05cb5c6b7892c4b3075443d86aa50",
+  "workerDatabaseWrites": false
+}

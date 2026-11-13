@@ -1,0 +1,48 @@
+{
+  "revision": 24,
+  "rows": [
+    {
+      "link": "Treatments",
+      "allImagesLoaded": true,
+      "allSections": 8,
+      "h1": "Care that starts with you.",
+      "hasPortableToken": false
+    },
+    {
+      "link": "Our team",
+      "allImagesLoaded": true,
+      "allSections": 7,
+      "h1": "A team that listens.",
+      "hasPortableToken": false
+    },
+    {
+      "link": "Your first visit",
+      "allImagesLoaded": true,
+      "allSections": 7,
+      "h1": "A little more ease, from the start.",
+      "hasPortableToken": false
+    },
+    {
+      "link": "Patient information",
+      "allImagesLoaded": true,
+      "allSections": 8,
+      "h1": "Helpful information, before you visit.",
+      "hasPortableToken": false
+    },
+    {
+      "link": "Contact",
+      "allImagesLoaded": true,
+      "allSections": 6,
+      "h1": "Let’s talk about your visit.",
+      "hasPortableToken": false
+    },
+    {
+      "link": "Linden Dental",
+      "allImagesLoaded": true,
+      "allSections": 10,
+      "h1": "Good care,for every smile.",
+      "hasPortableToken": false
+    }
+  ],
+  "published": false
+}

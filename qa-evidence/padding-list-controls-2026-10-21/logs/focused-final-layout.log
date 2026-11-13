@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/padding-list-controls-8996966
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  23:37:54
+   Duration  1.05s (transform 259ms, setup 0ms, import 309ms, tests 219ms, environment 427ms)

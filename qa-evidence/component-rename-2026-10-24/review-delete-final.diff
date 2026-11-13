@@ -1,0 +1,92 @@
+diff --git a/app/src/ui/Add.tsx b/app/src/ui/Add.tsx
+index 948a793..f11104c 100644
+--- a/app/src/ui/Add.tsx
++++ b/app/src/ui/Add.tsx
+@@ -453,8 +453,8 @@ function Blocks() {
+    are different answers and the panel says which is which, and the plan says what happens to
+    blocks once components can do everything they can.
+ 
+-   Every row does three things, because a component is three things: place one, edit the
+-   definition, or delete it. Delete says how many places it would change. */
++   Each row can place an instance, edit or rename the definition, or delete it.
++   Delete says how many places it would change. */
+ function Components() {
+   const sel = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
+   const list = C.components();
+@@ -473,21 +473,38 @@ function Components() {
+     L.editComponent(id);
+   };
+ 
++  const rename = async (e: MouseEvent, id: string) => {
++    e.stopPropagation();
++    const cd = C.findComponent(id);
++    if (!cd) return;
++    const name = (await L.askText('Rename component', 'Name', cd.name))?.trim().slice(0, 40);
++    if (!name || name === cd.name) return;
++    C.edit(() => { C.componentRename(id, name); });
++    repaint('add');
++    repaint('right');
++  };
++
+   const remove = async (e: MouseEvent, id: string) => {
+     e.stopPropagation();
+     const cd = C.findComponent(id);
+     if (!cd) return;
+-    const n = C.componentUsage(id);
++    const n = C.instances(id).length;
++    const menuUses = C.componentUsage(id) - n;
+     const ok = await L.askConfirm('Delete this component?',
+       `<b>${esc(cd.name)}</b> stops being a component. `
+       + (n
+         ? `The ${n === 1 ? 'one place' : n + ' places'} using it keep what they show, as ordinary elements — `
+           + `they simply stop changing together.`
+-        : `Nothing is using it.`),
++        : menuUses ? '' : `Nothing is using it.`)
++      + (menuUses
++        ? `${n ? ' ' : ''}${menuUses} mobile ${menuUses === 1 ? 'menu references' : 'menus reference'} this layout. These references will be removed. `
++          + `If this layout is active, the menu will use its navigation links or existing Follow layout instead. Other layouts are kept.`
++        : ''),
+       { ok: 'Delete component' });
+     if (!ok) return;
+     C.edit(() => { C.componentDelete(id); });
+-    L.toast('Component deleted. Existing instances are now ordinary elements.');
++    L.toast(menuUses ? 'Component deleted. Mobile menu references removed.'
++      : 'Component deleted. Existing instances are now ordinary elements.');
+     /* Through the render cycle, not a panel repaint: every instance on the canvas just became
+        an ordinary element, and the canvas is the thing that has to say so. */
+     if (editing === id) L.editComponent(null); else L.setMode(C.state.ui.mode);
+@@ -507,7 +524,10 @@ function Components() {
+     <>
+       {list.length ? list.map(cd => {
+         const def = C.DEF[cd.node.type];
+-        const used = C.componentUsage(cd.id);
++        const used = C.instances(cd.id).length;
++        const menuUses = C.componentUsage(cd.id) - used;
++        const usage = (used || !menuUses ? `${used} ${used === 1 ? 'instance' : 'instances'}` : '')
++          + (menuUses ? `${used ? ' · ' : ''}${menuUses} mobile ${menuUses === 1 ? 'menu' : 'menus'}` : '');
+         const props = (cd.props || []).length;
+         return (
+           <div class={'brow' + (editing === cd.id ? ' sel' : '')} key={cd.id}
+@@ -522,7 +542,7 @@ function Components() {
+             <span class="bn">
+               <b>{cd.name}</b>
+               <small>
+-                {used === 1 ? '1 instance' : `${used} instances`}
++                {usage}
+                 {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : ' · no properties yet'}
+               </small>
+               <LibraryFrom kind="component" id={cd.id} />
+@@ -530,6 +550,13 @@ function Components() {
+             <button class="bx" title="Edit this component" onClick={e => open(e, cd.id)}>
+               <Icon name="edit" size={11} />
+             </button>
++            <button class="bx" title="Rename this component" aria-label="Rename this component" onClick={e => rename(e, cd.id)}>
++              {/* Iconify lucide:text-cursor-input: https://api.iconify.design/lucide/text-cursor-input.svg */}
++              <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true">
++                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
++                  d="M12 20h-1a2 2 0 0 1-2-2a2 2 0 0 1-2 2H6m7-12h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7m-8 0H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1m1-4h1a2 2 0 0 1 2 2a2 2 0 0 1 2-2h1M9 6v12" />
++              </svg>
++            </button>
+             <LibraryAdd kind="component" id={cd.id} />
+             <button class="bx danger" title="Delete this component" onClick={e => remove(e, cd.id)}>
+               <Icon name="trash" size={11} />

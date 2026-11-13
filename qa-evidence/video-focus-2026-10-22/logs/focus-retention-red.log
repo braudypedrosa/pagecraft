@@ -1,0 +1,25 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+ ❯ tests/video-focus-state.test.ts (4 tests | 1 failed | 3 skipped) 48ms
+   × facade replacement transfers only keyboard-visible focus to the iframe 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/video-focus-state.test.ts > facade replacement transfers only keyboard-visible focus to the iframe
+AssertionError: expected "focus" to be called 1 times, but got 0 times
+ ❯ tests/video-focus-state.test.ts:107:19
+    105|     const iframe = document.querySelector<HTMLIFrameElement>('[data-fa…
+    106|     expect(iframe).not.toBeNull();
+    107|     expect(focus).toHaveBeenCalledTimes(keyboardVisible ? 1 : 0);
+       |                   ^
+    108|     if (keyboardVisible) expect(focus.mock.instances[0]).toBe(iframe);
+    109|     focus.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 skipped (4)
+   Start at  16:45:20
+   Duration  1.72s (transform 419ms, setup 0ms, import 495ms, tests 48ms, environment 938ms)

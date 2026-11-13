@@ -1,0 +1,71 @@
+{
+  "observation": {
+    "duplicateIDs": [],
+    "overflow": false,
+    "targets": [
+      {
+        "bg": "rgb(229, 238, 226)",
+        "display": "block",
+        "focus": false,
+        "focusWithin": false,
+        "hover": false,
+        "html": "<div id=\"qa-room\" class=\"pagecraft-wysiwyg pagecraft-4f0tt272 ts-btn\"><ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul></div>",
+        "id": "qa-room",
+        "opacity": "1",
+        "padding": "20px 32px",
+        "radius": "18px",
+        "rect": {
+          "height": 86.5,
+          "width": 300.984375,
+          "x": 24,
+          "y": 205
+        },
+        "visible": true
+      },
+      {
+        "bg": "rgb(212, 226, 203)",
+        "display": "grid",
+        "focus": false,
+        "focusWithin": false,
+        "hover": true,
+        "html": "<div id=\"pagecraft-gallery-p6sev1et\" class=\"pagecraft-gallery pagecraft-gallery-fixed pagecraft-p6sev1et\" data-lightbox=\"\" style=\"--g-ratio:1 / 1;--g-fit:cover\"><figure class=\"pagecraft-gallery-item\"><a class=\"pagecraft-gallery-frame\" href=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png\" data-lb=\"0\" aria-label=\"QA cafe table with coffee and pastry\"><img loading=\"lazy\" src=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/table-1.png\" alt=\"QA cafe table with coffee and pastry\" width=\"1536\" height=\"1024\" decoding=\"async\" class=\"pagecraft-gallery-img\"></a><figcaption class=\"pagecraft-gallery-caption\">A quiet table</figcaption></figure><figure class=\"pagecraft-gallery-item\"><a class=\"pagecraft-gallery-frame\" href=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png\" data-lb=\"1\" aria-label=\"QA cafe terrace\"><img loading=\"lazy\" src=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/09/terrace.png\" alt=\"QA cafe terrace\" width=\"1536\" height=\"1024\" decoding=\"async\" class=\"pagecraft-gallery-img\"></a><figcaption class=\"pagecraft-gallery-caption\">Outside in the sun</figcaption></figure><figure class=\"pagecraft-gallery-item\"><a class=\"pagecraft-gallery-frame\" href=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/counter-1.png\" data-lb=\"2\" aria-label=\"QA cafe counter\"><img loading=\"lazy\" src=\"http://pagecraft-wordpress-qa.local/wp-content/uploads/2026/10/counter-1.png\" alt=\"QA cafe counter\" width=\"1536\" height=\"1024\" decoding=\"async\" class=\"pagecraft-gallery-img\"></a><figcaption class=\"pagecraft-gallery-caption\">From the counter</figcaption></figure></div>",
+        "id": "pagecraft-gallery-p6sev1et",
+        "opacity": "1",
+        "padding": "20px 32px",
+        "radius": "24px",
+        "rect": {
+          "height": 447.34375,
+          "width": 1217,
+          "x": 24,
+          "y": 435.5
+        },
+        "visible": true
+      },
+      {
+        "bg": "rgb(229, 238, 226)",
+        "display": "flex",
+        "focus": false,
+        "focusWithin": false,
+        "hover": false,
+        "html": "<button id=\"qa-unlike-source\" class=\"pagecraft-button pagecraft-9hurh1vb ts-btn qa-unlike-source-only\" data-variant=\"solid\" type=\"button\"><span>QA unlike style source</span></button>",
+        "id": "qa-unlike-source",
+        "opacity": "1",
+        "padding": "20px 32px",
+        "radius": "18px",
+        "rect": {
+          "height": 63.25,
+          "width": 227.8125,
+          "x": 24,
+          "y": 1026.84375
+        },
+        "visible": true
+      }
+    ],
+    "width": 1280
+  },
+  "cleanup": {
+    "tabId": "86",
+    "cpu": {},
+    "metrics": {}
+  }
+}

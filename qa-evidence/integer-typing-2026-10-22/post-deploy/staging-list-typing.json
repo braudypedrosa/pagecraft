@@ -1,0 +1,36 @@
+[
+  {
+    "field": "Items per page value",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ]
+  },
+  {
+    "field": "Show at most value",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ]
+  }
+]

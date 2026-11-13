@@ -1,0 +1,86 @@
+[
+  {
+    "device": "Desktop",
+    "side": "top",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Desktop",
+    "side": "right",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Desktop",
+    "escapeFocus": true
+  },
+  {
+    "device": "Tablet",
+    "side": "top",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Tablet",
+    "side": "right",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Tablet",
+    "escapeFocus": true
+  },
+  {
+    "device": "Mobile",
+    "side": "top",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Mobile",
+    "side": "right",
+    "opened": {
+      "focus": true,
+      "name": "Colour picker",
+      "role": "dialog",
+      "tabs": 2
+    },
+    "focus": true,
+    "closed": true
+  },
+  {
+    "device": "Mobile",
+    "escapeFocus": true
+  }
+]

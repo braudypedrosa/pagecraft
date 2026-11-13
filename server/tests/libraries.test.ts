@@ -154,21 +154,48 @@ async function sharedRig() {
   return { ...r, lib };
 }
 
+const invitationFor = async (r: Awaited<ReturnType<typeof sharedRig>>, cookie: string) => {
+  const pending = await r.call('/api/invitations', { cookie });
+  a.equal(pending.status, 200);
+  a.equal(pending.body.invitations.length, 1);
+  return pending.body.invitations[0] as { id: string; kind: string; resourceId: string };
+};
+
 test('sharing lets a viewer list, read and import into their own site, and nothing more', async () => {
   const r = await sharedRig();
   const shared = await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', body: { email: ' Friend@Example.test ' } });
   a.equal(shared.status, 201);
   a.equal(shared.body.added, true);
   a.equal(shared.body.member.email, 'friend@example.test');
+  a.equal(shared.body.member.awaitingAcceptance, true);
   a.deepEqual((await r.call(`/api/libraries/${r.lib.id}/members`)).body.members.map((m: { email: string }) => m.email), ['friend@example.test']);
   // The notice goes out after the response, so the owner never waits on mail.
   await settled();
   a.equal(r.notices.length, 1, 'the person shared with is told');
   a.equal(r.notices[0].to, 'friend@example.test');
-  a.match(r.notices[0].subject, /Owner shared a library with you/);
+  a.match(r.notices[0].subject, /Owner invited you to a library/);
   a.match(r.notices[0].text, /“Brand kit”/);
 
   const asFriend = { cookie: r.friendCookie };
+  a.deepEqual((await r.call('/api/libraries', asFriend)).body.libraries, [], 'invitation grants no list access');
+  a.equal((await r.call(`/api/libraries/${r.lib.id}`, asFriend)).status, 404);
+  a.equal((await r.call(`/api/libraries/${r.lib.id}/versions/1`, asFriend)).status, 404);
+  a.equal((await r.call(`/api/sites/${r.friendSite.id}/library-assets`, {
+    method: 'POST', cookie: r.friendCookie, body: { libraryId: r.lib.id, version: 1 },
+  })).status, 404, 'invitation grants no import access');
+  const invitation = await invitationFor(r, r.friendCookie);
+  a.deepEqual([invitation.kind, invitation.resourceId], ['library', r.lib.id]);
+  a.equal((await r.call(`/api/invitations/${invitation.id}/accept`, {
+    method: 'POST', cookie: r.strangerCookie,
+  })).status, 404, 'another signed-in user cannot accept');
+  const accepted = await r.call(`/api/invitations/${invitation.id}/accept`, {
+    method: 'POST', cookie: r.friendCookie,
+  });
+  a.deepEqual(accepted.body, { status: 'accepted' });
+  a.equal((await r.call(`/api/invitations/${invitation.id}/accept`, {
+    method: 'POST', cookie: r.friendCookie,
+  })).status, 404, 'acceptance is single-use');
+
   const listed = (await r.call('/api/libraries', asFriend)).body.libraries;
   a.deepEqual(listed.map((l: { name: string; access: string; ownerName: string }) => [l.name, l.access, l.ownerName]), [['Brand kit', 'viewer', 'Owner']]);
   const read = await r.call(`/api/libraries/${r.lib.id}`, asFriend);
@@ -208,7 +235,7 @@ test('sharing refuses your own address and bad ones, and a double click is harml
   a.equal((await r.call(path)).body.members.length, 1);
 });
 
-test('an address with no account yet waits for them, then works when they sign in', async () => {
+test('an address with no account yet still must accept after signing in', async () => {
   const r = await sharedRig();
   const shared = await r.call(`/api/libraries/${r.lib.id}/members`, { method: 'POST', body: { email: 'newcomer@example.test' } });
   a.equal(shared.status, 201);
@@ -217,7 +244,31 @@ test('an address with no account yet waits for them, then works when they sign i
   const token = newToken();
   await r.auth.putSession(hashToken(token), newcomer!.id, Date.now() + 60_000);
   const listed = await r.call('/api/libraries', { cookie: `pc_session=${token}` });
-  a.deepEqual(listed.body.libraries.map((l: { name: string }) => l.name), ['Brand kit']);
+  a.deepEqual(listed.body.libraries, [], 'signing in alone is not consent');
+  const pending = await r.call('/api/invitations', { cookie: `pc_session=${token}` });
+  const invitation = pending.body.invitations[0];
+  a.equal((await r.call(`/api/invitations/${invitation.id}/accept`, {
+    method: 'POST', cookie: `pc_session=${token}`,
+  })).body.status, 'accepted');
+  const accepted = await r.call('/api/libraries', { cookie: `pc_session=${token}` });
+  a.deepEqual(accepted.body.libraries.map((l: { name: string }) => l.name), ['Brand kit']);
+});
+
+test('a recipient can decline a library invitation without ever receiving access', async () => {
+  const r = await sharedRig();
+  await r.call(`/api/libraries/${r.lib.id}/members`, {
+    method: 'POST', body: { email: 'friend@example.test' },
+  });
+  const invitation = await invitationFor(r, r.friendCookie);
+  const declined = await r.call(`/api/invitations/${invitation.id}/decline`, {
+    method: 'POST', cookie: r.friendCookie,
+  });
+  a.deepEqual(declined.body, { status: 'declined' });
+  a.deepEqual((await r.call('/api/libraries', { cookie: r.friendCookie })).body.libraries, []);
+  a.equal((await r.call(`/api/libraries/${r.lib.id}`, { cookie: r.friendCookie })).status, 404);
+  a.equal((await r.call(`/api/invitations/${invitation.id}/decline`, {
+    method: 'POST', cookie: r.friendCookie,
+  })).status, 404, 'decline is single-use');
 });
 
 test('the owner removes someone, a viewer can leave, and the owner cannot be removed', async () => {
@@ -226,7 +277,12 @@ test('the owner removes someone, a viewer can leave, and the owner cannot be rem
   await r.call(path, { method: 'POST', body: { email: 'friend@example.test' } });
   await r.call(path, { method: 'POST', body: { email: 'stranger@example.test' } });
 
-  // A viewer may not remove someone else, and may leave themselves.
+  const friendInvitation = await invitationFor(r, r.friendCookie);
+  a.equal((await r.call(`/api/invitations/${friendInvitation.id}/accept`, {
+    method: 'POST', cookie: r.friendCookie,
+  })).body.status, 'accepted');
+
+  // A viewer may not cancel someone else's pending invitation, and may leave themselves.
   const stranger = await r.auth.userByEmail('stranger@example.test');
   a.equal((await r.call(`${path}/${stranger!.id}`, { method: 'DELETE', cookie: r.friendCookie })).status, 403);
   const left = await r.call(`${path}/me`, { method: 'DELETE', cookie: r.friendCookie });

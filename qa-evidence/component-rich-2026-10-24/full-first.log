@@ -1,0 +1,39 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=2
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (691 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996
+
+(node:68959) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:69097) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/ui-baselines.test.mjs (4 tests | 1 failed) 15ms
+   × reviewed gallery baselines match the current shared UI sources 5ms
+(node:69324) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+builder.html
+app/src/ui/inspector/Controls.tsx
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 273 passed | 2 skipped (276)
+      Tests  1 failed | 2802 passed | 5 skipped (2808)
+   Start at  00:36:23
+   Duration  119.55s (transform 3.12s, setup 0ms, import 33.73s, tests 152.43s, environment 25.56s)
+

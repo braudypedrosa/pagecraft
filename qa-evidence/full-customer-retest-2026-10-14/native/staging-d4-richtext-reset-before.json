@@ -1,0 +1,72 @@
+{
+  "severity": "Medium",
+  "impact": "After clearing a responsive override, the visible dropdown can retain its previous label while the number and canvas inherit correctly. A follow-up numeric edit produced 30px while the visible unit remained %, confirming misleading UI. No wrong-unit CSS write is claimed.",
+  "firstProbes": [
+    {
+      "device": "Mobile",
+      "expected": {
+        "device": "Mobile",
+        "font": "Lora",
+        "unit": "em",
+        "line": "1.5",
+        "first": "Lora"
+      },
+      "ui": {
+        "font": "System sans",
+        "unit": "%",
+        "value": "1.5",
+        "fontOwnResetCount": 0,
+        "lineOwnResetCount": 0
+      },
+      "render": {
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "24px"
+      },
+      "pass": false
+    },
+    {
+      "device": "Tablet",
+      "expected": {
+        "device": "Tablet",
+        "font": "Custom…",
+        "unit": "px",
+        "line": "28",
+        "first": "Courier New"
+      },
+      "ui": {
+        "font": "Custom…",
+        "unit": "em",
+        "value": "28",
+        "fontOwnResetCount": 0,
+        "lineOwnResetCount": 0
+      },
+      "render": {
+        "font": "\"Courier New\", monospace",
+        "line": "28px"
+      },
+      "pass": false
+    }
+  ],
+  "settledReproduction": {
+    "device": "Mobile",
+    "ui": {
+      "font": "Custom…",
+      "unit": "%",
+      "line": "28"
+    },
+    "render": {
+      "font": "\"Courier New\", monospace",
+      "line": "28px"
+    },
+    "ownResetCount": 0
+  },
+  "axRelevant": "\t\t\t\t\t1030 container Line height\n\t\t\t\t\t\t\t1032 text Line height\n\t\t\t\t\t\t1037 stepper (settable, integer) Description: Line height value, Value: 28, ID: inspector-field-7-0-0\n\t\t\t\t\t\t1038 combo box (collapsed) Description: Line height unit, Value: %, Secondary Actions: Expand\n\t\t\t\t\t1040 container Font\n\t\t\t\t\t\t\t1042 text Font\n\t\t\t\t\t\t1047 combo box (collapsed) Description: Font, Value: Custom…, Secondary Actions: Expand\n\t\t\t\t\t\t1530 text field (settable) Font, Value: \"Courier New\", monospace, ID: inspector-field-8-1",
+  "numericEditConsequence": {
+    "typedValue": "30",
+    "uiUnit": "%",
+    "render": {
+      "fontSize": "16px",
+      "lineHeight": "30px"
+    }
+  }
+}

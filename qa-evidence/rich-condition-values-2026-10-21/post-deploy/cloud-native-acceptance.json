@@ -1,0 +1,24 @@
+{
+  "commit": "0e808e5b2e5ea2dc90f2fae590ff44876358a78b",
+  "equality": [
+    {
+      "html": "<p>Seasonal workshop</p>",
+      "id": "pagecraft-wysiwyg-cups019k"
+    }
+  ],
+  "savedReload": {
+    "html": "<p>Seasonal workshop</p>",
+    "text": "Seasonal workshop"
+  },
+  "savedComparison": "Seasonal workshop",
+  "mobile": {
+    "html": "<p>Seasonal workshop</p>",
+    "scroll": 403,
+    "width": 414
+  },
+  "inequalityCount": 0,
+  "emptyHTML": "<p></p>",
+  "hasValueCount": 0,
+  "isEmptyCount": 1,
+  "scope": "native component rich property; CMS-terminal type separately automated; original restoration pending"
+}

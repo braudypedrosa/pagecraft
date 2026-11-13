@@ -1,0 +1,57 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/form-field-name-2d79f4b
+
+ ❯ tests/form-field-name-uniqueness.test.tsx (4 tests | 2 failed) 631ms
+   × manual duplicate field names repair on blur and the first Style click still lands 509ms
+   × Tab commits a duplicate, while unique raw and blank fallback names stay authored 47ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > manual duplicate field names repair on blur and the first Style click still lands
+AssertionError: expected [ { type: 'text', …(4) }, …(3) ] to deeply equal [ { type: 'text', …(4) }, …(3) ]
+
+- Expected
++ Received
+
+@@ -13,11 +13,11 @@
+      "required": 1,
+      "type": "email",
+    },
+    {
+      "label": "Phone",
+-     "name": "qa-phone",
++     "name": "email-3",
+      "ph": "Mobile",
+      "required": 0,
+      "type": "tel",
+    },
+    {
+
+ ❯ tests/form-field-name-uniqueness.test.tsx:76:18
+     74|   expect(C.hist.u).toHaveLength(1);
+     75|   C.undo();
+     76|   expect(fields).toEqual(before);
+       |                  ^
+     77| });
+     78|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > Tab commits a duplicate, while unique raw and blank fallback names stay authored
+TypeError: Cannot read properties of null (reading 'focus')
+ ❯ tests/form-field-name-uniqueness.test.tsx:92:9
+     90|   r.draw(() => <Inspector />, 'right');
+     91|   input = openField(2);
+     92|   input.focus();
+       |         ^
+     93|   r.type(input, '  customer_phone  ');
+     94|   act(() => input.blur());
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  2 failed | 14 passed (16)
+   Start at  14:10:55
+   Duration  7.13s (transform 4.98s, setup 0ms, import 6.14s, tests 2.00s, environment 6.62s)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

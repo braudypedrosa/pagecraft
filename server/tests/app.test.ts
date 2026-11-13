@@ -2,7 +2,7 @@
 
    No browser and no database — Hono apps take a `Request` and return a `Response`, so the
    whole round trip is assertable in-process. */
-import { test } from 'vitest';
+import { test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import * as Core from '../../app/src/core/index.ts';
 import { createApp } from '../src/app.ts';
@@ -11,6 +11,10 @@ import { MemoryAuthStore, type Role } from '../src/auth.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
 import { MemoryHostedPublicationStore } from '../src/publications.ts';
+import { FileSubmissionStore } from '../src/submissions.ts';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 /* The demo project, not an empty one: it has a header, a footer, two pages and most of the
    widget set, so a byte-identity claim over it means something. */
@@ -25,7 +29,10 @@ const demo = (): Doc => {
 
 /* A rig that signs in the way a person does: ask for a link, follow it, keep the cookie.
    Fabricating a session would leave the login flow untested by everything that uses it. */
-const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>) => {
+const rig = async (
+  role: Role = 'owner', hostedPublications = false, onOptimize?: () => Promise<void>,
+  nativeForms = false, fontFetch?: typeof fetch, componentGallery = false
+) => {
   const store = new MemoryStore();
   const auth = new MemoryAuthStore();
   const publications = hostedPublications ? new MemoryHostedPublicationStore() : undefined;
@@ -33,9 +40,12 @@ const rig = async (role: Role = 'owner', hostedPublications = false, onOptimize?
   const app = createApp({
     store, auth, editorHtml: '<title>Builder</title>', editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', sendLink: (_to, url) => { sent = url; }, publications,
+    componentGallery,
+    submissions: nativeForms ? new FileSubmissionStore(join(tmpdir(), `pagecraft-app-test-${randomUUID()}`)) : undefined,
     optimizeAsset: hostedPublications
       ? async bytes => { await onOptimize?.(); return { bytes, type: 'image/webp', w: 960, h: 600, extension: 'webp' }; }
-      : undefined
+      : undefined,
+    fontFetch,
   });
   const fixture = demo();
   if (hostedPublications) {
@@ -236,7 +246,7 @@ test('hosted publishing promotes immutable bytes and public reads bypass the app
 });
 
 test('hosted addresses move immediately and deleting the site revokes both public routes', async () => {
-  const { site, store, publications, get, admin, signIn } = await rig('owner', true);
+  const { site, store, get, admin, signIn } = await rig('owner', true);
   const { cookie } = await signIn();
   const published = await admin(`/api/sites/${site.id}/publish`, {
     method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
@@ -244,31 +254,77 @@ test('hosted addresses move immediately and deleting the site revokes both publi
   a.equal(published.status, 200, await published.text());
   const move = await admin(`/api/sites/${site.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: 'new-address' }) }, cookie);
   a.equal(move.status, 200);
-  a.equal((await admin(`/${site.slug}/`)).status, 404);
+  const old = await admin(`/${site.slug}/about?ref=card`);
+  a.equal(old.status, 301, 'the address a site left keeps its links');
+  a.equal(old.headers.get('location'), '/new-address/about?ref=card');
   a.equal((await admin('/new-address/')).status, 200);
   a.equal((await admin('/new-address')).headers.get('location'), '/new-address/');
   const movedAgain = await admin(`/sites/${site.id}/settings/slug`, {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'slug=final-address'
   }, cookie);
   a.equal(movedAgain.status, 303);
-  a.equal((await admin('/new-address/')).status, 404);
+  a.equal((await admin('/new-address/')).headers.get('location'), '/final-address/');
+  a.equal((await admin(`/${site.slug}`)).headers.get('location'), '/final-address/',
+    'every earlier address follows the site to where it is now');
   a.equal((await admin('/final-address/')).status, 200);
   const host = await admin(`/api/sites/${site.id}/host`, { method: 'PUT', body: JSON.stringify({ host: 'moved.test' }) }, cookie);
   a.equal(host.status, 200);
   a.equal((await get('/')).status, 404);
   a.equal((await get('/', 'moved.test')).status, 200);
-  const removeSite = publications!.removeSite.bind(publications);
-  publications!.removeSite = async () => { throw new Error('fixture pointer failure'); };
+  const deleteSite = store.delete.bind(store);
+  store.delete = async () => { throw new Error('fixture database failure'); };
   const deleteRequest = () => admin(`/sites/${site.id}/settings/delete`, {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ confirmation: site.name }).toString()
   }, cookie);
   a.equal((await deleteRequest()).status, 500);
-  a.ok(await store.byId(site.id), 'failed public revocation must not remove management access');
-  publications!.removeSite = removeSite;
+  a.ok(await store.byId(site.id), 'a failed database delete keeps management access');
+  a.equal((await admin('/final-address/')).status, 200, 'and leaves the site public as it was');
+  store.delete = deleteSite;
   a.equal((await deleteRequest()).status, 303);
   a.equal(await store.byId(site.id), null);
   a.equal((await admin('/final-address/')).status, 404);
+  a.equal((await admin('/new-address/')).status, 404, 'a deleted site redirects nowhere');
   a.equal((await get('/', 'moved.test')).status, 404);
+});
+
+test('a failed publication write explains itself without the server path behind it', async () => {
+  const { site, publications, admin, signIn } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  publications!.create = async () => {
+    throw Object.assign(new Error("EACCES: permission denied, open '/home/pagecraft/publications/x.json'"), {
+      code: 'EACCES', syscall: 'open', path: '/home/pagecraft/publications/x.json'
+    });
+  };
+  const failed = await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie);
+  a.equal(failed.status, 503);
+  a.deepEqual(await failed.json(), {
+    error: 'publication_write_failed',
+    detail: 'The published files could not be written. Publish again in a moment.'
+  });
+  a.ok(logged.mock.calls.some(args => String(args[1]).includes('/home/pagecraft')));
+  logged.mockRestore();
+});
+
+test('an old address stops redirecting once another site takes that slug', async () => {
+  const { site, store, auth, user, get, admin, signIn } = await rig('owner', true);
+  const { cookie } = await signIn();
+  const old = site.slug;
+  a.equal((await admin(`/api/sites/${site.id}/publish`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: site.version, acknowledgeWarnings: true })
+  }, cookie)).status, 200);
+  a.equal((await admin(`/api/sites/${site.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: 'renamed' }) }, cookie)).status, 200);
+  a.equal((await admin(`/${old}/`)).headers.get('location'), '/renamed/');
+
+  const other = await store.create({ host: 'other.test', name: 'Other', doc: demo() });
+  await auth.grant(other.id, user.id, 'owner');
+  a.equal((await admin(`/api/sites/${other.id}/slug`, { method: 'PUT', body: JSON.stringify({ slug: old }) }, cookie)).status, 200);
+  const taken = await admin(`/${old}/`);
+  a.equal(taken.status, 404, 'an unpublished new owner of the slug is not overridden by a redirect');
+  a.equal(taken.headers.get('location'), null);
+  a.equal((await get('/', 'acme.test')).status, 200);
 });
 
 test('a save carrying a stale version is refused rather than winning', async () => {
@@ -323,9 +379,16 @@ test('an owner can inspect history and restore without deleting later versions',
 
   const listed = await admin(`/api/sites/${site.id}/history`, {}, cookie);
   a.equal(listed.status, 200);
-  const versions = await listed.json() as { version: number; author: { email: string } | null }[];
+  const versions = await listed.json() as { version: number; author: { email: string } | null; doc?: unknown; context?: unknown }[];
   a.deepEqual(versions.map(v => v.version), [2, 1]);
   a.equal(versions[0].author?.email, 'client@acme.test');
+  a.equal(versions.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
+    'history list responses never expose immutable document payloads');
+  const indexed = await store.history(site.id);
+  a.equal(indexed.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
+    'the in-memory history contract is metadata-only too');
+  a.deepEqual((await store.revision(site.id, 1))?.doc, site.doc,
+    'one-version detail reads still return the immutable document');
 
   const restored = await admin(`/api/sites/${site.id}/history/1/restore`, {
     method: 'POST', body: JSON.stringify({ currentVersion: 2 })
@@ -380,6 +443,19 @@ test('paths resolve as a static host would, and a missing one is a 404', async (
   a.equal(legacy.headers.get('location'), '/' + second.slug);
   a.equal((await get('/robots.txt')).status, 200);
   a.equal((await get('/nope')).status, 404);
+});
+
+test('encoded component baseline aliases never bypass the editor auth boundary', async () => {
+  const { get, admin, signIn } = await rig('owner', false, undefined, false, undefined, true);
+  const { cookie } = await signIn();
+  const plain = await admin('/internal/components/baselines/cloud-actions-1440.png', {}, cookie);
+  a.equal(plain.status, 200, 'the authenticated control path must serve the fixture');
+  a.match(plain.headers.get('content-type') || '', /^image\/png/);
+  for (const path of [
+    '/internal/components/baselines/cloud-actions-1440.png',
+    '/internal/components/baselines/cloud-actions-1440%2epng',
+    '/internal/components/baselines/cloud-actions-1440%252epng',
+  ]) a.equal((await get(path)).status, 404, path);
 });
 
 test('site roots and index aliases redirect to one clean URL without losing the query', async () => {
@@ -657,6 +733,45 @@ test('preparing a publication snapshot pins private source and leaves the public
   a.ok(await r.publications!.source(stored), 'failed publication keeps the review snapshot intact');
 });
 
+test('temporary font dependency failure is retryable and stores no publication snapshot', async () => {
+  let calls = 0;
+  const fontFetch = (async () => {
+    calls++;
+    throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'EAI_AGAIN' } });
+  }) as typeof fetch;
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const r = await rig('owner', true, undefined, false, fontFetch);
+    const { cookie } = await r.signIn();
+    const document = structuredClone(r.site.doc) as Doc;
+    document.meta.font = "'Inter',system-ui,sans-serif";
+    a.equal((await r.put(r.site.id, document, 1, cookie)).status, 200);
+
+    const response = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+      method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+    }, cookie);
+    a.equal(response.status, 503, await response.clone().text());
+    a.equal(response.headers.get('retry-after'), '5');
+    a.deepEqual(await response.json(), {
+      error: 'publication_dependency_unavailable',
+      dependency: 'google_fonts',
+      retryable: true,
+      stage: 'stylesheet',
+      causeCategory: 'dns',
+      detail: 'Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.',
+    });
+    a.equal(calls, 2, 'one transient retry is allowed');
+    a.deepEqual(await r.publications!.listBySite(r.site.id), [], 'failed freezing stores no snapshot or font artifact');
+    a.equal((await r.store.byId(r.site.id))?.version, 2, 'the saved draft is retained');
+    a.deepEqual(warning.mock.calls, [[
+      'publication font dependency unavailable',
+      { stage: 'stylesheet', code: 'dns' },
+    ]], 'diagnostics contain only the bounded stage and category');
+  } finally {
+    warning.mockRestore();
+  }
+});
+
 test('reviewed snapshot serves authenticated frozen files and publishes the same materialization', async () => {
   const r = await rig('owner', true);
   const { cookie } = await r.signIn();
@@ -678,6 +793,141 @@ test('reviewed snapshot serves authenticated frozen files and publishes the same
   a.equal(published.status, 200, await published.clone().text());
   a.equal((await published.json()).publicationId, snapshotId);
   a.equal((await r.publications!.currentBySlug(r.site.slug))?.id, snapshotId);
+});
+
+test('hosted snapshots route native inbox forms and preserve actionable form findings', async () => {
+  const r = await rig('owner', true, undefined, true);
+  const { cookie } = await r.signIn();
+  const form = (id: string, action: string, method: 'get' | 'post') => {
+    const node = Core.N('form');
+    node.id = id;
+    node.props.mode = 'external';
+    node.props.action = action;
+    node.props.method = method;
+    node.props.aria = id;
+    node.props.fields = [{ type: 'email', label: 'Email', name: 'email', required: 1 }];
+    return node;
+  };
+  const native = form('native-contact', '', 'post');
+  const external = form('external-contact', 'https://provider.test/send', 'post');
+  const search = form('missing-search', '', 'get');
+  const doc = structuredClone(r.site.doc) as Doc;
+  doc.pages[0].tree.push(native, external, search);
+  a.equal((await r.put(r.site.id, doc, 1, cookie)).status, 200);
+
+  const prepared = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(prepared.status, 201, await prepared.clone().text());
+  const snapshot = await prepared.json() as {
+    snapshotId: string;
+    warnings: { code: string; nodeId?: string }[];
+  };
+  a.equal(snapshot.warnings.find(finding => finding.code === 'form-no-action')?.nodeId, search.id);
+  const preview = await r.admin(
+    `/api/sites/${r.site.id}/publication-snapshots/${snapshot.snapshotId}/files/`, {}, cookie
+  );
+  a.equal(preview.status, 200);
+  const html = await preview.text();
+  a.match(html, new RegExp(`action="http://admin\\.test/forms/${r.site.id}/${native.id}" method="post"`));
+  a.match(html, /action="https:\/\/provider\.test\/send" method="post"/);
+
+  const unsafe = structuredClone(doc) as Doc;
+  (unsafe.pages[0].tree.find(node => node.id === external.id)!).props.action = 'javascript:alert(1)';
+  a.equal((await r.put(r.site.id, unsafe, 2, cookie)).status, 200);
+  const rejected = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 3 })
+  }, cookie);
+  a.equal(rejected.status, 422);
+  const failure = await rejected.json() as {
+    findings: { code: string; nodeId?: string }[];
+  };
+  a.equal(failure.findings.find(finding => finding.code === 'unsafe-form-action')?.nodeId, external.id);
+});
+
+test('publication findings reject invalid drafts before attempting hosted font fetch', async () => {
+  let calls = 0;
+  const fontFetch = (async () => {
+    calls++;
+    throw new Error('font fetch must not run for an invalid draft');
+  }) as typeof fetch;
+  const r = await rig('owner', true, undefined, false, fontFetch);
+  const { cookie } = await r.signIn();
+  const document = structuredClone(r.site.doc) as Doc;
+  document.meta.font = "'Inter',system-ui,sans-serif";
+  const image = Core.N('image', { src: 'fallback.webp', alt: '', w: '640', h: '480' });
+  document.pages[0].tree.push(image);
+  a.equal((await r.put(r.site.id, document, 1, cookie)).status, 200);
+
+  const response = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(response.status, 422, await response.clone().text());
+  const failure = await response.json() as { findings: { code: string; target?: unknown }[] };
+  a.deepEqual(failure.findings.find(finding => finding.code === 'no-alt')?.target, {
+    pageId: document.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+  });
+  a.equal(calls, 0, 'invalid findings must preempt external font access');
+  a.deepEqual(await r.publications!.listBySite(r.site.id), [], 'invalid drafts create no publication snapshot');
+});
+
+test('publication validation preserves structured CMS review targets in errors and stored warnings', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  Core.restore(structuredClone(r.site.doc));
+  const col = Core.collectionAdd('Places');
+  const photo = Core.fieldAdd(col.id, 'Photo URL', 'text')!;
+  const alt = Core.fieldAdd(col.id, 'Alt text', 'text')!;
+  const item = Core.itemAdd(col.id)!;
+  Core.itemSet(col.id, item.id, 'title', 'Courtyard');
+  Core.itemSet(col.id, item.id, photo.id, 'https://example.test/courtyard.webp');
+  Core.itemSet(col.id, item.id, alt.id, '');
+  const image = Core.N('image', { src: 'fallback.webp', alt: 'Fallback', w: '', h: '' });
+  Core.bindSet(image, 'src', Core.bindField(photo.id));
+  Core.bindSet(image, 'alt', Core.bindField(alt.id));
+  const list = Core.N('list', { per: '1' }, {}, [Core.N('column', {}, {}, [image])]);
+  Core.srcSet(list, col.id);
+  Core.state.pages[0].tree.push(Core.N('section', {}, {}, [list]));
+  const saved = await r.put(r.site.id, structuredClone(Core.doc()), 1, cookie);
+  a.equal(saved.status, 200, await saved.clone().text());
+
+  const rejected = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 2 })
+  }, cookie);
+  a.equal(rejected.status, 422);
+  const failure = await rejected.json() as { findings: { code: string; target?: unknown }[] };
+  a.deepEqual(failure.findings.find(finding => finding.code === 'no-alt')?.target, {
+    pageId: Core.state.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+    repeatPath: [{ collectionId: col.id, itemId: item.id }],
+    pagination: { listNodeId: list.id, itemId: item.id },
+  });
+
+  Core.itemSet(col.id, item.id, alt.id, 'A quiet courtyard');
+  a.equal((await r.put(r.site.id, structuredClone(Core.doc()), 2, cookie)).status, 200);
+  const prepared = await r.admin(`/api/sites/${r.site.id}/publication-snapshots`, {
+    method: 'POST', body: JSON.stringify({ sourceVersion: 3 })
+  }, cookie);
+  a.equal(prepared.status, 201, await prepared.clone().text());
+  const snapshot = await prepared.json() as {
+    snapshotId: string;
+    warnings: { code: string; target?: unknown }[];
+  };
+  const warningTarget = snapshot.warnings.find(finding => finding.code === 'no-dimensions')?.target;
+  a.deepEqual(warningTarget, {
+    pageId: Core.state.pages[0].id,
+    scope: 'page',
+    nodeId: image.id,
+    repeatPath: [{ collectionId: col.id, itemId: item.id }],
+    pagination: { listNodeId: list.id, itemId: item.id },
+  });
+  const stored = await r.publications!.byId(r.site.id, snapshot.snapshotId);
+  a.ok(stored);
+  const source = await r.publications!.source(stored!);
+  a.deepEqual(source?.warnings?.find(finding => finding.code === 'no-dimensions')?.target, warningTarget);
 });
 
 test('content accounts cannot prepare publication snapshots', async () => {

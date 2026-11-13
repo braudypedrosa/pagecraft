@@ -1,0 +1,7 @@
+{
+  "pid": 50452,
+  "command": "node --experimental-strip-types tools/.qa-ui-4993.mjs",
+  "cwdVerified": true,
+  "tab1Closed": true,
+  "action": "Stopped rejected4px harness only; final4994 retained."
+}

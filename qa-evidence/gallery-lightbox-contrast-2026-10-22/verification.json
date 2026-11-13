@@ -1,0 +1,30 @@
+{
+  "format": "pagecraft.qa.verification.v1",
+  "baseCommit": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+  "scope": "Gallery lightbox control contrast and keyboard focus",
+  "beforeEvidence": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/gallery-native-2026-10-22/gallery-final-mobile-lightbox.png",
+  "contrast": {
+    "restingWhiteImage": 8.109956731391216,
+    "restingBlackImage": 20.000764570337836,
+    "hoverWhiteImage": 14.613166875083252,
+    "hoverBlackImage": 19.791008470463964,
+    "darkFocusOuterOnWhite": 16.49682924589859,
+    "threshold": 4.5
+  },
+  "checks": {
+    "focusedRed": "3 expected failures",
+    "focusedGreen": "3 files, 8 tests passed",
+    "typecheck": "exit 0",
+    "full": "260 files passed, 2 skipped; 2715 tests passed, 5 skipped",
+    "golden": "official regeneration verified; four route CSS payloads plus derived hashes and signatures only",
+    "buildPair": "two ordered build.mjs then packages/editor/build.mjs pairs; all ten artifacts exist and match",
+    "sourceFreeze": "Core, focused test and golden fixture unchanged across final builds",
+    "diffCheck": "pass"
+  },
+  "detector": {
+    "result": "one pre-existing unrelated broken-image warning",
+    "path": "app/src/core/index.ts",
+    "line": 5461
+  },
+  "nativeAcceptance": "Owned by root and not claimed here"
+}

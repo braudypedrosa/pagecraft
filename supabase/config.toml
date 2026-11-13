@@ -414,3 +414,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.pagecraft-db]
 verify_jwt = false # Gateway authenticates its own locally generated secret.
+
+[functions.pagecraft-reports]
+verify_jwt = false # Private reporting service authenticates its own server-only gateway secret.

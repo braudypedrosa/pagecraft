@@ -1,0 +1,38 @@
+[
+  {
+    "device": "Desktop",
+    "card": 280,
+    "count": 18,
+    "height": 215,
+    "padding": "8px",
+    "pageOverflow": false,
+    "scroll": 5464,
+    "scrollHeight": 215,
+    "width": 1200,
+    "wrap": "nowrap"
+  },
+  {
+    "device": "Tablet",
+    "card": 375.5,
+    "count": 18,
+    "height": 1099,
+    "padding": "0px",
+    "pageOverflow": false,
+    "scroll": 775,
+    "scrollHeight": 1103,
+    "width": 775,
+    "wrap": "wrap"
+  },
+  {
+    "device": "Mobile",
+    "card": 347,
+    "count": 18,
+    "height": 101,
+    "padding": "8px",
+    "pageOverflow": false,
+    "scroll": 6602,
+    "scrollHeight": 101,
+    "width": 363,
+    "wrap": "nowrap"
+  }
+]

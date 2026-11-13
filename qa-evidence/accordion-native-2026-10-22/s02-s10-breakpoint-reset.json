@@ -1,0 +1,72 @@
+{
+  "afterMobileReset": [
+    {
+      "label": "Row padding value",
+      "value": "12"
+    },
+    {
+      "label": "Row gap value",
+      "value": "16"
+    },
+    {
+      "label": "Question size value",
+      "value": "18"
+    },
+    {
+      "label": "Answer size value",
+      "value": "16"
+    },
+    {
+      "label": "Row radius value",
+      "value": "8"
+    }
+  ],
+  "afterTabletReset": [
+    {
+      "label": "Row padding value",
+      "value": "18"
+    },
+    {
+      "label": "Row gap value",
+      "value": "24"
+    },
+    {
+      "label": "Question size value",
+      "value": "20"
+    },
+    {
+      "label": "Answer size value",
+      "value": "18"
+    },
+    {
+      "label": "Row radius value",
+      "value": "16"
+    }
+  ],
+  "rows": [
+    {
+      "device": "Desktop",
+      "answerSize": "18px",
+      "fontSize": "20px",
+      "gap": "24px",
+      "padding": "18px 0px",
+      "radius": "16px"
+    },
+    {
+      "device": "Tablet",
+      "answerSize": "18px",
+      "fontSize": "20px",
+      "gap": "24px",
+      "padding": "18px 0px",
+      "radius": "16px"
+    },
+    {
+      "device": "Mobile",
+      "answerSize": "18px",
+      "fontSize": "20px",
+      "gap": "24px",
+      "padding": "18px 0px",
+      "radius": "16px"
+    }
+  ]
+}

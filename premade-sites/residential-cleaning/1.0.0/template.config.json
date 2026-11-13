@@ -1,0 +1,22 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "residential-cleaning",
+  "version": "1.0.0",
+  "name": "Residential Cleaning",
+  "sampleName": "Commonwell Homekeeping",
+  "description": "A warm editorial residential-cleaning site with native service, approach, package-comparison, and quote-inquiry content.",
+  "categories": ["Home Services", "Cleaning", "Local Business"],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "logo-reverse", "file": "assets/logo-reverse.svg" },
+    { "id": "mark", "file": "assets/mark.svg" },
+    { "id": "hero-cleaning", "file": "assets/hero-cleaning.jpg" },
+    { "id": "kitchen", "file": "assets/kitchen.jpg" },
+    { "id": "bedroom", "file": "assets/bedroom.jpg" },
+    { "id": "cleaning-essentials", "file": "assets/cleaning-essentials.jpg" }
+  ],
+  "customCssPolicy": "native-only"
+}

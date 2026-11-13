@@ -1,0 +1,14 @@
+
+ RUN  v4.1.12 /private/tmp/pagecraft-save-error-contract.dxjdy1wr
+
+(node:6111) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6301) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6478) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  260 passed | 2 skipped (262)
+      Tests  2720 passed | 5 skipped (2725)
+   Start at  22:48:22
+   Duration  96.81s (transform 5.92s, setup 0ms, import 62.98s, tests 231.05s, environment 43.92s)

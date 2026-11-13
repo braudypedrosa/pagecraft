@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 39 skipped (40)
+   Start at  20:03:55
+   Duration  1.02s (transform 485ms, setup 0ms, import 901ms, tests 27ms, environment 0ms)
+

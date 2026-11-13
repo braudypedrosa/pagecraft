@@ -12,10 +12,9 @@ export function StyleClasses() {
   const add = async () => {
     const name = await L.askText('New class style', 'Class name', 'New class', {
       ok: 'Add class',
-      note: 'Apply it to an element, then edit its shared styling from the Style tab.'
     });
     if (name === null) return;
-    C.edit(() => C.classAdd(name));
+    C.edit(() => C.classAdd(name), 'Add class style');
     repaint('classes');
     L.toast('Class style added');
   };
@@ -23,19 +22,29 @@ export function StyleClasses() {
   const remove = async (id: string) => {
     const c = C.findClass(id);
     if (!c) return;
+    const check = C.classDeleteCheck(id);
+    if (!check.ok) {
+      L.toast(check.reason, { tone: 'error' });
+      return;
+    }
     const uses = C.classUsage(id);
     if (uses && !await L.askConfirm('Delete this class?',
       `<b>${esc(c.name)}</b> is used by ${uses} element${uses === 1 ? '' : 's'}. They keep `
       + 'their current look — they just stop sharing it.', { ok: 'Delete class' })) return;
-    C.edit(() => C.classDelete(id));
+    let deleted = false;
+    C.edit(() => { deleted = C.classDelete(id); }, 'Delete class');
+    if (!deleted) {
+      const latest = C.classDeleteCheck(id);
+      L.toast(latest.ok ? 'Class could not be deleted.' : latest.reason, { tone: 'error' });
+      return;
+    }
     repaint('classes');
     L.toast('Class deleted, looks kept');
   };
 
   return (
     <>
-      {!list.length && <div class="note">No class styles yet. Add one here, then apply it
-        to an element and edit its shared styling from the <b>Style</b> tab.</div>}
+      {!list.length && <div class="note">No class styles. Add one to reuse styling across elements.</div>}
       {list.map((c, i) => {
         return (
           <div class="arow" key={c.id}>
@@ -51,8 +60,8 @@ export function StyleClasses() {
                   if (cls) { cls.name = (e.target as HTMLInputElement).value; L.save(); }
                 }} onBlur={L.endTx} aria-label="Class name" />
             </span>
-            <button class="iconbtn" title="Raise precedence" disabled={i === 0}
-              onClick={() => { C.edit(() => C.classMove(c.id, -1)); repaint('classes'); }}>
+            <button class="iconbtn" title="Raise precedence — lower classes override higher classes; element styling wins" disabled={i === 0}
+              onClick={() => { C.edit(() => C.classMove(c.id, -1), 'Reorder class styles'); repaint('classes'); }}>
               <Icon name="caretUp" size={12} /></button>
             <button class="iconbtn" title="Delete — elements keep the look"
               onClick={() => remove(c.id)}><Icon name="trash" size={13} /></button>
@@ -62,7 +71,6 @@ export function StyleClasses() {
       <button class="btn block" style={{ fontSize: 'var(--fs-1)' }} onClick={add}>
         <Icon name="plus" size={12} /> Add class style
       </button>
-      <div class="note">Lower overrides higher. Element styling wins.</div>
     </>
   );
 }

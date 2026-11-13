@@ -1,0 +1,21 @@
+{
+  "method": "Built-in browser CDP ordinary mouseMoved to visible Button after native scroll to top; no forced pseudo-state or DOM mutation.",
+  "point": {
+    "x": 600,
+    "y": 385
+  },
+  "result": {
+    "bg": "rgb(69, 85, 102)",
+    "color": "rgb(102, 51, 68)",
+    "focus": false,
+    "hover": true
+  },
+  "settled": {
+    "bg": "rgb(68, 85, 102)",
+    "color": "rgb(102, 51, 68)",
+    "focus": false,
+    "hover": true,
+    "transition": "background-color 0.18s, color 0.18s, border-color 0.18s, transform 0.18s"
+  },
+  "note": "Initial read captured 180ms transition near endpoint; settled colour exactly authored #445566. Not a product failure."
+}

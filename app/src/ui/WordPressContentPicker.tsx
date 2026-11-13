@@ -1,6 +1,7 @@
 import { C, L } from './ctx';
 import type { WordPressContentItem, WordPressContentTarget } from './ctx';
 import { useId } from 'preact/hooks';
+import { HelpTip } from './HelpTip';
 
 export interface WordPressDestination {
   readonly target: WordPressContentTarget;
@@ -80,7 +81,9 @@ export function WordPressContentPicker({ value, onChange }: {
   const selected = wordpressDestinationForValue(value)?.reference || '';
 
   return <div class="wp-link-picker">
-    <label htmlFor={selectId}>WordPress content</label>
+    <div class="pc-label-with-help"><label htmlFor={selectId}>WordPress content</label>
+      <HelpTip id={noteId} label="WordPress content"
+        text="WordPress owns this content. Pagecraft stores a route that works across environments." /></div>
     <select id={selectId} class="ctl" value={selected} aria-describedby={noteId}
       onChange={event => onChange((event.target as HTMLSelectElement).value)}>
       <option value="">Use a custom URL</option>
@@ -95,6 +98,5 @@ export function WordPressContentPicker({ value, onChange }: {
         </optgroup>
       ))}
     </select>
-    <div class="note" id={noteId}>WordPress-owned content stays editable only in WordPress. Pagecraft stores its target-neutral route.</div>
   </div>;
 }

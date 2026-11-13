@@ -1,0 +1,24 @@
+{
+  "beforeImageBind": {
+    "alt": {
+      "src": "field",
+      "path": "field-2"
+    },
+    "src": {
+      "src": "field",
+      "path": "field"
+    }
+  },
+  "afterImageBind": {
+    "alt": {
+      "src": "field",
+      "path": "field-2"
+    },
+    "src": {
+      "src": "field",
+      "path": "field"
+    }
+  },
+  "nonFixturePagesChanged": [],
+  "rawProjectPrivate": true
+}

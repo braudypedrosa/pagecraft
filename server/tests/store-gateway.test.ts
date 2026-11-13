@@ -1,19 +1,24 @@
 /* The HTTPS gateway is the production persistence path. These tests hold the wire contract
    without contacting Supabase: operation names, metadata-only listings, binary reads, and the
    bulk auth/site calls that keep one page request from becoming an N+1 sequence. */
-import { test } from "vitest";
+import { test, vi } from "vitest";
 import a from "node:assert/strict";
 import {
   GatewayAssetStore,
   AUTH_USER_CACHE_MS,
+  EDITOR_SOURCE_CACHE_MS,
+  SITE_CACHE_MS,
   GatewayAuthStore,
   GatewayLibraryStore,
   GatewayConnectedStore,
   GatewayHostedPublishPreparer,
   GatewayManualImportReader,
+  GATEWAY_RETRIED_READS,
   GatewayStore,
   PagecraftGateway,
 } from "../src/store-gateway.ts";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { cmsItemKey } from "../src/store.ts";
 import { AssetQuotaError } from "../src/assets.ts";
 import type { Doc } from "../../app/src/core/types.ts";
@@ -46,7 +51,8 @@ const fakeGateway = (answer: (call: Call) => unknown) => {
   ) => {
     const call = JSON.parse(String(init?.body || "{}")) as Call;
     calls.push(call);
-    return Response.json({ data: answer(call) });
+    const answered = answer(call);
+    return answered instanceof Response ? answered : Response.json({ data: answered });
   };
   return {
     calls,
@@ -200,6 +206,7 @@ test("gateway manual-import credentials never expose plaintext token material to
     id: "manual-one",
     owner_id: "u1",
     installation_id: "wp-one",
+    site_url: "https://wordpress.test/subdirectory",
     access_token_digest: "a".repeat(64),
     access_expires_at: "2026-08-27T01:00:00.000Z",
     refresh_token_digest: "r".repeat(64),
@@ -216,6 +223,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     ) return row;
     if (call.op === "auth.manualImport.rotate") {
       return { ...row, access_token_digest: call.args.digest };
+    }
+    if (call.op === "auth.manualImport.exchangeRefresh") {
+      return {
+        status: "rotated",
+        credential: {
+          ...row,
+          access_token_digest: call.args.nextAccessDigest,
+          access_expires_at: call.args.nextAccessExpiresAt,
+          refresh_token_digest: call.args.nextRefreshDigest,
+        },
+      };
     }
     if (call.op === "auth.manualImport.revoke") return true;
     throw new Error(`unexpected ${call.op}`);
@@ -243,6 +261,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     "b".repeat(64),
     Date.now() + 60_000,
   );
+  const exchanged = await auth.exchangeManualImportRefresh(
+    row.refresh_token_digest,
+    "c".repeat(64),
+    new Date(row.access_expires_at).getTime() + 60_000,
+    "s".repeat(64),
+  );
+  a.equal(exchanged.status, "rotated");
+  if (exchanged.status === "rotated") {
+    a.equal(exchanged.credential.siteUrl, row.site_url);
+    a.equal(exchanged.credential.refreshTokenDigest, "s".repeat(64));
+  }
   a.equal(
     await auth.revokeManualImportCredential(row.id, row.refresh_token_digest),
     true,
@@ -252,12 +281,17 @@ test("gateway manual-import credentials never expose plaintext token material to
     "auth.manualImport.byAccess",
     "auth.manualImport.byRefresh",
     "auth.manualImport.rotate",
+    "auth.manualImport.exchangeRefresh",
     "auth.manualImport.revoke",
   ]);
   a.equal(
     (calls[0].args.input as Record<string, unknown>).accessExpiresAt,
     row.access_expires_at,
     "gateway timestamps cross the HTTPS boundary as ISO-8601 strings",
+  );
+  a.equal(
+    calls[4].args.nextAccessExpiresAt,
+    new Date(new Date(row.access_expires_at).getTime() + 60_000).toISOString(),
   );
   a.equal(JSON.stringify(calls).includes("access-secret"), false);
 });
@@ -325,6 +359,72 @@ test("gateway site metadata excludes documents and hot public lookups are bounde
     "a hot public path does not call a multi-second gateway twice",
   );
   a.deepEqual(calls.map((call) => call.op), ["site.listMeta", "site.bySlug"]);
+});
+
+test("gateway store lists revision metadata and fetches one document only by version", async () => {
+  const metadata = [3, 2].map((version) => ({
+    site_id: "s1",
+    version,
+    saved_by: "owner-1",
+    created_at: `2026-10-0${version}T12:00:00.000Z`,
+  }));
+  const detail = {
+    ...metadata[1],
+    doc: siteRow.doc,
+    context: { marker: "revision-two" },
+  };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "site.history") return metadata;
+    if (call.op === "site.revision") return detail;
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const sites = new GatewayStore(gateway);
+
+  const history = await sites.history("s1");
+  a.deepEqual(history.map((revision) => revision.version), [3, 2]);
+  for (const revision of history) {
+    a.equal(Object.hasOwn(revision, "doc"), false);
+    a.equal(Object.hasOwn(revision, "context"), false);
+  }
+  const revision = await sites.revision("s1", 2);
+  a.deepEqual(revision?.doc, siteRow.doc);
+  a.deepEqual(revision?.context, { marker: "revision-two" });
+  a.deepEqual(calls, [
+    { op: "site.history", args: { id: "s1" } },
+    { op: "site.revision", args: { id: "s1", version: 2 } },
+  ]);
+});
+
+test("gateway site rows expire in seconds, fresh reads skip them, and the save fast path keeps its exact version for minutes", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  try {
+    vi.setSystemTime(new Date("2026-10-05T09:00:00.000Z"));
+    const { gateway, calls } = fakeGateway((call) => {
+      if (call.op === "site.byId") return siteRow;
+      if (call.op === "asset.list") return [];
+      throw new Error(`unexpected ${call.op}`);
+    });
+    const sites = new GatewayStore(gateway);
+    const assets = new GatewayAssetStore(gateway);
+    const cloud = new GatewayHostedPublishPreparer(gateway, sites, assets);
+    const reads = () => calls.filter((call) => call.op === "site.byId").length;
+    await Promise.all([sites.byId("s1"), assets.list("s1")]);
+    await sites.byId("s1");
+    a.equal(reads(), 1, "a recent row answers ordinary reads");
+    await sites.byId("s1", { fresh: true });
+    a.equal(reads(), 2, "a fresh read always asks the gateway");
+
+    vi.setSystemTime(Date.now() + SITE_CACHE_MS);
+    a.equal(sites.cachedById("s1", 3), null, "another process may have moved or published it since");
+    a.equal(cloud.cachedSaveSource("s1", 3)?.site.version, 3, "the version the editor loaded is still that version");
+    await sites.byId("s1");
+    a.equal(reads(), 3, "an ordinary read past the short window asks again");
+
+    vi.setSystemTime(Date.now() + EDITOR_SOURCE_CACHE_MS);
+    a.equal(cloud.cachedSaveSource("s1", 3), null, "editor source data lasts minutes, not hours");
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test("gateway site settings use fixed rename and deletion operations", async () => {
@@ -1001,6 +1101,186 @@ test("gateway auth resolves a session and all memberships with one operation eac
   ]);
 });
 
+/* An Edge 502/503/546 is the function failing, not the database refusing the write. A save is
+   version-guarded, so it is sent exactly once more; everything else fails on the first error. */
+const edgeFailure = (status: number) =>
+  Response.json({ error: `edge ${status}` }, { status });
+
+test("an authorized save is retried once, with identical arguments, after a transient gateway failure", async () => {
+  const user = {
+    id: "owner-1",
+    email: "owner@example.test",
+    name: "Owner",
+    auth_user_id: "auth-owner",
+    plan: "free",
+    created_at: "2026-08-31T00:00:00.000Z",
+  };
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.saveAuthorized") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1
+      ? edgeFailure(502)
+      : { status: "saved", user, role: "owner", site: { ...siteRow, version: 4 } };
+  });
+  const cloud = new GatewayHostedPublishPreparer(gateway, new GatewayStore(gateway));
+  const saved = await cloud.saveAuthorized({
+    siteId: "s1",
+    sourceVersion: 3,
+    doc: siteRow.doc,
+    identity: { authUserId: "auth-owner", email: user.email, name: user.name },
+    requiredRole: "write",
+  });
+  a.equal(saved.status, "saved");
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+});
+
+test("a retried save whose first attempt committed reports the version conflict, not success", async () => {
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.saveAuthorized") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(546) : { status: "conflict", currentVersion: 4 };
+  });
+  const cloud = new GatewayHostedPublishPreparer(gateway);
+  const result = await cloud.saveAuthorized({
+    siteId: "s1",
+    sourceVersion: 3,
+    doc: siteRow.doc,
+    identity: { authUserId: "auth-owner", email: "owner@example.test", name: "Owner" },
+    requiredRole: "write",
+  });
+  a.deepEqual(result, { status: "conflict", currentVersion: 4 });
+  a.equal(calls.length, 2);
+});
+
+test("proposal saves fail closed when the gateway lacks the provenance operation", async () => {
+  const proposal = { id: 'a'.repeat(16), attemptId: 'b'.repeat(32), assetIds: ['workshop'] };
+  const { gateway, calls } = fakeGateway(() => Response.json({ error: 'unknown gateway operation', code: 'UNKNOWN_OPERATION' }, { status: 400 }));
+  const cloud = new GatewayHostedPublishPreparer(gateway);
+  await a.rejects(() => cloud.saveAuthorized({
+    siteId: 's1', sourceVersion: 3, doc: siteRow.doc, requiredRole: 'admin', proposal,
+    identity: { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' },
+  }), { status: 400, code: 'UNKNOWN_OPERATION' });
+  a.deepEqual(calls.map(call => call.op), ['site.saveAssistantProposal']);
+  a.deepEqual(calls[0].args.proposal, proposal);
+});
+
+test("only proposal saves use the dedicated gateway, including a transient retry", async () => {
+  const primary = 'https://gateway.example.test/functions/v1/pagecraft-db-v3';
+  const sidecar = 'https://gateway.example.test/functions/v1/pagecraft-db-v4';
+  const requests: { url: string; call: Call }[] = [];
+  let fail = false;
+  const request: typeof fetch = async (url, init) => {
+    requests.push({ url: String(url), call: JSON.parse(String(init?.body)) });
+    return fail ? edgeFailure(503) : Response.json({ data: { status: 'conflict', currentVersion: 4 } });
+  };
+  const cloud = new GatewayHostedPublishPreparer(
+    new PagecraftGateway(primary, 'fixture-key', request), undefined, undefined,
+    new PagecraftGateway(sidecar, 'fixture-key', request),
+  );
+  const input = {
+    siteId: 's1', sourceVersion: 3, doc: siteRow.doc, requiredRole: 'admin' as const,
+    identity: { authUserId: 'auth-owner', email: 'owner@example.test', name: 'Owner' },
+  };
+  const proposal = { id: 'a'.repeat(16), attemptId: 'b'.repeat(32), assetIds: ['workshop'] };
+  await cloud.saveAuthorized(input);
+  await cloud.saveAuthorized({ ...input, proposal });
+  fail = true;
+  await a.rejects(() => cloud.saveAuthorized({ ...input, proposal }), { status: 503 });
+  a.deepEqual(requests.map(({ url, call }) => [url, call.op]), [
+    [primary, 'site.saveAuthorized'],
+    [sidecar, 'site.saveAssistantProposal'],
+    [sidecar, 'site.saveAssistantProposal'],
+    [sidecar, 'site.saveAssistantProposal'],
+  ]);
+  a.deepEqual(requests[1].call.args.proposal, proposal);
+  a.deepEqual(requests[2], requests[3]);
+});
+
+test("an editor-session save is retried once after a transient gateway failure", async () => {
+  let attempts = 0;
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.save") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(503) : { ...siteRow, version: 4 };
+  });
+  const saved = await new GatewayStore(gateway).save("s1", siteRow.doc, 3, "owner-1");
+  a.equal(saved.ok, true);
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+});
+
+test("saves are not retried twice, nor after a database error, and other writes are not retried", async () => {
+  const twice = fakeGateway(() => edgeFailure(502));
+  await a.rejects(() => new GatewayStore(twice.gateway).save("s1", siteRow.doc, 3), /edge 502/);
+  a.equal(twice.calls.length, 2);
+
+  const database = fakeGateway(() =>
+    Response.json({ error: "database operation failed", code: "DATABASE_ERROR" }, { status: 500 })
+  );
+  await a.rejects(
+    () => new GatewayStore(database.gateway).save("s1", siteRow.doc, 3),
+    /database operation failed/,
+  );
+  a.equal(database.calls.length, 1);
+
+  const rename = fakeGateway(() => edgeFailure(502));
+  await a.rejects(() => new GatewayStore(rename.gateway).setName("s1", "Renamed"), /edge 502/);
+  a.equal(rename.calls.length, 1);
+});
+
+/* On 3 November a history read and a membership check each failed once with an Edge 502 and
+   succeeded on retry. Reads change nothing, so they get the same single retry as saves. */
+test("a read is retried once, with identical arguments, after a transient gateway failure", async () => {
+  let attempts = 0;
+  const revision = { site_id: "s1", version: 3, doc: siteRow.doc, saved_by: null, context: null, created_at: "2026-11-03T00:00:00.000Z" };
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op !== "site.revision") throw new Error(`unexpected ${call.op}`);
+    return ++attempts === 1 ? edgeFailure(502) : revision;
+  });
+  const found = await new GatewayStore(gateway).revision("s1", 3);
+  a.equal(found?.version, 3);
+  a.equal(calls.length, 2);
+  a.deepEqual(calls[1], calls[0]);
+
+  let checks = 0;
+  const auth = fakeGateway((call) => {
+    if (call.op !== "auth.membership") throw new Error(`unexpected ${call.op}`);
+    return ++checks === 1 ? edgeFailure(546) : { site_id: "s1", user_id: "owner-1", role: "owner" };
+  });
+  a.equal((await new GatewayAuthStore(auth.gateway).membership("s1", "owner-1"))?.role, "owner");
+  a.equal(auth.calls.length, 2);
+});
+
+test("a read is not retried twice, nor after a database error", async () => {
+  const twice = fakeGateway(() => edgeFailure(503));
+  await a.rejects(() => new GatewayStore(twice.gateway).byId("s1"), /edge 503/);
+  a.equal(twice.calls.length, 2);
+
+  const database = fakeGateway(() =>
+    Response.json({ error: "database operation failed", code: "DATABASE_ERROR" }, { status: 500 })
+  );
+  await a.rejects(() => new GatewayStore(database.gateway).byId("s1"), /database operation failed/);
+  a.equal(database.calls.length, 1);
+});
+
+/* The retried list must stay reads: each one has to be an Edge operation whose handler writes
+   nothing, apart from the two session lookups that clear an expired session. */
+test("every retried read is an Edge operation that writes nothing", () => {
+  const edge = readFileSync(
+    fileURLToPath(new URL("../../supabase/functions/pagecraft-db/index.ts", import.meta.url)),
+    "utf8",
+  );
+  const sessionCleanup = new Set(["auth.userForSession", "auth.accessForSession"]);
+  for (const op of GATEWAY_RETRIED_READS) {
+    const start = edge.indexOf(`case "${op}":`);
+    a.ok(start >= 0, `${op} is an Edge operation`);
+    const end = edge.indexOf("\n    case \"", start + 1);
+    const body = edge.slice(start, end < 0 ? undefined : end).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    a.doesNotMatch(body, /\b(insert|update|upsert)\b|\.(upload|remove|from\([^)]*\)\.(insert|update))\(/i, `${op} writes nothing`);
+    if (!sessionCleanup.has(op)) a.doesNotMatch(body, /\bdelete\b/i, `${op} deletes nothing`);
+  }
+});
+
 test("a malformed successful gateway response fails closed", async () => {
   const request = async () => Response.json({ ok: true });
   const gateway = new PagecraftGateway(
@@ -1067,6 +1347,21 @@ test('retirement invalidates browser metadata without removing historical bytes'
   a.equal((await assets.list('s1'))[0].retired,true);
   a.equal(calls.filter(call=>call.op==='asset.list').length,2);
   a.equal(calls.some(call=>call.op==='asset.remove'),false);
+});
+
+test('fresh media listing bypasses cached metadata and sees another process retire an asset', async () => {
+  let retired = false;
+  const { gateway, calls } = fakeGateway(call => {
+    if (call.op === 'asset.list') return [{ id: 'a1', site_id: 's1', name: 'One.png', type: 'image/png', w: 1, h: 1, retired }];
+    throw new Error(call.op);
+  });
+  const assets = new GatewayAssetStore(gateway);
+  a.equal((await assets.list('s1'))[0].retired, false);
+  retired = true;
+  a.equal((await assets.list('s1'))[0].retired, false);
+  a.equal((await assets.list('s1', { fresh: true }))[0].retired, true);
+  a.equal((await assets.list('s1'))[0].retired, true);
+  a.deepEqual(calls.map(call => call.op), ['asset.list', 'asset.list']);
 });
 
 test("the signed-in identity upsert is reused briefly, but never across a changed identity or a rename", async () => {

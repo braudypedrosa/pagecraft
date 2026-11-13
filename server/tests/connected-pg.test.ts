@@ -8,6 +8,7 @@ import {
   PgAssetStore, PgAuthStore, PgConnectedStore, PgStore, type Queryable
 } from '../src/store-pg.ts';
 import type { DeploymentStatus, SiteRelease, WordPressConnection } from '../src/release-store.ts';
+import { PgOwnedSiteStore } from '../src/accounts.ts';
 
 const digest = (value: unknown) => sha256(new TextEncoder().encode(canonicalJson(value)));
 
@@ -636,4 +637,96 @@ test('Postgres publish CAS rejects a delayed lower release sequence', async () =
   const delayed = await sites.publish(site.id, 1, older.id, older.sequence);
   a.equal(delayed?.publishedReleaseId, newer.id);
   a.equal((await sites.byId(site.id))?.publishedReleaseId, newer.id);
+});
+
+test('Postgres counts only created owned sites, and rotates, expires, lists and revokes WordPress credentials', async () => {
+  const { db, sites, auth, owner } = await rig();
+  const owned = new PgOwnedSiteStore(db as unknown as Queryable);
+  const stranger = await auth.createUser('stranger@connected.test', 'Stranger');
+  a.equal(await owned.owned(owner.id), 1, 'a site with no recorded author still counts');
+  const forced = await sites.create({ host: 'forced.test', name: 'Forced', doc: blankDoc('Forced'), savedBy: stranger.id });
+  await auth.grant(forced.id, stranger.id, 'owner');
+  await auth.grant(forced.id, owner.id, 'owner');
+  a.equal(await owned.owned(owner.id), 1, 'being added as an owner uses none of the allowance');
+  a.equal(await owned.owned(stranger.id), 1);
+  const made = await owned.create({ ownerId: owner.id, host: 'mine.test', name: 'Mine', doc: blankDoc('Mine') });
+  a.ok(made.ok);
+  a.equal(await owned.owned(owner.id), 2);
+
+  await auth.createManualImportCredential({
+    id: 'wp-pg', ownerId: owner.id, installationId: 'wp-install', accessTokenDigest: hashToken('access-1'),
+    accessExpiresAt: Date.now() + 60_000, refreshTokenDigest: hashToken('refresh-1'),
+  });
+  const rotated = await auth.rotateManualImportAccess('wp-pg', hashToken('access-2'), Date.now() + 60_000,
+    { digest: hashToken('refresh-2'), previous: hashToken('refresh-1') });
+  a.equal(rotated?.refreshTokenDigest, hashToken('refresh-2'));
+  a.equal(await auth.rotateManualImportAccess('wp-pg', hashToken('access-3'), Date.now() + 60_000,
+    { digest: hashToken('refresh-3'), previous: hashToken('refresh-1') }), null, 'a replayed token cannot rotate');
+  a.equal(await auth.manualImportByRefresh(hashToken('refresh-1')), null);
+  a.ok(await auth.manualImportByRefresh(hashToken('refresh-2')));
+  await db.query(`update wordpress_import_credentials set updated_at = now() - interval '91 days' where id = 'wp-pg'`);
+  a.equal(await auth.manualImportByRefresh(hashToken('refresh-2')), null, 'unused for 90 days');
+  a.deepEqual((await auth.manualImportsForOwner(owner.id)).map(item => item.id), ['wp-pg']);
+  a.equal(await auth.revokeManualImportForOwner('wp-pg', stranger.id), false);
+  a.equal(await auth.revokeManualImportForOwner('wp-pg', owner.id), true);
+  a.deepEqual(await auth.manualImportsForOwner(owner.id), []);
+});
+
+test('Postgres detects refresh-token reuse, revokes the family, and resets history on re-pair', async () => {
+  const { db, auth, owner } = await rig();
+  const first = hashToken('pg-family-refresh-1');
+  await auth.createManualImportCredential({
+    id: 'wp-pg-family', ownerId: owner.id, installationId: 'wp-family-install',
+    siteUrl: 'https://wordpress.test/subdirectory',
+    accessTokenDigest: hashToken('pg-family-access-1'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: first,
+  });
+  const second = hashToken('pg-family-refresh-2');
+  const rotated = await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-family-access-2'), Date.now() + 60_000, second);
+  a.equal(rotated.status, 'rotated');
+  if (rotated.status === 'rotated') {
+    a.equal(rotated.credential.siteUrl, 'https://wordpress.test/subdirectory');
+  }
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-replay-access'), Date.now() + 60_000, hashToken('pg-replay-refresh')),
+  { status: 'reused' });
+  a.equal(await auth.manualImportByRefresh(second), null);
+
+  await auth.createManualImportCredential({
+    id: 'wp-pg-family-new', ownerId: owner.id, installationId: 'wp-family-install',
+    accessTokenDigest: hashToken('pg-new-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: hashToken('pg-new-refresh'),
+  });
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    first, hashToken('pg-old-access'), Date.now() + 60_000, hashToken('pg-old-refresh')),
+  { status: 'invalid' });
+  a.ok(await auth.manualImportByRefresh(hashToken('pg-new-refresh')));
+
+  const expiredSpent = hashToken('pg-expired-spent-refresh');
+  const expiredCurrent = hashToken('pg-expired-current-refresh');
+  await auth.createManualImportCredential({
+    id: 'wp-pg-expired-history', ownerId: owner.id, installationId: 'wp-expired-history-install',
+    accessTokenDigest: hashToken('pg-expired-access'), accessExpiresAt: Date.now() + 60_000,
+    refreshTokenDigest: expiredSpent,
+  });
+  a.equal((await auth.exchangeManualImportRefresh(
+    expiredSpent, hashToken('pg-expired-access-2'), Date.now() + 60_000, expiredCurrent)).status,
+  'rotated');
+  await db.query(
+    `update wordpress_import_used_refresh_tokens set expires_at = now() - interval '1 second'
+     where digest = $1`, [expiredSpent]);
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    expiredSpent, hashToken('pg-expired-replay-access'), Date.now() + 60_000,
+    hashToken('pg-expired-replay-refresh')),
+  { status: 'invalid' }, 'expired replay history cannot revoke the active family');
+  a.ok(await auth.manualImportByRefresh(expiredCurrent));
+
+  await db.query(
+    `update wordpress_import_credentials set updated_at = now() - interval '91 days'
+     where installation_id = 'wp-family-install'`);
+  a.deepEqual(await auth.exchangeManualImportRefresh(
+    hashToken('pg-new-refresh'), hashToken('pg-idle-access'), Date.now() + 60_000,
+    hashToken('pg-idle-refresh')),
+  { status: 'invalid' }, 'the exchange itself enforces the idle limit');
 });

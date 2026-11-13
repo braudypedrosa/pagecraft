@@ -1,0 +1,15 @@
+{
+  "status": "Root native bounded accepted; deployment pending",
+  "node": "n7k7pi1wz",
+  "invalid": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem\nHide details\nA video in the page has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.\nHome · page\nShow me\nClose",
+  "showMeSelectedId": "n7k7pi1wz",
+  "corrected": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\nNo problems found\nClose",
+  "empty": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 suggestion\nHide details\nA video in the page has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.\nHome · page\nShow me\nClose",
+  "invalidReload": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem\nHide details\nA video in the page has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.\nHome · page\nShow me\nClose",
+  "undo": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem\nHide details\nA video in the page has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.\nHome · page\nShow me\nClose\nUndo: Change video source",
+  "redo": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\nNo problems found\nClose\nUndo: Change video source\nRedo: Change video source",
+  "limits": [
+    "Native page-local path only; component/CMS/global targeting has focused automated coverage",
+    "FullQAopen"
+  ]
+}

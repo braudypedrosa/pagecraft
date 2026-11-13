@@ -1,0 +1,86 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (685 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+ ❯ server/tests/gateway-db.test.ts (14 tests | 14 skipped) 10570ms
+ ❯ server/tests/submissions.test.ts (16 tests | 1 failed) 33196ms
+   × failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200 30061ms
+(node:6131) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6123) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6571) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ server/tests/connected-pg.test.ts (19 tests | 2 failed) 133769ms
+   × Postgres provisions, recovers, confirms, and retires expired two-phase pairings 15721ms
+   × Postgres init upgrades legacy active connections before enforcing confirmation state 15737ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/gateway-db.test.ts [ server/tests/gateway-db.test.ts ]
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ ❯ server/tests/gateway-db.test.ts:117:1
+    115| let handler: Handler;
+    116|
+    117| beforeAll(async () => {
+       | ^
+    118|   db = await PGlite.create();
+    119|   await db.exec(`
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/connected-pg.test.ts > Postgres provisions, recovers, confirms, and retires expired two-phase pairings
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/connected-pg.test.ts:158:1
+    156| });
+    157|
+    158| test('Postgres provisions, recovers, confirms, and retires expired two…
+       | ^
+    159|   const firstRig = await rig();
+    160|   const pending = {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  server/tests/connected-pg.test.ts > Postgres init upgrades legacy active connections before enforcing confirmation state
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/connected-pg.test.ts:277:1
+    275| });
+    276|
+    277| test('Postgres init upgrades legacy active connections before enforcin…
+       | ^
+    278|   const db = await PGlite.create();
+    279|   const query = db as unknown as Queryable;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  server/tests/submissions.test.ts > failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/submissions.test.ts:247:1
+    245| });
+    246|
+    247| test('failed attempts never fill the inbox: only successful entries co…
+       | ^
+    248|   const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+    249|   try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  3 failed | 256 passed | 2 skipped (261)
+      Tests  3 failed | 2693 passed | 19 skipped (2715)
+   Start at  16:21:27
+   Duration  144.14s (transform 45.27s, setup 0ms, import 343.83s, tests 1018.52s, environment 226.39s)

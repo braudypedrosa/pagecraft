@@ -1,0 +1,63 @@
+
+from /private/tmp/pagecraft-history-investigation-24ec/supabase/functions/pagecraft-db/index.ts:
+   4 | -import { dispatchCollaboration, isCollaborationOp } from "./collaboration-invitations.ts";
+   4 | +import {
+   5 | +  dispatchCollaboration,
+   6 | +  isCollaborationOp,
+   7 | +} from "./collaboration-invitations.ts";
+     | ...
+ 357 | -      return integer(one(
+ 360 | +      return integer(
+ 358 | -        await sql<{ count: number }[]>`
+ 361 | +        one(
+ 362 | +          await sql<{ count: number }[]>`
+     | ...
+ 360 | -        where membership.user_id = ${text(args.ownerId)} and membership.role = 'owner'
+ 364 | +        where membership.user_id = ${
+ 365 | +            text(args.ownerId)
+ 366 | +          } and membership.role = 'owner'
+     | ...
+ 365 | -      )?.count);
+ 371 | +        )?.count,
+ 372 | +      );
+     | ...
+2351 | -          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+2358 | +          const planStorageBytes =
+2359 | +            planEntitlements(text(owner.plan)).storageBytes;
+     | ...
+2760 | -          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+2768 | +          const planStorageBytes =
+2769 | +            planEntitlements(text(owner.plan)).storageBytes;
+     | ...
+3393 | -      return await sql.begin(async transaction => {
+3402 | +      return await sql.begin(async (transaction) => {
+3394 | -      const credential = one(
+3403 | +        const credential = one(
+3395 | -        await transaction`
+3404 | +          await transaction`
+     | ...
+3399 | -          text(input.installationId)
+3408 | +            text(input.installationId)
+3400 | -        }, ${input.siteUrl ? text(input.siteUrl) : null},
+3409 | +          }, ${input.siteUrl ? text(input.siteUrl) : null},
+     | ...
+3402 | -          text(input.refreshTokenDigest)
+3411 | +            text(input.refreshTokenDigest)
+3403 | -        })
+3412 | +          })
+     | ...
+3412 | -      );
+3421 | +        );
+3413 | -      if (credential) await transaction`delete from wordpress_import_used_refresh_tokens where credential_id = ${credential.id}`;
+3422 | +        if (credential) {
+3414 | -      return credential;
+3423 | +          await transaction`delete from wordpress_import_used_refresh_tokens where credential_id = ${credential.id}`;
+3424 | +        }
+3425 | +        return credential;
+     | ...
+3456 | -          }, refresh_token_digest = ${text(args.refreshDigest)}, updated_at = now()
+3467 | +          }, refresh_token_digest = ${
+3468 | +            text(args.refreshDigest)
+3469 | +          }, updated_at = now()
+
+error: Found 1 not formatted file in 1 file

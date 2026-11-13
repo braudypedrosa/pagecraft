@@ -1,0 +1,113 @@
+{
+  "title": "Quote native coverage audit",
+  "date": "2026-10-21",
+  "scope": "Q01-Q06 only; 14 direct Quote controls plus the planned Advanced/Visibility behavior in Q05.",
+  "coverage_policy": "A row is evidenced only where the named setting is represented by exact native DOM or computed-style proof after the relevant save/reload path. This is bounded representative coverage, not an exhaustive value or runtime-control claim.",
+  "source_context": {
+    "environment": "candidate81 native QA evidence",
+    "module": "quote",
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "dom_root": "figure.pagecraft-quote",
+    "label_fix": "pending native verification in candidate82"
+  },
+  "cases": [
+    {
+      "id": "Q01",
+      "purpose": "create/edit content and alignment",
+      "controls": ["Quotation", "Attribution", "Source URL", "Text style", "Alignment"],
+      "exact_proof": [
+        "q01-preview-reload-devices.json",
+        "q01-edit-alignment.json"
+      ],
+      "dom_assertions": [
+        "figure.pagecraft-quote > blockquote[cite] > p",
+        "escaped <sample> and & with preserved br",
+        "figcaption.pagecraft-attrib > a[href=\"https://example.test/quote\"]"
+      ],
+      "computed_assertions": ["Alignment flex-end maps to align-self flex-end; the alignment record covers flex-start, center, and flex-end."],
+      "reload_devices": "DOM proof recorded at 1280, 834, and 414px after preview/reload.",
+      "status": "evidenced_with_limits"
+    },
+    {
+      "id": "Q02",
+      "purpose": "empty attribution and unsafe URL",
+      "controls": ["Attribution", "Source URL"],
+      "exact_proof": ["q02-empty-attribution-all-devices.json", "q02-empty-attribution.json", "q02-unsafe-source-reload.json"],
+      "dom_assertions": [
+        "empty Attribution yields bare BLOCKQUOTE with zero captions at all three widths",
+        "unsafe javascript: source yields no cite, no links, and plain caption text"
+      ],
+      "computed_assertions": [],
+      "reload_devices": "Empty attribution and unsafe URL records include Desktop, Tablet, and Mobile; unsafe source remains inert after reload.",
+      "status": "evidenced_with_limits"
+    },
+    {
+      "id": "Q03",
+      "purpose": "named Quote style values",
+      "controls": ["Size", "Line height", "Font", "Measure", "Text alignment", "Colour", "Rule colour", "Rule width", "Padding"],
+      "exact_proof": ["q03-style-reload.json"],
+      "dom_assertions": ["figure is the measured Quote wrapper; rendered text remains inside the Quote DOM."],
+      "computed_assertions": [
+        "Desktop/Tablet: Georgia, 26px, 41.6px line height, max-width 542.572px, text-align center",
+        "Mobile: Georgia, 20px, 32px line height, max-width 417.363px, text-align center",
+        "all devices: 5px solid rgb(180, 95, 60) rule and padding 12px 18px 14px 20px",
+        "all devices: rgb(36, 52, 71) text colour"
+      ],
+      "reload_devices": "Computed proof includes 1280, 834, and 414px records after style/reload.",
+      "status": "evidenced_with_limits"
+    },
+    {
+      "id": "Q04",
+      "purpose": "responsive overrides, reset, and reload",
+      "controls": ["Size", "Line height", "Measure", "Padding"],
+      "exact_proof": ["q04-authored-values.json", "q04-overrides-reload.json", "q04-reset-reload.json"],
+      "dom_assertions": ["no horizontal overflow recorded in the responsive override proof."],
+      "computed_assertions": [
+        "override proof: D 24px/34.8px/500.836px, T 20px/27px/368.262px, M 18px/25.2px/100%",
+        "reset proof: all three devices inherit 24px/34.8px/500.836px",
+        "padding matches the authored four-side values before and after reset"
+      ],
+      "reload_devices": "Distinct Desktop, Tablet, and Mobile values and post-reset values are recorded after reload.",
+      "status": "evidenced"
+    },
+    {
+      "id": "Q05",
+      "purpose": "Advanced identity/layout, visibility, and conditional output",
+      "controls": ["HTML id", "CSS classes", "Position", "Top", "Z-index", "Overflow", "Max width", "Custom CSS", "Hide on Desktop", "Hide on Tablet", "Hide on Mobile", "Show only if", "Condition", "Value"],
+      "exact_proof": ["q05-advanced-reload.json", "q05-hide-desktop.json", "q05-visibility-matrix.json", "q05-condition-has-value.json", "q05-condition-equals-match.json", "q05-condition-equals-omit.json", "q05-condition-empty-reload.json", "q05-condition-not-equals.json"],
+      "dom_assertions": [
+        "id quote-proof, classes qa-quote pull-quote, and custom outline are present",
+        "hide rules retain DOM and use display:none at the selected breakpoint",
+        "condition equals match produces one Quote; non-match produces zero Quote/captions"
+      ],
+      "computed_assertions": ["relative position, top 4px, z-index 2, visible overflow, and max-width 530.297px recorded."],
+      "reload_devices": "Visibility matrix records all three breakpoint selections; condition records include all three devices for has-value/equality cases.",
+      "status": "evidenced_with_limits",
+      "limits": ["Condition source/operator/value controls are behaviorally evidenced but the candidate81 native record predates candidate82 accessible-label fix.", "Visibility uses display:none with DOM retained; do not interpret as DOM omission."]
+    },
+    {
+      "id": "Q06",
+      "purpose": "named text style and preservation",
+      "controls": ["Text style"],
+      "exact_proof": ["q06-lead-style-reload.json", "q06-body-style-reload.json", "q06-detach-style-reload.json", "q06-lead-detach-all-devices.json", "q06-detach-style-reload.json"],
+      "dom_assertions": ["lead/body class token changes are present while Quote content and attribution markup remain intact."],
+      "computed_assertions": ["lead/body computed font, size, line-height, color, border, and padding are recorded; detached state retains appearance exactly."],
+      "reload_devices": "Lead/detached proof covers 1280, 834, and 414px; body proof covers all three widths.",
+      "status": "evidenced_with_limits",
+      "limits": ["Representative named styles only; not every runtime text-style option."]
+    }
+  ],
+  "direct_control_summary": {
+    "planned_direct_controls": 14,
+    "controls_with_exact_native_evidence": 14,
+    "cases": 6,
+    "device_widths_in_proof": [1280, 834, 414],
+    "unverified_or_pending": ["candidate82 native verification of enhanced combobox labels", "arbitrary values, all fonts, all named styles, all motion/hover/focus states, and all runtime-generated controls"]
+  },
+  "scope_gaps": [
+    "No exhaustive enumeration of arbitrary unit values, palette values, fonts, named text styles, or custom CSS expressions.",
+    "Generic Motion/State/Hover/Focus controls are outside Q01-Q06 proof scope.",
+    "The Q05 condition label/source combobox accessibility fix is pending candidate82 native verification.",
+    "No claim is made for Breadcrumb or Icon coverage in this Quote-only artifact."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "base": "2d19d89c3f14a3f804ba9d0c714dcaf114afe35d",
+  "requiredArtifacts": 11,
+  "deterministicAcrossTwoBuilds": true,
+  "unchangedAfterFullSuite": true,
+  "trackedChanges": [
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "unchangedRequiredArtifacts": [
+    "app/src/core/public-form-controls.generated.ts",
+    "dist/core.cjs",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "untrackedBuildProducts": [
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "demo": {
+    "commandPassed": true,
+    "findings": 0,
+    "baseSha256": "1aad67e1a84d1ecb7889a344901e033f82cab9a9059fffbd157f1d5c46090d0c",
+    "generatedSha256": "d4ce3d3a1f9da7bc03ae3b22510934aa51220cf480db69560337c1c45a494f34",
+    "diff": "154 additions and 154 deletions from pre-existing generated ID/foundation drift; this inspector-only change has no Demo behavior.",
+    "decision": "Restored the exact base Demo and excluded unrelated generated drift."
+  }
+}

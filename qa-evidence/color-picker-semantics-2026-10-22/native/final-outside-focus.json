@@ -1,0 +1,44 @@
+[
+  {
+    "device": "Desktop",
+    "side": "top",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  },
+  {
+    "device": "Desktop",
+    "side": "right",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  },
+  {
+    "device": "Tablet",
+    "side": "top",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  },
+  {
+    "device": "Tablet",
+    "side": "right",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  },
+  {
+    "device": "Mobile",
+    "side": "top",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  },
+  {
+    "device": "Mobile",
+    "side": "right",
+    "namedDialogs": 1,
+    "closed": true,
+    "focus": true
+  }
+]

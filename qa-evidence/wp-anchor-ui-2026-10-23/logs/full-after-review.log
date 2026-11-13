@@ -1,0 +1,40 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-anchor-ui-693cb90/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (690 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-anchor-ui-693cb90/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-anchor-ui-693cb90
+
+ ❯ server/tests/gateway-db.test.ts (14 tests | 14 skipped) 12902ms
+(node:98869) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98984) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:178) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/gateway-db.test.ts [ server/tests/gateway-db.test.ts ]
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ ❯ server/tests/gateway-db.test.ts:117:1
+    115| let handler: Handler;
+    116|
+    117| beforeAll(async () => {
+       | ^
+    118|   db = await PGlite.create();
+    119|   await db.exec(`
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 268 passed | 2 skipped (271)
+      Tests  2755 passed | 19 skipped (2774)
+   Start at  12:53:32
+   Duration  160.03s (transform 11.62s, setup 0ms, import 98.10s, tests 428.51s, environment 53.79s)
+

@@ -1,0 +1,27 @@
+{
+  "typed": "Yes",
+  "actual": [
+    {
+      "marker": false,
+      "title": "Alpha"
+    },
+    {
+      "marker": false,
+      "title": "Beta"
+    },
+    {
+      "marker": false,
+      "title": "Gamma"
+    },
+    {
+      "marker": false,
+      "title": "Delta"
+    },
+    {
+      "marker": false,
+      "title": "Epsilon"
+    }
+  ],
+  "desiredUX": "Show Yes/No choices storing existing canonical1/0; do not require customer to know encoding",
+  "classification": "UX clarity gap; existing raw comparison semantics are unchanged"
+}

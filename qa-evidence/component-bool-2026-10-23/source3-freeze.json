@@ -1,0 +1,5 @@
+{
+  "app/src/ui/inspector/Controls.tsx": "7acbdd1fae334b6cca790f23e4473146dc871466cdee1dfaddc84ef74f1a10af",
+  "tests/component-bool-authoring.test.tsx": "6666c48c3f846a0ebce1b780fcb32f9e8373e7c821afca3cf2f7513be545ae46",
+  "public/internal-ui-baselines/manifest.json": "c6c466fbae57f763c5a51b00ea317f13ea3fc64453755f06c33b6b1dfea0a933"
+}

@@ -1,0 +1,54 @@
+{
+  "status": "installed",
+  "version": "0.2.17-preview.20261023.98",
+  "cloud": "b927f6435cb5d3a0903f386b62741ecc2376b1c5",
+  "wordpress": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "sourceCommittedExact": true,
+  "php97Source12PreservedExact": true,
+  "frozen10Exact": true,
+  "newEditorArchiveExact": true,
+  "builder55Exact": true,
+  "runtimeUnchanged": true,
+  "compilerPathsVersion98Only": true,
+  "addedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261023.98-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261023.98-pagecraft-renderer-2/compiler.js"
+  ],
+  "removedBuilderPaths": [
+    "assets/compiler/0.2.17-preview.20261022.97-pagecraft-renderer-2/compiler-worker.js",
+    "assets/compiler/0.2.17-preview.20261022.97-pagecraft-renderer-2/compiler.js"
+  ],
+  "changedBuilderPaths": [
+    "assets/pagecraft-editor-contract.json",
+    "assets/pagecraft-editor.html"
+  ],
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical130Exact": true,
+  "packageInventory132Exact": true,
+  "new98PairHashes": {
+    "packages/pagecraft-editor-0.2.17-preview.20261023.98.source.json": "4ac7500e01100d9bc6741b1ce489f3ee0b10225ea39a58835cd1a9c58b1077f9",
+    "packages/pagecraft-editor-0.2.17-preview.20261023.98.tgz": "c95978109c0df98d82b3a40ad6df1d5f762fd8b17936f0b3962bd568fc5b2308"
+  },
+  "protectedSnapshotByteExact": true,
+  "revisionCount": 385,
+  "original487Version": 73,
+  "qa616DocumentVersion": 26,
+  "SQLByteExact": true,
+  "sqlSHA256": "9b307ddf13158be1bb567cd3b9fd298a26d12bd598e122fae24e81db40c25858",
+  "builderZipSHA256": "c9480f560ab8b3f78489e295e24d99c87fe82a6a42aa440ad607570cf574d923",
+  "source10FreezeSHA256": "009fe00c456d4b37d21f3e163c69c561aa20ca85691ce204868c308f47241aba",
+  "php12FreezeSHA256": "8ef5e1c65cf5a94ef9015e5594286d534dc3215d74de924e02bce767a5a79074",
+  "builder97Preserved": "[private path omitted]",
+  "guard": "[private path omitted]",
+  "nativeAcceptance": "Pending root verification",
+  "databaseRollbackPerformed": false,
+  "evidenceCopy": {
+    "privateSourceSHA256": "92642b14af12d574b949157f62d4aded99931f9f6b3b9a2bc48847685f5490d8",
+    "redactedPrivatePathFields": [
+      "guard",
+      "builder97Preserved"
+    ],
+    "credentialsOrSessionDataIncluded": false
+  }
+}

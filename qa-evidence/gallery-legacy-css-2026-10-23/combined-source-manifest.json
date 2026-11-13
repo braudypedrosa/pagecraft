@@ -1,0 +1,6 @@
+{
+  "app/src/core/index.ts": "a04f85eedf885a0c7c661ec8b7756f5538819f0b43c3b07845058d490c8e6369",
+  "tests/gallery-lightbox-legacy-css.test.ts": "a313bb942b70d4553e3f9cc2be1c417ebd7f842cdd1e31fb2b73bd1a7cd53dfc",
+  "tests/spacer-editor-parity.test.ts": "c0df5ef3c2b96425be8c42cc9527f23a233023c019a89e69a9f81469eed6a829",
+  "server/tests/fixtures/wordpress-artifact-v1.json": "0b678e6b51ff18274da8f234e1b36862654aa7db42e6b8aa28f3389fa969b8c7"
+}

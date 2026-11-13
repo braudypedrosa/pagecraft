@@ -1,0 +1,59 @@
+{
+  "selectedPath": "Home\nSettings & SEO\nSection\n›\nRow · 1 col\n›\nColumn\n›\nTabs\nDesktop base",
+  "visible": true,
+  "dom": {
+    "id": "n27ec84n4",
+    "parents": [
+      {
+        "id": "n27ec84n4",
+        "tag": "DIV",
+        "type": "tabs"
+      },
+      {
+        "id": "n27ec85lo",
+        "tag": "DIV",
+        "type": "column"
+      },
+      {
+        "id": "n27ec866p",
+        "tag": "DIV",
+        "type": "row"
+      },
+      {
+        "id": "",
+        "tag": "DIV",
+        "type": null
+      },
+      {
+        "id": "n27ec87a2",
+        "tag": "SECTION",
+        "type": "section"
+      },
+      {
+        "id": "",
+        "tag": "DIV",
+        "type": null
+      },
+      {
+        "id": "",
+        "tag": "DIV",
+        "type": null
+      },
+      {
+        "id": "s-root",
+        "tag": "DIV",
+        "type": null
+      },
+      {
+        "id": "",
+        "tag": "BODY",
+        "type": null
+      },
+      {
+        "id": "",
+        "tag": "HTML",
+        "type": null
+      }
+    ]
+  }
+}

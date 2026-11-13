@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430
+
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  18:07:45
+   Duration  1.30s (transform 419ms, setup 0ms, import 586ms, tests 295ms, environment 1.06s)

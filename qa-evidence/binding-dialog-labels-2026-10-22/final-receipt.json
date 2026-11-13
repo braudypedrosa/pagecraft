@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-10-21T17:09:50.613793+00:00",
+  "baseCommit": "f70e9ad7f309a1dd33323907664009bfaa99b082",
+  "sourceTestsAssets": "all22 current frozen entries unchanged after final suite",
+  "determinism": "11/11 artifacts byte-identical across two final combined builds",
+  "finalSuite": "244 files /2591 tests pass; 2 files /5 tests skipped",
+  "baseline": "root recorded reviewed;24images/29sources check passes; baseline frozen separately",
+  "sha256": {
+    "public/internal-ui-baselines/manifest.json": "c9f29c4217dc0cf651475a9d6a12171085093ac7fb86915891421bfe36d0745f",
+    "qa-evidence/binding-dialog-labels-2026-10-22/source-tests-assets.sha256": "4fa9c040aa41f1fea5086c27bb59c7c8b927d75496cd187db68702115ee9d8dc",
+    "qa-evidence/binding-dialog-labels-2026-10-22/generated-build-1.sha256": "aa2f34eaac5dc991ceee1ac615d089cc377c4dae115d7d5908c93e332b5347b8",
+    "qa-evidence/binding-dialog-labels-2026-10-22/generated-build-2.sha256": "aa2f34eaac5dc991ceee1ac615d089cc377c4dae115d7d5908c93e332b5347b8",
+    "qa-evidence/binding-dialog-labels-2026-10-22/logs/full-final.log": "8e6878686bbe2bbbc8f5d2293accf602916ceeaeddd4ed168a75218dd03404fa",
+    "qa-evidence/binding-dialog-labels-2026-10-22/logs/baseline-final.log": "dba08600d7660bb21fb7b8fdef6a0c740124e8b47ef9ef7f2f3440fc5dda916f",
+    "qa-evidence/binding-dialog-labels-2026-10-22/gallery/capture.json": "01c1f6990371fa8e8464aedb3ac351bd7290f131fa498c390dbff5addc7a47f4",
+    "qa-evidence/binding-dialog-labels-2026-10-22/gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "qa-evidence/binding-dialog-labels-2026-10-22/native/list-default-grid-reload.json": "4b4a128b1efee5d69e5a0ccc55a51f040eb03356fb9244d7559a0afdd2423107",
+    "qa-evidence/binding-dialog-labels-2026-10-22/native/binding-reload-all-devices.json": "5c7c51f16a267f66854c9549dcc410023e734b1ceaa77a4f28da7715f92a20cb"
+  }
+}

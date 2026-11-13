@@ -1,0 +1,61 @@
+{
+  "status": "Local bounded acceptance passed. Main integration, Cloud staging and WordPress pin acceptance pending. Not full customer QA.",
+  "base": "33ed365303df0f7723de9e6c7c236f3865300145",
+  "sourceFreeze": {
+    "manifest": "final-eight/source-tests-assets.sha256",
+    "sha256": "1cf170e2860f2d4e567f2d856d7bdae8c58ad6e7e8e3fbbab011c69f33c4d6aa",
+    "entries": 19,
+    "onlyChangeSinceWorkerFreeze": [
+      "public/internal-ui-baselines/manifest.json"
+    ]
+  },
+  "tests": {
+    "passed": 2634,
+    "skipped": 5,
+    "exit": 0,
+    "log": "final-eight/npm-test-final.log"
+  },
+  "gallery": {
+    "interactionChecks": 30,
+    "allPass": true,
+    "captures": 24,
+    "matching": 24,
+    "reviewed": "Root viewed representative Cloud1440 fields and Builder768 menus; all24 comparison passes; manifest recorded with official tool."
+  },
+  "native": {
+    "fixture": "http://localhost:4994/edit/s1",
+    "provenance": "Fresh fictional fixture. Collection/Heading/source binding/Wrap authored through native builder controls only. No API or evaluator mutation.",
+    "list": "nwwyz2127",
+    "desktop": {
+      "clientHeight": 215,
+      "scrollHeight": 215,
+      "padding": "8px",
+      "card": 280
+    },
+    "mobile": {
+      "clientHeight": 101,
+      "scrollHeight": 101,
+      "padding": "8px",
+      "card": 347,
+      "lastScroll": 6239,
+      "lastCardVisible": true
+    },
+    "allThreeNoPageOverflow": true,
+    "cases": [
+      "Save/reload; D nowrap,T wrap,M nowrap",
+      "Actual arrows first/middle/last; actual horizontal wheel",
+      "Grid-Slider-Grid preserves fallback exclusion; Next slides383px",
+      "Mobile Wrap clear inherits Tablet wrap and removes padding",
+      "Authored Padding top12px wins; clear restores8px",
+      "Preview Delete/CmdZ leaves18cards; Arrow scrolls; CmdP returns to editing"
+    ],
+    "errors": []
+  },
+  "limits": [
+    "Physical touch and emulated gesture unverified: Input.dispatchTouchEvent unsupported; touch emulation and CPU explicitly reset in finally.",
+    "Arbitrary fonts/shadows can exceed default inset; explicit author padding/overflow remains intentional.",
+    "Earlier4px RTL/overflow/max-width evidence is bounded historical proof; final8px verifies core affected geometry and representative overrides.",
+    "WordPress has no native Collection module; portable compiler proof and unrelated native regression remain required.",
+    "Fourteen broader customer QA areas remain open."
+  ]
+}

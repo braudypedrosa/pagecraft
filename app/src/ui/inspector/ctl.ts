@@ -29,9 +29,34 @@ export interface Writer {
   /** committed: for a click or a select. Repaints now and re-renders the panel. */
   hard(v: any): void;
   /** close the transaction — on blur, or after a select settles */
-  done(): void;
+  done(event?: Event): void;
   /** drop this breakpoint's override, which is what the responsive badge does */
   clearOverride(): void;
+}
+
+let pointerActivationTarget: HTMLElement | null = null;
+let pointerActivationId: number | null = null;
+if (typeof document !== 'undefined' && typeof window !== 'undefined'
+  && typeof document.addEventListener === 'function' && typeof window.addEventListener === 'function') {
+  document.addEventListener('pointerdown', event => {
+    const raw = event.target;
+    const target = raw instanceof Element ? raw.closest('button, [role="button"]') : null;
+    pointerActivationTarget = target instanceof HTMLElement && target.closest('#right, #devSeg') ? target : null;
+    pointerActivationId = pointerActivationTarget ? event.pointerId : null;
+  }, true);
+  const clearPointerActivation = (event: Event) => {
+    if (event.type === 'blur' && event.target !== event.currentTarget) return;
+    if (event.type === 'pointerup' || event.type === 'pointercancel') {
+      const id = (event as PointerEvent).pointerId;
+      if (pointerActivationId !== null && id !== pointerActivationId) return;
+    }
+    pointerActivationTarget = null;
+    pointerActivationId = null;
+  };
+  document.addEventListener('pointerup', clearPointerActivation, true);
+  document.addEventListener('pointercancel', clearPointerActivation, true);
+  window.addEventListener('blur', clearPointerActivation);
+  window.addEventListener('lostpointercapture', clearPointerActivation, true);
 }
 
 export function writer(n: PcNode, c: Control): Writer {
@@ -52,8 +77,82 @@ export function writer(n: PcNode, c: Control): Writer {
       L.endTx();
       repaint('right');
     },
-    done() {
+    done(event?: Event) {
       L.endTx();
+      const next = (event as FocusEvent | undefined)?.relatedTarget;
+      /* A pointer activation blurs the text field before its button receives click. Repainting
+         the inspector here can replace that button between pointerdown and click, so let the
+         interaction settle first. Keyboard focus waits for activation or for focus to leave the
+         button instead of using a time-based repaint while the button remains focused. */
+      if (next instanceof HTMLElement
+        && next.matches('button, [role="button"]')
+        && next.closest('#right, #devSeg')
+        && !next.matches('.pc-custom-select-trigger')) {
+        const pointerActivation = pointerActivationTarget === next;
+        const pointerId = pointerActivationId;
+        let pending = true;
+        const clear = () => {
+          next.removeEventListener('click', finish);
+          next.removeEventListener('blur', finish);
+          next.removeEventListener('pointerup', finishPointer);
+          next.removeEventListener('pointercancel', finishPointer);
+          document.removeEventListener('pointerup', finishPointer, true);
+          document.removeEventListener('pointercancel', finishPointer, true);
+          window.removeEventListener('blur', finishWindow);
+          window.removeEventListener('lostpointercapture', finishPointer, true);
+        };
+        const finish = () => {
+          if (!pending) return;
+          pending = false;
+          clear();
+          requestAnimationFrame(() => repaint('right'));
+        };
+        const finishWindow = (event: Event) => {
+          if (event.target === event.currentTarget) finish();
+        };
+        const finishPointer = (event: Event) => {
+          if (pointerId !== null && (event as PointerEvent).pointerId !== pointerId) return;
+          finish();
+        };
+        if (pointerActivation) {
+          next.addEventListener('pointerup', finishPointer);
+          next.addEventListener('pointercancel', finishPointer);
+          next.addEventListener('click', finish);
+          document.addEventListener('pointerup', finishPointer, true);
+          document.addEventListener('pointercancel', finishPointer, true);
+          window.addEventListener('blur', finishWindow);
+          window.addEventListener('lostpointercapture', finishPointer, true);
+        } else {
+          next.addEventListener('click', finish);
+          next.addEventListener('blur', finish);
+        }
+        return;
+      }
+      if (next instanceof HTMLElement && next.matches('.pc-custom-select-trigger')) {
+        if (!next.hasAttribute('data-pc-pointer-activating')) {
+          /* Tab focus arrives after this blur. Let the browser finish that transfer, then
+             refresh conditional controls without waiting for another key or another blur. */
+          requestAnimationFrame(() => repaint('right'));
+          return;
+        }
+        /* The first instance-property override inserts reset/status controls above the
+           neighboring select. Repainting during the input's blur moves that trigger between
+           pointerdown and click, so the click lands on empty space. A marker from the shared
+           select enhancer identifies that live gesture; let it finish, then refresh. */
+        let pending = true;
+        const finish = () => {
+          if (!pending) return;
+          pending = false;
+          next.removeEventListener('click', finish);
+          next.removeEventListener('keydown', finish);
+          next.removeEventListener('blur', finish);
+          requestAnimationFrame(() => repaint('right'));
+        };
+        next.addEventListener('click', finish);
+        next.addEventListener('keydown', finish);
+        next.addEventListener('blur', finish);
+        return;
+      }
       repaint('right');
     },
     clearOverride() {

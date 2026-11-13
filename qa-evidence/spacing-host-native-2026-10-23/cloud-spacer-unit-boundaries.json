@@ -1,0 +1,122 @@
+[
+  {
+    "input": {
+      "unit": "px",
+      "value": "80"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "80px",
+      "parentHeight": "80px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 80
+    }
+  },
+  {
+    "input": {
+      "unit": "rem",
+      "value": "5"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "80px",
+      "parentHeight": "80px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 80
+    }
+  },
+  {
+    "input": {
+      "unit": "%",
+      "value": "25"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "10px",
+      "parentHeight": "40px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 10
+    }
+  },
+  {
+    "input": {
+      "unit": "vw",
+      "value": "10"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "132px",
+      "parentHeight": "132px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 132
+    }
+  },
+  {
+    "input": {
+      "unit": "vh",
+      "value": "10"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "84.3906px",
+      "parentHeight": "84.3906px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 84.390625
+    }
+  },
+  {
+    "input": {
+      "unit": "px",
+      "value": "0"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "0px",
+      "parentHeight": "40px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 0
+    }
+  },
+  {
+    "input": {
+      "unit": "px",
+      "value": "-5"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "0px",
+      "parentHeight": "40px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 0
+    }
+  },
+  {
+    "input": {
+      "unit": "px",
+      "value": "40.5"
+    },
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "height": "40.5px",
+      "parentHeight": "40.5px",
+      "parentTag": "DIV",
+      "parentType": "column",
+      "rectHeight": 40.5
+    }
+  }
+]

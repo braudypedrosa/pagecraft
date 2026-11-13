@@ -1,0 +1,103 @@
+{
+  "environment": "isolated candidate localhost4944",
+  "tests": [
+    {
+      "case": "initial invalid state neutral",
+      "actual": {
+        "aria": null,
+        "focus": "",
+        "message": "Please fill in this field.",
+        "valid": false,
+        "value": ""
+      }
+    },
+    {
+      "case": "mobile calendar body portal and viewport fit",
+      "actual": {
+        "client": 297,
+        "overflow": "auto",
+        "parent": "BODY",
+        "rect": {
+          "bottom": 660,
+          "height": 299,
+          "left": 20,
+          "right": 340,
+          "top": 361,
+          "width": 320,
+          "x": 20,
+          "y": 361
+        },
+        "scroll": 318,
+        "viewport": 668
+      }
+    },
+    {
+      "case": "calendar arrow focus",
+      "actual": {
+        "connected": true,
+        "focus": "Choose Wednesday, October 21, 2026"
+      }
+    },
+    {
+      "case": "calendar Enter selection ISO",
+      "actual": {
+        "aria": null,
+        "focus": "pagecraft-form-qa-ui-contact-f2",
+        "message": "",
+        "valid": true,
+        "value": "2026-10-21"
+      }
+    },
+    {
+      "case": "impossible date retained after blur",
+      "actual": {
+        "aria": "true",
+        "focus": "pagecraft-date-pagecraft-form-qa-ui-contact-f2-trigger",
+        "message": "Enter a date in YYYY-MM-DD format.",
+        "valid": false,
+        "value": "20260230"
+      }
+    },
+    {
+      "case": "impossible date remains invalid after submit attempt",
+      "actual": {
+        "aria": "true",
+        "focus": "pagecraft-form-qa-ui-contact-f2",
+        "message": "Enter a date in YYYY-MM-DD format.",
+        "valid": false,
+        "value": "20260230"
+      }
+    },
+    {
+      "case": "typed valid date recovery",
+      "actual": {
+        "aria": "true",
+        "focus": "pagecraft-date-pagecraft-form-qa-ui-contact-f2-trigger",
+        "message": "Enter a date in YYYY-MM-DD format.",
+        "valid": false,
+        "value": "20261115"
+      }
+    },
+    {
+      "case": "typed valid ISO recovery",
+      "actual": {
+        "typed": "2026-11-15",
+        "value": "20261115",
+        "valid": false,
+        "message": "Enter a date in YYYY-MM-DD format."
+      },
+      "pass": false
+    },
+    {
+      "case": "month navigation focus",
+      "actual": {
+        "grid": "November 2026",
+        "focus": "BODY"
+      },
+      "pass": false
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "submissions": 0,
+  "status": "Candidate held: typed ISO separator and month-navigation focus regressions being fixed"
+}

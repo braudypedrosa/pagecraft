@@ -1,0 +1,23 @@
+[
+  {
+    "device": "Desktop",
+    "classes": "pagecraft-list pagecraft-asusy6gh qa-list-proof",
+    "count": 18,
+    "id": "qa-list-native",
+    "outline": "rgb(21, 85, 119) solid 2px"
+  },
+  {
+    "device": "Tablet",
+    "classes": "pagecraft-list pagecraft-asusy6gh qa-list-proof",
+    "count": 18,
+    "id": "qa-list-native",
+    "outline": "rgb(21, 85, 119) solid 2px"
+  },
+  {
+    "device": "Mobile",
+    "classes": "pagecraft-list pagecraft-asusy6gh qa-list-proof",
+    "count": 18,
+    "id": "qa-list-native",
+    "outline": "rgb(21, 85, 119) solid 2px"
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "server/tests/fixtures/wordpress-artifact-v1.json": {
+    "unchangedVsBase": true,
+    "sha256": "b10a6eed8a43a08e6b61c232a35ad3493e70ac046587ce4e79529b75b95d9a3b"
+  },
+  "tests/fixtures/nested-component-public.json": {
+    "unchangedVsBase": true,
+    "sha256": "0d5c6d6519d99d181a748e23d295248c3c2da1b1f33c6a0c8c362f04141ae9d7"
+  },
+  "packages/editor/dist/runtime.js": {
+    "unchangedVsBase": true,
+    "sha256": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa"
+  },
+  "app/src/ui/inspector/Controls.tsx": {
+    "unchangedVsBase": true,
+    "sha256": "6456f5f4ece5ded1abdeda94aa97e3a14827304136ddc24340b9a8d49a4476a6"
+  }
+}

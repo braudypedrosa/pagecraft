@@ -1,0 +1,31 @@
+{
+  "device": "Mobile",
+  "allOpenBefore": [
+    {
+      "name": null,
+      "open": true
+    },
+    {
+      "name": null,
+      "open": true
+    },
+    {
+      "name": null,
+      "open": true
+    },
+    {
+      "name": null,
+      "open": true
+    }
+  ],
+  "afterSecondEnter": [
+    true,
+    false,
+    true,
+    true
+  ],
+  "restored": {
+    "single": false,
+    "open": "The first one"
+  }
+}

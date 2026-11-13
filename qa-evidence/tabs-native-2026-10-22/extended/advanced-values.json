@@ -1,0 +1,17 @@
+{
+  "className": "pagecraft-tabs pagecraft-0dm8w1rw qa-tabs workshop-options",
+  "id": "workshop-tabs",
+  "scroll": 640,
+  "style": {
+    "background-color": "rgba(0, 0, 0, 0)",
+    "max-width": "640px",
+    "opacity": "0.85",
+    "outline": "rgb(17, 19, 17) none 3px",
+    "overflow": "auto",
+    "position": "relative",
+    "top": "4px",
+    "transform": "matrix(1, 0, 0, 1, 0, 8)",
+    "z-index": "2"
+  },
+  "width": 640
+}

@@ -1,0 +1,46 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+ ❯ tests/list-pagination-reset.test.ts (2 tests | 2 failed) 9ms
+   × changing a list filter returns Preview to the first valid result page 6ms
+   × only changed list inputs that affect result pages reset the preview page 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/list-pagination-reset.test.ts > changing a list filter returns Preview to the first valid result page
+ReferenceError: DOMParser is not defined
+ ❯ renderedHeadings tests/list-pagination-reset.test.ts:42:20
+     40| const renderedHeadings = (list: PcNode) => {
+     41|   const html = C.buildPage(C.state.pages[0], { pageNo: C.state.ui.pno …
+     42|   const document = new DOMParser().parseFromString(html, 'text/html');
+       |                    ^
+     43|   return [...document.querySelectorAll(`#${C.domIdOf(list)} .pagecraft…
+     44|     (heading) => heading.textContent,
+ ❯ tests/list-pagination-reset.test.ts:51:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/list-pagination-reset.test.ts > only changed list inputs that affect result pages reset the preview page
+AssertionError: sort: expected 3 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ tests/list-pagination-reset.test.ts:75:33
+     73|     C.state.ui.pno = 3;
+     74|     C.applyC(list, control(key), value);
+     75|     expect(C.state.ui.pno, key).toBe(1);
+       |                                 ^
+     76|   }
+     77|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  05:11:48
+   Duration  339ms (transform 194ms, setup 0ms, import 227ms, tests 9ms, environment 0ms)

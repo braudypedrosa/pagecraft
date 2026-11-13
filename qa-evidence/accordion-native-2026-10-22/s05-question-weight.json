@@ -1,0 +1,56 @@
+{
+  "weight700": "s01-s10-responsive-style.json",
+  "cases": [
+    {
+      "setting": "400",
+      "rows": [
+        {
+          "device": "Desktop",
+          "weight": "400"
+        },
+        {
+          "device": "Tablet",
+          "weight": "400"
+        },
+        {
+          "device": "Mobile",
+          "weight": "400"
+        }
+      ]
+    },
+    {
+      "setting": "500",
+      "rows": [
+        {
+          "device": "Desktop",
+          "weight": "500"
+        },
+        {
+          "device": "Tablet",
+          "weight": "500"
+        },
+        {
+          "device": "Mobile",
+          "weight": "500"
+        }
+      ]
+    },
+    {
+      "setting": "600",
+      "rows": [
+        {
+          "device": "Desktop",
+          "weight": "600"
+        },
+        {
+          "device": "Tablet",
+          "weight": "600"
+        },
+        {
+          "device": "Mobile",
+          "weight": "600"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "change": "Only manifest.sources[app/src/ui/inspector/Lists.tsx] updated after root native review",
+  "old": "6c89b94304b156d495bb21a261e32959f64bcad816d2483c86bf0b722496fe93",
+  "new": "3a3712bec348643f706874097b47c3bf1ec3a5f42500b19d577b0c3cebad3a41",
+  "all24PngBytesUnchanged": true,
+  "imageEntriesUnchanged": true,
+  "originalCaptureTimestampAndProvenanceUnchanged": {
+    "version": true,
+    "capturedAt": true,
+    "browser": true,
+    "captureSchemaVersion": true,
+    "browserVersion": true,
+    "captureEnvironment": true,
+    "captureRecipe": true,
+    "captureCode": true,
+    "viewportHeight": true,
+    "deviceScaleFactor": true,
+    "reducedMotion": true,
+    "behaviorChecks": true,
+    "images": true
+  },
+  "rootReview": {
+    "behaviorPassed": 30,
+    "officialPixelComparisonsPassed": 24,
+    "byteExactNewCaptures": 23,
+    "nonByteExactCapture": "builder-fields-1440.png",
+    "difference": "Root reviewed caret phase only, layout correct; official reference PNG preserved.",
+    "captureReference": "capture-one/capture.json",
+    "byteComparisonReference": "baseline-byte-comparison.json",
+    "mobileGeometryEvidence": "native-grid-mobile-final-1280x720.png",
+    "priorCompositorArtifactRetained": "native-grid-mobile.png",
+    "reviewer": "root agent; this worker performed source/byte preservation verification only"
+  },
+  "manifestBeforeSha256": "46faf54ca3ec38f238859e59451d60d28790ba63fcd1b9b4fb06381a26d92842",
+  "manifestAfterSha256": "629022eec982c9a0ff3ff89b861b7567ce86faf241cdf81fead8ca4febdf5ac2"
+}

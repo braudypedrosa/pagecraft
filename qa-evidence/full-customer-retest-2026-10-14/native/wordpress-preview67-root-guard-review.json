@@ -1,0 +1,61 @@
+{
+  "package": "Preview67",
+  "independentRootReview": true,
+  "protectedExact": true,
+  "originalRevisionsRetained": 54,
+  "newRevisionIds": [
+    546,
+    547,
+    548,
+    549,
+    550
+  ],
+  "currentVersion": 36,
+  "fixtureRevisions": 59,
+  "totalRevisions": 267,
+  "sqlTables": 133,
+  "unchangedTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "existingRowChanges": [
+    {
+      "group": "fixture487Posts",
+      "id": "487",
+      "fields": [
+        "post_date",
+        "post_modified",
+        "post_modified_gmt"
+      ]
+    },
+    {
+      "group": "fixture487Meta",
+      "id": "7656",
+      "fields": [
+        "meta_value"
+      ]
+    }
+  ],
+  "optionChanges": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data",
+    "_site_transient_update_plugins"
+  ],
+  "restoredDocumentCss": "a8ed037aa8851156d8aeacd9fc751778ef748c084b7085d2092410c761b11866",
+  "optionsReview": "independently accepted; timestamp-only cache changes and a standard update_plugins transient",
+  "optionDetails": {
+    "_elementor_design_system_sync_css_meta": {
+      "onlyChangedField": "time",
+      "deltaSeconds": 2585,
+      "otherContentByteExact": true
+    },
+    "_elementor_pro_free_trial_data": {
+      "onlyChangedField": "timeout",
+      "deltaSeconds": 3638,
+      "otherContentByteExact": true
+    }
+  },
+  "accepted": true
+}

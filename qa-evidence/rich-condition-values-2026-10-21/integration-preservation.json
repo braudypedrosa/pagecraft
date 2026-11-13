@@ -1,0 +1,120 @@
+{
+  "base": "d2c244492b100450fdadd5ee66d39ffabc0da919",
+  "protectedWorkingBytes": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "all11Preserved": true,
+  "method": "Generated8 staged index-only from reviewed frozen candidate; Main working11 untouched. No Main build.",
+  "stagedGeneratedSha256": {
+    "index.html": "bc5ac5566f4920f23c68de85a5b8863e787536430b246b2fee44dc1c5aa7ca03",
+    "dist/core.cjs": "40ced053899f7e4f7477969095c0c1402f78b35f2cbb244a0a533f5b7cca829f",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "865864a684f001d22fa38fca988282bb6dcedcc4a18afb10f2ec3cd585753f4c",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+  },
+  "normalizedTextLogs": [
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/full-max-workers-2.log",
+      "original": "42fa832b73e6e0b69d65bf910a55c6b4f5ba1420df969f64a53597e4d6bef52b",
+      "normalized": "1b02e08d54b98985bbe6dd7dd6d5b3cd397b95e929b73239ef9cf4014363efb1"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/full-final-marker-max-workers-2.log",
+      "original": "3e1d8eab703d2920996af3171fe44f5cf5b9654cfd38d961804920a2bcc3e420",
+      "normalized": "bbd290216ea49c188311f36be9a326f97d4de7e9dbff10e5227421826db63809"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/typecheck-final.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/focused-licensed-final.log",
+      "original": "08af83115b08d70e2607e1e82aaf6e7c5be433672761d07526b462cf6e4d8d45",
+      "normalized": "c685dbabda9bb6c5d34e856a491ba1716976ecff6fb9920373686c0177f42968"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/focused-final.log",
+      "original": "75da5a8550d050fd77352d36a383792dc90606994c25ab7d857ad30dd9f4c948",
+      "normalized": "23a7dfc9738b7d55e0a4cc9213d0be71b92167fbae2f1044e60c6944a9ecdeab"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/focused-red-corrected.log",
+      "original": "4a289e255c576fb1a7f2774cb87e9e9b6c2ffdd4105edfb92d695dd12b65d37f",
+      "normalized": "7ea9b406c2183bdf6c69e544fdd2b7ba9e6f0d4ad3169597687edeaa035a7e66"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/full-licensed-final-max-workers-2.log",
+      "original": "827782864f4e718e56e862e6b0ab7dd593b23aeb54610e607b4d3b2dd08a8b58",
+      "normalized": "ae346363793d36df8c04d4cde7a2cbeb96ff8e79cbc3572518cb0b986aa57fb9"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/combined-full-pre-gallery-max-workers-2.log",
+      "original": "24a83924acb51dbcaed0fac9b15d8ef10c758be318cbb3c007ebe09ff318a540",
+      "normalized": "d288c0378746faf65014860b1477265a76e5621ec9b5e59c70819514edf38754"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/combined-full-final-reviewed-max-workers-2.log",
+      "original": "35d94eda09025805d604d1dbcec1a0ac62ac982c3bf33b4438481ed6422ca6e5",
+      "normalized": "02f7745c4e06abe6f1965b77f04236a991bfd65602c9e0e6abb3e214c801e5dd"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/combined-typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/focused-green.log",
+      "original": "b4cbf2295c34879a36b57cc35759e30493e162bec8dd0ac70733582079db5b23",
+      "normalized": "7b8a7f8dd4b715d8cf67bff677e7ef25d7fd2de342151c9b3d1913005c5b988f"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/combined-focused.log",
+      "original": "c5a54c41ae998ed2fa27cbbe515941c0bbcda38b60fc4804f4c0e149996d2133",
+      "normalized": "4c9e161cc050135ffd18937d461bc5a1d140eb6db5ec6ced62a5c865a2a1b657"
+    },
+    {
+      "path": "qa-evidence/rich-condition-values-2026-10-21/logs/focused-red.log",
+      "original": "af2cfef744e15854ae1f3033910c04724ba73a155750770e9146c17e5d5db2ef",
+      "normalized": "f42b24c743c40ea4a33edfd961f79d172c1517240580cf82b3bf139670899700"
+    },
+    {
+      "path": "qa-evidence/modal-toast-2026-10-21/logs/red.log",
+      "original": "b4b8cc6392530b038a7f62d8747661543af5a9f6f3d9727c2e3be860cc371b03",
+      "normalized": "d0a0a6f7b2345f1516853a4d0aeb99ab7700fe6756eb028f14df7ffdc46ed0cc"
+    },
+    {
+      "path": "qa-evidence/modal-toast-2026-10-21/logs/green.log",
+      "original": "52a9edbb65dbb829977b5228e5ce8a84d4fb140fd44656de5f6b44d7c1f19637",
+      "normalized": "e71be57ec47e442ae0e54c59404c0b5e950443da0905d59ade0fe4b0dab8f8f2"
+    },
+    {
+      "path": "qa-evidence/modal-toast-2026-10-21/logs/typecheck.log",
+      "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/modal-toast-2026-10-21/logs/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/modal-toast-2026-10-21/logs/focused.log",
+      "original": "ac72d09c1c4d6f59a2dc8e4d564b68063cc663dea7391737e75eab8f2b7ceb36",
+      "normalized": "46ade0a5b6d84008a8b6f9f70e35fff78100d2864a78b4972f257e88669e8171"
+    }
+  ]
+}

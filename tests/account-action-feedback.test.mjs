@@ -110,8 +110,8 @@ test("custom async forms retain their handlers and OAuth remains native with a r
   expect(button.disabled).toBe(false);
   expect(button.textContent).toBe("Save profile");
 });
-test("submissions refresh bypasses cached content; export failures preserve the download action", async () => {
-  const { w } = setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old entries</h1><a href="/sites/qa/submissions" data-inbox-refresh>Refresh</a><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div></section>', "https://example.test/sites/qa/submissions");
+test("submissions refresh bypasses cached content; CSV export remains a native download", async () => {
+  const { w } = setup('<section class="pc-workspace"><div class="pc-manage-content"><h1>Old entries</h1><a href="/sites/qa/submissions" data-inbox-refresh>Refresh</a><a href="/sites/qa/submissions/export.csv" class="pc-sub-export" download>Export CSV</a></div></section>', "https://example.test/sites/qa/submissions");
   w.eval(submissionsNavigation({}).replace(/^<script>|<\/script>$/g, ""));
   let resolve;
   w.fetch = vi.fn(() => new Promise((yes) => {
@@ -121,16 +121,17 @@ test("submissions refresh bypasses cached content; export failures preserve the 
   refresh.click();
   expect(w.fetch).toHaveBeenCalledTimes(1);
   expect(refresh.textContent).toBe("Refreshing submissions\u2026");
-  resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1><a href="/sites/qa/submissions/export.csv" class="pc-sub-export">Export CSV</a></div>', w.location.href));
+  resolve(response('<div class="pc-manage-content"><h1>Fresh entries</h1><a href="/sites/qa/submissions/export.csv" class="pc-sub-export" download>Export CSV</a></div>', w.location.href));
   await vi.waitFor(() => expect(w.document.querySelector("h1")?.textContent).toBe("Fresh entries"));
-  w.fetch = vi.fn(async () => ({ ok: false, status: 500 }));
+  w.fetch = vi.fn();
+  w.URL.createObjectURL = vi.fn();
   const csv = w.document.querySelector(".pc-sub-export");
-  csv.click();
-  csv.click();
-  await vi.waitFor(() => expect(w.document.querySelector("[role=alert]")?.textContent).toContain("CSV export failed"));
-  expect(w.fetch).toHaveBeenCalledTimes(1);
-  expect(csv.getAttribute("aria-busy")).toBeNull();
-  expect(csv.textContent).toBe("Export CSV");
+  const click = new w.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+  expect(csv.dispatchEvent(click)).toBe(true);
+  expect(click.defaultPrevented).toBe(false);
+  expect(csv.hasAttribute("download")).toBe(true);
+  expect(w.fetch).not.toHaveBeenCalled();
+  expect(w.URL.createObjectURL).not.toHaveBeenCalled();
 });
 test.each([false,true])('status changes immediately filter submissions and survive replacement (embedded=%s)', async (embedded) => {
   const base='/sites/qa/submissions';
@@ -261,4 +262,25 @@ test('background inbox refresh is silent while explicit Refresh retains its proc
   await vi.waitFor(()=>expect(w.document.querySelector('[data-inbox-refresh]').textContent).toBe('Refresh'));
   expect(status().hidden).toBe(true);expect(status().textContent).toBe('');
   expect(w.document.querySelector('[role=alert]')).toBeNull();
+});
+
+
+test.each(['/auth/login', '/auth/sign-in'])('account entry %s reports sign-in rather than a saved edit', async path => {
+  const {w, button, submit}=setup('<form method="post" action="'+path+'"><input name="email" value="owner@example.test"><button type="submit">Sign in</button></form>', 'https://example.test/sign-in');
+  let finish;
+  w.fetch=vi.fn(()=>new Promise(resolve=>{finish=resolve;}));
+  submit();
+  expect(button.textContent).toBe('Signing in…');
+  finish(response('<h1>Founder reports</h1>', 'https://example.test/owner/billing'));
+  await vi.waitFor(()=>expect(w.sessionStorage.getItem('pc-action-result')).toContain('Signed in.'));
+});
+
+test('a reports sign-in redirect preserves unsaved budget input without false success', async () => {
+  const {w,form,button,submit}=setup('<form method="post" action="/owner/billing/costs"><input name="label" value="Keep planned hosting"><button type="submit">Add budget</button></form>', 'https://example.test/owner/billing');
+  w.fetch=vi.fn(async()=>response('<h1>Founder reports sign in</h1>', 'https://example.test/sign-in?next=%2Fowner%2Fbilling'));
+  submit();
+  await vi.waitFor(()=>expect(form.querySelector('[data-action-error]')?.textContent).toContain('session expired'));
+  expect(form.querySelector('input').value).toBe('Keep planned hosting');
+  expect(button.disabled).toBe(false);
+  expect(w.sessionStorage.getItem('pc-action-result')).toBeNull();
 });

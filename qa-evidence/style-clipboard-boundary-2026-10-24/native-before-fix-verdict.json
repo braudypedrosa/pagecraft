@@ -1,0 +1,159 @@
+{
+  "auditStatus": "REPRODUCED_BEFORE_FIX_FAILURE",
+  "featureStatus": "FAIL",
+  "evidenceAssertions": {
+    "passed": 23,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "check": "Baseline raw SHA matches accepted original",
+      "passed": true
+    },
+    {
+      "check": "Restored raw SHA matches accepted original",
+      "passed": true
+    },
+    {
+      "check": "Baseline and restored projects have nine pages",
+      "passed": true
+    },
+    {
+      "check": "Source held class and local margin before deletion",
+      "passed": true
+    },
+    {
+      "check": "Class contained Ink background and 18px resting radius",
+      "passed": true
+    },
+    {
+      "check": "Class contained green hover and 24px radius",
+      "passed": true
+    },
+    {
+      "check": "Deletion baked resting class appearance into existing source",
+      "passed": true
+    },
+    {
+      "check": "Deletion baked hover into existing source",
+      "passed": true
+    },
+    {
+      "check": "Deletion removed class ID from source and class catalogue",
+      "passed": true
+    },
+    {
+      "check": "Class deletion changed only its catalogue entry and actual source appearance",
+      "passed": true
+    },
+    {
+      "check": "Paste changed no non-target node or metadata",
+      "passed": true
+    },
+    {
+      "check": "Paste retained target identity content properties and structure",
+      "passed": true
+    },
+    {
+      "check": "Paste removed orphan class ID",
+      "passed": true
+    },
+    {
+      "check": "Paste copied direct local margin",
+      "passed": true
+    },
+    {
+      "check": "Paste lost class resting background and radius",
+      "passed": true
+    },
+    {
+      "check": "Paste lost class hover styling",
+      "passed": true
+    },
+    {
+      "check": "One Undo raw project exact after-class-delete",
+      "passed": true
+    },
+    {
+      "check": "One Redo raw project exact after-paste",
+      "passed": true
+    },
+    {
+      "check": "Persisted native export whole project semantically exact after-paste",
+      "passed": true
+    },
+    {
+      "check": "Actual resting source DOM retained Ink and18px",
+      "passed": true
+    },
+    {
+      "check": "Actual resting pasted target DOM fell to gray and0px",
+      "passed": true
+    },
+    {
+      "check": "Actual target DOM retained copied7px margin",
+      "passed": true
+    },
+    {
+      "check": "Actual captured screenshot is a valid full viewport JPEG",
+      "passed": true
+    }
+  ],
+  "featureExpectations": [
+    {
+      "expectation": "Deleted class IDs do not become orphan references",
+      "passed": true
+    },
+    {
+      "expectation": "One Undo, Redo and save/reload preserve the exact intended project boundary",
+      "passed": true
+    },
+    {
+      "expectation": "Paste styles retains the copied class resting appearance after class deletion",
+      "passed": false,
+      "expected": {
+        "background": "Ink (#242c27)",
+        "radius": "18px"
+      },
+      "actual": {
+        "background": "rgb(239, 239, 239)",
+        "radius": "0px"
+      }
+    },
+    {
+      "expectation": "Paste styles retains the copied class hover appearance after class deletion",
+      "passed": false,
+      "expected": {
+        "background": "#31513d",
+        "radius": "24px"
+      },
+      "actual": "Target has no authored hover state; no native hover screenshot was supplied."
+    }
+  ],
+  "persistedRawBytesMatch": false,
+  "inputs": {
+    "baseline-project.json": "0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7",
+    "before-class-delete.json": "8b0364d409f763f59a5c3c5aef976867cfd96e05bdc5664feb21d752352559e5",
+    "after-class-delete.json": "7a57b90e0771fbc6995897fa37a2ff0c8340b42e9d9960338dae5ae00bbe3638",
+    "after-deleted-class-paste.json": "e0a824ec8bb85d58357b09a3701fdb712b8d295a2be65c307969b92594e54629",
+    "undo-deleted-class-paste.json": "7a57b90e0771fbc6995897fa37a2ff0c8340b42e9d9960338dae5ae00bbe3638",
+    "redo-deleted-class-paste.json": "e0a824ec8bb85d58357b09a3701fdb712b8d295a2be65c307969b92594e54629",
+    "persisted-deleted-class-paste.json": "76ae8e3cc55d59fb79b913907efa9ec8976a036e55d5ddbc75ec48ee78528fe1",
+    "restored-project.json": "0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7",
+    "after-paste-dom.json": "b161f988d3fe75a6e4c728c7831ccfb5288084d2f55ae1b88d9fba18f775440a"
+  },
+  "screenshot": {
+    "file": "after-deleted-class-paste.jpg",
+    "sha256": "24c9999ab9f0df86eafc8710d45683531f187af1f7503c823e6e43e121871a66",
+    "width": 1689,
+    "height": 1314,
+    "manuallyViewedByAuditor": true,
+    "visibleEvidence": "Dark rounded source, pale flat pasted target and Styles pasted success message."
+  },
+  "limits": [
+    "Cloud native desktop before-fix evidence only.",
+    "Hover loss is established from authored native exports, not a captured hover interaction.",
+    "No mobile, WordPress or candidate-fix acceptance is claimed.",
+    "This audit did not operate a browser, author project data, change source code or perform deployment."
+  ]
+}

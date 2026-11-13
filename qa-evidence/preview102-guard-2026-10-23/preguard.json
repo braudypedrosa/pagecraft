@@ -1,0 +1,148 @@
+{
+  "status": "Fresh Preview102 private preguard ready; no install performed",
+  "currentWordPressCommit": "20b9e4b3531c2eb977d6244e6739ac92e6050b4e",
+  "currentCloudCommit": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+  "currentEditorVersion": "0.2.17-preview.20261023.101",
+  "totalRevisionCount": 416,
+  "original487DocumentVersion": 73,
+  "qa616DocumentVersion": 43,
+  "qa616StoredNodes": [
+    {
+      "id": "n4f0tt5j6",
+      "type": "section"
+    },
+    {
+      "id": "n4f0tt4lq",
+      "type": "row"
+    },
+    {
+      "id": "n4f0tt3sn",
+      "type": "column"
+    },
+    {
+      "id": "n4f0tt272",
+      "type": "text"
+    },
+    {
+      "id": "np6sev4ix",
+      "type": "section"
+    },
+    {
+      "id": "np6sev3u6",
+      "type": "row"
+    },
+    {
+      "id": "np6sev2in",
+      "type": "column"
+    },
+    {
+      "id": "np6sev1et",
+      "type": "gallery"
+    }
+  ],
+  "tables": 133,
+  "unchangedInsertTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "environmentalOptionChanges": [
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "beforeRowId": 326,
+      "afterRowId": 326,
+      "autoloadExact": true,
+      "field": "timeout",
+      "before": 1792704756,
+      "after": 1792708383,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2148,
+      "afterRowId": 2156,
+      "autoloadExact": true,
+      "field": "timeout",
+      "before": 1792703125,
+      "after": 1792706819
+    },
+    {
+      "name": "_site_transient_update_core",
+      "beforeRowId": 890,
+      "afterRowId": 890,
+      "autoloadExact": true,
+      "field": "last_checked",
+      "before": 1792688420,
+      "after": 1792705983,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2149,
+      "afterRowId": 2157,
+      "autoloadExact": true,
+      "valueExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "versionAndEventPayloadsExact": true,
+      "changedEventTimestamps": [
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "before": 1792702790,
+          "after": 1792706390,
+          "delta": 3600,
+          "scheduledInterval": 3600
+        }
+      ]
+    }
+  ],
+  "sessionState": {
+    "allAccountSessionRowsExact": true,
+    "durations": [
+      7200
+    ],
+    "activeSessionCount": 1
+  },
+  "checks": {
+    "tables133": true,
+    "onlyKnownCacheTableChanged": true,
+    "allAccountSessionMetaExact": true,
+    "usersPasswordsRolesExact": true,
+    "onlyKnownStartupCacheChanges": true,
+    "allPostsAndMetaExact": true,
+    "allProtectedSnapshotExact": true,
+    "total416Revisions": true,
+    "original487Version73": true,
+    "qa616Version43": true,
+    "qa616Gallery8NoComponents": true,
+    "sourceHEAD20b9": true,
+    "sameAccountTwoHourSession": true,
+    "builderSourceAndInstalledExact": true,
+    "builderBackupExact": true,
+    "themeSourceAndInstalledExact": true,
+    "themeBackupExact": true,
+    "importerSourceAndInstalledExact": true,
+    "importerBackupExact": true,
+    "historical138Files": true,
+    "old138Exact": true,
+    "PHP12Exact": true,
+    "Runtime100UnchangedExpectedHash": true
+  },
+  "failures": [],
+  "sqlSHA256": "521e6ad0942ca58f75ec2bc42f98e7730fe573bd4ccb54321401aa0480368564",
+  "protectedSnapshotSHA256": "6e672b2b610d33aee5cffc59cd88cfa0cefac2f3526a9aa4c9f0c4933b2355f8",
+  "extendedSnapshotSHA256": "d8c1662050093bc3144ba600ecb490ef7e66092c2909722472faa080368feb46",
+  "builderBackupSHA256": "280da2b14190a89771a902007852093d73dab7aa88370e02e2880f08017cd11d",
+  "themeBackupSHA256": "6954e597e6a87d3ae85dfd37f9143f2dcb8170acc53795190048779e0556d38c",
+  "importerBackupSHA256": "7561a83196d6100a19b09e09a48a368534a26ea20fa13553c4a15eed427730fe",
+  "historicalManifestSHA256": "813c075e3efd344deade2d1724ae2a7865c01ce2793a962843e71643876369de",
+  "targetCloudCommit": "Pending root-reviewed CMS107 commit",
+  "targetVersion": "0.2.17-preview.20261023.102",
+  "databaseWritesPerformed": false,
+  "installerExecuted": false,
+  "storedPageCompilerEditorVersion": "0.2.17-preview.20261023.98",
+  "privatePayloadAndRevisionSnapshotSHA256": "489555ded66efd1c4e5681a85b5c76d2572cae41e11f503121c0d8d37b481404"
+}

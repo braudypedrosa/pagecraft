@@ -1,0 +1,54 @@
+{
+  "base": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+  "source4": {
+    "app/src/core/anim.ts": "0bdf30f2e548ae68f5546d8362a5d07e65d5ece3c66fe8d871b9b5e15998297f",
+    "tests/animation-runtime.test.ts": "5db32514bcc65800ba41ef4b9e9cf77f45064d2b65b86b51ed5989a67964194c",
+    "tests/core.test.ts": "b48706601026a9ea727d0672f34dabb14e4d1e557878415e757bd8fc30ae4ebc",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "b5369fd903b0fbe5094eb3b7d5f413dc1fcd0ab6bc9acfdf2e0b2f4df6a79761"
+  },
+  "generated10": {
+    "index.html": "6b0fbebfbc1475ec01d41fb80da62aec593b7472a8d560a95c077c82a7940588",
+    "dist/core.cjs": "21f4fe7a00f5a53193579aa433e7fc191baac08fbac748c6b377f8d2c2ac63de",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "662ccc4d1e20ecf05180d2b62e2d83b4f4279400fa4d36ffe61d7aae9fd91351",
+    "packages/editor/dist/runtime.js": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "3d1892dc02f23d3f9326511da9d6f2b619e737d5e1ed812f5085d088fd7f5da5",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "26883217d25c42aef143710f328391c4b87e5ac4fd2a47e80296d28a2bdb2864",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "5a363598735cf29c03c8c265905fa6210f4ea3ad3d0badacbfe06509549934fd"
+  },
+  "generated8IndexOnly": true,
+  "protected11WorkingBytesExact": true,
+  "rootFullTests": 2755,
+  "skipped": 5,
+  "fullSuiteExit": 0,
+  "sharedNative": {
+    "passed": 30,
+    "total": 30
+  },
+  "visual": {
+    "firstPass": {
+      "passed": 23,
+      "total": 24,
+      "failed": "builder-feedback-768.png",
+      "causeObserved": "Missing error notification, while remaining UI pixels match"
+    },
+    "targetedRetry": {
+      "passed": true,
+      "byteExactBaseline": true,
+      "nativeShowErrorActionAndVisibleAlertVerified": true,
+      "initialEvidencePreserved": true
+    },
+    "baselineImagesChanged": false
+  },
+  "nativeLocal": [
+    "entrance completion releases Focus8px",
+    "actual Hover0.5",
+    "repeat reentry starts animation",
+    "Once does not replay",
+    "reduced motion visible with keyboard outline"
+  ],
+  "deployedAcceptance": "Pending",
+  "fullQAComplete": false
+}

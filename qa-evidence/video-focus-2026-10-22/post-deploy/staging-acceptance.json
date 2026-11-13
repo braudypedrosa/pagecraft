@@ -1,0 +1,35 @@
+{
+  "views": [
+    {
+      "device": "Desktop",
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "radius": "40px"
+      }
+    },
+    {
+      "device": "Tablet",
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "radius": "40px"
+      }
+    },
+    {
+      "device": "Mobile",
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "radius": "40px"
+      }
+    }
+  ],
+  "blur": {
+    "marked": false,
+    "radius": "10px"
+  },
+  "baseline": 20,
+  "final": 20,
+  "exact": true
+}

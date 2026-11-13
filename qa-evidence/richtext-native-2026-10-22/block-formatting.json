@@ -1,0 +1,26 @@
+[
+  {
+    "control": "H2",
+    "html": "<h2>Community workshop guide</h2>"
+  },
+  {
+    "control": "H3",
+    "html": "<h3>Community workshop guide</h3>"
+  },
+  {
+    "control": "“",
+    "html": "<blockquote>Community workshop guide</blockquote>"
+  },
+  {
+    "control": "P",
+    "html": "<p>Community workshop guide</p>"
+  },
+  {
+    "control": "•—",
+    "html": "<p><ul><li>Community workshop guide</li></ul></p>"
+  },
+  {
+    "control": "1—",
+    "html": "<p><ol><li>Community workshop guide</li></ol></p>"
+  }
+]

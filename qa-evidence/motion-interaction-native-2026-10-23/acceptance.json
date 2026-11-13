@@ -1,0 +1,25 @@
+{
+  "status": "complete for bounded motion interaction regression",
+  "cloud": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+  "wordpress": "6602337dc8477a48c41f1058c7b2b7addd286a75",
+  "wordpressEditor": "0.2.17-preview.20261023.104",
+  "nativeHosts": [
+    "Cloud Preview",
+    "WordPress saved public page"
+  ],
+  "viewports": [
+    1280,
+    834,
+    414
+  ],
+  "focusTransform": "translateX(8px)",
+  "hoverOpacity": 0.5,
+  "completedAnimation": "none",
+  "horizontalOverflow": false,
+  "cloudRestoredByteExact": true,
+  "wordpressRestoredVersion": 51,
+  "wordpressRevisionCount": 428,
+  "postRestorationChecks": 31,
+  "fullCustomerQA": "OPEN",
+  "productionReadiness": "unconfirmed"
+}

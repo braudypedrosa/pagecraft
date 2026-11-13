@@ -8,6 +8,7 @@ import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { act } from 'preact/test-utils';
 import { render } from 'preact';
 import * as C from '../app/src/core/index';
+import { L } from '../app/src/ui/ctx';
 import { CmsWorkspace } from '../app/src/ui/CmsWorkspace';
 import { rig, type Rig } from './ui.setup';
 
@@ -115,13 +116,13 @@ test('an unsaved entry is never undone underneath you', async () => {
   await click(button('New entry')!);
   const title = r.$('form input') as HTMLInputElement;
   await act(async () => { r.type(title, 'Half-typed cabin'); });
-  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+  const confirm = vi.spyOn(L, 'askConfirm').mockResolvedValue(false);
   await key(r.$('.cms-workspace')!, 'z');
   expect(confirm).toHaveBeenCalled();
   expect(drafts(col.id)).toBe(2);
   expect((r.$('form input') as HTMLInputElement).value).toBe('Half-typed cabin');
   // Choosing to discard closes the form and then undoes.
-  confirm.mockReturnValue(true);
+  confirm.mockResolvedValue(true);
   await key(r.$('.cms-workspace')!, 'z');
   expect(drafts(col.id)).toBe(0);
   await vi.waitFor(() => expect(r.$('form input')).toBeNull());
@@ -140,4 +141,26 @@ test('undoing the open collection away moves to another one, or closes', async (
   await act(async () => { C.state.meta.collections = []; });
   r.draw(<CmsWorkspace collectionId={keep.id} close={() => { closed++; }} />);
   await vi.waitFor(() => expect(closed).toBe(1));
+});
+
+test('dirty top-bar navigation waits for one app dialog, cancels safely, then replays once', async () => {
+  start();
+  await click(button('New entry')!);
+  await act(() => r.type(r.$('form input')!, 'Keep until confirmed'));
+  let resolve!: (accepted: boolean) => void;
+  const confirm = vi.spyOn(L, 'askConfirm').mockImplementation(() => new Promise<boolean>(done => { resolve = done; }));
+  const action = vi.fn();
+  const trigger = topbar.querySelector('#other')!;
+  trigger.addEventListener('click', action);
+  await click(trigger);
+  await click(trigger);
+  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(action).not.toHaveBeenCalled();
+  expect(closed).toBe(0);
+  await act(async () => resolve(false));
+  expect((r.$('form input') as HTMLInputElement).value).toBe('Keep until confirmed');
+  await click(trigger);
+  await act(async () => resolve(true));
+  await vi.waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+  expect(closed).toBe(1);
 });

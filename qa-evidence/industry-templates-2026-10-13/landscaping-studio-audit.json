@@ -1,0 +1,164 @@
+{
+  "format": "pagecraft.template-library-audit.v1",
+  "generatedAt": "2026-10-13T14:07:57.670Z",
+  "scope": "Exact landscaping-studio@1.0.0 draft artifact; source and archived files were read only.",
+  "summary": {
+    "templates": 1,
+    "pages": 4,
+    "archivedHashesValid": 1,
+    "archivedPackagesValid": 1,
+    "nativeSourcesEqual": 1,
+    "sourceAssetsEqual": 1,
+    "currentCheckPasses": 1,
+    "renderErrors": 0,
+    "rendererWarnings": 0,
+    "configuredIntegrationFindings": 1
+  },
+  "interpretation": "Released archive integrity is independent from current rebuild reproducibility. Integrity requires importer validation, archive/config/manifest agreement, catalog agreement for releases, and source document/assets/provenance parity. Drafts remain valid only when they reproduce the current build exactly.",
+  "risks": [
+    "A released archive can remain valid while a newer renderer produces different generated HTML or CSS. Rebuild differences are recorded and must not overwrite immutable releases.",
+    "The schema-compatible pagecraft-core renderer tag remains stable for existing WordPress readers. New packages add an independent renderer revision, and updated readers reject unknown revisions.",
+    "Configured form prerequisites are exempted only by exact template version, page slug and node ID. Unexpected missing actions remain errors."
+  ],
+  "limitations": "This is a static archive, reconstruction, render, image-reference and link-target audit. It does not replace real browser, Cloud or WordPress import/edit/save/reopen/publication checks.",
+  "templates": [
+    {
+      "id": "landscaping-studio",
+      "version": "1.0.0",
+      "artifactState": "draft",
+      "pages": 4,
+      "catalog": {
+        "packageSha256": null,
+        "equalsArchivedManifest": null
+      },
+      "archive": {
+        "packageSha256": "1d65eeb73e2816d623b09d802fda3b13b6c2cccfea04689523ecfd84d497872a",
+        "hashMatchesCatalog": null,
+        "hashMatchesArchivedManifest": true,
+        "validatesWithCurrentImporter": true,
+        "validationError": null,
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "manifestMatchesArchiveAndConfig": true,
+        "integrityValid": true
+      },
+      "sourceParity": {
+        "nativeDocumentEqual": true,
+        "archivedDocumentSha256": "89db898ca29a5ba6f967d20c1e43d9be129411dbced946c08af6e047e38db538",
+        "sourceDocumentSha256": "89db898ca29a5ba6f967d20c1e43d9be129411dbced946c08af6e047e38db538",
+        "provenanceEqual": true,
+        "assetsEqual": true,
+        "assets": [
+          {
+            "id": "logo",
+            "sourceSha256": "4bb9a78e1edff4d64b7e111180b408822564c6277669004e6d1ad7888ae2909b",
+            "archivedSha256": "4bb9a78e1edff4d64b7e111180b408822564c6277669004e6d1ad7888ae2909b",
+            "bytes": 898,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "meadow-garden",
+            "sourceSha256": "866493b969a16bd47d0e05758f3e86a7e7b0e950421a86aff8f927530533eadd",
+            "archivedSha256": "866493b969a16bd47d0e05758f3e86a7e7b0e950421a86aff8f927530533eadd",
+            "bytes": 628348,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "courtyard-garden",
+            "sourceSha256": "18c5ff1218ae64e80a086a7cb3e6425ff7e3e48f3f0573f1c438a41376079e3b",
+            "archivedSha256": "18c5ff1218ae64e80a086a7cb3e6425ff7e3e48f3f0573f1c438a41376079e3b",
+            "bytes": 510324,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "studio-plan",
+            "sourceSha256": "c39f0c74667f57a4fa51573d73678f0fb6380c261886a0f52ed2363b765ddf1e",
+            "archivedSha256": "c39f0c74667f57a4fa51573d73678f0fb6380c261886a0f52ed2363b765ddf1e",
+            "bytes": 338238,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "woodland-path",
+            "sourceSha256": "c66abc90ae1557b60c91f6599790d5c3e7a9fe7396cf353a709204557d352f68",
+            "archivedSha256": "c66abc90ae1557b60c91f6599790d5c3e7a9fe7396cf353a709204557d352f68",
+            "bytes": 703762,
+            "metadataEqual": true,
+            "equal": true
+          },
+          {
+            "id": "roof-terrace",
+            "sourceSha256": "1a7279b5bc30116a22d628036c489f94b9474f3361d76fd87c4b43447c9230fa",
+            "archivedSha256": "1a7279b5bc30116a22d628036c489f94b9474f3361d76fd87c4b43447c9230fa",
+            "bytes": 375468,
+            "metadataEqual": true,
+            "equal": true
+          }
+        ]
+      },
+      "currentCompiler": {
+        "packageSha256": "1d65eeb73e2816d623b09d802fda3b13b6c2cccfea04689523ecfd84d497872a",
+        "rendererVersion": "pagecraft-core-13",
+        "rendererRevision": "pagecraft-renderer-1",
+        "equalsArchivedPackage": true,
+        "outerManifestDifferences": [],
+        "packageManifestDifferences": {
+          "topLevel": [],
+          "files": []
+        },
+        "globalCssLineDifferences": {
+          "removed": [],
+          "added": []
+        }
+      },
+      "checkCommand": {
+        "passes": true,
+        "firstFailure": null,
+        "rebuildReproducible": true
+      },
+      "render": {
+        "pages": 4,
+        "rendererFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "mossline-quote-form-184"
+          }
+        ],
+        "errors": [],
+        "warnings": [],
+        "configuredIntegrationFindings": [
+          {
+            "level": "error",
+            "code": "form-no-action",
+            "msg": "A form in the page has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.",
+            "where": {
+              "page": "Contact",
+              "slug": "contact",
+              "region": "page",
+              "node": "Form"
+            },
+            "nodeId": "mossline-quote-form-184"
+          }
+        ],
+        "checkedLinks": 49,
+        "linkErrors": [],
+        "referencedImagePaths": 6,
+        "expectedImagePaths": 6,
+        "missingImagePaths": [],
+        "unreferencedImagePaths": [],
+        "externalOrConfiguredTargets": []
+      }
+    }
+  ]
+}

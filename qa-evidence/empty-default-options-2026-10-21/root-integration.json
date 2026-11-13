@@ -1,0 +1,50 @@
+{
+  "base": "e383c592412655fcac4aeefd5675f4bd00c3d70e",
+  "protectedWorkingArtifacts": 11,
+  "allIntact": true,
+  "generatedStaging": "Index-only eight canonical files; HEAD Demo retained.",
+  "logNormalization": {
+    "npm-audit-production.stderr.log": {
+      "candidate": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "focused-tests.log": {
+      "candidate": "bcf453a1473f6aca0d96cf131f3b67e130d05e7e878fa6072d2bd826c11828c8",
+      "committed": "4c81885193468243146eda7e5285d1e45e1763688a29c0be28ddd8ed67b7ca1b",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "full-suite.log": {
+      "candidate": "9f12c3f16a340ac1b7dd886ac5d17b6325d28d24679c83a439e84363a902249a",
+      "committed": "801cdba3fe83ca2f44638df7d3c61129275e9dacc7bb224a936e971fc31c2da6",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "typecheck.log": {
+      "candidate": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "committed": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "red-regression.log": {
+      "candidate": "f1385c1a2870be1be37ede71072f098330d7fabba4db128f5187bb27cf798a29",
+      "committed": "ee04fbb26f6e491d34225e3b08eecc392515f4c3566e950e716350fae5200aed",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "diff-check.log": {
+      "candidate": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "npm-audit.stderr.log": {
+      "candidate": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    },
+    "impeccable-detector.stderr.log": {
+      "candidate": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "committed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "reason": "Trim trailing blank lines only; retain final newline."
+    }
+  },
+  "incompleteStagingGallery": "30 behavior checks passed; visual capture incomplete and excluded from accepted evidence.",
+  "priorWorkerIsolationIncident": "Exact two worker-owned Main changes preserved then restored before isolated takeover. Protected11 and public-form-generated verified unchanged."
+}

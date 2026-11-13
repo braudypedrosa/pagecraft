@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/image-link-name-3b75640
+
+
+ Test Files  2 passed (2)
+      Tests  663 passed (663)
+   Start at  15:18:17
+   Duration  1.96s (transform 1.30s, setup 0ms, import 1.54s, tests 806ms, environment 960ms)
+

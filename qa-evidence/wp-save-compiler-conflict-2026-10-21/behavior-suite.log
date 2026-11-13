@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-save-compiler-conflict
+
+(node:97996) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:97994) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98283) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  223 passed | 2 skipped (225)
+      Tests  2484 passed | 5 skipped (2489)
+   Start at  03:46:06
+   Duration  42.17s (transform 13.67s, setup 0ms, import 94.92s, tests 300.03s, environment 56.98s)

@@ -1,0 +1,60 @@
+{
+  "rows": [
+    {
+      "hiddenOn": "Mobile",
+      "view": "Desktop",
+      "details": 4,
+      "display": "flex"
+    },
+    {
+      "hiddenOn": "Mobile",
+      "view": "Tablet",
+      "details": 4,
+      "display": "flex"
+    },
+    {
+      "hiddenOn": "Mobile",
+      "view": "Mobile",
+      "details": 4,
+      "display": "none"
+    },
+    {
+      "hiddenOn": "Tablet",
+      "view": "Desktop",
+      "details": 4,
+      "display": "flex"
+    },
+    {
+      "hiddenOn": "Tablet",
+      "view": "Tablet",
+      "details": 4,
+      "display": "none"
+    },
+    {
+      "hiddenOn": "Tablet",
+      "view": "Mobile",
+      "details": 4,
+      "display": "flex"
+    },
+    {
+      "hiddenOn": "Desktop",
+      "view": "Desktop",
+      "details": 4,
+      "display": "none"
+    },
+    {
+      "hiddenOn": "Desktop",
+      "view": "Tablet",
+      "details": 4,
+      "display": "flex"
+    },
+    {
+      "hiddenOn": "Desktop",
+      "view": "Mobile",
+      "details": 4,
+      "display": "flex"
+    }
+  ],
+  "navigatorRecovery": "Hidden node remains selectable in Navigator after reload. Reopen Navigator after preview/reload to recover inspector.",
+  "restoredAllVisible": true
+}

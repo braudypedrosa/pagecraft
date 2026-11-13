@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-nav-combined-one-d84-v1
+
+
+ Test Files  1 passed (1)
+      Tests  37 passed (37)
+   Start at  18:10:07
+   Duration  13.28s (transform 25ms, setup 0ms, import 245ms, tests 12.94s, environment 0ms)
+

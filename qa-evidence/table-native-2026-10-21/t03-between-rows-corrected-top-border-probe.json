@@ -1,0 +1,104 @@
+[
+  {
+    "device": "Desktop",
+    "rows": [
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        }
+      ],
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        }
+      ]
+    ],
+    "rules": "rows"
+  },
+  {
+    "device": "Tablet",
+    "rows": [
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        }
+      ],
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        }
+      ]
+    ],
+    "rules": "rows"
+  },
+  {
+    "device": "Mobile",
+    "rows": [
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "0px none rgb(36, 52, 71)"
+        }
+      ],
+      [
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        },
+        {
+          "bottom": "0px none rgb(36, 52, 71)",
+          "top": "1px solid rgb(180, 95, 60)"
+        }
+      ]
+    ],
+    "rules": "rows"
+  }
+]

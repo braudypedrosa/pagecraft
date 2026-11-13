@@ -1,0 +1,58 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+ ❯ tests/cms-workspace.test.tsx (12 tests | 2 failed) 440ms
+   × entry form uses Done when pristine and keeps dirty cancellation guarded 4ms
+   × schema save announces pending and completion at the action, prevents duplicates and allows retry without losing input 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cms-workspace.test.tsx > entry form uses Done when pristine and keeps dirty cancellation guarded
+AssertionError: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ tests/cms-workspace.test.tsx:159:26
+    157|
+    158|   await act(async () => r.click(r.$('.cms-entry-open')!));
+    159|   expect(button('Done')).toBeTruthy();
+       |                          ^
+    160|   await click('Done');
+    161|   expect(confirm).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/cms-workspace.test.tsx > schema save announces pending and completion at the action, prevents duplicates and allows retry without losing input
+AssertionError: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ tests/cms-workspace.test.tsx:234:26
+    232|   const confirm = vi.spyOn(L, 'askConfirm');
+    233|   await click('Edit collection');
+    234|   expect(button('Done')).toBeTruthy();
+       |                          ^
+    235|   await click('Done');
+    236|   expect(confirm).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 10 passed (12)
+   Start at  04:59:25
+   Duration  1.31s (transform 239ms, setup 0ms, import 281ms, tests 440ms, environment 485ms)
+
+npm notice
+npm notice New major version of npm available! 11.12.1 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

@@ -1,0 +1,128 @@
+{
+  "title": "Motion timing validation candidate 88",
+  "status": "candidate88_native_accepted_full_suite_green",
+  "scope": [
+    "Inspector.tsx Motion Duration, Delay, and Easing fields",
+    "Focused rendered Inspector regression coverage"
+  ],
+  "red": {
+    "command": "npx vitest run tests/inspector-motion-validation.test.tsx",
+    "exit": 1,
+    "observed": "Before the validation patch, banana persisted as n.anim.dur and the field had no invalid/error association."
+  },
+  "green": {
+    "focusedCommand": "npx vitest run tests/inspector-motion-validation.test.tsx",
+    "focusedExit": 0,
+    "focusedTests": 5,
+    "aggregateCommand": "npx vitest run tests/inspector-motion-validation.test.tsx tests/inspector-motion-labels.test.tsx tests/entrance-animation-options.test.tsx tests/customer-inspector-regressions.test.tsx",
+    "aggregateExit": 0,
+    "aggregateFiles": 4,
+    "aggregateTests": 21,
+    "typecheckCommand": "npx tsc --noEmit",
+    "typecheckExit": 0,
+    "diffCheck": "git diff --check -- app/src/ui/inspector/Inspector.tsx tests/inspector-motion-validation.test.tsx",
+    "detectorCommand": "node /Users/braudypedorsa/.codex/skills/impeccable/scripts/detect.mjs --json app/src/ui/inspector/Inspector.tsx",
+    "detectorResult": []
+  },
+  "buildChecks": {
+    "buildCommand": "npm run build",
+    "buildExit": 0,
+    "editorCommand": "npm run build:editor-package",
+    "editorExit": 0,
+    "deterministicPair": {
+      "first": "build-editor-1.sha1",
+      "second": "build-editor-2.sha1",
+      "hashAlgorithm": "SHA-1 (historical deterministic pair; filenames corrected)",
+      "identical": true,
+      "artifactFiles": 11
+    },
+    "fullSuiteCommand": "npm test",
+    "fullSuiteExit": 0,
+    "fullSuiteResult": "250 files passed, 2 skipped; 2,620 tests passed, 5 skipped",
+    "auditCommand": "npm audit --audit-level=moderate",
+    "auditExit": 0,
+    "auditResult": "found 0 vulnerabilities",
+    "typecheckExit": 0,
+    "nativeHarnessPrepared": "tools/.qa-ui-4990.mjs",
+    "nativeHarnessRun": true,
+    "nativeHarness": {
+      "requestedPort": 4990,
+      "requestedPortStatus": "blocked_by_unowned_next-server PID 53612; not terminated",
+      "fallbackPort": 4991,
+      "pid": 11811,
+      "terminalSessionId": 86484,
+      "cwd": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/motion-validation-2aedc6d",
+      "script": "tools/.qa-ui-4990.mjs (port-only temporary copy for fallback)",
+      "url": "http://localhost:4991/edit/s1",
+      "fixture": "s1 / QA UI Foundations",
+      "assetVerification": "fetch outside browser against /edit/s1 and each prepared hosted asset",
+      "preparedHostedEditor": "index.html via server/src/editor-assets.ts prepareHostedEditor",
+      "shellStatus": 200,
+      "servedShellBytes": 31807,
+      "preparedHostedHtmlBytes": 17295,
+      "preparedAssetCount": 7,
+      "preparedAssetsAllServedByteAndSHA256Equal": true,
+      "assetHashes": "sha256 filenames and response bodies matched for 2 CSS, 4 TTF, 1 JS"
+    },
+    "baselineCheck": {
+      "command": "node tools/ui-baselines.mjs check",
+      "exit": 0,
+      "result": "UI baselines verified: 24 images, 30 sourceFiles"
+    }
+  },
+  "cases": [
+    "invalid duration stays local while typing and shows linked alert on blur",
+    "valid s/ms duration, negative s delay, easing, and clear-to-inherit",
+    "negative duration and invalid easing rejected on Enter/blur",
+    "modern steps(jump-none), linear(), and cubic-bezier x-boundary fallback",
+    "character-by-character valid duration typing closes one transaction key and isolates drafts by node id"
+  ],
+  "limits": [
+    "CSS.supports is authoritative when available; jsdom uses the bounded fallback grammar.",
+    "Generated build/editor artifacts are candidate88-local; Main checkout, deployment, and commit were not changed.",
+    "Native harness process remains running at the recorded PID/session for root-owned UI verification; stop it after that verification.",
+    "Root-owned native Motion interaction and gallery review are accepted as recorded in final-receipt.md; deployment and Main checkout changes remain outside this candidate.",
+    "Native Motion interaction and gallery acceptance are recorded in final-receipt.md; this remains candidate evidence, not deployment proof.",
+    "CSS fallback validation is bounded for jsdom; production browser CSS.supports remains authoritative."
+  ],
+  "manifests": {
+    "sourceTestsAssets": "qa-evidence/motion-validation-2026-10-22/source-tests-assets.sha256 (25 entries: source/test/reference plus complete 11-file generated editor artifact set and Core/UI/ColorPop/public references)",
+    "uiBaselineSeparate": "qa-evidence/motion-validation-2026-10-22/ui-baseline.sha256 (25 baseline files)",
+    "generatedEditorPair": "build-editor-1.sha1 and build-editor-2.sha1 (historical SHA-1, 11 artifact entries, identical)",
+    "reviewedBaselineBeforeRootReview": "qa-evidence/motion-validation-2026-10-22/reviewed-baseline.previous.sha256 (HEAD manifest hash 7353c03d7c755083feedeb1e4de5b0b28c1d52b33c68add954e4824fb14b2c7b)",
+    "reviewedBaselineCurrent": "qa-evidence/motion-validation-2026-10-22/reviewed-baseline.sha256 (current manifest hash 584512e291385edd8f24f274913827c92c65d4ae9f36ce1a3796179313d08292)",
+    "historicalGeneratedPair": "build-editor-1.sha1 and build-editor-2.sha1 (SHA-1, 11 artifact entries, identical; historical only)",
+    "currentGeneratedArtifacts": "qa-evidence/motion-validation-2026-10-22/generated-artifacts.sha256 (11 artifacts, current SHA-256)"
+  },
+  "finalReceipt": {
+    "path": "qa-evidence/motion-validation-2026-10-22/final-receipt.md",
+    "nativeAccepted": true,
+    "nativeErrorCount": 0,
+    "galleryReview": "30 interaction checks, 24 captures, 30 source fingerprints; 24 captures passed review",
+    "cdpCleanup": {
+      "cpuThrottlingRate": 1,
+      "viewportCleared": true,
+      "mediaCleared": true,
+      "sessionClosed": true
+    },
+    "sourceManifestMatches": true,
+    "baselinePrevious": "7353c03d7c755083feedeb1e4de5b0b28c1d52b33c68add954e4824fb14b2c7b",
+    "baselineCurrentReviewed": "584512e291385edd8f24f274913827c92c65d4ae9f36ce1a3796179313d08292",
+    "baselineCheck": "24 images, 30 sourceFiles verified"
+  },
+  "historicalChecks": {
+    "priorFullSuiteBaselineGate": {
+      "exit": 1,
+      "result": "2,619 passed, 5 skipped; Inspector baseline review was pending"
+    },
+    "finalRerun": {
+      "exit": 0,
+      "result": "250 files passed, 2 skipped; 2,620 tests passed, 5 skipped"
+    }
+  },
+  "baselineHistory": {
+    "priorHeadSha256": "7353c03d7c755083feedeb1e4de5b0b28c1d52b33c68add954e4824fb14b2c7b",
+    "currentReviewedSha256": "584512e291385edd8f24f274913827c92c65d4ae9f36ce1a3796179313d08292",
+    "correction": "An earlier receipt was temporarily reset to a frozen candidate87 manifest while preserving the wrong prior hash; root recaptured the Inspector review baseline. The current manifest and ui-baselines check are authoritative."
+  }
+}

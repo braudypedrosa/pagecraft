@@ -1,0 +1,38 @@
+{
+  "stored": {
+    "step": "1",
+    "value": "3"
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pagerCount": 0,
+      "overflow": false
+    },
+    {
+      "device": "Tablet",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pagerCount": 0,
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pagerCount": 0,
+      "overflow": false
+    }
+  ]
+}

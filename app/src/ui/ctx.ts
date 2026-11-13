@@ -13,6 +13,7 @@
 
    `Core` is derived from the module rather than hand-written, so it cannot drift. */
 import type * as CoreNs from '../core/index';
+import type { HostPage } from '../host/types';
 
 /**
  * The whole core module.
@@ -50,6 +51,13 @@ export interface WordPressContentTarget {
   readonly items: readonly WordPressContentItem[];
 }
 
+/** Read-only access to the native WordPress page catalogue for the document being
+    edited. Link controls may choose a public destination, but cannot change pages. */
+export interface NativePageSource {
+  readonly currentPageId: string;
+  list(): Promise<readonly HostPage[]>;
+}
+
 /** What builder.html still owns. Each entry is a thing left to port. */
 export interface Legacy {
   /** May this session change the shape of the site, or only its words? False for a
@@ -60,11 +68,17 @@ export interface Legacy {
   /** Which product owns dynamic content in this host. The existing Collection widget is
       Pagecraft's in-document CMS and must not be offered when WordPress owns queries. */
   dynamicContentProvider(): false | 'pagecraft' | 'wordpress';
+  /** True only when the host has a receiver for the Form widget's WordPress-managed mode. */
+  managedForms(): boolean;
   /** Native WordPress pages/posts available as link destinations. Empty in the
       standalone build. Returning a snapshot keeps the UI read-only by construction. */
   wordpressContent(): readonly WordPressContentTarget[];
+  /** Native page destinations exist only in the WordPress workbench. */
+  nativePageSource(): NativePageSource | null;
   /** select an element on the canvas; `null` clears the selection */
   select(id: string | null, opts?: { scroll?: boolean; add?: boolean; range?: boolean }): void;
+  /** Navigate a structured review target to its exact rendered CMS copy. */
+  showReviewTarget(target: import('../core/types').FindingTarget): boolean;
   /** switch the editing scope between the page and the global header/footer */
   setMode(mode: string): void;
   /** Open a component definition for editing, or close it. Both go through the app's own
@@ -104,8 +118,11 @@ export interface Legacy {
   /** Save the draft now and wait for it, so the server holds what the owner sees. Rejects when
       the save failed. */
   flushDraft(): Promise<void>;
+  acceptProposalDraft(draft: { doc: import('../core/types').Doc; version: number }, baseVersion: number, baseline: string): boolean;
   /** Re-read the site's images, after an import copied some in, so the canvas can show them. */
   assetsReload(): Promise<void>;
+  /** Assistant proposals (Phase 7): the hosted editor, for the site's owner; null otherwise. */
+  proposals(): import('../host/types').WebProposalAdapter | null;
   /** the save-as-block flow, which asks for a name and whether it is global */
   saveBlockFlow(nodeId: string): void;
   /** a short confirmation in the corner */
@@ -125,6 +142,11 @@ export interface Legacy {
   consumeDragMoved(): boolean;
   /** append a widget at the smart target, select it, and scroll it into view */
   appendSmart(key: string): void;
+  insertionHint(key: string): string;
+  previewInsertion(key: string | null): void;
+  guideSavedDocument(): unknown | null;
+  guidePreview(): void;
+  guideSelect(pageIndex: number, nodeId: string): void;
 
   /** the new-page dialog */
   newPageModal(): void;
@@ -145,6 +167,8 @@ export interface Legacy {
   /** dismiss the surface that currently owns Review. In WordPress that is the inspector
       side panel; in the hosted editor it remains the Publish/Review dialog. */
   closeReviewSurface(): void;
+  /** leave Preview before a Review finding navigates into the editable canvas */
+  exitPreview(): void;
 
   /* History. `tx` opens a coalescing transaction keyed by field, so a run of
      keystrokes is one undo step; `endTx` closes it on blur. Anything that moves
@@ -169,7 +193,7 @@ export interface Legacy {
   /** the bind-every-field-inside dialog */
   bindModal(nodeId: string): void;
   /** put the canvas into rich-text editing on this node */
-  enterEdit(nodeId: string): void;
+  enterEdit(nodeId: string, propertyKey?: string): void;
 
   /* The media library, still legacy: IndexedDB behind an in-memory map. */
   /** one asset's metadata, or null */
@@ -179,7 +203,7 @@ export interface Legacy {
   /** take a File into the library, returning its id */
   mediaTake(file: File, options?: {feedback?: boolean}): Promise<string | null>;
   /** the library picker */
-  mediaPicker(options?: {view?: 'upload' | 'library'; multiple?: boolean; onFiles?: (files: File[]) => Promise<unknown>}): Promise<string | null>;
+  mediaPicker(options?: {title?: string; view?: 'upload' | 'library'; uploadOnly?: boolean; multiple?: boolean; onFiles?: (files: File[]) => Promise<unknown>}): Promise<string | null>;
   /** resolve `asset:id` to something an <img> can load */
   assetsToBlob(v: string): string;
   /** read an image's intrinsic size */

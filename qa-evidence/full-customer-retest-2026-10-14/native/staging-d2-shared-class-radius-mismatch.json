@@ -1,0 +1,845 @@
+{
+  "restoreFrom": 907,
+  "cases": [],
+  "baseline": [
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+      "label": "Explore shared spaces",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+      "label": "About",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+      "label": "Services",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+      "label": "Contact",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(108, 71, 47)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "ndaf5h2uo",
+      "label": "Get started",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(108, 71, 47)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(250, 249, 246)",
+      "id": "new39q14y",
+      "label": "Readable default action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "1px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "id": "n0ixrm339",
+      "label": "QA first component action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(108, 71, 47)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(250, 249, 246)",
+      "id": "n16nly2l",
+      "label": "Readable default action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-cg-link-13",
+      "label": "Explore the projects",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "16px",
+      "weight": "400"
+    }
+  ],
+  "afterClassSource": [
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+      "label": "Explore shared spaces",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+      "label": "About",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+      "label": "Services",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+      "label": "Contact",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "22px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(250, 249, 246)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "id": "ndaf5h2uo",
+      "label": "Get started",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(108, 71, 47)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(250, 249, 246)",
+      "id": "new39q14y",
+      "label": "Readable default action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "1px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "id": "n0ixrm339",
+      "label": "QA first component action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgb(108, 71, 47)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(250, 249, 246)",
+      "id": "n16nly2l",
+      "label": "Readable default action",
+      "padding": "13px 26px",
+      "radius": "8px",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "id": "pagecraft-button-cg-link-13",
+      "label": "Explore the projects",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "size": "16px",
+      "weight": "400"
+    }
+  ],
+  "shared": {
+    "Desktop": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "19px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "19px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ],
+    "Tablet": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "15px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "15px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ],
+    "Mobile": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "11px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "11px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ]
+  },
+  "local": {
+    "Desktop": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "19px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(233, 237, 240)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "27px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ],
+    "Tablet": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "15px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(233, 237, 240)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "15px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ],
+    "Mobile": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+        "label": "Explore shared spaces",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+        "label": "About",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+        "label": "Services",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+        "label": "Contact",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "22px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(250, 249, 246)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "ndaf5h2uo",
+        "label": "Get started",
+        "padding": "13px 26px",
+        "radius": "11px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(233, 237, 240)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(36, 44, 39)",
+        "id": "new39q14y",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "11px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "1px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "n0ixrm339",
+        "label": "QA first component action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgb(108, 71, 47)",
+        "border": "0px solid rgba(0, 0, 0, 0)",
+        "color": "rgb(250, 249, 246)",
+        "id": "n16nly2l",
+        "label": "Readable default action",
+        "padding": "13px 26px",
+        "radius": "8px",
+        "size": "16px",
+        "weight": "400"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px solid rgb(36, 44, 39)",
+        "color": "rgb(36, 44, 39)",
+        "id": "pagecraft-button-cg-link-13",
+        "label": "Explore the projects",
+        "padding": "12px 0px",
+        "radius": "0px",
+        "size": "16px",
+        "weight": "400"
+      }
+    ]
+  },
+  "mobileInspector": {
+    "radius": "27",
+    "group": "Radius\nInherited\npx"
+  },
+  "radiusMismatch": {
+    "inspector": "27",
+    "computed": "11px",
+    "cssLines": [
+      ".ts-display{font-size:48px;font-weight:400;line-height:1.12;letter-spacing:-.035em;}.ts-title{font-size:34px;font-weight:400;line-height:1.12;letter-spacing:-.035em;}.ts-subtitle{font-size:24px;font-weight:400;line-height:1.6;letter-spacing:0;}.ts-lead{font-size:21px;font-weight:400;line-height:1.6;letter-spacing:0;}.ts-body{font-size:18px;font-weight:400;line-height:1.6;letter-spacing:0;}.ts-small{font-size:14px;font-weight:400;line-height:1.6;letter-spacing:0;}.ts-eyebrow{color:var(--c-muted);font-size:12px;font-family:'DM Sans',system-ui,sans-serif;font-weight:500;letter-spacing:.04em;text-transform:uppercase;}.ts-btn{font-size:16px;font-weight:400;line-height:1.6;letter-spacing:0;}.ts-wordmark{font-size:23px;font-weight:400;line-height:1.2;letter-spacing:-.04em;}.c-qa-shared-heading{top:12px;color:#b32424;position:relative;font-size:42px;max-width:300px;text-align:right;font-weight:700;margin-bottom:0px;}.c-qa-interactive{color:#2459b3;font-size:33px;text-align:left;transition:color .2s linear;margin-bottom:0px;}.c-qa-shared-action{color:var(--c-ink);align-self:flex-start;padding-top:13px;padding-left:26px;border-radius:19px;padding-right:26px;padding-bottom:13px;background-color:var(--c-paper);}.c-qa-shared-action.pagecraft-button{padding-top:13px;padding-left:26px;border-radius:19px;padding-right:26px;padding-bottom:13px;background-color:var(--c-paper);}.c-qa-shared-action:hover{background-color:var(--c-brand);}.c-qa-shared-action:focus-visible{background-color:var(--c-ink);}.c-qa-shared-action:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visib"
+    ]
+  },
+  "radiusRules": [
+    ".pagecraft-ew39q14y{align-self:flex-start;padding-top:13px;padding-left:26px;--pc-solid-fg:var(--c-paper);border-radius:27px;padding-right:26px;padding-bottom:13px;background-color:var(--c-project-surface);}",
+    ".pagecraft-ew39q14y.pagecraft-button{border-radius:27px;background-color:var(--c-project-surface);}",
+    ".c-qa-shared-action{border-radius:15px;}",
+    ".c-qa-shared-action.pagecraft-button{border-radius:15px;}",
+    ".pagecraft-ew39q14y{border-radius:27px;}",
+    ".c-qa-shared-action{border-radius:11px;}",
+    ".c-qa-shared-action.pagecraft-button{border-radius:11px;}",
+    ".pagecraft-ew39q14y{border-radius:27px;}"
+  ],
+  "freshMismatch": {
+    "inspector": "27",
+    "computed": "11px"
+  },
+  "previewMismatch": {
+    "classes": "pagecraft-button pagecraft-ew39q14y ts-btn c-qa-shared-action",
+    "radius": "11px"
+  }
+}

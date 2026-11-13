@@ -1,0 +1,58 @@
+{
+  "cloudVersion": 1124,
+  "styles": [
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgba(0, 0, 0, 0)",
+      "color": "rgb(36, 44, 39)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "outline": "rgb(36, 44, 39) none 3px",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "selector": "#cg-link-17",
+      "style": null,
+      "text": "Explore our shared spaces"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "outline": "rgb(36, 44, 39) none 3px",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "selector": "#cg-link-18",
+      "style": null,
+      "text": "Workshop reading room"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "outline": "rgb(36, 44, 39) none 3px",
+      "padding": "12px 0px",
+      "radius": "0px",
+      "selector": "#cg-link-5-cg-project-instance-26",
+      "style": null,
+      "text": "Discuss a similar project"
+    },
+    {
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(36, 44, 39)",
+      "color": "rgb(36, 44, 39)",
+      "fontSize": "18px",
+      "fontWeight": "400",
+      "outline": "rgb(36, 44, 39) none 3px",
+      "padding": "0px",
+      "radius": "0px",
+      "selector": ".pagecraft-wysiwyg",
+      "style": null,
+      "text": "An architecture practice working across homes and places shared by a neighborhood."
+    }
+  ],
+  "fullCaseComplete": false
+}

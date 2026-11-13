@@ -1,0 +1,156 @@
+{
+  "format": "pagecraft.template-compatibility-review.v1",
+  "status": "private-review-not-released",
+  "templateId": "dental-clinic-a2",
+  "templateVersion": "0.1.0",
+  "revision": 24,
+  "package": {
+    "path": "package/dental-clinic-a2-0.1.0-r24.pagecraft-site.zip",
+    "sha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+    "bytes": 1852304,
+    "roundtripByteIdentical": true,
+    "documentParity": true,
+    "assetParity": true,
+    "provenanceParity": true,
+    "evidence": "package/roundtrip-final.json"
+  },
+  "source": {
+    "schemaValidated": true,
+    "nodeCount": 351,
+    "uniqueNodeIds": true,
+    "assetsReferenced": 14,
+    "photoRepetition": false,
+    "pages": [
+      {
+        "slug": "index",
+        "sections": 8
+      },
+      {
+        "slug": "treatments",
+        "sections": 6
+      },
+      {
+        "slug": "care-team",
+        "sections": 5
+      },
+      {
+        "slug": "first-visit",
+        "sections": 5
+      },
+      {
+        "slug": "patient-information",
+        "sections": 6
+      },
+      {
+        "slug": "contact",
+        "sections": 4
+      }
+    ],
+    "evidence": "source-validation.json"
+  },
+  "responsive": {
+    "environment": "private revision 24 preview",
+    "pageViewportCases": 24,
+    "widths": [
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "pages": 6,
+    "oneH1Each": true,
+    "allImagesLoaded": true,
+    "noHorizontalOverflow": true,
+    "evidence": "Final/checks.json"
+  },
+  "cloud": {
+    "environment": "unpublished Cloud QA site",
+    "importRoute": "native media uploads and project JSON",
+    "genericTemplatePickerTested": false,
+    "zipUploadUiTested": false,
+    "importedMediaCount": 14,
+    "sourceForEditingTests": 22,
+    "editing": [
+      "long heading save and reopen",
+      "global styles",
+      "image replacement",
+      "duplicate, move and delete"
+    ],
+    "restoredRevision": 24,
+    "published": false,
+    "evidence": {
+      "restoration": "cloud/reimport-final.json",
+      "frontend": "cloud/frontend-final.json"
+    }
+  },
+  "wordpress": {
+    "environment": "isolated local WordPress QA",
+    "site": "http://127.0.0.1:4397",
+    "sourceForEditingTests": 22,
+    "editing": [
+      "long heading save and reopen",
+      "image replacement"
+    ],
+    "restoredRevision": 24,
+    "draftPageIds": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "mediaCount": 14,
+    "reimport": {
+      "created": 0,
+      "updated": 6,
+      "absent": 0
+    },
+    "menuIdStable": true,
+    "individualMenuItemIdsStable": false,
+    "menuCount": 1,
+    "menuItemCount": 5,
+    "evidence": {
+      "reimport": "wordpress/reimport-r24-receipt.json",
+      "verification": "wordpress/reimport-r24-checks.json",
+      "frontend": "wordpress/frontend-final.json"
+    }
+  },
+  "form": {
+    "state": "unconfigured and disabled",
+    "submissionsMade": 0,
+    "deliveryVerified": false,
+    "wordpressEvidence": "wordpress/contact-inert.json",
+    "interactionEvidence": "interaction-final.json"
+  },
+  "tests": {
+    "fullSuite": {
+      "passed": 3116,
+      "skipped": 5,
+      "failed": 1,
+      "failure": "submissions test timed out at 30000 ms",
+      "evidence": "tests.log"
+    },
+    "focusedSubmissionsRerun": {
+      "passed": 16,
+      "failed": 0,
+      "evidence": "submissions-rerun.log"
+    },
+    "ci": "pending at time of review"
+  },
+  "release": {
+    "workflowApproval": null,
+    "promotionLedgerComplete": false,
+    "customerCatalogAdded": false,
+    "sitePublished": false,
+    "productionChanged": false
+  },
+  "limitations": [
+    "The Cloud path tested was native media plus project JSON, not a generic template picker or ZIP upload UI.",
+    "Cloud and WordPress editor stress tests began on revision 22; the exact revision 24 package was then restored and verified.",
+    "The unconfigured form is disabled; delivery and appointments are not verified.",
+    "The full suite had one timeout, followed by a passing focused rerun; it was not a clean full-suite pass.",
+    "CI was pending when this review was recorded.",
+    "No promotion ledger, customer catalog release, site publication or production deployment is claimed."
+  ]
+}

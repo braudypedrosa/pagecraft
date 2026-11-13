@@ -1,0 +1,4 @@
+277124c3e068e49781351d76502d2c6f0a4048d870f772be96918a0a1ea2cc7b  app/src/core/index.ts
+7079eb130f90a49d3102b591babc77d88149deae0921a967f004b14985d8cd4a  app/src/core/types.ts
+d8db605a72e08c3cff82253c2dd1ed0459a0b86f61e9c36db2e4932eda3825a6  app/src/ui/inspector/Lists.tsx
+336d78f8c58db3476f9ffcb0a19ed8ef5538fe82b2aa8c110add0b8beb262277  tests/nav-page-destination-provenance.test.tsx

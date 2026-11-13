@@ -1,0 +1,86 @@
+{
+  "baseCommit": "693cb9038778ffff24a2188a1121e22c5ab4a682",
+  "sourceFiles": {
+    "app/src/ui/inspector/Controls.tsx": "17b6b9d1ecc08618e73af8a7a263b20c8ba93d9513ec8d408442e2fd24bd1cd9",
+    "tests/native-page-picker.test.tsx": "0f269c840c32eabc9563e5b91d64ec9262b6a07498491e637a1218ab1a52ef17",
+    "public/internal-ui-baselines/manifest.json": "46faf54ca3ec38f238859e59451d60d28790ba63fcd1b9b4fb06381a26d92842"
+  },
+  "checks": {
+    "focused": {
+      "exit": 0,
+      "files": 4,
+      "tests": 18
+    },
+    "fullFirst": {
+      "exit": 1,
+      "passedFiles": 268,
+      "failedFiles": 1,
+      "skippedFiles": 2,
+      "passedTests": 2768,
+      "failedTests": 1,
+      "skippedTests": 5,
+      "onlyFailure": "reviewed gallery source fingerprint: app/src/ui/inspector/Controls.tsx"
+    },
+    "builderEditorPairOne": [
+      0,
+      0
+    ],
+    "builderEditorPairTwo": [
+      0,
+      0
+    ],
+    "generated10AllExist": true,
+    "generatedPairsExact": true,
+    "sourceFreezeAfterBuildsExact": true,
+    "runtimeSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "baselineUpdated": true,
+    "baselineRecordReviewed": {
+      "exit": 0,
+      "captures": 24,
+      "pngBytesUnchanged": true,
+      "manifestChange": "capture timestamp and Controls.tsx source fingerprint only"
+    },
+    "baselineCheckReviewed": {
+      "exit": 0
+    },
+    "fullAfterReview": {
+      "exit": 1,
+      "passedFiles": 268,
+      "failedFiles": 1,
+      "skippedFiles": 2,
+      "passedTests": 2755,
+      "skippedTests": 19,
+      "onlyFailure": "server/tests/gateway-db.test.ts beforeAll PGlite hook timed out at 10000ms"
+    },
+    "gatewayDbRetry": {
+      "exit": 0,
+      "files": 1,
+      "tests": 14
+    },
+    "typecheckReviewed": {
+      "exit": 0
+    },
+    "reviewedBuildManifestSha256": "0425ecd153242f5140163d03e9ae408bf19a577f96c1db053ef554cafbdb893b",
+    "reviewedBuildPairsExact": true,
+    "reviewedGenerated10AllExist": true,
+    "reviewedSourceFreezeExact": true
+  },
+  "server": {
+    "pid": 90998,
+    "url": "http://127.0.0.1:4948/internal/components",
+    "health": "http://127.0.0.1:4948/__gallery-health",
+    "owner": "this candidate",
+    "sessionId": 40916,
+    "healthVerified": true
+  },
+  "limits": [
+    "Root owns integration, native product acceptance, WordPress and publication.",
+    "Fresh full suite had one PGlite initialization timeout; the isolated 14-test gateway suite passed immediately afterward.",
+    "No Main, browser, WordPress, database, commit or push occurred."
+  ],
+  "rootReview": {
+    "galleryBehavior": "30/30 pass after adapter",
+    "captures": "24/24 byte-exact",
+    "builderFields768": "reviewed correct"
+  }
+}

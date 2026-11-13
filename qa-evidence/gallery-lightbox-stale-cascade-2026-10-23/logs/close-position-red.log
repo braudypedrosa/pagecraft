@@ -1,0 +1,29 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3
+
+ ❯ tests/gallery-lightbox-contrast.test.ts (5 tests | 1 failed) 203ms
+     × historical CSS appended later cannot move Close or reveal a hidden control 199ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gallery-lightbox-contrast.test.ts > Gallery lightbox control contrast > historical CSS appended later cannot move Close or reveal a hidden control
+AssertionError: expected '50%' to be '14px' // Object.is equality
+
+Expected: "14px"
+Received: "50%"
+
+ ❯ tests/gallery-lightbox-contrast.test.ts:121:23
+    119|     const previous = dom.window.getComputedStyle(dom.window.document.q…
+    120|
+    121|     expect(close.top).toBe('14px');
+       |                       ^
+    122|     expect(close.right).toBe('14px');
+    123|     expect(close.transform).toBe('none');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  00:32:36
+   Duration  1.47s (transform 350ms, setup 0ms, import 1.08s, tests 203ms, environment 0ms)

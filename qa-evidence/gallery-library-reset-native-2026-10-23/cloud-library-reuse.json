@@ -1,0 +1,60 @@
+{
+  "before": [
+    {
+      "alt": "QA reused courtyard",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "QA reused reading room",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=[signed-asset-token]"
+    }
+  ],
+  "append": [
+    {
+      "alt": "QA reused courtyard",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "QA reused reading room",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    }
+  ],
+  "undo": [
+    {
+      "alt": "QA reused courtyard",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "QA reused reading room",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=[signed-asset-token]"
+    }
+  ],
+  "redo": [
+    {
+      "alt": "QA reused courtyard",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "QA reused reading room",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/afd2aff3498cc-783cf38a3b715f31.webp?token=[signed-asset-token]"
+    },
+    {
+      "alt": "",
+      "loaded": true,
+      "src": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/c11494e8-3ae5-4be0-b707-e937278a710a/a0b6e9f5b3776-91fe7346b7f93337.webp?token=[signed-asset-token]"
+    }
+  ]
+}

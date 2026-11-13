@@ -1,0 +1,30 @@
+{
+  "candidate": "inspector-blur-click-2451",
+  "firstClickHoverAfterHtmlId": "Hover",
+  "heldPointerAcrossToolCalls": {
+    "beforeRelease": "Resting",
+    "focused": "Hover",
+    "afterRelease": "Hover"
+  },
+  "heldSpace200ms": {
+    "before": {
+      "focused": "Resting",
+      "selected": "Hover"
+    },
+    "after": {
+      "focused": "Resting",
+      "selected": "Resting"
+    }
+  },
+  "link112": {
+    "firstHashInputRetained": true,
+    "typed": {
+      "focused": true,
+      "value": "#qa-link112-native"
+    },
+    "firstStyleClick": "true",
+    "href": "#qa-link112-native"
+  },
+  "host": "isolated local native editor",
+  "stagingAcceptance": "pending"
+}

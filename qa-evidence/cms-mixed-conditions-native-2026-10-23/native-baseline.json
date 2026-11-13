@@ -1,0 +1,35 @@
+{
+  "status": "NativeprojectJSONbaseline",
+  "cloud": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+  "restoreVersion": 1238,
+  "nativeDownloadFile": "full-customer-retest-2026-10-15-backup (6).json",
+  "modifiedUtc": "2026-10-22T20:48:42Z",
+  "sha256": "0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7",
+  "pages": 9,
+  "currentPage": 0,
+  "collections": [
+    {
+      "id": "qa-shared-spaces",
+      "fields": 3,
+      "items": 5
+    },
+    {
+      "id": "qa-reference-authors",
+      "fields": 1,
+      "items": 1
+    },
+    {
+      "id": "qa-reference-posts",
+      "fields": 2,
+      "items": 1
+    },
+    {
+      "id": "qa-scalar-matrix-2026-10",
+      "fields": 7,
+      "items": 26
+    }
+  ],
+  "rawStoredPrivate": true,
+  "rejectedPreflight": "Initialfilename glob matched2026-10-20oldbackup. Excluded. NativewaitForEventdownloadreturnedverifiedfreshfilebeforeuse.",
+  "fullQAComplete": false
+}

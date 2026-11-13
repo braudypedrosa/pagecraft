@@ -1,0 +1,34 @@
+{
+  "historyCallers": [
+    {
+      "file": "server/src/app.ts",
+      "use": [
+        "version",
+        "createdAt",
+        "savedBy"
+      ],
+      "requiresDoc": false,
+      "requiresContext": false
+    },
+    {
+      "file": "server/src/accounts.ts",
+      "use": [
+        "savedBy"
+      ],
+      "requiresDoc": false,
+      "requiresContext": false
+    }
+  ],
+  "detailPath": {
+    "storeMethod": "revision",
+    "gatewayOperation": "site.revision",
+    "fullFieldsPreserved": [
+      "doc",
+      "context"
+    ]
+  },
+  "rollingCompatibility": {
+    "oldAppNewGateway": "old GatewayStore.toRevision assigns missing row.doc and row.context as undefined without dereferencing; both history callers ignore those fields",
+    "newAppOldGateway": "toRevisionMeta selects only metadata fields and ignores legacy extra doc/context fields"
+  }
+}

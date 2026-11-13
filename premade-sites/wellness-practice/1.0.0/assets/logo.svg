@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 150" role="img" aria-labelledby="title">
+  <title id="title">Still Day Practice</title>
+  <rect width="650" height="150" fill="#f6f0e5"/>
+  <circle cx="70" cy="75" r="48" fill="none" stroke="#557262" stroke-width="9"/>
+  <path d="M70 43c18 15 22 35 0 64-22-29-18-49 0-64Z" fill="#c98266"/>
+  <text x="144" y="82" fill="#293b33" font-family="Georgia,serif" font-size="56">Still Day</text>
+  <text x="147" y="118" fill="#6b726c" font-family="Arial,sans-serif" font-size="18" letter-spacing="5">WELLNESS PRACTICE</text>
+</svg>

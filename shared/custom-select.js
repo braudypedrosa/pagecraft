@@ -12,9 +12,9 @@ export const CUSTOM_SELECT_CSS = `
 .pc-custom-select-trigger>svg{width:14px;height:14px;flex:0 0 14px;color:currentColor;opacity:.64;transition:transform .14s ease}
 .pc-custom-select-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .pc-custom-select-trigger:disabled{cursor:not-allowed;opacity:.5}
-.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:var(--pc-popup-bg,#fff);--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:0;border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
+.pc-custom-select-popover{box-sizing:border-box;--pc-cs-bg:var(--pc-popup-bg,#fff);--pc-cs-fg:#111311;--pc-cs-muted:#6f7771;--pc-cs-hover:var(--pc-hover-bg,#f4faef);position:fixed;inset:auto;margin:0;z-index:10000;display:grid;gap:2px;max-height:min(360px,calc(100vh - 20px));padding:6px;overflow:auto;overscroll-behavior:contain;background:var(--pc-cs-bg);color:var(--pc-cs-fg);border:0;border-radius:8px;box-shadow:0 18px 42px -18px rgba(17,19,17,.42)}
 .pc-custom-select-popover[hidden]{display:none}
-.pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.pc-custom-select-group{padding:8px 9px 4px;color:var(--pc-cs-muted);font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-label,13px);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .pc-custom-select-option{width:100%!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0!important;padding:var(--pc-control-padding,6px 8px)!important;border:0!important;border-radius:4px!important;background:transparent!important;color:var(--pc-cs-fg)!important;box-shadow:none!important;font:inherit!important;font-weight:500!important;line-height:1.35!important;text-align:left!important;cursor:pointer!important;filter:none!important}
 .pc-custom-select-option:hover,.pc-custom-select-option[data-active="true"]{background:var(--pc-cs-hover)!important;color:var(--pc-selection-text,#263d20)!important}
 .pc-custom-select-option[aria-selected="true"]{background:var(--pc-selection-bg,#eef7e5)!important;color:var(--pc-selection-text,#263d20)!important;font-weight:650!important}
@@ -24,6 +24,11 @@ export const CUSTOM_SELECT_CSS = `
 @media(max-width:559px){.pc-custom-select-popover[data-mobile="true"]{left:12px!important;right:12px!important;top:auto!important;bottom:12px!important;width:auto!important;max-height:min(52vh,420px);padding:8px;border-radius:10px;box-shadow:0 24px 60px -18px rgba(17,19,17,.52)}.pc-custom-select-option{min-height:42px!important;padding:var(--pc-control-padding,6px 8px)!important}}
 @media(prefers-reduced-motion:reduce){.pc-custom-select-trigger>svg{transition:none}}
 `;
+
+/** Notify enhancements after a renderer commits silent native selection changes. */
+export function refreshCustomSelects() {
+  if (typeof document !== 'undefined') document.dispatchEvent(new Event('pagecraft:refresh-selects'));
+}
 
 export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   if (typeof document === 'undefined' || window.__pagecraftCustomSelects) return;
@@ -42,6 +47,12 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   let typeaheadTimer = 0;
   let scheduled = false;
   let nextId = 0;
+  let pointerTrigger = null;
+
+  const clearPointerActivation = () => {
+    if (pointerTrigger) pointerTrigger.removeAttribute('data-pc-pointer-activating');
+    pointerTrigger = null;
+  };
 
   const selectedOption = select => select.options[select.selectedIndex] || null;
   const labelOf = select => {
@@ -73,10 +84,20 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
   };
   const optionSignature = select => [...select.options].map(option => [
     option.value, option.label, option.selected, option.disabled,
-    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : ''
+    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.label : '',
+    option.parentElement?.tagName === 'OPTGROUP' ? option.parentElement.disabled : false
   ].join('\u0001')).join('\u0002');
   const enabledOptions = select => [...select.options].filter(option => !option.disabled && !option.parentElement?.disabled);
   const isClosed = menu => menu.hidden || menu.hasAttribute('data-pc-motion-closing');
+  const modalFor = record => {
+    const dialog = record.trigger.closest('dialog[open]');
+    if (!dialog) return null;
+    try {
+      return !window.CSS?.supports?.('selector(:modal)') || dialog.matches(':modal') ? dialog : null;
+    } catch {
+      return dialog;
+    }
+  };
 
   const position = record => {
     if (record.menu.hidden) return;
@@ -110,23 +131,57 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (!record || record.menu.hidden || record.menu.hasAttribute('data-pc-motion-closing')) return;
     record.trigger.setAttribute('aria-expanded', 'false');
     if (openRecord === record) openRecord = null;
-    if (focus) record.trigger.focus();
+    record.restoreFocus = focus && !record.trigger.isConnected;
+    if (focus) record.trigger.focus({ preventScroll: true });
+    const finishPopover = () => {
+      if (record.popoverOpen) {
+        try { record.menu.hidePopover(); } catch {}
+        record.popoverOpen = false;
+      }
+    };
     const motion = window.__pcMotion;
-    if (motion) motion.exit(record.menu, { kind: 'popover' });
-    else record.menu.hidden = true;
+    if (motion && record.popoverOpen) {
+      motion.exit(record.menu, {
+        kind: 'popover', hide: false,
+        onFinish: () => { finishPopover(); record.menu.hidden = true; }
+      });
+    } else if (motion) motion.exit(record.menu, { kind: 'popover' });
+    else { finishPopover(); record.menu.hidden = true; }
   };
 
   const choose = (record, option) => {
-    if (!option || option.disabled || option.parentElement?.disabled) return;
+    if (!record.select.isConnected || record.select.disabled || !option || !record.select.contains(option)
+      || option.disabled || option.parentElement?.disabled) return;
+    const changed = record.select.value !== option.value;
     record.select.value = option.value;
-    record.select.dispatchEvent(new Event('input', { bubbles: true }));
-    record.select.dispatchEvent(new Event('change', { bubbles: true }));
+    if (changed) {
+      record.select.dispatchEvent(new Event('input', { bubbles: true }));
+      record.select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     sync(record);
     close(record, true);
   };
 
+  const moveModalFocus = (record, backwards) => {
+    if (!record.modal) return false;
+    const focusable = [...record.modal.querySelectorAll('a[href],area[href],button,input,select,textarea,iframe,summary,[contenteditable],[tabindex]')]
+      .filter(element => element instanceof HTMLElement
+        && element.tabIndex >= 0
+        && !element.hidden
+        && !element.matches(':disabled,[aria-disabled="true"]')
+        && !element.closest('[hidden],[inert],.pc-custom-select-popover'));
+    const index = focusable.indexOf(record.trigger);
+    if (index < 0 || focusable.length < 2) return false;
+    const offset = backwards ? -1 : 1;
+    const target = focusable[(index + offset + focusable.length) % focusable.length];
+    close(record, true);
+    target.focus({ preventScroll: true });
+    return true;
+  };
+
   const optionsForButton = (record, button) => [...record.select.options].find(option => option.value === button.dataset.value);
   const setActive = (record, option) => {
+    if (openRecord !== record || !record.select.isConnected || isClosed(record.menu)) return;
     const buttons = [...record.menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
     buttons.forEach(button => { button.dataset.active = String(button.dataset.value === option?.value); });
     const active = buttons.find(button => button.dataset.active === 'true');
@@ -163,14 +218,32 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.2 2.8 2.8 6.2-6.2"/></svg>'
         : '';
       button.append(text, check);
-      button.addEventListener('click', () => choose(record, option));
+      button.addEventListener('click', () => choose(record, optionsForButton(record, button)));
       record.menu.append(button);
     }
   };
 
   const open = record => {
-    if (record.select.disabled) return;
+    if (!record.select.isConnected || !record.trigger.isConnected || record.select.disabled) return;
     if (openRecord && openRecord !== record) close(openRecord);
+    record.modal = modalFor(record);
+    const host = record.modal || document.body;
+    if (record.menu.parentElement !== host) host.append(record.menu);
+    const usePopover = Boolean(record.modal && record.menu.showPopover && record.menu.hidePopover);
+    if (usePopover) {
+      record.menu.setAttribute('popover', 'manual');
+      record.menu.hidden = false;
+      if (!record.popoverOpen) {
+        try { record.menu.showPopover(); record.popoverOpen = true; }
+        catch { record.menu.removeAttribute('popover'); record.popoverOpen = false; }
+      }
+    } else {
+      if (record.popoverOpen) {
+        try { record.menu.hidePopover(); } catch {}
+        record.popoverOpen = false;
+      }
+      record.menu.removeAttribute('popover');
+    }
     renderMenu(record);
     const styles = getComputedStyle(record.trigger);
     record.menu.style.font = styles.font || 'var(--pc-type-control)';
@@ -189,21 +262,90 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     requestAnimationFrame(() => setActive(record, option));
   };
 
+  const handleTypeahead = (record, event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1 || !/\S/.test(event.key)) return;
+    typeahead += event.key.toLowerCase();
+    clearTimeout(typeaheadTimer);
+    typeaheadTimer = window.setTimeout(() => { typeahead = ''; }, 650);
+    const match = enabledOptions(record.select).find(option => option.label.toLowerCase().startsWith(typeahead));
+    if (match) {
+      const activate = () => setActive(record, match);
+      if (isClosed(record.menu)) { open(record); requestAnimationFrame(activate); } else activate();
+    }
+  };
+
   function sync(record) {
     if (!record.select.isConnected) return;
+    record.owner = record.select.parentNode;
+    /* Frameworks only know about the native select. When conditional siblings are inserted,
+       they can land between it and our enhanced trigger; keep the trigger in the select's
+       exact visual slot without changing the framework-owned sibling order. */
+    if (record.select.nextElementSibling !== record.trigger) record.select.after(record.trigger);
+    if (record.restoreFocus) {
+      record.restoreFocus = false;
+      record.trigger.focus({ preventScroll: true });
+    }
     const option = selectedOption(record.select);
     record.label.textContent = option?.label || 'Choose an option';
     record.trigger.disabled = record.select.disabled;
     record.trigger.setAttribute('aria-label', labelOf(record.select));
+    for (const name of ['aria-invalid', 'aria-describedby', 'aria-errormessage']) {
+      const value = record.select.getAttribute(name);
+      if (value === null) record.trigger.removeAttribute(name);
+      else record.trigger.setAttribute(name, value);
+    }
+    if (record.select.required) record.trigger.setAttribute('aria-required', 'true');
+    else record.trigger.removeAttribute('aria-required');
     record.trigger.title = record.select.title;
     if (!record.menu.hidden && record.signature !== optionSignature(record.select)) renderMenu(record);
+    /* Framework repaints can keep this record while inserting controls above its trigger.
+       An open menu must follow that new rect; style writes are outside the observer's attribute
+       filter, so positioning here does not schedule another synchronization pass. */
+    if (openRecord === record && !isClosed(record.menu)) position(record);
   }
+
+  const bindNative = record => {
+    const select = record.select;
+    const refresh = () => sync(record);
+    const focus = () => record.trigger.focus();
+    const invalid = event => { event.preventDefault(); record.trigger.focus(); open(record); };
+    select.addEventListener('change', refresh);
+    select.addEventListener('input', refresh);
+    select.addEventListener('focus', focus);
+    select.addEventListener('invalid', invalid);
+    record.unbindNative = () => {
+      select.removeEventListener('change', refresh);
+      select.removeEventListener('input', refresh);
+      select.removeEventListener('focus', focus);
+      select.removeEventListener('invalid', invalid);
+    };
+  };
+  const hideNative = select => {
+    select.classList.add('pc-custom-select-native');
+    select.hidden = true;
+    select.setAttribute('aria-hidden', 'true');
+    select.tabIndex = -1;
+  };
 
   const enhance = select => {
     if (!(select instanceof HTMLSelectElement) || select.multiple || select.size > 1) return;
-    const current = records.get(select);
-    if (current?.trigger.isConnected) { sync(current); return; }
-    if (current) records.delete(select);
+    const current = records.get(select) || (select.id && [...records.values()].find(record =>
+      !record.select.isConnected && record.owner === select.parentNode && record.select.id === select.id));
+    if (current) {
+      /* Input blur can repaint framework-owned siblings between pointer down and click.
+         Keep the gesture's trigger instead of replacing it. A replaced native leaf may
+         reuse that enhancement only inside the same surviving field and with the same id. */
+      if (current.select !== select) {
+        current.unbindNative();
+        records.delete(current.select);
+        current.select = select;
+        records.set(select, current);
+        hideNative(select);
+        bindNative(current);
+      }
+      sync(current);
+      return;
+    }
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
@@ -232,27 +374,28 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     trigger.setAttribute('aria-controls', menu.id);
     document.body.append(menu);
     select.after(trigger);
-    select.classList.add('pc-custom-select-native');
-    select.hidden = true;
-    select.setAttribute('aria-hidden', 'true');
-    select.tabIndex = -1;
+    hideNative(select);
 
-    const record = { select, trigger, label, menu, signature: '' };
+    const record = { select, trigger, label, menu, owner: select.parentNode, signature: '', modal: null, popoverOpen: false };
     records.set(select, record);
     sync(record);
-    select.addEventListener('change', () => sync(record));
-    select.addEventListener('input', () => sync(record));
-    select.addEventListener('focus', () => trigger.focus());
-    select.addEventListener('invalid', event => { event.preventDefault(); trigger.focus(); open(record); });
+    bindNative(record);
     trigger.addEventListener('click', () => isClosed(menu) ? open(record) : close(record, true));
     trigger.addEventListener('keydown', event => {
-      const options = enabledOptions(select);
-      const currentIndex = Math.max(0, options.indexOf(selectedOption(select)));
-      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
-      if (event.key === 'Tab') { close(record); return; }
+      const options = enabledOptions(record.select);
+      const currentIndex = Math.max(0, options.indexOf(selectedOption(record.select)));
+      if (event.key === 'Escape') {
+        if (!isClosed(menu)) { event.preventDefault(); event.stopPropagation(); close(record, true); }
+        return;
+      }
+      if (event.key === 'Tab') {
+        if (moveModalFocus(record, event.shiftKey)) event.preventDefault();
+        else close(record);
+        return;
+      }
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        isClosed(menu) ? open(record) : choose(record, selectedOption(select));
+        isClosed(menu) ? open(record) : choose(record, selectedOption(record.select));
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
@@ -263,28 +406,25 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
         if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
         return;
       }
-      if (event.key.length === 1 && /\S/.test(event.key)) {
-        typeahead += event.key.toLowerCase();
-        clearTimeout(typeaheadTimer);
-        typeaheadTimer = window.setTimeout(() => { typeahead = ''; }, 650);
-        const match = options.find(option => option.label.toLowerCase().startsWith(typeahead));
-        if (match) {
-          const activate = () => setActive(record, match);
-          if (isClosed(menu)) { open(record); requestAnimationFrame(activate); } else activate();
-        }
-      }
+      handleTypeahead(record, event);
     });
     menu.addEventListener('keydown', event => {
       const buttons = [...menu.querySelectorAll('.pc-custom-select-option:not(:disabled)')];
       const index = Math.max(0, buttons.indexOf(document.activeElement));
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(record, true); return; }
-      if (event.key === 'Tab') { close(record); return; }
+      if (event.key === 'Tab') {
+        if (moveModalFocus(record, event.shiftKey)) event.preventDefault();
+        else close(record);
+        return;
+      }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
         event.preventDefault();
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
           : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
         if (buttons[next]) setActive(record, optionsForButton(record, buttons[next]));
+        return;
       }
+      handleTypeahead(record, event);
     });
   };
 
@@ -293,8 +433,10 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     if (typeof document === 'undefined') return;
     document.querySelectorAll('select:not([multiple])').forEach(enhance);
     for (const [select, record] of records) {
-      if (!select.isConnected) { close(record); record.trigger.remove(); record.menu.remove(); records.delete(select); }
-      else if (!record.trigger.isConnected) { record.menu.remove(); records.delete(select); enhance(select); }
+      if (!select.isConnected) {
+        if (pointerTrigger === record.trigger) clearPointerActivation();
+        close(record); record.unbindNative(); record.trigger.remove(); record.menu.remove(); records.delete(select);
+      }
       else sync(record);
     }
   };
@@ -304,32 +446,72 @@ export function installCustomSelects(css = CUSTOM_SELECT_CSS) {
     queueMicrotask(scan);
   };
 
+  document.addEventListener('pagecraft:refresh-selects', scan);
+  // Reset changes selectedness after the event handlers, without input/change events.
+  document.addEventListener('reset', schedule, true);
   document.addEventListener('pointerdown', event => {
+    clearPointerActivation();
+    const trigger = event.target instanceof Element ? event.target.closest('.pc-custom-select-trigger') : null;
+    if (trigger instanceof HTMLElement) {
+      pointerTrigger = trigger;
+      trigger.setAttribute('data-pc-pointer-activating', '');
+    }
     if (openRecord && !openRecord.trigger.contains(event.target) && !openRecord.menu.contains(event.target)) close(openRecord);
   }, true);
+  document.addEventListener('pointerup', clearPointerActivation, true);
+  document.addEventListener('pointercancel', clearPointerActivation, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !openRecord) return;
+    event.preventDefault();
+    event.stopPropagation();
+    close(openRecord, true);
+  }, true);
+  document.addEventListener('close', event => {
+    if (openRecord?.modal === event.target) close(openRecord);
+  }, true);
   document.addEventListener('pagecraft:outside-pointer', () => openRecord && close(openRecord));
-  window.addEventListener('blur', () => openRecord && close(openRecord));
+  window.addEventListener('blur', () => { clearPointerActivation(); if (openRecord) close(openRecord); });
   document.addEventListener('submit', event => {
     const invalid = event.target.querySelector?.('select.pc-custom-select-native:invalid');
     if (invalid) records.get(invalid)?.trigger.focus();
   });
   window.addEventListener('resize', () => openRecord && position(openRecord));
-  window.addEventListener('scroll', () => openRecord && position(openRecord), true);
+  window.addEventListener('scroll', event => {
+    if (!openRecord || event.composedPath().includes(openRecord.menu)) return;
+    position(openRecord);
+  }, true);
   new MutationObserver(mutations => {
+    /* Content inserted above an open trigger can move it without touching the select itself.
+       Follow child-list layout changes outside the popup. Positioning writes only `style`,
+       which is deliberately absent from this observer's attribute filter. */
+    if (openRecord && mutations.some(mutation =>
+      mutation.type === 'childList' && !openRecord.menu.contains(mutation.target))) {
+      position(openRecord);
+    }
     const affectsSelect = mutations.some(mutation => {
       if (mutation.type === 'attributes') {
         return mutation.target.nodeType === 1
           && mutation.target.matches('select,option,optgroup');
       }
-      return [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
+      const target = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
+      if (target?.closest('select,option,optgroup')) return true;
+      const changesOptions = [...mutation.addedNodes, ...mutation.removedNodes].some(node =>
         node.nodeType === 1
           && (node.matches('select,option,optgroup') || node.querySelector('select,option,optgroup'))
       );
+      if (changesOptions) return true;
+      /* A conditional input is not select-shaped, but it still matters when a renderer puts it
+         between an enhanced select and its trigger. The corrective move creates another
+         childList record; checking current adjacency keeps that record from scheduling a loop. */
+      for (const [select, record] of records) {
+        if (select.parentNode === mutation.target && select.nextElementSibling !== record.trigger) return true;
+      }
+      return false;
     });
     if (affectsSelect) schedule();
   }).observe(document.documentElement, {
-    subtree: true, childList: true, attributes: true,
-    attributeFilter: ['disabled', 'title', 'aria-label']
+    subtree: true, childList: true, characterData: true, attributes: true,
+    attributeFilter: ['selected', 'value', 'label', 'disabled', 'required', 'title', 'aria-label', 'aria-invalid', 'aria-describedby', 'aria-errormessage']
   });
   scan();
 }

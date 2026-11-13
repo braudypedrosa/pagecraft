@@ -1,0 +1,218 @@
+{
+  "environment": "staging loaded029",
+  "module": "Quote existing nlm3id1i6",
+  "before": {
+    "dom": "<figure id=\"nlm3id1i6\" data-id=\"nlm3id1i6\" data-t=\"quote\" class=\"pagecraft-quote pagecraft-lm3id1i6 ts-lead\" data-sel=\"\"><blockquote cite=\"https://example.com/stories?source=quote&amp;lang=en\"><p>A room for everyone, in every season. &lt;sample&gt; &amp; shared stories.</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.com/stories?source=quote&amp;lang=en\">Alex Green, community member</a></figcaption></figure>"
+  },
+  "tests": [
+    {
+      "device": "Desktop",
+      "choice": "Left",
+      "expected": "flex-start",
+      "got": {
+        "alignSelf": "flex-start",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Desktop",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "alignSelf": "center",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Desktop",
+      "choice": "Right",
+      "expected": "flex-end",
+      "got": {
+        "alignSelf": "flex-end",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Tablet",
+      "choice": "Left",
+      "expected": "flex-start",
+      "got": {
+        "alignSelf": "flex-start",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Tablet",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "alignSelf": "center",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Tablet",
+      "choice": "Right",
+      "expected": "flex-end",
+      "got": {
+        "alignSelf": "flex-end",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Mobile",
+      "choice": "Left",
+      "expected": "flex-start",
+      "got": {
+        "alignSelf": "flex-start",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Mobile",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "alignSelf": "center",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    },
+    {
+      "device": "Mobile",
+      "choice": "Right",
+      "expected": "flex-end",
+      "got": {
+        "alignSelf": "flex-end",
+        "overflows": false,
+        "textAlign": "center"
+      },
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "harnessFirstAttempt": [
+    {
+      "device": "Desktop",
+      "choice": "Left",
+      "expected": "left",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": false
+    },
+    {
+      "device": "Desktop",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": true
+    },
+    {
+      "device": "Desktop",
+      "choice": "Right",
+      "expected": "right",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": false
+    },
+    {
+      "device": "Tablet",
+      "choice": "Left",
+      "expected": "left",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": false
+    },
+    {
+      "device": "Tablet",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": true
+    },
+    {
+      "device": "Tablet",
+      "choice": "Right",
+      "expected": "right",
+      "got": {
+        "align": "center",
+        "clientWidth": 442,
+        "overflows": false
+      },
+      "passed": false
+    },
+    {
+      "device": "Mobile",
+      "choice": "Left",
+      "expected": "left",
+      "got": {
+        "align": "center",
+        "clientWidth": 339,
+        "overflows": false
+      },
+      "passed": false
+    },
+    {
+      "device": "Mobile",
+      "choice": "Centre",
+      "expected": "center",
+      "got": {
+        "align": "center",
+        "clientWidth": 339,
+        "overflows": false
+      },
+      "passed": true
+    },
+    {
+      "device": "Mobile",
+      "choice": "Right",
+      "expected": "right",
+      "got": {
+        "align": "center",
+        "clientWidth": 339,
+        "overflows": false
+      },
+      "passed": false
+    }
+  ],
+  "harnessNote": "Content Alignment positions the entire Quote via align-self. Initial text-align expectation tested the separate Style Text alignment control and was incorrect; rerun verifies align-self and bounds.",
+  "undoCount": 18,
+  "restoredCss": true,
+  "undoExhausted": true,
+  "beforeCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "afterCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "passed": true,
+  "boundary": "Runtime-only nine block-alignment choices; original state persisted and restored fresh. Individual test-state persistence, text alignment, typography and broader Style/Advanced remain open."
+}

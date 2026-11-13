@@ -1,0 +1,30 @@
+{
+  "itemsPerPage": 5,
+  "pages": 4,
+  "start": {
+    "count": 5,
+    "first": "2. Community workshop and accessibility review for local teams",
+    "last": "8. Community workshop and accessibility review for local teams",
+    "next": "index/page-2.html",
+    "pageOverflow": false
+  },
+  "second": {
+    "count": 5,
+    "first": "9. Community workshop and accessibility review for local teams",
+    "last": "15. Community workshop and accessibility review for local teams",
+    "padding": "8px",
+    "pageOverflow": false
+  },
+  "last": {
+    "count": 3,
+    "first": "24. Community workshop and accessibility review for local teams",
+    "last": "27. Community workshop and accessibility review for local teams",
+    "next": null,
+    "pageOverflow": false
+  },
+  "previous": {
+    "count": 5,
+    "first": "17. Community workshop and accessibility review for local teams",
+    "last": "23. Community workshop and accessibility review for local teams"
+  }
+}

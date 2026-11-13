@@ -1,0 +1,158 @@
+change vite-plugin-singlefile 2.3.3 => 2.3.4
+remove to-regex-range 5.0.1
+change picomatch 4.0.5 => 4.0.7
+remove micromatch 4.0.8
+remove picomatch 2.3.2
+remove is-number 7.0.0
+remove fill-range 7.1.1
+remove braces 3.0.3
+{
+  "add": [],
+  "added": 0,
+  "audited": 248,
+  "change": [
+    {
+      "from": {
+        "name": "vite-plugin-singlefile",
+        "version": "2.3.3",
+        "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/vite-plugin-singlefile"
+      },
+      "to": {
+        "name": "vite-plugin-singlefile",
+        "version": "2.3.4",
+        "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/vite-plugin-singlefile"
+      }
+    },
+    {
+      "from": {
+        "name": "picomatch",
+        "version": "4.0.5",
+        "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/picomatch"
+      },
+      "to": {
+        "name": "picomatch",
+        "version": "4.0.7",
+        "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/picomatch"
+      }
+    }
+  ],
+  "changed": 2,
+  "funding": 58,
+  "remove": [
+    {
+      "name": "to-regex-range",
+      "version": "5.0.1",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/to-regex-range"
+    },
+    {
+      "name": "micromatch",
+      "version": "4.0.8",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/micromatch"
+    },
+    {
+      "name": "picomatch",
+      "version": "2.3.2",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/micromatch/node_modules/picomatch"
+    },
+    {
+      "name": "is-number",
+      "version": "7.0.0",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/is-number"
+    },
+    {
+      "name": "fill-range",
+      "version": "7.1.1",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/fill-range"
+    },
+    {
+      "name": "braces",
+      "version": "3.0.3",
+      "path": "/private/tmp/pagecraft-reset-resume-one-Y66W8f/node_modules/braces"
+    }
+  ],
+  "removed": 6,
+  "audit": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {
+      "braces": {
+        "name": "braces",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1240992,
+            "name": "braces",
+            "dependency": "braces",
+            "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+            "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+            "severity": "high",
+            "cwe": [
+              "CWE-674"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=3.0.3"
+          }
+        ],
+        "effects": [
+          "micromatch"
+        ],
+        "range": "*",
+        "nodes": [
+          ""
+        ],
+        "fixAvailable": true
+      },
+      "micromatch": {
+        "name": "micromatch",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "braces"
+        ],
+        "effects": [
+          "vite-plugin-singlefile"
+        ],
+        "range": ">=0.2.0",
+        "nodes": [
+          ""
+        ],
+        "fixAvailable": true
+      },
+      "vite-plugin-singlefile": {
+        "name": "vite-plugin-singlefile",
+        "severity": "high",
+        "isDirect": false,
+        "via": [
+          "micromatch"
+        ],
+        "effects": [],
+        "range": "0.10.0-beta - 2.3.3",
+        "nodes": [
+          ""
+        ],
+        "fixAvailable": true
+      }
+    },
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 3,
+        "critical": 0,
+        "total": 3
+      },
+      "dependencies": {
+        "prod": 80,
+        "dev": 163,
+        "optional": 10,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 247
+      }
+    }
+  }
+}

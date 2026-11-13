@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/form-grid-contract-2d79f4b
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 29 skipped (30)
+   Start at  14:03:59
+   Duration  1.18s (transform 563ms, setup 0ms, import 732ms, tests 206ms, environment 0ms)
+

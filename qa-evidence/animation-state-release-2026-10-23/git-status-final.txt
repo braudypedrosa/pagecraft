@@ -1,0 +1,9 @@
+ M app/src/core/anim.ts
+ M dist/core.cjs
+ M index.html
+ M packages/editor/dist/editor.html
+ M packages/editor/dist/runtime.js
+ M tests/animation-runtime.test.ts
+?? packages/editor/dist/compiler-worker.js
+?? packages/editor/dist/compiler.js
+?? qa-evidence/animation-state-release-2026-10-23/

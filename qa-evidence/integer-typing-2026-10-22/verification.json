@@ -1,0 +1,208 @@
+{
+  "baseCommit": "218f11545451cbac7ad1d8ed9e08245258b57a25",
+  "status": "Root native and gallery acceptance complete; final combined checks pass. Ready for root integration, uncommitted and undeployed.",
+  "scope": "One-line integer UnitCtl write guard plus separately reviewed sanitize-html 2.18.1 security patch in root/server workspace dependency pins. Also guards inspector render reentry from synchronous blur during structural unmount; fingerprints inspector mount source in the visual review contract.",
+  "source": [
+    "app/src/ui/inspector/Controls.tsx",
+    "package.json",
+    "server/package.json",
+    "package-lock.json",
+    "app/src/ui/index.tsx",
+    "tools/ui-gallery-contract.mjs"
+  ],
+  "tests": [
+    "tests/integer-sequential-typing.test.tsx",
+    "tests/sanitize-html-security.test.ts",
+    "tests/inspector-reentrant-unmount.test.tsx",
+    "tests/ui-baselines.test.mjs"
+  ],
+  "red": {
+    "failed": 3,
+    "passed": 2,
+    "evidence": "logs/red.log"
+  },
+  "focused": {
+    "files": 3,
+    "passed": 26,
+    "evidence": "logs/focused.log"
+  },
+  "fullPreNative": {
+    "exitCode": 1,
+    "filesPassed": 246,
+    "filesFailed": 1,
+    "filesSkipped": 2,
+    "testsPassed": 2603,
+    "testsFailed": 1,
+    "testsSkipped": 5,
+    "durationSeconds": 98.07,
+    "onlyFailure": "Reviewed gallery source fingerprint for Controls.tsx; native capture and root review required.",
+    "evidence": "logs/full-pre-native.log"
+  },
+  "typecheck": "Final pass, exit 0. Initial new-test callback return errors were corrected before final focused run; initial report corrected to root.",
+  "determinism": {
+    "artifacts": 11,
+    "identical": true,
+    "receipts": [
+      "generated-build-1.sha256",
+      "generated-build-2.sha256"
+    ]
+  },
+  "audit": {
+    "exitCode": 0,
+    "vulnerabilities": 0,
+    "dependency": "sanitize-html 2.18.1",
+    "evidence": "logs/audit.log",
+    "previousFailure": "typing-only/logs/audit.log",
+    "regressionEvidence": "../sanitize-html-patch-2026-10-22/verification.json"
+  },
+  "demo": {
+    "components": 1,
+    "instances": 6,
+    "items": 4,
+    "findings": 0
+  },
+  "outputContracts": "Core source, builder, WordPress golden, public snapshot, compiler and runtime unchanged. dist/core.cjs changes only four esbuild source-path comments after unique dependency install.",
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 28,
+  "harness": {
+    "url": "http://localhost:4984/edit/s1",
+    "pid": 90183,
+    "sessionId": 38643,
+    "path": "tools/.qa-ui-4984.mjs",
+    "sha256": "a00e4cb241edaafb3e76ec5b1725acc0f81c406c8ad4c1aeaf287b8382b30d7c",
+    "provenance": "Trusted4982 harness copied with port-only substitution, fresh fictional fixture, no state injection.",
+    "servedAssetProof": "served-ui-cache-receipt.json",
+    "status": "Final4984/PID90183/tab49 preserved; served asset exact after repeat builds (served-ui-final-receipt.json).",
+    "obsolete4982": "Closed/stopped by root after preserving before/cache/raw proof; native/old-fixture-cleanup.json."
+  },
+  "limits": [
+    "Native browser work and baseline recording were performed by root; worker reviewed receipts and final Mobile screenshot.",
+    "Sequential jsdom helper is an explicit draft-boundary model; actual native typing accepted by root separately.",
+    "Legacy imported numeric data is not migrated. No Core/compiler policy changes.",
+    "No Main, WordPress, browser, baseline recording, commit, push or deployment by this worker.",
+    "Historical failed audit, initial test type errors and stale-cache attempts remain recorded; they are not final accepted results."
+  ],
+  "remaining": [
+    "Root integration/release decision. Broader production-readiness QA remains open."
+  ],
+  "manifestStatus": "Current combined build frozen; historical typing-only receipts retained under typing-only/.",
+  "dependencies": {
+    "isolation": "Unique86 node_modules; prior symlink unlinked without modifying accepted85 dependencies.",
+    "lockSha256": "02f55cd90fce5393cd96be277a378a961333940b3a77920b1f4081dde5ad7c6d"
+  },
+  "checksAfterLifecycle": {
+    "build": "exit0",
+    "editorPackage": "exit0",
+    "focused": {
+      "files": 3,
+      "tests": 7,
+      "exitCode": 0
+    },
+    "typecheck": "exit0",
+    "gallerySources": 30,
+    "serverMemory": "Old4982/PID84928 preserved. Fresh4984/PID90183 required because createApp caches editorHtml at startup."
+  },
+  "harnessHistory": [
+    {
+      "url": "http://localhost:4982/edit/s1",
+      "pid": 84928,
+      "sessionId": 83226,
+      "path": "tools/.qa-ui-4982.mjs",
+      "sha256": "d4d7c9ddd86296fe7059feb77f50c37eb2df6fd0f75f6d555d139bc5c7541788",
+      "provenance": "Trusted85 .qa-ui-4980.mjs copied with port-only 4980 to 4982 substitution; fictional fresh default fixture, no hidden state injection.",
+      "preserve": true,
+      "status": "Fresh combined fixture running; preserve for root native."
+    }
+  ],
+  "rejectedAttempts": [
+    "Claim that rebuilding index in place made4982 serve new UI was incorrect. Root native rerun still loaded c126 stale builder asset; not evidence against lifecycle guard. Fresh4984 asset bytes verified against current prepareHostedEditor output."
+  ],
+  "nativeFinal": {
+    "result": "Accepted by root on tab49 against served builder asset f05bdab1e2f12e13bee15f61bec06b4ec84568f84b1e9399d59bf2d3e3b44f34.",
+    "scope": [
+      "Focused Gallery Columns to repeated List Heading on Desktop/Tablet/Mobile selects correct breadcrumb with one inspector and zero errors.",
+      "Typing 2.5 to 3 followed immediately by canvas Heading selection passes on all three breakpoints.",
+      "Reload preserves Gallery Fields 3 across all three breakpoints.",
+      "List per3 renders three items and six pages without overflow across all three breakpoints; zero console errors."
+    ],
+    "evidence": [
+      "native/selection-final-focused-field.json",
+      "native/selection-final-edited-field.json",
+      "native/final-build-persistence.json"
+    ],
+    "visualReview": "Root viewed final Mobile screenshot."
+  },
+  "freezeConfirmation": {
+    "entries": 28,
+    "drift": [],
+    "manifest": "source-tests-assets.sha256",
+    "sha256": "4761a7523b805c95b9fa3fd5b6848900977967bcba13da943b9d2dfe6732e5fb",
+    "sourceContractCount": 30,
+    "priorReceipt": "source-tests-assets.before-final.sha256",
+    "reviewedBaselineReceipt": "reviewed-baseline.sha256",
+    "beforeBaselineReceipt": "reviewed-baseline.previous.sha256"
+  },
+  "finalChecks": {
+    "fullSuite": {
+      "exitCode": 0,
+      "filesPassed": 248,
+      "filesSkipped": 2,
+      "testsPassed": 2606,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 98.09,
+      "evidence": "logs/full-final.log"
+    },
+    "builds": {
+      "exitCodes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "final-generated-build-1.sha256",
+        "final-generated-build-2.sha256"
+      ]
+    },
+    "audit": {
+      "exitCode": 0,
+      "vulnerabilities": 0,
+      "evidence": "logs/audit-final.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck-final-reviewed.log"
+    },
+    "baseline": {
+      "exitCode": 0,
+      "images": 24,
+      "sourceFiles": 30,
+      "evidence": "logs/baseline-final.log"
+    },
+    "diff": {
+      "exitCode": 0,
+      "evidence": "logs/diff-final.log"
+    }
+  },
+  "galleryFinal": {
+    "result": "Root accepted and recorded --reviewed baseline",
+    "behaviorsPassed": 30,
+    "capturesPassed": 24,
+    "changedPixels": 0,
+    "evidence": [
+      "gallery/behavior-checks.json",
+      "gallery/diffs/results.json"
+    ],
+    "cleanup": {
+      "tabId": "50",
+      "cpuRate": 1,
+      "viewport": "restored",
+      "media": "restored",
+      "result": "Explicit successful responses confirmed by root",
+      "evidence": "gallery/cleanup.json"
+    }
+  }
+}

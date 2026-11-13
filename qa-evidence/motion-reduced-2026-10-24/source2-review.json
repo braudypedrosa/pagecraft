@@ -1,0 +1,19 @@
+{
+  "base": "8f1a3b1e9064f5f2a2806c8658e0dc9ca2717511",
+  "files": {
+    "app/src/core/anim.ts": "442cccd415dc78ec412de93e01872e43d13d661d3c5e13321ff033b47c9dad9a",
+    "tests/animation-runtime.test.ts": "8bcc3cb2e1367ec3cea00e423bea9189c492a66066d0072fac567891f2d2adef"
+  },
+  "red": {
+    "failed": 5,
+    "passed": 11
+  },
+  "focused": {
+    "passed": 16,
+    "exit": 0
+  },
+  "typecheckExit": 0,
+  "buildsPerformed": false,
+  "expectedImpact": "ANIM_JS changes should intentionally change generatedCore/compiler/public runtime, sourceCoreindex remains7b68. Actualruntime hash pending authorized build.",
+  "nativeEvidenceOwner": "Root; interactive Builder Preview and unchanged native export both confirmed before-fix behavior."
+}

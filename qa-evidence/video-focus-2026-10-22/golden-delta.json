@@ -1,0 +1,68 @@
+{
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "unchangedRoutes": [
+    "/"
+  ],
+  "changedRoutes": [
+    {
+      "path": "/nested/about",
+      "fields": [
+        "runtime",
+        "scripts[5].hash",
+        "scripts[5].occurrenceId",
+        "scripts[5].token",
+        "sourceHash"
+      ],
+      "facadeScriptHash": {
+        "before": "3cef14e9953ab2644d58aaf715d4d4b23db8d269c75404d138d398c12287873e",
+        "after": "8573cead38fc4c2e5e3b7b67c0155b4d21d469c9be79c591dfb22b8ede917f4c"
+      },
+      "sourceHash": {
+        "before": "a9aedbe904199e904020d236503f6ae22f293122ce702159692336e376cdb794",
+        "after": "963c4f4822c0a41e0e099c06f02db0eb869deba022036477d8fdf47b7cb98b7c"
+      }
+    },
+    {
+      "path": "/nested/about/page-2",
+      "fields": [
+        "runtime",
+        "scripts[5].hash",
+        "scripts[5].occurrenceId",
+        "scripts[5].token",
+        "sourceHash"
+      ],
+      "facadeScriptHash": {
+        "before": "3cef14e9953ab2644d58aaf715d4d4b23db8d269c75404d138d398c12287873e",
+        "after": "8573cead38fc4c2e5e3b7b67c0155b4d21d469c9be79c591dfb22b8ede917f4c"
+      },
+      "sourceHash": {
+        "before": "8d4eec4cc21fd9a71bdea37f3615b079265674c4f5e67d454362a6f33e9432c8",
+        "after": "c5ea9acbb26a96bd15ce58e9b545a91b558c4468d4bbe97caadd107936a20def"
+      }
+    },
+    {
+      "path": "/nested/about/page-3",
+      "fields": [
+        "runtime",
+        "scripts[5].hash",
+        "scripts[5].occurrenceId",
+        "scripts[5].token",
+        "sourceHash"
+      ],
+      "facadeScriptHash": {
+        "before": "3cef14e9953ab2644d58aaf715d4d4b23db8d269c75404d138d398c12287873e",
+        "after": "8573cead38fc4c2e5e3b7b67c0155b4d21d469c9be79c591dfb22b8ede917f4c"
+      },
+      "sourceHash": {
+        "before": "40eb19c9deb27a615c07aa74bdf2ef71af180cfcda5a2f9085647fa7c4fee8af",
+        "after": "ff58afd67108172cab3d4aace0ee4942ed919e7b79fb784c38b17d3f21254808"
+      }
+    }
+  ],
+  "signingFields": [
+    "desired.release.manifest",
+    "desired.release.signature",
+    "desired.deployment.envelope",
+    "desired.deployment.signature"
+  ]
+}

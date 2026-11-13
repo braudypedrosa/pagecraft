@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-lint-5d80a75
+
+
+ Test Files  2 passed (2)
+      Tests  39 passed (39)
+   Start at  15:29:52
+   Duration  540ms (transform 200ms, setup 0ms, import 271ms, tests 15ms, environment 0ms)

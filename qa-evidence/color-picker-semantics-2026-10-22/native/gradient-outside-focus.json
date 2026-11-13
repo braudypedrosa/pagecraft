@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Mobile",
+    "focusInside": true,
+    "named": "Colour picker",
+    "tabs": 2,
+    "dialogClosed": true,
+    "destinationFocused": false
+  },
+  {
+    "device": "Tablet",
+    "focusInside": true,
+    "named": "Colour picker",
+    "tabs": 2,
+    "dialogClosed": true,
+    "destinationFocused": false
+  },
+  {
+    "device": "Desktop",
+    "focusInside": true,
+    "named": "Colour picker",
+    "tabs": 2,
+    "dialogClosed": true,
+    "destinationFocused": false
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Desktop",
+    "height": {
+      "ariaHidden": "true",
+      "computed": "48px",
+      "height": 48
+    }
+  },
+  {
+    "device": "Tablet",
+    "height": {
+      "ariaHidden": "true",
+      "computed": "48px",
+      "height": 48
+    }
+  },
+  {
+    "device": "Mobile",
+    "height": {
+      "ariaHidden": "true",
+      "computed": "32px",
+      "height": 32
+    }
+  }
+]

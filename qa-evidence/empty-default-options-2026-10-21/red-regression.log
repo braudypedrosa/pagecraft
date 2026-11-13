@@ -1,0 +1,40 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/empty-default-options
+
+ ❯ tests/empty-default-options.test.tsx (5 tests | 5 failed) 22ms
+   × 'Button Weight' exposes Default and preserves an empty reset across breakpoints 15ms
+   × 'Box Distribute' exposes Default and preserves an empty reset across breakpoints 2ms
+   × 'Box Wrap' exposes Default and preserves an empty reset across breakpoints 1ms
+   × 'Background Size' exposes Default and preserves an empty reset across breakpoints 2ms
+   × 'Background Repeat' exposes Default and preserves an empty reset across breakpoints 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/empty-default-options.test.tsx > 'Button Weight' exposes Default and preserves an empty reset across breakpoints
+ FAIL  tests/empty-default-options.test.tsx > 'Box Distribute' exposes Default and preserves an empty reset across breakpoints
+ FAIL  tests/empty-default-options.test.tsx > 'Box Wrap' exposes Default and preserves an empty reset across breakpoints
+ FAIL  tests/empty-default-options.test.tsx > 'Background Size' exposes Default and preserves an empty reset across breakpoints
+ FAIL  tests/empty-default-options.test.tsx > 'Background Repeat' exposes Default and preserves an empty reset across breakpoints
+AssertionError: expected undefined to be 'Default' // Object.is equality
+
+- Expected:
+"Default"
+
++ Received:
+undefined
+
+ ❯ tests/empty-default-options.test.tsx:61:52
+     59|   const select = () => r.$(`select[aria-label="${control.label}"]`) as…
+     60|   expect(select().value).toBe('');
+     61|   expect(select().selectedOptions[0]?.textContent).toBe('Default');
+       |                                                    ^
+     62|
+     63|   act(() => r.pick(select(), selected));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  02:01:26
+   Duration  702ms (transform 256ms, setup 0ms, import 302ms, tests 22ms, environment 269ms)

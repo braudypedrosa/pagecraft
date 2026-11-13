@@ -1,0 +1,29 @@
+{
+  "base": "b19fae0471f36f5779524068ff4b4764dc00456b",
+  "source": {
+    "builder.html": "7ad943c4c05d57295f50f3bc5e380ed5675fb0d328a9088bfda1e4319c7f55de",
+    "tests/editor-save-recovery.test.mjs": "1050a39874c6d06efacb64757eece91f9afe0d686eaaac4852805c04368c4ed1",
+    "tools/capture-ui-gallery.mjs": "392a4a97b3bdfe29a8885f4942aad0c29b079b24f6507fab2a4a5183be4d8111",
+    "tests/gallery-capture-steps.test.mjs": "82984a103b123ea3da2c27886beddcaa68ee3ced22551a00ea87815ff33ac81c",
+    "public/internal-ui-baselines/manifest.json": "f634655249580630c33bc651dd7f359b9407c347f908900a6025ccf9ac9af868",
+    "docs/component-gallery.md": "7de82ab12af67f1cc987b97901db4fc29e30f24dbd99540f227278ec05b99b17"
+  },
+  "protected11Preserved": true,
+  "generatedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "evidenceFiles": 101,
+  "nativeEvidence": [
+    "qa-evidence/full-customer-retest-2026-10-14/native/local-wordpress-final-compiler-recovery.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/local-wordpress-final-compiler-recovery.jpg",
+    "qa-evidence/full-customer-retest-2026-10-14/native/local-wordpress-final-repeated-save-recovery.json",
+    "qa-evidence/full-customer-retest-2026-10-14/native/local-wordpress-final-repeated-save-recovery.jpg"
+  ]
+}

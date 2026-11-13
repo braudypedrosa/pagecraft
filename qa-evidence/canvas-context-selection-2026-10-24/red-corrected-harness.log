@@ -1,0 +1,59 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/canvas-context-selection-cfa3ca3
+
+ ❯ tests/canvas-context-selection.test.mjs (4 tests | 2 failed) 106ms
+   × right-clicking each selected member preserves all three targets and actual multi-action menu 66ms
+   × secondary clicks with modifiers preserve selected members and select unselected members singly 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > right-clicking each selected member preserves all three targets and actual multi-action menu
+AssertionError: expected [ 'ng0imp1vm8' ] to deeply equal [ 'ng0imp1vm8', 'ng0imp1w8', …(1) ]
+
+- Expected
++ Received
+
+  [
+    "ng0imp1vm8",
+-   "ng0imp1w8",
+-   "ng0imp1x9y",
+  ]
+
+ ❯ tests/canvas-context-selection.test.mjs:50:24
+     48|   for (const member of nodes.slice(0, 3)) {
+     49|     context(member);
+     50|     expect(C.selIds()).toEqual(selected);
+       |                        ^
+     51|     expect(w.document.querySelector('#ctx [data-a="dup"]').textContent…
+     52|     expect(w.document.querySelector('#ctx [data-a="stpaste"]').textCon…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/canvas-context-selection.test.mjs > secondary clicks with modifiers preserve selected members and select unselected members singly
+AssertionError: expected [ 'ng0ip87qjj' ] to deeply equal [ 'ng0ip87pa', 'ng0ip87qjj', …(1) ]
+
+- Expected
++ Received
+
+  [
+-   "ng0ip87pa",
+    "ng0ip87qjj",
+-   "ng0ip87roh",
+  ]
+
+ ❯ tests/canvas-context-selection.test.mjs:78:61
+     76|   const { nodes, context, selectThree } = harness();
+     77|   selectThree(); const selected = [...C.selIds()];
+     78|   context(nodes[1], { shiftKey: true }); expect(C.selIds()).toEqual(se…
+       |                                                             ^
+     79|   context(nodes[3], { shiftKey: true }); expect(C.selIds()).toEqual([n…
+     80| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  04:49:09
+   Duration  859ms (transform 216ms, setup 0ms, import 643ms, tests 106ms, environment 0ms)
+

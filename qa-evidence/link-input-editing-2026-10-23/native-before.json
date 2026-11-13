@@ -1,0 +1,15 @@
+{
+  "cloudCommit": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+  "module": "Image",
+  "sequence": [
+    "No link",
+    "External URL",
+    "type #"
+  ],
+  "customUrlInputVisible": false,
+  "linkType": "A page in this project",
+  "focused": {
+    "id": "",
+    "tag": "BODY"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "basis": "280px",
+    "cardWidth": 282,
+    "count": 18,
+    "device": "Desktop",
+    "first": "2. Community workshop and accessibility review for local teams",
+    "firstRowCards": 4,
+    "overflow": false,
+    "width": 1200
+  },
+  {
+    "basis": "280px",
+    "cardWidth": 375.5,
+    "count": 18,
+    "device": "Tablet",
+    "first": "2. Community workshop and accessibility review for local teams",
+    "firstRowCards": 2,
+    "overflow": false,
+    "width": 775
+  },
+  {
+    "basis": "100%",
+    "cardWidth": 363,
+    "count": 18,
+    "device": "Mobile",
+    "first": "2. Community workshop and accessibility review for local teams",
+    "firstRowCards": 1,
+    "overflow": false,
+    "width": 363
+  }
+]

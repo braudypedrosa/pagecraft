@@ -1,0 +1,10 @@
+{
+  "initialMissingAdapterMethods": [
+    "type",
+    "clickAt"
+  ],
+  "productFailures": 0,
+  "correctedUsing": "built-in browser typeText and coordinate click",
+  "finalChecks": 30,
+  "passed": 30
+}

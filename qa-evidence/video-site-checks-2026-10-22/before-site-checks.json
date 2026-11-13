@@ -1,0 +1,7 @@
+{
+  "sourceCandidateBase": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+  "nativeInput": "not a video",
+  "canvas": "Unsupported video URL",
+  "siteChecks": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\nNo problems found\nClose",
+  "issue": "Site checks reports No problems found despite invalid Video source"
+}

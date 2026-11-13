@@ -1,0 +1,78 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "stillwood",
+  "version": "1.0.1",
+  "name": "Woodland Cabin Retreats",
+  "sampleName": "Stillwood",
+  "description": "Nine-page woodland vacation rental collection with twelve varied homepage sections, native cabin and review sliders, galleries, forms and configurable booking placeholders.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "forest",
+      "file": "../1.0.0/assets/forest.webp"
+    },
+    {
+      "id": "lake",
+      "file": "../1.0.0/assets/lake.webp"
+    },
+    {
+      "id": "meadow",
+      "file": "../1.0.0/assets/meadow.webp"
+    },
+    {
+      "id": "interior",
+      "file": "../1.0.0/assets/interior.webp"
+    },
+    {
+      "id": "logo",
+      "file": "../1.0.0/assets/logo.webp"
+    },
+    {
+      "id": "symbol",
+      "file": "../1.0.0/assets/symbol.webp"
+    },
+    {
+      "id": "woodland",
+      "file": "../1.0.0/assets/woodland.webp"
+    },
+    {
+      "id": "logo-light",
+      "file": "../1.0.0/assets/logo-light.webp"
+    },
+    {
+      "id": "breakfast",
+      "file": "../1.0.0/assets/breakfast.webp"
+    },
+    {
+      "id": "firepit",
+      "file": "../1.0.0/assets/firepit.webp"
+    },
+    {
+      "id": "bedroom",
+      "file": "../1.0.0/assets/bedroom.webp"
+    },
+    {
+      "id": "picnic",
+      "file": "../1.0.0/assets/picnic.webp"
+    },
+    {
+      "id": "trail",
+      "file": "../1.0.0/assets/trail.webp"
+    },
+    {
+      "id": "evening",
+      "file": "../1.0.0/assets/evening.webp"
+    },
+    {
+      "id": "dining",
+      "file": "../1.0.0/assets/dining.webp"
+    }
+  ],
+  "customCssPolicy": "native-only"
+}

@@ -1,0 +1,60 @@
+{
+  "at": "2026-10-17",
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "parentSha256": "7a82ffbef5e75ce2673ff81928bc0fd07f86a5b27bb8bd46bc5ca203878fff80",
+  "candidateOneSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "candidateTwoSha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+  "candidatesByteExact": true,
+  "recursiveChangedLeafCount": 19,
+  "changedPathGroups": {
+    "runtimePayloads": 3,
+    "runtimeScriptHashes": 3,
+    "runtimeOccurrenceIds": 3,
+    "runtimeTokens": 3,
+    "routeSourceHashes": 3,
+    "deploymentEnvelopeAndSignature": 2,
+    "releaseManifestAndSignature": 2
+  },
+  "changedRoutes": [
+    1,
+    2,
+    3
+  ],
+  "animationRuntime": {
+    "oldLength": 27661,
+    "newLength": 27888,
+    "delta": 227,
+    "routeNormalization": [
+      {
+        "routeIndex": 1,
+        "oldLength": 39946,
+        "newLength": 40173,
+        "newContainsNewAnimJs": true,
+        "normalizedExact": true
+      },
+      {
+        "routeIndex": 2,
+        "oldLength": 39946,
+        "newLength": 40173,
+        "newContainsNewAnimJs": true,
+        "normalizedExact": true
+      },
+      {
+        "routeIndex": 3,
+        "oldLength": 39946,
+        "newLength": 40173,
+        "newContainsNewAnimJs": true,
+        "normalizedExact": true
+      }
+    ]
+  },
+  "schemaAndAuthoredContentChanged": false,
+  "reviewState": "Root independently reviewed 19 changed derived leaves and normalized all three runtime payloads exactly to parent; approved candidate copied to main fixture.",
+  "rootReview": {
+    "at": "2026-10-17T06:18:06.030Z",
+    "changedLeafCountVerified": 19,
+    "threeRuntimePayloadsNormalizedExact": true,
+    "authoredAndSchemaUnchanged": true,
+    "approved": true
+  }
+}

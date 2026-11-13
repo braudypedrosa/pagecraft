@@ -1,0 +1,53 @@
+{
+  "status": "combined dependency candidate locally verified; root integration pending",
+  "acceptedSourceCommit": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+  "dependency": "Vitest4.1.12 with private node_modules",
+  "sourceAcceptance": "source-acceptance.json",
+  "checks": {
+    "fullSuite": {
+      "command": "npm test -- --maxWorkers=2",
+      "exit": 0,
+      "testsPassed": 2634,
+      "testsSkipped": 5,
+      "filesPassed": 252,
+      "filesSkipped": 2,
+      "durationSeconds": 198.06,
+      "log": "npm-test.log",
+      "includesBuildOrderAndTypecheck": true
+    },
+    "orderedBuilds": {
+      "pairs": 2,
+      "allFourCommandsExit": 0,
+      "tenGeneratedArtifactsIdentical": true,
+      "result": "build-results.json",
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ]
+    },
+    "acceptedReleaseOutputs": {
+      "exit": 0,
+      "fiveFilesByteExact": true,
+      "threeFilesDependencyPathCommentsOnly": true,
+      "result": "accepted-output-comparison.json",
+      "uncommittedCompilersNotIncludedInAcceptedComparison": true
+    },
+    "auditReuse": {
+      "allAndProductionExit": 0,
+      "vulnerabilities": 0,
+      "priorEvidence": [
+        "../audit-after-all.json",
+        "../audit-after-production.json"
+      ],
+      "lockHashUnchanged": true
+    },
+    "finalSourceAndDependencyHashesPreserved": true,
+    "sourceDiffCheckExit": 0
+  },
+  "limitations": [
+    "No browser, Main, WordPress, commit, push, or deployment actions performed by this worker.",
+    "Dependency integration is limited to package.json/package-lock.json and evidence; six accepted source files and all generated/demo outputs must remain unstaged by this worker.",
+    "Five pre-existing skipped tests remain. No exhaustive production-readiness claim."
+  ],
+  "rootHandoff": "Only package.json, package-lock.json and qa-evidence/vitest-patch-2026-10-22/ should be integrated after root review."
+}

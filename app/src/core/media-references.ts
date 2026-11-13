@@ -56,6 +56,9 @@ export function mediaReferences(document: Doc): MediaReference[] {
     const context: Context = { scope: 'page', label: page.name, ownerId: page.id };
     scan(page.ogImage, ['pages', i, 'ogImage'], context);
     nodes(page.tree, ['pages', i, 'tree'], context);
+    for (const kind of ['header', 'footer'] as const) if (Array.isArray(page[kind])) {
+      nodes(page[kind], ['pages', i, kind], { ...context, label: page.name + ' ' + kind });
+    }
   });
   for (const scope of ['header', 'footer'] as const) nodes(document[scope], [scope], { scope, label: `Global ${scope}` });
   document.meta.components?.forEach((def, i) => {

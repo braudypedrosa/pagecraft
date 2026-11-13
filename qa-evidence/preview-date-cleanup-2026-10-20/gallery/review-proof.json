@@ -1,0 +1,23 @@
+{
+  "rootManualReview": true,
+  "reviewedBy": "Root agent",
+  "reviewScope": "All 24 exact captures via six review sheets",
+  "captures": "/private/tmp/pagecraft-preview-cleanup-gallery/captures",
+  "behaviorChecks": 30,
+  "behaviorPassed": 30,
+  "pixelComparisons": 24,
+  "pixelComparisonsPassed": 24,
+  "changedPixels": 0,
+  "baselinePngCount": 24,
+  "changedBaselinePngs": [],
+  "manifestChangedTopLevelFields": [
+    "capturedAt",
+    "sources",
+    "behaviorChecks"
+  ],
+  "sourceFilesChanged": [
+    "builder.html"
+  ],
+  "recordExit": 0,
+  "checkExit": 0
+}

@@ -1,0 +1,11 @@
+16b50fc72e22dd67207689c8c862cda677ddfbb7  dist/core.cjs
+12b7a948b8d4937d86c0de0eab342c1014ed0caa  dist/demo/index.html
+09e8152a7b76b69a70a819094bd0bb57a70f3c96  index.html
+1a46d6dd13247fe033cd34fcbfcb52bfc3f0c316  packages/editor/dist/compiler-worker.js
+cb60c32c18436042a0a0ee08a2d1e84bdf6746c3  packages/editor/dist/compiler.js
+c1fe4c7f150753b7e2305c887073fde22045cb93  packages/editor/dist/contract.json
+2ca33a55e329310a8c7050e96e1c73493ad518f5  packages/editor/dist/editor.html
+17eaf0894235291121c6d4574d5f47d606cf0723  packages/editor/dist/fixtures/page.pagecraft-page.zip
+352159a91fca4eb647828d3a257a2719a23c720b  packages/editor/dist/fixtures/site.pagecraft-site.zip
+8a014f356178df19f6ada67508a3c81ee4c5c603  packages/editor/dist/runtime.js
+c45995330f0f55e82cf18db2f017b01ddc237f84  packages/editor/dist/templates.json

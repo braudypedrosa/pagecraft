@@ -1,0 +1,17 @@
+{
+  "case": "page 3 then Category is not Accessibility",
+  "titles": [
+    "Epsilon"
+  ],
+  "current": "2",
+  "pager": "Previous\n1\n2\nNext",
+  "expected": {
+    "titles": [
+      "Beta",
+      "Delta"
+    ],
+    "current": "1"
+  },
+  "result": "FAIL",
+  "source": "0a873d24c22323133e236ef0d4308ce7ea6b04a1"
+}

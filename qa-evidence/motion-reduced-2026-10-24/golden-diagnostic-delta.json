@@ -1,0 +1,173 @@
+[
+  {
+    "path": "/desired/release/manifest",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 18784,
+    "beforeSha256": "b4294e3749817a148e4bc5b1603207913e6c47b82d3bf13fd039b9adc329bd95",
+    "afterBytes": 18784,
+    "afterSha256": "ee99071eebc8b9c5c0d7255568fa01976557cdbebb324519340f34926d6e5048"
+  },
+  {
+    "path": "/desired/release/signature",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 86,
+    "beforeSha256": "eb976cd38eae27df76b0caef413ea27e96323a9395634afb038c975d5139015b",
+    "afterBytes": 86,
+    "afterSha256": "1405cce1b4bbcb87d4d73bda0877537768390224313ab1bd60417def75ff1ee8"
+  },
+  {
+    "path": "/desired/deployment/envelope",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 730,
+    "beforeSha256": "06006f9cb497936b5aadf54d67bdb375705bb4fe16e17e3f5c1519dda5a2c58c",
+    "afterBytes": 730,
+    "afterSha256": "8190b22f94ff5cd8fe214a8f40db05a48d0d385745d440819dd0a6797b4ecf79"
+  },
+  {
+    "path": "/desired/deployment/signature",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 86,
+    "beforeSha256": "52e6bb09847f5d9c595e68967db1920de80f4f42c2d6d7c7df526751ca815e6a",
+    "afterBytes": 86,
+    "afterSha256": "71bfdc44a75e51ffddf9b2411062613759d2928bc9ed20c18da4965c77695a45"
+  },
+  {
+    "path": "/artifact/routes/1/runtime",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 43913,
+    "beforeSha256": "b12539f692bd9ada68f8ada8676f019c389e0a02efe975e0f5b7b9cb739881f7",
+    "afterBytes": 44384,
+    "afterSha256": "a70ffbf0edb37eb953a1ccfa352772539fb74868ff7ec8cc6a84b67363fa8e2f"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/7/occurrenceId",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 39,
+    "beforeSha256": "82337f1395f9004a7ce3ba1dfbb03f804ecc0899e9a342b35e38e7326891ab0c",
+    "afterBytes": 39,
+    "afterSha256": "f1260776d28250b2174dee483e09b703761d93561b6387f33feb1dad999d4c58"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/7/token",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 61,
+    "beforeSha256": "be7d999c948160a0a80e1c9b3367b83bcb7914d133da85c6f877ef911d4cfbdf",
+    "afterBytes": 61,
+    "afterSha256": "53b9b5d15b1d93afda4baa74832c95d79f01e529f18afbb9e31e269e2d1ad7f1"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/7/hash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "16d853e20e45aaaf9f71188f5952f099ea6f19f987d29e6d29e4cb6f5815b81b",
+    "afterBytes": 64,
+    "afterSha256": "63b9a48c5428d2c927b721aa99842a8ef30749621a829446576eb1ce9d06d77d"
+  },
+  {
+    "path": "/artifact/routes/1/sourceHash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "f9aee54b8b79d183bb5740e93cc873ca3014950b44d3e6573b741a0cf4c876c3",
+    "afterBytes": 64,
+    "afterSha256": "5a3138e99634bdb290bb7baf05ea5a3bee19026b85b55a43c365acbfbf0b0e88"
+  },
+  {
+    "path": "/artifact/routes/2/runtime",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 43913,
+    "beforeSha256": "b12539f692bd9ada68f8ada8676f019c389e0a02efe975e0f5b7b9cb739881f7",
+    "afterBytes": 44384,
+    "afterSha256": "a70ffbf0edb37eb953a1ccfa352772539fb74868ff7ec8cc6a84b67363fa8e2f"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/7/occurrenceId",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 39,
+    "beforeSha256": "a5d6f45d42b7b8fd19d00eb0e445e2b6b75153f7dcc17adb0cc58f57f6a61866",
+    "afterBytes": 39,
+    "afterSha256": "7e1c6dc2118a794dc3a8391ed15a18b90a6070a47128429b9a34c1849ab36ad3"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/7/token",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 61,
+    "beforeSha256": "f6f855bc02d3230620e89fd07f812412af333295432d529148ef601d8fe64cec",
+    "afterBytes": 61,
+    "afterSha256": "72db537a07e8cb844f139db339989630d917c383182b117ba5c118a476d02672"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/7/hash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "16d853e20e45aaaf9f71188f5952f099ea6f19f987d29e6d29e4cb6f5815b81b",
+    "afterBytes": 64,
+    "afterSha256": "63b9a48c5428d2c927b721aa99842a8ef30749621a829446576eb1ce9d06d77d"
+  },
+  {
+    "path": "/artifact/routes/2/sourceHash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "17286728e5ad0137c4859fca355b96b3e0e72073a8a4c5a8ff1477f630e9b183",
+    "afterBytes": 64,
+    "afterSha256": "7f2851cd60c7ba4d630378c447619302a9c8023d71b6a5f275b676b32aff5011"
+  },
+  {
+    "path": "/artifact/routes/3/runtime",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 43913,
+    "beforeSha256": "b12539f692bd9ada68f8ada8676f019c389e0a02efe975e0f5b7b9cb739881f7",
+    "afterBytes": 44384,
+    "afterSha256": "a70ffbf0edb37eb953a1ccfa352772539fb74868ff7ec8cc6a84b67363fa8e2f"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/7/occurrenceId",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 39,
+    "beforeSha256": "ca4d65957c8afd4371d037e15fc84588bdb6408da1c44374811512cef60943cf",
+    "afterBytes": 39,
+    "afterSha256": "41cff5845e5615ccef2f898f43d08b5d425f3a45e396db642d395abf14aec181"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/7/token",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 61,
+    "beforeSha256": "29e22c27401615751d324d9352ce5c86a89aef984ff2636962cad633ed04ff51",
+    "afterBytes": 61,
+    "afterSha256": "b077bd9a71598e4cd4dabd3e62850fdcf8fea44c8a41d57627fbf2ecbe602174"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/7/hash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "16d853e20e45aaaf9f71188f5952f099ea6f19f987d29e6d29e4cb6f5815b81b",
+    "afterBytes": 64,
+    "afterSha256": "63b9a48c5428d2c927b721aa99842a8ef30749621a829446576eb1ce9d06d77d"
+  },
+  {
+    "path": "/artifact/routes/3/sourceHash",
+    "beforeType": "string",
+    "afterType": "string",
+    "beforeBytes": 64,
+    "beforeSha256": "ff17da9482c3803622c962681a23f10bcb90baa471b7e0fb9b8357c840d4a23a",
+    "afterBytes": 64,
+    "afterSha256": "937887d7934cf50594e11494d8273692afe038fbb46c4993902606da6d8a71b2"
+  }
+]

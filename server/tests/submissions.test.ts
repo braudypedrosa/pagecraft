@@ -8,6 +8,7 @@ import { blankDoc, renderSite } from '../src/render.ts';
 import { FileSubmissionStore, siteForms, submissionValues, submissionsCsv } from '../src/submissions.ts';
 import { submissionRoutes } from '../src/submissions-routes.ts';
 import { MemoryStore } from '../src/store.ts';
+import { GatewayStore, PagecraftGateway } from '../src/store-gateway.ts';
 import { FileHostedPublicationStore } from '../src/publications.ts';
 import { siteSubmissionsPage } from '../src/account-pages.ts';
 
@@ -74,6 +75,7 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await app.request(exportUrl)).status).toBe(403);
     const exported = await app.request(exportUrl,{headers:{cookie:'owner=1'}});
     expect(exported.headers.get('content-type')).toContain('text/csv');
+    expect(exported.headers.get('content-disposition')).toBe('attachment; filename="submissions.csv"');
     expect(await exported.text()).toContain('qa@example.test');
     expect((await app.request(base+'/'+entries[0].id+'/status',{method:'POST',headers:{cookie:'owner=1'},body:'status=read'})).status).toBe(404);
     const remove = (origin: string, body='confirmed=yes&embedded=1&form=qa-form') => app.request(base+'/'+entries[0].id+'/delete',{method:'POST',headers:{cookie:'owner=1',origin},body});
@@ -85,6 +87,65 @@ test('published receiver, private inbox and statuses enforce site scope and pres
     expect((await remove('https://editor.test')).status).toBe(404);
     expect((await app.request(base, { headers: { cookie: 'owner=1', 'x-pagecraft-editor-session': 'wp' } })).status).toBe(403);
     await submissions.removeSite(site.id); expect(await submissions.list(site.id)).toHaveLength(0);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+test('receiver does not claim a submission was unsaved when the store acknowledgement is lost', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-submission-ack-'));
+  try {
+    const store = new MemoryStore(), submissions = new FileSubmissionStore(join(root, 'entries'));
+    const publications = new FileHostedPublicationStore(join(root, 'published'));
+    const site = await store.create({ host: 'ack.invalid', name: 'Acknowledgement QA', doc: source() });
+    const publication = await publications.create({ siteId: site.id, slug: site.slug, host: site.host, sourceVersion: site.version, files: [{ path:'index.html', mediaType:'text/html', bytes:new TextEncoder().encode('<h1>QA</h1>') }] });
+    await publications.promote(publication);
+    const add = submissions.add.bind(submissions);
+    submissions.add = async (...args: Parameters<FileSubmissionStore['add']>) => { await add(...args); throw new Error('acknowledgement lost'); };
+    const app = new Hono();
+    submissionRoutes(app, { store, submissions, publications, editorOrigin:'https://editor.test', requestSource:()=> 'qa', allowed:async()=>({ok:false,status:403}) });
+    const response = await app.request(`https://editor.test/forms/${site.id}/qa-form`, { method:'POST', headers:{'content-type':'application/x-www-form-urlencoded',origin:'https://editor.test'}, body:'_pc_request=12345678-1234-4123-8123-123456789abc&email=qa@example.test' });
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe('We could not confirm your submission. Please try again shortly.');
+    expect(await submissions.list(site.id)).toHaveLength(1);
+  } finally { await rm(root, { recursive:true, force:true }); }
+});
+test('native CSV downloads preserve endpoint authorization and failure statuses', async () => {
+  const app = new Hono();
+  submissionRoutes(app, {
+    store: new MemoryStore(),
+    requestSource: () => 'qa',
+    allowed: async c => c.req.header('cookie') === 'owner=1'
+      ? {ok:true,user:{id:'user',email:'qa@example.test',name:'QA'},role:'owner'}
+      : {ok:false,status:403}
+  });
+  const url = 'https://editor.test/sites/site/submissions/export.csv?form=qa-form';
+  expect((await app.request(url)).status).toBe(403);
+  const unavailable = await app.request(url, {headers:{cookie:'owner=1'}});
+  expect(unavailable.status).toBe(503);
+  expect(await unavailable.text()).toBe('Submissions are unavailable.');
+});
+test('a form posted after another process changed the slug still reaches the site', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-submissions-'));
+  try {
+    const doc = source();
+    let row = { id: 's1', host: 'forms.invalid', slug: 'before', name: 'QA', doc, version: 1, published_version: 1, published_release_id: null, published_publication_id: null, updated_at: '2026-10-01T00:00:00.000Z' };
+    const gateway = new PagecraftGateway('https://gateway.invalid', 'test-key', (async (_url: unknown, init?: RequestInit) => {
+      const { op, args } = JSON.parse(String(init?.body));
+      if (op === 'site.byId') return Response.json({ data: row });
+      if (op === 'site.revision') return Response.json({ data: { site_id: row.id, version: args.version, doc, saved_by: null, context: null, created_at: row.updated_at } });
+      throw new Error('unexpected ' + op);
+    }) as typeof fetch);
+    const store = new GatewayStore(gateway), submissions = new FileSubmissionStore(join(root, 'entries'));
+    const publications = new FileHostedPublicationStore(join(root, 'published'));
+    const pub = await publications.create({ siteId: 's1', slug: 'before', host: row.host, sourceVersion: 1, files: [{ path: 'index.html', mediaType: 'text/html', bytes: new TextEncoder().encode('<h1>QA</h1>') }] });
+    await publications.promote(pub);
+    const app = new Hono();
+    submissionRoutes(app, { store, submissions, publications, editorOrigin: 'https://editor.test', requestSource: () => 'qa', allowed: async () => ({ ok: false, status: 403 }) });
+    const post = () => app.request('https://editor.test/forms/s1/qa-form', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'https://editor.test' }, body: 'email=qa@example.test' });
+    await store.byId('s1'); // this process has the row cached under the old slug
+    // Another process moves the site and its public pointer.
+    row = { ...row, slug: 'after', updated_at: '2026-10-01T00:01:00.000Z' };
+    await publications.relocate('s1', 'after', row.host);
+    expect((await post()).status).toBe(303);
+    expect(await submissions.list('s1')).toHaveLength(1);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 test('inbox discovers empty forms and preserves removed form entries', () => {
@@ -178,6 +239,70 @@ test('Date header toggles order and retains it for filtering, export and deletio
   expect(html).toContain('Date: sort newest first');
   expect(html).toContain('order=desc&amp;embedded=1');
   expect(html).toContain('export.csv?form=qa-form&amp;status=success&amp;order=asc');
+  expect(html).toContain('download>Export CSV</a>');
   expect(html).toContain('name="order" value="asc"');
   expect(html).not.toContain('<th>Received</th>');
+});
+
+test('failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+  try {
+    const store = new FileSubmissionStore(root);
+    const {mkdir, readdir, writeFile} = await import('node:fs/promises');
+    const {createHash} = await import('node:crypto');
+    const dir = join(root, createHash('sha256').update('site').digest('hex'));
+    const id = (prefix: string, n: number) => `${prefix}-0000-4000-8000-${String(n).padStart(12,'0')}`;
+    const entry = (n: number, status: 'success' | 'failed', extra = {}) => ({id:id(status === 'failed' ? 'ffffffff' : '00000000', n),formId:'contact',formName:'Contact',status,createdAt:new Date(n*1000).toISOString(),values:[],...extra});
+    // A full inbox from before failed entries had their own folder: 9,950 entries and 50 failures.
+    await mkdir(dir);
+    for (let offset=0; offset<10000; offset+=250) await Promise.all(Array.from({length:250}, (_,j) => {
+      const n = offset + j, row = n < 50 ? entry(n, 'failed', {error:'Enter a valid email address.'}) : entry(n, 'success');
+      return writeFile(join(dir, row.id + '.json'), JSON.stringify(row));
+    }));
+    // The old failures are moved out of the way, so a real submission is still accepted.
+    expect(await store.add('site', entry(20000, 'success'))).toBe(true);
+    expect((await readdir(join(dir, 'failed'))).filter(f => f.endsWith('.json'))).toHaveLength(50);
+
+    // Junk keeps only the most recent 200 failures, and never blocks real entries.
+    for (let n=30000; n<30250; n++) await store.add('site', entry(n, 'failed', {error:'Enter a valid email address.'}));
+    const failed = (await store.overview('site')).filter(e => e.status === 'failed');
+    expect(failed).toHaveLength(200);
+    expect(failed.map(e => e.createdAt).sort()[0]).toBe(new Date(30050*1000).toISOString());
+    for (let n=20001; n<20050; n++) expect(await store.add('site', entry(n, 'success'))).toBe(true);
+    await expect(store.add('site', entry(20050, 'success'))).rejects.toThrow('Inbox is full.');
+    expect(await store.add('site', entry(30250, 'failed', {error:'Check Email.'}))).toBe(true);
+
+    // The inbox and the CSV still list failures with their reason and no values.
+    const summary = await store.overview('site');
+    expect(summary.filter(e => e.status !== 'failed')).toHaveLength(10000);
+    const shown = await store.page('site', summary, 'contact', 'failed', 1);
+    expect(shown.items[0]).toMatchObject({status:'failed', error:'Check Email.', values:[]});
+    expect(submissionsCsv(shown.items)).toContain('"failed","Check Email."');
+    expect(await store.remove('site', shown.items[0].id)).toBe(true);
+    expect((await store.list('site')).filter(e => e.status === 'failed')).toHaveLength(199);
+  } finally { await rm(root,{recursive:true,force:true}); }
+}, 30000);
+
+test('a failed entry stored beside successful ones before they were separated still opens', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pc-inbox-legacy-'));
+  try {
+    const store = new FileSubmissionStore(root);
+    const {mkdir, writeFile} = await import('node:fs/promises');
+    const {createHash} = await import('node:crypto');
+    const dir = join(root, createHash('sha256').update('site').digest('hex'));
+    await mkdir(dir);
+    const old = {id:'00000000-0000-4000-8000-000000000001',formId:'contact',formName:'Contact',status:'failed',error:'Enter a valid date.',createdAt:'2026-09-01T00:00:00Z',values:[]};
+    await writeFile(join(dir, old.id + '.json'), JSON.stringify(old));
+    const summary = await store.overview('site');
+    expect((await store.page('site', summary, 'contact', 'failed', 1)).items).toMatchObject([{error:'Enter a valid date.'}]);
+    expect(await store.remove('site', old.id)).toBe(true);
+  } finally { await rm(root,{recursive:true,force:true}); }
+});
+
+test('submission dates are UTC <time> elements the browser rewrites in its own time zone', () => {
+  const entry = {id:'one',formId:'qa-form',formName:'Contact QA',status:'success' as const,createdAt:'2026-09-10T23:30:00.000Z',values:[]};
+  const html = siteSubmissionsPage({id:'qa',email:'qa@example.test',name:'QA'},{id:'site',name:'QA'},'owner',siteForms(source()),[entry],'qa-form','',1,true,[entry]);
+  expect(html).toMatch(/<time datetime="2026-09-10T23:30:00.000Z" data-local="full">Sep 10, 2026, 11:30\sPM<\/time>/);
+  expect(html).toContain("new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'})");
+  expect(html).toContain('new MutationObserver(local)');
 });

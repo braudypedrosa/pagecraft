@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-integer-v2-one-029
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 29 skipped (30)
+   Start at  19:31:26
+   Duration  457ms (transform 221ms, setup 0ms, import 283ms, tests 70ms, environment 0ms)
+

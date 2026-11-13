@@ -1,0 +1,30 @@
+{
+  "cloud": "d20540bd22ae5c733a332851fc9cfe49215df09e",
+  "cases": [
+    {
+      "device": "desktop",
+      "firstClick": "Hover"
+    },
+    {
+      "device": "tablet",
+      "firstDeviceClick": "true",
+      "htmlId": "qa-image-111-tablet"
+    },
+    {
+      "device": "mobile",
+      "firstDeviceClick": "true",
+      "htmlId": "qa-image-111-mobile"
+    }
+  ],
+  "firstHash": {
+    "focused": true,
+    "value": "#"
+  },
+  "completedInput": {
+    "focused": true,
+    "value": "#qa-image-111-mobile"
+  },
+  "firstStyleClick": true,
+  "anchor": "#qa-image-111-mobile",
+  "sourceLoaded": true
+}

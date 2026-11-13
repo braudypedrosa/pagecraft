@@ -1,0 +1,19 @@
+{
+  "candidateBase": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+  "node": "n6v0ie1cl",
+  "authoring": "Mobile Focus Radius40px",
+  "editor": {
+    "html": "<div id=\"n6v0ie1cl\" data-id=\"n6v0ie1cl\" data-t=\"video\" class=\"pagecraft-video pagecraft-6v0ie1cl\" style=\"aspect-ratio:16 / 9\" data-facade=\"\" data-sel=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+    "radius": "10px"
+  },
+  "public": {
+    "buttonFocused": true,
+    "radius": "10px",
+    "wrapperFocused": false
+  },
+  "cssRules": [
+    ".pagecraft-6v0ie1cl{width:100%;border-radius:10px;overflow:hidden;",
+    ".pagecraft-6v0ie1cl:focus-visible{border-radius:40px;"
+  ],
+  "issue": "Real keyboard Focus lands on facade Play button, while authored wrapper :focus-visible rule never applies."
+}

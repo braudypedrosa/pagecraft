@@ -1,9 +1,52 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { installActionFeedback } from '../shared/action-feedback.js';
+const originalWidth=Object.getOwnPropertyDescriptor(window,'innerWidth')!;
+const originalHeight=Object.getOwnPropertyDescriptor(window,'innerHeight')!;
 beforeEach(()=>{ document.body.innerHTML='<button id="save"><svg aria-hidden="true"></svg>Save changes</button>';vi.useFakeTimers(); });
-afterEach(()=>{window.__pcFeedback?.destroy();vi.useRealTimers();});
+afterEach(()=>{window.__pcFeedback?.destroy();vi.restoreAllMocks();vi.useRealTimers();Object.defineProperty(window,'innerWidth',originalWidth);Object.defineProperty(window,'innerHeight',originalHeight);});
 const button=()=>document.querySelector<HTMLButtonElement>('#save')!;
+test('editor notices fit inside the available canvas and clear its zoom controls after resize',()=>{
+ document.body.insertAdjacentHTML('beforeend','<main id="stage"><div id="dim"></div></main>');
+ const stage=document.querySelector<HTMLElement>('#stage')!,dim=document.querySelector<HTMLElement>('#dim')!;
+ let bounds={x:88,y:52,left:88,top:52,right:468,bottom:1024,width:380,height:972,toJSON:()=>({})};
+ vi.spyOn(stage,'getBoundingClientRect').mockImplementation(()=>bounds);
+ vi.spyOn(dim,'getBoundingClientRect').mockReturnValue({x:88,y:970,left:88,top:970,right:468,bottom:1010,width:380,height:40,toJSON:()=>({})});
+ Object.defineProperty(window,'innerWidth',{configurable:true,value:768});
+ Object.defineProperty(window,'innerHeight',{configurable:true,value:1024});
+ const feedback=installActionFeedback();
+ feedback.notify('Style updated everywhere',{tone:'success'});
+ const notices=document.querySelector<HTMLElement>('#pc-notifications')!;
+ expect(parseFloat(notices.style.right)).toBe(316);
+ expect(parseFloat(notices.style.width)).toBe(348);
+ expect(parseFloat(notices.style.bottom)).toBe(66);
+ expect(768-parseFloat(notices.style.right)).toBeLessThan(bounds.right);
+ bounds={...bounds,width:332,right:420};
+ Object.defineProperty(window,'innerWidth',{configurable:true,value:720});
+ window.dispatchEvent(new Event('resize'));
+ expect(parseFloat(notices.style.width)).toBe(300);
+ expect(720-parseFloat(notices.style.right)).toBeLessThan(bounds.right);
+ bounds={...bounds,width:0,height:0};
+ window.dispatchEvent(new Event('resize'));
+ expect(notices.style.right).toBe('');
+ expect(notices.style.width).toBe('');
+});
+test('active shared dialogs reserve notice space rather than covering body or footer controls',async()=>{
+ document.body.insertAdjacentHTML('beforeend','<dialog class="pc-dialog" open><form class="pc-dialog-form"><header class="pc-dialog-head">Publish</header><div class="pc-dialog-body"><button id="choice">Review changes</button></div><footer class="pc-dialog-foot"><button>Cancel</button><button>Publish site</button></footer></form></dialog>');
+ const dialog=document.querySelector<HTMLDialogElement>('.pc-dialog')!;
+ const choice=dialog.querySelector<HTMLButtonElement>('#choice')!;choice.focus();
+ installActionFeedback().notify('Site published.',{tone:'success'});
+ const notices=dialog.querySelector<HTMLElement>('#pc-notifications')!;
+ expect(notices.parentElement).toBe(dialog);
+ expect(getComputedStyle(notices).position).toBe('relative');
+ expect(notices.hasAttribute('popover')).toBe(false);
+ expect(notices.style.bottom).toBe('');
+ expect(document.activeElement).toBe(choice);
+ dialog.removeAttribute('open');await Promise.resolve();
+ expect(notices.parentElement).toBe(document.body);
+ expect(notices.hasAttribute('data-dialog')).toBe(false);
+ expect(getComputedStyle(notices).position).toBe('fixed');
+});
 test('pending actions prevent duplicate requests and restore the original icon and accessible name on failure',()=>{
  const feedback=installActionFeedback(), original=button().innerHTML;
  button().setAttribute('aria-label','Save this collection');
@@ -70,6 +113,117 @@ test('untrusted messages are text and failures retain an accessible manual dismi
  expect(document.querySelector('.pc-notification')).toBeNull();
 });
 
+test('failure guidance survives timed and manual notification dismissal without browser storage',()=>{
+ const feedback=installActionFeedback();
+ feedback.notify('The image could not be uploaded. Try uploading it again.',{tone:'error',id:'upload'});
+ vi.advanceTimersByTime(5001);
+ expect(document.querySelector('.pc-notification')).toBeNull();
+ expect(feedback.problems()).toEqual([expect.objectContaining({id:'upload',message:'The image could not be uploaded. Try uploading it again.'})]);
+ feedback.notify('<img src=x onerror=alert(1)>',{tone:'error',id:'untrusted'});
+ document.querySelector<HTMLButtonElement>('[aria-label="Dismiss notification"]')!.click();
+ expect(feedback.problems().map(problem=>problem.id)).toEqual(['untrusted','upload']);
+ feedback.resolveProblem('untrusted');
+ expect(feedback.problems().map(problem=>problem.id)).toEqual(['upload']);
+});
+
+test('retrying the same action retains its failure until the retry succeeds',()=>{
+ const feedback=installActionFeedback();
+ feedback.begin(button(),'Saving…','save')!.error('Connection lost. Try again.');
+ expect(feedback.problems()).toHaveLength(1);
+ const retry=feedback.begin(button(),'Saving…','save')!;
+ expect(feedback.problems()).toHaveLength(1);
+ retry.cancel();
+ expect(feedback.problems()).toHaveLength(1);
+ feedback.begin(button(),'Saving…','save')!.success('Saved.');
+ expect(feedback.problems()).toHaveLength(0);
+});
+
+test('a replaced control with the same DOM id clears the logical action failure on success',()=>{
+ const feedback=installActionFeedback();
+ feedback.begin(button(),'Publishing…')!.error('Publishing failed. Try again.');
+ const first=feedback.problems()[0];
+ expect(first).toMatchObject({id:'button-id-save',canRecover:true});
+
+ button().outerHTML='<button id="save">Publish</button>';
+ expect(feedback.problems()[0]).toMatchObject({id:'button-id-save',canRecover:false});
+ feedback.begin(button(),'Publishing…')!.success('Published.');
+ expect(feedback.problems()).toEqual([]);
+});
+
+test('a replaced control cannot restart its logical action until the pending attempt ends',()=>{
+ const feedback=installActionFeedback();
+ const first=feedback.begin(button(),'Publishing…')!;
+ button().outerHTML='<button id="save">Publish</button>';
+
+ expect(feedback.begin(button(),'Publishing twice…')).toBeNull();
+ expect(button().disabled).toBe(false);
+ first.cancel();
+
+ const retry=feedback.begin(button(),'Publishing again…');
+ expect(retry).not.toBeNull();
+ expect(button().disabled).toBe(true);
+ retry!.cancel();
+ expect(button().disabled).toBe(false);
+});
+
+test('pending anonymous and no-control actions remain independent',()=>{
+ document.body.insertAdjacentHTML('beforeend','<button class="anonymous">First</button><button class="anonymous">Second</button>');
+ const controls=[...document.querySelectorAll<HTMLButtonElement>('.anonymous')];
+ const feedback=installActionFeedback();
+ const first=feedback.begin(controls[0],'Trying first…')!;
+ const second=feedback.begin(controls[1],'Trying second…')!;
+ const backgroundA=feedback.begin(null,'Background A…')!;
+ const backgroundB=feedback.begin(null,'Background B…')!;
+
+ expect(first).toBeTruthy();
+ expect(second).toBeTruthy();
+ expect(backgroundA).toBeTruthy();
+ expect(backgroundB).toBeTruthy();
+ first.cancel();second.cancel();backgroundA.cancel();backgroundB.cancel();
+});
+
+test('anonymous controls keep independent action failures',()=>{
+ document.body.insertAdjacentHTML('beforeend','<button class="anonymous">Retry</button><button class="anonymous">Retry</button>');
+ const controls=[...document.querySelectorAll<HTMLButtonElement>('.anonymous')];
+ const feedback=installActionFeedback();
+ feedback.begin(controls[0],'Trying…')!.error('First failed.');
+ feedback.begin(controls[1],'Trying…')!.error('Second failed.');
+ const problems=feedback.problems();
+ expect(problems).toHaveLength(2);
+ expect(new Set(problems.map(problem=>problem.id)).size).toBe(2);
+
+ feedback.begin(controls[0],'Trying…')!.success('First succeeded.');
+ expect(feedback.problems()).toEqual([expect.objectContaining({message:'Second failed.'})]);
+});
+
+test('return-to-action availability follows the original control and never automatically retries',()=>{
+ const feedback=installActionFeedback(),clicked=vi.fn();
+ button().addEventListener('click',clicked);
+ feedback.begin(button(),'Saving…')!.error('Try again.');
+ const id=feedback.problems()[0].id;
+ expect(feedback.problems()[0].canRecover).toBe(true);
+ expect(feedback.recoverProblem(id)).toBe(true);
+ expect(document.activeElement).toBe(button());
+ expect(clicked).not.toHaveBeenCalled();
+ button().remove();
+ expect(feedback.problems()[0].canRecover).toBe(false);
+ expect(feedback.recoverProblem(id)).toBe(false);
+});
+
+test('silent recovery messages are deduplicated, bounded, and cleared on destroy',()=>{
+ const feedback=installActionFeedback(),recover=vi.fn();
+ feedback.rememberProblem('Keep this draft open.',{id:'draft',label:'Save draft',recover});
+ feedback.rememberProblem('Download a backup before reloading.',{id:'draft',label:'Save draft',recover});
+ expect(document.querySelector('.pc-notification')).toBeNull();
+ expect(feedback.problems()).toHaveLength(1);
+ feedback.recoverProblem('draft');expect(recover).toHaveBeenCalledTimes(1);
+ for(let i=0;i<25;i++)feedback.rememberProblem('Problem '+i,{id:'problem-'+i});
+ expect(feedback.problems()).toHaveLength(20);
+ const snapshot=feedback.problems();snapshot[0].message='Changed externally';
+ expect(feedback.problems()[0].message).not.toBe('Changed externally');
+ feedback.destroy();expect(feedback.problems()).toEqual([]);
+});
+
 test('builder custom dialogs keep notifications within their focus trap',async()=>{
  const mask=document.createElement('div');mask.innerHTML='<div role="dialog" aria-modal="true"><button>Close</button></div>';document.body.append(mask);
  installActionFeedback().notify('Export ready.',{tone:'success'});
@@ -105,6 +259,18 @@ test('processing failures auto-dismiss, release the lock and still allow a retry
  expect(document.querySelector('[role=alert]')).toBeNull();
  expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Image dimensions detected.');
 });
+test('announce false keeps the action lock but leaves result announcements to the caller',async()=>{
+ const feedback=installActionFeedback(),options=Object.assign(
+   {key:'cms-save',button:button(),pending:'Saving entry…',success:'Entry saved.'},
+   {announce:false},
+ );
+ const job=feedback.run(options,async()=>{await Promise.resolve();return true;});
+ expect(button().disabled).toBe(true);
+ expect(document.querySelector('#pc-notifications')).toBeNull();
+ expect(await job).toEqual({status:'success',value:true});
+ expect(button().disabled).toBe(false);
+ expect(document.querySelector('#pc-notifications')).toBeNull();
+});
 
 test('progress and explicitly persistent notices remain until resolved or dismissed',()=>{
  const feedback=installActionFeedback();
@@ -113,6 +279,44 @@ test('progress and explicitly persistent notices remain until resolved or dismis
  vi.advanceTimersByTime(60000);
  expect(document.querySelector('[data-tone=progress]')?.textContent).toContain('Uploading…');
  expect(document.querySelector('[role=alert]')?.textContent).toContain('Reconnect your account.');
+});
+
+test.each(['info','success'] as const)('a new picker clears prior finite %s notices while preserving unresolved feedback',tone=>{
+ const feedback=installActionFeedback();
+ feedback.notify('Header added.',{tone});
+ const completed=document.querySelector('.pc-notification')!;
+ vi.advanceTimersByTime(1000);completed.dispatchEvent(new MouseEvent('mouseenter'));
+ feedback.notify('Uploading image…',{tone:'progress',duration:10000});
+ feedback.notify('The image could not be saved.',{tone:'error'});
+ feedback.notify('Review the selected page.',{tone:'info',duration:0});
+ feedback.notify('Keep this result available.',{tone:'success',duration:0});
+ feedback.dismissTransient();
+ expect(completed.isConnected).toBe(false);
+ expect(document.querySelectorAll('.pc-notification')).toHaveLength(4);
+ expect(document.querySelector('[data-tone=progress]')?.textContent).toContain('Uploading image…');
+ expect(document.querySelector('[role=alert]')?.textContent).toContain('The image could not be saved.');
+ expect(document.querySelector('[data-tone=info]')?.textContent).toContain('Review the selected page.');
+ expect(document.querySelector('[data-tone=success]')?.textContent).toContain('Keep this result available.');
+ // Feedback from the newly opened picker still gets its normal lifetime.
+ feedback.notify('Editing current header.');
+ expect(document.querySelectorAll('[data-tone=info]')).toHaveLength(2);
+ vi.advanceTimersByTime(5001);
+ expect(document.querySelector('[data-tone=info]')?.textContent).toContain('Review the selected page.');
+ expect(feedback.problems()[0].message).toBe('The image could not be saved.');
+});
+
+test('clearing a previous result removes it before a new dialog can inherit its exit animation',()=>{
+ const feedback=installActionFeedback();feedback.notify('Header added.');
+ const completed=document.querySelector<HTMLElement>('.pc-notification')!;
+ const motion={enter:vi.fn(async()=>true),exit:vi.fn(()=>new Promise<boolean>(()=>{})),cancel:vi.fn(),showDialog:vi.fn(),closeDialog:vi.fn(),reduced:()=>false,destroy:vi.fn()};
+ window.__pcMotion=motion;
+ try{
+  feedback.dismissTransient();
+  expect(motion.cancel).toHaveBeenCalledWith(completed);
+  expect(motion.exit).not.toHaveBeenCalled();
+  expect(completed.isConnected).toBe(false);
+  expect(document.querySelector('#pc-notifications')?.childElementCount).toBe(0);
+ }finally{delete window.__pcMotion;}
 });
 
 test('independent actions can run together and cancelling one never restores another action early',async()=>{

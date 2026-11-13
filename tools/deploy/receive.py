@@ -17,6 +17,17 @@ def receive_bundle(stream, target, idle_timeout=120):
    if total>300*1024*1024:raise ValueError('Bundle too large')
    output.write(chunk)
 
+def stop_candidate(process,grace=10):
+ """The candidate must never outlive verification. A server that ignores SIGTERM (an
+ exit handler that never returns) once raised TimeoutExpired here and kept running for
+ days against the live file stores, so escalate to SIGKILL instead of raising."""
+ if process.poll() is not None:return
+ process.terminate()
+ try:process.wait(timeout=grace)
+ except subprocess.TimeoutExpired:
+  process.kill();process.wait(timeout=grace)
+
+ALT_NODE=pathlib.Path('/opt/alt/alt-nodejs24/root/usr/bin/node');ALT_NPM=ALT_NODE.parent/'npm'
 def main(home='/home/itspbuku'):
  os.umask(0o077)
  HOME=pathlib.Path(home); CONTROL=HOME/'pagecraft-deploy'
@@ -66,10 +77,12 @@ def main(home='/home/itspbuku'):
    if env.get('PAGECRAFT_ALLOW_SHARED_DATABASE')!='1':raise ValueError('Shared staging database requires explicit opt-in')
    if env.get('PAGECRAFT_BACKGROUND_WORKERS')!='0':raise ValueError('Shared staging must not drain production queues')
    if env.get('PAGECRAFT_PUBLICATION_ROOT')!='/home/itspbuku/pagecraft-staging-publications':raise ValueError('Staging publications must remain separate')
-  node=HOME/'nodevenv'/app/'24/bin/node';npm=HOME/'nodevenv'/app/'24/bin/npm'
+  node=HOME/'nodevenv'/app/'24/bin/node'
   env['PATH']=str(node.parent)+':'+os.environ.get('PATH','/usr/bin:/bin')
-  # Production dependencies are installed on the target OS in the new release.
-  run([str(npm),'ci','--omit=dev','--no-audit','--no-fund'],cwd=release,env=env)
+  # Production dependencies are installed on the target OS in the new release. Since 3 November
+  # 2026 the nodevenv npm wrapper appends --prefix <nodevenv>/lib, which points npm ci away from
+  # the release's lockfile, so the real alt-nodejs npm is run directly with the release as prefix.
+  run([str(ALT_NODE),str(ALT_NPM),'ci','--omit=dev','--no-audit','--no-fund','--prefix',str(release)],cwd=release,env=env)
   env['PAGECRAFT_TEMPLATE_ROOT']=str(release/'premade-sites')
   with socket.socket() as s:s.bind(('127.0.0.1',0));port=s.getsockname()[1]
   env.update(PORT=str(port),BIND_HOST='127.0.0.1',PAGECRAFT_BACKGROUND_WORKERS='0')
@@ -84,7 +97,7 @@ def main(home='/home/itspbuku'):
     except Exception:time.sleep(1)
    else:raise ValueError('Candidate readiness timed out')
   finally:
-   process.terminate();process.wait(timeout=10)
+   stop_candidate(process)
   previous=current.resolve() if current.is_symlink() else None
   # Released template versions are immutable, including versions omitted accidentally.
   oldroot=(previous/'premade-sites') if previous else HOME/'pagecraft-template-library'

@@ -1,0 +1,221 @@
+{
+    "hydratedPageEditorNav": [
+        {
+            "id": "dental-a2-1",
+            "items": [
+                {
+                    "id": "43",
+                    "label": "Treatments",
+                    "href": "http://127.0.0.1:4397/?page_id=18",
+                    "parentId": "",
+                    "cls": "",
+                    "target": "",
+                    "rel": "",
+                    "objectType": "page",
+                    "objectId": "18",
+                    "anchor": ""
+                },
+                {
+                    "id": "44",
+                    "label": "Our team",
+                    "href": "http://127.0.0.1:4397/?page_id=19",
+                    "parentId": "",
+                    "cls": "",
+                    "target": "",
+                    "rel": "",
+                    "objectType": "page",
+                    "objectId": "19",
+                    "anchor": ""
+                },
+                {
+                    "id": "45",
+                    "label": "Your first visit",
+                    "href": "http://127.0.0.1:4397/?page_id=20",
+                    "parentId": "",
+                    "cls": "",
+                    "target": "",
+                    "rel": "",
+                    "objectType": "page",
+                    "objectId": "20",
+                    "anchor": ""
+                },
+                {
+                    "id": "46",
+                    "label": "Patient information",
+                    "href": "http://127.0.0.1:4397/?page_id=21",
+                    "parentId": "",
+                    "cls": "",
+                    "target": "",
+                    "rel": "",
+                    "objectType": "page",
+                    "objectId": "21",
+                    "anchor": ""
+                },
+                {
+                    "id": "47",
+                    "label": "Contact",
+                    "href": "http://127.0.0.1:4397/?page_id=22",
+                    "parentId": "",
+                    "cls": "",
+                    "target": "",
+                    "rel": "",
+                    "objectType": "page",
+                    "objectId": "22",
+                    "anchor": ""
+                }
+            ]
+        }
+    ],
+    "hydratedEditorNav": [
+        {
+            "id": "dental-a2-1",
+            "items": [
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=18",
+                    "label": "Treatments"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=19",
+                    "label": "Our team"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=20",
+                    "label": "Your first visit"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=21",
+                    "label": "Patient information"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=22",
+                    "label": "Contact"
+                }
+            ]
+        }
+    ],
+    "globalDocumentNav": [
+        {
+            "id": "dental-a2-1",
+            "items": [
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=18",
+                    "label": "Treatments"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=19",
+                    "label": "Our team"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=20",
+                    "label": "Your first visit"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=21",
+                    "label": "Patient information"
+                },
+                {
+                    "href": "http://127.0.0.1:4397/?page_id=22",
+                    "label": "Contact"
+                }
+            ]
+        }
+    ],
+    "globalFallbackHrefs": [
+        "http://127.0.0.1:4397/?page_id=17",
+        "http://127.0.0.1:4397/?page_id=18",
+        "http://127.0.0.1:4397/?page_id=19",
+        "http://127.0.0.1:4397/?page_id=20",
+        "http://127.0.0.1:4397/?page_id=21",
+        "http://127.0.0.1:4397/?page_id=22",
+        "http://127.0.0.1:4397/?page_id=22"
+    ],
+    "themeBoundHrefs": [
+        "http://127.0.0.1:4397/?page_id=17",
+        "http://127.0.0.1:4397/?page_id=18",
+        "http://127.0.0.1:4397/?page_id=19",
+        "http://127.0.0.1:4397/?page_id=20",
+        "http://127.0.0.1:4397/?page_id=21",
+        "http://127.0.0.1:4397/?page_id=22",
+        "http://127.0.0.1:4397/?page_id=22"
+    ],
+    "nativeMenus": [
+        {
+            "menu": "Pagecraft Primary navigation",
+            "title": "Treatments",
+            "url": "http://127.0.0.1:4397/?page_id=18",
+            "object": "page",
+            "objectId": "18",
+            "type": "post_type"
+        },
+        {
+            "menu": "Pagecraft Primary navigation",
+            "title": "Our team",
+            "url": "http://127.0.0.1:4397/?page_id=19",
+            "object": "page",
+            "objectId": "19",
+            "type": "post_type"
+        },
+        {
+            "menu": "Pagecraft Primary navigation",
+            "title": "Your first visit",
+            "url": "http://127.0.0.1:4397/?page_id=20",
+            "object": "page",
+            "objectId": "20",
+            "type": "post_type"
+        },
+        {
+            "menu": "Pagecraft Primary navigation",
+            "title": "Patient information",
+            "url": "http://127.0.0.1:4397/?page_id=21",
+            "object": "page",
+            "objectId": "21",
+            "type": "post_type"
+        },
+        {
+            "menu": "Pagecraft Primary navigation",
+            "title": "Contact",
+            "url": "http://127.0.0.1:4397/?page_id=22",
+            "object": "page",
+            "objectId": "22",
+            "type": "post_type"
+        }
+    ],
+    "pages": [
+        {
+            "id": 17,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=17",
+            "preview": "http://127.0.0.1:4397/?page_id=17&preview=true"
+        },
+        {
+            "id": 18,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=18",
+            "preview": "http://127.0.0.1:4397/?page_id=18&preview=true"
+        },
+        {
+            "id": 19,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=19",
+            "preview": "http://127.0.0.1:4397/?page_id=19&preview=true"
+        },
+        {
+            "id": 20,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=20",
+            "preview": "http://127.0.0.1:4397/?page_id=20&preview=true"
+        },
+        {
+            "id": 21,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=21",
+            "preview": "http://127.0.0.1:4397/?page_id=21&preview=true"
+        },
+        {
+            "id": 22,
+            "status": "draft",
+            "permalink": "http://127.0.0.1:4397/?page_id=22",
+            "preview": "http://127.0.0.1:4397/?page_id=22&preview=true"
+        }
+    ]
+}

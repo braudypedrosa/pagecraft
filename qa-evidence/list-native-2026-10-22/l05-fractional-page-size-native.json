@@ -1,0 +1,13 @@
+{
+  "authoredPerPage": 2.5,
+  "first": [
+    "2. Community workshop and accessibility review for local teams",
+    "3. Community workshop and accessibility review for local teams"
+  ],
+  "next": [
+    "5. Community workshop and accessibility review for local teams",
+    "6. Community workshop and accessibility review for local teams"
+  ],
+  "pagination": "Previous\n1\n2\n3\n4\n5\n6\n7\n8\n9\nNext",
+  "note": "Field persists2.5 but effective page size2; no lost items in first-to-next transition. UI integer consistency under source review."
+}

@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-21",
+  "status": "source review pending; no build or native acceptance yet",
+  "candidate": "component-insertion-ca2a2cf",
+  "ownership": [
+    "NAV_JS only in app/src/core/index.ts",
+    "pagecraft-mobile-menu max-height rule only in app/src/core/index.ts",
+    "tests/mobile-menu-placement.test.mjs",
+    "qa-evidence/mobile-menu-placement-2026-10-21/"
+  ],
+  "preserved": "Existing insertion-worker Core insertion sections, builder findDrop and tests unchanged by this worker.",
+  "policy": [
+    "Actual header rectangle when present, otherwise body toggle rectangle.",
+    "Prefer below if content fits, otherwise choose larger side; equal-space tie stays below.",
+    "Measure opened hidden popover scrollHeight, bound max-height to chosen viewport space, reset fresh-open scroll.",
+    "Existing fullscreen lifecycle and geometry left unchanged.",
+    "Resize and window scroll update dropdown position; close/reparent/focus/overflow behavior retained."
+  ],
+  "checks": {
+    "red": {
+      "failed": 8,
+      "passed": 2,
+      "log": "logs/red.log"
+    },
+    "focused": {
+      "files": 5,
+      "tests": 72,
+      "result": "pass",
+      "log": "logs/focused.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    }
+  },
+  "remaining": [
+    "Root source review before full build.",
+    "Actual built-in-browser header/body near-bottom, compact viewport, custom menu, transformed header and fullscreen acceptance.",
+    "Combined full-suite/build/determinism/gallery gates owned by root."
+  ],
+  "limits": [
+    "DOM geometry mocks prove runtime policy and lifecycle, not actual CSS layout or native popover top-layer placement.",
+    "No build, browser, Main, WordPress, baseline, commit or push work performed.",
+    "Very large headers can leave little space on either side; the policy uses the larger available region and keeps internal scrolling.",
+    "Post-open content growth without resize/window scroll is not newly observed; no ResizeObserver was added in this bounded patch."
+  ],
+  "sha256": {
+    "app/src/core/index.ts": "c00b92190c88eab729e4c0bce76feb581e69dcd29dde55218470710d2599676b",
+    "tests/mobile-menu-placement.test.mjs": "9fb8e66a1297f7cd7f84e937a4a8519c795e70cb847e2670ff0508bc38523c75"
+  }
+}

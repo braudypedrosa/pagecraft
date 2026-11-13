@@ -1,0 +1,3 @@
+tests/component-rich-editing.test.tsx(22,46): error TS2339: Property 'HTMLElement' does not exist on type 'Window'.
+tests/component-rich-editing.test.tsx(65,13): error TS2322: Type 'boolean' is not assignable to type 'void | Promise<void>'.
+tests/component-rich-editing.test.tsx(65,55): error TS2551: Property 'Event' does not exist on type 'Window'. Did you mean 'event'?

@@ -1,0 +1,6 @@
+{
+  "capture-one": "Incomplete preflight. Missing pressKey adapter, not accepted.",
+  "capture-accepted-one": "Complete24, compared toapprovedbaseline, allPNGbytesidentical",
+  "capture-accepted-two": "Complete24, AB24pass",
+  "cpuViewportMedia": "Explicitlyreset, tab61"
+}

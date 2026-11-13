@@ -57,7 +57,9 @@ Older releases are written to private
 contains the archive SHA-256 and a complete inventory of bytes, paths, modes and
 symlink targets. Both archive and unchanged source are verified before removing
 the expanded inactive directory. Corrupt or unverifiable archives stop cleanup.
-Verified archives expire after 30 days. Existing legacy archive directories are
+Verified archives expire after 30 days, or sooner once more than 40 archives or 4 GiB
+are kept: the newest are kept first, so frequent deploys cannot fill the account quota.
+A receipt with no archive time is never expired. Existing legacy archive directories are
 not adopted or deleted automatically.
 
 Before unpacking, the receiver checks filesystem free bytes/inodes and reserves

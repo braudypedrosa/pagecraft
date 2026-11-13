@@ -1,6 +1,6 @@
 import type { Doc, NavItem, Node as PagecraftNode } from '../../app/src/core/types.ts';
 import {
-  SCHEMA, assetFile, eachNode, exportTargets, slugify, wordpressStyles
+  SCHEMA, assetFile, eachNode, exportTargets, hasRichTabPanels, pageTrees, slugify, wordpressStyles
 } from '../../app/src/core/index.ts';
 import { adoptHostDocument } from '../../app/src/host/schema.ts';
 import {
@@ -11,20 +11,25 @@ import {
   type PortablePackageKind, type PortablePackageManifestV1,
   type PortablePackageProvenanceV1
 } from '../../app/src/package/types.ts';
+import {
+  portableRendererRevisionForSchema, portableRendererVersionForSchema, supportsPortableRendererContract
+} from '../../app/src/package/renderer-version.ts';
 import { ALLOWED as ALLOWED_ASSET_TYPES, type Asset } from './assets.ts';
 import {
   assertSafeStaticSvg, canonicalJson, sha256, utf8ByteCompare
 } from './releases.ts';
 import { renderSite } from './render.ts';
 import { createPortableZip, extractPortableZip } from './portable-zip.ts';
+import { validateNativeTabRelations } from './template-draft-validation.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const DOCUMENT_PATH = 'source/document.json' as const;
 const PROVENANCE_PATH = 'source/provenance.json' as const;
 const DEPENDENCIES_PATH = 'source/dependencies.json' as const;
-const RENDERER_VERSION = `pagecraft-core-${SCHEMA}`;
 const HASH = /^[a-f0-9]{64}$/;
+// Preserve the source marker and legacy runtime for byte-identical schema-14 archives.
+const LEGACY_TEXT_TABS_SCHEMA = 14;
 
 interface PackageContent {
   path: string;
@@ -82,13 +87,16 @@ const nodes = (tree: PagecraftNode[]) => {
 const treesWithRegions = (doc: Doc) => {
   const rows: Array<{ region: PortableMenuDependencyV1['region']; tree: PagecraftNode[] }> = [
     { region: 'header', tree: doc.header },
-    ...doc.pages.map(page => ({ region: 'page' as const, tree: page.tree })),
+    ...doc.pages.flatMap(page => pageTrees(page).map(tree => ({ region: 'page' as const, tree }))),
     { region: 'footer', tree: doc.footer },
     ...(doc.meta.components || []).map(component => ({ region: 'component' as const, tree: [component.node] })),
     ...(doc.meta.blocks || []).map(block => ({ region: 'block' as const, tree: [block.node] }))
   ];
   return rows;
 };
+
+const documentHasRichTabs = (doc: Doc) => treesWithRegions(doc)
+  .some(({ tree }) => nodes(tree).some(hasRichTabPanels));
 
 const cmsCounts = (doc: Doc) => {
   let boundNodes = 0;
@@ -171,9 +179,31 @@ const mimeFor = (path: string) => {
 };
 
 const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
+  /* Review each future schema before converting it for an installed WordPress reader. */
+  if (![14, 15, 16].includes(doc.schemaVersion)) {
+    throw new Error('Portable page compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the page exporter before converting a newer project.');
+  }
   const page = doc.pages.find(candidate => candidate.id === pageId);
   if (!page) throw new Error(`Pagecraft page ${pageId} does not exist`);
-  return structuredClone({ ...doc, pages: [page] });
+  /* A page handoff is independent of its source site. Materialize the effective shell into
+     the globals the v1 WordPress receiver understands, with one stored copy of every id. */
+  const selected = structuredClone({ ...doc,
+    header: page.header === undefined ? doc.header : page.header || [],
+    footer: page.footer === undefined ? doc.footer : page.footer || [],
+    pages: [page]
+  });
+  delete selected.pages[0].header;
+  delete selected.pages[0].footer;
+  const schema = documentHasRichTabs(selected) ? 15 : 14;
+  selected.schemaVersion = schema;
+  (selected as Doc & { v: number }).v = schema;
+  return selected;
+};
+
+const assertPortableRegions = (doc: Doc) => {
+  if (doc.pages.some(page => page.header !== undefined || page.footer !== undefined)) {
+    throw new Error('Portable package v1 cannot carry per-page header or footer overrides. Export one page as a portable page package, or keep the lossless native project JSON.');
+  }
 };
 
 function packageAssets(doc: Doc, input: readonly Asset[]) {
@@ -204,18 +234,51 @@ function validateProvenance(value: PortablePackageProvenanceV1) {
 
 function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly Asset[], provenance: PortablePackageProvenanceV1, pageId?: string): PortablePackageBuild {
   validateProvenance(provenance);
+  validateNativeTabRelations(rawDocument);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
+  assertPortableRegions(document);
+  if (![14, 15, 16].includes(document.schemaVersion)) {
+    throw new Error('Portable compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the exporter before converting a newer project.');
+  }
+  const raw = rawDocument && typeof rawDocument === 'object' && !Array.isArray(rawDocument)
+    ? rawDocument as Record<string, unknown> : {};
+  const rawSchema = raw.schemaVersion ?? raw.v;
+  const richTabs = documentHasRichTabs(document);
+  // Preserve the source contract for read-only exports of documents already using
+  // renderer 2/3. Schema 16 is a newer editor schema and is still downgraded to the
+  // reviewed portable contract selected from its capabilities below.
+  const preserveSourceSchema = rawSchema === 15 || (rawSchema === 14 && !richTabs);
+  const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
+  const renderDocument = structuredClone(document);
+  // Editable panel children need schema 15 / renderer 3. Only a document without that
+  // capability may use the legacy receiver, after its page-owned regions were flattened.
+  const packageSchemaVersion = preserveSourceSchema
+    ? rawSchema as number
+    : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
+  packageDocument.schemaVersion = packageSchemaVersion;
+  packageDocument.v = packageSchemaVersion;
+  renderDocument.schemaVersion = packageSchemaVersion;
+  (renderDocument as Doc & { v?: number }).v = packageSchemaVersion;
+  if (preserveSourceSchema) {
+    if (Object.hasOwn(raw, 'schemaVersion')) packageDocument.schemaVersion = raw.schemaVersion as number;
+    else delete packageDocument.schemaVersion;
+    if (Object.hasOwn(raw, 'v')) packageDocument.v = raw.v as number;
+    else delete packageDocument.v;
+    renderDocument.schemaVersion = rawSchema as number;
+    if (Object.hasOwn(raw, 'v')) (renderDocument as Doc & { v?: number }).v = raw.v as number;
+    else delete (renderDocument as Doc & { v?: number }).v;
+  }
   const dependencies = dependenciesOf(document);
   const selectedAssets = packageAssets(document, assets);
-  const rendered = renderSite(document, selectedAssets);
+  const rendered = renderSite(renderDocument, selectedAssets);
   const wordpressStyleFiles = new Map(exportTargets().map(target => [
     target.path,
     wordpressStyles(target.pg)
   ]));
   const firstStyles = wordpressStyleFiles.values().next().value as ReturnType<typeof wordpressStyles> | undefined;
   const content: PackageContent[] = [
-    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(document) },
+    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(packageDocument) },
     { path: PROVENANCE_PATH, role: 'provenance', mediaType: 'application/json', bytes: jsonBytes(provenance) },
     { path: DEPENDENCIES_PATH, role: 'dependencies', mediaType: 'application/json', bytes: jsonBytes(dependencies) },
     {
@@ -259,8 +322,9 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     format: kind === 'site' ? SITE_PACKAGE_FORMAT_V1 : PAGE_PACKAGE_FORMAT_V1,
     packageVersion: 1,
     kind,
-    schemaVersion: document.schemaVersion,
-    rendererVersion: RENDERER_VERSION,
+    schemaVersion: packageSchemaVersion,
+    rendererVersion: portableRendererVersionForSchema(packageSchemaVersion),
+    rendererRevision: portableRendererRevisionForSchema(packageSchemaVersion),
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
@@ -344,9 +408,14 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(manifest.schemaVersion) || manifest.schemaVersion < 1) {
     throw new Error('portable package schema version is invalid');
   }
-  const renderer = /^pagecraft-core-(\d+)$/.exec(manifest.rendererVersion || '');
-  if (!renderer || Number(renderer[1]) > SCHEMA || Number(renderer[1]) !== manifest.schemaVersion) {
-    throw new Error(`portable package requires unsupported renderer ${String(manifest.rendererVersion || 'unknown')}`);
+  if (!supportsPortableRendererContract(
+    manifest.rendererVersion,
+    manifest.rendererRevision,
+    manifest.schemaVersion,
+    SCHEMA,
+  )) {
+    const renderer = [manifest.rendererVersion, manifest.rendererRevision].filter(Boolean).join(' / ');
+    throw new Error(`portable package requires unsupported renderer ${renderer || 'unknown'}`);
   }
   if (manifest.documentPath !== DOCUMENT_PATH || manifest.provenancePath !== PROVENANCE_PATH
     || manifest.dependenciesPath !== DEPENDENCIES_PATH
@@ -390,7 +459,9 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(supplied) || supplied !== manifest.schemaVersion) {
     throw new Error('portable package document schema does not match its manifest');
   }
+  validateNativeTabRelations(rawDocument);
   const document = adoptHostDocument(rawDocument);
+  assertPortableRegions(document);
   const provenance = canonicalObject<PortablePackageProvenanceV1>(files.get(PROVENANCE_PATH)!, 'portable package provenance');
   validateProvenance(provenance);
   const dependencies = canonicalObject<PortablePackageDependenciesV1>(files.get(DEPENDENCIES_PATH)!, 'portable package dependencies');
@@ -416,5 +487,6 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   return { manifest, document, provenance, dependencies, files, sha256: sha256(archive) };
 }
 
-export const portablePackageRendererVersion = RENDERER_VERSION;
+export const portablePackageRendererVersion = portableRendererVersionForSchema(SCHEMA);
+export const portablePackageRendererRevision = portableRendererRevisionForSchema(SCHEMA);
 export const selectPortablePageDocument = (document: Doc, pageId: string) => packageDocumentForPage(document, pageId);

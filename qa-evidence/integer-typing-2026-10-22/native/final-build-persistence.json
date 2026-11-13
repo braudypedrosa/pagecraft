@@ -1,0 +1,38 @@
+{
+  "galleryColumnFields": [
+    {
+      "device": "Desktop",
+      "value": "3"
+    },
+    {
+      "device": "Tablet",
+      "value": "3"
+    },
+    {
+      "device": "Mobile",
+      "value": "3"
+    }
+  ],
+  "perField": "3",
+  "perRows": [
+    {
+      "device": "Desktop",
+      "count": 3,
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Tablet",
+      "count": 3,
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "count": 3,
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

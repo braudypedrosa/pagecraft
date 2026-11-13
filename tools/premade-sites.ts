@@ -4,6 +4,7 @@ import { newWorkflow, promotionFindings, workflowSchema } from '../premade-sites
 import { dirname, relative, resolve, sep } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import type { Doc } from '../app/src/core/types.ts';
+import { adoptHostDocument } from '../app/src/host/schema.ts';
 import {
   assertTemplateDocument,
   TEMPLATE_SOURCE_FORMAT,
@@ -12,6 +13,7 @@ import {
 } from '../premade-sites/lib/authoring.ts';
 import { dimensions, sniff, type Asset } from '../server/src/assets.ts';
 import { createSitePackage, validatePortablePackage } from '../server/src/portable-packages.ts';
+import { canonicalJson } from '../server/src/releases.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = resolve(root, 'premade-sites');
@@ -54,10 +56,16 @@ async function compile(directory: string) {
   const config = await readConfig(directory);
   const sourcePath = resolve(directory, config.source);
   if (!inside(directory, sourcePath)) throw new Error('template source escaped its release directory');
-  const module = await import(`${pathToFileURL(sourcePath).href}?build=${Date.now()}`) as Record<string, unknown>;
-  const factory = module[config.sourceExport];
-  if (typeof factory !== 'function') throw new Error(`${config.source} does not export ${config.sourceExport}()`);
-  const document = await (factory as () => Doc | Promise<Doc>)();
+  let document: Doc;
+  if (config.sourceKind === 'document-json-v1') {
+    const source = JSON.parse(await readFile(sourcePath, 'utf8')) as unknown;
+    document = adoptHostDocument(source as Parameters<typeof adoptHostDocument>[0]);
+  } else {
+    const module = await import(`${pathToFileURL(sourcePath).href}?build=${Date.now()}`) as Record<string, unknown>;
+    const factory = module[config.sourceExport];
+    if (typeof factory !== 'function') throw new Error(`${config.source} does not export ${config.sourceExport}()`);
+    document = await (factory as () => Doc | Promise<Doc>)();
+  }
   assertTemplateDocument(document, config);
 
   const assets: Asset[] = [];
@@ -69,22 +77,33 @@ async function compile(directory: string) {
     const bytes = new Uint8Array(await readFile(path));
     const type = sniff(bytes);
     if (!type || !type.startsWith('image/')) throw new Error(`${spec.file} is not a supported image`);
-    const { w, h } = dimensions(bytes, type);
-    assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: path.split(sep).at(-1)!, type, w, h, bytes });
+    const inferred = dimensions(bytes, type);
+    const w = config.sourceKind === 'document-json-v1' && spec.width !== undefined ? spec.width : inferred.w;
+    const h = config.sourceKind === 'document-json-v1' && spec.height !== undefined ? spec.height : inferred.h;
+    assets.push({ id: spec.id, siteId: `template:${config.id}:${config.version}`, name: spec.name || path.split(sep).at(-1)!, type, w, h, bytes });
   }
 
-  const built = createSitePackage({
-    document,
-    assets,
-    provenance: {
-      format: 'pagecraft.provenance.v1',
-      origin: 'pagecraft-cloud',
-      sourceId: `template:${config.id}:${config.version}`,
-      sourceVersion: 1,
-      exportedBy: 'Pagecraft curated templates',
-    },
-  });
-  const manifest = {
+  const provenance = config.sourceKind === 'document-json-v1' && config.provenance ? config.provenance : {
+    format: 'pagecraft.provenance.v1' as const,
+    origin: 'pagecraft-cloud' as const,
+    sourceId: `template:${config.id}:${config.version}`,
+    sourceVersion: 1,
+    exportedBy: 'Pagecraft curated templates',
+  };
+  const built = createSitePackage({ document, assets, provenance });
+  const manifest = templateManifest(config, document, assets.length,
+    assets.reduce((sum, asset) => sum + asset.bytes.byteLength, 0), built.sha256);
+  return { config, document, assets, provenance, built, manifest };
+}
+
+function templateManifest(
+  config: TemplateSourceConfig,
+  document: Doc,
+  assetCount: number,
+  assetBytes: number,
+  packageSha256: string,
+) {
+  return {
     format: 'pagecraft.site-template.v1' as const,
     id: config.id,
     version: config.version,
@@ -94,12 +113,11 @@ async function compile(directory: string) {
     categories: config.categories,
     pages: document.pages.map(page => ({ id: page.id, name: page.name, slug: page.slug })),
     packageFile: PACKAGE_FILE,
-    packageSha256: built.sha256,
+    packageSha256,
     previewPage: config.previewPage,
-    assetCount: assets.length,
-    assetBytes: assets.reduce((sum, asset) => sum + asset.bytes.byteLength, 0),
+    assetCount,
+    assetBytes,
   };
-  return { config, document, assets, built, manifest };
 }
 
 async function build(id?: string, version?: string) {
@@ -136,14 +154,57 @@ async function checked(directory: string) {
   const manifest = JSON.parse(await readFile(resolve(artifactDirectory, 'manifest.json'), 'utf8'));
   const packageBytes = new Uint8Array(await readFile(resolve(artifactDirectory, PACKAGE_FILE)));
   const stored = validatePortablePackage(packageBytes);
-  if (JSON.stringify(manifest) !== JSON.stringify(output.manifest)) throw new Error(`${output.config.id}@${output.config.version} manifest is stale`);
-  if (stored.sha256 !== output.built.sha256) throw new Error(`${output.config.id}@${output.config.version} package is stale`);
-  if (!released) for (const file of stored.manifest.files) {
-    if (!['compiled-page', 'compiled-support', 'asset'].includes(file.role)) continue;
-    const path = resolve(artifactDirectory, 'preview', file.path.replace(/^compiled\//, ''));
-    if (!await exists(path) || digest(await readFile(path)) !== digest(stored.files.get(file.path)!)) throw new Error(`preview:${file.path}: missing or changed; rebuild draft`);
+  const rebuilt = validatePortablePackage(output.built.bytes);
+  if (released) {
+    assertTemplateDocument(stored.document, output.config);
+    if (canonicalJson(stored.document) !== canonicalJson(rebuilt.document)) {
+      throw new Error(`${output.config.id}@${output.config.version} archived native document differs from source`);
+    }
+    if (canonicalJson(stored.provenance) !== canonicalJson(output.provenance)) {
+      throw new Error(`${output.config.id}@${output.config.version} archived provenance differs from source`);
+    }
+    const archivedAssets = stored.manifest.files.filter(file => file.role === 'asset');
+    const archivedById = new Map(archivedAssets.map(file => [file.asset!.id, file]));
+    if (archivedAssets.length !== output.assets.length) {
+      throw new Error(`${output.config.id}@${output.config.version} archived asset set differs from source`);
+    }
+    for (const asset of output.assets) {
+      const archived = archivedById.get(asset.id);
+      const bytes = archived && stored.files.get(archived.path);
+      if (!archived || !bytes || archived.mediaType !== asset.type
+        || archived.asset!.name !== asset.name || archived.asset!.width !== asset.w
+        || archived.asset!.height !== asset.h || digest(bytes) !== digest(asset.bytes)) {
+        throw new Error(`${output.config.id}@${output.config.version} archived asset ${asset.id} differs from source`);
+      }
+    }
+    const expectedManifest = templateManifest(
+      output.config,
+      stored.document,
+      archivedAssets.length,
+      archivedAssets.reduce((sum, file) => sum + file.bytes, 0),
+      stored.sha256,
+    );
+    if (canonicalJson(manifest) !== canonicalJson(expectedManifest)) {
+      throw new Error(`${output.config.id}@${output.config.version} released manifest does not match its archive and source config`);
+    }
+    const catalog = JSON.parse(await readFile(resolve(templateRoot, 'catalog.json'), 'utf8'));
+    const catalogRecord = catalog.templates?.find((item: { id?: string; version?: string }) =>
+      item.id === output.config.id && item.version === output.config.version);
+    if (!catalogRecord || canonicalJson(catalogRecord) !== canonicalJson(manifest)) {
+      throw new Error(`${output.config.id}@${output.config.version} catalog record does not match its released manifest`);
+    }
+  } else {
+    if (canonicalJson(manifest) !== canonicalJson(output.manifest)) throw new Error(`${output.config.id}@${output.config.version} draft manifest is stale`);
+    if (stored.sha256 !== output.built.sha256) throw new Error(`${output.config.id}@${output.config.version} draft package is stale`);
+    for (const file of stored.manifest.files) {
+      if (!['compiled-page', 'compiled-support', 'asset'].includes(file.role)) continue;
+      const path = resolve(artifactDirectory, 'preview', file.path.replace(/^compiled\//, ''));
+      if (!await exists(path) || digest(await readFile(path)) !== digest(stored.files.get(file.path)!)) throw new Error(`preview:${file.path}: missing or changed; rebuild draft`);
+    }
   }
-  return { ...output, released, artifactDirectory };
+  const rebuildReproducible = canonicalJson(manifest) === canonicalJson(output.manifest)
+    && stored.sha256 === output.built.sha256;
+  return { ...output, released, artifactDirectory, stored, packageSha256: stored.sha256, rebuildReproducible };
 }
 
 async function check(id?: string, version?: string) {
@@ -151,7 +212,13 @@ async function check(id?: string, version?: string) {
   if (!directories.length) throw new Error('no configured template releases found');
   for (const directory of directories) {
     const output = await checked(directory);
-    console.log(`checked ${output.config.id}@${output.config.version} — native document, assets, manifest and package agree (${output.released ? 'released' : 'draft'})`);
+    if (output.released && process.argv.includes('--require-reproducible') && !output.rebuildReproducible) {
+      throw new Error(`${output.config.id}@${output.config.version} archive is valid but current rebuild differs`);
+    }
+    const rebuild = output.released
+      ? `; current rebuild ${output.rebuildReproducible ? 'reproducible' : 'differs'}`
+      : '';
+    console.log(`checked ${output.config.id}@${output.config.version} — ${output.released ? 'released archive integrity and source parity' : 'draft reproducibility'} valid${rebuild}`);
   }
 }
 
@@ -160,7 +227,7 @@ async function readiness(directory: string, output: Awaited<ReturnType<typeof ch
   const path = resolve(directory, 'workflow.json');
   if (!await exists(path)) return { record: null, findings: ['workflow: missing workflow.json'] };
   const record = JSON.parse(await readFile(path, 'utf8'));
-  const findings = promotionFindings(record, output.built.sha256, output.document.pages.map(p => p.slug));
+  const findings = promotionFindings(record, output.packageSha256, output.document.pages.map(p => p.slug));
   const parsed = workflowSchema.safeParse(record);
   if (parsed.success) {
     const w = parsed.data;
@@ -179,7 +246,15 @@ async function status(id?: string, version?: string) {
     try {
       const output = await checked(directory);
       const review = output.released ? { findings: [] } : await readiness(directory, output);
-      console.log(JSON.stringify({ id: output.config.id, version: output.config.version, packageSha256: output.built.sha256, status: output.released ? 'released' : review.findings.length ? 'revision' : 'ready', findings: review.findings }, null, 2));
+      console.log(JSON.stringify({
+        id: output.config.id,
+        version: output.config.version,
+        packageSha256: output.packageSha256,
+        status: output.released ? 'released' : review.findings.length ? 'revision' : 'ready',
+        archiveIntegrity: output.released ? 'valid' : undefined,
+        rebuildReproducible: output.rebuildReproducible,
+        findings: review.findings,
+      }, null, 2));
     } catch (error) {
       console.log(JSON.stringify({ directory: relative(root, directory), status: 'unbuilt-or-stale', findings: [String(error)] }, null, 2));
     }
@@ -189,8 +264,10 @@ async function status(id?: string, version?: string) {
 async function promote(id?: string, version?: string) {
   if (!id || !version) throw new Error('promote requires an exact id and version');
   const [directory] = await releaseDirectories(id, version);
+  if (await exists(resolve(directory, 'manifest.json')) || await exists(resolve(directory, PACKAGE_FILE))) {
+    throw new Error('released versions are immutable');
+  }
   const output = await checked(directory);
-  if (output.released || await exists(resolve(directory, PACKAGE_FILE))) throw new Error('released versions are immutable');
   const review = await readiness(directory, output);
   if (review.findings.length) throw new Error(`promotion blocked:\n${review.findings.join('\n')}`);
   // Exclusive lock serializes catalog read/modify/write across template promotions.
@@ -251,10 +328,105 @@ async function scaffold(id: string | undefined, version: string | undefined) {
   console.log(`next: author source.ts, add assets to ${CONFIG_FILE}, then run npm run template -- build ${id} ${version}`);
 }
 
+async function importDraft(id: string | undefined, version: string | undefined) {
+  if (!id || !version) throw new Error('usage: npm run template -- import-draft <id> <version> --package=path --name=Name --sample-name=Name --description=Text --categories=Industry,Type');
+  const packagePath = option('package');
+  const name = option('name');
+  const sampleName = option('sample-name');
+  const description = option('description');
+  const categories = option('categories')?.split(',').map(value => value.trim()).filter(Boolean);
+  if (!packagePath || !name || !sampleName || !description || !categories?.length) {
+    throw new Error('import-draft requires --package, --name, --sample-name, --description, and --categories');
+  }
+  const archive = new Uint8Array(await readFile(resolve(packagePath)));
+  const imported = validatePortablePackage(archive);
+  if (imported.manifest.kind !== 'site') throw new Error('import-draft requires a portable site package');
+  const directory = resolve(templateRoot, id, version);
+  if (await exists(directory)) throw new Error(`${relative(root, directory)} already exists; nothing was overwritten`);
+
+  const assetRecords = imported.manifest.files.filter(file => file.role === 'asset');
+  const assets = assetRecords.map(file => {
+    const asset = file.asset!;
+    const extension = file.mediaType === 'image/svg+xml' ? '.svg'
+      : file.mediaType === 'image/png' ? '.png'
+        : file.mediaType === 'image/jpeg' ? '.jpg'
+          : file.mediaType === 'image/webp' ? '.webp'
+            : file.mediaType === 'image/gif' ? '.gif'
+              : file.mediaType === 'image/avif' ? '.avif' : '';
+    if (!extension) throw new Error(`unsupported imported asset media type: ${file.mediaType}`);
+    return {
+      id: asset.id,
+      file: `assets/${asset.id}${extension}`,
+      name: asset.name,
+      width: asset.width,
+      height: asset.height,
+    };
+  });
+  const config = validateTemplateSourceConfig({
+    format: TEMPLATE_SOURCE_FORMAT,
+    sourceKind: 'document-json-v1',
+    id,
+    version,
+    name,
+    sampleName,
+    description,
+    categories,
+    source: 'document.json',
+    previewPage: 'index.html',
+    assets,
+    customCssPolicy: 'native-only',
+    provenance: imported.provenance,
+    importedPackageSha256: imported.sha256,
+  });
+  await mkdir(resolve(directory, 'assets'), { recursive: true });
+  try {
+    await writeFile(resolve(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}\n`);
+    await writeFile(resolve(directory, 'document.json'), `${JSON.stringify(imported.document, null, 2)}\n`);
+    for (const [index, file] of assetRecords.entries()) {
+      await writeFile(resolve(directory, assets[index].file), imported.files.get(file.path)!);
+    }
+    await writeFile(resolve(directory, 'workflow.json'), `${JSON.stringify(newWorkflow(), null, 2)}\n`);
+    const output = await compile(directory);
+    const importedAssets = assetRecords.map(file => ({
+      id: file.asset!.id,
+      name: file.asset!.name,
+      type: file.mediaType,
+      w: file.asset!.width,
+      h: file.asset!.height,
+      sha256: digest(imported.files.get(file.path)!),
+    }));
+    const rebuiltAssets = output.assets.map(asset => ({
+      id: asset.id,
+      name: asset.name,
+      type: asset.type,
+      w: asset.w,
+      h: asset.h,
+      sha256: digest(asset.bytes),
+    }));
+    const parityFindings = [
+      canonicalJson(imported.document) === canonicalJson(output.document) ? '' : 'native document',
+      canonicalJson(imported.provenance) === canonicalJson(output.provenance) ? '' : 'provenance',
+      canonicalJson(importedAssets) === canonicalJson(rebuiltAssets) ? '' : 'assets',
+    ].filter(Boolean);
+    if (parityFindings.length) {
+      throw new Error(`imported package source parity failed: ${parityFindings.join(', ')}`);
+    }
+    if (output.built.sha256 !== imported.sha256) {
+      throw new Error(`imported package source parity passed, but rebuilt package hash differs (${imported.sha256} != ${output.built.sha256}); compiled artifacts were not reproduced`);
+    }
+    await build(id, version);
+    console.log(`imported draft ${id}@${version} ${output.built.sha256} — document, assets, and provenance match ${imported.sha256}; catalog unchanged`);
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
 const [command = 'build', id, version] = process.argv.slice(2).filter(value => !value.startsWith('--'));
 if (command === 'scaffold') await scaffold(id, version);
+else if (command === 'import-draft') await importDraft(id, version);
 else if (command === 'build') await build(id, version);
 else if (command === 'check') await check(id, version);
 else if (command === 'status') await status(id, version);
 else if (command === 'promote') await promote(id, version);
-else throw new Error('usage: npm run template -- <scaffold|build|check|status|promote> [id] [version]');
+else throw new Error('usage: npm run template -- <scaffold|import-draft|build|check|status|promote> [id] [version]');

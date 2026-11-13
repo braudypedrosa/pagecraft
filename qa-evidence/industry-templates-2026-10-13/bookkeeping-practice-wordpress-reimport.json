@@ -1,0 +1,40 @@
+{
+  "packageSha256": "82be8c808123ae17e4a14826f4fd70664164704fc4f9529452ebe12871bbe53b",
+  "result": {
+    "jobId": 2176,
+    "created": 0,
+    "updated": 4,
+    "absent": 0,
+    "projectId": "template:bookkeeping-practice:1.0.0",
+    "sourceVersion": 1,
+    "homepageId": 2089
+  },
+  "pages": [
+    {
+      "id": 2089,
+      "name": "Home",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/index-20/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2089"
+    },
+    {
+      "id": 2090,
+      "name": "Services",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/services-13/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2090"
+    },
+    {
+      "id": 2091,
+      "name": "Approach",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/approach-3/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2091"
+    },
+    {
+      "id": 2092,
+      "name": "Contact",
+      "url": "http://pagecraft-template-acceptance-2026-10-08.local/contact-16/",
+      "editor": "http://pagecraft-template-acceptance-2026-10-08.local/wp-admin/admin.php?page=pagecraft-editor&post=2092"
+    }
+  ],
+  "wordpress": "7.1.3",
+  "php": "8.1.29"
+}

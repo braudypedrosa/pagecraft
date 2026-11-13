@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-anchor-ui-693cb90
+
+
+ Test Files  4 passed (4)
+      Tests  18 passed (18)
+   Start at  12:43:48
+   Duration  2.58s (transform 295ms, setup 0ms, import 433ms, tests 745ms, environment 1.00s)
+

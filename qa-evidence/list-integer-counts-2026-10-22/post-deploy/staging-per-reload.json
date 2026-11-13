@@ -1,0 +1,43 @@
+{
+  "stored": {
+    "min": "0",
+    "step": "1",
+    "value": "3"
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pages": "Previous\n1\n2\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Tablet",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pages": "Previous\n1\n2\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "titles": [
+        "Courtyard",
+        "Reading Room",
+        "Community Garden"
+      ],
+      "pages": "Previous\n1\n2\nNext",
+      "overflow": false
+    }
+  ],
+  "nextMobile": [
+    "Workshop",
+    "Shared Kitchen"
+  ]
+}

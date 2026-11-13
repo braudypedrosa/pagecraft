@@ -1,0 +1,81 @@
+{
+  "bindingKeyboard84": "Workshop category · option",
+  "categoryBinding84": "Workshop category · option",
+  "bindingReload84": [
+    {
+      "device": "Desktop",
+      "fields": [
+        {
+          "label": "A headline that carries we · Heading · Heading text · 1",
+          "value": "Workshop title shown in listings and the calendar · text"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 2",
+          "value": "— not bound —"
+        },
+        {
+          "label": "A headline that carries we · Heading · Heading text · 3",
+          "value": "Workshop category · option"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 4",
+          "value": "— not bound —"
+        }
+      ],
+      "content": [
+        "2. Community workshop and accessibility review for local teams",
+        "Accessibility"
+      ]
+    },
+    {
+      "device": "Tablet",
+      "fields": [
+        {
+          "label": "A headline that carries we · Heading · Heading text · 1",
+          "value": "Workshop title shown in listings and the calendar · text"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 2",
+          "value": "— not bound —"
+        },
+        {
+          "label": "A headline that carries we · Heading · Heading text · 3",
+          "value": "Workshop category · option"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 4",
+          "value": "— not bound —"
+        }
+      ],
+      "content": [
+        "2. Community workshop and accessibility review for local teams",
+        "Accessibility"
+      ]
+    },
+    {
+      "device": "Mobile",
+      "fields": [
+        {
+          "label": "A headline that carries we · Heading · Heading text · 1",
+          "value": "Workshop title shown in listings and the calendar · text"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 2",
+          "value": "— not bound —"
+        },
+        {
+          "label": "A headline that carries we · Heading · Heading text · 3",
+          "value": "Workshop category · option"
+        },
+        {
+          "label": "A headline that carries we · Heading · Link · 4",
+          "value": "— not bound —"
+        }
+      ],
+      "content": [
+        "2. Community workshop and accessibility review for local teams",
+        "Accessibility"
+      ]
+    }
+  ]
+}

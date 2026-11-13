@@ -1,0 +1,136 @@
+{
+  "task": "Candidate managed Follow navigation mobile-menu content",
+  "baseCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "candidatePath": "/private/tmp/pagecraft-mobile-menu-follow-candidate-75ed-v4",
+  "candidateOnly": true,
+  "frozenOverlayBefore": {
+    "app/src/core/index.ts": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+    "app/src/ui/inspector/Inspector.tsx": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+    "app/src/ui/inspector/Controls.tsx": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+    "packages/editor/src/compiler.ts": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+    "tests/collection-slider-controls.test.tsx": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+    "tests/unit-control-validation.test.tsx": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+    "tests/editor-compiler.test.ts": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298"
+  },
+  "mainFrozenOverlayStillExact": true,
+  "mainFrozenNow": {
+    "app/src/core/index.ts": "1be9a19e53cf45e350a6c7c2f4b96208d4432a89642afed31a47c6f490f220bb",
+    "app/src/ui/inspector/Inspector.tsx": "5d998981b99bf7519ddcbe1ff47894701b42d8e687d40def5b3c858326834beb",
+    "app/src/ui/inspector/Controls.tsx": "cddb2ebe22f86d90c808278c1b8be14a59802a8de1c5e42212d6e326caebcd2f",
+    "packages/editor/src/compiler.ts": "23bad7c103cc8b890871c2ad86f86ad309defe80a4cedf848c4c24d3224a82e1",
+    "tests/collection-slider-controls.test.tsx": "2083c1bb9dcedba9dffa33526a02f1495f2aa284c3c3f3aa5958bca21fa83c4d",
+    "tests/unit-control-validation.test.tsx": "69d083b29b1a7ba8200b71f640afe398c62a39edb808bb6deacfeb01adb709b5",
+    "tests/editor-compiler.test.ts": "bba51efcda66eb1b82f7448b1cc26cbd8cbb5ca8bf42bf313a1c5af87d60b298"
+  },
+  "candidateHashes": {
+    "app/src/core/types.ts": "98a2d0423534e5b9e51b48727b7cbb8ad955c6fedff6f8a3db978dec4f577722",
+    "app/src/core/index.ts": "0ea488ad1d2802c193ffa2e15c4d2f7c1963491c8360daed9da1fa9899049cdc",
+    "app/src/ui/inspector/MobileMenuBuilder.tsx": "290f501baa0258c6b2986690564f4bcb089206dd5cf71c51683980d34cc65616",
+    "app/src/ui/inspector/Inspector.tsx": "0080c7cd2e8f2e948f2f7daa82c2f95a3a893ef1bf0b8cfbe1b17afab3f395b4",
+    "tests/mobile-menu-follow-content.test.tsx": "4dc839d7de9955311633fc6a42f786fce4c06642a61416386c3fc227618489e9",
+    "tests/customer-inspector-regressions.test.tsx": "6f5f3e7f83a29ba0f0bd1287e9cd0bbb31e26560c11a86840f84b6ebd83b5c3a",
+    "tests/editor-compiler.test.ts": "89ada3e4fce233020028ea346e7d6bd0194e062c1f854005e893c77649040824"
+  },
+  "red": {
+    "command": "npx vitest run tests/mobile-menu-follow-content.test.tsx",
+    "exit": 1,
+    "summary": "1 file failed; 4 tests failed because the old source had no follow-mode/managed-link contract",
+    "log": "qa-evidence/mobile-menu-follow-candidate/red.log"
+  },
+  "green": {
+    "command": "npx vitest run tests/mobile-menu-follow-content.test.tsx tests/mobile-nav-menu.test.mjs tests/customer-rendering-regressions.test.ts tests/customer-inspector-regressions.test.tsx tests/full-customer-roundtrip.test.ts tests/editor-compiler.test.ts tests/collection-slider-controls.test.tsx tests/unit-control-validation.test.tsx",
+    "exit": 0,
+    "summary": "9 files passed; 99 tests passed",
+    "log": "qa-evidence/mobile-menu-follow-candidate/focused-owner-history.log"
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "exit": 0,
+    "log": "qa-evidence/mobile-menu-follow-candidate/typecheck-owner-history.log"
+  },
+  "wordpressHydration": {
+    "command": "npx vitest run tests/editor-compiler.test.ts -t 'renders a followed mobile layout'",
+    "exit": 0,
+    "summary": "1 passed; 10 skipped",
+    "log": "qa-evidence/mobile-menu-follow-candidate/wordpress-follow.log"
+  },
+  "impeccableDetector": {
+    "issues": 0,
+    "targets": [
+      "app/src/ui/inspector/MobileMenuBuilder.tsx",
+      "app/src/ui/inspector/Inspector.tsx"
+    ]
+  },
+  "reviewPatch": "qa-evidence/mobile-menu-follow-candidate/candidate.patch",
+  "protectedMain11": {
+    "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "exactCount": 11,
+    "total": 11,
+    "allExact": true,
+    "hashes": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    }
+  },
+  "excluded": [
+    "main source writes",
+    "npm install",
+    "builds",
+    "full suite",
+    "golden or baseline updates",
+    "browser or WordPress writes",
+    "commit or push"
+  ],
+  "uncertainties": [
+    "No browser/native acceptance or generated-output review was authorized for this candidate."
+  ],
+  "ownerContext": {
+    "strategy": "one-shot exact parent context prepared by MobileMenuBuilder immediately before componentOpen; no owner scan or fallback",
+    "clearedOn": [
+      "componentClose",
+      "restore",
+      "ordinary or mismatched componentOpen"
+    ],
+    "validated": [
+      "second of two shared-layout parents previews and returns to second",
+      "close/reopen first resolves first",
+      "ordinary direct open has no inherited owner",
+      "deleted owner disables action and never falls back",
+      "reusable-definition owner returns to exact component",
+      "restore clears active and pending context"
+    ]
+  },
+  "uiEntryPoints": {
+    "actualCalls": [
+      "app/src/ui/inspector/MobileMenuBuilder.tsx"
+    ],
+    "newBuildDefault": "MobileMenuBuilder resolves a new Nav to Follow and passes the resolved mode explicitly to ensureMobileMenuComponent",
+    "compatibilityDefault": "ensureMobileMenuComponent(node) remains Custom for legacy/API callers; regression asserted",
+    "allActualEntryPointsExplicit": true
+  },
+  "reviewPatchSha256": "63e815b184988b4d0bb55e88d6f79ebeb70d7ac036030f39fdeef249dd47b75c",
+  "ownerHistory": {
+    "red": {
+      "command": "npx vitest run tests/mobile-menu-follow-content.test.tsx -t 'style undo and redo keep the exact valid Follow owner active'",
+      "exit": 1,
+      "failure": "Undo restored the style but managed links were empty because restore cleared the owner context",
+      "log": "qa-evidence/mobile-menu-follow-candidate/owner-history-red.log"
+    },
+    "green": {
+      "exit": 0,
+      "summary": "Undo and Redo retain links and enabled action for a still-valid exact owner",
+      "log": "qa-evidence/mobile-menu-follow-candidate/owner-history-green.log"
+    },
+    "validation": "Only undo/redo request preservation. restore() remains clearing by default; preserved context is revalidated against the restored exact location, component existence, and same menu reference.",
+    "invalidRegression": "A history snapshot whose owner points at a different menu definition clears context and disables the action."
+  }
+}

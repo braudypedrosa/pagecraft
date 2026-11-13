@@ -1,0 +1,26 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "coastal-rentals",
+  "version": "1.0.5",
+  "name": "Coastal Rental Collection",
+  "sampleName": "Marea",
+  "description": "A calm, image-led multi-property site for independent vacation-rental hosts.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality",
+    "Travel"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "marea-stone-cove-house", "file": "../1.0.4/assets/stone-cove-house.webp" },
+    { "id": "marea-pine-court-house", "file": "../1.0.4/assets/pine-court-house.webp" },
+    { "id": "marea-coastal-living-room", "file": "../1.0.4/assets/coastal-living-room.webp" },
+    { "id": "marea-harbor-studio", "file": "../1.0.4/assets/harbor-studio.webp" },
+    { "id": "marea-garden-casita", "file": "../1.0.4/assets/garden-casita.webp" },
+    { "id": "marea-coastal-path", "file": "../1.0.4/assets/coastal-path.webp" },
+    { "id": "marea-host-preparation", "file": "../1.0.4/assets/host-preparation.webp" }
+  ],
+  "customCssPolicy": "native-only"
+}

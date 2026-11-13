@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-20T21:43:45.154Z",
+  "environment": "localhost4954 faithful transformed WordPress shell",
+  "generatorSha256": "b5616f945b769fc12bf764a9dd1497381d4a29e6cc4fb0eeeb97e30306832c8b",
+  "draft": "Final repeated Save draft",
+  "actions": [
+    "Save",
+    "Close dialog",
+    "Save",
+    "Site checks",
+    "Return to action"
+  ],
+  "secondSaveModal": "remains closed until explicit Return to action",
+  "returnedDialog": "Reload Pagecraft to keep editing\nPagecraft was updated while this editor was open.\nYour latest changes are still in this tab and have not been saved. Download a copy before reloading.\nDownload my copy\nReload builder",
+  "accepted": true
+}

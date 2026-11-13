@@ -1,0 +1,346 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Isolated Slider keyboard-runtime verification from committed parent b4dacbf with source-only overlays.",
+  "parentCommit": "b4dacbf8b1df5c93fed6628fa7e2bca466550bee",
+  "exports": [
+    "/tmp/pagecraft-slider-one-b4",
+    "/tmp/pagecraft-slider-two-b4"
+  ],
+  "overlayCount": 2,
+  "overlays": {
+    "app/src/core/index.ts": {
+      "sha256": "ea77a81e7ac5153409f45e2172323da51b123603755535de1dc6d28ab1e31940",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/slider-keyboard-runtime.test.ts": {
+      "sha256": "e87032a70df441a6c236d3e37642f3fabdee8506652bc3c7012cbc38a435ead1",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-slider-one-b4",
+        "log": "/tmp/pagecraft-slider-one-b4/npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-slider-two-b4",
+        "log": "/tmp/pagecraft-slider-two-b4/npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-slider-one-b4",
+        "log": "/tmp/pagecraft-slider-one-b4/package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-slider-two-b4",
+        "log": "/tmp/pagecraft-slider-two-b4/package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-slider-one-b4",
+        "log": "/tmp/pagecraft-slider-one-b4/demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-slider-two-b4",
+        "log": "/tmp/pagecraft-slider-two-b4/demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "focusedRegression": {
+      "command": "npx vitest run tests/slider-keyboard-runtime.test.ts tests/slider-default-controls.test.ts tests/core.test.ts -t 'Slider|slider'",
+      "one": {
+        "cwd": "/tmp/pagecraft-slider-one-b4",
+        "log": "/tmp/pagecraft-slider-one-b4/focused-test.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 11,
+        "testsSkipped": 654
+      },
+      "two": {
+        "cwd": "/tmp/pagecraft-slider-two-b4",
+        "log": "/tmp/pagecraft-slider-two-b4/focused-test.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 11,
+        "testsSkipped": 654
+      }
+    },
+    "initialFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-slider-one-b4",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-slider-typecheck-failure-20261017.log",
+      "exitCode": 1,
+      "failure": "The new TypeScript test needed the repository's documented jsdom declaration suppression and an explicit cast for HTMLElement.scrollTo's overloaded signature. Both test-only issues were repaired and rechecked."
+    },
+    "fullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-slider-one-b4",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-slider-final-20261017.log",
+      "exitCode": 1,
+      "testFilesPassed": 206,
+      "testFilesFailed": 1,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 209,
+      "testsPassed": 2348,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "testsTotal": 2354,
+      "duration": "47.64s",
+      "failure": "server/tests/releases.test.ts reports that the shared WordPress golden vector changed because the exported Slider runtime changed. No golden vector was updated."
+    },
+    "reviewedFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-slider-one-b4",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-slider-reviewed-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 207,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 209,
+      "testsPassed": 2349,
+      "testsSkipped": 5,
+      "testsTotal": 2354,
+      "duration": "45.92s"
+    },
+    "goldenReview": {
+      "status": "required",
+      "performed": true,
+      "owner": "root agent",
+      "reason": "The intended generated Slider runtime changes signed release bytes and requires explicit approval before the candidate fixture is copied into main.",
+      "candidateGeneration": {
+        "command": "PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector'",
+        "one": {
+          "cwd": "/tmp/pagecraft-slider-one-b4",
+          "log": "/tmp/pagecraft-slider-one-b4/slider-golden-update.log",
+          "exitCode": 0,
+          "testsPassed": 1,
+          "testsSkipped": 29
+        },
+        "two": {
+          "cwd": "/tmp/pagecraft-slider-two-b4",
+          "log": "/tmp/pagecraft-slider-two-b4/slider-golden-update.log",
+          "exitCode": 0,
+          "testsPassed": 1,
+          "testsSkipped": 29
+        }
+      },
+      "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+      "parentSha256": "721d9afca0757305af05fdb00e30a5a35e48c56ef2192b532d8a05acdfff14a2",
+      "candidateOneSha256": "1c8e04fdffebe6bd3bb76a3f95bd8f6aa0e7490a56df0d19602ea30f62d4a7ab",
+      "candidateTwoSha256": "1c8e04fdffebe6bd3bb76a3f95bd8f6aa0e7490a56df0d19602ea30f62d4a7ab",
+      "candidatesByteExact": true,
+      "runtimeDelta": {
+        "parentLength": 39274,
+        "candidateLength": 39650,
+        "insertedLength": 376,
+        "parentSha256": "d8c75945921034a92bf9c5dd2f843cb1152dbe0b77ad95ee1c7dca793b225eae",
+        "candidateSha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838",
+        "candidateEqualsParentAfterRemovingSliderKeyboardBlock": true
+      },
+      "recursiveChangedLeafCount": 19,
+      "recursiveChangedPaths": [
+        { "path": "artifact.routes[1].runtime", "old": { "length": 39274, "sha256": "d8c75945921034a92bf9c5dd2f843cb1152dbe0b77ad95ee1c7dca793b225eae" }, "new": { "length": 39650, "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838" } },
+        { "path": "artifact.routes[1].scripts[1].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "artifact.routes[1].scripts[1].occurrenceId", "old": "script-d9ea993271073b7aa223b8cb0debbe8d", "new": "script-d97356dc4da6192403a427457b491d19" },
+        { "path": "artifact.routes[1].scripts[1].token", "old": "%%PAGECRAFT_RUNTIME:script-d9ea993271073b7aa223b8cb0debbe8d%%", "new": "%%PAGECRAFT_RUNTIME:script-d97356dc4da6192403a427457b491d19%%" },
+        { "path": "artifact.routes[1].sourceHash", "old": "8f4716fbcc66043db3ce1ce93c04d72e09d3464e3fb7d05b0f7629e7115749da", "new": "2b99f60282c33b04bb90a7e1cb2acc23b9e230155399d2d4c7f36bcced2d232e" },
+        { "path": "artifact.routes[2].runtime", "old": { "length": 39274, "sha256": "d8c75945921034a92bf9c5dd2f843cb1152dbe0b77ad95ee1c7dca793b225eae" }, "new": { "length": 39650, "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838" } },
+        { "path": "artifact.routes[2].scripts[1].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "artifact.routes[2].scripts[1].occurrenceId", "old": "script-6dcb5d752670fceee3accc663185a86a", "new": "script-32f1d4114b732edd41588739569ad903" },
+        { "path": "artifact.routes[2].scripts[1].token", "old": "%%PAGECRAFT_RUNTIME:script-6dcb5d752670fceee3accc663185a86a%%", "new": "%%PAGECRAFT_RUNTIME:script-32f1d4114b732edd41588739569ad903%%" },
+        { "path": "artifact.routes[2].sourceHash", "old": "195515dff5c5d77c07a22c07e4681c7ba223459128b273e5b0f7629e7115749da", "new": "9ff31fdc4b0240123e0ea63801794db18e9a568ea5a7535b325afd5c2e6d3735" },
+        { "path": "artifact.routes[3].runtime", "old": { "length": 39274, "sha256": "d8c75945921034a92bf9c5dd2f843cb1152dbe0b77ad95ee1c7dca793b225eae" }, "new": { "length": 39650, "sha256": "8361af0fbf4e5c7019b738d963ac00e3f3cfb4348b3def3abd8acdc756619838" } },
+        { "path": "artifact.routes[3].scripts[1].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "artifact.routes[3].scripts[1].occurrenceId", "old": "script-b6cff64fcfef942130ea0a186ed611ab", "new": "script-0599edd68d7571400f4504939527f556" },
+        { "path": "artifact.routes[3].scripts[1].token", "old": "%%PAGECRAFT_RUNTIME:script-b6cff64fcfef942130ea0a186ed611ab%%", "new": "%%PAGECRAFT_RUNTIME:script-0599edd68d7571400f4504939527f556%%" },
+        { "path": "artifact.routes[3].sourceHash", "old": "0e1f4e1d677cff7e13a347d3f1c8bf130548a38d034dd0108790ebd7f8f7f0cb", "new": "b55bff770156370ef4840c2d65f14820429ced049e79cd1f4950efb4092c680e" },
+        { "path": "desired.deployment.envelope", "old": { "length": 730, "sha256": "388bc52e9d29fa7b831d8f3e5a3443f808f958714ee2257b4234cdc3b1174ddd" }, "new": { "length": 730, "sha256": "90b198725993e0b3f1c7f0a74fd0807c2d080cce58bc5691a4de9bece738a2b9" } },
+        { "path": "desired.deployment.signature", "old": { "length": 86, "sha256": "ccd94982bc73edb79c88a737c1a7eb22c1658e07cc907ec4003cfec7bb9122d6" }, "new": { "length": 86, "sha256": "b8c33108b5c1c094b514ad35bd8824467761e0f278edcce789fc97a52a6d7246" } },
+        { "path": "desired.release.manifest", "old": { "length": 18784, "sha256": "01321dc69be98a0d8b846bd5412a05b51c0a74eebbf7bff0cdbfd0bc522817c8" }, "new": { "length": 18784, "sha256": "98014fe95b03f5b17e5024afe45c77a51358ecae97b27978e949b1f648cfa4bf" } },
+        { "path": "desired.release.signature", "old": { "length": 86, "sha256": "01ca4b01f01d1b95bf5fe42bdc6950d64d281a0b55b24bff129e20d04fe93a49" }, "new": { "length": 86, "sha256": "55b1c861d8a2f428f254f029002f3943a77d6471d8f4116efb412968a217917b" } }
+      ],
+      "decodedReleaseManifestChangedPaths": [
+        { "path": "artifactBytes", "old": 358628, "new": 359768 },
+        { "path": "artifactHash", "old": "393f25c03e19d13dc40d776457029dd40efbb07eeadc084b3b42c7c55ab83b6e", "new": "3f22f28d3fb1a5c5f64a533a5bd07664576c74213943d5f93f39b0cebcc17eac" },
+        { "path": "files[1].bytes", "old": 106456, "new": 106836 },
+        { "path": "files[1].hash", "old": "f4208257ea4a9dc8dd3945222155f0f21891bf41455f792f0899155f382376f9", "new": "b925c40102f1abc4f902c2fb29efbfb64e5817594d3cd53fae4cdf36e7a9c72a" },
+        { "path": "files[2].bytes", "old": 106734, "new": 107114 },
+        { "path": "files[2].hash", "old": "dcc32ebf8f8a1ba6d877bfcc89b5e9650c8759231a294a3a73541d839304dcbb", "new": "5d0e7140146353ff8f0134d9daa8fbe50a44f0781b88a4066d38a9cecab1f25f" },
+        { "path": "files[3].bytes", "old": 106734, "new": 107114 },
+        { "path": "files[3].hash", "old": "7a8ae538962ddbc70f9fa61a4399a996259f2df3697c542b7c1ca422ab9bb887", "new": "8cbef09b3932c0bda58471a9a86979dd64bf6c3b8893a9a50127d4c76f829b28" },
+        { "path": "scripts[1].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "scripts[1].occurrenceId", "old": "script-d9ea993271073b7aa223b8cb0debbe8d", "new": "script-d97356dc4da6192403a427457b491d19" },
+        { "path": "scripts[1].token", "old": "%%PAGECRAFT_RUNTIME:script-d9ea993271073b7aa223b8cb0debbe8d%%", "new": "%%PAGECRAFT_RUNTIME:script-d97356dc4da6192403a427457b491d19%%" },
+        { "path": "scripts[9].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "scripts[9].occurrenceId", "old": "script-b6cff64fcfef942130ea0a186ed611ab", "new": "script-0599edd68d7571400f4504939527f556" },
+        { "path": "scripts[9].token", "old": "%%PAGECRAFT_RUNTIME:script-b6cff64fcfef942130ea0a186ed611ab%%", "new": "%%PAGECRAFT_RUNTIME:script-0599edd68d7571400f4504939527f556%%" },
+        { "path": "scripts[17].hash", "old": "41e688e6069dc50c1b6bd837fae03bb6d726865582792644c96a973d81aa263a", "new": "ce36366821e00a532c8d5fc52755705040444f6fe53fdc677aa0b6084e5bd071" },
+        { "path": "scripts[17].occurrenceId", "old": "script-6dcb5d752670fceee3accc663185a86a", "new": "script-32f1d4114b732edd41588739569ad903" },
+        { "path": "scripts[17].token", "old": "%%PAGECRAFT_RUNTIME:script-6dcb5d752670fceee3accc663185a86a%%", "new": "%%PAGECRAFT_RUNTIME:script-32f1d4114b732edd41588739569ad903%%" }
+      ],
+      "decodedDeploymentChangedPaths": [
+        { "path": "artifactHash", "old": "393f25c03e19d13dc40d776457029dd40efbb07eeadc084b3b42c7c55ab83b6e", "new": "3f22f28d3fb1a5c5f64a533a5bd07664576c74213943d5f93f39b0cebcc17eac" },
+        { "path": "releaseManifestHash", "old": "d543753adeaeea3e3f3486718a7af17d37b993283a80da07138fffc6596a6f16", "new": "aba04c4b0d8b8ec50af01da6438011f0eb8b0d23a3214bd80dfcafa9891bcac4" }
+      ],
+      "normalizationChecks": {
+        "artifactSemanticDataExactAfterParentRuntimeReplacementAndDerivedFieldRemoval": true,
+        "releaseManifestNonDerivedFieldsExact": true,
+        "deploymentEnvelopeNonDerivedFieldsExact": true,
+        "candidateSignatureVerificationPassedInBothExports": true,
+        "unexpectedChangedPaths": []
+      },
+      "rootReview": {
+        "approved": true,
+        "expectedChangedLeaves": 19,
+        "reviewedChangedLeaves": 19,
+        "sliderRuntimeInsertionLinesReviewed": 4,
+        "schemaDrift": false,
+        "contentDrift": false,
+        "unexpectedChangedPaths": []
+      },
+      "mainFixtureSha256": "1c8e04fdffebe6bd3bb76a3f95bd8f6aa0e7490a56df0d19602ea30f62d4a7ab",
+      "mainEqualsApprovedCandidate": true,
+      "approvalState": "approved by root and copied from export one into main"
+    },
+    "canonicalBaselineCheck": {
+      "command": "node tools/ui-baselines.mjs check",
+      "cwd": "/tmp/pagecraft-slider-one-b4",
+      "log": "/tmp/pagecraft-slider-one-b4/ui-baselines-check.log",
+      "exitCode": 0,
+      "status": "unchanged",
+      "images": 24,
+      "sourceFiles": 28,
+      "rebaselinePerformed": false
+    },
+    "rawNodeImport": {
+      "run": false,
+      "reason": "Only client-side Slider runtime and its regression test changed; no server import surface was relevant."
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "8052b707d0758121fe441b79a68eae87991264c5b91915719b4db3352c4a0544",
+        "two": "8052b707d0758121fe441b79a68eae87991264c5b91915719b4db3352c4a0544",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": false,
+        "parentCommittedSha256": "c5ba1c8b9f7f677a12c5a16c4ee9fd56fcb02eb3cef7b1b6b93de5c83a1b3d51"
+      },
+      "dist/core.cjs": {
+        "one": "7292f7db52c1e3cbc8af40aa551857d25883e4f693b0feaf8139d0d20c75c1c0",
+        "two": "7292f7db52c1e3cbc8af40aa551857d25883e4f693b0feaf8139d0d20c75c1c0",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": false,
+        "parentCommittedSha256": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f"
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "03553cdc59b6c1fc11c7540de827273b240b7851bc3a9f783eb29fc64d6e8257",
+        "two": "03553cdc59b6c1fc11c7540de827273b240b7851bc3a9f783eb29fc64d6e8257",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": false,
+        "parentCommittedSha256": "3e349bac9b175b2013d11ce7d6a87d909e715effa7cb07b2935f9764b9deb8cd"
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6"
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc"
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "two": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": false,
+        "parentCommittedSha256": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de"
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495"
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": null,
+        "parentCommittedSha256": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "fef1078d90afb128d7824cc9ee15880be31991d25ad49ea6ad0fb5d5cfb20c1b",
+        "two": "fef1078d90afb128d7824cc9ee15880be31991d25ad49ea6ad0fb5d5cfb20c1b",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": null,
+        "parentCommittedSha256": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExactCount": 5,
+    "parentCommittedChangedExpected": [
+      "index.html",
+      "dist/core.cjs",
+      "packages/editor/dist/editor.html",
+      "packages/editor/dist/runtime.js"
+    ],
+    "untrackedGeneratedCount": 2,
+    "protectedBefore": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "mainProtected11Unchanged": true,
+    "mainProtected11Count": 11,
+    "mainProtectedEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-focus-2026-10-17.json",
+    "mainProtectedEvidenceKey": "protectedBefore",
+    "finalMainProtected11Unchanged": true
+  },
+  "sourceScope": "Only app/src/core/index.ts and tests/slider-keyboard-runtime.test.ts were overlaid. Builds and tests ran only in isolated exports; main generated files were not written."
+}

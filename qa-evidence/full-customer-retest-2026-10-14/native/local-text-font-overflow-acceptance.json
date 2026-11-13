@@ -1,0 +1,123 @@
+{
+  "sourceBase": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "cases": [
+    {
+      "device": "Mobile",
+      "document": 414,
+      "nodes": [
+        {
+          "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "pagecraft-heading-qa-ui-heading",
+          "overflow": "visible",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        },
+        {
+          "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "pagecraft-wysiwyg-wrd491nj",
+          "overflow": "visible",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        }
+      ],
+      "viewport": 414
+    },
+    {
+      "device": "Tablet",
+      "document": 834,
+      "nodes": [
+        {
+          "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "pagecraft-heading-qa-ui-heading",
+          "overflow": "visible",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        },
+        {
+          "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+          "id": "pagecraft-wysiwyg-wrd491nj",
+          "overflow": "visible",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        }
+      ],
+      "viewport": 834
+    },
+    {
+      "device": "Desktop",
+      "document": 1280,
+      "nodes": [
+        {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "id": "pagecraft-heading-qa-ui-heading",
+          "overflow": "hidden",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        },
+        {
+          "font": "Georgia, \"Times New Roman\", serif",
+          "id": "pagecraft-wysiwyg-wrd491nj",
+          "overflow": "hidden",
+          "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+        }
+      ],
+      "viewport": 1280
+    }
+  ],
+  "savedReload": {
+    "device": "Tablet",
+    "document": 834,
+    "nodes": [
+      {
+        "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "id": "pagecraft-heading-qa-ui-heading",
+        "overflow": "visible",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      },
+      {
+        "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "id": "pagecraft-wysiwyg-wrd491nj",
+        "overflow": "visible",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      }
+    ],
+    "viewport": 834
+  },
+  "headingCleared": {
+    "device": "Tablet",
+    "document": 834,
+    "nodes": [
+      {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "id": "pagecraft-heading-qa-ui-heading",
+        "overflow": "hidden",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      },
+      {
+        "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "id": "pagecraft-wysiwyg-wrd491nj",
+        "overflow": "visible",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      }
+    ],
+    "viewport": 834
+  },
+  "sharedClass": {
+    "device": "Tablet",
+    "document": 834,
+    "nodes": [
+      {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "id": "pagecraft-heading-qa-ui-heading",
+        "overflow": "hidden",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      },
+      {
+        "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "id": "pagecraft-wysiwyg-wrd491nj",
+        "overflow": "visible",
+        "parentFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+      }
+    ],
+    "viewport": 834,
+    "rules": [
+      ".c-card{border-width:1px;border-style:solid;border-color:var(--c-line);padding-top:28px;padding-right:28px;padding-bottom:28px;padding-left:28px;background-color:var(--c-bg);border-radius:16px;font-family:Georgia,'Times New Roman',serif;overflow:hidden;}",
+      ".c-card{padding-top:22px;padding-right:22px;padding-bottom:22px;padding-left:22px;}"
+    ]
+  }
+}

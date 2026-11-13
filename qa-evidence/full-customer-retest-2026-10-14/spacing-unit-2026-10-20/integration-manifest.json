@@ -1,0 +1,89 @@
+{
+  "base": "08b9820890082c86b6a222a71fffd8f7c55c2971",
+  "candidateRoot": "/private/tmp/pagecraft-spacing-unit-08-vvkcOR",
+  "source": [
+    {
+      "path": "builder.html",
+      "bytes": 469115,
+      "sha256": "84fe4198158862580536bda0dc76b202436b35ffd880be407063a9561285bc84"
+    }
+  ],
+  "generated": [
+    {
+      "path": "index.html",
+      "bytes": 2039502,
+      "sha256": "64d1820de841475f547ffcc4fcbd03c3d6e9a1fe5d07213ea8ee096bea0fa469"
+    },
+    {
+      "path": "dist/core.cjs",
+      "bytes": 488167,
+      "sha256": "b94ea545b6c9ddf855df76c4de60b88f612d4119e049eaf4548b5e1b23d60ee7"
+    },
+    {
+      "path": "dist/demo/index.html",
+      "bytes": 63067,
+      "sha256": "67e6817f7c9717b6e3a78209dcc71860f0100493fb42e2759beb8e0548b6ea99"
+    },
+    {
+      "path": "packages/editor/dist/contract.json",
+      "bytes": 839,
+      "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+    },
+    {
+      "path": "packages/editor/dist/editor.html",
+      "bytes": 2039478,
+      "sha256": "b6e02a2993fcd7b7087ac9a656e844b0031c04d83acce50c3e5ee2e5670a460a"
+    },
+    {
+      "path": "packages/editor/dist/runtime.js",
+      "bytes": 15800,
+      "sha256": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200"
+    },
+    {
+      "path": "packages/editor/dist/templates.json",
+      "bytes": 15132,
+      "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+      "bytes": 104794,
+      "sha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+      "bytes": 177243,
+      "sha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc"
+    }
+  ],
+  "counts": {
+    "source": 1,
+    "generated": 9
+  },
+  "verification": {
+    "focused": {
+      "filesPassed": 6,
+      "testsPassed": 29,
+      "exit": 0,
+      "log": "qa-evidence/spacing-unit-2026-10-20/focused-tests.log"
+    },
+    "appBuild": {
+      "exit": 0,
+      "log": "qa-evidence/spacing-unit-2026-10-20/app-build.log"
+    },
+    "editorBuild": {
+      "exit": 0,
+      "log": "qa-evidence/spacing-unit-2026-10-20/editor-build.log"
+    },
+    "nativeAcceptance": {
+      "status": "accepted by root",
+      "units": [
+        "px",
+        "em",
+        "rem",
+        "%"
+      ],
+      "geometry": "scrollWidth == clientWidth at 58px",
+      "evidenceOwner": "root"
+    }
+  }
+}

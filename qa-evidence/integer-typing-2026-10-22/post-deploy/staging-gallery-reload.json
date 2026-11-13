@@ -1,0 +1,14 @@
+[
+  {
+    "device": "Desktop",
+    "columns": "3"
+  },
+  {
+    "device": "Tablet",
+    "columns": "3"
+  },
+  {
+    "device": "Mobile",
+    "columns": "3"
+  }
+]

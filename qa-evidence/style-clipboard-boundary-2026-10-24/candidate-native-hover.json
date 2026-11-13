@@ -1,0 +1,19 @@
+{
+  "tabId": "87",
+  "result": [
+    {
+      "text": "QA clipboard class source",
+      "hover": false,
+      "focus": false,
+      "bg": "rgb(36, 44, 39)",
+      "radius": "18px"
+    },
+    {
+      "text": "QA clipboard target",
+      "hover": true,
+      "focus": true,
+      "bg": "rgb(49, 81, 61)",
+      "radius": "24px"
+    }
+  ]
+}

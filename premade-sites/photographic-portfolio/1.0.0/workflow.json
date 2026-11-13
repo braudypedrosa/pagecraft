@@ -1,0 +1,27 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent documentary photographers presenting sequenced bodies of work and commission guidance",
+    "primaryAction": "Enter a photographic series, understand commission fit and send an inquiry",
+    "pages": ["index", "series", "field-notes", "commissions", "contact"],
+    "content": "Fictional Noor Vale portfolio with generated study images and explicit disclosure. No real subjects, locations, clients, awards, publications or commission outcomes are claimed.",
+    "imagery": "Three generated medium-format-style studies sequenced as coast, estuary and working portrait; original reverse vector logo.",
+    "provenance": [
+      {"asset":"logo","source":"Original SVG authored for Noor Vale in this template directory, 2026-10-08","license":"Original template artwork; fictional mark with no third-party trademark claim."},
+      {"asset":"coastal-road","source":"OpenAI image generation, 2026-10-08, exec-74514e95-64ed-4cf9-a35e-4962d339385a.png","license":"AI-generated demonstration image; not documentary evidence of a real place or person."},
+      {"asset":"tidal-river","source":"OpenAI image generation, 2026-10-08, exec-9a9a866a-b359-42e2-942c-6bdd63918ba0.png","license":"AI-generated demonstration image; not documentary evidence of a real place or people."},
+      {"asset":"craftsperson","source":"OpenAI image generation, 2026-10-08, exec-ab39156d-74a8-492e-b6ec-1db3f4577d86.png","license":"AI-generated fictional sitter and workshop; no real identity or commission."}
+    ]
+  },
+  "directions": [
+    {"id":"darkroom-sequence","thesis":"A black gallery that lets one image establish atmosphere, then uses slow editorial sequencing to connect place and portrait work.","fingerprint":{"header":"black bar with reverse photographic logo","hero":"full-bleed coastal road at blue hour","textAnchor":"lower-left white stack","inventory":"full-width series chapters","cta":"vermilion commission inquiry","footer":"black compact colophon"},"comparison":"Selected as the concrete authored draft because the work, sequencing and commission boundaries stay central. Awaiting user review.","sections":[{"purpose":"Establish a media-led photographic identity","archetype":"cinematic-image-opening","composition":"single edge-to-edge frame with low overlay","typography":"large restrained sans in the image shadow","imagery":"coastal road at blue hour","action":"Enter the series"},{"purpose":"Let sequence change the meaning of images","archetype":"series-chapters","composition":"alternating full scenes and narrow editorial notes","typography":"quiet captions and chapter headings","imagery":"coast, estuary and portrait studies","action":"Open a body of work"}]},
+    {"id":"white-contact-sheet","thesis":"A white editorial archive led by image metadata, contact sheets and precise sequencing notes.","fingerprint":{"header":"white masthead with black monogram","hero":"three-frame contact strip","textAnchor":"small upper-left caption","inventory":"dense archival grid","cta":"plain text commission link","footer":"white credits row"},"comparison":"More archival and information-dense than Darkroom Sequence; retained as an unselected fingerprint only.","sections":[{"purpose":"Show breadth quickly","archetype":"contact-sheet-opening","composition":"three unequal image cells with shared caption","typography":"small archival labels","imagery":"three series frames","action":"Choose a series"},{"purpose":"Explain provenance and sequence","archetype":"metadata-ledger","composition":"open rows for title, year, place and note","typography":"monospace-like utility rhythm","imagery":"small thumbnails","action":"Read field notes"}]},
+    {"id":"vermilion-journal","thesis":"A warmer field-journal direction that places notebook entries before finished frames.","fingerprint":{"header":"vermilion mark on charcoal","hero":"field-note text over dark paper","textAnchor":"center-left narrative","inventory":"journal entries with occasional full bleed","cta":"commission brief prompt","footer":"charcoal journal index"},"comparison":"More process-led and textual than Darkroom Sequence; retained as an unselected fingerprint only.","sections":[{"purpose":"Introduce the photographer through observation","archetype":"journal-opening","composition":"large note with one narrow image","typography":"editorial long-form hierarchy","imagery":"single estuary detail","action":"Read notes"},{"purpose":"Translate process into commission fit","archetype":"brief-prompt","composition":"questions beside one environmental portrait","typography":"short prompts and practical labels","imagery":"working portrait","action":"Start a commission inquiry"}]}
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

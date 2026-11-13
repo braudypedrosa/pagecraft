@@ -1,0 +1,24 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "bookkeeping-practice",
+  "version": "1.0.0",
+  "name": "Bookkeeping Practice",
+  "sampleName": "Ledger & Loom",
+  "description": "A precise editorial site for an independent bookkeeping practice, with clear service scope and an honest unconfigured consultation form.",
+  "categories": [
+    "Bookkeeping",
+    "Professional Services",
+    "Small Business"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "logo-light", "file": "assets/logo-light.svg" },
+    { "id": "ledger-desk", "file": "assets/ledger-desk.webp" },
+    { "id": "records-in-hand", "file": "assets/records-in-hand.webp" },
+    { "id": "archive-studio", "file": "assets/archive-studio.webp" }
+  ],
+  "customCssPolicy": "native-only"
+}

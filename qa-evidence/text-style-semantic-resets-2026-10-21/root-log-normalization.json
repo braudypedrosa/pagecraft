@@ -1,0 +1,32 @@
+[
+  {
+    "file": "focused-tests.log",
+    "original": "a76a347b17bcd22eebec5d0e293ae8e91e8855f7aba196e48cc0f55431c7e5c0",
+    "saved": "661f0b09be5c79fcef941e15b917914b622040c4e504b43e369ea60b3f0ea08a"
+  },
+  {
+    "file": "full-suite.log",
+    "original": "a4af8b063e403695d2a39384b40c010f4ad73ed60ce5e0e46ccf7a1afd6bcd78",
+    "saved": "765a61342d13b70dacef5b46a4eca23350fb1167547fa75750156f1cec511d8b"
+  },
+  {
+    "file": "typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "saved": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "file": "final-typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "saved": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "file": "full-suite-without-review-gate.log",
+    "original": "c3e720220ec0c0f15052bee11fe35ec76a8f174df52d68db96031d298a6b04cc",
+    "saved": "cb3ff7c0e0154291169287ce35f272c7b5c7fc37c997c7ae09dd0bd8a874f3e2"
+  },
+  {
+    "file": "final-full-suite.log",
+    "original": "8adf585ea5890e4d68ddcaa0bcc9f09b654f54a5949bd68e0f23ebfd1e237707",
+    "saved": "fca20f5fa801a0b9c22cb1ae6c2705d67eee66e9353895f3ebd8f80bd015ca62"
+  }
+]

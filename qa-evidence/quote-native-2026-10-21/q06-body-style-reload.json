@@ -1,0 +1,65 @@
+{
+  "policy": "Choosing a text style intentionally replaces local typography; layout/rule/custom CSS/content should persist",
+  "read": [
+    {
+      "border": "5px solid rgb(180, 95, 60)",
+      "caption": "Ada Example, Fictional Studio",
+      "classes": "pagecraft-quote pagecraft-3mc4hqj2 ts-body qa-quote pull-quote",
+      "color": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "href": "https://example.test/quote",
+      "line": "27.2px",
+      "outline": "rgb(180, 95, 60) solid 1px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "size": "16px",
+      "text": "A <sample> &Second lineAda Example, Fictional Studio",
+      "visible": true,
+      "width": 1280
+    },
+    {
+      "border": "5px solid rgb(180, 95, 60)",
+      "caption": "Ada Example, Fictional Studio",
+      "classes": "pagecraft-quote pagecraft-3mc4hqj2 ts-body qa-quote pull-quote",
+      "color": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "href": "https://example.test/quote",
+      "line": "27.2px",
+      "outline": "rgb(180, 95, 60) solid 1px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "size": "16px",
+      "text": "A <sample> &Second lineAda Example, Fictional Studio",
+      "visible": true,
+      "width": 834
+    },
+    {
+      "border": "5px solid rgb(180, 95, 60)",
+      "caption": "Ada Example, Fictional Studio",
+      "classes": "pagecraft-quote pagecraft-3mc4hqj2 ts-body qa-quote pull-quote",
+      "color": "rgb(17, 19, 17)",
+      "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "href": "https://example.test/quote",
+      "line": "25.5px",
+      "outline": "rgb(180, 95, 60) solid 1px",
+      "padding": [
+        "12px",
+        "18px",
+        "14px",
+        "20px"
+      ],
+      "size": "15px",
+      "text": "A <sample> &Second lineAda Example, Fictional Studio",
+      "visible": true,
+      "width": 414
+    }
+  ]
+}

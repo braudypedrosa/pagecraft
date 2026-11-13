@@ -1,0 +1,5 @@
+{
+  "app/src/core/index.ts": "a19ba0d32a6dfd15080f6486801be532d6ebb45203fb2b94212429f54185d1b3",
+  "tests/gallery-lightbox-load-error.test.ts": "81e320232e2ca7d259d423ca10b99e2d1e1c07203227629510e1399893ffd2cf",
+  "server/tests/fixtures/wordpress-artifact-v1.json": "f4cb9713da809296477e16af392e07485c76f955d2b7e2f0a743283413da7a9f"
+}

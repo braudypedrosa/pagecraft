@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/modal-toast-d2c2444
+
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  12:56:13
+   Duration  3.38s (transform 235ms, setup 0ms, import 339ms, tests 761ms, environment 4.85s)

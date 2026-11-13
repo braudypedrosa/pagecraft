@@ -21,7 +21,9 @@ function CollectionRow({ col }: { col: ReturnType<Core['collections']>[number] }
     if (pending.current) return;
     const ok = await L.askConfirm('Delete this collection?',
       `<b>${esc(col.name)}</b> and its ${n(col.items.length, 'item')}. Anything bound to its `
-      + 'fields falls back to placeholder text.', { ok: 'Delete collection' });
+      + 'fields falls back to placeholder text. Collection Lists and detail pages using it '
+      + 'will be disconnected. Reference fields will need a new collection, and their saved '
+      + 'selections will be cleared.', { ok: 'Delete collection' });
     if (!ok) return;
     if (L.dynamicContentProvider() !== 'pagecraft') { C.edit(() => C.collectionDelete(col.id)); return; }
     pending.current = true; setBusy(true);
@@ -64,8 +66,7 @@ export function Cms() {
 
   const add = async () => {
     if (pending.current) return;
-    const name = await L.askText('New collection', 'Name', 'Projects',
-      { ok: 'Create', note: 'Plural reads best — Projects, Posts, Team.' });
+    const name = await L.askText('New collection', 'Name', 'Projects', { ok: 'Create' });
     if (!name) return;
     if (L.dynamicContentProvider() !== 'pagecraft') {
       let made: { id:string } | null = null;
@@ -100,17 +101,13 @@ export function Cms() {
           <button class="btn primary block" disabled={busy} aria-busy={busy} data-pc-pending={busy ? '' : undefined} onClick={add}>
             {!busy && <Icon name="plus" size={13} />} {busy ? 'Creating…' : 'New collection'}
           </button>
-          <div class="note">Fields, and the items that fill them.</div>
         </div>
       ) : null}
       {list.length
         ? <div style={{ padding: '12px 14px' }}>
           {list.map(c => <CollectionRow key={c.id} col={c} />)}
         </div>
-        : <div class="empty">No collections yet.<br /><br />
-          A <b>Projects</b> collection with a title, a cover and a summary is enough to
-          drive a work grid and a page for every project.
-        </div>}
+        : <div class="empty">No collections yet.{L.canStructure() ? ' Create one to add structured content.' : ''}</div>}
     </>
   );
 }

@@ -1,0 +1,98 @@
+{
+  "sourceCommit": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
+  "gatewayVersion": 27,
+  "site": "c11494e8-3ae5-4be0-b707-e937278a710a",
+  "baselineVersion": 779,
+  "before": {
+    "ids": [
+      "n0ixrm339",
+      "n16nly2l",
+      "ndaf5h2uo",
+      "ndaf5i3u8",
+      "ndaf5i4ie",
+      "ndaf5i5ai",
+      "ndg0tb6h3",
+      "ndkykp1ph",
+      "ndqnyz12r",
+      "nekp7m18n",
+      "new39q14y",
+      "nf2dwm1sr",
+      "nf2mtp1tt",
+      "nf79yr1ny",
+      "nf9pkh1qj",
+      "nfijph1o1",
+      "nfijph2tj",
+      "nfijph3od",
+      "nfijph4io",
+      "nfkqui5jb",
+      "nfli4f6uf",
+      "nfljgi79t",
+      "nfzf4v1jd",
+      "nfzf4v2ot",
+      "ngwr2y1hh",
+      "nk8y2k11g",
+      "nlm3id1i6",
+      "nlyfiy6wd",
+      "nlyfiy7ci",
+      "nlyfiy7ci",
+      "nm2n7s85a",
+      "nm2n7s85a",
+      "nmekzi9lf",
+      "nmekzi9lf",
+      "nmiqidanw",
+      "nnevx9171",
+      "nnkziz2pl",
+      "nut4a73l1",
+      "nut4a74wk",
+      "nut4a751d",
+      "nut4a76ef"
+    ],
+    "quote": "A room for everyone, in every season. <sample> & shared stories.Alex Green, community member"
+  },
+  "tests": [
+    {
+      "name": "Temporary attribution persisted fresh",
+      "passed": true
+    },
+    {
+      "name": "Large history complete newest-first on deployed node",
+      "rows": 780,
+      "first": "Version 780",
+      "last": "Version 1",
+      "passed": true
+    },
+    {
+      "name": "Full revision restored original quote, stylesheet and editable ids after native reload",
+      "passed": true
+    },
+    {
+      "name": "Restored version creates new history entry and keeps every previous version",
+      "rows": 781,
+      "first": "Version 781",
+      "last": "Version 1",
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "originalAttribution": "Alex Green, community member",
+  "beforeCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "afterCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "passed": true,
+  "immutableAudit": {
+    "firstVersion": 1,
+    "latestVersion": 781,
+    "total": 781,
+    "all779BaselineVersionsRetained": true,
+    "newVersions": [
+      780,
+      781
+    ]
+  },
+  "resourceErrorsSinceGatewayDeploy": 0,
+  "boundaries": [
+    "One private large-history site; list and actual restore accepted",
+    "No revision pruning, schema mutation or billing change",
+    "Shared gateway updated to27; production app remainscc026",
+    "Initial Cua waitFor hit its3second selector deadline while history was still loading; later native completion confirmed. No latency target asserted."
+  ]
+}

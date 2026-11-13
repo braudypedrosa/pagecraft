@@ -17,6 +17,10 @@ import time
 RELEASE_NAME = re.compile(r'^[0-9a-f]{40}-[0-9]+$')
 SUCCESS_FILE = '.pagecraft-success.json'
 MIB = 1024 * 1024
+# Archives also expire by budget, newest kept first. At several deploys a day the 30-day
+# window alone filled the hosting account's quota, and capacity_probe then refused deploys.
+MAX_ARCHIVES = 40
+MAX_ARCHIVE_BYTES = 4 * 1024 * MIB
 
 
 def digest(stream):
@@ -273,21 +277,34 @@ class ReleaseStorage:
                 continue
             result['archived'].append(release.name if dry_run else self.archive(release, protected))
         cutoff = (time.time() if now is None else now) - 30 * 86400
+        candidates = []
         for receipt in sorted(self.archives.glob('*.json')):
             name = receipt.stem
             if not RELEASE_NAME.fullmatch(name) or name in protected or receipt.is_symlink():
                 continue
             data = json.loads(receipt.read_text())
+            # A receipt without its archive time is never expired, by age or by budget.
             if (data.get('app') != self.app or data.get('release') != name
-                    or data.get('archivedAt', float('inf')) >= cutoff):
+                    or not isinstance(data.get('archivedAt'), (int, float))):
                 continue
             archive = self.archives / (name + '.tar.gz')
+            size = archive.stat().st_size if archive.is_file() and not archive.is_symlink() else 0
+            candidates.append((data['archivedAt'], name, receipt, archive, data, size))
+        kept_count, kept_bytes = 0, 0
+        for archived_at, name, receipt, archive, data, size in sorted(
+                candidates, key=lambda c: (c[0], c[1]), reverse=True):
+            if (archived_at >= cutoff and kept_count < MAX_ARCHIVES
+                    and kept_bytes + size <= MAX_ARCHIVE_BYTES):
+                kept_count += 1
+                kept_bytes += size
+                continue
             if archive.is_symlink() or not archive.is_file() or file_digest(archive) != data.get('sha256'):
                 raise ValueError('Expired archive verification failed')
             result['expired'].append(name)
             if not dry_run:
                 archive.unlink()
                 receipt.unlink()
+        result['expired'].sort()
         return result
 
     def capacity(self, unpacked_bytes, members, active=None):

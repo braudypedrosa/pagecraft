@@ -1,0 +1,32 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365
+
+ ❯ tests/list-nowrap-scroll.test.ts (7 tests | 1 failed) 526ms
+   × Slider remains its own named scrolling track and ordinary wrapping output gains no keyboard stop 48ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/list-nowrap-scroll.test.ts > Slider remains its own named scrolling track and ordinary wrapping output gains no keyboard stop
+AssertionError: Expected values to be strictly equal:
+
+'100%' !== '80%'
+
+
+Expected: "80%"
+Received: "100%"
+
+ ❯ tests/list-nowrap-scroll.test.ts:121:12
+    119|     assert.equal(o.style().overflowX, 'auto');
+    120|     assert.equal(o.style(o.card).flexShrink, '0');
+    121|     assert.equal(o.style(o.card).flexBasis, '80%');
+       |            ^
+    122|   } finally { o.close(); }
+    123| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  06:36:20
+   Duration  1.67s (transform 259ms, setup 0ms, import 1.00s, tests 526ms, environment 0ms)

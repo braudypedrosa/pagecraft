@@ -1,0 +1,81 @@
+{
+  "base": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/text-rich-reset-audit",
+  "sourceFiles": {
+    "app/src/core/index.ts": "7d34bb4d3833f6a8995cf9154d18cbfb0ad1e9576e04b502d18685c71ea11dc2",
+    "app/src/ui/inspector/Inspector.tsx": "4f84c3ccc811a75a738f314f684b900ddb188a55b84accaff92b447c5608f291",
+    "tests/responsive-text-rich-resets.test.tsx": "6735f7505a9bf7c72c617d3b3888f5ab11fe900a762970c9b8b9580d53be8804"
+  },
+  "generatedArtifacts": {
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19",
+    "index.html": "fda0df4cf87a8a394c47fb42ae93824d5a722db56d37f1dabb744d0d9970cfd7",
+    "dist/core.cjs": "e52231d3ccdd718af971d0638fdaa1017ed3e61e76e1692ed02d20374d735b42",
+    "packages/editor/dist/editor.html": "c30a454d4832a80ff57c424495f6419be4ae561913e61d525032f8ee8e792c26",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "465b442654fa21caa37de8889e0ad3f8b00050c042098b3ea0c181fa0f019750",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+  },
+  "behavior": {
+    "font": "Default removes the local declaration; Inherit stores font-family:inherit.",
+    "overflow": "Default removes the local declaration; Visible stores overflow:visible.",
+    "coverage": "Heading and Rich text preserve explicit Tablet/Mobile values, compile them after shared-class rules, and clear back through Tablet/Desktop inheritance."
+  },
+  "checks": {
+    "redRegression": "6/6 focused cases failed before the two option contracts changed.",
+    "focused": "4 files passed; 23 tests passed.",
+    "typecheck": "passed.",
+    "behaviorSuite": "222 files passed, 2 skipped; 2469 tests passed, 5 skipped (UI baseline test excluded).",
+    "fullSuite": "passed: 223 files, 2 skipped; 2471 tests, 5 skipped.",
+    "editorBuildTwice": "passed; all 11 required artifact hashes identical.",
+    "postSuiteGeneratedIntegrity": "passed; hashes identical to the second build.",
+    "demo": "passed: 1 component, 6 instances, 4 collection items, 0 findings; unrelated prior slider/ID drift recorded and base Demo restored.",
+    "uiBaselineGate": "passed: 24 images and 28 source files after reviewed manifest recording.",
+    "npmAudit": "one existing moderate Hono serveStatic path-decoding advisory.",
+    "npmAuditProduction": "same existing moderate Hono advisory.",
+    "impeccableDetector": "one existing unrelated broken-image warning for the Core <img onerror> template at line 5369.",
+    "diffCheck": "passed.",
+    "qaHarness": "http://localhost:4951/ returned HTTP 200 with fictional QA UI Foundations fixture; session 98551, PID 85730.",
+    "nativeAcceptance": "passed: Heading and Rich text D serif/Hidden, T Inherit/Visible, M inherited; saved reload, clear Tablet, and Rich text shared-class override verified in the built-in browser.",
+    "galleryA": "passed: 30/30 behavior checks and 24/24 baseline comparisons with zero changed pixels.",
+    "galleryB": "passed: 30/30 behavior checks, 24/24 baseline comparisons with zero changed pixels, and 24/24 A/B repeatability with matching available provenance and colors.",
+    "typecheckFinal": "passed.",
+    "diffCheckFinal": "passed."
+  },
+  "generatedChanges": [
+    "dist/core.cjs",
+    "index.html",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "unchangedRequiredArtifacts": [
+    "app/src/core/public-form-controls.generated.ts",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "scope": {
+    "mainMutated": false,
+    "browserUsed": false,
+    "baselineChanged": true,
+    "demoRetainedAsChange": false,
+    "adjacentKeywordControlsChanged": false
+  },
+  "limitations": [
+    "Built-in-browser Browser.getVersion probing was unavailable; A/B repeatability is limited to the observed session, as recorded in gallery-ab-review.json.",
+    "Both dependency audits report the existing moderate Hono serveStatic path-decoding advisory.",
+    "Main integration, CI, deployment, and WordPress packaging remain root-owned."
+  ],
+  "reviewedArtifacts": {
+    "public/internal-ui-baselines/manifest.json": "ef4c5fb19b90411f7d10da0f28ff2acd93494a2b26d67f0d23b1172f23bae32b",
+    "qa-evidence/text-style-semantic-resets-2026-10-21/gallery-ab-review.json": "c4b937428c96a9b9defecfe48950dcfe5747b69694f83c3ca0e5757f6aea7a1f",
+    "Main qa-evidence/full-customer-retest-2026-10-14/native/local-text-font-overflow-acceptance.json": "7eaff4aad7384fedb12fcb420bf692730f7da01e35859ae935276c3915805350"
+  },
+  "generatedNineAssessment": "qa-evidence/text-style-semantic-resets-2026-10-21/generated-nine-assessment.json"
+}

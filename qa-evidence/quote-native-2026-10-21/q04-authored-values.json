@@ -1,0 +1,44 @@
+{
+  "defaultMobileSize": "20px; DEF.quote.make css.m authored default confirmed",
+  "authored": [
+    {
+      "device": "Desktop",
+      "size": "24",
+      "line": "1.45",
+      "measure": "34",
+      "unit": "ch",
+      "pad": [
+        "12",
+        "18",
+        "14",
+        "20"
+      ]
+    },
+    {
+      "device": "Tablet",
+      "size": "20",
+      "line": "1.35",
+      "measure": "30",
+      "unit": "ch",
+      "pad": [
+        "10",
+        "14",
+        "12",
+        "16"
+      ]
+    },
+    {
+      "device": "Mobile",
+      "size": "18",
+      "line": "1.4",
+      "measure": "100",
+      "unit": "%",
+      "pad": [
+        "8",
+        "12",
+        "10",
+        "12"
+      ]
+    }
+  ]
+}

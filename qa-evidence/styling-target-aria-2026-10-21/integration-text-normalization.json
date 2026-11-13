@@ -1,0 +1,52 @@
+[
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/gallery-final/behavior-cloud.json",
+    "originalSha256": "1a24d2fd30714def1513db54cab88283c92fd04901c7815f0457c596ae78d2a0",
+    "normalizedSha256": "f3328afa0eee35a94c2f3a77cde8a08d98bf351ff85f0db5739014d08db5f0ef"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/gallery-final/behavior-checks.json",
+    "originalSha256": "6bc789be6773dd579d91537e0bf391b5d56b4a7ae3ff1be22846fdc4eaf738ff",
+    "normalizedSha256": "1e518ecc12d39ec625e50a6cd1485184418429186615a0f39b142ea210332efe"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/server-timeout-retry.log",
+    "originalSha256": "c9495c2a4eaeadb7da8beaedb6bc5528289f8360197024e218bfe7964ca4fd1b",
+    "normalizedSha256": "fb18a525494fac793e5d7fbbf1e916e7a7dd586f309a06526645eeff6fad9fce"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/full-max-workers-2.log",
+    "originalSha256": "d4f70d0908a81efc7fda32a837949cafec2cae1317a4345a3b9a26e18dacae1e",
+    "normalizedSha256": "54d5cd879077cf98a608496519e6182610bb97a000982478db7c8c98eff50b01"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/submissions-post-gallery-retry.log",
+    "originalSha256": "1d04f64d19acbb058e82190de87af8402ae89bb9d76ba016e8b8b5e3c0c0d0fa",
+    "normalizedSha256": "8d2e95572540f86217ddbb444c0252997a3e583d0b65f68884dc9a952714418f"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/typecheck-final.log",
+    "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/full-post-gallery.log",
+    "originalSha256": "26d80d79e8ab5780b3d0edc0721dabe4aaf0e9891fddb9464d66609421d6a196",
+    "normalizedSha256": "597a26764a1a4e21c51ec1363a5fefa6e41f66d93b898a4439df4542f456354f"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/focused-final.log",
+    "originalSha256": "2d6b5ba33dc69b538ada3fcb1392174c69b0074c0b4a4a906f07fc360bf6ca6d",
+    "normalizedSha256": "6fe5bc2288a61e6664e00cccfa83d5a4fd1c5b5a5e045b06de91cecd66628858"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/typecheck-post-gallery.log",
+    "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/styling-target-aria-2026-10-21/logs/full-final.log",
+    "originalSha256": "49e659eb97b107e974937a6bd61234ffd3d6c5e3d12ff05f488a91e76a18b990",
+    "normalizedSha256": "ab1e7fca775652892d143e99b468f45604b3f8d852f8706a27644ccde8d617b9"
+  }
+]

@@ -3,9 +3,9 @@ import { test, beforeEach, afterEach } from 'vitest';
 import a from 'node:assert/strict';
 import { act } from 'preact/test-utils';
 import * as C from '../app/src/core/index';
-import { L } from '../app/src/ui/ctx';
+import { install, L } from '../app/src/ui/ctx';
 import { Ctl } from '../app/src/ui/inspector/Controls';
-import { rig, type Rig } from './ui.setup';
+import { rig, stubLegacy, type Rig } from './ui.setup';
 import type { PropKind, FieldType } from '../app/src/core/types';
 let r: Rig;
 beforeEach(() => { r = rig(); C.state.meta.collections = []; C.state.meta.components = []; });
@@ -22,6 +22,10 @@ function fixture(kind: PropKind = 'text', type: FieldType = 'text') {
   C.srcSet(C.state.pages[0].tree[0], col.id);
   const control = C.instControls(node)[0];
   return { col, field, item, node, key, control };
+}
+
+function useProvider(provider: 'pagecraft' | 'wordpress' | false) {
+  install(C, { ...stubLegacy(r.calls), dynamicContentProvider: () => provider });
 }
 
 test('component field connects and disconnects through the keyboard-accessible CMS picker', async () => {
@@ -58,7 +62,13 @@ for (const [kind, type] of [['text','text'], ['rich','rich'], ['img','image'], [
     await act(async () => r.click(r.$('.bnd')));
     r.draw(<Ctl n={node} c={control} />);
     a.equal((r.$('input') as HTMLInputElement).disabled, true);
-    a.equal(r.$$('button:not(.bnd)').length, 0, 'no upload, link editor or token picker can overwrite a bound field');
+    const actions = r.$$('button:not(.bnd)');
+    if (kind === 'link') {
+      a.equal(actions.length, 1, 'a bound href keeps its independently owned target switch');
+      a.equal(actions[0].getAttribute('role'), 'switch');
+    } else {
+      a.equal(actions.length, 0, 'no upload, editor or token picker can overwrite a bound field');
+    }
   });
 }
 
@@ -71,6 +81,53 @@ test('a disconnected source keeps a recovery action and does not erase the saved
   a.equal((r.$('input') as HTMLInputElement).value, 'Saved value');
   await act(async () => r.click(r.$('.bnd')));
   a.equal(C.boundField(node, control.k!), '');
+});
+
+test('only Pagecraft offers a new CMS connection while unsupported hosts keep component properties usable', () => {
+  const { node, control, key } = fixture();
+  C.srcSet(C.state.pages[0].tree[0], '');
+  C.instSet(node, key, 'Local value');
+
+  useProvider('pagecraft');
+  r.draw(<Ctl n={node} c={control} />);
+  const cloudBadge = r.$('.bnd[aria-label*="Choose a content source"]') as HTMLButtonElement;
+  a.ok(cloudBadge, 'Pagecraft keeps its guidance for an unscoped component property');
+  a.equal(cloudBadge.disabled, true);
+  a.equal((r.$('input') as HTMLInputElement).value, 'Local value');
+
+  for (const provider of ['wordpress', false] as const) {
+    useProvider(provider);
+    r.draw(<Ctl n={node} c={control} />);
+    a.equal(r.$('.bnd'), null, `${String(provider)} hides the unavailable CMS affordance`);
+    a.equal((r.$('input') as HTMLInputElement).value, 'Local value');
+    a.equal((r.$('input') as HTMLInputElement).disabled, false);
+  }
+});
+
+test('WordPress keeps a saved missing CMS binding visible and disconnects it without creating local or peer values', async () => {
+  const { node, field, control, key } = fixture();
+  const peer = C.instanceInsert(node.use!, null, C.tree().length)!;
+  C.bindSet(node, control.k!, C.bindField(field.id));
+  C.srcSet(C.state.pages[0].tree[0], '');
+  useProvider('wordpress');
+  L.askPick = async (_title, choices) => {
+    a.deepEqual(choices, [['', '— No binding, use the saved value —']]);
+    return '';
+  };
+
+  r.draw(<Ctl n={node} c={control} />);
+  const badge = r.$('.bnd[aria-label^="Missing CMS field"]') as HTMLButtonElement;
+  a.ok(badge, 'the saved binding remains recoverable on WordPress');
+  a.equal(badge.disabled, false);
+  a.equal(node.vals, undefined);
+  a.equal(peer.vals, undefined);
+  await act(async () => r.click(badge));
+
+  a.equal(C.boundField(node, control.k!), '');
+  a.equal(C.instValue(node, C.findComponent(node.use), key), 'Saved value');
+  a.equal(C.instValue(peer, C.findComponent(peer.use), key), 'Saved value');
+  a.equal(node.vals, undefined, 'disconnecting does not materialize a local fallback');
+  a.equal(peer.vals, undefined, 'disconnecting one placement does not mutate its peer');
 });
 
 test('manual component link editing writes the exposed value and restores after disconnecting', () => {
@@ -90,4 +147,18 @@ test('content-only accounts cannot change the CMS mapping', () => {
   L.canStructure = () => false;
   r.draw(<Ctl n={node} c={control} />);
   a.equal(r.$('.bnd'), null);
+});
+
+test('a bound rich property previews a text field as the words it renders, tags included', () => {
+  const { col, item, node, key, control } = fixture('rich', 'text');
+  const text = C.fieldAdd(col.id, 'Summary', 'text')!;
+  const rich = C.fieldAdd(col.id, 'Body', 'rich')!;
+  C.itemSet(col.id, item.id, text.id, '<em>Sum</em> & co');
+  C.itemSet(col.id, item.id, rich.id, '<p><b>Bold</b> body</p>');
+  C.bindSet(node, C.VAL + key, C.bindField(text.id));
+  r.draw(<Ctl n={node} c={control} />);
+  a.equal((r.$('input') as HTMLInputElement).value, '<em>Sum</em> & co', 'the canvas escapes these tags, so the panel keeps them');
+  C.bindSet(node, C.VAL + key, C.bindField(rich.id));
+  r.draw(<Ctl n={node} c={control} />);
+  a.equal((r.$('input') as HTMLInputElement).value, 'Bold body', 'a rich field is markup and previews as its text');
 });

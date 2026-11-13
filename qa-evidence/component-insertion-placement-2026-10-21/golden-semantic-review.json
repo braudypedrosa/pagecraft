@@ -1,0 +1,15 @@
+{
+  "changedFields": 24,
+  "css": "exact one approved max-height variable substitution per route",
+  "runtime": "only script4 changes, exactly old/new NAV_JS after script opening attributes normalized",
+  "unchanged": [
+    "format",
+    "trust",
+    "keysetEnvelope",
+    "all non-route artifact fields including entities/forms/CMS/schema",
+    "route HTML/head/metadata/path and all fields except css/runtime/sourceHash/scripts",
+    "script metadata except hash/occurrenceId/token"
+  ],
+  "derived": "route hashes, NAV script hashes/occurrence markers/tokens, signed release/deployment bytes/signatures",
+  "fixtureSha256": "b10a6eed8a43a08e6b61c232a35ad3493e70ac046587ce4e79529b75b95d9a3b"
+}

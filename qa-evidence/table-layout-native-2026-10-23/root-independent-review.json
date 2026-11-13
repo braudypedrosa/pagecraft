@@ -1,0 +1,14 @@
+{
+  "status": "bounded-native-evidence-reviewed",
+  "protectedWorkingBytes11Exact": true,
+  "galleryWordPressStates": 3,
+  "galleryGuardChecks": 29,
+  "tableGuardChecks": 25,
+  "tableResponsiveHosts": 2,
+  "restorationsExact": true,
+  "fullQAComplete": false,
+  "limitations": [
+    "No new whole-suite run for evidence-only updates. Source fix full-suite pass is preserved in prior receipt.",
+    "Table sticky scrolling inside a tall parent remains untested."
+  ]
+}

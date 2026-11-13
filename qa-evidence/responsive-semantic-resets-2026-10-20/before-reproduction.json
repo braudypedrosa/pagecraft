@@ -1,0 +1,17 @@
+{
+  "base": "50c8446fba4f63d560dff3f702bcec3535b60e18",
+  "nativeEvidenceOwnedByRoot": "qa-evidence/full-customer-retest-2026-10-14/native/local-responsive-reset-repros.json",
+  "failures": [
+    "Desktop Soft shadow followed by Tablet None immediately returned to inherited Soft.",
+    "Desktop Greyscale filter followed by Tablet None immediately returned to inherited Greyscale.",
+    "Desktop Push to column bottom followed by Tablet In the normal flow immediately returned to inherited Push to column bottom.",
+    "Text Style comboboxes and numeric inputs were exposed as Typography or left unnamed.",
+    "A local Transition None deleted the local declaration, so an applied class Standard transition remained active."
+  ],
+  "transitionNativeEvidenceOwnedByRoot": "qa-evidence/full-customer-retest-2026-10-14/native/local-transition-none-class-failure.json",
+  "focusedRedTest": {
+    "filesFailed": 1,
+    "testsFailed": 4,
+    "details": "All three controls still exposed their empty option under the old label and both Text Style Choice selects had no aria-label."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Households comparing recurring, reset, and move-related residential cleaning services",
+    "primaryAction": "Understand the service fit and send an unconfigured quote inquiry",
+    "pages": ["index", "services", "approach", "contact"],
+    "content": "Fictional Commonwell Homekeeping demonstration. Service details and package labels are illustrative. No customer reviews, performance statistics, real prices, bookings, contact coordinates, or delivery claims.",
+    "imagery": "Distinct documentary home and cleaning scenes with a pine, oat, paper, and marigold identity; original arched-doorway logo system.",
+    "provenance": [
+      { "asset": "logo", "source": "Original SVG authored for Commonwell Homekeeping in this template directory, 2026-10-13", "license": "Original template artwork; fictional mark with no third-party trademark claim." },
+      { "asset": "logo-reverse", "source": "Original reverse SVG authored for Commonwell Homekeeping in this template directory, 2026-10-13", "license": "Original template artwork; fictional mark with no third-party trademark claim." },
+      { "asset": "mark", "source": "Original favicon SVG authored for Commonwell Homekeeping in this template directory, 2026-10-13", "license": "Original template artwork; fictional mark with no third-party trademark claim." },
+      { "asset": "hero-cleaning", "source": "Unsplash photo by Anton, https://unsplash.com/photos/y-bjqTUUw2Q, downloaded 2026-10-13 and cropped to 1800x1200", "license": "Free to use under the Unsplash License; crop only." },
+      { "asset": "kitchen", "source": "Unsplash photo by Andrea Davis, https://unsplash.com/photos/dhJ-99yCtB8, downloaded 2026-10-13 and cropped to 1800x1200", "license": "Free to use under the Unsplash License; crop only." },
+      { "asset": "bedroom", "source": "Unsplash photo, https://unsplash.com/photos/3R8r-WVKIIc, downloaded 2026-10-13 and cropped to 1800x1200", "license": "Free to use under the Unsplash License; crop only." },
+      { "asset": "cleaning-essentials", "source": "Unsplash photo by Crystal Chabot, https://unsplash.com/photos/9gzU1mtTzWM, downloaded 2026-10-13 and cropped to 1800x1200", "license": "Free to use under the Unsplash License; crop only." }
+    ]
+  },
+  "directions": [
+    {
+      "id": "open-door-standard",
+      "thesis": "A warm editorial service brand that treats a clean home as practical breathing room, framed by an arched-doorway mark and useful room-by-room detail.",
+      "fingerprint": { "header": "paper masthead with arched logo and compact native menu", "hero": "pine editorial panel joined to close cleaning photography", "textAnchor": "left-aligned serif statements with small utility labels", "inventory": "open service bands and an illustrative comparison ledger", "cta": "marigold inquiry prompt and explicit unconfigured form", "footer": "compact pine bar with reverse logo and one wrapping link group" },
+      "comparison": "Authored draft. Warmer and more household-focused than the grid-led alternatives; awaits user review and selection.",
+      "sections": [
+        { "purpose": "Frame cleaning as usable time at home", "archetype": "joined-editorial-photo-hero", "composition": "deep-color copy panel beside close documentary cleaning image", "typography": "serif statement with utility sans labels", "imagery": "hands cleaning a surface", "action": "Request a quote" },
+        { "purpose": "Help visitors choose a service without invented pricing", "archetype": "service-band-ledger", "composition": "three open bands with suitability and scope", "typography": "clear labels and short explanations", "imagery": "room scenes used only where they clarify", "action": "Compare illustrative packages" }
+      ]
+    },
+    {
+      "id": "room-by-room-fieldbook",
+      "thesis": "A lighter household fieldbook organized by rooms, checklists, and preparation notes.",
+      "fingerprint": { "header": "thin forest rule and small mark", "hero": "full kitchen image with paper caption", "textAnchor": "lower-left caption blocks", "inventory": "room tabs and care checklists", "cta": "plain quote checklist", "footer": "oat colophon" },
+      "comparison": "More instructional and image-led than Open Door Standard; retained as an unselected fingerprint only.",
+      "sections": [
+        { "purpose": "Preview practical room care", "archetype": "photo-fieldbook", "composition": "large room image with attached notes", "typography": "caption-led hierarchy", "imagery": "kitchen and bedroom", "action": "See what is included" },
+        { "purpose": "Clarify owner preparation", "archetype": "preparation-checklist", "composition": "short checklist beside supplies still life", "typography": "utility sans", "imagery": "cleaning tools", "action": "Prepare for a visit" }
+      ]
+    },
+    {
+      "id": "bright-block-service",
+      "thesis": "A bold local service identity using marigold blocks, oversized type, and compact service pathways.",
+      "fingerprint": { "header": "pine utility header with reverse mark", "hero": "marigold type block over narrow room crop", "textAnchor": "centered compact display", "inventory": "stacked colored service pathways", "cta": "pine inquiry banner", "footer": "minimal reverse strip" },
+      "comparison": "Brighter and more campaign-like than Open Door Standard; retained as an unselected fingerprint only.",
+      "sections": [
+        { "purpose": "Make the primary service easy to recognize", "archetype": "color-block-hero", "composition": "large message over solid field beside narrow photo", "typography": "oversized centered display", "imagery": "clean room detail", "action": "Find a service" },
+        { "purpose": "Route visitors by cleaning moment", "archetype": "stacked-service-paths", "composition": "full-width color bands with one action each", "typography": "large service names and concise context", "imagery": "none", "action": "Open service details" }
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

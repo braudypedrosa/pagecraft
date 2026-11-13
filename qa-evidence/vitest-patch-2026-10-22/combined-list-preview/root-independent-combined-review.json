@@ -1,0 +1,48 @@
+{
+  "acceptedSource": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+  "eightOutputs": [
+    {
+      "file": "index.html",
+      "exact": false,
+      "commentOnly": true
+    },
+    {
+      "file": "dist/core.cjs",
+      "exact": false,
+      "commentOnly": true
+    },
+    {
+      "file": "packages/editor/dist/contract.json",
+      "exact": true,
+      "commentOnly": false
+    },
+    {
+      "file": "packages/editor/dist/editor.html",
+      "exact": false,
+      "commentOnly": true
+    },
+    {
+      "file": "packages/editor/dist/runtime.js",
+      "exact": true,
+      "commentOnly": false
+    },
+    {
+      "file": "packages/editor/dist/templates.json",
+      "exact": true,
+      "commentOnly": false
+    },
+    {
+      "file": "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+      "exact": true,
+      "commentOnly": false
+    },
+    {
+      "file": "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+      "exact": true,
+      "commentOnly": false
+    }
+  ],
+  "onlyChangedBytesInThreeOutputs": "Dependency path references on // comment lines.",
+  "dependencyHashesStillExact": true,
+  "scope": "Integrate package/lock/evidence only; generated outputs remain as accepted89."
+}

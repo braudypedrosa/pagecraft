@@ -1,0 +1,32 @@
+[
+  {
+    "device": "Desktop",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "40px",
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "stroke": "2.5px",
+    "width": "40px"
+  },
+  {
+    "device": "Tablet",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "32px",
+    "padding": "6px",
+    "radius": "12px",
+    "stroke": "2.5px",
+    "width": "32px"
+  },
+  {
+    "device": "Mobile",
+    "bg": "rgb(229, 239, 216)",
+    "color": "rgb(32, 80, 128)",
+    "height": "24px",
+    "padding": "4px",
+    "radius": "8px",
+    "stroke": "2.5px",
+    "width": "24px"
+  }
+]

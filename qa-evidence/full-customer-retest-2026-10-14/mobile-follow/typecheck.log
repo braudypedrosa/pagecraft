@@ -1,0 +1,3 @@
+tests/mobile-menu-follow-content.test.tsx(4,23): error TS7016: Could not find a declaration file for module 'jsdom'. '/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/node_modules/jsdom/lib/api.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/jsdom` if it exists or add a new declaration (.d.ts) file containing `declare module 'jsdom';`
+tests/mobile-menu-follow-content.test.tsx(87,9): error TS6133: 'customBefore' is declared but its value is never read.

@@ -1,0 +1,11 @@
+{
+  "bg": "rgb(245, 213, 148)",
+  "color": "rgb(32, 80, 128)",
+  "focusVisible": true,
+  "focused": true,
+  "rules": [
+    ".pagecraft-5bcvc5jg:hover{color:#b45f3c;",
+    ".pagecraft-5bcvc5jg:focus-visible{background-color:#f5d594;"
+  ],
+  "transition": "0.25s"
+}

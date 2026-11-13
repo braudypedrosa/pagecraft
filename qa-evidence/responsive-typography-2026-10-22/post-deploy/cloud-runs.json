@@ -1,0 +1,15 @@
+{
+  "commit": "37f65d4b83de12d6959bfa982c935bc945e31461",
+  "ci": {
+    "run": 39732948892,
+    "conclusion": "success"
+  },
+  "deploy": {
+    "run": 39732948870,
+    "conclusion": "success"
+  },
+  "marker": "deployment-marker.json",
+  "native": "staging-update.json",
+  "restored": "staging-restored-reload.json",
+  "status": "Cloud staging bounded acceptance complete; WordPress local install pending. No production promotion."
+}

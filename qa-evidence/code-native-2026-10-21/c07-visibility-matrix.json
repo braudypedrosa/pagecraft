@@ -1,0 +1,56 @@
+[
+  {
+    "hidden": "Desktop",
+    "device": "Desktop",
+    "code": 1,
+    "display": "none"
+  },
+  {
+    "hidden": "Desktop",
+    "device": "Tablet",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Desktop",
+    "device": "Mobile",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Desktop",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Tablet",
+    "code": 1,
+    "display": "none"
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Mobile",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Desktop",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Tablet",
+    "code": 1,
+    "display": "block"
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Mobile",
+    "code": 1,
+    "display": "none"
+  }
+]

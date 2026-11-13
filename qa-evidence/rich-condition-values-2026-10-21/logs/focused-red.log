@@ -1,0 +1,210 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-condition-text-d2c2444
+
+ ❯ tests/rich-condition-values.test.ts (11 tests | 9 failed) 459ms
+   × rich equality compares visible text while retaining exact stored-markup matches 36ms
+   × inline formatting does not invent word breaks, while blocks and breaks separate words 4ms
+   × rich text decodes named and numeric references once after removing markup 3ms
+   × HTML-only whitespace is empty for every operator 5ms
+   × quoted tag delimiters and dropped code are handled by the rich sanitizer 1ms
+   × rich conditions follow a reference to the terminal field type 1ms
+   × rich component properties compare defaults, variants and explicit instance text 2ms
+   × CMS-bound rich properties normalize the terminal rich field and preserve raw condValue 2ms
+   × public and edit rendering share rich comparison results without altering content markup 397ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/rich-condition-values.test.ts > rich equality compares visible text while retaining exact stored-markup matches
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:28:10
+     26| test('rich equality compares visible text while retaining exact stored…
+     27|   const html = '<p>Seasonal <strong>workshop</strong></p>';
+     28|   assert.equal(richResult(html, 'eq', 'Seasonal workshop'), true);
+       |          ^
+     29|   assert.equal(richResult(html, 'ne', 'Seasonal workshop'), false);
+     30|   assert.equal(richResult(html, 'eq', html), true, 'existing markup co…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > inline formatting does not invent word breaks, while blocks and breaks separate words
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:37:10
+     35|
+     36| test('inline formatting does not invent word breaks, while blocks and …
+     37|   assert.equal(richResult('<p>work<strong>shop</strong></p>', 'eq', 'w…
+       |          ^
+     38|   assert.equal(richResult('<p>Morning</p><p>workshop<br>today</p>', 'e…
+     39|   assert.equal(richResult('<ul><li>Morning</li><li>workshop</li></ul>'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > rich text decodes named and numeric references once after removing markup
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:43:10
+     41|
+     42| test('rich text decodes named and numeric references once after removi…
+     43|   assert.equal(richResult('<p>Caf&eacute;&nbsp;&amp; &#x1f33f; &#8212;…
+       |          ^
+     44|   assert.equal(richResult('<p>&lt;sample&gt; &amp;lt;</p>', 'eq', '<sa…
+     45|   assert.equal(richResult('<p>A &NotEqualTilde; B</p>', 'eq', 'A ≂̸ B'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > HTML-only whitespace is empty for every operator
+AssertionError: <p><br></p>
+
+true !== false
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/rich-condition-values.test.ts:50:12
+     48| test('HTML-only whitespace is empty for every operator', () => {
+     49|   for (const html of ['<p><br></p>', '<div>&nbsp; &#32;\n</div>', '<p>…
+     50|     assert.equal(richResult(html, 'set'), false, html);
+       |            ^
+     51|     assert.equal(richResult(html, 'empty'), true, html);
+     52|     assert.equal(richResult(html, 'eq', ''), true, html);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > quoted tag delimiters and dropped code are handled by the rich sanitizer
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:59:10
+     57|
+     58| test('quoted tag delimiters and dropped code are handled by the rich s…
+     59|   assert.equal(richResult('<p><a href="https://example.com/?q=>">Works…
+       |          ^
+     60|   assert.equal(richResult('<script>not content</script><style>not cont…
+     61|   assert.equal(richResult('<p>Visible <b>words', 'eq', 'Visible words'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > rich conditions follow a reference to the terminal field type
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:83:10
+     81|   const listing = C.itemAdd(listings.id)!; C.itemSet(listings.id, list…
+     82|   C.condSet(node, { bind: C.bindField(`${ref.id}.${field.id}`), op: 'e…
+     83|   assert.equal(C.showsNode(node, listings, listing), true);
+       |          ^
+     84| });
+     85|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > rich component properties compare defaults, variants and explicit instance text
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:100:10
+     98|   const { def, property, instance } = componentFixture();
+     99|   C.condSet(def.node, { bind: { src: 'prop', path: property }, op: 'eq…
+    100|   assert.equal(C.showsNode(def.node, null, null, instance, def), true);
+       |          ^
+    101|   C.instSet(instance, property, '<p>Variant <em>workshop</em></p>');
+    102|   C.variantFromInstance(instance, 'Variant');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > CMS-bound rich properties normalize the terminal rich field and preserve raw condValue
+AssertionError: Expected values to be strictly equal:
+
+false !== true
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/rich-condition-values.test.ts:132:10
+    130|   assert.equal(C.condValue(condition, col, item, instance, def), html);
+    131|   const before = JSON.stringify(C.doc());
+    132|   assert.equal(C.showsNode(def.node, col, item, instance, def), true);
+       |          ^
+    133|   assert.equal(JSON.stringify(C.doc()), before, 'a condition check nev…
+    134| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  tests/rich-condition-values.test.ts > public and edit rendering share rich comparison results without altering content markup
+TypeError: Cannot read properties of undefined (reading 'inst')
+ ❯ Module.renderNode app/src/core/index.ts:8597:20
+    8595|      children. Nothing is cloned — the definition is read, not copied,…
+    8596|      set of rules in the stylesheet serve every instance. */
+    8597|   if (n.use && !(o.inst && o.inst === n)) {
+       |                    ^
+    8598|     const cd = findComponent(n.use);
+    8599|     if (cd && (o.stack || []).includes(n.use)) {
+ ❯ tests/rich-condition-values.test.ts:140:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 2 passed (11)
+   Start at  12:13:50
+   Duration  11.13s (transform 7.02s, setup 0ms, import 7.89s, tests 459ms, environment 0ms)

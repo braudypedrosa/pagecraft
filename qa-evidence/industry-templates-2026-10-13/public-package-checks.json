@@ -1,0 +1,31 @@
+{
+  "method": "Authenticated SSH sha256sum on the uploaded archives; all five hashes matched the local manifests.",
+  "anonymousHttpDownload": "urllib request returned HTTP 403; browser downloads were not exercised.",
+  "packages": [
+    {
+      "id": "electrician-service",
+      "packageSha256": "ffd49739131db38e4f279b49e48c4d60bdb6eeb9d317273550fa7b6de1f79cc2",
+      "matchesRemoteSshChecksum": true
+    },
+    {
+      "id": "residential-cleaning",
+      "packageSha256": "ea28ab1aba53053efcef888f54b86920af42b05520cce862a1eb9b5898889e68",
+      "matchesRemoteSshChecksum": true
+    },
+    {
+      "id": "landscaping-studio",
+      "packageSha256": "1d65eeb73e2816d623b09d802fda3b13b6c2cccfea04689523ecfd84d497872a",
+      "matchesRemoteSshChecksum": true
+    },
+    {
+      "id": "salon-studio",
+      "packageSha256": "09c30062936c1db94ccd104f371cec41bd0416d395064669edaa8645bbe6c9ae",
+      "matchesRemoteSshChecksum": true
+    },
+    {
+      "id": "bookkeeping-practice",
+      "packageSha256": "82be8c808123ae17e4a14826f4fd70664164704fc4f9529452ebe12871bbe53b",
+      "matchesRemoteSshChecksum": true
+    }
+  ]
+}

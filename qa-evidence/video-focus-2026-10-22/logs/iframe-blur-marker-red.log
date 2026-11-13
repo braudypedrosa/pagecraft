@@ -1,0 +1,32 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+ ❯ tests/video-focus-state.test.ts (5 tests | 1 failed) 71ms
+   × facade replacement transfers only keyboard-visible focus to the iframe 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/video-focus-state.test.ts > facade replacement transfers only keyboard-visible focus to the iframe
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/video-focus-state.test.ts:113:69
+    111|       expect(iframe?.getAttribute('data-pagecraft-keyboard-focus')).to…
+    112|       iframe?.dispatchEvent(new Event('blur'));
+    113|       expect(iframe?.hasAttribute('data-pagecraft-keyboard-focus')).to…
+       |                                                                     ^
+    114|       iframe?.setAttribute('data-pagecraft-keyboard-focus', '');
+    115|       iframe?.dispatchEvent(new Event('pointerdown'));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  19:52:23
+   Duration  1.50s (transform 383ms, setup 0ms, import 447ms, tests 71ms, environment 800ms)

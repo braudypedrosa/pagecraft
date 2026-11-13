@@ -1,0 +1,253 @@
+{
+  "baselineVersion": 872,
+  "tests": [
+    {
+      "case": "Desktop ratio Auto",
+      "actual": {
+        "aspect": "auto",
+        "height": 407.796875,
+        "iframe": {
+          "height": 360,
+          "width": 800
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Desktop ratio 16:9",
+      "actual": {
+        "aspect": "16 / 9",
+        "height": 675,
+        "iframe": {
+          "height": 675,
+          "width": 1200
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Desktop ratio 4:3",
+      "actual": {
+        "aspect": "4 / 3",
+        "height": 900,
+        "iframe": {
+          "height": 900,
+          "width": 1200
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Desktop ratio 1:1",
+      "actual": {
+        "aspect": "1 / 1",
+        "height": 1200,
+        "iframe": {
+          "height": 1200,
+          "width": 1200
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Desktop ratio 21:9",
+      "actual": {
+        "aspect": "21 / 9",
+        "height": 514.28125,
+        "iframe": {
+          "height": 514.28125,
+          "width": 1200
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Desktop ratio 9:16 vertical",
+      "actual": {
+        "aspect": "9 / 16",
+        "height": 2133.328125,
+        "iframe": {
+          "height": 2133.328125,
+          "width": 1200
+        },
+        "pageClient": 1320,
+        "pageScroll": 1320,
+        "width": 1200
+      }
+    },
+    {
+      "case": "Mobile Auto pasted800px iframe",
+      "actual": {
+        "aspect": "auto",
+        "height": 407.796875,
+        "iframe": {
+          "height": 360,
+          "width": 374
+        },
+        "pageClient": 414,
+        "pageScroll": 414,
+        "width": 374
+      }
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "freshSource": "<iframe title=\"QA inline notice\" width=\"800\" height=\"360\" srcdoc=\"&lt;p&gt;QA inline notice &amp;amp; garden&lt;/p&gt;\"></iframe>",
+  "freshRatio": "16:9",
+  "previewInnerOverflow": {
+    "client": 374,
+    "iframeWidth": 804,
+    "scroll": 804
+  },
+  "preview": [
+    {
+      "device": "Desktop",
+      "outer": {
+        "height": 675,
+        "iframe": {
+          "bottom": 1163.734375,
+          "height": 675,
+          "left": 89,
+          "right": 1289,
+          "top": 488.734375,
+          "width": 1200,
+          "x": 89,
+          "y": 488.734375
+        },
+        "width": 1200
+      },
+      "inside": {
+        "client": 1200,
+        "nested": {
+          "bottom": 364,
+          "height": 364,
+          "left": 0,
+          "right": 804,
+          "top": 0,
+          "width": 804,
+          "x": 0,
+          "y": 0
+        },
+        "scroll": 1200
+      }
+    },
+    {
+      "device": "Tablet",
+      "outer": {
+        "height": 442.125,
+        "iframe": {
+          "bottom": 671.65625,
+          "height": 442.125,
+          "left": 24,
+          "right": 810,
+          "top": 229.53125,
+          "width": 786,
+          "x": 24,
+          "y": 229.53125
+        },
+        "width": 786
+      },
+      "inside": {
+        "client": 786,
+        "nested": {
+          "bottom": 364,
+          "height": 364,
+          "left": 0,
+          "right": 804,
+          "top": 0,
+          "width": 804,
+          "x": 0,
+          "y": 0
+        },
+        "scroll": 804
+      }
+    },
+    {
+      "device": "Mobile",
+      "outer": {
+        "height": 210.375,
+        "iframe": {
+          "bottom": 635.125,
+          "height": 210.375,
+          "left": 20,
+          "right": 394,
+          "top": 424.75,
+          "width": 374,
+          "x": 20,
+          "y": 424.75
+        },
+        "width": 374
+      },
+      "inside": {
+        "client": 374,
+        "nested": {
+          "bottom": 364,
+          "height": 364,
+          "left": 0,
+          "right": 804,
+          "top": 0,
+          "width": 804,
+          "x": 0,
+          "y": 0
+        },
+        "scroll": 804
+      }
+    }
+  ],
+  "restoredCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "restoredIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "restored": true,
+  "gap": "Sandboxed working-draft Preview lacks exported direct-child responsive sizing; pasted800px iframe scrolls804px insideTablet786/Mobile374 opaque document.",
+  "editorNote": "Auto editor height includes intentional held-script/source warning; inner srcdoc held in editor and runs only isolated Preview/export."
+}

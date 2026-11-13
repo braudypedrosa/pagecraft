@@ -1,0 +1,128 @@
+{
+  "at": "2026-10-16T23:35:39.129878+00:00",
+  "parent": "6cfa3b9347a31ae3c9d1e96972a86b0a4c1a5d21",
+  "sourceFiles": {
+    "builder.html": "7fa552d0406b528ec54105443fd7988b6c15547ecc895219e590b05ef4028b4e",
+    "app/src/core/types.ts": "797491dc49b1753ed6cf4c8939aec0cc79cc3cc5b075dddd49c52fc9e7583b2c",
+    "app/src/core/index.ts": "b9b90bdc4d1919aa9c5933949965fb900b54987eea4c6de9515d83c5e16278f4",
+    "app/src/ui/ctx.ts": "6d39de270e803ba5cced8f5aca3e02a3f3af4dc36b5744023ab59ceb76d5a78f",
+    "app/src/ui/ReviewList.tsx": "6a7719f2be986cac0e62a7d868c8ee9b698e7706ac6501a0a1d86c4e96ec73a7",
+    "app/src/ui/inspector/Lists.tsx": "6c89b94304b156d495bb21a261e32959f64bcad816d2483c86bf0b722496fe93",
+    "server/src/app.ts": "95fa36e49b498c308fee0ae7ed91df6ebed6e51b103d3ac0cc185b04c842737b",
+    "server/src/publications.ts": "715c02c544ecc45ce22091944f21581a7f7ff0ca6054034ba1287cd3cc01254a",
+    "server/tests/app.test.ts": "2cf263a01188d606bbdccee7870b7cfa64345026826d95b9e70c1295e66548e9",
+    "tests/core.test.ts": "466befe8f9ca1e7855ff92d639eea962e478b2fc2c78a62fa33c228a55b3d547",
+    "tests/builder-cms-selection.test.mjs": "daa7702da1b23c23b47a7d976f8942f4a91b11b38d3324a27ee37cac01448266",
+    "tests/review-list-target.test.tsx": "5c5c4ee2efe1c68a160e18249d07fa736e2f64d9eebafe0e4d641642e11a2abc",
+    "tests/publication-preview-feedback.test.mjs": "2ab32fdac69619e0b570dbde7a73a4f0741769e0d599a19c43095d72eb32342f",
+    "tests/ui.setup.tsx": "f001008cebc169ad10a81781262a5a6102b3d6e0be809d4af19c2b798da78be1",
+    "tests/inspector-list-labels.test.tsx": "30fdd5a93b05fa9a293eb4a0513c6f7a52c0034d22c1bc2f577c6b9866b58fbc"
+  },
+  "exports": [
+    "/tmp/pagecraft-review-target-one-6cfa",
+    "/tmp/pagecraft-review-target-two-6cfa"
+  ],
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-review-target-one-6cfa",
+        "log": "/tmp/pagecraft-review-target-one-6cfa/npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-review-target-two-6cfa",
+        "log": "/tmp/pagecraft-review-target-two-6cfa/npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "sourceOverlayHashesVerified": true,
+    "sourceOverlayCount": 15,
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-review-target-one-6cfa",
+        "log": "/tmp/pagecraft-review-target-one-6cfa/package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-review-target-two-6cfa",
+        "log": "/tmp/pagecraft-review-target-two-6cfa/package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-review-target-one-6cfa",
+        "log": "/tmp/pagecraft-review-target-one-6cfa/demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-review-target-two-6cfa",
+        "log": "/tmp/pagecraft-review-target-two-6cfa/demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "stableGeneratedOutputCount": 11,
+    "stableGeneratedOutputsMatchAcrossExports": true,
+    "protectedMain11MatchProtectedBefore": true,
+    "protectedBeforeEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json",
+    "reviewedBaselineCopy": {
+      "source": "/tmp/pagecraft-review-target-one-6cfa/public/internal-ui-baselines",
+      "destinationIsolatedTwo": "/tmp/pagecraft-review-target-two-6cfa/public/internal-ui-baselines",
+      "destinationMain": "public/internal-ui-baselines",
+      "fileCount": 25,
+      "manifestSha256": "f42dc90964b2d6b453ba5c42c08e5f1a6eebb68b75b275eb9535177c1a2d8b34",
+      "oneCanonicalCheck": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-review-target-one-6cfa",
+        "exitCode": 0,
+        "images": 24,
+        "sourceFiles": 28
+      },
+      "twoCanonicalCheck": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-review-target-two-6cfa",
+        "exitCode": 0,
+        "images": 24,
+        "sourceFiles": 28
+      },
+      "mainManifestMatchesSource": true
+    },
+    "fullNpmTest": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-review-target-one-6cfa",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-review-target-final-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 204,
+      "testFilesSkipped": 2,
+      "testsPassed": 2325,
+      "testsSkipped": 5
+    },
+    "finalChecks": {
+      "generatedOutputCount": 11,
+      "isolatedOneTwoGeneratedOutputsMatch": true,
+      "isolatedOutputsMatchMainProtectedBefore": false,
+      "mainProtected11MatchProtectedBefore": true,
+      "mainProtectedEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json",
+      "sourceOverlayCount": 15,
+      "sourceOverlayHashesMatchRecord": true,
+      "note": "The isolated clean-build outputs are byte-equal to each other; the main checkout protected outputs remain byte-equal to protectedBefore. These are separate comparisons."
+    }
+  },
+  "loopbackGalleryServer": {
+    "status": "running",
+    "url": "http://localhost:4949/internal/components?host=cloud",
+    "bind": "127.0.0.1:4949",
+    "ptySession": "32187",
+    "process": "node --experimental-strip-types /tmp/pagecraft-review-target-server.mts",
+    "editorHtml": "/tmp/pagecraft-review-target-one-6cfa/index.html",
+    "stores": "MemoryStore, MemoryAuthStore, MemoryAssetStore; fictional accountAuth; componentGallery enabled",
+    "healthCheck": "HTTP 200 with Host: localhost; loopback-only disposable fixture; no hosted DB, credentials, provider environment, or API authoring."
+  },
+  "mainBuildOrTest": false
+}

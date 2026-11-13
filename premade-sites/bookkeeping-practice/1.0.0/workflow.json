@@ -1,0 +1,62 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent operators and small teams looking for ongoing bookkeeping, catch-up work, or payroll coordination.",
+    "primaryAction": "Start a consultation through an explicitly unconfigured inquiry form.",
+    "pages": ["index", "services", "approach", "contact"],
+    "content": "Plain-scope bookkeeping marketing copy with package names but no invented prices, testimonials, credentials, statistics, or regulated advice.",
+    "imagery": "Original editorial still life and studio photography in ink, ivory, ochre, walnut, and brass; each homepage role uses a distinct scene.",
+    "provenance": [
+      { "asset": "logo.svg and logo-light.svg", "source": "Project-authored SVG mark", "license": "Original project asset" },
+      { "asset": "ledger-desk.webp", "source": "OpenAI image generation, 2026-10-13", "license": "AI-generated project asset" },
+      { "asset": "records-in-hand.webp", "source": "OpenAI image generation, 2026-10-13", "license": "AI-generated project asset" },
+      { "asset": "archive-studio.webp", "source": "OpenAI image generation, 2026-10-13", "license": "AI-generated project asset" }
+    ]
+  },
+  "directions": [
+    {
+      "id": "precision-editorial",
+      "thesis": "A calm bookkeeping practice expressed through a strict editorial grid, dark ink, warm paper, and a restrained ochre signal color.",
+      "fingerprint": {
+        "header": "Ivory shared header with graphic woven-ledger logo and compact native menu.",
+        "hero": "Full photographic worktable with an anchored ink reading panel and a three-line headline.",
+        "textAnchor": "Large geometric headings paired with compact uppercase labels and readable Work Sans body copy.",
+        "inventory": "Ruled service records, a tactile workbench story, and a three-part monthly rhythm.",
+        "cta": "Dark photographic studio panel with one concise consultation action.",
+        "footer": "Compact ink footer with light graphic logo, wrapping links, and quiet demo disclosure."
+      },
+      "comparison": "Most aligned with the requested precision-editorial identity and bookkeeping subject; avoids advisory-style case studies and generic card grids.",
+      "sections": [
+        { "purpose": "Set the promise", "archetype": "photographic hero", "composition": "full image with anchored text panel", "typography": "three-line display headline", "imagery": "ordered ledger desk", "action": "view services or start consultation" },
+        { "purpose": "Explain service scope", "archetype": "ruled records", "composition": "stacked service bands beside a unified introduction", "typography": "plain labels and body copy", "imagery": "none", "action": "open full services" },
+        { "purpose": "Show working method", "archetype": "workbench and rhythm", "composition": "single image-copy pairing followed by dark three-part process", "typography": "compact editorial hierarchy", "imagery": "hands sorting records", "action": "read the approach" }
+      ]
+    },
+    {
+      "id": "ledger-modernist",
+      "thesis": "A more austere monochrome ledger system built from strong rules, narrow labels, and document-like reading rhythm.",
+      "fingerprint": { "header": "Narrow black rule header", "hero": "Type-first ivory field", "textAnchor": "Condensed sans headlines", "inventory": "Dense service ledger", "cta": "Ochre full-width strip", "footer": "Single-line utility footer" },
+      "comparison": "More document-led and less welcoming; retained as a distinct direction record only.",
+      "sections": [
+        { "purpose": "Establish rigor", "archetype": "type field", "composition": "oversized heading and narrow side note", "typography": "condensed modernist", "imagery": "small supporting still life", "action": "view scope" },
+        { "purpose": "Map services", "archetype": "ledger index", "composition": "dense ruled rows", "typography": "small labels", "imagery": "none", "action": "choose a service" }
+      ]
+    },
+    {
+      "id": "warm-workroom",
+      "thesis": "A softer maker-studio interpretation that centers tactile work, warm photography, and conversational copy.",
+      "fingerprint": { "header": "Paper header with broad mark", "hero": "Image-copy workroom split", "textAnchor": "Humanist headings", "inventory": "Photo-led service chapters", "cta": "Warm studio invitation", "footer": "Compact paper footer" },
+      "comparison": "Warmer and more lifestyle-led; less precise than the selected implementation direction.",
+      "sections": [
+        { "purpose": "Humanize the work", "archetype": "workroom split", "composition": "equal image and copy", "typography": "humanist sans", "imagery": "hands and folders", "action": "meet the process" },
+        { "purpose": "Explain offers", "archetype": "service chapters", "composition": "alternating photo and copy", "typography": "large chapter titles", "imagery": "three work scenes", "action": "contact the practice" }
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

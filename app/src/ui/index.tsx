@@ -10,9 +10,13 @@ import { install, registerPainter, type Core, type Legacy } from './ctx';
 import { Layers } from './Layers';
 import { Cms } from './Cms';
 import { CmsWorkspace } from './CmsWorkspace';
+import { ProposalsWorkspace } from './ProposalsWorkspace';
 import { Add } from './Add';
+export { recordElementUse } from './Add';
+export { selectionToolbarPosition, selectionToolbarTop } from './canvas-placement';
 import { Pages, PagesWorkspace } from './Pages';
 import { Inspector } from './inspector/Inspector';
+import { installCanvasFocus } from './canvas-focus';
 import { AssetField } from './AssetField';
 import { ColorTokens } from './ColorTokens';
 import { StyleClasses } from './StyleClasses';
@@ -25,7 +29,6 @@ import { installUiMotion } from '../../../shared/ui-motion.js';
 import { installAccountActions } from '../../../shared/account-actions.js';
 export { installActionFeedback } from '../../../shared/action-feedback.js';
 export { installUiMotion } from '../../../shared/ui-motion.js';
-export { installEditorViewport } from './editor-viewport';
 export { projectIdentity, renameHostedSite } from './hosted-identity';
 
 /* Host factories ship in the same sealed bundle as the editor UI. The classic single-file
@@ -39,6 +42,7 @@ export function mount(core: Core, legacy: Legacy) {
   install(core, legacy);
   if ((window as any).PC_SERVER) requestAnimationFrame(() => openReviewTarget(core, legacy, location.search));
   installUiMotion();
+  installCanvasFocus(() => { legacy.layoutCanvas(); legacy.positionHud(); legacy.renderDim(); });
   installCustomSelects();
   installActionFeedback();
   if (legacy.dynamicContentProvider() === 'pagecraft') installAccountActions();
@@ -60,6 +64,39 @@ export function mount(core: Core, legacy: Legacy) {
      keeps its own state, because the same keyed component is rendered again. */
   let cmsWorkspace: (() => any) | null = null;
   const renderCmsPanel = panel('paneCms', () => <Cms />, true);
+  const inspectorScroll = new Map<string, number>();
+  let inspectorScope = '';
+  let inspectorModifiedOnly = false;
+  /* A focused control can blur while the structural unmount is removing its subtree. Its
+     writer may request another inspector paint synchronously; the outer render already
+     has the current selection and must finish before a second render can touch its DOM. */
+  let renderingInspector = false;
+  const renderInspector = () => {
+    if (renderingInspector) return;
+    renderingInspector = true;
+    try {
+      const host = document.getElementById('right');
+      const old = host?.querySelector<HTMLElement>('#inspector-panel');
+      if (old && inspectorScope) inspectorScroll.set(inspectorScope, old.scrollTop);
+      const selected = core.state.ui.sel && core.locate(core.state.ui.sel)?.node;
+      const nextScope = selected ? selected.type + ':' + core.state.ui.stab : '';
+      /* Custom selects add sibling buttons inside the Preact-owned inspector. When its
+         element kind or tab changes, unmount the whole inspector and explicitly remove
+         enhancer leftovers before drawing the new shape. Ordinary same-scope repaints
+         retain the mount, so typing focus and component state are not disturbed. */
+      if (host && inspectorScope !== nextScope && host.childNodes.length) {
+        render(null, host);
+        host.replaceChildren();
+      }
+      inspectorScope = nextScope;
+      if (host) render(<Inspector initialModifiedOnly={inspectorModifiedOnly}
+        onModifiedOnlyChange={active => { inspectorModifiedOnly = active; }} />, host);
+      const next = host?.querySelector<HTMLElement>('#inspector-panel');
+      if (next) next.scrollTop = inspectorScroll.get(inspectorScope) || 0;
+    } finally {
+      renderingInspector = false;
+    }
+  };
   const painters = {
     renderLayers: panel('paneLayers', () => <Layers />),
     renderCms: () => {
@@ -74,7 +111,7 @@ export function mount(core: Core, legacy: Legacy) {
     },
     /* #right is hidden and shown by the Inspector itself, so it must render even while
        hidden — the component is what decides. */
-    renderRight: panel('right', () => <Inspector />)
+    renderRight: renderInspector
   };
   registerPainter('layers', painters.renderLayers);
   registerPainter('add', painters.renderAdd);
@@ -105,8 +142,8 @@ export function mount(core: Core, legacy: Legacy) {
   const mountColors = inBox('mColors', () => <ColorTokens />);
   const mountClasses = inBox('mClasses', () => <StyleClasses />);
   const mountStyles = inBox('mStyles', () => <TextStyles />);
-  const mountReview = (hostId = 'exReview', defaultOpen = false) =>
-    inBox(hostId, () => <ReviewList defaultOpen={defaultOpen} />)();
+  const mountReview = (hostId = 'exReview', defaultOpen = false, findings?: import('../core/types').Finding[]) =>
+    inBox(hostId, () => <ReviewList defaultOpen={defaultOpen} findings={findings} />)();
   registerPainter('colors', mountColors);
   registerPainter('classes', mountClasses);
   registerPainter('styles', mountStyles);
@@ -129,6 +166,7 @@ export function mount(core: Core, legacy: Legacy) {
     legacy.restoreCanvasLayout();
   };
   const openPages = () => {
+    closeProposals();
     let host = document.getElementById('pages-workspace-host');
     if (!host) { host = document.createElement('div'); host.id = 'pages-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     document.body.classList.remove('cms-open');
@@ -141,6 +179,7 @@ export function mount(core: Core, legacy: Legacy) {
   };
   const openCms = (collectionId: string) => {
     closePages();
+    closeProposals();
     let host = document.getElementById('cms-workspace-host');
     if (!host) { host = document.createElement('div'); host.id = 'cms-workspace-host'; document.querySelector('#app > .main')!.append(host); }
     const previous = document.activeElement as HTMLElement | null;
@@ -165,5 +204,32 @@ export function mount(core: Core, legacy: Legacy) {
     const surface = host.firstElementChild as HTMLElement | null;
     if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
   };
-  return { ...painters, openPages, closePages, openCms, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
+  /* Assistant proposals (Phase 7): a full workspace like the CMS, because a review needs room for
+     the before and after of each change and a preview of the page it lands on. */
+  let closeProposalsNow: (() => void) | null = null;
+  const closeProposals = () => { closeProposalsNow?.(); };
+  const openProposals = (focus?: string, onClose?: () => void) => {
+    closePages();
+    let host = document.getElementById('proposals-workspace-host');
+    if (!host) { host = document.createElement('div'); host.id = 'proposals-workspace-host'; document.querySelector('#app > .main')!.append(host); }
+    const previous = document.activeElement as HTMLElement | null;
+    document.body.classList.remove('cms-open');
+    document.body.classList.add('proposals-open');
+    const railButtons = [...document.querySelectorAll('#leftRail button')];
+    const active = railButtons.filter(b => b.classList.contains('on'));
+    railButtons.forEach(b => b.classList.toggle('on', b.getAttribute('data-act') === 'proposals'));
+    closeProposalsNow = () => {
+      closeProposalsNow = null;
+      render(null, host!);
+      document.body.classList.remove('proposals-open');
+      legacy.restoreCanvasLayout();
+      railButtons.forEach(b => b.classList.toggle('on', active.includes(b)));
+      previous?.focus({ preventScroll: true });
+      onClose?.();
+    };
+    render(<ProposalsWorkspace key={focus || 'all'} focus={focus} close={closeProposals} changed={onClose} />, host);
+    const surface = host.firstElementChild as HTMLElement | null;
+    if (surface) installUiMotion()?.enter(surface, { kind: 'panel' });
+  };
+  return { ...painters, openPages, closePages, openCms, openProposals, closeProposals, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
 }

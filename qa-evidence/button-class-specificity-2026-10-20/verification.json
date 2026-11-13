@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-20",
+  "baseCommit": "d2b5fb96b5a6e1835d7d294373c2fb2e50d0fdce",
+  "worktree": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/button-class-specificity",
+  "defect": "At Tablet/Mobile, `.c-<class>.pagecraft-button` (0,2) beat the later inherited per-node bridge (0,1), replacing an authored desktop Button surface with the class responsive surface.",
+  "fix": "Split inherited Button surface declarations into `.pagecraft-<id>.pagecraft-button`, matching the reinforced class specificity. Keep non-surface declarations on the existing one-class bridge. Exclude untouched desktop factory defaults while retaining authored defaults and tablet overrides.",
+  "acceptance": {
+    "localButton": "Desktop 27px surface remains 27px at Desktop/Tablet/Mobile for editor and public CSS; background, border, and padding follow the same rule.",
+    "peerButton": "Class-only peer remains 19px/15px/11px and follows responsive class background, border, and padding.",
+    "reset": "Removing local surface declarations returns the Button to the responsive class surface at all breakpoints."
+  },
+  "verification": [
+    {
+      "command": "focused regression before fix",
+      "result": "expected failure: Tablet received class 15px/background/border/padding instead of local 27px surface",
+      "log": "before-repro.log"
+    },
+    {
+      "command": "npx vitest run tests/button-variant-style-precedence.test.ts",
+      "result": "7/7 passed",
+      "log": "after-focused.log"
+    },
+    {
+      "command": "targeted class/history/rendering suite",
+      "result": "7 files, 708/708 passed",
+      "log": "targeted.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm test",
+      "result": "219 files passed, 2 skipped; 2447 tests passed, 5 skipped; gallery gate passed",
+      "log": "full-suite.log"
+    },
+    {
+      "command": "npm run build:editor-package twice",
+      "result": "11 generated outputs byte-identical, including post-suite rebuild",
+      "hashes": [
+        "editor-build-one.sha256",
+        "editor-build-two.sha256"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "relatedScopeAudit": "Gallery and Nav add reinforced selectors only for focus state, paired with matching per-node focus specificity. Slider and Gallery base surfaces use ordinary selectors, so the existing inherited bridge remains equal specificity. No analogous base-surface change was justified.",
+  "sourceFiles": {
+    "app/src/core/index.ts": "d30b7c781064c8873a3c8984c433ee8abb62a64aaec65af9b48cb7555c68ccdf",
+    "tests/button-variant-style-precedence.test.ts": "5ca87d925d674e2765463de9cd65284c2c83320e61b507a21b42d2413c0f07d6"
+  },
+  "generatedFiles": {
+    "index.html": "272d5c5418daebcc5c6742abc942c6426d099b42f8c71e96cbb3cbb45dba50cf",
+    "dist/core.cjs": "241a8d65d53f3a34470a542afe48dac20dd5c07cc0faa9e4bac9e96265275273",
+    "packages/editor/dist/editor.html": "a00fdbd2793c1b42c86721a883d7e5806f4b61e321e37318cde81cb9ad9ffd15",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "b1b2acaa03241cb0606f880b65051b250b387b0a9da6abe69e49bf76b58db10c",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "bae23379a698f9d742558e0818a7a0239f34df16ce8af85151238f0cf1606656",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "ffab233c373b9aababecd3be7584e11be145dabcc814e7836c53dfa8710be518",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19"
+  },
+  "nativeReview": {
+    "owner": "root",
+    "passed": true,
+    "caseCount": 9,
+    "evidence": "../full-customer-retest-2026-10-14/native/local-button-class-specificity-acceptance.json"
+  },
+  "risk": "Narrow to Button background-color, border*, and padding* properties already covered by buttonVariantProperty. Untouched factory values remain subordinate to shared classes.",
+  "delivery": "Local isolated checkout only; uncommitted, unpushed, undeployed."
+}

@@ -1,0 +1,176 @@
+[
+  {
+    "pageId": 17,
+    "form": null,
+    "h1": "Good care,for every smile.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "A clinician speaking with a parent and child",
+        "loaded": true
+      },
+      {
+        "alt": "An adult smiling during a dental visit",
+        "loaded": true
+      },
+      {
+        "alt": "A child at a dental visit",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Home – Template QA",
+    "width": 1280
+  },
+  {
+    "pageId": 18,
+    "form": null,
+    "h1": "Care that starts with you.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Treatments – Template QA",
+    "width": 1280
+  },
+  {
+    "pageId": 19,
+    "form": null,
+    "h1": "A team that listens.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "Dental team member in a bright practice",
+        "loaded": true
+      },
+      {
+        "alt": "Dental team member in a clinical setting",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Care Team – Template QA",
+    "width": 1280
+  },
+  {
+    "pageId": 20,
+    "form": null,
+    "h1": "A little more ease, from the start.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Your First Visit – Template QA",
+    "width": 1280
+  },
+  {
+    "pageId": 21,
+    "form": null,
+    "h1": "Helpful information, before you visit.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true
+      },
+      {
+        "alt": "Everyday oral care products",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Patient Information – Template QA",
+    "width": 1280
+  },
+  {
+    "pageId": 22,
+    "form": null,
+    "h1": "Let’s talk about your visit.",
+    "hasPortableToken": false,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true
+      }
+    ],
+    "scrollWidth": 1280,
+    "title": "Contact – Template QA",
+    "width": 1280
+  }
+]

@@ -1,0 +1,132 @@
+{
+  "title": "Bounded native Accordion coverage",
+  "status": "partial-bounded-native-evidence",
+  "source": "Candidate85 native Accordion authored fixture",
+  "evidenceDirectory": "qa-evidence/accordion-native-2026-10-22",
+  "evidenceFiles": [
+    "a01-add-duplicate-remove-move.json",
+    "a01-edit-escaped-content.json",
+    "a01-empty-accordion.json",
+    "a02-a03-single-open-matrix.json",
+    "a02-open-on-load.json",
+    "a03-independent-panels.json",
+    "a03-single-open-keyboard.json",
+    "a04-marker-modes.json",
+    "a05-empty-rows-and-show-me.json",
+    "s01-s10-default-colors-zero.json",
+    "s01-s10-responsive-style.json",
+    "s02-s10-breakpoint-reset.json",
+    "s05-question-weight.json",
+    "final-native-state.json",
+    "final-accordion-desktop.png",
+    "final-accordion-mobile.png"
+  ],
+  "content": {
+    "controls": [
+      {
+        "id": "A01",
+        "scope": "Questions/items",
+        "covered": [
+          "Add question",
+          "Edit question and answer",
+          "Duplicate item",
+          "Remove item",
+          "Move/reorder item",
+          "Escaped text, ampersand, quotes, newline, and emoji",
+          "Empty accordion editor/public behavior"
+        ],
+        "devices": ["Desktop", "Tablet", "Mobile"],
+        "proof": [
+          "a01-add-duplicate-remove-move.json",
+          "a01-edit-escaped-content.json",
+          "a01-empty-accordion.json"
+        ],
+        "expected": "Edited row remains selectable and renders escaped text as text with a line break; removed/empty public accordion has no accordion wrapper/details; editor exposes Add a question placeholder.",
+        "limits": ["Whitespace-only answers and arbitrary long/malformed text were not separately exercised."]
+      },
+      {
+        "id": "A02",
+        "scope": "Open on load",
+        "covered": ["All closed", "The first one", "All open"],
+        "devices": ["Desktop", "Tablet", "Mobile"],
+        "proof": ["a02-open-on-load.json", "a02-a03-single-open-matrix.json"],
+        "expected": "Published row counts and open counts match the selected mode; no page overflow in the captured three-device matrix.",
+        "limits": ["Other named initial-row choices beyond the first row were not recorded."]
+      },
+      {
+        "id": "A03",
+        "scope": "One open at a time",
+        "covered": ["Enabled single-open matrix", "Disabled independent panels", "Enter and Space keyboard activation on Mobile"],
+        "devices": ["Desktop", "Tablet", "Mobile"],
+        "proof": ["a03-single-open-keyboard.json", "a03-independent-panels.json", "a02-a03-single-open-matrix.json"],
+        "expected": "Enabled mode leaves one details element open after keyboard activation; disabled mode permits multiple open rows; final saved state restored to single=false/open=The first one.",
+        "limits": ["Keyboard proof is Mobile; desktop/tablet keyboard parity was not separately recorded."]
+      },
+      {
+        "id": "A04",
+        "scope": "Marker",
+        "covered": ["Plus / minus", "Caret", "None"],
+        "devices": ["Desktop", "Tablet", "Mobile"],
+        "proof": ["a04-marker-modes.json"],
+        "expected": "Four questions retain four markers for Plus / minus and Caret; None renders zero markers while questions remain.",
+        "limits": []
+      },
+      {
+        "id": "A05",
+        "scope": "Validation and recovery",
+        "covered": ["Empty answer Site check", "Blank question Site check", "Show me recovery", "Remove incomplete item"],
+        "devices": ["Desktop", "Tablet", "Mobile"],
+        "proof": ["a05-empty-rows-and-show-me.json"],
+        "expected": "Empty answer and blank question findings are surfaced; Show me exits preview, selects Accordion in the inspector, and exposes the offending item; incomplete item can be removed.",
+        "limits": ["Only the recorded Site checks paths were exercised; broader validation combinations remain open."]
+      }
+    ],
+    "style": {
+      "families": [
+        {
+          "id": "S01-S04,S06-S10",
+          "covered": [
+            "Question color",
+            "Answer color",
+            "Marker color",
+            "Divider color",
+            "Row padding",
+            "Row gap",
+            "Question size",
+            "Answer size",
+            "Row radius"
+          ],
+          "devices": ["Desktop", "Tablet", "Mobile"],
+          "proof": ["s01-s10-responsive-style.json", "s02-s10-breakpoint-reset.json", "s01-s10-default-colors-zero.json"],
+          "expected": "Authored Desktop/Tablet/Mobile values are reflected in computed CSS variables and rendered styles; resetting Mobile then Tablet restores inherited Desktop values; zero gap/radius and default current-color values are observed.",
+          "limits": ["The captured reset verifies inherited values, not every arbitrary unit/value."]
+        },
+        {
+          "id": "S05",
+          "covered": ["Question weight 400", "Question weight 500", "Question weight 600", "Question weight 700"],
+          "devices": ["Desktop", "Tablet", "Mobile"],
+          "proof": ["s05-question-weight.json", "s01-s10-responsive-style.json"],
+          "expected": "Question computed font weight follows the selected value at all three breakpoints.",
+          "limits": []
+        }
+      ],
+      "colorRestore": "The default-color receipt observes currentColor/rgb(17,19,17) after reset. It does not prove restoration to an original factory token; do not describe it as factory-token restoration."
+    }
+  },
+  "finalState": {
+    "proof": "final-native-state.json",
+    "devices": ["Desktop", "Mobile"],
+    "errors": [],
+    "observed": "Four authored questions; first and last open in the captured final state; saved default remains single=false/open=The first one.",
+    "visualEvidence": ["final-accordion-desktop.png", "final-accordion-mobile.png"]
+  },
+  "remainingGaps": [
+    "Arbitrary values, units, whitespace-only answers, very long content, and malformed input boundaries.",
+    "Hover, Focus, Motion, and shared Advanced/visibility/condition controls.",
+    "Full responsive save/reload coverage for every content/style combination beyond the recorded matrices.",
+    "Additional marker/accessibility semantics and keyboard parity outside the recorded Mobile case.",
+    "Production/deployed proof and full customer QA across other modules.",
+    "The known candidate85 whole-count typing issue is unrelated to Accordion evidence and is not resolved or reclassified here."
+  ],
+  "notClaimed": ["all controls complete", "all QA complete", "production acceptance"]
+}

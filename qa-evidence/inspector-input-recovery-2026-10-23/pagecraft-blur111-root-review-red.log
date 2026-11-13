@@ -1,0 +1,57 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451
+
+ ❯ tests/inspector-blur-button-click.test.tsx (8 tests | 3 failed) 562ms
+   × keyboard Space activation reaches the State button after focus is stable 109ms
+   × pointer blur cleans pending activation before any later release 72ms
+   × pointer lostpointercapture cleans pending activation before any later release 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-blur-button-click.test.tsx > keyboard Space activation reaches the State button after focus is stable
+AssertionError: non-activation keys must preserve the focused target
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/inspector-blur-button-click.test.tsx:131:10
+    129|   hover.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bub…
+    130|   await new Promise(resolve => requestAnimationFrame(() => requestAnim…
+    131|   assert.ok(hover.isConnected, 'non-activation keys must preserve the …
+       |          ^
+    132|   hover.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles…
+    133|   await new Promise(resolve => requestAnimationFrame(() => requestAnim…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/inspector-blur-button-click.test.tsx > pointer blur cleans pending activation before any later release
+ FAIL  tests/inspector-blur-button-click.test.tsx > pointer lostpointercapture cleans pending activation before any later release
+AssertionError: interruption releases exactly one pending repaint
+
+0 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/inspector-blur-button-click.test.tsx:187:12
+    185|     window.dispatchEvent(interruption === 'blur' ? new Event('blur') :…
+    186|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+    187|     assert.equal(paints, before + 1, 'interruption releases exactly on…
+       |            ^
+    188|     document.dispatchEvent(new PointerEvent('pointerup', { bubbles: tr…
+    189|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  10:28:23
+   Duration  3.23s (transform 581ms, setup 0ms, import 684ms, tests 562ms, environment 1.81s)

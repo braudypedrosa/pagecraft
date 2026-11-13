@@ -1,0 +1,114 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-lint-5d80a75
+
+ ❯ tests/video-source-lint.test.ts (5 tests | 4 failed) 36ms
+   × invalid, empty and corrected page video sources produce one actionable finding 23ms
+   × global video findings retain the real node and header scope 5ms
+   × collection-bound videos lint rendered row values instead of the authored fallback 3ms
+   × component property and CMS overrides replace an invalid definition source 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/video-source-lint.test.ts > invalid, empty and corrected page video sources produce one actionable finding
+AssertionError: expected [] to match object [ { level: 'error', …(3) } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "code": "video-invalid-source",
+-     "level": "error",
+-     "nodeId": "n763qi2mf",
+-     "target": {
+-       "nodeId": "n763qi2mf",
+-       "pageId": "n763qh1og",
+-       "scope": "page",
+-     },
+-   },
+- ]
++ []
+
+ ❯ tests/video-source-lint.test.ts:20:27
+     18|   C.state.pages[0].tree = [C.N('section', {}, {}, [video])];
+     19|
+     20|   expect(videoFindings()).toMatchObject([{
+       |                           ^
+     21|     level: 'error', code: 'video-invalid-source', nodeId: video.id,
+     22|     target: { pageId: C.state.pages[0].id, scope: 'page', nodeId: vide…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/video-source-lint.test.ts > global video findings retain the real node and header scope
+AssertionError: expected [] to match object [ { level: 'error', …(3) } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "code": "video-invalid-source",
+-     "level": "error",
+-     "nodeId": "n763r7793",
+-     "target": {
+-       "nodeId": "n763r7793",
+-       "pageId": "n763r76jf",
+-       "scope": "header",
+-     },
+-   },
+- ]
++ []
+
+ ❯ tests/video-source-lint.test.ts:58:27
+     56|   C.state.header = [video];
+     57|
+     58|   expect(videoFindings()).toMatchObject([{
+       |                           ^
+     59|     level: 'error', code: 'video-invalid-source', nodeId: video.id,
+     60|     target: { pageId: C.state.pages[0].id, scope: 'header', nodeId: vi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/video-source-lint.test.ts > collection-bound videos lint rendered row values instead of the authored fallback
+AssertionError: expected [] to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ tests/video-source-lint.test.ts:83:20
+     81|
+     82|   const findings = videoFindings();
+     83|   expect(findings).toHaveLength(2);
+       |                    ^
+     84|   const invalidFinding = findings.find(finding => finding.code === 'vi…
+     85|   expect(invalidFinding.msg).toContain('Invalid session');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/video-source-lint.test.ts > component property and CMS overrides replace an invalid definition source
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/video-source-lint.test.ts:114:20
+    112|
+    113|   let findings = videoFindings();
+    114|   expect(findings).toHaveLength(1);
+       |                    ^
+    115|   expect(findings[0]).toMatchObject({
+    116|     code: 'video-invalid-source', nodeId: invalidInstance.id,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  15:06:01
+   Duration  852ms (transform 584ms, setup 0ms, import 676ms, tests 36ms, environment 0ms)

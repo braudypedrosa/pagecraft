@@ -14,10 +14,14 @@ export type Call = [string, ...any[]];
 type StubOptions = {
   canStructure?: boolean;
   dynamicContentProvider?: ReturnType<Legacy['dynamicContentProvider']>;
+  managedForms?: boolean;
   wordpressContent?: ReturnType<Legacy['wordpressContent']>;
+  nativePageSource?: ReturnType<Legacy['nativePageSource']>;
   asset?: Legacy['asset'];
   libraries?: ReturnType<Legacy['libraries']>;
   siteDraft?: () => ReturnType<Legacy['siteDraft']>;
+  proposals?: ReturnType<Legacy['proposals']>;
+  acceptProposalDraft?: Legacy['acceptProposalDraft'];
 };
 
 /** Every Legacy entry, recording its name and arguments. Fields that must return a
@@ -29,8 +33,11 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
        roles. `stubLegacy(calls, { canStructure: false })` is how a case asks for the other. */
     canStructure: () => opts.canStructure !== false,
     dynamicContentProvider: () => opts.dynamicContentProvider || 'pagecraft',
+    managedForms: () => opts.managedForms === true,
     wordpressContent: () => opts.wordpressContent || [],
+    nativePageSource: () => opts.nativePageSource || null,
     select: rec('select'),
+    showReviewTarget: target => { calls.push(['showReviewTarget', target]); return true; },
     /* records *and* switches, because the real one does: `tree()` reads the mode, so a
        panel that asks to change region before inserting can only be checked against
        where the node actually landed if the stub honours the request. */
@@ -59,11 +66,18 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     askConfirm: async (...a: any[]) => { calls.push(['askConfirm', ...a]); return true; },
     askPick: async (...a: any[]) => { calls.push(['askPick', ...a]); return ''; },
     cmsModal: rec('cmsModal'),
-    cmsCommit: async collections => { C.edit(() => { C.state.meta.collections = collections; }); },
+    cmsCommit: async collections => { C.edit(() => { C.collectionsReplace(C.doc(), collections); }); },
     libraries: () => opts.libraries || null,
     siteDraft: () => opts.siteDraft ? opts.siteDraft() : null,
+    insertionHint: () => '',
+    guideSavedDocument: () => null,
+    guidePreview: rec('guidePreview'),
+    guideSelect: rec('guideSelect'),
+    previewInsertion: rec('previewInsertion'),
     flushDraft: async () => { calls.push(['flushDraft']); },
+    acceptProposalDraft: opts.acceptProposalDraft || (() => false),
     assetsReload: async () => { calls.push(['assetsReload']); },
+    proposals: () => opts.proposals || null,
     saveBlockFlow: rec('saveBlockFlow'),
     toast: rec('toast'),
     startDrag: rec('startDrag'),
@@ -79,6 +93,7 @@ export function stubLegacy(calls: Call[], opts: StubOptions = {}): Legacy {
     writeNow: rec('writeNow'),
     closeModal: rec('closeModal'),
     closeReviewSurface: rec('closeReviewSurface'),
+    exitPreview: () => { calls.push(['exitPreview']); document.body.classList.remove('preview'); },
     tx: rec('tx'),
     endTx: rec('endTx'),
     paint: rec('paint'),

@@ -1,0 +1,186 @@
+{
+  "baseCommit": "2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49",
+  "status": "Root source, native and gallery acceptance complete; final full suite passes. Ready for root integration, uncommitted and undeployed.",
+  "source": "app/src/ui/inspector/ColorPop.tsx",
+  "test": "tests/color-picker-dialog-semantics.test.tsx",
+  "scope": "Named nonmodal dialog plus initial focus once per opening; event-listener/motion cleanup and Escape restoration retained. No Controls source change.",
+  "justification": "Opening swatch advertises aria-haspopup dialog, but picker was a plain unnamed div and absent from dialog role queries. Existing focus-entry and Escape restoration already work and are preserved.",
+  "checks": {
+    "red": {
+      "exitCode": 1,
+      "testsFailed": 3
+    },
+    "focused": {
+      "exitCode": 0,
+      "files": 2,
+      "testsPassed": 75
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "diff": "pass",
+    "fullPreNative": {
+      "exitCode": 1,
+      "testsPassed": 2614,
+      "testsSkipped": 5,
+      "filesPassed": 248,
+      "filesSkipped": 2,
+      "testsFailed": 1,
+      "durationSeconds": 99.21,
+      "onlyFailure": "Expected reviewed gallery ColorPop source gate",
+      "evidence": "logs/outside-full-pre-native.log"
+    },
+    "determinism": {
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "outside-generated-build-1.sha256",
+        "outside-generated-build-2.sha256"
+      ]
+    },
+    "audit": {
+      "exitCode": 0,
+      "vulnerabilities": 0,
+      "evidence": "logs/outside-audit.log"
+    },
+    "demo": {
+      "exitCode": 0,
+      "components": 1,
+      "instances": 6,
+      "items": 4,
+      "findings": 0
+    },
+    "typecheckFinal": {
+      "exitCode": 0
+    },
+    "diffFinal": {
+      "exitCode": 0
+    },
+    "finalFull": {
+      "exitCode": 0,
+      "filesPassed": 249,
+      "filesSkipped": 2,
+      "testsPassed": 2615,
+      "testsSkipped": 5,
+      "durationSeconds": 98.57,
+      "evidence": "logs/full-final.log"
+    },
+    "finalBaseline": {
+      "exitCode": 0,
+      "images": 24,
+      "sourceFiles": 30,
+      "evidence": "logs/baseline-final.log"
+    },
+    "finalDiff": {
+      "exitCode": 0,
+      "evidence": "logs/diff-final.log"
+    }
+  },
+  "hashes": {
+    "app/src/ui/inspector/ColorPop.tsx": "23af25c3b2266cbb9129186dbd236db1a8dd056735f3f88b1bea6333c0af9ea6",
+    "tests/color-picker-dialog-semantics.test.tsx": "4ff43479d20c49b92d091b0def7b55194fa9fc901cc15d1c774038a942d8db17"
+  },
+  "limits": [
+    "Native browser work and baseline recording were performed by root; worker verified receipts and final Mobile screenshot.",
+    "Historical semantics-only proof and native outside-focus failures retained; final acceptance applies only to the revised8177 asset.",
+    "No Main, browser, WordPress, baseline recording, commit, push or deploy by this worker."
+  ],
+  "remaining": [
+    "Root integration and release decision; broader QA remains open."
+  ],
+  "freeze": {
+    "entries": 22,
+    "manifest": "source-tests-assets.sha256",
+    "sha256": "eaebaf8caac2b928b53f5f52486f5e8159849a8fbb2d8a20151c5abb055d3602",
+    "drift": [],
+    "previousManifest": "source-tests-assets.before-final.sha256",
+    "reviewedBaseline": "reviewed-baseline.sha256",
+    "beforeBaseline": "reviewed-baseline.previous.sha256"
+  },
+  "harness": {
+    "url": "http://localhost:4988/edit/s1",
+    "pid": 2770,
+    "sessionId": 97895,
+    "path": "tools/.qa-ui-4988.mjs",
+    "provenance": "Trusted4986 copied with port-only substitution, started after final builds; no state injection.",
+    "servedAsset": "8177d43f9f75a582bfbfc576a455bc560c1378e88cfc05f1b4f7eb88229d8dda",
+    "servedProof": "served-ui-outside-receipt.json",
+    "preserve": true,
+    "status": "Preserved final tab55/PID2770; accepted served asset unchanged after final full suite.",
+    "finalProof": "served-ui-final-receipt.json"
+  },
+  "focusFollowup": {
+    "before": "Native root outside Padding top/right dismissal left body active on all three breakpoints.",
+    "cause": "onClose closure changes during inspector commit rerender retriggered shared effect including initial slider focus, stealing focus from clicked control before picker removal.",
+    "red": {
+      "failed": 6,
+      "passed": 3,
+      "evidence": "logs/outside-red.log"
+    },
+    "green": {
+      "files": 2,
+      "testsPassed": 81,
+      "evidence": "logs/outside-focused.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/outside-typecheck.log"
+    },
+    "sourceReview": "Accepted by root for fresh native gate."
+  },
+  "harnessHistory": [
+    {
+      "url": "http://localhost:4986/edit/s1",
+      "pid": 98219,
+      "sessionId": 97859,
+      "path": "tools/.qa-ui-4986.mjs",
+      "provenance": "Trusted4984 harness copied with port-only substitution; fresh fictional default fixture, no state injection. Started after final build to avoid cached stale UI.",
+      "servedAsset": "b69501648136e95edef21a9602f9b185a27ef5d085ac97be089f28228dc1390a",
+      "preserve": true,
+      "status": "Root closed old tab54, verified PID98219 command/cwd, then stopped4986; no listener remains."
+    }
+  ],
+  "nativeFinal": {
+    "result": "Accepted by root on tab55/fresh4988 builder asset8177d43f9f75a582bfbfc576a455bc560c1378e88cfc05f1b4f7eb88229d8dda",
+    "outsideFocus": {
+      "passed": 6,
+      "scope": "Padding top/right on Desktop/Tablet/Mobile; one named gradient dialog closes and destination retains focus.",
+      "evidence": "native/final-outside-focus.json"
+    },
+    "escape": {
+      "passed": 3,
+      "scope": "All three breakpoints restore actual swatch focus.",
+      "evidence": "native/final-escape.json"
+    },
+    "keyboard": {
+      "before": "#3366cc",
+      "afterAndReload": "#3361cc",
+      "evidence": "native/final-keyboard-reload.json"
+    },
+    "consoleErrors": 0,
+    "visualReview": "Root and worker independently viewed native/final-mobile-dialog.png."
+  },
+  "galleryFinal": {
+    "behaviorsPassed": 30,
+    "capturesPassed": 24,
+    "changedPixels": 0,
+    "reviewedBaseline": "Recorded by root; previous HEAD hash retained separately.",
+    "evidence": [
+      "gallery/behavior-checks.json",
+      "gallery/diffs/results.json"
+    ],
+    "cleanup": {
+      "tabId": "56",
+      "cpuRate": 1,
+      "cpuResponse": {},
+      "viewportClearResponse": {},
+      "media": {
+        "media": "",
+        "features": [],
+        "response": {}
+      },
+      "rootConfirmation": "Explicit reset commands succeeded; no CPU throttling enabled in this cycle; tab56 closed afterward.",
+      "evidence": "gallery/cleanup.json"
+    }
+  }
+}

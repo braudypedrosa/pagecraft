@@ -1,0 +1,13 @@
+{
+  "base": "371dcb612c217f1f20e5b03988670297ab1e603e",
+  "files": {
+    "app/src/ui/inspector/cms-source-change.ts": "043d85fe1ef013c36fd48ee2a848679bd7c9bee8410d2365b9ec8b7bb2f7b576",
+    "tests/cms-source-change.test.tsx": "a832b5e02832d30d04325b5e529e16185f01b5d5df4189713d95d3ba1349e806"
+  },
+  "focusedTests": 14,
+  "typecheckExit": 0,
+  "redFailed": 2,
+  "redPassed": 12,
+  "buildsPerformed": false,
+  "galleryUpdated": false
+}

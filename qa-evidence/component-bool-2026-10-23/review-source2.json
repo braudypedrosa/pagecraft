@@ -1,0 +1,11 @@
+{
+  "base": "45d01dc24650eb388668d69f1b57c125bdadbbe2",
+  "files": {
+    "app/src/ui/inspector/Controls.tsx": "7acbdd1fae334b6cca790f23e4473146dc871466cdee1dfaddc84ef74f1a10af",
+    "tests/component-bool-authoring.test.tsx": "6666c48c3f846a0ebce1b780fcb32f9e8373e7c821afca3cf2f7513be545ae46"
+  },
+  "productScope": "ToggleCtl definition-mode uses existingField; ordinary and already-instanced controls preserved",
+  "generatedBuilt": true,
+  "nativeAcceptance": "Pending root",
+  "fullSuite": "2788passed5skipped, corrected description branch, final log description-full-final.log"
+}

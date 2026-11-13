@@ -1,0 +1,40 @@
+{
+  "typed": "2.5",
+  "stored": {
+    "min": "0",
+    "step": "1",
+    "value": "3"
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams"
+      ],
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Tablet",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams"
+      ],
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "titles": [
+        "2. Community workshop and accessibility review for local teams",
+        "3. Community workshop and accessibility review for local teams",
+        "5. Community workshop and accessibility review for local teams"
+      ],
+      "pages": "Previous\n1\n2\n3\n4\n5\n6\nNext",
+      "overflow": false
+    }
+  ]
+}

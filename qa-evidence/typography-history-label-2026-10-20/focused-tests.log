@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/typography-history-label
+
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  19:33:50
+   Duration  888ms (transform 411ms, setup 0ms, import 487ms, tests 31ms, environment 511ms)

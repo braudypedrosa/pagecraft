@@ -1,0 +1,4 @@
+a290e6c2965f12dcc0dd22c096f9b6aa77c30ff8ee9e2871e959b06359eb04b1  app/src/core/index.ts
+10decb141d66a986844024a3d5ade764bd1a58e5a078d0dd87cabdb5ba461a6b  app/src/ui/CmsWorkspace.tsx
+08037151a3d83b189881005eac94aba0d9dd10567aef40009c217d9877984cd5  tests/cms-workspace.test.tsx
+731b25626644ce75622fde37864115f912ff0d4ce73d4898d5b004ab29c1ce6d  tests/list-pagination-reset.test.ts

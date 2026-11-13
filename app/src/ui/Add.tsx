@@ -11,8 +11,17 @@
    element would also be appended where it started. */
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
+import { Disclosure } from './Disclosure';
 import { Libraries, addToLibrary, fromLabel, linkOf } from './Libraries';
 import type { LibraryItemKind } from '../core/libraries';
+import { useLayoutEffect, useState } from 'preact/hooks';
+import { createRecentElementsStore } from './recent-elements';
+import { FirstEditGuide } from './FirstEditGuide';
+import {
+  actionDestinationOptions, applyRegionSetup, firstAction, placementIndex,
+  placementOptions, selectedSectionIndex, starterNavItems, suggestedActionDestination,
+  type SectionPlacement
+} from './section-insertion';
 
 /* Lives here because the Add panel is the only thing that reads it: which widgets are
    offered, and how they are grouped. */
@@ -34,7 +43,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
   },
   {
     g: 'Content', items: [
-      ['heading', 'Heading'], ['text', 'WYSIWYG'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
+      ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
       ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['icon', 'Icon']
     ]
   },
@@ -49,13 +58,33 @@ const PAL: { g: string; items: [string, string][] }[] = [
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
 ];
 
+const recentElements = createRecentElementsStore(PAL.flatMap(group => group.items.map(([key]) => key)));
+/* Called by the successful click/drop insertion paths, never by hover or drag start. */
+export const recordElementUse = recentElements.record;
+
+const ALIASES: Record<string, string> = {
+  heading: 'title headline',
+  text: 'paragraph copy wysiwyg',
+  image: 'photo picture media',
+  button: 'link call to action cta',
+  section: 'layout container wrapper',
+  columns: 'layout column row split',
+  row: 'layout columns horizontal',
+  flex: 'layout align alignment stack',
+  grid: 'layout tiles repeated',
+  box: 'layout container wrapper',
+  linkbox: 'layout clickable card link',
+  slider: 'carousel slideshow',
+  list: 'collection cms dynamic',
+};
+
 const TABS = [
-  ['widgets', 'Elements', 'Basic elements for building a page', 'plus'],
-  ['templates', 'Templates', 'Ready-made sections using this project’s styles', 'section'],
-  ['components', 'Components', 'Reusable elements that stay synchronized', 'component'],
-  ['blocks', 'Blocks', 'Reusable copies you can edit independently', 'copy'],
+  ['widgets', 'Elements', 'plus'],
+  ['templates', 'Templates', 'section'],
+  ['components', 'Components', 'component'],
+  ['blocks', 'Blocks', 'copy'],
   /* Only where libraries exist: the hosted editor, for the site's owner. */
-  ['libraries', 'Libraries', 'Your account’s components, blocks and styles, for any site you own', 'library']
+  ['libraries', 'Libraries', 'library']
 ] as const;
 type AddTab = (typeof TABS)[number][0];
 const tabs = () => L.libraries() ? TABS : TABS.filter(([key]) => key !== 'libraries');
@@ -63,6 +92,12 @@ const tab = (): AddTab => {
   const want = C.state.ui.atab || 'widgets';
   return (tabs().find(([key]) => key === want) || TABS[0])[0];
 };
+
+const STARTER_SECTIONS = [
+  ['hero-split', 'Image beside text'],
+  ['features-3', 'Three columns'],
+  ['contact', 'Contact section']
+] as const;
 
 /* A row's library line and its "Add to library…" button, shared by Components and Blocks. */
 function LibraryFrom({ kind, id }: { kind: LibraryItemKind; id: string }) {
@@ -79,29 +114,100 @@ function LibraryAdd({ kind, id }: { kind: LibraryItemKind; id: string }) {
   );
 }
 
-function Widgets() {
+type PaletteGroup = (typeof PAL)[number];
+
+function WidgetTiles({ group }: { group: PaletteGroup }) {
+  return (
+    <div class="pgrid">
+      {group.items.map(([k, label]) => (
+        <button type="button" class="pitem" key={k} title={L.insertionHint(k)}
+          onFocus={() => L.previewInsertion(k)}
+          onMouseEnter={() => L.previewInsertion(k)}
+          onBlur={() => L.previewInsertion(null)}
+          onMouseLeave={() => L.previewInsertion(null)}
+          onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+            { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
+          onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
+          <Icon name={C.iconOf(k)} size={19} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Widgets({ templates }: { templates(): void }) {
+  const [query, setQuery] = useState('');
+  const [recent, setRecent] = useState(() => recentElements.read());
+  useLayoutEffect(() => recentElements.subscribe(setRecent), []);
   const groups = PAL.map(group => ({
     ...group,
     items: group.items.filter(([key]) => key !== 'list' || L.dynamicContentProvider() === 'pagecraft')
   }));
+  const allowed = groups.flatMap(group => group.items.map(item => ({ group: group.g, item })));
+  const recentItems = recent.flatMap(key => {
+    const found = allowed.find(({ item }) => item[0] === key);
+    return found ? [found.item] : [];
+  });
+  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = groups.map(group => ({
+    ...group,
+    items: group.items.filter(([key, label]) => {
+      const haystack = `${group.g} ${label} ${key} ${ALIASES[key] || ''}`.toLowerCase();
+      return terms.every(term => haystack.includes(term));
+    })
+  })).filter(group => group.items.length);
+  const clear = () => setQuery('');
+
   return (
     <>
-      {groups.map(g => (
-        <>
-          <div class="plabel">{g.g}</div>
-          <div class="pgrid">
-            {g.items.map(([k, label]) => (
-              <button type="button" class="pitem" key={k} title="Drag onto the canvas — or click to append"
-                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
-                  { kind: 'new', type: k, label: C.labelOf(k), icon: C.iconOf(k) }, false)}
-                onClick={() => { if (!L.consumeDragMoved()) L.appendSmart(k); }}>
-                <Icon name={C.iconOf(k)} size={19} />
-                <span>{label}</span>
-              </button>
-            ))}
+      <div class="pc-add-search">
+        <label for="add-element-search">Find an element</label>
+        <div>
+          <Icon name="search" size={14} />
+          <input id="add-element-search" type="search" value={query}
+            placeholder="Search text, photo, layout…" autocomplete="off"
+            onInput={e => setQuery(e.currentTarget.value)}
+            onKeyDown={e => {
+              if (e.key !== 'Escape') return;
+              e.stopPropagation();
+              if (query) { e.preventDefault(); clear(); }
+            }} />
+          {query ? <button type="button" class="bx" aria-label="Clear element search" onClick={clear}>
+            <Icon name="close" size={12} />
+          </button> : null}
+        </div>
+      </div>
+
+      {terms.length ? (
+        matches.length ? matches.map(group => (
+          <div class="pc-add-group" key={group.g}>
+            <div class="plabel">{group.g}</div>
+            <WidgetTiles group={group} />
           </div>
+        )) : (
+          <div class="pc-add-empty" role="status">
+            <b>No elements found</b>
+            <span>Change or clear the search.</span>
+            <button type="button" class="btn" onClick={clear}>Clear search</button>
+          </div>
+        )
+      ) : (
+        <>
+          {recentItems.length ? <div class="pc-add-group">
+            <div class="plabel">Recently used</div>
+            <WidgetTiles group={{ g: 'Recently used', items: recentItems }} />
+          </div> : null}
+          <div class="pc-add-guide">
+            <button type="button" class="btn" onClick={templates}>Browse starter sections</button>
+          </div>
+          {groups.filter(group => group.items.length).map(group => (
+            <Disclosure class="pc-add-category" key={group.g} title={group.g} count={group.items.length}>
+              <WidgetTiles group={group} />
+            </Disclosure>
+          ))}
         </>
-      ))}
+      )}
     </>
   );
 }
@@ -130,28 +236,129 @@ function Templates() {
   const LEAD = ['Header', 'Footer'];
   const cats = [...LEAD.filter(c => seen.includes(c)), ...seen.filter(c => !LEAD.includes(c))];
 
-  const place = (id: string) => {
+  const place = async (id: string) => {
     if (L.consumeDragMoved()) return;
     const pat = C.PATTERNS.find(x => x.id === id)!;
-    const want = pat.scope || 'page';
-    const jumped = C.state.ui.mode !== want;
-    /* before the insert, because `patternInsert` reads `tree()` and `tree()` reads the
-       mode. Mode is UI state and is not in the undo snapshot, so it sits outside the
-       transaction on purpose — undoing the insert should not also move you. */
-    if (jumped) L.setMode(want);
+    const originalMode = C.state.ui.mode;
+    const originalPageId = C.page().id;
+
+    if (!pat.scope) {
+      const selectedId = selectedSectionIndex(C.page().tree, C.state.ui.sel) == null ? null : C.state.ui.sel;
+      const options = placementOptions(C.page().tree, selectedId);
+      let picked = 'end';
+      if (options.length > 1) {
+        const choice = await L.askPick('Place section', options, 'end');
+        if (!choice) return;
+        picked = choice;
+        if (C.page().id !== originalPageId || (selectedId && !C.locate(selectedId, C.page().tree))) {
+          L.toast('The page changed. Choose the section again.');
+          return;
+        }
+      }
+      const page = C.page();
+      const index = placementIndex(page.tree, selectedId, picked as SectionPlacement);
+      let made: { id: string } | null = null;
+      /* patternInsert reads the active tree. Keep a global editing scope stable by using page
+         mode only during the synchronous transaction, then restoring it before repaint. */
+      C.state.ui.mode = 'page';
+      C.edit(() => { made = C.patternInsert(id, null, index); }, 'Add section');
+      C.state.ui.mode = originalMode;
+      if (!made) { L.toast('That does not fit there'); return; }
+      if (originalMode === 'page') L.select((made as { id: string }).id);
+      L.toast(`${pat.name} added`);
+      return;
+    }
+
+    const scope = pat.scope;
+    const currentRegion = () => C.pageRegion(C.page(), scope);
+    const regionSnapshot = JSON.stringify(currentRegion());
+    const contextChanged = () => C.page().id !== originalPageId || JSON.stringify(currentRegion()) !== regionSnapshot;
+    let action = 'add' as 'add' | 'replace' | 'edit';
+    if (currentRegion().length) {
+      const picked = await L.askPick(`Add or replace ${scope}`, [
+        ['add', `Add another ${scope} — keep current ${scope}`],
+        ['replace', `Replace current ${scope} — Undo restores it`],
+        ['edit', `Edit existing ${scope} — no changes`]
+      ], 'replace');
+      if (!picked) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      action = picked as 'add' | 'replace' | 'edit';
+      if (action === 'edit') {
+        L.setMode(scope);
+        L.select(currentRegion()[0].id);
+        L.toast(`Editing current ${scope}`);
+        return;
+      }
+    }
+
+    const navItems = starterNavItems(currentRegion(), C.state.pages);
+    const staged = pat.build();
+
+    let actionSetup: { label: string; href: string } | null = null;
+    const button = firstAction(staged);
+    if (button) {
+      const label = await L.askText(`Set up ${scope} action`, 'Action label', String(button.props.text || ''), {
+        ok: 'Continue'
+      });
+      if (label == null) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      const destination = await L.askPick('Action destination', actionDestinationOptions(C.state.pages),
+        suggestedActionDestination(C.state.pages));
+      if (destination == null) return;
+      if (contextChanged()) {
+        L.toast(`The ${scope} changed. Choose the template again.`);
+        return;
+      }
+      actionSetup = { label: label.trim() || 'Action', href: destination };
+    }
 
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.patternInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    const wasHidden = C.pageRegionMode(C.page(), scope) === 'hidden';
+    const owner = C.pageRegionMode(C.page(), scope) === 'shared' ? 'global' : 'page';
+    if (!wasHidden) L.setMode(scope);
+    C.edit(() => {
+      if (wasHidden) { C.pageRegionSet(C.page(), scope, 'custom'); C.state.ui.mode = scope; }
+      const region = currentRegion();
+      const oldLength = region.length;
+      made = C.patternInsert(id, null, region.length);
+      if (!made) return;
+      applyRegionSetup(made as any, navItems, actionSetup);
+      if (action === 'replace') region.splice(0, oldLength);
+    }, action === 'replace' ? `Replace ${owner} ${scope}` : `Add ${owner} ${scope}`);
     if (!made) { L.toast('That does not fit there'); return; }
-    /* say where it went when that is not where you were looking, or a header appearing to
-       replace the page you had open reads as the template having gone wrong */
-    L.toast(pat.scope && jumped
-      ? `${pat.name} added — now editing the global ${pat.scope}`
-      : `${pat.name} added`);
+    if (wasHidden) L.setMode(scope);
+    L.select((made as { id: string }).id);
+    L.toast(action === 'replace'
+      ? `${pat.name} replaced the current ${scope}. Undo restores it.`
+      : `${pat.name} added — now editing the ${owner} ${scope}`);
   };
 
   return (
     <>
+      <div class="pc-add-starters" aria-labelledby="starter-sections-label">
+        <div class="plabel" id="starter-sections-label">Starter sections</div>
+        <div class="pvgrid">
+          {STARTER_SECTIONS.map(([id, label]) => {
+            const pattern = C.PATTERNS.find(candidate => candidate.id === id);
+            return pattern ? (
+              <button type="button" class="pvcard pc-add-starter" key={id}
+                title={`${pattern.desc} — drag onto the canvas, or click to choose where to place`}
+                onPointerDown={e => L.startDrag(e as unknown as PointerEvent,
+                  { kind: 'pattern', patId: pattern.id, label: pattern.name, icon: 'section' }, false)}
+                onClick={() => place(pattern.id)}>
+                <div dangerouslySetInnerHTML={{ __html: pattern.preview() }} />
+                <span>{label}</span>
+              </button>
+            ) : null;
+          })}
+        </div>
+      </div>
       {cats.map(cat => (
         <>
           <div class="plabel">{cat}</div>
@@ -159,8 +366,8 @@ function Templates() {
             {C.PATTERNS.filter(t => t.cat === cat).map(t => (
               <button class="pvcard" key={t.id}
                 title={t.scope
-                  ? `${t.desc} — click to add it to the global ${t.scope}, shared by every page`
-                  : `${t.desc} — drag onto the canvas, or click to append`}
+                  ? `${t.desc} — click to add, replace, or edit the global ${t.scope}`
+                  : `${t.desc} — drag onto the canvas, or click to choose where to place`}
                 /* No drag for a region pattern. A drop lands wherever the drop target says,
                    which in page mode is page content — the one placement this must not
                    allow. There is also nowhere meaningful to aim a global header. */
@@ -189,7 +396,8 @@ function Blocks() {
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.blockInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    C.edit(() => { made = C.blockInsert(id, undefined); });
+    if (made) L.select((made as { id: string }).id);
     L.toast(made ? C.findBlock(id)!.name + ' placed' : 'That block does not fit there');
   };
 
@@ -231,8 +439,7 @@ function Blocks() {
         );
       }) : (
         <div class="hint">
-          No saved blocks yet. Select an element and save it as a block to reuse on other pages.
-          Edit each block independently, or use <b>Components</b> to update all instances together.
+          No saved blocks. Select an element to save one.
         </div>
       )}
       <button class="btn block" disabled={!sel}
@@ -250,8 +457,8 @@ function Blocks() {
    are different answers and the panel says which is which, and the plan says what happens to
    blocks once components can do everything they can.
 
-   Every row does three things, because a component is three things: place one, edit the
-   definition, or delete it. Delete says how many places it would change. */
+   Each row can place an instance, edit or rename the definition, or delete it.
+   Delete says how many places it would change. */
 function Components() {
   const sel = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
   const list = C.components();
@@ -260,7 +467,8 @@ function Components() {
   const place = (id: string) => {
     if (L.consumeDragMoved()) return;
     let made: { id: string } | null = null;
-    C.edit(() => { made = C.instanceInsert(id, undefined); if (made) C.selSet([(made as { id: string }).id]); });
+    C.edit(() => { made = C.instanceInsert(id, undefined); });
+    if (made) L.select((made as { id: string }).id);
     L.toast(made ? C.findComponent(id)!.name + ' placed' : 'That component does not fit there');
   };
 
@@ -269,21 +477,38 @@ function Components() {
     L.editComponent(id);
   };
 
+  const rename = async (e: MouseEvent, id: string) => {
+    e.stopPropagation();
+    const cd = C.findComponent(id);
+    if (!cd) return;
+    const name = (await L.askText('Rename component', 'Name', cd.name))?.trim().slice(0, 40);
+    if (!name || name === cd.name) return;
+    C.edit(() => { C.componentRename(id, name); });
+    repaint('add');
+    repaint('right');
+  };
+
   const remove = async (e: MouseEvent, id: string) => {
     e.stopPropagation();
     const cd = C.findComponent(id);
     if (!cd) return;
-    const n = C.componentUsage(id);
+    const n = C.instances(id).length;
+    const menuUses = C.componentUsage(id) - n;
     const ok = await L.askConfirm('Delete this component?',
       `<b>${esc(cd.name)}</b> stops being a component. `
       + (n
         ? `The ${n === 1 ? 'one place' : n + ' places'} using it keep what they show, as ordinary elements — `
           + `they simply stop changing together.`
-        : `Nothing is using it.`),
+        : menuUses ? '' : `Nothing is using it.`)
+      + (menuUses
+        ? `${n ? ' ' : ''}${menuUses} mobile ${menuUses === 1 ? 'menu references' : 'menus reference'} this layout. These references will be removed. `
+          + `If this layout is active, the menu will use its navigation links or existing Follow layout instead. Other layouts are kept.`
+        : ''),
       { ok: 'Delete component' });
     if (!ok) return;
     C.edit(() => { C.componentDelete(id); });
-    L.toast('Component deleted. Existing instances are now ordinary elements.');
+    L.toast(menuUses ? 'Component deleted. Mobile menu references removed.'
+      : 'Component deleted. Existing instances are now ordinary elements.');
     /* Through the render cycle, not a panel repaint: every instance on the canvas just became
        an ordinary element, and the canvas is the thing that has to say so. */
     if (editing === id) L.editComponent(null); else L.setMode(C.state.ui.mode);
@@ -303,7 +528,10 @@ function Components() {
     <>
       {list.length ? list.map(cd => {
         const def = C.DEF[cd.node.type];
-        const used = C.componentUsage(cd.id);
+        const used = C.instances(cd.id).length;
+        const menuUses = C.componentUsage(cd.id) - used;
+        const usage = (used || !menuUses ? `${used} ${used === 1 ? 'instance' : 'instances'}` : '')
+          + (menuUses ? `${used ? ' · ' : ''}${menuUses} mobile ${menuUses === 1 ? 'menu' : 'menus'}` : '');
         const props = (cd.props || []).length;
         return (
           <div class={'brow' + (editing === cd.id ? ' sel' : '')} key={cd.id}
@@ -318,13 +546,21 @@ function Components() {
             <span class="bn">
               <b>{cd.name}</b>
               <small>
-                {used === 1 ? '1 instance' : `${used} instances`}
-                {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : ' · no properties yet'}
+                {cd.mobileMenu && `${cd.mobileMenuSource === 'follow' ? 'Follow navigation' : 'Custom content'} · `}
+                {usage}
+                {props ? ` · ${props === 1 ? '1 property' : props + ' properties'}` : cd.mobileMenu ? '' : ' · no properties yet'}
               </small>
               <LibraryFrom kind="component" id={cd.id} />
             </span>
             <button class="bx" title="Edit this component" onClick={e => open(e, cd.id)}>
               <Icon name="edit" size={11} />
+            </button>
+            <button class="bx" title="Rename this component" aria-label="Rename this component" onClick={e => rename(e, cd.id)}>
+              {/* Iconify lucide:text-cursor-input: https://api.iconify.design/lucide/text-cursor-input.svg */}
+              <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 20h-1a2 2 0 0 1-2-2a2 2 0 0 1-2 2H6m7-12h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7m-8 0H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1m1-4h1a2 2 0 0 1 2 2a2 2 0 0 1 2-2h1M9 6v12" />
+              </svg>
             </button>
             <LibraryAdd kind="component" id={cd.id} />
             <button class="bx danger" title="Delete this component" onClick={e => remove(e, cd.id)}>
@@ -334,8 +570,7 @@ function Components() {
         );
       }) : (
         <div class="hint">
-          Nothing yet. Select something on the canvas and save it as a component: every place
-          you put it stays connected, and what varies between them is up to you.
+          No components. Select an element to create one.
         </div>
       )}
       <button class="btn block" disabled={!sel}
@@ -351,38 +586,30 @@ function Components() {
 export function Add() {
   const t = tab();
   const shown = tabs();
-  const current = shown.find(([key]) => key === t) || TABS[0];
 
   const choose = (key: AddTab) => {
     C.state.ui.atab = key;
     repaint('add');
   };
-  const keys = shown.map(([key]) => key);
-  const keyNav = (e: KeyboardEvent, key: AddTab) => {
-    const move = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
-      : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
-    const next = e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1
-      : move ? (keys.indexOf(key) + move + keys.length) % keys.length : -1;
-    if (next < 0) return;
-    e.preventDefault(); choose(keys[next]);
-    requestAnimationFrame(() => document.getElementById('add-tab-' + keys[next])?.focus());
-  };
+  const current = shown.find(([key]) => key === t)!;
+  // Internal shortcuts also change this select. Its enhanced label listens to input
+  // events; setting the native value alone is not an observable DOM mutation.
+  useLayoutEffect(() => {
+    document.getElementById('add-category-select')?.dispatchEvent(new Event('input', { bubbles: true }));
+  }, [t]);
 
   return (
     <>
-      <div class="addSwitcher" role="tablist" aria-label="Add category">
-        {shown.map(([key, label, , icon]) => (
-          <button key={key} role="tab" aria-selected={t === key ? 'true' : 'false'}
-            id={'add-tab-' + key} aria-controls="add-category-panel" tabIndex={t === key ? 0 : -1}
-            class={t === key ? 'on' : ''} onClick={() => choose(key)} onKeyDown={e => keyNav(e, key)}>
-            <span class="addSwitcherIcon" aria-hidden="true"><Icon name={icon} size={14} /></span>
-            <span>{label}</span>
-          </button>
-        ))}
+      <FirstEditGuide />
+      <div class="addSwitcher pc-add-category-picker">
+        <label for="add-category-select">Add</label>
+        <select class="ctl" id="add-category-select" value={t}
+          onChange={e => choose(e.currentTarget.value as AddTab)}>
+          {shown.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        </select>
       </div>
-      <div class="addContext">{current[2]}</div>
-      <div class="palette" id="add-category-panel" role="tabpanel" aria-labelledby={'add-tab-' + t}>
-        {t === 'widgets' ? <Widgets />
+      <div class="palette" id="add-category-panel" role="region" aria-label={`${current[1]} to add`}>
+        {t === 'widgets' ? <Widgets templates={() => choose('templates')} />
           : t === 'components' ? <Components />
             : t === 'templates' ? <Templates />
               : t === 'libraries' ? <Libraries /> : <Blocks />}

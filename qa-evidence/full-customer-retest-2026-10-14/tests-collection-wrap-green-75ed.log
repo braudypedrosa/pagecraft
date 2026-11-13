@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-collection-wrap-red-75ed
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  16:12:31
+   Duration  642ms (transform 238ms, setup 0ms, import 281ms, tests 32ms, environment 239ms)
+

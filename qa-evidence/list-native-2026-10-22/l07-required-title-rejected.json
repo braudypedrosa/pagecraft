@@ -1,0 +1,8 @@
+{
+  "invalid": "true",
+  "describedBy": "cms-error-title",
+  "alert": [
+    "Workshop title shown in listings and the calendar: Workshop title shown in listings and the calendar is required."
+  ],
+  "stayedInEntryEditor": 1
+}

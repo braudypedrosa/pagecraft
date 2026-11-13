@@ -1,0 +1,11 @@
+{
+  "candidate": "Rejected4px candidate; reachability test only",
+  "before": {
+    "left": 0,
+    "pageY": 73
+  },
+  "after": {
+    "left": 1280,
+    "pageY": 73
+  }
+}

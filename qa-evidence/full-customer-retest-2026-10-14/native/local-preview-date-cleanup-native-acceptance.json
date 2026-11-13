@@ -1,0 +1,73 @@
+{
+  "sourceBase": "409f6989a47c2b6b95a515b2df61e0f650ce4432",
+  "tests": [
+    {
+      "case": "exit while calendar open",
+      "actual": {
+        "announcers": 0,
+        "date": "date",
+        "portals": 0
+      },
+      "pass": true
+    },
+    {
+      "case": "reenter and select works",
+      "actual": {
+        "valid": true,
+        "value": "2026-10-20"
+      },
+      "pass": true
+    },
+    {
+      "case": "selected date open exit removes live announcement",
+      "actual": {
+        "alerts": [],
+        "announcers": 0,
+        "portals": 0
+      },
+      "pass": true
+    },
+    {
+      "case": "second reentry typed ISO works",
+      "actual": {
+        "valid": true,
+        "value": "2026-12-20"
+      },
+      "pass": true
+    },
+    {
+      "case": "ordinary selection preserves Advanced tab",
+      "actual": {
+        "selected": "true"
+      },
+      "pass": true
+    },
+    {
+      "case": "new palette module opens Content fields",
+      "actual": {
+        "content": "true",
+        "htmlVisible": true
+      },
+      "pass": true
+    },
+    {
+      "case": "device repaint replaces rather than duplicates date runtime",
+      "actual": {
+        "open": "closed",
+        "portals": 1,
+        "triggers": 1
+      },
+      "pass": true
+    },
+    {
+      "case": "device repaint then exit fully disposes",
+      "actual": {
+        "announcers": 0,
+        "portals": 0
+      },
+      "pass": true
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "allPassed": true
+}

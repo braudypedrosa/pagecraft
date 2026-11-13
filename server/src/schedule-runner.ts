@@ -47,7 +47,8 @@ const pause = (reason: SchedulePauseReason): ScheduleOutcome => ({ status: 'paus
 async function runOne(d: ScheduleRunnerDeps, row: PublicationSchedule): Promise<ScheduleOutcome> {
   const membership = await d.auth.membership(row.siteId, row.createdBy);
   if (membership?.role !== 'owner') return pause('owner_removed');
-  const site = await d.store.byId(row.siteId);
+  // Past any cache: another process may have moved the site since this one last read it.
+  const site = await d.store.byId(row.siteId, { fresh: true });
   if (!site) return pause('snapshot_unavailable');
   const snapshot = await d.publications.byId(row.siteId, row.snapshotId);
   if (!snapshot || !(await d.publications.source(snapshot))) return pause('snapshot_unavailable');
@@ -65,6 +66,13 @@ async function runOne(d: ScheduleRunnerDeps, row: PublicationSchedule): Promise<
   });
   if (committed.status === 'missing') return pause('snapshot_unavailable');
   if (committed.status === 'superseded') return pause('baseline_superseded');
+  /* The commit cannot compare addresses, so compare the row it returns. A site moved between
+     the read above and the commit would otherwise get the snapshot promoted at its old address.
+     This environment's pointer, not the shared database row, decides what is served, so leaving
+     it alone keeps the current publication live where the site now lives. */
+  if (committed.site.slug !== snapshot.slug || committed.site.host.toLowerCase() !== snapshot.host) {
+    return pause('site_address_changed');
+  }
 
   /* Identical content published earlier keeps its original publication id, so promote whichever
      one the database recorded. A retry after a failed promote replays the commit and lands here. */
@@ -104,8 +112,17 @@ export async function runDueSchedules(
   limit = 10,
 ): Promise<ScheduleRunResult[]> {
   const results: ScheduleRunResult[] = [];
-  for (const row of await d.schedules.due(now, limit)) {
-    if (!(await d.schedules.claim(row.id, worker, now))) continue;
+  for (const listed of await d.schedules.due(now, limit)) {
+    /* Stamped with the wall clock, not the batch's start: later in a long batch, a claim dated
+       at the start would already look abandoned to another runner. */
+    if (!(await d.schedules.claim(listed.id, worker, new Date()))) continue;
+    /* The list was read before any claim. A cancel, or another runner's settle or retry, may
+       have happened since, so only the stored row decides whether this run goes ahead. */
+    const row = await d.schedules.get(listed.siteId, listed.id);
+    if (row?.status !== 'pending' || row.nextAttemptAt > now.toISOString()) {
+      await d.schedules.release(listed.id, worker);
+      continue;
+    }
     let outcome: ScheduleOutcome;
     try {
       outcome = await runOne(d, row);

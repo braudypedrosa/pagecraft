@@ -1,0 +1,241 @@
+[
+  {
+    "name": "Current page retained after reload",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "QA Modules",
+    "time": "2026-10-10T10:03:17.206Z"
+  },
+  {
+    "name": "Existing saved form grid, Box nowrap, table row heading and breadcrumb output",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "boxWrap": [
+        {
+          "id": "pagecraft-box-cg-header-row-10",
+          "wrap": "nowrap"
+        },
+        {
+          "id": "pagecraft-box-3jzi0q1e",
+          "wrap": "nowrap"
+        }
+      ],
+      "breadcrumb": [],
+      "buttons": [
+        {
+          "bg": "rgb(108, 71, 47)",
+          "border": "0px",
+          "text": "QA Work",
+          "variant": "solid"
+        },
+        {
+          "bg": "rgb(108, 71, 47)",
+          "border": "0px",
+          "text": "About",
+          "variant": "solid"
+        },
+        {
+          "bg": "rgb(108, 71, 47)",
+          "border": "0px",
+          "text": "Contact",
+          "variant": "solid"
+        },
+        {
+          "bg": "rgb(108, 71, 47)",
+          "border": "0px",
+          "text": "QA Modules",
+          "variant": "solid"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "border": "1px",
+          "text": "QA action & details",
+          "variant": "outline"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "border": "1px",
+          "text": "Explore the projects",
+          "variant": "outline"
+        }
+      ],
+      "formColumns": "588px 588px",
+      "formDisplay": "grid",
+      "rowHeadBackground": "rgb(25, 59, 82)"
+    },
+    "time": "2026-10-10T10:03:40.915Z"
+  },
+  {
+    "name": "Captioned image dimensions and caption flow",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "captionBelow": true,
+      "figureHeight": "271.734px",
+      "figureWidth": 960,
+      "fit": "cover",
+      "height": "240px",
+      "imageWidth": 960,
+      "opacity": "0.7",
+      "radius": "20px"
+    },
+    "time": "2026-10-10T10:04:28.424Z"
+  },
+  {
+    "name": "Animation timing and once controls",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "attributes": [
+        [
+          "bp-animation-once",
+          "true"
+        ]
+      ],
+      "classes": "pagecraft-figure pagecraft-2ocbo894 bp-animate pc-fade-up bp-is-visible bp-is-animating bp-is-done-animating",
+      "style": "animation: 1.2s linear 0.25s 1 normal forwards running bpFadeUp;"
+    },
+    "time": "2026-10-10T10:05:25.627Z"
+  },
+  {
+    "name": "Animation clear to None",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "animation": "none",
+      "class": "pagecraft-figure pagecraft-2ocbo894"
+    },
+    "time": "2026-10-10T10:05:44.397Z"
+  },
+  {
+    "name": "Mobile dropdown opens at full viewport width with mobile background",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "bg": "rgb(221, 232, 255)",
+      "layout": "dropdown",
+      "role": "navigation",
+      "text": "QA custom menu\nQA Work\nAbout\nContact\nQA Modules",
+      "viewport": 414,
+      "width": 414
+    },
+    "time": "2026-10-10T10:06:30.581Z"
+  },
+  {
+    "name": "Legacy menu parent options enabled",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "Top level\nAbout\nContact\nQA Modules",
+    "time": "2026-10-10T10:06:47.593Z"
+  },
+  {
+    "name": "Fullscreen menu opens as modal and focuses Close",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "ariaModal": "true",
+      "focused": "Close menu",
+      "modal": true,
+      "role": "dialog"
+    },
+    "time": "2026-10-10T10:07:06.197Z"
+  },
+  {
+    "name": "Fullscreen Tab wrap, Escape and toggle focus restoration",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "wrapFocus": "QA Modules",
+      "returnFocus": "Close menu",
+      "escaped": {
+        "expanded": "false",
+        "focus": true
+      }
+    },
+    "time": "2026-10-10T10:07:26.745Z"
+  },
+  {
+    "name": "Empty line-height accepts px before numeric value",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "62.72px",
+    "time": "2026-10-10T10:07:58.589Z"
+  },
+  {
+    "name": "Mobile size override and clear agree with inherited inspector value",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "inheritedBefore": "44px",
+      "explicitMobile": "44px",
+      "inheritedAfter": "44px"
+    },
+    "time": "2026-10-10T10:08:20.750Z"
+  },
+  {
+    "name": "Settled explicit Mobile size in editor and preview",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "28px in both; earlier immediate same-batch DOM read preceded canvas repaint",
+    "time": "2026-10-10T10:09:06.977Z"
+  },
+  {
+    "name": "Cleared mobile size inherits Tablet in preview",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "44px",
+    "time": "2026-10-10T10:09:07.853Z"
+  },
+  {
+    "name": "Rich text toolbar link with pointer-edited dialog URL",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "Preview link href https://example.com/staging-qa-link",
+    "time": "2026-10-10T10:11:08.756Z"
+  },
+  {
+    "name": "Slider Mobile override cleared label immediately returns inherited Two",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "Two",
+    "time": "2026-10-10T10:12:07.481Z"
+  },
+  {
+    "name": "Breadcrumb link metadata",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "cls": "qa-crumb-link",
+      "rel": "nofollow noopener",
+      "target": "_blank"
+    },
+    "time": "2026-10-10T10:12:26.111Z"
+  },
+  {
+    "name": "Rich-text link persists after reload",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "https://example.com/staging-qa-link",
+    "time": "2026-10-10T10:12:50.000Z"
+  },
+  {
+    "name": "Custom mobile menu conversion preserves target, relationship, class and hierarchy",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": {
+      "classes": "pagecraft-button pagecraft-93vx95c0 ts-btn qa-nav-link",
+      "nestedAbout": true,
+      "rel": "nofollow noopener",
+      "target": "_blank"
+    },
+    "time": "2026-10-10T10:28:26.607Z"
+  },
+  {
+    "name": "Menu builder Add works immediately and nested output renders",
+    "environment": "staging",
+    "commit": "ca4fc4286cfc590dfeebaf5af3f972e683123b66",
+    "evidence": "Added QA mobile menu heading with root selected; screenshot staging-custom-mobile-menu.png",
+    "time": "2026-10-10T10:29:02.730Z"
+  }
+]

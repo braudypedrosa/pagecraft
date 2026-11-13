@@ -1,0 +1,17 @@
+[
+  {
+    "device": "Desktop",
+    "anchors": 0,
+    "headings": 18
+  },
+  {
+    "device": "Tablet",
+    "anchors": 0,
+    "headings": 18
+  },
+  {
+    "device": "Mobile",
+    "anchors": 0,
+    "headings": 18
+  }
+]

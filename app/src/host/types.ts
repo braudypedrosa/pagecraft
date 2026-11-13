@@ -25,6 +25,8 @@ export interface HostFeatures {
   readonly publishing: HostFeatureProvider;
   readonly globals: HostFeatureProvider;
   readonly dynamicContent: HostFeatureProvider;
+  /** Whether this host has a real receiver for the WordPress-managed Form mode. */
+  readonly managedForms: boolean;
 }
 
 export type HostCapability =
@@ -59,6 +61,8 @@ export interface HostDocumentSave {
     globalCss: string;
     pageCss: string;
   };
+  /** Sent as the tab closes: the transport may let the request outlive the page. */
+  keepalive?: boolean;
 }
 
 export interface HostPage {
@@ -118,6 +122,23 @@ export interface HostMedia {
   size: number;
   width?: number;
   height?: number;
+  /** WordPress-only authoritative usage. Missing means an older host that cannot prove
+   * deletion safety; adapters normalize that state to `usageKnown: false`. */
+  usageKnown?: boolean;
+  usageCount?: number | null;
+  canDelete?: boolean;
+  usedBy?: readonly HostMediaUsage[];
+}
+
+export type HostMediaReference = 'managed_document' | 'native_content' | 'featured_image';
+
+export interface HostMediaUsage {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  parentId: string | null;
+  references: readonly HostMediaReference[];
 }
 
 export interface HostContentSource {
@@ -273,6 +294,7 @@ export interface WebLibraryMember {
   email: string;
   name: string;
   pending: boolean;
+  awaitingAcceptance?: boolean;
   createdAt: string;
 }
 export interface WebLibraryVersionSummary {
@@ -301,10 +323,39 @@ export interface WebLibraryAdapter {
   leave(id: string): Promise<void>;
 }
 
+/** An assistant's proposal, as the editor reviews it (Phase 7). */
+export interface WebProposal {
+  id: string;
+  baseVersion: number;
+  title: string;
+  summary: string;
+  changes: import('../core/index').ProposalChange[];
+  regions: string[];
+  createdAt: string;
+  tokenName: string;
+  /** `applying` while a saved revision is being confirmed */
+  status: 'pending' | 'applying' | 'applied' | 'declined';
+  decidedAt: string | null;
+  reviewIssue?: string;
+  recoveryAvailable?: boolean;
+  /** rendered files that show the affected regions */
+  previews: { region: string; label: string; path: string }[];
+}
+export interface WebProposalAdapter {
+  list(status?: 'pending'): Promise<WebProposal[]>;
+  apply(id: string, version: number): Promise<{ draft: { doc: import('../core/types').Doc; version: number } | null }>;
+  decline(id: string): Promise<void>;
+  /** where an affected page renders, with the proposal applied or, with `before`, without */
+  previewUrl(id: string, path: string, version: number, before?: boolean): string;
+  /** the owner page where assistant tokens are made */
+  settingsUrl: string;
+}
+
 export interface WebHostAdapter extends PagecraftHostAdapter {
   readonly kind: 'web';
   readonly releases: WebReleaseAdapter;
   readonly libraries: WebLibraryAdapter;
+  readonly proposals: WebProposalAdapter;
 }
 
 export interface WordPressHostAdapter extends PagecraftHostAdapter {

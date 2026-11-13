@@ -1,0 +1,32 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451
+
+ ❯ tests/inspector-blur-button-click.test.tsx (8 tests | 1 failed) 687ms
+   × delayed pointerup keeps the target alive across animation frames 93ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-blur-button-click.test.tsx > delayed pointerup keeps the target alive across animation frames
+AssertionError: pointer activation must not use a short RAF timeout
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/inspector-blur-button-click.test.tsx:64:10
+     62|   idInput.dispatchEvent(new FocusEvent('blur', { bubbles: true, relate…
+     63|   await new Promise(resolve => setTimeout(resolve, 40));
+     64|   assert.ok(hover.isConnected, 'pointer activation must not use a shor…
+       |          ^
+     65|   document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true…
+     66|   assert.ok(hover.isConnected, 'an unrelated pointer release must not …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 8 passed (9)
+   Start at  10:29:08
+   Duration  2.22s (transform 1.33s, setup 0ms, import 1.61s, tests 914ms, environment 1.29s)

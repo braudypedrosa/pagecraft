@@ -1,0 +1,8 @@
+{
+  "status": "Local service recovered by root; fresh separate strict preguard complete",
+  "currentPreguard": "preguard.json",
+  "priorBlockedAttempt": "preguard-status.json",
+  "incompletePriorExcluded": true,
+  "checksPassed": 23,
+  "databaseWritesPerformed": false
+}

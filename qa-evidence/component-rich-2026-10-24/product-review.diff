@@ -1,0 +1,205 @@
+diff --git a/app/src/ui/ctx.ts b/app/src/ui/ctx.ts
+index edf8ab8..b573205 100644
+--- a/app/src/ui/ctx.ts
++++ b/app/src/ui/ctx.ts
+@@ -192,7 +192,7 @@ export interface Legacy {
+   /** the bind-every-field-inside dialog */
+   bindModal(nodeId: string): void;
+   /** put the canvas into rich-text editing on this node */
+-  enterEdit(nodeId: string): void;
++  enterEdit(nodeId: string, propertyKey?: string): void;
+ 
+   /* The media library, still legacy: IndexedDB behind an in-memory map. */
+   /** one asset's metadata, or null */
+diff --git a/app/src/ui/inspector/Controls.tsx b/app/src/ui/inspector/Controls.tsx
+index 4bf4e08..7841274 100644
+--- a/app/src/ui/inspector/Controls.tsx
++++ b/app/src/ui/inspector/Controls.tsx
+@@ -774,7 +774,7 @@ function RichCtl({ n, c }: P) {
+       ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
+       : <>
+         <button class="btn block" title="Edit text here, or double-click it on the canvas"
+-          onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
++          onClick={() => L.enterEdit(n.id, c.k)}><Icon name="edit" size={13} /> Edit on canvas</button>
+       </>}
+   </Field>;
+ }
+diff --git a/builder.html b/builder.html
+index 16dd9e7..af1d2b5 100644
+--- a/builder.html
++++ b/builder.html
+@@ -5421,12 +5421,26 @@ function checkpointInlineEdit(label) {
+   paintHistory();
+ }
+ 
+-function enterEdit(id) {
++function enterEdit(id, propertyKey) {
+   const h = locate(id); if (!h) return;
+-  const n = h.node, d = DEF[n.type];
++  const n = h.node, definition = findComponent(n.use);
++  let editNode = n;
++  let property;
++  if (n.use && propertyKey?.startsWith(VAL)) {
++    const path = propertyKey.slice(VAL.length);
++    if (findProp(definition, path)?.t !== 'rich') return;
++    editNode = null;
++    eachNode([definition.node], node => {
++      if (!editNode && DEF[node.type]?.edit === 'rich'
++        && node.bind?.html?.src === 'prop' && node.bind.html.path === path) editNode = node;
++    });
++    if (!editNode) return;
++    property = { src: 'prop', path };
++  }
++  const d = DEF[editNode.type];
+   if (!d.edit) return;
+   const key = d.edit === 'rich' ? 'html' : 'text';
+-  const property = findComponent(n.use)?.node.bind?.[key];
++  property = property || definition?.node.bind?.[key];
+   const bindingKey = property?.src === 'prop' ? VAL + property.path : key;
+   if (boundField(n, bindingKey)) {
+     toast('This value comes from CMS. Edit the CMS entry or disconnect the field.');
+@@ -5441,21 +5455,25 @@ function enterEdit(id) {
+   if (editing.on) exitEdit();
+   if (state.ui.sel !== id || multiOn()) { selSet([id]); paintSel(); renderRight(); renderLayers(); }
+ 
+-  const host = cdoc.getElementById(id); if (!host) return;
+-  const target = editTarget(n, host);
++  const root = selectedCanvasElement(id); if (!root) return;
++  const className = nodeClass(editNode);
++  const host = editNode === n || root.classList.contains(className)
++    ? root : root.getElementsByClassName(className)[0];
++  if (!host) return;
++  const target = editTarget(editNode, host);
+ 
+-  editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit;
++  editing.on = true; editing.id = id; editing.el = host; editing.kind = d.edit; editing.node = editNode;
+   editing.prop = n.use ? property.path : null;
+   editing.changed = false; editing.label = 'Change ' + kindOf(n).toLowerCase() + ' text';
+   /* The browser may normalize equivalent rich markup while painting it. Comparing later edits
+      with this rendered value keeps entry/exit read-only while the deferred checkpoint still
+      preserves the original stored bytes. */
+-  editing.value = inlineEditValue(n, host);
++  editing.value = inlineEditValue(editNode, host);
+   target.contentEditable = 'true';
+   host.setAttribute('data-editing', '');
+   if (d.edit === 'rich') target.style.outline = 'none';
+   target.focus();
+-  if (n.type !== 'text') {
++  if (editNode.type !== 'text') {
+     const rg = cdoc.createRange(); rg.selectNodeContents(target);
+     const s = cwin.getSelection(); s.removeAllRanges(); s.addRange(rg);
+   }
+@@ -5466,8 +5484,8 @@ function enterEdit(id) {
+     cdoc.execCommand('insertText', false, txt);
+   };
+   const onKey = ev => {
+-    if (ev.key === 'Enter' && n.type !== 'text') { ev.preventDefault(); exitEdit(); }
+-    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && n.type === 'text') {
++    if (ev.key === 'Enter' && editNode.type !== 'text') { ev.preventDefault(); exitEdit(); }
++    if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k' && editNode.type === 'text') {
+       ev.preventDefault(); linkPrompt();
+     }
+   };
+@@ -5489,7 +5507,7 @@ function syncEdit() {
+   const h = locate(editing.id); if (!h) return;
+   const n = h.node, host = editing.el;
+   const key = n.type === 'text' ? 'html' : 'text';
+-  const value = inlineEditValue(n, host);
++  const value = inlineEditValue(editing.node || n, host);
+   if (value === editing.value) return false;
+   if (!editing.changed) {
+     checkpointInlineEdit(editing.label);
+@@ -5501,7 +5519,7 @@ function syncEdit() {
+   /* keep the inspector honest while typing on the canvas — a full re-render
+      would steal focus, so the bound field is updated in place */
+   const field = $('#right [data-x="v"]');
+-  if (field && n.type !== 'text' && field.value !== value) field.value = value;
++  if (field && editing.kind !== 'rich' && field.value !== value) field.value = value;
+   save();
+   renderLayers();
+   return true;
+@@ -5512,7 +5530,7 @@ function exitEdit() {
+   syncEdit();
+   editing.off.forEach(f => f());
+   if (editing.el) editing.el.removeAttribute('data-editing');
+-  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.prop = null; editing.off = [];
++  editing.on = false; editing.id = null; editing.el = null; editing.kind = null; editing.node = null; editing.prop = null; editing.off = [];
+   editing.changed = false; editing.label = ''; editing.value = null;
+   $('#rt').classList.remove('show');
+   paint(); renderRight();
+diff --git a/public/internal-ui-baselines/manifest.json b/public/internal-ui-baselines/manifest.json
+index 6f01b7c..1e34d9f 100644
+--- a/public/internal-ui-baselines/manifest.json
++++ b/public/internal-ui-baselines/manifest.json
+@@ -95,7 +95,7 @@
+   "deviceScaleFactor": 1,
+   "reducedMotion": true,
+   "sources": {
+-    "builder.html": "025b98a4bdb826110713d56f0e3300c9ff12a29812dd689589a915fce1f32df8",
++    "builder.html": "ee1b97183bd383ca557ac2e97685ec8c869792242dea90ac1194c6f8d508b1b9",
+     "app/src/ui/index.tsx": "a44a95bebb09c322c9c141d8a3d5e0a8eb78338ffd6e7a66f54494d5375eed7a",
+     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
+     "app/src/ui/Add.tsx": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
+@@ -103,7 +103,7 @@
+     "app/src/ui/CmsWorkspace.tsx": "9f03dd03116e2559c2128c965605ae2d953be645e1be8dd7520a36a05d2ad582",
+     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
+     "app/src/ui/inspector/ColorPop.tsx": "995f684f50afe24d91004a4ec5ce654745234b31cd0555efc73552abe258aef3",
+-    "app/src/ui/inspector/Controls.tsx": "7acbdd1fae334b6cca790f23e4473146dc871466cdee1dfaddc84ef74f1a10af",
++    "app/src/ui/inspector/Controls.tsx": "f0a57512c9b5fee7179bb2a64efe83bce36336c5eff360929e67851211feb8ea",
+     "app/src/ui/inspector/Inspector.tsx": "575321eb8620bc547b10726625a85a6eaaaa25c7e5b3af33d56a45b3bd10ec20",
+     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
+     "app/src/ui/inspector/Lists.tsx": "3a3712bec348643f706874097b47c3bf1ec3a5f42500b19d577b0c3cebad3a41",
+@@ -305,7 +305,7 @@
+         "busy": {
+           "busy": "true",
+           "disabled": true,
+-          "label": "Processing preview…",
++          "label": "Processing preview\u2026",
+           "x": 296.0546875,
+           "y": 433.03125
+         },
+@@ -374,7 +374,7 @@
+       "passed": true,
+       "detail": {
+         "errorShown": true,
+-        "previous": "Sample inbox · 3 entries",
++        "previous": "Sample inbox \u00b7 3 entries",
+         "retryEnabled": true,
+         "role": "alert"
+       }
+@@ -385,7 +385,7 @@
+       "passed": true,
+       "detail": {
+         "errorHidden": true,
+-        "previous": "Sample inbox · 3 entries",
++        "previous": "Sample inbox \u00b7 3 entries",
+         "noticesAdded": 0
+       }
+     },
+@@ -567,7 +567,7 @@
+         "busy": {
+           "busy": "true",
+           "disabled": true,
+-          "label": "Processing preview…",
++          "label": "Processing preview\u2026",
+           "x": 296.0546875,
+           "y": 427.03125
+         },
+@@ -636,7 +636,7 @@
+       "passed": true,
+       "detail": {
+         "errorShown": true,
+-        "previous": "Sample inbox · 3 entries",
++        "previous": "Sample inbox \u00b7 3 entries",
+         "retryEnabled": true,
+         "role": "alert"
+       }
+@@ -647,7 +647,7 @@
+       "passed": true,
+       "detail": {
+         "errorHidden": true,
+-        "previous": "Sample inbox · 3 entries",
++        "previous": "Sample inbox \u00b7 3 entries",
+         "noticesAdded": 0
+       }
+     }

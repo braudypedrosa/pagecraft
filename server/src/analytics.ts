@@ -35,6 +35,8 @@ export const OTHER = '(other)';
 export const DIRECT = '(direct)';
 export const NOT_FOUND = '(not found)';
 const CAPS = { pages: 200, referrers: 100, actions: 200, formIds: 100 } as const;
+type Caps = Record<keyof typeof CAPS, number>;
+const UNCAPPED: Caps = { pages: Infinity, referrers: Infinity, actions: Infinity, formIds: Infinity };
 
 /* ---- what a request is ------------------------------------------------- */
 
@@ -61,8 +63,8 @@ export function excluded(header: Header): string | null {
   if (header('sec-gpc') === '1' || header('dnt') === '1') return 'privacy-signal';
   if (/prefetch|prerender/i.test(`${header('sec-purpose') || ''} ${header('purpose') || ''} ${header('x-moz') || ''}`)) return 'prefetch';
   if (isBot(header('user-agent') || '')) return 'bot';
-  // Someone signed in to Pagecraft: very likely the owner or a collaborator checking the site.
-  if (/(?:^|;\s*)pc_session=/.test(header('cookie') || '')) return 'signed-in';
+  // Current account auth uses pc_auth, chunked by Supabase SSR when needed; keep legacy sessions excluded too.
+  if (/(?:^|;)\s*(?:pc_session|pc_auth(?:\.\d+)?)=/.test(header('cookie') || '')) return 'signed-in';
   return null;
 }
 
@@ -97,20 +99,23 @@ function bump(map: Record<string, number>, key: string, cap: number, by = 1) {
   map[key] = (map[key] || 0) + by;
 }
 
-export function addInto(into: Bucket, from: Bucket) {
+/** Stored hours and days keep the buffer's bounds: labels, targets and referrers come from
+    visitors, so past the caps new keys fold into Other however many flushes and merges there are. */
+export function addInto(into: Bucket, from: Bucket, caps: Caps = CAPS) {
   into.views += from.views;
   into.clicks += from.clicks;
   into.forms += from.forms;
-  for (const [k, n] of Object.entries(from.pages)) bump(into.pages, k, Infinity, n);
-  for (const [k, n] of Object.entries(from.referrers)) bump(into.referrers, k, Infinity, n);
+  for (const [k, n] of Object.entries(from.pages)) bump(into.pages, k, caps.pages, n);
+  for (const [k, n] of Object.entries(from.referrers)) bump(into.referrers, k, caps.referrers, n);
   for (const [k, n] of Object.entries(from.devices)) into.devices[k as Device] = (into.devices[k as Device] || 0) + (n || 0);
-  for (const [k, n] of Object.entries(from.actions)) bump(into.actions, k, Infinity, n);
-  for (const [k, n] of Object.entries(from.formIds)) bump(into.formIds, k, Infinity, n);
+  for (const [k, n] of Object.entries(from.actions)) bump(into.actions, k, caps.actions, n);
+  for (const [k, n] of Object.entries(from.formIds)) bump(into.formIds, k, caps.formIds, n);
   return into;
 }
+/** Totals for a report, never stored: every key of the bounded hours and days is kept. */
 export const sumBuckets = (buckets: Iterable<Bucket>) => {
   const total = emptyBucket();
-  for (const b of buckets) addInto(total, b);
+  for (const b of buckets) addInto(total, b, UNCAPPED);
   return total;
 };
 
@@ -138,9 +143,38 @@ export const RANGES: Record<RangeKey, { days: number; label: string }> = {
   '12m': { days: 365, label: 'Last 12 months' },
 };
 export const isRange = (s: unknown): s is RangeKey => typeof s === 'string' && s in RANGES;
-/** The range ending today, and the period of the same length just before it. */
-export function rangeDays(range: RangeKey, now: Date) {
-  const to = dayOf(now);
+
+/* Counts are stored by UTC hour and read in the site's time zone: an hour is an hour everywhere,
+   and which day it belongs to is decided when reading. */
+const zoneFormats = new Map<string, Intl.DateTimeFormat>();
+const zoneFormat = (tz: string) => {
+  let f = zoneFormats.get(tz);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'longOffset' });
+    zoneFormats.set(tz, f);
+  }
+  return f;
+};
+/** The local day, hour, minute and UTC offset (`+08:00`, or `Z`) of an instant in a time zone.
+    The minute matters where the offset is not whole hours: 00:00 UTC is 05:30 in Kolkata. */
+export function localParts(at: number, tz: string) {
+  const parts = Object.fromEntries(zoneFormat(tz).formatToParts(new Date(at)).map(p => [p.type, p.value]));
+  const offset = String(parts.timeZoneName || 'GMT').replace('GMT', '');
+  return {
+    day: `${parts.year}-${parts.month}-${parts.day}`, hour: String(parts.hour).padStart(2, '0'), minute: String(parts.minute).padStart(2, '0'),
+    offset: !offset || /^[+-]00:00$/.test(offset) ? 'Z' : offset,
+  };
+}
+/** An IANA time zone name, canonicalised, or null when it is not one. */
+export function validTimeZone(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw || raw.length > 64) return null;
+  try { return new Intl.DateTimeFormat('en-US', { timeZone: raw }).resolvedOptions().timeZone; } catch { return null; }
+}
+export const timeZones = () => ['UTC', ...Intl.supportedValuesOf('timeZone').filter(z => z !== 'UTC')];
+
+/** The range ending today in `tz`, and the period of the same length just before it. */
+export function rangeDays(range: RangeKey, now: Date, tz = 'UTC') {
+  const to = localParts(now.getTime(), tz).day;
   const from = addDays(to, 1 - RANGES[range].days);
   return { from, to, previous: { from: addDays(from, -RANGES[range].days), to: addDays(from, -1) } };
 }
@@ -175,10 +209,20 @@ export function toCsv(rows: { time: string; bucket: Bucket }[], formName: (id: s
 
 /* ---- storage ------------------------------------------------------------ */
 
-export interface AnalyticsSettings { enabled: boolean; changedAt: string | null; changedBy: string | null }
+export interface AnalyticsSettings {
+  enabled: boolean;
+  changedAt: string | null;
+  changedBy: string | null;
+  /** IANA name; which day a visit belongs to. UTC until the owner (or their browser) picks one. */
+  timeZone?: string;
+  /** When the owner last deleted every number. Anything counted before it stays deleted, even if
+      another process still held it in memory. */
+  resetAt?: string;
+}
 /** `merged` names the process files already folded in, so a crash between writing the merged day
-    and deleting its parts can never count them twice. */
-type DayFile = { hours: Record<string, Bucket>; merged?: string[] };
+    and deleting its parts can never count them twice. A process's own file carries `since`, when
+    its oldest count was recorded (ms), so counts from before a delete are recognised. */
+type DayFile = { hours: Record<string, Bucket>; merged?: string[]; since?: number };
 type MonthFile = { days: Record<string, Bucket> };
 
 const HOURLY_DAYS = 90;
@@ -216,18 +260,38 @@ export class FileAnalyticsStore {
     if (this.settingsCache.size > 5000) this.settingsCache.delete(this.settingsCache.keys().next().value!);
     return value;
   }
-  async setEnabled(site: string, enabled: boolean, userId: string) {
+  async setEnabled(site: string, enabled: boolean, userId: string, timeZone?: string | null) {
+    return this.writeSettings(site, { enabled, changedAt: this.now().toISOString(), changedBy: userId, ...(timeZone ? { timeZone } : {}) });
+  }
+  async setTimeZone(site: string, timeZone: string, userId: string) {
+    return this.writeSettings(site, { timeZone, changedAt: this.now().toISOString(), changedBy: userId });
+  }
+  private async writeSettings(site: string, patch: Partial<AnalyticsSettings>) {
     const dir = this.dir(site);
     await mkdir(dir, { recursive: true, mode: 0o700 });
-    const value = { enabled, changedAt: this.now().toISOString(), changedBy: userId };
+    this.settingsCache.delete(site);
+    const value: AnalyticsSettings = { ...await this.settings(site), ...patch };
     await writeAtomic(join(dir, 'settings.json'), value);
     this.settingsCache.set(site, { at: Date.now(), value });
     return value;
   }
-  /** Every number for this site, gone; the setting goes back to off. */
+  /** Every number for this site, gone; the setting goes back to off. The settings stay behind with
+      `resetAt`, so counts another process still holds from before now are never written back. */
   async remove(site: string) {
     await rm(this.dir(site), { recursive: true, force: true });
     this.settingsCache.delete(site);
+    const at = this.now().toISOString();
+    await this.writeSettings(site, { enabled: false, changedAt: at, changedBy: null, resetAt: at });
+  }
+  /** When every number was last deleted (ms, 0 for never), read afresh: another process may have
+      done it moments ago. */
+  async resetAt(site: string) {
+    this.settingsCache.delete(site);
+    return Date.parse((await this.settings(site)).resetAt || '') || 0;
+  }
+  /** A process's file is left out when its counts began before the last delete. */
+  private static current(data: DayFile | null, reset: number) {
+    return data && (!reset || (data.since || 0) > reset) ? data : null;
   }
 
   /** Write this process's whole day for one site: it is the only writer of that file. */
@@ -237,25 +301,41 @@ export class FileAnalyticsStore {
     await writeAtomic(join(dir, `${day}.${this.processId}.json`), file);
   }
 
-  /** Per-day totals (and hours where they are still kept) for a range of UTC days. */
-  async read(site: string, from: string, to: string) {
+  /** Per-day totals for a range of days in `tz`, with the hours while they are kept. Hours are
+      keyed by their local time with its offset, e.g. `2026-10-03T09:00+08:00`. */
+  async read(site: string, from: string, to: string, tz = 'UTC') {
     await this.compact(site);
+    const reset = await this.resetAt(site);
     const hoursDir = join(this.dir(site), 'hours');
     const files = await readdir(hoursDir).catch(() => [] as string[]);
-    const months = new Map<string, MonthFile | null>();
-    const days: { day: string; total: Bucket; hours: Record<string, Bucket> | null }[] = [];
-    for (const day of daysBetween(from, to)) {
+    // The UTC days that can hold hours of these local days: one either side covers every offset.
+    const local = new Map<string, Record<string, Bucket>>();
+    for (const day of daysBetween(addDays(from, -1), addDays(to, 1))) {
       const settled = files.includes(`${day}.json`) ? await json<DayFile>(join(hoursDir, `${day}.json`)).catch(() => null) : null;
       const done = new Set(settled?.merged || []);
       const parts = files.filter(f => /^\d{4}-\d{2}-\d{2}\.[a-z0-9]+\.json$/.test(f) && f.startsWith(`${day}.`) && !done.has(f));
-      if (settled || parts.length) {
-        const hours: Record<string, Bucket> = {};
-        for (const [hour, bucket] of Object.entries(settled?.hours || {})) addInto(hours[hour] ||= emptyBucket(), bucket);
-        for (const part of parts) {
-          const data = await json<DayFile>(join(hoursDir, part)).catch(() => null);
-          for (const [hour, bucket] of Object.entries(data?.hours || {})) addInto(hours[hour] ||= emptyBucket(), bucket);
+      const sources = [settled, ...await Promise.all(parts.map(part => json<DayFile>(join(hoursDir, part)).then(data => FileAnalyticsStore.current(data, reset), () => null)))];
+      for (const data of sources) {
+        for (const [hour, bucket] of Object.entries(data?.hours || {})) {
+          const at = localParts(Date.parse(`${day}T${hour}:00:00Z`), tz);
+          const hours = local.get(at.day) || {};
+          local.set(at.day, hours);
+          addInto(hours[`${at.day}T${at.hour}:${at.minute}${at.offset}`] ||= emptyBucket(), bucket);
         }
-        days.push({ day, total: sumBuckets(Object.values(hours)), hours });
+      }
+    }
+    // Inside the hourly window the hours are the record, even when there are none; before it,
+    // the daily totals, filed in the time zone the site had when they were merged. Retention drops
+    // whole UTC days, so the local day holding the last dropped hour is incomplete: it uses the
+    // daily total too.
+    const hourlyFrom = addDays(dayOf(this.now()), 1 - HOURLY_DAYS);
+    const retired = localParts(Date.parse(`${addDays(dayOf(this.now()), -HOURLY_DAYS)}T00:00:00Z`) - 1, tz).day;
+    const months = new Map<string, MonthFile | null>();
+    const days: StoredDay[] = [];
+    for (const day of daysBetween(from, to)) {
+      const hours = local.get(day);
+      if ((hours || day >= hourlyFrom) && day > retired) {
+        days.push({ day, total: sumBuckets(Object.values(hours || {})), hours: hours || {} });
         continue;
       }
       const month = day.slice(0, 7);
@@ -291,6 +371,8 @@ export class FileAnalyticsStore {
         const m = /^(\d{4}-\d{2}-\d{2})\.[a-z0-9]+\.json$/.exec(f);
         if (m && m[1] <= settled) live.set(m[1], [...(live.get(m[1]) || []), f]);
       }
+      const reset = await this.resetAt(site);
+      const tz = (await this.settings(site)).timeZone || 'UTC';
       for (const [day, parts] of [...live].sort()) {
         const merged: DayFile = (await json<DayFile>(join(hoursDir, `${day}.json`))) || { hours: {} };
         const done = new Set(merged.merged || []);
@@ -298,7 +380,7 @@ export class FileAnalyticsStore {
         for (const part of parts) {
           if (done.has(part)) continue;
           done.add(part);
-          const data = await json<DayFile>(join(hoursDir, part)).catch(() => null);
+          const data = FileAnalyticsStore.current(await json<DayFile>(join(hoursDir, part)).catch(() => null), reset);
           for (const [hour, bucket] of Object.entries(data?.hours || {})) {
             addInto(merged.hours[hour] ||= emptyBucket(), bucket);
             addInto(added[hour] ||= emptyBucket(), bucket);
@@ -308,10 +390,15 @@ export class FileAnalyticsStore {
         await writeAtomic(join(hoursDir, `${day}.json`), merged);
         const daysDir = join(dir, 'days');
         await mkdir(daysDir, { recursive: true, mode: 0o700 });
-        const monthPath = join(daysDir, `${day.slice(0, 7)}.json`);
-        const month = (await json<MonthFile>(monthPath)) || { days: {} };
-        addInto(month.days[day.slice(8)] ||= emptyBucket(), sumBuckets(Object.values(added)));
-        await writeAtomic(monthPath, month);
+        // Each hour joins the local day it fell on, which near midnight can be another month.
+        const touched = new Map<string, MonthFile>();
+        for (const [hour, bucket] of Object.entries(added)) {
+          const at = localParts(Date.parse(`${day}T${hour}:00:00Z`), tz);
+          const key = at.day.slice(0, 7);
+          if (!touched.has(key)) touched.set(key, (await json<MonthFile>(join(daysDir, `${key}.json`))) || { days: {} });
+          addInto(touched.get(key)!.days[at.day.slice(8)] ||= emptyBucket(), bucket);
+        }
+        for (const [key, month] of touched) await writeAtomic(join(daysDir, `${key}.json`), month);
         for (const part of parts) await rm(join(hoursDir, part), { force: true });
       }
       // Retention: hourly detail for 90 days, daily totals for 13 months.
@@ -348,6 +435,7 @@ export class AnalyticsRecorder {
   private now: () => Date;
   private pending = new Map<string, Map<string, Map<string, Bucket>>>(); // site → day → hour → delta
   private own = new Map<string, Map<string, DayFile>>(); // site → day → this process's whole day
+  private since = new Map<string, number>(); // site → when its oldest pending count was recorded
   private seen = new Map<string, number>();
   private salt = { day: '', value: '' };
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -411,6 +499,7 @@ export class AnalyticsRecorder {
 
   private bucket(site: string) {
     const at = this.now();
+    if (!this.since.has(site)) this.since.set(site, at.getTime());
     const days = this.pending.get(site) || new Map<string, Map<string, Bucket>>();
     this.pending.set(site, days);
     const hours = days.get(dayOf(at)) || new Map<string, Bucket>();
@@ -424,14 +513,21 @@ export class AnalyticsRecorder {
   flush(): Promise<void> {
     if (this.flushing) return this.flushing.then(() => this.flush());
     if (!this.pending.size) return Promise.resolve();
-    const batch = this.pending;
+    const batch = this.pending, since = this.since;
     this.pending = new Map();
+    this.since = new Map();
     this.flushing = (async () => {
       for (const [site, days] of batch) {
         const mine = this.own.get(site) || new Map<string, DayFile>();
         this.own.set(site, mine);
+        // Counts recorded before the owner deleted every number stay deleted: held days and buffer.
+        const reset = Date.parse((await this.store.settings(site).catch(() => null))?.resetAt || '') || 0;
+        if (reset) {
+          for (const [day, file] of mine) if ((file.since || 0) <= reset) mine.delete(day);
+          if ((since.get(site) || 0) <= reset) continue;
+        }
         for (const [day, hours] of days) {
-          const file = mine.get(day) || { hours: {} };
+          const file = mine.get(day) || { hours: {}, since: since.get(site) };
           mine.set(day, file);
           for (const [hour, delta] of hours) addInto(file.hours[hour] ||= emptyBucket(), delta);
           try { await this.store.writeOwn(site, day, file); }
@@ -486,7 +582,7 @@ export function withClickScript(html: string, siteId: string) {
 
 /* ---- the owner's report ---------------------------------------------------- */
 
-type StoredDay = { day: string; total: Bucket; hours: Record<string, Bucket> | null };
+export type StoredDay = { day: string; total: Bucket; hours: Record<string, Bucket> | null };
 export interface AnalyticsReport {
   range: RangeKey;
   from: string;
@@ -537,7 +633,7 @@ export function analyticsReport(
 export function csvRows(days: StoredDay[]) {
   const rows: { time: string; bucket: Bucket }[] = [];
   for (const d of days) {
-    if (d.hours) for (const hour of Object.keys(d.hours).sort()) rows.push({ time: `${d.day}T${hour}:00Z`, bucket: d.hours[hour] });
+    if (d.hours) for (const hour of Object.keys(d.hours).sort()) rows.push({ time: hour, bucket: d.hours[hour] });
     else if (d.total.views + d.total.clicks + d.total.forms) rows.push({ time: d.day, bucket: d.total });
   }
   return rows;

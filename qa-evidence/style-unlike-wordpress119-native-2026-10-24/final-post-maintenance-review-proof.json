@@ -1,0 +1,43 @@
+{
+  "status": "PENDING exact root review; no automatic maintenance/counter allowance",
+  "boundaries": [
+    {
+      "boundary": "restored112ToFinalPostNative",
+      "beforeSQLSHA256": "1d9b65c3221f0a4a0b2122f7843c5c6248a770315ab181d34e67da20ef37a601",
+      "afterSQLSHA256": "3c15d82c41c46ca89fd03e3b18b745ca50bd0d9b082425a64aa5cd053fe530eb",
+      "tableCount": 133,
+      "changedTables": [
+        "wp_options"
+      ],
+      "options": [
+        {
+          "name": "_elementor_design_system_sync_css_meta",
+          "beforeRowSHA256": "4873c589a6555f5e7ed93cb6b0a07e85b256f2d8dc2674c50fa6956a6d20a8a5",
+          "afterRowSHA256": "3192a89df3fd7977ef6f57f44807b9ad319351aa53ea111c97902cb87af45ab2",
+          "beforeID": 2451,
+          "afterID": 2452,
+          "valueByteExact": false,
+          "beforeValueSHA256": "a7887993ad73a66046c1888a5d7a413e3498400ac0f05eec2c47e09e96adc124",
+          "afterValueSHA256": "ae079ce35250e4d8b6474d21054954d3f48019ba1719f151d81ebc59428a4f1f",
+          "autoloadByteExact": true,
+          "decodedDeltas": [
+            {
+              "path": "/time",
+              "before": 1792838500,
+              "after": 1792839405
+            }
+          ]
+        }
+      ],
+      "exactDDLChanges": [
+        {
+          "table": "wp_options",
+          "beforeAutoIncrement": 2452,
+          "afterAutoIncrement": 2453,
+          "onlyAutoIncrementChanged": true
+        }
+      ]
+    }
+  ],
+  "noWPCalls": true
+}

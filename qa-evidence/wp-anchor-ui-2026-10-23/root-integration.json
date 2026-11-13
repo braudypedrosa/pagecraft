@@ -1,0 +1,26 @@
+{
+  "base": "693cb9038778ffff24a2188a1121e22c5ab4a682",
+  "source": [
+    "app/src/ui/inspector/Controls.tsx",
+    "tests/native-page-picker.test.tsx",
+    "public/internal-ui-baselines/manifest.json"
+  ],
+  "generatedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "protected11Exact": true,
+  "fullPassed": 2769,
+  "skipped": 5,
+  "galleryBehaviorPassed": 30,
+  "screenshotsByteExact": 24,
+  "independentReview": "pass",
+  "runtime80eUnchanged": true,
+  "rawLogWhitespace": "Full staged diff check reports only trailing blank lines in six verbatim test logs; product/source diff check passes. Raw logs preserved."
+}

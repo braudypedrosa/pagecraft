@@ -1,0 +1,83 @@
+[
+  {
+    "device": "Desktop",
+    "computed": {
+      "bodyClient": 1280,
+      "bodyScroll": 1280,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "auto",
+      "overflowY": "auto",
+      "position": "sticky",
+      "rect": {
+        "height": 212.890625,
+        "left": 40,
+        "top": 455.046875,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    },
+    "keyboard": {
+      "active": true,
+      "scrollLeft": 40
+    }
+  },
+  {
+    "device": "Tablet",
+    "computed": {
+      "bodyClient": 834,
+      "bodyScroll": 834,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "auto",
+      "overflowY": "auto",
+      "position": "sticky",
+      "rect": {
+        "height": 212.890625,
+        "left": 24,
+        "top": 455.5,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    },
+    "keyboard": {
+      "active": true,
+      "scrollLeft": 40
+    }
+  },
+  {
+    "device": "Mobile",
+    "computed": {
+      "bodyClient": 414,
+      "bodyScroll": 414,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "auto",
+      "overflowY": "auto",
+      "position": "sticky",
+      "rect": {
+        "height": 192.84375,
+        "left": 20,
+        "top": 454.640625,
+        "width": 320
+      },
+      "scrollWidth": 5393,
+      "tableWidth": 5393.46875,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    },
+    "keyboard": {
+      "active": true,
+      "scrollLeft": 40
+    }
+  }
+]

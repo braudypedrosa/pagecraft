@@ -1,0 +1,57 @@
+[
+  {
+    "path": "dist/core.cjs",
+    "sha256": "e3dfa39e7882bf688147dec7e7cf721a9151cfbe0dd3f3ba03703c4abc6c5a1c",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "dist/demo/index.html",
+    "sha256": "0b4a4f4839d0ebcf11a54711279e4d3e5c894ef4b3318ef364d851b354c7fb05",
+    "unchangedSincePair": false
+  },
+  {
+    "path": "index.html",
+    "sha256": "a0ac8366ddd91791bebe255054631697c6ceedaffff07784d70a4eec94064f1f",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/compiler-worker.js",
+    "sha256": "4cdfcecaee01f71a199e9e9dd4946cd815bd0a053644d913a9d09ed462a400d9",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/compiler.js",
+    "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/contract.json",
+    "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/editor.html",
+    "sha256": "04d08812756238dc3c768af21b6095520f51e7752a37d4c553567285bb0c35e7",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "sha256": "3766db06702f2281ad1d094e74716e2caabed457c544fb8c82ce9a21708dc930",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+    "sha256": "694cac89e8a4c523cfe009cfd092d86cdf006c72640b90bcefa94b6a360a9b60",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/runtime.js",
+    "sha256": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa",
+    "unchangedSincePair": true
+  },
+  {
+    "path": "packages/editor/dist/templates.json",
+    "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "unchangedSincePair": true
+  }
+]

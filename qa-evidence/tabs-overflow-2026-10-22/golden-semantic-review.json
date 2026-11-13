@@ -1,0 +1,83 @@
+{
+  "baseCommit": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+  "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "beforeSha256": "d19e2d12419453a59754fa9de82fa3743d8c41bb0a8ab3ad68853bc251b61506",
+  "afterSha256": "23ce61e591857a9625ecf775f7f1a1d8d751635c87d7dbe47ed4fd4831606207",
+  "routeReviews": [
+    {
+      "index": 0,
+      "path": "/",
+      "cssMatchesOnlyTabsContainment": true,
+      "cssReplacementCount": {
+        "wrapper": 1,
+        "tabButton": 1
+      },
+      "htmlAndRouteMetadataIdentical": true,
+      "sourceHashChanged": true
+    },
+    {
+      "index": 1,
+      "path": "/nested/about",
+      "cssMatchesOnlyTabsContainment": true,
+      "cssReplacementCount": {
+        "wrapper": 1,
+        "tabButton": 1
+      },
+      "htmlAndRouteMetadataIdentical": true,
+      "sourceHashChanged": true
+    },
+    {
+      "index": 2,
+      "path": "/nested/about/page-2",
+      "cssMatchesOnlyTabsContainment": true,
+      "cssReplacementCount": {
+        "wrapper": 1,
+        "tabButton": 1
+      },
+      "htmlAndRouteMetadataIdentical": true,
+      "sourceHashChanged": true
+    },
+    {
+      "index": 3,
+      "path": "/nested/about/page-3",
+      "cssMatchesOnlyTabsContainment": true,
+      "cssReplacementCount": {
+        "wrapper": 1,
+        "tabButton": 1
+      },
+      "htmlAndRouteMetadataIdentical": true,
+      "sourceHashChanged": true
+    }
+  ],
+  "nonRouteArtifactIdentical": true,
+  "actualTopLevelDiffs": [
+    "/desired/release/manifest",
+    "/desired/release/signature",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/artifact/routes/0/css",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/css",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/css",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/css",
+    "/artifact/routes/3/sourceHash"
+  ],
+  "expectedTopLevelDiffs": [
+    "/desired/release/manifest",
+    "/desired/release/signature",
+    "/desired/deployment/envelope",
+    "/desired/deployment/signature",
+    "/artifact/routes/0/css",
+    "/artifact/routes/0/sourceHash",
+    "/artifact/routes/1/css",
+    "/artifact/routes/1/sourceHash",
+    "/artifact/routes/2/css",
+    "/artifact/routes/2/sourceHash",
+    "/artifact/routes/3/css",
+    "/artifact/routes/3/sourceHash"
+  ],
+  "diffScopeMatches": true,
+  "conclusion": "Only scoped Tabs containment CSS, route source hashes, and derived signed release/deployment fields changed. Route HTML, entities, schema, assets and other metadata remain identical."
+}

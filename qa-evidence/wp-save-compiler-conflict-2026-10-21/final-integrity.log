@@ -1,0 +1,14 @@
+verification.json valid
+app/src/core/public-form-controls.generated.ts: OK
+index.html: OK
+dist/core.cjs: OK
+packages/editor/dist/editor.html: OK
+packages/editor/dist/compiler.js: OK
+packages/editor/dist/compiler-worker.js: OK
+packages/editor/dist/runtime.js: OK
+packages/editor/dist/templates.json: OK
+packages/editor/dist/contract.json: OK
+packages/editor/dist/fixtures/page.pagecraft-page.zip: OK
+packages/editor/dist/fixtures/site.pagecraft-site.zip: OK
+UI baselines verified: { images: 24, sourceFiles: 28 }
+final integrity pass

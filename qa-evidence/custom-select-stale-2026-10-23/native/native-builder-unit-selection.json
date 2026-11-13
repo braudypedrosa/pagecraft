@@ -1,0 +1,9 @@
+{
+  "flow": "AddSpacer,fill25,openunit,clickpercent",
+  "unit": {
+    "expanded": "false",
+    "value": "%"
+  },
+  "numeric": null,
+  "syntheticRebind": "Not injected in browser; regression test covers deterministic replacement"
+}

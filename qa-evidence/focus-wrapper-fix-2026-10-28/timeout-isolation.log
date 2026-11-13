@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inline-rich-select-3188
+
+
+ Test Files  2 passed (2)
+      Tests  35 passed (35)
+   Start at  05:45:34
+   Duration  16.83s (transform 486ms, setup 0ms, import 773ms, tests 15.81s, environment 0ms)

@@ -1,0 +1,20 @@
+[
+  {
+    "bg": "rgb(36, 44, 39)",
+    "classes": "pagecraft-button pagecraft-8l7221q ts-btn",
+    "html": "<button id=\"n8l7221q\" data-id=\"n8l7221q\" data-t=\"button\" class=\"pagecraft-button pagecraft-8l7221q ts-btn\" data-variant=\"solid\" type=\"button\"><span>QA clipboard class source</span></button>",
+    "id": "n8l7221q",
+    "margin": "7px 0px 0px",
+    "radius": "18px",
+    "text": "QA clipboard class source"
+  },
+  {
+    "bg": "rgb(36, 44, 39)",
+    "classes": "pagecraft-button pagecraft-8o3cw5x5 ts-btn",
+    "html": "<button id=\"n8o3cw5x5\" data-id=\"n8o3cw5x5\" data-t=\"button\" class=\"pagecraft-button pagecraft-8o3cw5x5 ts-btn\" data-variant=\"solid\" type=\"button\" data-sel=\"\"><span>QA clipboard target</span></button>",
+    "id": "n8o3cw5x5",
+    "margin": "7px 0px 0px",
+    "radius": "18px",
+    "text": "QA clipboard target"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent wellness practitioners explaining non-emergency services, practitioner scope and first-visit expectations",
+    "primaryAction": "Understand service fit and send an inquiry; appointment availability remains explicitly unconfigured",
+    "pages": ["index", "services", "what-to-expect", "practitioners", "contact"],
+    "content": "Fictional Still Day Practice with no clinical, medical, diagnostic or efficacy claims. Practitioner identity and all qualifications are invented and labeled. Appointment and message delivery are unconfigured.",
+    "imagery": "Generated consultation room, fictional practitioner and outdoor walking conversation with a calm sage, linen and clay system; original vector logo.",
+    "provenance": [
+      {"asset":"logo","source":"Original SVG authored for Still Day Practice in this template directory, 2026-10-08","license":"Original template artwork; fictional mark with no third-party trademark claim."},
+      {"asset":"room","source":"OpenAI image generation, 2026-10-08, exec-1c6394b6-717c-40f5-8628-68589acfbe87.png","license":"AI-generated demonstration interior; not a real practice location."},
+      {"asset":"practitioner","source":"OpenAI image generation, 2026-10-08, exec-1cd0da22-40cf-4f70-bc04-43181cef7412.png","license":"AI-generated fictional practitioner; no real identity, qualification or endorsement."},
+      {"asset":"garden-walk","source":"OpenAI image generation, 2026-10-08, exec-1e4f025d-fac2-44a1-871f-99dddaf09c0e.png","license":"AI-generated demonstration scene; no real clients or service encounter."}
+    ]
+  },
+  "directions": [
+    {"id":"quiet-room","thesis":"A daylight practice centered on clear expectations, practitioner boundaries and the feeling of an unhurried first conversation.","fingerprint":{"header":"warm linen bar with sage botanical mark","hero":"sunlit consultation room with quiet wall","textAnchor":"left serif stack","inventory":"open service ledger","cta":"clay inquiry action","footer":"compact deep-sage utility row"},"comparison":"Selected as the concrete authored draft because it combines calm atmosphere with explicit scope, expectations and safety language. Awaiting user review.","sections":[{"purpose":"Create reassurance without therapeutic promises","archetype":"room-photo-opening","composition":"full-width consultation room with left paper gradient","typography":"soft serif headline with direct sans support","imagery":"empty room prepared for conversation","action":"Explore services"},{"purpose":"Explain the visit before asking for contact","archetype":"expectation-divider-list","composition":"before, beginning, during and after as open rows","typography":"plain descriptive headings","imagery":"room context","action":"Read practical FAQ"}]},
+    {"id":"garden-path","thesis":"An outdoors-led direction organized around movement, accessibility and walking-session preparation.","fingerprint":{"header":"light sage masthead","hero":"garden path with two distant figures","textAnchor":"upper-left dark stack","inventory":"service-format chapters","cta":"route and access inquiry","footer":"sage paper colophon"},"comparison":"More movement-led than Quiet Room; retained as an unselected fingerprint only.","sections":[{"purpose":"Present walking support honestly","archetype":"garden-path-hero","composition":"wide path scene with small distant figures","typography":"serif invitation and practical caveat","imagery":"fictional walking conversation","action":"Review session format"},{"purpose":"Prepare access and privacy choices","archetype":"practical-route-notes","composition":"open list beside a small location image","typography":"utility labels and body text","imagery":"garden path detail","action":"Ask about access"}]},
+    {"id":"practitioner-journal","thesis":"A practitioner-led editorial direction foregrounding profile, training disclosure and reflective written guidance.","fingerprint":{"header":"centered clay mark","hero":"environmental practitioner portrait","textAnchor":"caption beneath portrait","inventory":"journal-style service essays","cta":"plain inquiry link","footer":"linen legal row"},"comparison":"More personality-led than Quiet Room; retained as an unselected fingerprint because verified qualifications would be required before publishing.","sections":[{"purpose":"Introduce the person and boundaries","archetype":"portrait-profile-opening","composition":"large portrait with adjacent disclosure","typography":"serif name and compact scope line","imagery":"fictional practitioner preparing room","action":"Read practitioner profile"},{"purpose":"Explain working principles","archetype":"principles-editorial","composition":"three long-form entries separated by rules","typography":"journal hierarchy","imagery":"none","action":"Send an inquiry"}]}
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

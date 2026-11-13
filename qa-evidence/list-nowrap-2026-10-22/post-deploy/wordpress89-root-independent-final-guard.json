@@ -1,0 +1,26 @@
+{
+  "status": "Root independently accepts bounded89 native/preservation slice.",
+  "tables": 133,
+  "exactInsertTables": 132,
+  "onlyChangedTable": "wp_options",
+  "changedOptions": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data",
+    "_transient_elementor_remote_info_api_data_4.2.3",
+    "_transient_timeout_elementor_remote_info_api_data_4.2.3"
+  ],
+  "timestampAndOptionIdMaskedRowsExact": true,
+  "allPostsAndMetadataExact": true,
+  "fixtureVersion": 73,
+  "revisions": 332,
+  "newRevisions": 0,
+  "installedExact": {
+    "builder": 55,
+    "theme": 19,
+    "importer": 16
+  },
+  "finalSqlSHA256": "c364b7a04e7b4a8fe86b575a99f0ccad05ab4cc02119b64ba90a1e098d937aea",
+  "sourceFreeze9AndHistorical114AlreadyIndependentlyVerified": true,
+  "nativeEvidence": "Cloud qa-evidence/list-nowrap-2026-10-22/post-deploy/wordpress89-native.json",
+  "rootDiagnostic": "Initial theme path pagecraft-theme was absent; verified actual installed folder pagecraft. No mutation."
+}

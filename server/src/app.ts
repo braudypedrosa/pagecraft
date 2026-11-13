@@ -1,11 +1,14 @@
 import { LiveReviewStore } from './live-reviews.ts';
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import type { IncomingMessage } from "node:http";
 import { runDueSchedules } from "./schedule-runner.ts";
 import type { PublicationScheduleStore } from "./schedules.ts";
 import { liveReviewRoutes } from './live-review-routes.ts';
 import { publicationPreviewHtml } from "./publication-preview.ts";
+import { withPreviewReadiness } from "./preview-readiness.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
+import { prepareHostedEditor } from './editor-assets.ts';
 import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
@@ -15,6 +18,11 @@ import { ACCOUNT_ACTIONS_BOOT_SCRIPT } from '../../shared/account-actions.js';
 import { ACTION_FEEDBACK_BOOT_SCRIPT } from '../../shared/action-feedback.js';
 import { UI_MOTION_BOOT_SCRIPT, UI_MOTION_CSS } from '../../shared/ui-motion.js';
 import { submissionRoutes } from './submissions-routes.ts';
+import { assistantMcpContext, assistantRoutes, type AssistantDeps } from './assistant-routes.ts';
+import { assistantMcpResponse } from './assistant-mcp.ts';
+import { templateAuthoringRoutes, type TemplateAuthoringOptions } from './template-authoring-routes.ts';
+import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from './assistants.ts';
+import { ASSISTANT_SCOPES, assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
@@ -45,7 +53,8 @@ import { fileURLToPath } from "node:url";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
 import {
-  AnalyticsRecorder, NOT_FOUND, analyticsReport, csvRows, isRange, rangeDays, toCsv, withClickScript, type RangeKey,
+  AnalyticsRecorder, NOT_FOUND, analyticsReport, csvRows, excluded, isRange, rangeDays, timeZones, toCsv, validTimeZone, withClickScript,
+  type RangeKey,
 } from "./analytics.ts";
 import {
   cmsItemKey,
@@ -63,9 +72,10 @@ import {
   renderSite,
   resolvePath,
 } from "./render.ts";
-import { contentOnly } from "./content.ts";
+import { contentOnly, formRoutingChanged } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle, type NoticeSender } from "./mail.ts";
+import { planEntitlements } from "./plans.ts";
 import {
   ALLOWED,
   documentAssetIds,
@@ -86,6 +96,7 @@ import {
 import type { Doc } from "../../app/src/core/types.ts";
 import { assetFile, SCHEMA as CORE_SCHEMA } from "../../app/src/core/index.ts";
 import { LibraryError, type LibraryItemKind, type LibraryItemRef } from "../../app/src/core/libraries.ts";
+import { MemoryCollaborationInvitationStore, type CollaborationInvitationStore } from "./collaboration-invitations.ts";
 import {
   copyLibraryAssetsToSite, LIBRARY_ITEMS_MAX, LIBRARY_MEMBERS_MAX, LIBRARY_NAME_MAX, LibraryImageError, publishLibraryVersion,
   type LibraryStore,
@@ -102,6 +113,7 @@ import {
   roleAllows,
   isSiteRole,
   roleMayReview,
+  sameDigest,
   SESSION_TTL_MS,
   type User,
   validEmail,
@@ -140,7 +152,11 @@ import {
   signReleaseManifest,
   utf8ByteCompare,
 } from "./releases.ts";
-import { freezeGoogleFontStylesheets } from "./font-freeze.ts";
+import {
+  FontFetchUnavailableError,
+  freezeGoogleFontStylesheets,
+  shareHostedStyles,
+} from "./font-freeze.ts";
 import type { PackageRegistry } from "./packages.ts";
 import type {
   HostedPublicationStore,
@@ -151,7 +167,6 @@ import {
   createSitePackage,
   portableAssetIds,
 } from "./portable-packages.ts";
-import { wordpressPortablePackages } from "./wordpress-portable-packages.ts";
 import type { AccountAuth, VerifiedIdentity } from "./account-auth.ts";
 import type { HumanChallenge } from "./turnstile.ts";
 import type { OwnedSiteStore } from "./accounts.ts";
@@ -162,7 +177,9 @@ import {
 } from "./integrations.ts";
 import {
   accountSettingsPage,
+  confirmLinkPage,
   dashboardPage,
+  collaborationInvitationsPage,
   forgotPage,
   privacyPage,
   resetPage,
@@ -229,6 +246,7 @@ export interface CloudMutationFastPath {
     doc: Doc;
     identity: VerifiedIdentity;
     requiredRole: "write" | "admin";
+    proposal?: { id: string; attemptId: string; assetIds: string[] };
   }): Promise<CloudSaveResult>;
   cachedPublishSource(input: {
     siteId: string;
@@ -339,8 +357,15 @@ export interface Options {
   schedules?: PublicationScheduleStore;
   /** Account-owned libraries (Phase 5); shared across environments like sites. */
   libraries?: LibraryStore;
+  /** Pending invitations grant no access until the addressed person accepts. */
+  collaborationInvitations?: CollaborationInvitationStore;
   /** Aggregate analytics for published sites (Phase 6), off per site until its owner turns it on. */
   analytics?: AnalyticsRecorder;
+  /** Assistant tokens and their proposals (Phase 7). */
+  assistants?: FileAssistantStore;
+  /** Sign-in for assistant apps (claude.ai, Claude Desktop) that issues those tokens. */
+  assistantOAuth?: FileOAuthStore;
+  templateAuthoring?: TemplateAuthoringOptions;
   /** Bearer key for the cron-driven run endpoint; without one the endpoint does not exist. */
   scheduleRunnerKey?: string;
   /** Verified Supabase email/password accounts. Omit only for legacy rollback/tests. */
@@ -352,6 +377,11 @@ export interface Options {
   /** Cloudflare Turnstile verifier for public account forms. */
   challenge?: HumanChallenge;
   turnstileSiteKey?: string;
+  /** Believe `CF-Connecting-IP`. Only true when Cloudflare really fronts the origin. */
+  trustCloudflare?: boolean;
+  /** Signs short-lived account cookies. Absent means a per-process key, which is enough for
+      one Node process; several processes behind one host need the same configured value. */
+  cookieSecret?: string;
 }
 
 const TYPES: Record<string, string> = {
@@ -364,13 +394,42 @@ const typeOf = (path: string) =>
   TYPES[(path.split(".").pop() || "").toLowerCase()] ||
   "application/octet-stream";
 
+function editorAssetEncoding(header = ''): 'br' | 'gzip' | 'identity' | null {
+  const weights = new Map<string, number>();
+  for (const part of header.split(',')) {
+    const [name, ...parameters] = part.trim().split(';');
+    if (!name) continue;
+    const parameter = parameters.map(value => value.trim()).find(value => /^q=/i.test(value));
+    const weight = parameter ? Number(parameter.slice(2)) : 1;
+    weights.set(name.toLowerCase(), Number.isFinite(weight) && weight >= 0 && weight <= 1 ? weight : 0);
+  }
+  const quality = (name: string) => weights.get(name) ?? weights.get('*') ?? 0;
+  const br = quality('br'), gzip = quality('gzip');
+  const identity = weights.get('identity') ?? (weights.get('*') === 0 ? 0 : 1);
+  if (weights.has('identity') && identity > Math.max(br, gzip)) return 'identity';
+  if (br > 0 && br >= gzip) return 'br';
+  if (gzip > 0) return 'gzip';
+  return identity > 0 ? 'identity' : null;
+}
+
 export function createApp(o: Options) {
   const app = new Hono();
+  // Split only the static source, before any account or document configuration is injected.
+  // The canonical single-file editor remains available to offline and WordPress hosts.
+  const hostedEditor = o.editorHtml ? prepareHostedEditor(o.editorHtml) : undefined;
+  const invitations = o.collaborationInvitations || new MemoryCollaborationInvitationStore(o.store, o.auth, o.libraries);
   const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
+  /* The address every per-source limit keys on. Nothing sits in front of the origin unless
+     `trustCloudflare` says so, and without Cloudflare its header is whatever the caller typed.
+     LiteSpeed replaces `X-Forwarded-For` with the real client, so its leftmost entry is next;
+     a direct connection has only its socket peer (LiteSpeed's Unix socket has none). */
   const requestSource = (c: Context) =>
-    c.req.header("cf-connecting-ip") ||
-    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+    (o.trustCloudflare && c.req.header("cf-connecting-ip")) ||
+    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
+    (c.env as { incoming?: IncomingMessage } | undefined)?.incoming?.socket
+      ?.remoteAddress ||
+    "unknown";
   /* Invitations can send transactional email and create pending access records. These limits
      are deliberately independent: rotating addresses must not evade the source/account limit,
      while rotating callers must not mail-bomb one recipient. The short recipient cooldown
@@ -384,8 +443,15 @@ export function createApp(o: Options) {
   app.use('*', async (c, next) => {
     const trace = newRequestTiming();
     await requestTiming.run(trace, next);
-    if (isEditorHost(c.req.header('host'), o) && /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname)) {
+    const editorTiming = isEditorHost(c.req.header('host'), o) &&
+      /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname);
+    const publicationTiming = trace.spans.some((span) =>
+      span.name.startsWith('publication.')
+    );
+    if (editorTiming || publicationTiming) {
       c.header('Server-Timing', timingHeader(trace));
+    }
+    if (editorTiming) {
       c.header('X-Request-ID', trace.id);
     }
   });
@@ -409,9 +475,9 @@ export function createApp(o: Options) {
     const path = new URL(c.req.url).pathname;
     const privateRoute = !path.startsWith("/v1/wordpress-distribution/") &&
         /^\/(?:api|auth|edit|sites|v1)(?:\/|$)/.test(path) ||
-      /^\/account(?:\/|$)/.test(path) ||
+      /^\/(?:account|invitations|owner)(?:\/|$)/.test(path) ||
       /^\/internal\/components(?:\/|$)/.test(path) ||
-      path === "/mcp" ||
+      (path === "/mcp" || path.startsWith('/mcp/')) ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
     const cachedThumbnail = c.req.method === "GET" && /^\/api\/sites\/[^/]+\/dashboard-thumbnail$/.test(path) &&
       [200, 304].includes(c.res.status) && c.res.headers.get("cache-control")?.includes("immutable");
@@ -441,7 +507,11 @@ export function createApp(o: Options) {
   app.use("/internal/components/*", editorOnly);
   app.use("/account", editorOnly);
   app.use("/account/*", editorOnly);
+  app.use("/owner", editorOnly);
+  app.use("/owner/*", editorOnly);
   app.use("/sites/*", editorOnly);
+  app.use("/invitations", editorOnly);
+  app.use("/invitations/*", editorOnly);
   app.use("/review/*", editorOnly);
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
@@ -451,6 +521,20 @@ export function createApp(o: Options) {
   for (const { file } of UI_FONT_FACES) {
     app.get(`/brand/fonts/${file}`, editorOnly, serveStatic({ path: brandFile(`fonts/${file}`) }));
   }
+  app.get('/brand/builder-assets/*', editorOnly, (c) => {
+    const asset = hostedEditor?.assets.get(new URL(c.req.url).pathname);
+    if (!asset) return c.notFound();
+    const encoding = editorAssetEncoding(c.req.header('accept-encoding'));
+    c.header('vary', 'Accept-Encoding');
+    if (!encoding) return c.text('No acceptable asset encoding.', 406);
+    const body = encoding === 'identity' ? asset.body : asset[encoding];
+    return new Response(new Uint8Array(body), { headers: {
+      'content-type': asset.contentType,
+      'cache-control': 'public, max-age=31536000, immutable',
+      'vary': 'Accept-Encoding',
+      ...(encoding === 'identity' ? {} : { 'content-encoding': encoding }),
+    } });
+  });
   app.get(
     "/brand/pagecraft-logo.svg",
     editorOnly,
@@ -486,6 +570,18 @@ export function createApp(o: Options) {
       onError: (c) => c.text("Request too large", 413),
     }),
   );
+  // These decisions are browser actions in both account and legacy cookie modes.
+  app.use("*", async (c, next) => {
+    const path = new URL(c.req.url).pathname;
+    if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method) &&
+      (/^\/(?:api\/)?invitations(?:\/|$)/.test(path) || /^\/api\/sites\/[^/]+\/proposals\//.test(path))) {
+      const expected = new URL(o.editorOrigin || c.req.url).origin;
+      let origin = c.req.header("origin") || "";
+      if (!origin) try { origin = new URL(c.req.header("referer") || "").origin; } catch { /* Missing origin fails closed. */ }
+      if (origin !== expected) return c.json({ error: "origin_not_allowed" }, 403);
+    }
+    await next();
+  });
   if (o.accountAuth) {
     app.use("*", async (c, next) => {
       const method = c.req.method.toUpperCase();
@@ -550,7 +646,12 @@ export function createApp(o: Options) {
   /* A render needs the site's assets, and fetching them is asynchronous while the render is
      not — so they are fetched first and handed in. `renderSite` stays synchronous, which is
      the property the singleton core depends on. */
-  const render = (doc: Doc, assets: AssetRecord[] = [], formEndpoint = '') => {
+  const render = (
+    doc: Doc,
+    assets: AssetRecord[] = [],
+    formEndpoint = '',
+    options: { foundation?: boolean } = {},
+  ) => {
     /* Every served byte comes through here, so this is where a document written by an older
        editor is brought up to date. `adopt` returning null means a newer editor wrote it; it
        is in the table already, so render it as it stands rather than take the site down. */
@@ -564,7 +665,7 @@ export function createApp(o: Options) {
     if (!adopted) {
       throw new Error("document schema is newer than this Pagecraft renderer");
     }
-    return renderSite(adopted, refs, formEndpoint);
+    return renderSite(adopted, refs, formEndpoint, options);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
   const assetBodiesOf = async (
@@ -617,6 +718,15 @@ export function createApp(o: Options) {
     });
     return out;
   };
+  /** Where a hosted publication is read: the site's own domain, or the editor host and its
+      slug. From the configured editor origin rather than request headers, because it is
+      written into the published files. */
+  const publicAddress = (c: Context, site: Pick<Site, "host" | "slug">) => {
+    const editor = new URL(o.editorOrigin || c.req.url);
+    return /\.invalid$/.test(site.host)
+      ? `${editor.origin}/${site.slug}/`
+      : `${editor.protocol}//${site.host.toLowerCase()}/`;
+  };
   const cloudReceiver = (c: Context, id: string) => o.submissions && !c.req.header('x-pagecraft-editor-session')
     ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '';
   const candidate = (doc: Doc, assets: AssetRecord[], formEndpoint = '') => {
@@ -633,20 +743,42 @@ export function createApp(o: Options) {
 
   /* ------------------------------------------------------------------- who, and what */
 
-  /** The person behind this request, or null. A bad cookie is the same as no cookie. */
-  const who = async (c: Context): Promise<User | null> => {
-    if (o.accountAuth) {
-      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
-      if (!identity) return null;
-      return o.auth.ensureAuthUser(
-        identity.authUserId,
-        identity.email,
-        identity.name,
-      );
+  /* One identity check per request. A gate, the route behind it and pages such as /account all
+     ask who is calling; each ask used to be another Supabase Auth round trip (about 0.35 s)
+     with the same request cookies and therefore the same answer. Keyed by the request object,
+     so nothing outlives the request and no answer is shared between two of them. */
+  const identities = new WeakMap<Request, Promise<VerifiedIdentity | null>>();
+  const verifiedIdentity = (c: Context) => {
+    let pending = identities.get(c.req.raw);
+    if (!pending) {
+      pending = timed("auth.verify", () => o.accountAuth!.identity(c));
+      identities.set(c.req.raw, pending);
     }
-    const token = getCookie(c, SESSION_COOKIE);
-    if (!token) return null;
-    return o.auth.userForSession(hashToken(token));
+    return pending;
+  };
+  const users = new WeakMap<Request, Promise<User | null>>();
+
+  /** The person behind this request, or null. A bad cookie is the same as no cookie. */
+  const who = (c: Context): Promise<User | null> => {
+    let pending = users.get(c.req.raw);
+    if (!pending) {
+      pending = (async () => {
+        if (o.accountAuth) {
+          const identity = await verifiedIdentity(c);
+          if (!identity) return null;
+          return o.auth.ensureAuthUser(
+            identity.authUserId,
+            identity.email,
+            identity.name,
+          );
+        }
+        const token = getCookie(c, SESSION_COOKIE);
+        if (!token) return null;
+        return o.auth.userForSession(hashToken(token));
+      })();
+      users.set(c.req.raw, pending);
+    }
+    return pending;
   };
 
   app.get('/internal/components', async c => {
@@ -675,6 +807,15 @@ export function createApp(o: Options) {
     });
   };
 
+  /* What the dashboard and plan show against the owned-site limit, counted the way creation
+     counts it. Until the gateway knows `account.ownedSiteCount`, every owner row (the old,
+     stricter count) is shown instead of failing the page. */
+  const ownedSiteCount = async (user: User, mine: { role: Role }[]) => {
+    const every = mine.filter((item) => item.role === "owner").length;
+    if (!o.ownedSites) return every;
+    return o.ownedSites.owned(user.id).catch(() => every);
+  };
+
   const storageOwner = async (siteId: string, actor: User, role: Role) => {
     if (role === "owner") return actor.id;
     const owners = (await o.auth.members(siteId))
@@ -683,15 +824,17 @@ export function createApp(o: Options) {
     return owners[0]?.userId || null;
   };
 
+  // Shared-site uploads consume the storage owner's allowance, not the collaborator's.
+  const storageLimitForOwner = async (ownerId: string, knownUser?: User) =>
+    planEntitlements((ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
+
   /**
-   * May this person do this to this site? Every answer comes from here, so a route cannot
-   * forget the membership half and check only that somebody is logged in.
+   * Who this person is to this site: one identity check and one membership lookup. `allowed`
+   * then asks whether that role may do something; `allowedMember` accepts any role. Both used
+   * to repeat the whole lookup for each role they tried, so a content editor opening a site
+   * paid for two identity checks and two membership reads, and a reviewer for three.
    */
-  const allowed = async (
-    c: Context,
-    siteId: string,
-    verb: "read" | "write" | "admin",
-  ) => {
+  const siteAccess = async (c: Context, siteId: string) => {
     const scoped = c.req.header("x-pagecraft-editor-session");
     if (scoped) {
       const credential = await o.connected?.editorCredential(
@@ -716,9 +859,6 @@ export function createApp(o: Options) {
       if (!user) return { ok: false as const, status: 401 as const };
       const membership = await o.auth.membership(siteId, user.id);
       if (!membership) return { ok: false as const, status: 404 as const };
-      if (!roleAllows(membership.role, verb)) {
-        return { ok: false as const, status: 403 as const };
-      }
       return { ok: true as const, user, role: membership.role };
     } else {
       const token = getCookie(c, SESSION_COOKIE);
@@ -726,26 +866,40 @@ export function createApp(o: Options) {
       const access = await o.auth.accessForSession(hashToken(token), siteId);
       if (!access) return { ok: false as const, status: 401 as const };
       if (!access.role) return { ok: false as const, status: 404 as const }; // conceal existence
-      if (!roleAllows(access.role, verb)) {
-        return { ok: false as const, status: 403 as const };
-      }
       return { ok: true as const, user: access.user, role: access.role };
     }
   };
 
+  /**
+   * May this person do this to this site? Every answer comes from here, so a route cannot
+   * forget the membership half and check only that somebody is logged in.
+   */
+  const allowed = async (
+    c: Context,
+    siteId: string,
+    verb: "read" | "write" | "admin",
+  ) => {
+    const access = await siteAccess(c, siteId);
+    if (!access.ok) return access;
+    /* Connected mode is retired, and what is left of its embedded editor may open and save
+       this one document. It never administers the site: no deleting, people, publishing,
+       hosts or settings, whatever its owner may do in their own browser. */
+    if (verb === "admin" && c.req.header("x-pagecraft-editor-session")) {
+      return { ok: false as const, status: 403 as const };
+    }
+    if (!roleAllows(access.role, verb)) {
+      return { ok: false as const, status: 403 as const };
+    }
+    return access;
+  };
+
+  /* Any member, whatever their role. An editor session is capped at `write`, so on member pages
+     it counts as a content editor and never stands in for the owner. */
   const allowedMember = async (c: Context, siteId: string) => {
-    const access = await allowed(c, siteId, "admin");
-    if (access.ok) return access;
-    const read = await allowed(c, siteId, "read");
-    if (read.ok) return read;
-    if (read.status !== 403) return read;
-    const scoped = c.req.header("x-pagecraft-editor-session");
-    if (scoped) return read;
-    const user = await who(c);
-    if (!user) return { ok: false as const, status: 401 as const };
-    const membership = await o.auth.membership(siteId, user.id);
-    if (!membership) return { ok: false as const, status: 404 as const };
-    return { ok: true as const, user, role: membership.role };
+    const access = await siteAccess(c, siteId);
+    return access.ok && c.req.header("x-pagecraft-editor-session")
+      ? { ...access, role: "content" as Role }
+      : access;
   };
 
   const allowedReview = async (c: Context, siteId: string) => {
@@ -768,6 +922,38 @@ export function createApp(o: Options) {
         ? "not allowed"
         : "no such site",
     }, status);
+
+  /* Gateway, database and file-system errors can carry SQL text, row values or server paths.
+     The log keeps them whole and people see the route's own sentence. Errors this server
+     raised itself, such as validation and ordering checks, keep their words. */
+  const shownError = (error: unknown, fallback: string) => {
+    const e = error as { name?: unknown; severity?: unknown; syscall?: unknown };
+    if (
+      error instanceof Error && e.name !== "GatewayError" &&
+      typeof e.severity !== "string" && typeof e.syscall !== "string"
+    ) return error.message;
+    console.error(`${fallback}:`, error);
+    return fallback;
+  };
+
+  const fontDependencyFailure = (error: unknown) => {
+    if (!(error instanceof FontFetchUnavailableError)) return null;
+    // The nested transport error may contain an address or runtime detail. Log only the
+    // allowlisted stage and bounded category, and return the same safe fields to the client.
+    console.warn("publication font dependency unavailable", {
+      stage: error.stage,
+      code: error.category,
+    });
+    return {
+      error: "publication_dependency_unavailable",
+      dependency: "google_fonts",
+      retryable: true,
+      stage: error.stage,
+      causeCategory: error.category,
+      detail:
+        "Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.",
+    } as const;
+  };
 
   const bearerConnection = async (c: Context) => {
     if (!o.connected) return null;
@@ -1081,11 +1267,8 @@ export function createApp(o: Options) {
           return c.json({ error: "a valid email address is required" }, 400);
         }
 
-        const source = c.req.header("cf-connecting-ip") ||
-          (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
-          "unknown";
         if (
-          sourceLimit.take(source) && limit.take(email) &&
+          sourceLimit.take(requestSource(c)) && limit.take(email) &&
           await o.auth.userByEmail(email)
         ) {
           const token = newToken();
@@ -1157,12 +1340,18 @@ export function createApp(o: Options) {
 
   if (o.accountAuth) {
     const siteKey = o.turnstileSiteKey || "";
+    /* A browser drops tabs and newlines inside a URL, so "/\t/evil.test" is "//evil.test" to
+       it. Resolve the value the way a browser would and keep it only if it stays here. */
     const safeNext = (raw: unknown) => {
       const value = String(raw || "");
-      return value.startsWith("/") && !value.startsWith("//") &&
-          !value.includes("\\")
-        ? value
-        : "/";
+      if (!value.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(value)) return "/";
+      try {
+        const here = new URL("https://pagecraft.invalid");
+        const url = new URL(value, here);
+        return url.origin === here.origin ? url.pathname + url.search + url.hash : "/";
+      } catch {
+        return "/";
+      }
     };
     const form = async (c: Context) => {
       const type = c.req.header("content-type") || "";
@@ -1189,6 +1378,55 @@ export function createApp(o: Options) {
           await o.challenge.verify({ token, ip: requestSource(c), action })
         ? token
         : "";
+    };
+    /* Setting a password without the current one is for a session that has just come through a
+       recovery or invitation link. That arrival is recorded in a short signed cookie bound to
+       the identity it verified; any other session changes its password from Security, which
+       asks for the current one. */
+    const RECOVERY_COOKIE = "pc_recovery";
+    const RECOVERY_TTL_MS = 15 * 60 * 1000;
+    const recoveryKey = o.cookieSecret || randomBytes(32).toString("hex");
+    const recoverySignature = (authUserId: string, expires: string) =>
+      createHmac("sha256", recoveryKey)
+        .update(`pagecraft-recovery-v1\0${authUserId}\0${expires}`)
+        .digest("base64url");
+    const markRecovery = (c: Context, authUserId: string) => {
+      const expires = String(Date.now() + RECOVERY_TTL_MS);
+      setCookie(
+        c,
+        RECOVERY_COOKIE,
+        `${expires}.${recoverySignature(authUserId, expires)}`,
+        {
+          httpOnly: true,
+          sameSite: "Lax",
+          path: "/",
+          secure: !!o.secureCookies,
+          maxAge: RECOVERY_TTL_MS / 1000,
+        },
+      );
+    };
+    const recovering = (c: Context, authUserId?: string | null) => {
+      const [expires = "", signature = ""] = (getCookie(c, RECOVERY_COOKIE) || "")
+        .split(".");
+      return !!authUserId && Number(expires) > Date.now() &&
+        sameDigest(signature, recoverySignature(authUserId, expires));
+    };
+    /* WordPress import credentials outlive any browser session, so a new password ends them.
+       Revocation failing must not undo a password that has already changed. */
+    const revokeWordPressImports = async (userId: string) => {
+      try {
+        const credentials = await o.auth.manualImportsForOwner(userId);
+        for (const credential of credentials) {
+          await o.auth.revokeManualImportForOwner(credential.id, userId);
+        }
+        return credentials.length;
+      } catch (error) {
+        console.error(
+          "WordPress import credentials could not be revoked:",
+          (error as Error).message,
+        );
+        return 0;
+      }
     };
 
     app.get(
@@ -1219,12 +1457,14 @@ export function createApp(o: Options) {
     );
     app.get("/reset-password", async (c) => {
       const user = await who(c);
-      return user
-        ? c.html(resetPage({
-          error: c.req.query("error"),
-          next: safeNext(c.req.query("next")),
-        }))
-        : c.redirect("/sign-in?error=reset");
+      if (!user) return c.redirect("/sign-in?error=reset");
+      if (!recovering(c, user.authUserId)) {
+        return c.redirect("/account?tab=security&error=reset");
+      }
+      return c.html(resetPage({
+        error: c.req.query("error"),
+        next: safeNext(c.req.query("next")),
+      }));
     });
 
     app.post(
@@ -1248,26 +1488,32 @@ export function createApp(o: Options) {
         if (password !== confirmation) {
           return c.redirect("/sign-up?error=mismatch", 303);
         }
+        const captchaToken = await challengeToken(c, body, "signup");
+        if (!captchaToken) {
+          return c.redirect("/sign-up?error=challenge", 303);
+        }
+        /* An address is charged only for requests whose challenge passed, so requests without
+           one cannot use up somebody else's allowance. */
         if (
-          !authSourceLimit.take(requestSource(c)) || !authEmailLimit.take(email)
+          !authSourceLimit.take(requestSource(c)) || authEmailLimit.limited(email)
         ) {
           return c.redirect(
             "/sign-up?message=Check+your+email+to+finish+creating+your+account.",
             303,
           );
         }
-        const captchaToken = await challengeToken(c, body, "signup");
-        if (!captchaToken) {
-          return c.redirect("/sign-up?error=challenge", 303);
-        }
         const origin = o.editorOrigin || new URL(c.req.url).origin;
-        await o.accountAuth!.signUp(c, {
+        const created = await o.accountAuth!.signUp(c, {
           email,
           password,
           name,
           redirectTo: `${origin}/auth/confirm`,
           captchaToken,
         });
+        if (created === "challenge") {
+          return c.redirect("/sign-up?error=challenge", 303);
+        }
+        authEmailLimit.take(email);
         return c.redirect(
           "/sign-in?message=Check+your+email+to+confirm+your+account.",
           303,
@@ -1286,14 +1532,20 @@ export function createApp(o: Options) {
         const email = normalEmail(String(body.email || ""));
         const password = String(body.password || "");
         const next = safeNext(body.next);
-        const limited = !authSourceLimit.take(requestSource(c)) ||
-          !authEmailLimit.take(email);
+        /* The challenge comes first, and only a wrong password counts against an address.
+           Counting every request let anyone lock somebody else out with eight empty forms. */
         const captchaToken = await challengeToken(c, body, "login");
-        if (!validEmail(email) || !password || limited || !captchaToken) {
+        if (!validEmail(email) || !password || !captchaToken) {
           return c.redirect(
-            `/sign-in?error=${limited ? "auth" : "challenge"}&next=${
-              encodeURIComponent(next)
-            }`,
+            `/sign-in?error=challenge&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
+        if (
+          !authSourceLimit.take(requestSource(c)) || authEmailLimit.limited(email)
+        ) {
+          return c.redirect(
+            `/sign-in?error=auth&next=${encodeURIComponent(next)}`,
             303,
           );
         }
@@ -1302,7 +1554,14 @@ export function createApp(o: Options) {
           password,
           captchaToken,
         });
+        if (identity === "challenge") {
+          return c.redirect(
+            `/sign-in?error=challenge&next=${encodeURIComponent(next)}`,
+            303,
+          );
+        }
         if (!identity) {
+          authEmailLimit.take(email);
           return c.redirect(
             `/sign-in?error=auth&next=${encodeURIComponent(next)}`,
             303,
@@ -1347,14 +1606,12 @@ export function createApp(o: Options) {
       },
     );
 
-    app.get("/auth/confirm", async (c) => {
-      const type = c.req.query("type");
-      const next = safeNext(c.req.query("next"));
-      const identity = await o.accountAuth!.confirm(c, {
-        code: c.req.query("code"),
-        tokenHash: c.req.query("token_hash"),
-        type,
-      });
+    const confirmed = async (
+      c: Context,
+      identity: VerifiedIdentity | null,
+      type: string | undefined,
+      next: string,
+    ) => {
       if (!identity) {
         return c.redirect("/sign-in?error=expired", 303);
       }
@@ -1363,13 +1620,56 @@ export function createApp(o: Options) {
         identity.email,
         identity.name,
       );
-      return c.redirect(
-        type === "recovery" || type === "invite"
-          ? `/reset-password?next=${encodeURIComponent(next)}`
-          : next,
-        303,
+      if (type === "recovery" || type === "invite") {
+        markRecovery(c, identity.authUserId);
+        return c.redirect(
+          `/reset-password?next=${encodeURIComponent(next)}`,
+          303,
+        );
+      }
+      return c.redirect(next, 303);
+    };
+
+    /* A `token_hash` link signs in whoever opens it, so verifying it on GET would let any page
+       sign a visitor into the sender's account. It is verified from this page's own form
+       instead, which the origin check confines to Pagecraft. A PKCE `code` is already bound to
+       the browser that started the flow, so it is exchanged directly. */
+    app.get("/auth/confirm", async (c) => {
+      const type = c.req.query("type");
+      const next = safeNext(c.req.query("next"));
+      const code = c.req.query("code");
+      const tokenHash = c.req.query("token_hash");
+      if (tokenHash && !code) {
+        return c.html(confirmLinkPage({ tokenHash, type: type || "", next }));
+      }
+      return confirmed(
+        c,
+        await o.accountAuth!.confirm(c, { code, type }),
+        type,
+        next,
       );
     });
+
+    app.post(
+      "/auth/confirm",
+      bodyLimit({
+        maxSize: 4 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const body = await form(c);
+        const type = String(body.type || "") || undefined;
+        const next = safeNext(body.next);
+        const tokenHash = String(body.token_hash || "");
+        if (!tokenHash) return c.redirect("/sign-in?error=expired", 303);
+        return confirmed(
+          c,
+          await o.accountAuth!.confirm(c, { tokenHash, type }),
+          type,
+          next,
+        );
+      },
+    );
 
     app.post(
       "/auth/forgot-password",
@@ -1381,17 +1681,18 @@ export function createApp(o: Options) {
         const body = await form(c);
         const email = normalEmail(String(body.email || ""));
         const captchaToken = await challengeToken(c, body, "forgot");
-        const allowedRequest = validEmail(email) &&
+        const allowedRequest = validEmail(email) && !!captchaToken &&
           authSourceLimit.take(requestSource(c)) &&
-          authEmailLimit.take(email) &&
-          !!captchaToken;
+          !authEmailLimit.limited(email);
         if (allowedRequest) {
           const origin = o.editorOrigin || new URL(c.req.url).origin;
-          await o.accountAuth!.forgot(c, {
+          const sent = await o.accountAuth!.forgot(c, {
             email,
             redirectTo: `${origin}/auth/confirm?type=recovery`,
             captchaToken,
           }).catch(() => undefined);
+          // Only a request whose challenge Auth accepted counts against the address it mails.
+          if (sent !== "challenge") authEmailLimit.take(email);
         }
         return c.redirect(
           "/forgot-password?message=If+an+account+matches,+reset+instructions+are+on+the+way.",
@@ -1401,6 +1702,11 @@ export function createApp(o: Options) {
     );
 
     app.post("/auth/reset-password", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?error=reset", 303);
+      if (!recovering(c, user.authUserId)) {
+        return c.redirect("/account?tab=security&error=reset", 303);
+      }
       const body = await form(c);
       const password = String(body.password || "");
       const next = safeNext(body.next);
@@ -1419,6 +1725,8 @@ export function createApp(o: Options) {
       if (!await o.accountAuth!.reset(c, password)) {
         return c.redirect("/sign-in?error=reset", 303);
       }
+      deleteCookie(c, RECOVERY_COOKIE, { path: "/" });
+      await revokeWordPressImports(user.id);
       return c.redirect(
         `${next}${next.includes("?") ? "&" : "?"}message=Password+updated.`,
         303,
@@ -1434,22 +1742,32 @@ export function createApp(o: Options) {
     app.get("/account", async (c) => {
       const [user, identity] = await Promise.all([
         who(c),
-        o.accountAuth!.identity(c),
+        verifiedIdentity(c),
       ]);
       if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
       const requestedTab = c.req.query("tab");
       const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      const mine = await visibleSites(user);
-      const storage = o.assets
-        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
-        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
+      const [mine, wordpress, storage] = await Promise.all([
+        visibleSites(user),
+        o.auth.manualImportsForOwner(user.id),
+        o.assets
+          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+      ]);
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
-        ownerCount: mine.filter((item) => item.role === "owner").length,
+        ownerCount: await ownedSiteCount(user, mine),
         storage,
+        wordpress: wordpress.map((credential) => ({
+          id: credential.id,
+          installationId: credential.installationId,
+          siteUrl: credential.siteUrl,
+          createdAt: new Date(credential.createdAt).toISOString(),
+          lastUsedAt: new Date(credential.updatedAt).toISOString(),
+        })),
       }, {
         error: c.req.query("error"),
         message: c.req.query("message"),
@@ -1466,7 +1784,7 @@ export function createApp(o: Options) {
       async (c) => {
         const [user, identity] = await Promise.all([
           who(c),
-          o.accountAuth!.identity(c),
+          verifiedIdentity(c),
         ]);
         if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount");
         const body = await form(c);
@@ -1506,6 +1824,21 @@ export function createApp(o: Options) {
       },
     );
 
+    app.post("/account/wordpress/:credentialId/revoke", async (c) => {
+      const user = await who(c);
+      if (!user) return c.redirect("/sign-in?next=%2Faccount", 303);
+      const revoked = await o.auth.revokeManualImportForOwner(
+        c.req.param("credentialId"),
+        user.id,
+      );
+      return c.redirect(
+        revoked
+          ? "/account?tab=security&message=WordPress+site+disconnected."
+          : "/account?tab=security&error=wordpress_missing",
+        303,
+      );
+    });
+
     app.post(
       "/account/password",
       bodyLimit({
@@ -1513,7 +1846,7 @@ export function createApp(o: Options) {
         onError: (c) => c.text("Request too large", 413),
       }),
       async (c) => {
-        const identity = await o.accountAuth!.identity(c);
+        const identity = await verifiedIdentity(c);
         if (!identity) return c.redirect("/sign-in?next=%2Faccount");
         if (!accountChangeLimit.take(`${requestSource(c)}|password`)) {
           return c.redirect("/account?tab=security&error=password_rate", 303);
@@ -1538,9 +1871,17 @@ export function createApp(o: Options) {
           password,
           ...(hasPassword ? { currentPassword } : {}),
         });
-        return changed
-          ? c.redirect("/account?tab=security&message=Password+updated.", 303)
-          : c.redirect("/account?tab=security&error=password_current", 303);
+        if (!changed) {
+          return c.redirect("/account?tab=security&error=password_current", 303);
+        }
+        const user = await o.auth.userByAuthId(identity.authUserId);
+        const revoked = user ? await revokeWordPressImports(user.id) : 0;
+        return c.redirect(
+          revoked
+            ? "/account?tab=security&message=Password+updated.+Connected+WordPress+sites+were+disconnected."
+            : "/account?tab=security&message=Password+updated.",
+          303,
+        );
       },
     );
   }
@@ -1557,7 +1898,7 @@ export function createApp(o: Options) {
       role,
     }));
     const storage = o.assets
-      ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
+      ? await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
       : null;
     return c.json({
       user: {
@@ -1578,8 +1919,12 @@ export function createApp(o: Options) {
      never come through serveHostedPublication, so they are never counted. */
   const countingFor = async (c: Context, publication: PublicationSummary, sharedHost: boolean): Promise<Counting | null> => {
     if (!o.analytics || c.req.method !== "GET") return null;
+    /* A visit that is not counted gets no click counter either: signed-in Pagecraft users (whose
+       beacons would not carry the cookie), privacy signals, prefetches and bots. */
+    const header = (name: string) => c.req.header(name);
+    if (excluded(header)) return null;
     if (!await o.analytics.enabled(publication.siteId).catch(() => false)) return null;
-    const request = { header: (name: string) => c.req.header(name), source: requestSource(c), host: c.req.header("host") || "" };
+    const request = { header, source: requestSource(c), host: c.req.header("host") || "" };
     const own = { prefix: sharedHost ? publication.slug : undefined };
     return { view: (page) => { o.analytics!.view(publication.siteId, page, request, own); } };
   };
@@ -1598,7 +1943,8 @@ export function createApp(o: Options) {
     const body = await c.req.text().then((text) => JSON.parse(text)).catch(() => null) as { p?: unknown; l?: unknown; t?: unknown } | null;
     if (!body || typeof body.p !== "string" || body.p.length > 300) return done();
     // Which publication the page is in: its slug on the shared host, the host anywhere else.
-    const page = new URL(body.p, "https://page.invalid").pathname;
+    let page: string;
+    try { page = new URL(body.p, "https://page.invalid").pathname; } catch { return done(); }
     const shared = isEditorHost(c.req.header("host"), o);
     const [, first, ...rest] = page.split("/");
     const slug = shared ? validSlug(first || "") : null;
@@ -1616,6 +1962,31 @@ export function createApp(o: Options) {
 
   /* ---------------------------------------------------------------- the editor */
 
+  app.get("/invitations", async (c) => {
+    const user = await who(c);
+    if (!user) return c.redirect("/sign-in?next=%2Finvitations");
+    return c.html(collaborationInvitationsPage(user, await invitations.listForUser(user.id), {
+      error: c.req.query("error"), message: c.req.query("message"),
+    }));
+  });
+  app.get("/api/invitations", async (c) => {
+    const user = await who(c);
+    if (!user) return deny(c, 401);
+    return c.json({ invitations: await invitations.listForUser(user.id) });
+  });
+  for (const decision of ["accept", "decline"] as const) {
+    const decide = async (c: Context, json: boolean) => {
+      if (c.req.header("x-pagecraft-editor-session")) return deny(c, 403);
+      const user = await who(c);
+      if (!user) return json ? deny(c, 401) : c.redirect("/sign-in?next=%2Finvitations", 303);
+      const result = await invitations.decide(c.req.param("id") || "", user.id, decision === "accept");
+      if (result === "missing") return json ? deny(c, 404) : c.redirect("/invitations?error=invitation_missing", 303);
+      return json ? c.json({ status: result }) : c.redirect(`/invitations?message=Invitation+${result}.`, 303);
+    };
+    app.post(`/invitations/:id/${decision}`, c => decide(c, false));
+    app.post(`/api/invitations/:id/${decision}`, c => decide(c, true));
+  }
+
   app.get("/", async (c) => {
     if (!isEditorHost(c.req.header("host"), o)) {
       const host = (c.req.header("host") || "").split(":")[0];
@@ -1632,13 +2003,18 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (o.accountAuth) {
       if (!user) return c.redirect("/sign-in");
-      const mine = (await visibleSites(user)).sort((a, b) =>
+      /* Independent reads: the site list and the storage meter used to wait for each other. */
+      const [visible, storage, pendingInvitations] = await Promise.all([
+        visibleSites(user),
+        o.assets
+          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+        invitations.listForUser(user.id),
+      ]);
+      const mine = visible.sort((a, b) =>
         new Date(b.site.updatedAt).getTime() -
         new Date(a.site.updatedAt).getTime()
       );
-      const storage = o.assets
-        ? await o.assets.usage(user.id, FREE_STORAGE_BYTES)
-        : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
       const templates = o.siteTemplates ? latestSiteTemplates(await o.siteTemplates.list().catch(error => {
         console.error('site template catalog unavailable', error);
         return [];
@@ -1660,11 +2036,12 @@ export function createApp(o: Options) {
           published: !!site.publishedPublicationId &&
             site.version === site.publishedVersion,
         }; })),
-        mine.filter((item) => item.role === "owner").length,
+        await ownedSiteCount(user, mine),
         storage,
         templates,
         c.req.query("error"),
         c.req.query("message"),
+        pendingInvitations.length,
       ));
     }
     if (!user) return c.html(signInPage());
@@ -1707,21 +2084,44 @@ export function createApp(o: Options) {
     if (!file) return c.notFound();
     c.header("content-type", file.mediaType);
     c.header("cache-control", "public, max-age=31536000, immutable");
-    /* Instantiated documents keep absolute asset URLs so custom domains resolve them. The
-       dashboard thumbnail inlines images with fetch(), which a document saved on the other
-       environment's origin (shared pre-launch database) can only do with CORS. These bytes
-       are public and immutable; the preview page itself stays same-origin. */
+    /* Sites created before template images were copied into each site keep absolute URLs to
+       these files, so they stay served. The dashboard thumbnail inlines images with fetch(),
+       which a document saved on the other environment's origin (shared pre-launch database)
+       can only do with CORS. These bytes are public and immutable; the preview page itself
+       stays same-origin. */
     if (!file.mediaType.startsWith("text/html")) c.header("access-control-allow-origin", "*");
+    /* A template page runs its own interaction scripts, and it is served from the editor's
+       origin, framed by the dashboard. `sandbox allow-scripts` gives it an opaque origin, as the
+       publication preview has: the scripts run, but never with the editor's cookie or API. Its
+       images and fonts still load — `'self'` matches the URL it came from, and the assets carry
+       the CORS header an opaque origin needs. */
     c.header(
       "content-security-policy",
-      "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
+      "sandbox allow-scripts; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'",
     );
     return c.body(file.bytes.slice().buffer);
   });
 
   app.get("/sites/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowedMember(c, id);
+    /* The same overlap as the editor route: read the row while access is checked, and say
+       nothing about it until the check passes. The published revision only dates the last
+       publish; for a signed-in caller it is read beside the membership check, not after it. */
+    const loading = o.store.byId(id);
+    const revisionOf = (site: Site | null) => site && site.publishedVersion > 0
+      ? o.store.revision(site.id, site.publishedVersion)
+      : Promise.resolve(null);
+    const [access, snapshot, early] = await Promise.allSettled([
+      allowedMember(c, id),
+      loading,
+      c.req.header("x-pagecraft-editor-session")
+        ? Promise.resolve(undefined)
+        : Promise.all([who(c), loading]).then(([user, site]) =>
+          user ? revisionOf(site) : undefined
+        ),
+    ]);
+    if (access.status === "rejected") throw access.reason;
+    const gate = access.value;
     if (!gate.ok) {
       return gate.status === 401
         ? c.redirect(
@@ -1729,11 +2129,13 @@ export function createApp(o: Options) {
         )
         : deny(c, gate.status);
     }
-    const site = await o.store.byId(id);
+    if (snapshot.status === "rejected") throw snapshot.reason;
+    const site = snapshot.value;
     if (!site) return deny(c, 404);
-    const publishedRevision = site.publishedVersion > 0
-      ? await o.store.revision(site.id, site.publishedVersion)
-      : null;
+    if (early.status === "rejected") throw early.reason;
+    const publishedRevision = early.value === undefined
+      ? await revisionOf(site)
+      : early.value;
     return c.html(siteOverviewPage(gate.user, {
       id: site.id,
       name: site.name,
@@ -1761,6 +2163,7 @@ export function createApp(o: Options) {
     }
     const site = await o.store.byId(id);
     if (!site) return deny(c, 404);
+    const pendingOwners = gate.role === "owner" ? await invitations.listForResource("site_owner", id) : [];
     const members = gate.role === "owner" ? await o.auth.members(id) : [{
       userId: gate.user.id,
       email: gate.user.email,
@@ -1781,13 +2184,13 @@ export function createApp(o: Options) {
         version: site.version,
         publishedVersion: site.publishedVersion,
       },
-      members.map((member) => ({
-        userId: member.userId,
-        email: member.email,
-        name: member.name,
-        role: member.role,
-        active: !!member.authUserId,
-      })),
+      [...members.map((member) => ({
+        userId: member.userId, email: member.email, name: member.name,
+        role: member.role, active: !!member.authUserId,
+      })), ...pendingOwners.map(invitation => ({
+        userId: invitation.recipientId, email: invitation.recipientEmail, name: invitation.recipientName,
+        role: "owner" as const, active: false, awaitingAcceptance: true,
+      }))],
       { error: c.req.query("error"), message: c.req.query("message") },
     ));
   });
@@ -1823,6 +2226,14 @@ export function createApp(o: Options) {
       `${base}?message=Access+updated.+An+invitation+was+sent+if+needed.`;
     const origin = o.editorOrigin || new URL(c.req.url).origin;
     const next = `/sites/${id}/people`;
+    if (role === "owner") {
+      const recipient = await invitationRecipient(email);
+      const invited = await inviteOwnership(c, id, gate.user, recipient);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.redirect(`${base}?message=${invited.status === "pending" ? "Ownership+invitation+sent.+Access+starts+after+acceptance." : "This+person+already+owns+the+site."}`, 303);
+    }
+    const recipient = await o.auth.userByEmail(email);
+    if (recipient) await invitations.removeForRecipient("site_owner", id, recipient.id);
     const provisioned = await o.auth.provisionInvitation({
       siteId: id,
       actorUserId: gate.user.id,
@@ -1862,13 +2273,20 @@ export function createApp(o: Options) {
       return c.redirect(`${base}?error=people_role`, 303);
     }
     if (c.req.param("userId") === gate.user.id && role !== "owner") {
-      return c.redirect(`${base}?error=people_last_owner`, 303);
+      // Refused either way; only say "last owner" when it is true.
+      const owners = (await o.auth.members(id)).filter((member) => member.role === "owner");
+      return c.redirect(`${base}?error=${owners.some((member) => member.userId !== gate.user.id) ? "people_self_role" : "people_last_owner"}`, 303);
     }
-    const changed = await o.auth.changeMemberRole(
-      id,
-      c.req.param("userId"),
-      role,
-    );
+    const target = c.req.param("userId");
+    if (role === "owner") {
+      const recipient = await o.auth.userById(target);
+      if (!recipient || !await o.auth.membership(id, target)) return c.redirect(`${base}?error=people_missing`, 303);
+      const invited = await inviteOwnership(c, id, gate.user, recipient);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.redirect(`${base}?message=Ownership+invitation+sent.+Access+starts+after+acceptance.`, 303);
+    }
+    await invitations.removeForRecipient("site_owner", id, target);
+    const changed = await o.auth.changeMemberRole(id, target, role);
     if (changed.status === "last_owner") {
       return c.redirect(`${base}?error=people_last_owner`, 303);
     }
@@ -1878,21 +2296,78 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Role+updated.`, 303);
   });
 
+  app.post("/sites/:id/people/:userId/invitation/cancel", async (c) => {
+    const id = c.req.param("id");
+    const gate = await allowed(c, id, "admin");
+    if (!gate.ok) return deny(c, gate.status);
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    const cancelled = await invitations.removeForRecipient("site_owner", id, c.req.param("userId"));
+    return c.redirect(`${base}?${cancelled ? "message=Ownership+invitation+cancelled." : "error=people_missing"}`, 303);
+  });
+
   app.post("/sites/:id/people/:userId/remove", async (c) => {
     const id = c.req.param("id");
     const gate = await allowed(c, id, "admin");
     if (!gate.ok) return deny(c, gate.status);
     const base = `/sites/${encodeURIComponent(id)}/people`;
+    const pendingRemoved = await invitations.removeForRecipient("site_owner", id, c.req.param("userId"));
     const removed = await o.auth.removeMember(id, c.req.param("userId"));
+    if (removed.status === "last_owner") {
+      return c.redirect(`${base}?error=people_last_owner`, 303);
+    }
+    if (removed.status === "missing" && !pendingRemoved) {
+      return c.redirect(`${base}?error=people_missing`, 303);
+    }
+    return c.redirect(`${base}?message=Collaborator+removed.`, 303);
+  });
+
+  /* Every member can leave; an owner must leave another owner in place. */
+  app.post("/sites/:id/people/leave", async (c) => {
+    const id = c.req.param("id");
+    // Only the person, in their own browser: an editor session cannot give up its owner's access.
+    if (c.req.header("x-pagecraft-editor-session")) return deny(c, 403);
+    const gate = await allowedMember(c, id);
+    if (!gate.ok) return deny(c, gate.status);
+    const base = `/sites/${encodeURIComponent(id)}/people`;
+    const removed = await o.auth.removeMember(id, gate.user.id);
     if (removed.status === "last_owner") {
       return c.redirect(`${base}?error=people_last_owner`, 303);
     }
     if (removed.status === "missing") {
       return c.redirect(`${base}?error=people_missing`, 303);
     }
-    return c.redirect(`${base}?message=Collaborator+removed.`, 303);
+    return c.redirect("/?message=You+left+the+site.", 303);
   });
 
+  const invitationRecipient = async (email: string) => {
+    const existing = await o.auth.userByEmail(email);
+    if (existing) return existing;
+    try { return await o.auth.createUser(email); }
+    catch (error) {
+      const concurrent = await o.auth.userByEmail(email);
+      if (!concurrent) throw error;
+      return concurrent;
+    }
+  };
+  const inviteOwnership = async (c: Context, siteId: string, actor: User, recipient: User) => {
+    const invited = await invitations.invite({ kind: "site_owner", resourceId: siteId, recipientId: recipient.id, invitedBy: actor.id });
+    if (invited.status === "pending") {
+      const site = await o.store.byId(siteId);
+      notifyReview(c, {
+        userId: recipient.id, email: recipient.email, kind: "review_assigned",
+        title: `${actor.name || actor.email} invited you to own a site`,
+        body: `Accept the ownership invitation for “${site?.name || "this site"}” before gaining owner access. Declining keeps your existing access unchanged.`,
+        href: "/invitations",
+      }).catch(error => console.error("ownership invitation notice failed:", (error as Error).message));
+    }
+    return invited;
+  };
+  const wordpressSiteUrl = (callback: string) => {
+    const url = new URL(callback);
+    url.pathname = url.pathname.replace(/wp-admin\/admin-post\.php$/, "");
+    url.search = ""; url.hash = "";
+    return url.href;
+  };
   const notifyReview = async (c: Context, input: {
     userId: string; email: string; kind: string; title: string; body: string; href: string;
   }) => {
@@ -1917,7 +2392,7 @@ export function createApp(o: Options) {
   };
 
   liveReviewRoutes(app, {
-    store: o.store, auth: o.auth, reviews: liveReviews, who,
+    store: o.store, auth: o.auth, reviews: liveReviews, who, requestSource,
     origin: o.editorOrigin, secure: o.secureCookies,
     notifyInvitation: async (c, user, href, kind) => {
       await notifyReview(c, { userId: user.id, email: user.email, kind: 'review_assigned', title: 'A site was shared with you', body: `You have been invited as a ${kind === 'developer' ? 'developer' : 'reviewer'}. Sign in with this email to view the site under Shared.`, href });
@@ -1961,6 +2436,15 @@ export function createApp(o: Options) {
     const liveDeveloper = await liveReviews.invited(id, normalEmail(gate.user.email), 'developer');
     const liveLinks = (await liveReviews.links(id)).filter(link => link.active && (gate.role === 'owner' || link.access === 'public' || link.access === 'private' && liveInvited || link.access === 'developer' && liveDeveloper));
     const invitations = gate.role === 'owner' ? await liveReviews.invitations(id) : [];
+    const [snapshots, members] = gate.role === 'owner' ? await Promise.all([
+      o.publications?.listBySite(id) || [],
+      o.auth.members(id),
+    ]) : [[], []];
+    // Snapshot reviews still waiting on this person, otherwise found only through Notifications.
+    const assigned = gate.role === "owner" || gate.role === "reviewer"
+      ? (await Promise.all((await reviews.assignmentsForReviewer(id, gate.user.id))
+        .map(async (row) => (await reviews.decision(row.id)) ? null : row))).filter((row) => row !== null)
+      : [];
     return c.html(siteReviewsPage(gate.user, {
       id: site.id,
       name: site.name,
@@ -1974,6 +2458,9 @@ export function createApp(o: Options) {
     }, {
       links: liveLinks,
       invitations,
+      assigned,
+      snapshots,
+      reviewers: members.filter(member => member.role === 'reviewer'),
       error: c.req.query("error"),
       message: c.req.query("message"),
     }));
@@ -2173,6 +2660,55 @@ export function createApp(o: Options) {
   });
 
   submissionRoutes(app, { store: o.store, submissions: o.submissions, publications: o.publications, allowed, editorOrigin: o.editorOrigin, requestSource, analytics: o.analytics });
+  /* Phase 7: assistants propose over MCP, owners review in the editor. */
+  const assistantDeps: AssistantDeps = {
+    store: o.store, auth: o.auth, assets: o.assets, assistants: o.assistants, reviews, editorOrigin: o.editorOrigin, allowed,
+    render: (doc, assets) => candidate(doc, assets), assetHeaders: (asset) => assetHeaders(asset as Pick<Asset, "type" | "name">),
+    async saveDraft(c, site, doc, assets, userId, proposal) {
+      if (!candidate(doc, assets, cloudReceiver(c, site.id)) ||
+        cmsDocumentErrors(site.doc, doc, new Set(assets.map(asset => asset.id))).length) return 422;
+      if (o.cloudMutations && o.accountAuth) {
+        const identity = await verifiedIdentity(c);
+        if (!identity) return 401;
+        try {
+          const saved = await o.cloudMutations.saveAuthorized({
+            siteId: site.id, sourceVersion: site.version, doc, identity, requiredRole: "admin", proposal,
+          });
+          if (saved.status === "saved") return 200;
+          if (saved.status === "forbidden") return 403;
+          return saved.status === "missing" ? 404 : 409;
+        } catch (error) {
+          if ((error as { code?: string } | null)?.code === "PROPOSAL_ASSET_UNAVAILABLE") return 409;
+          throw error;
+        }
+      }
+      const gate = await allowed(c, site.id, "admin");
+      if (!gate.ok) return gate.status;
+      if (gate.user.id !== userId) return 403;
+      if (proposal.assetIds.length && o.assets) {
+        const active = new Set((await o.assets.list(site.id, { fresh: true })).filter(asset => !asset.retired).map(asset => asset.id));
+        if (proposal.assetIds.some(id => !active.has(id))) return 409;
+      }
+      const saved = await o.store.save(site.id, doc, site.version, userId, {
+        source: "assistant-proposal", proposalId: proposal.id, attemptId: proposal.attemptId,
+      });
+      return saved.ok ? 200 : saved.conflict ? 409 : 404;
+    },
+  };
+  assistantRoutes(app, assistantDeps);
+  if (o.templateAuthoring) templateAuthoringRoutes(app, {
+    ...o.templateAuthoring,
+    origin: o.editorOrigin || `https://${o.editorHost}`,
+    editorHtml: o.editorHtml,
+    identity: who,
+    editorHost: c => isEditorHost(c.req.header('host'), o),
+  });
+  assistantOAuthRoutes(app, {
+    assistants: o.assistants, oauth: o.assistantOAuth, editorOrigin: o.editorOrigin, who, requestSource,
+    isEditorHost: (c) => isEditorHost(c.req.header("host"), o),
+    ownedSites: async (user) => (await visibleSites(user)).filter((x) => x.role === "owner").map((x) => ({ id: x.site.id, name: x.site.name })),
+    page: shell,
+  });
   cloudIntegrationRoutes(app, { store: o.store, integrations: o.cloudIntegrations, assets: o.assets, allowed, editorOrigin: o.editorOrigin });
 
   /* ---- the owner's Analytics page (Phase 6). Owners only, like Integrations and Settings. */
@@ -2199,10 +2735,11 @@ export function createApp(o: Options) {
   const analyticsFor = async (siteId: string, range: RangeKey, doc: Doc) => {
     const recorder = o.analytics!;
     await recorder.flush();
-    const span = rangeDays(range, new Date());
+    const tz = (await recorder.store.settings(siteId)).timeZone || "UTC";
+    const span = rangeDays(range, new Date(), tz);
     const [current, previous] = await Promise.all([
-      recorder.store.read(siteId, span.from, span.to),
-      recorder.store.read(siteId, span.previous.from, span.previous.to),
+      recorder.store.read(siteId, span.from, span.to, tz),
+      recorder.store.read(siteId, span.previous.from, span.previous.to, tz),
     ]);
     const names = new Map(siteForms(doc).map((form) => [form.id, form.name]));
     return { current, report: analyticsReport(range, current, previous, (id) => names.get(id) || id), names };
@@ -2218,10 +2755,12 @@ export function createApp(o: Options) {
       published: site.version === site.publishedVersion, version: site.version, publishedVersion: site.publishedVersion,
       publishedAt: publishedRevision?.createdAt, customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     };
-    if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null }));
-    const enabled = (await o.analytics.store.settings(site.id)).enabled;
+    if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null, timeZone: "UTC", timeZones: [] }));
+    const settings = await o.analytics.store.settings(site.id);
     const { report } = await analyticsFor(site.id, analyticsRange(c), site.doc);
-    return c.html(siteAnalyticsPage(gate.user, overview, { available: true, enabled, report }, {
+    return c.html(siteAnalyticsPage(gate.user, overview, {
+      available: true, enabled: settings.enabled, report, timeZone: settings.timeZone || "UTC", timeZones: timeZones(),
+    }, {
       error: c.req.query("error"), message: c.req.query("message"),
     }));
   });
@@ -2248,10 +2787,26 @@ export function createApp(o: Options) {
       const found = await analyticsGate(c);
       if (!found.ok) return found.response;
       if (!o.analytics) return deny(c, 404);
-      await o.analytics.store.setEnabled(found.site.id, enabled, found.gate.user.id);
+      // The first time it is turned on, days follow the owner's own time zone, sent by their browser.
+      const form = await c.req.parseBody().catch(() => ({} as Record<string, unknown>));
+      const current = await o.analytics.store.settings(found.site.id);
+      const zone = enabled && !current.timeZone ? validTimeZone(form.timeZone) : null;
+      await o.analytics.store.setEnabled(found.site.id, enabled, found.gate.user.id, zone);
       return c.redirect(`/sites/${encodeURIComponent(found.site.id)}/analytics?message=${encodeURIComponent(message)}`, 303);
     });
   }
+
+  app.post("/sites/:id/analytics/timezone", async (c) => {
+    const found = await analyticsGate(c);
+    if (!found.ok) return found.response;
+    if (!o.analytics) return deny(c, 404);
+    const base = `/sites/${encodeURIComponent(found.site.id)}/analytics`;
+    const form = await c.req.parseBody().catch(() => ({} as Record<string, unknown>));
+    const zone = validTimeZone(form.timeZone);
+    if (!zone) return c.redirect(`${base}?error=analytics_timezone`, 303);
+    await o.analytics.store.setTimeZone(found.site.id, zone, found.gate.user.id);
+    return c.redirect(`${base}?message=${encodeURIComponent(`Days now follow ${zone}.`)}`, 303);
+  });
 
   app.post("/sites/:id/analytics/delete", async (c) => {
     const found = await analyticsGate(c);
@@ -2346,6 +2901,7 @@ export function createApp(o: Options) {
         303,
       );
     }
+    await o.publications?.releaseSlug(moved.slug, id);
     await o.publications?.relocate(id, moved.slug, moved.host);
     built.delete(id);
     return c.redirect(
@@ -2373,18 +2929,46 @@ export function createApp(o: Options) {
       );
     }
     const memberIds = (await o.auth.members(id)).map((member) => member.userId);
-    // Fail closed: do not report deletion or remove management access while public
-    // routing is still active. A retry is safe if the database delete then fails.
+    /* The database delete goes first and the files follow only once it has succeeded, so a
+       failed delete leaves the site, its inbox and its public address exactly as they were.
+       After it nobody can manage these files, so a cleanup failure is logged, not reported as
+       a failed delete. The publication tombstone goes first so public routing ends first. */
     const remove = async () => {
-      await o.submissions?.removeSite(id);
-      await sitePreviews.remove(id);
-      await o.cloudIntegrations?.connections.put(id, null);
-      await o.publications?.removeSite(id);
-      return o.store.delete(id);
+      if (!await o.store.delete(id)) return false;
+      const cleanup: [string, () => Promise<unknown>][] = [
+        ["publication", async () => o.publications?.removeSite(id)],
+        ["submissions", async () => o.submissions?.removeSite(id)],
+        ["preview", () => sitePreviews.remove(id)],
+        ["integration", async () => o.cloudIntegrations?.connections.put(id, null)],
+        ["analytics", async () => {
+          // Flush first, so nothing buffered in this process is written back afterwards.
+          await o.analytics?.flush();
+          await o.analytics?.store.remove(id);
+        }],
+        ["assistant", async () => o.assistants?.removeSite(id)],
+        ["schedule", async () => o.schedules?.removeSite(id)],
+        ["review", () => reviews.removeSite(id)],
+        ["live review", () => liveReviews.removeSite(id)],
+      ];
+      for (const [kind, run] of cleanup) {
+        await run().catch((error) =>
+          console.error(
+            `deleted site ${id}: ${kind} files could not be removed:`,
+            error,
+          )
+        );
+      }
+      return true;
     };
-    const deleted = o.cloudIntegrations
-      ? await o.cloudIntegrations.connections.exclusive(id, remove)
-      : await remove();
+    let deleted: boolean;
+    try {
+      deleted = o.cloudIntegrations
+        ? await o.cloudIntegrations.connections.exclusive(id, remove)
+        : await remove();
+    } catch (error) {
+      if ((error as { code?: string } | null)?.code !== "SITE_HAS_RELEASES") throw error;
+      return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_has_releases`, 303);
+    }
     if (!deleted) return deny(c, 404);
     /* Postgres removes memberships through the site's cascading foreign key. The in-memory
        development stores are separate objects, so mirror that cleanup after the site is gone. */
@@ -2403,7 +2987,8 @@ export function createApp(o: Options) {
   app.get("/edit/:id", async (c) => {
     const id = c.req.param("id");
     const [access, snapshot] = await Promise.allSettled([
-      allowedMember(c, id), o.store.byId(id),
+      timed("editor.access", () => allowedMember(c, id)),
+      timed("editor.document", () => o.store.byId(id)),
     ]);
     if (access.status === 'rejected') throw access.reason;
     const gate = access.value;
@@ -2422,24 +3007,26 @@ export function createApp(o: Options) {
     if (gate.role === "reviewer") {
       return c.redirect(`/sites/${encodeURIComponent(id)}/reviews`);
     }
-    if (!o.editorHtml) {
+    if (!hostedEditor) {
       return c.text("No editor build. Run `node build.mjs` first.", 503);
     }
 
     // These reads have no dependencies on one another. Keep authorization fresh,
     // then overlap storage accounting and the WordPress link catalogue.
     const [storage, wordpressContent, schedules] = await Promise.all([
-      (async () => {
+      timed("editor.storage", async () => {
         const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
-        return o.assets && mediaOwnerId
-          ? o.assets.usage(mediaOwnerId, FREE_STORAGE_BYTES)
-          : { usedBytes: 0, limitBytes: FREE_STORAGE_BYTES };
-      })(),
-      wordpressContentForSite(site.id),
+        const [usage, limitBytes] = await Promise.all([
+          o.assets && mediaOwnerId ? o.assets.usage(mediaOwnerId) : { usedBytes: 0 },
+          mediaOwnerId ? storageLimitForOwner(mediaOwnerId, gate.user) : FREE_STORAGE_BYTES,
+        ]);
+        return { usedBytes: usage.usedBytes, limitBytes };
+      }),
+      timed("editor.wordpress", () => wordpressContentForSite(site.id)),
       // Local files beside the publication bytes; injected so opening Publish needs no request.
-      o.schedules && gate.role === "owner"
+      timed("editor.schedules", () => o.schedules && gate.role === "owner"
         ? o.schedules.forSite(site.id).then(rows => rows.slice(0, 5)).catch(() => [])
-        : Promise.resolve([]),
+        : Promise.resolve([])),
     ]);
     const config = {
       siteId: site.id,
@@ -2464,7 +3051,8 @@ export function createApp(o: Options) {
       doc: site.doc,
       wordpressContent,
     };
-    return c.html(inject(o.editorHtml, config));
+    // Fixed phase names expose route work alongside gateway spans without document metadata.
+    return c.html(await timed("editor.shell", async () => inject(hostedEditor.html, config)));
   });
 
   /* The list is per person: a site nobody granted you is a site you do not know exists. */
@@ -2503,16 +3091,21 @@ export function createApp(o: Options) {
     const user = await who(c);
     if (!user) return deny(c, 401);
     if (!o.assets) {
-      return c.json({ usedBytes: 0, limitBytes: FREE_STORAGE_BYTES });
+      return c.json({ usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes });
     }
-    return c.json(await o.assets.usage(user.id, FREE_STORAGE_BYTES));
+    return c.json(await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes));
   });
 
   app.get("/api/sites/:id", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "read");
+    const [access, snapshot] = await Promise.allSettled([
+      allowed(c, id, "read"), o.store.byId(id),
+    ]);
+    if (access.status === "rejected") throw access.reason;
+    const gate = access.value;
     if (!gate.ok) return deny(c, gate.status);
-    const site = await o.store.byId(id);
+    if (snapshot.status === "rejected") throw snapshot.reason;
+    const site = snapshot.value;
     if (!site) return deny(c, 404);
     return c.json({
       id: site.id,
@@ -2726,8 +3319,13 @@ export function createApp(o: Options) {
     c.header("Content-Security-Policy", "sandbox allow-scripts; connect-src 'none'; form-action 'none'; frame-ancestors 'self'");
     if (record.mediaType.startsWith("text/html")) {
       const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes));
-      return c.body(hostedHtml(html, path,
-        new Map(publication.files.map(file => [file.path, ""])), prefix));
+      // The opaque preview reports readiness and requests known-page navigation through its parent.
+      // Existing snapshot CSP permits scripts; no nonce exception or sandbox relaxation is needed.
+      return c.body(withPreviewReadiness(hostedHtml(html, path,
+        new Map(publication.files.map(file => [file.path, ""])), prefix), c.req.query("pcPreviewReady"), {
+          prefix,
+          pages: publication.files.filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
+        }));
     }
     return c.body(new Uint8Array(bytes).buffer);
   });
@@ -2759,7 +3357,7 @@ export function createApp(o: Options) {
     if (error instanceof AssetQuotaError) {
       return c.json({
         error: "storage_limit_reached", ...error.usage,
-        detail: "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
+        detail: "The storage owner’s media allowance is full. Remove unused images and try again.",
       }, 409);
     }
     throw error;
@@ -2827,7 +3425,7 @@ export function createApp(o: Options) {
     try {
       const version = await publishLibraryVersion({ libraries: gate.libraries, assets: o.assets! }, {
         library: gate.library, siteId, doc: stored.doc, items: items.map(({ kind, id }) => ({ kind, id })),
-        userId: gate.user.id, schemaVersion: CORE_SCHEMA, limitBytes: FREE_STORAGE_BYTES,
+        userId: gate.user.id, schemaVersion: CORE_SCHEMA, limitBytes: await storageLimitForOwner(gate.library.ownerId, gate.user),
       });
       return c.json({ version }, 201);
     } catch (error) {
@@ -2854,7 +3452,7 @@ export function createApp(o: Options) {
     if (!ownerId) return c.json({ error: "this site has no storage owner" }, 409);
     try {
       const assets = await copyLibraryAssetsToSite({ libraries: gate.libraries, assets: o.assets! }, {
-        libraryId: gate.library.id, ids: wanted, siteId: id, ownerId, limitBytes: FREE_STORAGE_BYTES,
+        libraryId: gate.library.id, ids: wanted, siteId: id, ownerId, limitBytes: await storageLimitForOwner(ownerId, site.user),
       });
       return c.json({ assets });
     } catch (error) {
@@ -2863,17 +3461,20 @@ export function createApp(o: Options) {
   });
 
   /* ---- Sharing (slice 2). Read-only: the people an owner shares with can list, read and import,
-     and nothing they do reaches the library. Like a site invitation, an address with no account
-     yet gets a pending user row and the share takes effect when they sign in with it. */
+     and nothing they do reaches the library. An address with no account yet gets a pending
+     user row; access starts only after that person signs in and accepts the invitation. */
   const libraryMembers = async (libraryId: string) => {
-    const rows = await o.libraries!.members(libraryId);
+    const [rows, pending] = await Promise.all([
+      o.libraries!.members(libraryId), invitations.listForResource("library", libraryId),
+    ]);
     const users = await Promise.all(rows.map((m) => o.auth.userById(m.userId)));
-    return rows.flatMap((m, i) => {
+    return [...rows.flatMap((m, i) => {
       const user = users[i];
-      return user
-        ? [{ userId: m.userId, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId, createdAt: m.createdAt }]
-        : [];
-    });
+      return user ? [{ userId: m.userId, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId, createdAt: m.createdAt }] : [];
+    }), ...pending.filter(m => !rows.some(row => row.userId === m.recipientId)).map(m => ({
+      userId: m.recipientId, email: m.recipientEmail, name: m.recipientName,
+      pending: false, awaitingAcceptance: true, createdAt: m.createdAt,
+    }))];
   };
 
   app.get("/api/libraries/:id/members", async (c) => {
@@ -2915,22 +3516,26 @@ export function createApp(o: Options) {
         if (!user) throw error;
       }
     }
-    const added = await gate.libraries.addMember({ libraryId: gate.library.id, userId: user.id, invitedBy: gate.user.id });
+    const invited = await invitations.invite({ kind: "library", resourceId: gate.library.id, recipientId: user.id, invitedBy: gate.user.id });
+    if (invited.status === "forbidden") return deny(c, 404);
+    if (invited.status === "limit") return c.json({ error: "too_many_members", detail: `A library can be shared with up to ${LIBRARY_MEMBERS_MAX} people.` }, 409);
+    const added = invited.status === "pending";
     if (added) {
       const owner = displayName(gate.user);
-      /* Not awaited: the share is already made, and the owner should not wait on mail. The
+      /* Not awaited: the invitation is already saved, and the owner should not wait on mail. The
          notice is queued before sending, and a failed send is logged, as for review notices. */
       notifyReview(c, {
         userId: user.id, email: user.email, kind: "library_shared",
-        title: `${owner} shared a library with you`,
-        body: `“${gate.library.name}” is now in your Libraries. Open a site you own, choose Add, then Libraries, to import from it. You can import and take its updates; only ${owner} publishes new versions.`,
-        href: "/",
+        title: `${owner} invited you to a library`,
+        body: `Accept the invitation to “${gate.library.name}” before it appears in your Libraries. You can then import and take its updates; only ${owner} publishes new versions.`,
+        href: "/invitations",
       }).catch((error) => console.error("library share notice failed:", (error as Error).message));
     }
     // The new member alone; the editor adds it to the list it already shows.
     const member = {
       userId: user.id, email: user.email, name: user.name, pending: !!o.accountAuth && !user.authUserId,
-      createdAt: new Date().toISOString(),
+      awaitingAcceptance: added,
+      createdAt: invited.status === "pending" ? invited.invitation.createdAt : new Date().toISOString(),
     };
     return c.json({ added, member }, added ? 201 : 200);
   });
@@ -2945,7 +3550,8 @@ export function createApp(o: Options) {
       return c.json({ error: "only_owner", detail: "Only the library’s owner can do that." }, 403);
     }
     if (target === gate.library.ownerId) return c.json({ error: "owner", detail: "The owner cannot leave their own library." }, 400);
-    if (!await gate.libraries.removeMember(gate.library.id, target)) {
+    const cancelled = await invitations.removeForRecipient("library", gate.library.id, target);
+    if (!await gate.libraries.removeMember(gate.library.id, target) && !cancelled) {
       return c.json({ error: "not_member", detail: "They no longer have access." }, 404);
     }
     return c.json({ removed: true });
@@ -3064,7 +3670,7 @@ export function createApp(o: Options) {
     let preparedAssets: AssetRecord[] | undefined;
     let publishIdentity: VerifiedIdentity | undefined;
     if (o.hostedPublish && o.accountAuth) {
-      const identity = await timed("auth.verify", () => o.accountAuth!.identity(c));
+      const identity = await verifiedIdentity(c);
       if (!identity) return deny(c, 401);
       publishIdentity = identity;
       // Publishing must recheck the authoritative version and membership, even when the
@@ -3110,7 +3716,10 @@ export function createApp(o: Options) {
           return c.json({
             error: "publication_pointer_unavailable",
             retryable: true,
-            detail: String((error as Error).message),
+            detail: shownError(
+              error,
+              "The public address could not be updated. Publish again in a moment.",
+            ),
           }, 503);
         }
         return c.json({
@@ -3158,27 +3767,19 @@ export function createApp(o: Options) {
     }
 
     const metadata = preparedAssets || await assetsOf(id);
+    /* A hosted site always has an address, so it gets the canonical tags and the sitemap the
+       core writes only for a Site URL. The owner's own Site URL still wins; the stored document
+       is not changed, only what this publication renders. */
+    const addressed: Doc = document.meta.baseUrl
+      ? document
+      : { ...document, meta: { ...document.meta, baseUrl: publicAddress(c, site) } };
     let rendered: ReturnType<typeof render>;
     try {
-      rendered = render(document, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '');
-      if (releaseStylesheetLinks(rendered.files).length) {
-        rendered.files = await freezeGoogleFontStylesheets(
-          rendered.files,
-          o.fontFetch || fetch,
-        );
-      }
+      rendered = render(addressed, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '', { foundation: true });
     } catch (error) {
       return c.json({
         error: "publication_compile_failed",
         detail: String((error as Error).message),
-      }, 422);
-    }
-    const remainingStylesheets = releaseStylesheetLinks(rendered.files);
-    if (remainingStylesheets.length) {
-      return c.json({
-        error: "publication_validation_failed",
-        errorCodes: ["unfrozen-stylesheet"],
-        stylesheets: remainingStylesheets,
       }, 422);
     }
     const errors = rendered.findings.filter((finding) =>
@@ -3194,7 +3795,35 @@ export function createApp(o: Options) {
           code: finding.code,
           message: finding.msg,
           where: finding.where,
+          nodeId: finding.nodeId,
+          target: finding.target,
         })),
+      }, 422);
+    }
+    try {
+      if (releaseStylesheetLinks(rendered.files).length) {
+        rendered.files = await freezeGoogleFontStylesheets(
+          rendered.files,
+          o.fontFetch || fetch,
+        );
+      }
+    } catch (error) {
+      const dependencyFailure = fontDependencyFailure(error);
+      if (dependencyFailure) {
+        c.header("retry-after", "5");
+        return c.json(dependencyFailure, 503);
+      }
+      return c.json({
+        error: "publication_compile_failed",
+        detail: String((error as Error).message),
+      }, 422);
+    }
+    const remainingStylesheets = releaseStylesheetLinks(rendered.files);
+    if (remainingStylesheets.length) {
+      return c.json({
+        error: "publication_validation_failed",
+        errorCodes: ["unfrozen-stylesheet"],
+        stylesheets: remainingStylesheets,
       }, 422);
     }
     if (!prepareSnapshot && warnings.length && body?.acknowledgeWarnings !== true) {
@@ -3204,6 +3833,8 @@ export function createApp(o: Options) {
           code: finding.code,
           message: finding.msg,
           where: finding.where,
+          nodeId: finding.nodeId,
+          target: finding.target,
         })),
       }, 409);
     }
@@ -3213,12 +3844,16 @@ export function createApp(o: Options) {
       releaseAssetIds(document, rendered.files, metadata),
       preparedAssets,
     );
+    /* Fonts and the shared foundation become files every page links, instead of ~315 KB that
+       each page used to carry inline. */
+    const hostedStyles = shareHostedStyles(rendered.files, rendered.foundation);
     const files = [
-      ...[...rendered.files].map(([path, content]) => ({
+      ...[...hostedStyles.files].map(([path, content]) => ({
         path,
         mediaType: typeOf(path),
         bytes: new TextEncoder().encode(content),
       })),
+      ...hostedStyles.extra,
       ...assets.map((asset) => ({
         path: assetFile(asset),
         mediaType: asset.type,
@@ -3232,13 +3867,16 @@ export function createApp(o: Options) {
         host: site.host,
         sourceVersion,
         source: { document: revision.doc, baselinePublicationId: site.publishedPublicationId || null,
-          warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })) },
+          warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where, nodeId: finding.nodeId, target: finding.target })) },
         files,
       });
     } catch (error) {
       return c.json({
         error: "publication_write_failed",
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The published files could not be written. Publish again in a moment.",
+        ),
       }, 503);
     }
     if (prepareSnapshot) {
@@ -3258,7 +3896,7 @@ export function createApp(o: Options) {
         draftPages: publication.files.filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
         publishedPages: (baseline?.files || []).filter(file => file.mediaType.startsWith("text/html")).map(file => file.path),
         pages: [...new Set([...publication.files, ...(baseline?.files || [])].filter(file => file.mediaType.startsWith("text/html")).map(file => file.path))],
-        warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where })),
+        warnings: warnings.map(finding => ({ code: finding.code, message: finding.msg, where: finding.where, nodeId: finding.nodeId, target: finding.target })),
       }, 201);
     }
     }
@@ -3322,7 +3960,10 @@ export function createApp(o: Options) {
         error: "publication_pointer_unavailable",
         retryable: true,
         publicationId: effective.id,
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The public address could not be updated. Publish again in a moment.",
+        ),
       }, 503);
     }
     return c.json({
@@ -3379,10 +4020,15 @@ export function createApp(o: Options) {
         return c.json({ error: "site_templates_unavailable" }, 503);
       }
       await progress(0, "Preparing the template…");
+      /* Template images are copied into the new site's media library, like uploads, so the
+         site owns them and its pages load them from wherever the site is served. Linking to the
+         editor host's package (as Cloud did) made a site created on staging and published from
+         production load its images from staging. Only a server with no asset store links, and
+         then origin-relatively. */
       templateInstall = await o.siteTemplates.instantiate(
         templateId,
         templateVersion || undefined,
-        o.accountAuth ? (o.editorOrigin || new URL(c.req.url).origin) : undefined,
+        !o.assets && !!o.accountAuth,
       ).catch(() => null);
       if (!templateInstall) {
         return c.json({ error: "site_template_not_found" }, 422);
@@ -3460,7 +4106,7 @@ export function createApp(o: Options) {
         if (created.reason === "site_limit_reached") {
           return htmlForm
             ? c.redirect("/?error=limit", 303)
-            : c.json({ error: "site_limit_reached", limit: 3 }, 409);
+            : c.json({ error: "site_limit_reached", limit: planEntitlements(user.plan).ownedSites }, 409);
         }
         return htmlForm ? c.redirect("/?error=account", 303) : c.json({
           error: "profile_missing",
@@ -3476,6 +4122,8 @@ export function createApp(o: Options) {
         savedBy: user.id,
       });
       if (!o.accountAuth) await o.auth.grant(site.id, user.id, "owner");
+      // A slug another site left now belongs to this one; stop redirecting it away.
+      await o.publications?.releaseSlug(site.slug, site.id).catch(() => undefined);
       /* A curated package's assets are independent immutable blobs. Installing them one at a
          time multiplied gateway latency by the image count (the five-image studio template
          could leave the create dialog spinning for nearly a minute). Let every upload settle
@@ -3485,10 +4133,45 @@ export function createApp(o: Options) {
       // so image-heavy templates do not exhaust the gateway and time out midway.
       const assetResults: PromiseSettledResult<AssetRecord>[] = [];
       const templateAssets = templateInstall?.assets || [];
+      const templateAssetQuota = templateAssets.length
+        ? {
+          ownerId: user.id,
+          limitBytes: await storageLimitForOwner(user.id, user),
+        }
+        : null;
       await progress(2, templateAssets.length ? `Copying images: 0 of ${templateAssets.length}` : "Preparing the builder…");
       for (let start = 0; start < templateAssets.length; start += 3) {
-        const batch = await Promise.allSettled(templateAssets.slice(start, start + 3)
-          .map(asset => o.assets!.put({ ...asset, siteId: site.id })));
+        const prepared = await Promise.allSettled(templateAssets.slice(start, start + 3)
+          .map(async asset => {
+            const sourceType = sniff(asset.bytes);
+            if (!sourceType || !ALLOWED.has(sourceType)) {
+              throw new Error(`template asset ${asset.id} is not a supported image`);
+            }
+            const output = await optimizeAsset(asset.bytes, sourceType);
+            return {
+              asset: {
+                ...asset,
+                siteId: site.id,
+                name: optimizedName(asset.name, output.extension),
+                type: output.type,
+                bytes: output.bytes,
+                w: output.w,
+                h: output.h,
+                contentHash: sha256(asset.bytes),
+              },
+              quota: {
+                ownerId: templateAssetQuota!.ownerId,
+                limitBytes: templateAssetQuota!.limitBytes,
+                originalBytes: asset.bytes.byteLength,
+                optimized: true,
+              },
+            };
+          }));
+        const batch = await Promise.allSettled(prepared.map(result =>
+          result.status === "fulfilled"
+            ? o.assets!.put(result.value.asset, result.value.quota)
+            : Promise.reject(result.reason)
+        ));
         assetResults.push(...batch);
         const copied = assetResults.filter(result => result.status === "fulfilled").length;
         await progress(2 + copied / templateAssets.length, `Copying images: ${copied} of ${templateAssets.length}`);
@@ -3504,6 +4187,12 @@ export function createApp(o: Options) {
         }
         await o.store.delete(site.id).catch(() => false);
         console.error("site template asset installation failed", failedAsset.reason);
+        if (failedAsset.reason instanceof AssetQuotaError) {
+          return c.json({
+            error: "storage_limit_reached",
+            usage: failedAsset.reason.usage,
+          }, 409);
+        }
         return c.json({
           error: "site_template_install_failed",
           detail: "The curated site could not be installed. Nothing was kept.",
@@ -3571,7 +4260,7 @@ export function createApp(o: Options) {
     /* Preserve authentication-first behavior. Besides avoiding needless parsing work, this
        keeps unauthenticated requests from learning which payloads the save endpoint accepts. */
     if (accountFastPath) {
-      const identity = await o.accountAuth!.identity(c);
+      const identity = await verifiedIdentity(c);
       if (!identity) return deny(c, 401);
       fastIdentity = identity;
     } else {
@@ -3660,6 +4349,9 @@ export function createApp(o: Options) {
     const cmsErrors = cmsDocumentErrors(stored, body.doc, ids);
     if (cmsErrors.length) return c.json({ error: 'invalid CMS content', detail: cmsErrors.join(' ') }, 422);
     const contentCheck = contentOnly(stored, body.doc, ids);
+    if (c.req.header("x-pagecraft-editor-session") && formRoutingChanged(stored, body.doc)) {
+      return c.json({ error: "form_routing_requires_owner", detail: "Change form destinations in the site's owner editor." }, 403);
+    }
     if (gate?.ok && gate.role === "content" && !contentCheck.ok) {
       return c.json({
         error: "content only",
@@ -3866,6 +4558,7 @@ export function createApp(o: Options) {
         409,
       );
     }
+    await o.publications?.releaseSlug(moved.slug, id);
     await o.publications?.relocate(id, moved.slug, moved.host);
     return c.json({
       id: moved.id,
@@ -3976,6 +4669,16 @@ export function createApp(o: Options) {
     if (!validEmail(email)) {
       return c.json({ error: "a valid email address is required" }, 400);
     }
+    // The same limits as the People form: this grants access just as that does.
+    const allowedInvitation = inviteSourceLimit.take(requestSource(c)) &&
+      inviteAccountLimit.take(gate.user.id) &&
+      inviteSiteLimit.take(id) &&
+      inviteEmailLimit.take(email) &&
+      inviteCooldown.take(`${id}|${email}`);
+    if (!allowedInvitation) {
+      c.header("retry-after", "60");
+      return c.json({ error: "too many invitations — wait a minute and try again" }, 429);
+    }
 
     /* An owner changing their own role is how a site ends up with nobody who can manage it. */
     const existing = await o.auth.userByEmail(email);
@@ -3986,7 +4689,16 @@ export function createApp(o: Options) {
       }, 409);
     }
 
-    const user = existing || await o.auth.createUser(email);
+    const user = existing || await invitationRecipient(email);
+    if (role === "owner") {
+      const invited = await inviteOwnership(c, id, gate.user, user);
+      if (invited.status === "forbidden") return deny(c, 404);
+      return c.json({ userId: user.id, email: user.email, name: user.name, role,
+        awaitingAcceptance: invited.status === "pending",
+        ...(invited.status === "pending" ? { invitationId: invited.invitation.id } : {}),
+      }, 201);
+    }
+    await invitations.removeForRecipient("site_owner", id, user.id);
     const current = await o.auth.membership(id, user.id);
     if (current) {
       const changed = await o.auth.changeMemberRole(id, user.id, role);
@@ -4023,6 +4735,7 @@ export function createApp(o: Options) {
     if (!gate.ok) return deny(c, gate.status);
 
     const target = c.req.param("userId");
+    const pendingRemoved = await invitations.removeForRecipient("site_owner", id, target);
     const removed = await o.auth.removeMember(id, target);
     if (removed.status === "last_owner") {
       return c.json({
@@ -4030,7 +4743,7 @@ export function createApp(o: Options) {
           "the last owner cannot be removed — a site with no owner cannot be managed",
       }, 409);
     }
-    if (removed.status === "missing") {
+    if (removed.status === "missing" && !pendingRemoved) {
       return c.json({ error: "they had no access to remove" }, 404);
     }
     /* Their sessions stay valid and are harmless: access is checked per request against the
@@ -4111,7 +4824,7 @@ export function createApp(o: Options) {
         contentHash: sha256(bytes),
       }, {
         ownerId,
-        limitBytes: FREE_STORAGE_BYTES,
+        limitBytes: await storageLimitForOwner(ownerId, gate.user),
         originalBytes: file.size,
         optimized: true,
       });
@@ -4121,7 +4834,7 @@ export function createApp(o: Options) {
           error: "storage_limit_reached",
           ...error.usage,
           detail:
-            "Your free account has used its 100 MB media allowance. Remove unused images and try again.",
+            "The storage owner’s media allowance is full. Remove unused images and try again.",
         }, 409);
       }
       throw error;
@@ -4257,15 +4970,37 @@ export function createApp(o: Options) {
 
   app.all("/mcp", async (c) => {
     if (!isEditorHost(c.req.header("host"), o)) return c.notFound();
+    /* An assistant token (Phase 7) gets its own site-scoped tools. Every other credential keeps
+       exactly the read-only tools it had: none of them gains a proposal. */
+    const bearer = (c.req.header("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+    if (isAssistantToken(bearer)) {
+      const verified = o.assistants ? await o.assistants.authenticate(bearer) : null;
+      const context = verified ? await assistantMcpContext(assistantDeps, c, verified) : null;
+      if (!context) {
+        return c.json({
+          error: "invalid_token",
+          error_description: "This assistant token is not valid. Create a new one on the site's Assistants page.",
+        }, 401, { "www-authenticate": `Bearer realm="Pagecraft", error="invalid_token", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"` });
+      }
+      if (Number(c.req.header("content-length") || 0) > 1_000_000) return c.json({ error: "request_too_large" }, 413);
+      return assistantMcpResponse(c.req.raw, context);
+    }
     const digest = manualImportAccessDigest(c.req.header("authorization"));
     const read = await manualImportCatalogReadDigest(digest);
     if (!read.authorized) {
+      /* No token at all is an MCP client (claude.ai, Claude Desktop) about to sign in, which
+         follows `resource_metadata` and asks for the scope named here, so that is the assistant
+         scope the metadata lists. A rejected integration token keeps exactly the realm and
+         scope it always had. */
+      const scope = digest
+        ? "projects:read packages:read"
+        : ASSISTANT_SCOPES.join(" ");
       return c.json({
         error: "invalid_token",
         error_description: "Connect Pagecraft and supply a valid integration token.",
       }, 401, {
         "www-authenticate":
-          'Bearer realm="Pagecraft", scope="projects:read packages:read"',
+          `Bearer realm="Pagecraft", scope="${scope}", resource_metadata="${resourceMetadataUrl(o.editorOrigin || new URL(c.req.url).origin)}"`,
       });
     }
     return pagecraftMcpResponse(c.req.raw, read);
@@ -4279,7 +5014,7 @@ export function createApp(o: Options) {
       "/v1/integrations/wordpress/",
       "/v1/wordpress-import/",
     );
-    return app.fetch(new Request(target, c.req.raw));
+    return app.fetch(new Request(target, c.req.raw), c.env);
   });
 
   app.get("/v1/wordpress-import/authorize", async (c) => {
@@ -4371,7 +5106,7 @@ export function createApp(o: Options) {
       </header>
       <div class="consent__body">
         <div class="consent__destination"><span>WordPress site</span><strong>${
-        escapeHtml(redirect.origin)
+        escapeHtml(wordpressSiteUrl(redirect.href))
       }</strong></div>
         <p class="consent__note">This gives the WordPress site read-only access to projects you own. Imports are manual and do not stay in sync. Pagecraft does not receive your WordPress password.</p>
         <form class="consent__actions" method="post" action="/v1/wordpress-import/authorize">
@@ -4457,6 +5192,7 @@ export function createApp(o: Options) {
         id: crypto.randomUUID(),
         ownerId: consent.userId,
         installationId: consent.installationId,
+        siteUrl: wordpressSiteUrl(consent.redirectUri),
         accessTokenDigest: hashToken(accessToken),
         accessExpiresAt: expiresAt,
         refreshTokenDigest: hashToken(refreshToken),
@@ -4471,26 +5207,22 @@ export function createApp(o: Options) {
       });
     }
     if (grantType === "refresh_token") {
-      const refreshToken = String(body?.refresh_token || "");
-      const credential = await o.auth.manualImportByRefresh(
-        hashToken(refreshToken),
+      const refreshDigest = hashToken(String(body?.refresh_token || ""));
+      const accessToken = newToken(), refreshToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
+      const exchanged = await o.auth.exchangeManualImportRefresh(
+        refreshDigest, hashToken(accessToken), expiresAt, hashToken(refreshToken),
       );
-      if (!credential) {
-        return c.json({ error: "invalid_grant", reconnect: true }, 401);
-      }
-      const accessToken = newToken(), expiresAt = Date.now() + 15 * 60 * 1000;
-      const rotated = await o.auth.rotateManualImportAccess(
-        credential.id,
-        hashToken(accessToken),
-        expiresAt,
-      );
-      if (!rotated) {
-        return c.json({ error: "invalid_grant", reconnect: true }, 401);
-      }
+      if (exchanged.status !== "rotated") return c.json({ error: "invalid_grant", reconnect: true }, 401);
+      const rotated = exchanged.credential;
       return c.json({
         token_type: "Bearer",
         access_token: accessToken,
         expires_in: 15 * 60,
+        /* A gateway that does not rotate yet keeps the old refresh token; the plugin keeps its
+           stored one when this is absent. */
+        ...(rotated.refreshTokenDigest === hashToken(refreshToken)
+          ? { refresh_token: refreshToken }
+          : {}),
       });
     }
     return c.json({ error: "unsupported_grant_type" }, 400);
@@ -4552,11 +5284,10 @@ export function createApp(o: Options) {
     const site = read.site;
     if (!site) return c.notFound();
     try {
-      const packages = wordpressPortablePackages(site.doc);
-      const assetIds = new Set(packages.portableAssetIds(site.doc));
+      const assetIds = new Set(portableAssetIds(site.doc));
       return portableDownload(
         c,
-        packages.createSitePackage({
+        createSitePackage({
           document: site.doc,
           assets: await assetBodiesOf(site.id, assetIds),
           provenance: {
@@ -4569,7 +5300,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -4610,11 +5343,10 @@ export function createApp(o: Options) {
       if (!site) return c.notFound();
       try {
         const pageId = c.req.param("pageId");
-        const packages = wordpressPortablePackages(site.doc);
-        const assetIds = new Set(packages.portableAssetIds(site.doc, pageId));
+        const assetIds = new Set(portableAssetIds(site.doc, pageId));
         return portableDownload(
           c,
-          packages.createPagePackage({
+          createPagePackage({
             document: site.doc,
             pageId,
             assets: await assetBodiesOf(site.id, assetIds),
@@ -4628,7 +5360,9 @@ export function createApp(o: Options) {
           }),
         );
       } catch (error) {
-        return c.json({ error: (error as Error).message }, 422);
+        return c.json({
+          error: shownError(error, "the package could not be built"),
+        }, 422);
       }
     },
   );
@@ -4882,7 +5616,21 @@ export function createApp(o: Options) {
         activeHash: null,
       });
     } catch (error) {
-      return c.json({ error: String((error as Error).message) }, 409);
+      /* The memory store words these for people; Postgres names the unique index instead. */
+      const message = String((error as Error).message);
+      const taken = !/unique|duplicate/i.test(message)
+        ? ""
+        : /one_environment/.test(message)
+        ? `site already has a ${request.environment} connection`
+        : /installation_idx/.test(message)
+        ? "WordPress installation is already paired"
+        : /target_idx/.test(message)
+        ? "WordPress target is already paired"
+        : "";
+      return c.json({
+        error: taken ||
+          shownError(error, "the WordPress connection could not be created"),
+      }, 409);
     }
     const redirect = new URL(request.redirectUri);
     redirect.searchParams.set("code", code);
@@ -5331,7 +6079,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -5360,7 +6110,9 @@ export function createApp(o: Options) {
         }),
       );
     } catch (error) {
-      return c.json({ error: (error as Error).message }, 422);
+      return c.json({
+        error: shownError(error, "the package could not be built"),
+      }, 422);
     }
   });
 
@@ -5466,7 +6218,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "the current publication is still being finalized",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Try this publish again in a few seconds."),
         }, 503);
       }
     }
@@ -5675,10 +6427,10 @@ export function createApp(o: Options) {
             "Retry this same publish after the in-progress release finishes or its lease expires.",
         }, 409);
       }
-      return c.json(
-        { error: "release sequence could not be reserved", detail },
-        409,
-      );
+      return c.json({
+        error: "release sequence could not be reserved",
+        detail: shownError(error, "Try this publish again in a moment."),
+      }, 409);
     }
     const releaseId = reservation.releaseId;
     const createdAt = reservation.createdAt;
@@ -5749,7 +6501,9 @@ export function createApp(o: Options) {
     try {
       made = await o.connected!.createRelease(proposed);
     } catch (error) {
-      return c.json({ error: String((error as Error).message) }, 409);
+      return c.json({
+        error: shownError(error, "the release could not be recorded"),
+      }, 409);
     }
     if (
       !made.created && (made.release.sourceVersion !== sourceVersion ||
@@ -5783,7 +6537,10 @@ export function createApp(o: Options) {
       return c.json({
         error: "source revision could not be published",
         retryable: true,
-        detail: String((error as Error).message),
+        detail: shownError(
+          error,
+          "The release was built but not published. Publish again to finish.",
+        ),
       }, 503);
     }
     if (!published) {
@@ -5815,7 +6572,7 @@ export function createApp(o: Options) {
          a reported failure that invites the owner to publish different content. */
       reconciliation = {
         status: "pending",
-        detail: String((error as Error).message),
+        detail: shownError(error, "WordPress delivery will be retried."),
       };
       console.error(
         "WordPress release delivery is pending:",
@@ -5875,7 +6632,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "production promotion is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Promotion is retried on the next poll."),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -5917,7 +6674,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "production promotion is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Promotion is retried on the next poll."),
         }, 503);
       }
     }
@@ -5948,7 +6705,7 @@ export function createApp(o: Options) {
           return c.json({
             error: "hosted publication finalization is pending",
             retryable: true,
-            detail: String((error as Error).message),
+            detail: shownError(error, "Finalization is retried on the next poll."),
           }, 503);
         }
       }
@@ -5976,7 +6733,7 @@ export function createApp(o: Options) {
         return c.json({
           error: "staging delivery is pending",
           retryable: true,
-          detail: String((error as Error).message),
+          detail: shownError(error, "Delivery is retried on the next poll."),
         }, 503);
       }
       connection = await o.connected!.connection(connection.id) || connection;
@@ -5992,7 +6749,7 @@ export function createApp(o: Options) {
       return c.json({
         error: "release target is not ready",
         retryable: true,
-        detail: String((error as Error).message),
+        detail: shownError(error, "Delivery is retried on the next poll."),
       }, 503);
     }
     const etag =
@@ -6358,7 +7115,7 @@ export function createApp(o: Options) {
          The production pending pointer / desired target is a durable reconciliation job. */
       reconciliation = {
         status: "pending",
-        detail: String((error as Error).message),
+        detail: shownError(error, "The follow-up will be retried."),
       };
       console.error(
         "WordPress deployment follow-up is pending:",
@@ -6499,7 +7256,7 @@ export function createApp(o: Options) {
         },
         {
           ownerId: connection.createdBy,
-          limitBytes: FREE_STORAGE_BYTES,
+          limitBytes: await storageLimitForOwner(connection.createdBy),
           originalBytes: bytes.byteLength,
           optimized: true,
         },
@@ -6773,6 +7530,9 @@ export function createApp(o: Options) {
       } catch (error) {
         return c.json({ error: String((error as Error).message) }, 422);
       }
+      if (formRoutingChanged(site.doc, document)) {
+        return c.json({ error: "form_routing_requires_owner", detail: "This change affects where or how a form submits. Review it in the site's owner editor." }, 403);
+      }
       const saved = await o.store.saveConnectedCms(
         id,
         document,
@@ -6850,6 +7610,12 @@ export function createApp(o: Options) {
         const publication = slug
           ? await o.publications.currentBySlug(slug)
           : null;
+        /* A renamed site keeps its old links: the slug it left points on to where it is now,
+           until another site takes that slug. */
+        const moved = !publication && slug ? await o.publications.movedSlug(slug) : null;
+        if (moved) {
+          return c.redirect(`/${moved}/${rest.join("/")}${url.search}`, 301);
+        }
         if (!publication) {
           return c.text(
             first
@@ -7163,8 +7929,11 @@ async function serveHostedPublication(
   let status: 200 | 404 = 200;
   let record = records.get(path);
   if (!record) {
+    /* The site's own 404 page is the page whose slug is `404`, exported as `404.html`. */
     record = records.get("404.html");
-    if (!record) return c.text(`Not found: /${path}`, 404);
+    if (!record) {
+      return c.html(missingPage(publicPath("index.html", prefix)), 404, publishedHeaders(TYPES.html));
+    }
     status = 404;
   }
   const bytes = await publications.file(publication, record.path);
@@ -7201,7 +7970,12 @@ async function serveHostedPublication(
     : {
       ...publicationAssetHeaders(record.mediaType, record.path),
       etag,
-      "cache-control": "public, max-age=31536000, immutable",
+      /* Everything under assets/ is named for its bytes (an image's id, a stylesheet's or a
+         font's hash), so a change is a new URL. sitemap.xml and robots.txt keep their names
+         across publishes and are revalidated like pages. */
+      "cache-control": record.path.startsWith("assets/")
+        ? "public, max-age=31536000, immutable"
+        : "public, max-age=0, must-revalidate",
     };
   if (
     c.req.header("if-none-match")?.split(",").map((value) => value.trim())
@@ -7233,7 +8007,44 @@ const publicationAssetHeaders = (
       }"`,
       "x-content-type-options": "nosniff",
     }
+    : mediaType.startsWith("font/")
+    /* Published pages run in an opaque-origin sandbox, so to the browser even the site's own
+       font is a cross-origin font load, and fonts load in CORS mode. */
+    ? {
+      "content-type": mediaType,
+      "x-content-type-options": "nosniff",
+      "access-control-allow-origin": "*",
+    }
     : { "content-type": mediaType, "x-content-type-options": "nosniff" };
+
+/** What a hosted site answers for a path it does not have, when it has no 404 page of its own:
+    still a page, in the site's sandbox, with a way back to its home. No external resources. */
+const missingPage = (home: string) => `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;
+font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1d211e;background:#f8f6ef}
+main{max-width:32rem;text-align:center}
+h1{margin:0 0 8px;font-size:clamp(28px,6vw,40px);line-height:1.15;letter-spacing:-.02em}
+p{margin:0 0 24px;color:#5f6660}
+a{display:inline-block;padding:10px 18px;border-radius:8px;background:#1d211e;color:#fff;text-decoration:none}
+a:focus-visible{outline:3px solid #1d211e;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Page not found</h1>
+<p>There is nothing at this address. It may have moved, or the link may be mistyped.</p>
+<a href="${escapeHtml(home)}">Go to the home page</a>
+</main>
+</body>
+</html>
+`;
 
 async function serveSite(
   c: Context,
@@ -7410,7 +8221,7 @@ async function serveSite(
         publishedHeaders(TYPES.html),
       );
     }
-    return c.text(`Not found: /${path}`, 404);
+    return c.html(missingPage(publicPath("index.html", prefix)), 404, publishedHeaders(TYPES.html));
   }
   const type = typeOf(path);
   let served = type.startsWith("text/html")

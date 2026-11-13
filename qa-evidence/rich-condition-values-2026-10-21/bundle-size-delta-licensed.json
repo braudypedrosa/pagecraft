@@ -1,0 +1,34 @@
+{
+  "index.html": {
+    "beforeBytes": 2205744,
+    "afterBytes": 2334044,
+    "deltaBytes": 128300,
+    "beforeGzipBytes": 664923,
+    "afterGzipBytes": 714669,
+    "gzipDeltaBytes": 49746
+  },
+  "dist/core.cjs": {
+    "beforeBytes": 648779,
+    "afterBytes": 713542,
+    "deltaBytes": 64763,
+    "beforeGzipBytes": 179338,
+    "afterGzipBytes": 204677,
+    "gzipDeltaBytes": 25339
+  },
+  "packages/editor/dist/editor.html": {
+    "beforeBytes": 2205720,
+    "afterBytes": 2334020,
+    "deltaBytes": 128300,
+    "beforeGzipBytes": 664938,
+    "afterGzipBytes": 714680,
+    "gzipDeltaBytes": 49742
+  },
+  "packages/editor/dist/compiler-worker.js": {
+    "beforeBytes": null,
+    "afterBytes": 411110,
+    "deltaBytes": null,
+    "beforeGzipBytes": null,
+    "afterGzipBytes": 132249,
+    "gzipDeltaBytes": null
+  }
+}

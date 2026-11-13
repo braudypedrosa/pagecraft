@@ -1,0 +1,55 @@
+{
+  "status": "ADDITIONAL_NATIVE_HOVER_AND_RELOAD_DOM_ACCEPTED",
+  "assertionsPassed": 9,
+  "checks": [
+    {
+      "check": "Actual hover and reload evidence use same candidate tab",
+      "passed": true
+    },
+    {
+      "check": "Both captures retain exact distinct source and target labels",
+      "passed": true
+    },
+    {
+      "check": "Target is natively hovered and focused",
+      "passed": true
+    },
+    {
+      "check": "Actual target Hover background is the copied green",
+      "passed": true
+    },
+    {
+      "check": "Actual target Hover radius is24px",
+      "passed": true
+    },
+    {
+      "check": "Source is not hovered or focused and keeps resting Ink18px",
+      "passed": true
+    },
+    {
+      "check": "Reloaded source DOM keeps resting Ink18px",
+      "passed": true
+    },
+    {
+      "check": "Reloaded target DOM keeps resting Ink18px",
+      "passed": true
+    },
+    {
+      "check": "Actual independently viewed hover screenshot is a JPEG",
+      "passed": true
+    }
+  ],
+  "inputs": {
+    "candidate-native-hover.json": "65e3e98404578290b17ebaa0777f1039395db71d5ee729429cb0a23cf136b816",
+    "candidate-reload-dom.json": "e55582c6073844d80649928a50529532ecb9f96c419c8d8197f64f9060324d1d",
+    "candidate-native-hover.jpg": "6f495a50a2436680aa9664bc5ef62f2557e470eb7167e81d0980ce8c97b76c99"
+  },
+  "screenshotManuallyViewedByIndependentAuditor": true,
+  "limits": [
+    "Target was both Hover and Focus during capture; fixture has no Focus override. This does not test competing Hover/Focus precedence.",
+    "Reload evidence verifies the two rendered resting values only; no new whole-project persisted export was supplied.",
+    "Screenshot shows an image-loading warning. This bounded style audit does not accept image-loading health.",
+    "Prior20-assertion audit files are unchanged.",
+    "No mobile, WordPress or deployment acceptance is claimed."
+  ]
+}

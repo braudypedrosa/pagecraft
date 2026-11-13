@@ -1,0 +1,2 @@
+COMMAND   PID          USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+Python  86794 braudypedorsa    3u  IPv4 0xb228fea7c319fc9f      0t0  TCP 127.0.0.1:4946 (LISTEN)

@@ -1,0 +1,22 @@
+[
+  {
+    "step": "edit",
+    "value": "2s"
+  },
+  {
+    "step": "undo",
+    "value": "1200ms"
+  },
+  {
+    "step": "redo",
+    "value": "2s"
+  },
+  {
+    "step": "clear",
+    "value": ""
+  },
+  {
+    "step": "undo-clear",
+    "value": "2s"
+  }
+]

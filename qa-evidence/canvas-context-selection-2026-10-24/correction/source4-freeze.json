@@ -1,0 +1,6 @@
+{
+  "builder.html": "5df5d17daa0cdf4fff9f09c3de14873946e9979615d074d9f256a2a9b87c034b",
+  "tests/canvas-context-selection.test.mjs": "1025763d4af2ee5d51c4d66a85dcf1740c601ff6dd2fd817c750e79c117e74e6",
+  "tests/builder-cms-selection.test.mjs": "651294c3a413546908c2a3a28287e654a623b4ab7390786bfc1c194180291b98",
+  "public/internal-ui-baselines/manifest.json": "468f76c41af0eeb71d8dfed171462cd647bec4de43e2557835462b87dac8bd4e"
+}

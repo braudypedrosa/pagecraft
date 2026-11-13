@@ -1,0 +1,9 @@
+{
+  "url": "http://localhost:4988/edit/s1",
+  "indexSha256": "3924b63311e73df9b3bc5c4f4c200408bfec27a4f37e4ce6d95cee413aa14228",
+  "editorSha256": "36b5ff625af1b5535d4236821726eb0ba86fd33fd6eeefdbd4dd75ed2b889a40",
+  "builderAssetPath": "/brand/builder-assets/8177d43f9f75a582bfbfc576a455bc560c1378e88cfc05f1b4f7eb88229d8dda.js",
+  "servedSha256": "8177d43f9f75a582bfbfc576a455bc560c1378e88cfc05f1b4f7eb88229d8dda",
+  "matchesFinalBuiltIndex": true,
+  "sourceManifestSha256": "eaebaf8caac2b928b53f5f52486f5e8159849a8fbb2d8a20151c5abb055d3602"
+}

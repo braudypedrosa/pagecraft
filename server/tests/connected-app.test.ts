@@ -13,11 +13,12 @@ import { blankDoc } from '../src/render.ts';
 import {
   base64url, buildKeysetEnvelope, decodeReleaseManifest, parseReleaseArtifact, sha256
 } from '../src/releases.ts';
-import { assetFile, N } from '../../app/src/core/index.ts';
+import { assetFile, enableTabPanels, makeFor, N } from '../../app/src/core/index.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import type { PortablePackageManifestV1 } from '../../app/src/package/types.ts';
 import { validatePortablePackage } from '../src/portable-packages.ts';
 import { extractPortableZip } from '../src/portable-zip.ts';
+import { GatewayError } from '../src/store-gateway.ts';
 
 const privateKey = (value: string) => createPrivateKey({
   key: Buffer.from(value, 'base64url'), format: 'der', type: 'pkcs8'
@@ -106,7 +107,7 @@ test.each([
   'https://wordpress.test/wordpress-qa/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
   'https://wordpress.test/sites/wordpress-6.6/wp-admin/admin-post.php?action=pagecraft_cloud_callback',
 ])('manual WordPress import preserves PKCE and ownership for callback %s', async (callback) => {
-  const { site, first, second, admin, request } = await rig();
+  const { auth, site, owner, first, second, admin, request } = await rig();
   const discovery = await request(first, '/.well-known/pagecraft-integrations');
   a.equal(discovery.status, 200);
   a.deepEqual((await discovery.json() as { mcp:{ tools:string[] } }).mcp.tools, [
@@ -165,6 +166,11 @@ test.each([
   const tokens = await tokenResponse.json() as {
     access_token:string; refresh_token:string; credential_id:string;
   };
+  const expectedSiteUrl = new URL(callback);
+  expectedSiteUrl.pathname = expectedSiteUrl.pathname.replace(/wp-admin\/admin-post\.php$/, '');
+  expectedSiteUrl.search = '';
+  a.equal((await auth.manualImportsForOwner(owner.id))[0]?.siteUrl, expectedSiteUrl.href,
+    'the credential retains the validated WordPress root, including any subdirectory');
   const bearer = { authorization: `Bearer ${tokens.access_token}` };
   const connectionResponse = await request(first, '/v1/integrations/wordpress/connection', {
     headers: bearer
@@ -239,20 +245,53 @@ test.each([
   a.equal((readTool.structuredContent as { page:{id:string} }).page.id, pages.pages[0].id);
   await mcp.close();
 
-  const refreshed = await request(second, '/v1/integrations/wordpress/token', {
+  const refresh = (app: typeof first, refreshToken: string) => request(app, '/v1/integrations/wordpress/token', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken })
   });
+  const refreshed = await refresh(second, tokens.refresh_token);
   a.equal(refreshed.status, 200);
+  const rotated = await refreshed.json() as { access_token:string; refresh_token:string };
+  a.ok(rotated.refresh_token && rotated.refresh_token !== tokens.refresh_token, 'each refresh issues a new refresh token');
+  a.equal((await refresh(first, tokens.refresh_token)).status, 401, 'the replaced refresh token is spent');
+  a.equal((await request(second, '/v1/integrations/wordpress/connection', {
+    headers: { authorization: `Bearer ${rotated.access_token}` }
+  })).status, 401, 'reusing a spent refresh token revokes the replacement access token');
+  a.equal((await refresh(second, rotated.refresh_token)).status, 401,
+    'reusing a spent refresh token revokes the replacement refresh token');
+
+  /* A lost refresh response makes the retry look like reuse. Reconnecting the same installation
+     starts a clean token family and removes the old replay history. */
+  const reconnectConsent = await admin(first, `/v1/integrations/wordpress/authorize?${query}`);
+  const reconnectCsrf = (await reconnectConsent.text()).match(/name="csrf" value="([^"]+)"/)?.[1];
+  a.ok(reconnectCsrf);
+  const reconnectApproval = await admin(second, '/v1/integrations/wordpress/authorize', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ csrf: reconnectCsrf! })
+  });
+  const reconnectCode = new URL(reconnectApproval.headers.get('location')!).searchParams.get('code');
+  const reconnectResponse = await request(first, '/v1/integrations/wordpress/token', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'authorization_code', code: reconnectCode,
+      code_verifier: verifier, redirect_uri: callback
+    })
+  });
+  a.equal(reconnectResponse.status, 200, await reconnectResponse.clone().text());
+  const reconnected = await reconnectResponse.json() as {
+    access_token:string; refresh_token:string; credential_id:string;
+  };
+  a.equal((await request(second, '/v1/integrations/wordpress/connection', {
+    headers: { authorization: `Bearer ${reconnected.access_token}` }
+  })).status, 200, 'reconnect starts a usable replacement family');
   const revoked = await request(first, '/v1/integrations/wordpress/revoke', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ credential_id: tokens.credential_id, refresh_token: tokens.refresh_token })
+    body: JSON.stringify({
+      credential_id: reconnected.credential_id, refresh_token: reconnected.refresh_token
+    })
   });
   a.equal(revoked.status, 200);
-  const afterRevoke = await request(second, '/v1/integrations/wordpress/token', {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: tokens.refresh_token })
-  });
+  const afterRevoke = await refresh(second, reconnected.refresh_token);
   a.equal(afterRevoke.status, 401);
 });
 
@@ -343,12 +382,75 @@ test('manual WordPress downloads preserve schema 14 component targets and packag
     a.match((await response.json() as { error: string }).error, /rejects Pagecraft CMS bindings/);
   }
 
-  a.equal((await store.save(site.id, { ...draft, schemaVersion: 15 }, site.version + 2, owner.id)).ok, true);
+  const richTabs = structuredClone(draft);
+  const tabs = makeFor('tabs');
+  a.equal(enableTabPanels(tabs), true);
+  tabs.children[0].children = [N('heading', { text: 'Workshop details' })];
+  richTabs.pages[0].tree.push(tabs);
+  for (const [offset, schemaVersion] of [14, 16].entries()) {
+    richTabs.schemaVersion = schemaVersion;
+    a.equal((await store.save(site.id, richTabs, site.version + 2 + offset, owner.id)).ok, true);
+    for (const [, path] of paths) {
+      const response = await request(first, path, { headers });
+      if (schemaVersion === 14) {
+        a.equal(response.status, 422);
+        a.match((await response.json() as { error: string }).error, /Editable tab panels require document schema 15/);
+        continue;
+      }
+      a.equal(response.status, 200, await response.clone().text());
+      const files = extractPortableZip(new Uint8Array(await response.arrayBuffer()));
+      const manifest = JSON.parse(decoder.decode(files.get('manifest.json'))) as PortablePackageManifestV1;
+      const document = JSON.parse(decoder.decode(files.get('source/document.json'))) as Doc;
+      a.equal(manifest.schemaVersion, 15);
+      const exportedTabs = document.pages[0].tree.find(node => node.type === 'tabs');
+      a.ok(exportedTabs);
+      a.equal(exportedTabs.children[0].children[0].props.text, 'Workshop details');
+    }
+  }
+
+  a.equal((await store.save(site.id, { ...draft, schemaVersion: 17 }, site.version + 4, owner.id)).ok, true);
   for (const [, path] of paths) {
     const response = await request(first, path, { headers });
     a.equal(response.status, 422);
-    a.match((await response.json() as { error: string }).error, /uses Pagecraft schema 15/);
   }
+});
+
+test('a refused WordPress pairing shows a sentence, never the database text behind it', async () => {
+  const { connected, site, first, admin } = await rig();
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const approve = async (failure: Error) => {
+    connected.createConnection = async () => { throw failure; };
+    const query = new URLSearchParams({
+      siteId: site.id, installationId: 'wordpress-install-123', environment: 'staging',
+      profile: 'existing-theme', targetOrigin: 'https://staging.wp.test', targetPath: '/',
+      redirectUri: 'https://staging.wp.test/wp-admin/admin.php?page=pagecraft',
+      webhookUrl: 'https://staging.wp.test/wp-json/pagecraft/v1/releases/available',
+      codeChallenge: 'c'.repeat(43), codeChallengeMethod: 'S256', state: 'state-state-state-1',
+      scope: 'release:read deploy:ack cms:write editor:open content:index'
+    });
+    const csrf = (await (await admin(first, `/v1/oauth/authorize?${query}`)).text())
+      .match(/name="csrf" value="([^"]+)"/)?.[1];
+    const refused = await admin(first, '/v1/oauth/authorize', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ csrf: csrf!, siteId: site.id })
+    });
+    a.equal(refused.status, 409);
+    return await refused.json() as { error: string };
+  };
+  // A gateway that predates sanitizing still sends the whole Postgres message.
+  a.deepEqual(await approve(new GatewayError(
+    'duplicate key value violates unique constraint "wordpress_connections_target_idx" — '
+      + 'Key (target_origin, target_path)=(https://staging.wp.test, /) already exists.', '23505'
+  )), { error: 'WordPress target is already paired' });
+  a.deepEqual(await approve(new GatewayError(
+    'insert or update on table "wordpress_connections" violates foreign key constraint '
+      + '"wordpress_connections_created_by_fkey" — Key (created_by)=(user-1) is not present.', '23503'
+  )), { error: 'the WordPress connection could not be created' });
+  a.deepEqual(await approve(new Error('site already has a staging connection')),
+    { error: 'site already has a staging connection' }, 'messages written for people pass');
+  a.ok(logged.mock.calls.some(args => String(args[1]).includes('created_by_fkey')),
+    'the log keeps the database text');
+  logged.mockRestore();
 });
 
 test('OAuth consent and one-time editor SSO work across app workers and reject replay/demotion', async () => {
@@ -859,6 +961,51 @@ test('native WordPress content ordering is UTF-8 deterministic and response-loss
   });
   a.deepEqual((await connected.wordpressContentIndexesForSite(site.id))[0], beforeRetry,
     'an exact response-loss replay preserves the original immutable snapshot');
+});
+
+test('a scoped editor session may open and save its site but never administer it', async () => {
+  const { connected, site, owner, first, second, request, store, auth } = await rig();
+  await connected.createConnection(connection(site.id, owner.id, 'staging', 'editor-cap-token'));
+  const minted = await request(first, '/v1/connections/staging/editor-sessions', {
+    method: 'POST', headers: {
+      authorization: 'Bearer editor-cap-token', 'content-type': 'application/json'
+    }, body: JSON.stringify({ installationId: 'installation-staging' })
+  });
+  a.equal(minted.status, 201, await minted.clone().text());
+  const url = new URL((await minted.json() as { url: string }).url);
+  const redeemed = await request(second, url.pathname + url.search, {
+    headers: { referer: 'https://staging.wp.test/wp-admin/' }
+  });
+  const raw = (await redeemed.text()).match(/window\.PC_SERVER=([^<]+)<\/script>/)?.[1]
+    ?.replace(/;\s*$/, '');
+  const session = JSON.parse(raw!.replace(/\\u003c/g, '<')) as { editorSessionToken: string };
+  const scoped = { 'x-pagecraft-editor-session': session.editorSessionToken };
+
+  const loaded = await request(first, `/api/sites/${site.id}`, { headers: scoped });
+  a.equal(loaded.status, 200);
+  const current = await store.byId(site.id);
+  const saved = await request(first, `/api/sites/${site.id}`, {
+    method: 'PUT', headers: { ...scoped, 'content-type': 'application/json' },
+    body: JSON.stringify({ doc: current!.doc, version: current!.version })
+  });
+  a.equal(saved.status, 200, await saved.clone().text());
+
+  const deleted = await request(first, `/sites/${site.id}/settings/delete`, {
+    method: 'POST', headers: { ...scoped, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ confirmation: site.name })
+  });
+  a.equal(deleted.status, 403, 'the embedded editor cannot delete the site');
+  a.ok(await store.byId(site.id), 'and the site is still there');
+  a.equal((await request(first, `/api/sites/${site.id}/people`, { headers: scoped })).status, 403);
+  const invited = await request(first, `/api/sites/${site.id}/people`, {
+    method: 'POST', headers: { ...scoped, 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'intruder@site.test', role: 'owner' })
+  });
+  a.equal(invited.status, 403, 'nor add people');
+  a.equal(await auth.userByEmail('intruder@site.test'), null);
+  const left = await request(first, `/sites/${site.id}/people/leave`, { method: 'POST', headers: scoped });
+  a.equal(left.status, 403, 'nor give up its owner\'s access');
+  a.equal((await auth.membership(site.id, owner.id))?.role, 'owner');
 });
 
 test('Disconnect immediately invalidates an already redeemed scoped editor session', async () => {

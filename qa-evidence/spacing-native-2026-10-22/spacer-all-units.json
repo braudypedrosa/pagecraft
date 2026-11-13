@@ -1,0 +1,77 @@
+[
+  {
+    "authored": [
+      "px",
+      "96"
+    ],
+    "dom": {
+      "box": 96,
+      "height": "96px",
+      "parentHeight": "454.562px",
+      "viewport": [
+        414,
+        550
+      ]
+    }
+  },
+  {
+    "authored": [
+      "rem",
+      "6"
+    ],
+    "dom": {
+      "box": 96,
+      "height": "96px",
+      "parentHeight": "454.562px",
+      "viewport": [
+        414,
+        550
+      ]
+    }
+  },
+  {
+    "authored": [
+      "%",
+      "20"
+    ],
+    "dom": {
+      "box": 71.703125,
+      "height": "71.7031px",
+      "parentHeight": "358.562px",
+      "viewport": [
+        414,
+        550
+      ]
+    }
+  },
+  {
+    "authored": [
+      "vw",
+      "20"
+    ],
+    "dom": {
+      "box": 82.796875,
+      "height": "82.7969px",
+      "parentHeight": "441.359px",
+      "viewport": [
+        414,
+        550
+      ]
+    }
+  },
+  {
+    "authored": [
+      "vh",
+      "20"
+    ],
+    "dom": {
+      "box": 110,
+      "height": "110px",
+      "parentHeight": "468.562px",
+      "viewport": [
+        414,
+        550
+      ]
+    }
+  }
+]

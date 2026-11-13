@@ -1,0 +1,22 @@
+{
+  "fullscreen": {
+    "closeButtons": 1,
+    "layout": "fullscreen",
+    "open": true,
+    "rect": {
+      "bottom": 668,
+      "height": 668,
+      "left": 0,
+      "right": 414,
+      "top": 0,
+      "width": 414,
+      "x": 0,
+      "y": 0
+    },
+    "viewport": {
+      "h": 668,
+      "w": 414
+    }
+  },
+  "closed": true
+}

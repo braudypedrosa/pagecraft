@@ -1,0 +1,102 @@
+{
+  "title": "Table native coverage audit",
+  "date": "2026-10-21",
+  "scope": "T01-T07 only; 14 direct Table controls plus Advanced/Visibility/condition behavior.",
+  "coverage_policy": "Rows are marked evidenced only from candidate82 native records. This is bounded representative coverage, not an exhaustive arbitrary-value, position, Motion, State, or runtime-control claim.",
+  "source_context": {
+    "environment": "candidate82 native QA evidence",
+    "module": "table",
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "dom_root": "div.pagecraft-table-wrap > table.pagecraft-table",
+    "visual_evidence": "final-table-mobile.png"
+  },
+  "cases": [
+    {
+      "id": "T01",
+      "purpose": "caption and first-row heading semantics",
+      "controls": ["Rows", "Caption", "First row is a heading"],
+      "exact_proof": ["t01-headings-reload.json", "t01-no-headings-reload-mobile.json"],
+      "dom_assertions": ["caption Workshop schedule; heading-on output has thead > tr > th[scope=col] and tbody rows; heading-off mobile output has 9 cells and zero headings."],
+      "reload_devices": "Heading/caption proof repeats at 1280, 834, and 414px; no-heading edge proof is Mobile-only.",
+      "status": "evidenced_with_limits",
+      "limits": ["No-heading branch has only Mobile proof in this record."]
+    },
+    {
+      "id": "T02",
+      "purpose": "first-column semantics and edge rows",
+      "controls": ["First column is a heading", "Rows"],
+      "exact_proof": ["t02-both-headings-reload.json", "t02-row-only-reload-mobile.json", "t02-edge-rows-reload-mobile.json"],
+      "dom_assertions": ["Both headings produce col and row scoped TH cells at all devices; row-only Mobile proof produces row TH; one-row, blank-cell, uneven-row, and empty Rows cases are recorded."],
+      "reload_devices": "Both-heading proof covers all three devices; row-only and edge-row proof is Mobile-only.",
+      "status": "evidenced_with_limits",
+      "limits": ["Empty Rows omits the public table while the editor retains a selectable placeholder; edge-row records are Mobile-only."]
+    },
+    {
+      "id": "T03",
+      "purpose": "line variants and zebra shading",
+      "controls": ["Lines", "Shade alternate rows", "Shading"],
+      "exact_proof": ["t03-line-options-mobile.json", "t03-line-options-reload-all-devices.json", "t03-between-rows-corrected-top-border-probe.json", "t04-t05-style-reload.json"],
+      "dom_assertions": ["Lines options are Between rows, Full grid, and None; zebra shading applies to alternate body rows in style proof."],
+      "computed_assertions": ["Corrected rows probe reads the between-row rule on tbody tr cell top border: 1px solid rgb(180,95,60) on the second row; earlier first-row/bottom probe is rejected."],
+      "reload_devices": "All three line variants reload at all three devices; corrected border probe covers all three devices.",
+      "status": "evidenced_with_limits",
+      "limits": ["The corrected between-row selector interpretation supersedes the misleading edge probe."]
+    },
+    {
+      "id": "T04",
+      "purpose": "direct table style values",
+      "controls": ["Text size", "Text colour", "Cell padding", "Line colour"],
+      "exact_proof": ["t04-t05-style-reload.json"],
+      "dom_assertions": ["Header and body cell text/spacing values remain associated with the Table DOM and caption survives."],
+      "computed_assertions": ["Authored proof: Desktop/Tablet 18px, 12px padding, text rgb(36,52,71); Mobile 14px, 8px 10px padding; header/background/line values are recorded in the combined style proof."],
+      "reload_devices": "Computed style proof covers all three devices.",
+      "status": "evidenced_with_limits",
+      "limits": ["The new-table Mobile defaults 14px and 8px 10px are authored DEF defaults/source context, while this record proves the authored/reloaded values; do not call the defaults a separate native test."]
+    },
+    {
+      "id": "T05",
+      "purpose": "conditional heading, zebra, and caption styles",
+      "controls": ["Header background", "Heading colour", "Shading", "Caption colour"],
+      "exact_proof": ["t04-t05-style-reload.json", "t05-conditional-controls-off-reload-mobile.json"],
+      "dom_assertions": ["When enabled, header background/text, alternate-row shading, and caption color are visible in computed records; when heading/zebra/caption prerequisites are off, all four conditional controls are absent and public output has no heading/caption/shade."],
+      "computed_assertions": ["Header bg rgb(229,239,216), heading color rgb(32,80,128), zebra rgb(245,213,148), caption rgb(116,53,34)."],
+      "reload_devices": "Enabled style proof covers all devices; conditional-controls-off proof is Mobile-only.",
+      "status": "evidenced_with_limits",
+      "limits": ["Conditional controls off matrix is Mobile-only."]
+    },
+    {
+      "id": "T06",
+      "purpose": "responsive overrides and reset",
+      "controls": ["Text size", "Text colour", "Cell padding"],
+      "exact_proof": ["t06-responsive-reload.json", "t06-reset-reload.json"],
+      "dom_assertions": ["No overflow at any responsive width."],
+      "computed_assertions": ["Override: D 18px/12px/rgb(36,52,71), T 16px/10px/rgb(48,72,96), M 13px/6px/rgb(24,56,72). Reset: all devices inherit D 18px/12px/rgb(36,52,71)."],
+      "reload_devices": "Override and reset records cover 1280, 834, and 414px.",
+      "status": "evidenced"
+    },
+    {
+      "id": "T07",
+      "purpose": "Advanced identity, visibility, and condition",
+      "controls": ["HTML id", "CSS classes", "Custom CSS", "Hide on Desktop", "Hide on Tablet", "Hide on Mobile", "Show only if", "Condition", "Value"],
+      "exact_proof": ["t07-identity-reload.json", "t07-visibility-matrix.json", "t07-condition-reload.json"],
+      "dom_assertions": ["table-proof wrapper id/classes/outline survive all devices; breakpoint hide uses display:none with table retained; condition non-match omits wrapper/table/caption while match keeps all three."],
+      "computed_assertions": ["Identity record targets DIV.pagecraft-table-wrap; visibility matrix covers each selected device; Always show restoration was reloaded before final condition proof."],
+      "reload_devices": "Identity, visibility, and match/non-match condition records cover all three devices.",
+      "status": "evidenced_with_limits",
+      "limits": ["Position, max width, overflow, and shared Motion/State controls were not covered; condition-control accessible labels remain a separate native verification item."]
+    }
+  ],
+  "summary": {
+    "planned_direct_controls": 14,
+    "direct_controls_with_native_evidence": 14,
+    "cases": 7,
+    "device_widths": [1280, 834, 414],
+    "pending": ["position/max-width/overflow", "shared Motion/State", "candidate82 condition-label accessibility verification"]
+  },
+  "scope_gaps": [
+    "No exhaustive arbitrary rows, values, fonts, positions, max widths, overflow settings, or shared Motion/State controls.",
+    "T02 edge rows and T05 conditional-controls-off proof are Mobile-only, as recorded.",
+    "T03 initial edge probe was corrected to tbody tr cell top border; the rejected probe is not used as evidence.",
+    "Visibility retains DOM while hidden; condition non-match omits the rendered wrapper/table/caption branch."
+  ]
+}

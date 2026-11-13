@@ -1,0 +1,106 @@
+{
+  "title": "Icon native coverage audit",
+  "date": "2026-10-21",
+  "scope": "I01-I07 only; 10 direct Icon controls plus the planned Advanced/State/Visibility behavior.",
+  "coverage_policy": "Rows are marked evidenced only from the named candidate81 native records. This is bounded representative coverage and does not claim exhaustive common Motion/State controls or arbitrary values.",
+  "source_context": {
+    "environment": "candidate81 native QA evidence",
+    "module": "icon",
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "dom_root": "svg.pagecraft-icon-glyph or a.pagecraft-icon",
+    "separate_issue": "site-check-preview-recovery-followup.json remains a separate recovery bug; it is not counted as Icon control coverage"
+  },
+  "cases": [
+    {
+      "id": "I01",
+      "purpose": "all exported icon choices",
+      "controls": ["Icon"],
+      "exact_proof": ["i01-all-icon-choices.json", "i01-i02-decorative-reload.json"],
+      "dom_assertions": ["All 35 exported choices match their expected SVG shape/path and viewBox; final play choice survives reload as svg.pagecraft-icon-glyph."],
+      "reload_devices": "Final choice proof is recorded at 1280, 834, and 414px.",
+      "status": "evidenced"
+    },
+    {
+      "id": "I02",
+      "purpose": "decorative, named, and linked accessibility states",
+      "controls": ["Accessible label", "Link"],
+      "exact_proof": ["i01-i02-decorative-reload.json", "i02-named-unlinked-reload.json", "i02-i03-linked-reload.json", "i02-linked-empty-label.json"],
+      "dom_assertions": [
+        "empty unlinked label yields SVG aria-hidden=true with no role/name",
+        "named unlinked label yields role=img aria-label=Workshop status",
+        "named linked label yields A aria-label with inner SVG aria-hidden=true",
+        "linked empty label has no label and remains a link"
+      ],
+      "reload_devices": "Decorative, named SVG, and named anchor proofs repeat at 1280, 834, and 414px.",
+      "status": "evidenced_with_limits",
+      "limits": ["The empty linked label is a single exact state record; candidate82 Site checks recovery is separate."]
+    },
+    {
+      "id": "I03",
+      "purpose": "link modes and alignment",
+      "controls": ["Link", "Alignment"],
+      "exact_proof": ["i03-link-modes.json", "i03-alignment.json", "i03-alignment-reload.json"],
+      "dom_assertions": ["Internal new-tab link has target=_blank rel=noopener; email has target=_blank; phone is a link without target; unsafe URL falls back to labelled SVG with no href."],
+      "computed_assertions": ["Left/ Centre/ Right map to flex-start/center/flex-end; final Right alignment survives reload."],
+      "reload_devices": "Alignment reload proof covers 1280, 834, and 414px; link-mode record is exact but not a three-device reload matrix.",
+      "status": "evidenced_with_limits",
+      "limits": ["Internal, email, and phone link modes were observed in a single Mobile run; do not generalize them to all three-device reload proof."]
+    },
+    {
+      "id": "I04",
+      "purpose": "direct style values",
+      "controls": ["Glyph size", "Colour", "Stroke weight", "Badge background", "Badge padding", "Badge radius"],
+      "exact_proof": ["i04-style-reload.json"],
+      "dom_assertions": ["Rendered SVG remains labelled Workshop status with no overflow."],
+      "computed_assertions": ["40px glyph, rgb(32,80,128) color, 2.5px stroke, rgb(229,239,216) background, 8px 12px 10px 14px padding, and 16px radius."],
+      "reload_devices": "Exact computed values repeat at 1280, 834, and 414px.",
+      "status": "evidenced"
+    },
+    {
+      "id": "I05",
+      "purpose": "responsive overrides and reset",
+      "controls": ["Glyph size", "Badge padding", "Badge radius"],
+      "exact_proof": ["i05-responsive-reload.json", "i05-responsive-reset-reload.json"],
+      "dom_assertions": ["No overflow; responsive values remain on the expected SVG/wrapper."],
+      "computed_assertions": ["Override: Desktop 40px/8px 12px 10px 14px/16px; Tablet 32px/6px/12px; Mobile 24px/4px/8px. Reset: all three inherit the Desktop values."],
+      "reload_devices": "Override and reset records cover 1280, 834, and 414px after reload.",
+      "status": "evidenced"
+    },
+    {
+      "id": "I06",
+      "purpose": "identity and representative state rules",
+      "controls": ["HTML id", "CSS classes", "Custom CSS", "Hover", "Focus", "Transition"],
+      "exact_proof": ["i06-identity-reload.json", "i06-hover-native.json", "i06-hover-settled.json", "i06-focus-and-state-rules.json"],
+      "dom_assertions": ["id icon-proof, classes qa-icon status-icon, and outline survive reload at all three devices."],
+      "computed_assertions": ["settled pointer hover color is rgb(180,95,60); keyboard focus background is rgb(245,213,148); transition is 0.25s; source rules target hover/focus-visible."],
+      "reload_devices": "Identity reload covers all three devices; settled hover/focus proof is Desktop-specific.",
+      "status": "evidenced_with_limits",
+      "limits": ["Representative state proof only; no exhaustive Motion/State/Hover/Focus option claim."]
+    },
+    {
+      "id": "I07",
+      "purpose": "visibility and conditional output",
+      "controls": ["Hide on Desktop", "Hide on Tablet", "Hide on Mobile", "Show only if", "Condition", "Value"],
+      "exact_proof": ["i07-visibility-matrix.json", "i07-condition-match-reload.json", "i07-condition-nonmatch-reload.json"],
+      "dom_assertions": ["Each selected breakpoint reports display:none while present=true; non-match removes the rendered Icon count; match reports one Icon."],
+      "reload_devices": "Visibility matrix and condition match/non-match records cover all three devices after reload.",
+      "status": "evidenced_with_limits",
+      "limits": ["Visibility retains DOM while hidden; condition controls’ accessible labels require separate candidate82 native verification."]
+    }
+  ],
+  "summary": {
+    "planned_direct_controls": 10,
+    "direct_controls_with_native_evidence": 10,
+    "cases": 7,
+    "all_icon_choices": 35,
+    "device_widths": [1280, 834, 414],
+    "native_visual": "final-icon-mobile.png",
+    "pending": ["candidate82 native verification of corrected condition-control labels", "separate Site checks Preview recovery fix verification"]
+  },
+  "scope_gaps": [
+    "No exhaustive arbitrary icon/style values or common Motion/State controls.",
+    "I03 internal/email/phone link modes are exact but observed in a single Mobile run rather than all-three-device reload proof.",
+    "I06 hover/focus computed proof is Desktop-specific; identity proof is all-device.",
+    "The Site checks recovery receipt is deliberately not counted as a successful Icon setting result."
+  ]
+}

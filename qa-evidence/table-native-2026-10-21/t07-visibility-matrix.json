@@ -1,0 +1,65 @@
+[
+  {
+    "hidden": "Desktop",
+    "device": "Desktop",
+    "caption": "Workshop schedule",
+    "display": "none",
+    "tables": 1
+  },
+  {
+    "hidden": "Desktop",
+    "device": "Tablet",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Desktop",
+    "device": "Mobile",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Desktop",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Tablet",
+    "caption": "Workshop schedule",
+    "display": "none",
+    "tables": 1
+  },
+  {
+    "hidden": "Tablet",
+    "device": "Mobile",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Desktop",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Tablet",
+    "caption": "Workshop schedule",
+    "display": "block",
+    "tables": 1
+  },
+  {
+    "hidden": "Mobile",
+    "device": "Mobile",
+    "caption": "Workshop schedule",
+    "display": "none",
+    "tables": 1
+  }
+]

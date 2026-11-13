@@ -1,0 +1,11 @@
+{
+  "headingIds": [
+    "qa-ui-heading",
+    "nlkxk41lk"
+  ],
+  "firstDraft": "banana",
+  "cloneField": {
+    "invalid": null,
+    "value": "calc(0.2s + 100ms)"
+  }
+}

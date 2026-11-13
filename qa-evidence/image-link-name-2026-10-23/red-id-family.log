@@ -1,0 +1,33 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/image-link-name-3b75640
+
+ ❯ tests/image-link-accessibility.test.tsx (7 tests | 1 failed) 98ms
+     × caption fallback IDs avoid authored anchors across nested component copies 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/image-link-accessibility.test.tsx > linked decorative Image accessibility > caption fallback IDs avoid authored anchors across nested component copies
+AssertionError: expected 22 to be 23 // Object.is equality
+
+- Expected
++ Received
+
+- 23
++ 22
+
+ ❯ tests/image-link-accessibility.test.tsx:127:31
+    125|     let doc = parse([fixture.placement, fixture.duplicate, authored]);
+    126|     let ids = [...doc.querySelectorAll('[id]')].map(element => element…
+    127|     expect(new Set(ids).size).toBe(ids.length);
+       |                               ^
+    128|     expect(doc.getElementById(authored.adv.htmlId)?.textContent).toCon…
+    129|     for (const link of doc.querySelectorAll<HTMLAnchorElement>('.pagec…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:54:58
+   Duration  1.57s (transform 444ms, setup 0ms, import 527ms, tests 98ms, environment 764ms)
+

@@ -1,0 +1,112 @@
+{
+  "title": "Partial Collection List native coverage",
+  "date": "2026-10-22",
+  "status": "partial",
+  "scope": "L01-L08 planning matrix; exact native evidence currently covers bounded L01-L03 and a manually authored card-basis setup only.",
+  "coverage_policy": "A row is evidenced only by the named native DOM/computed/reload record. Unrecorded controls remain unverified; this is representative coverage, not an exhaustive setting or runtime claim.",
+  "source_context": {
+    "source_checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/padding-list-controls-8996966",
+    "list_definition": "app/src/core/index.ts:539-593",
+    "fixture": "tools/fixtures/ui-site.ts:23-37",
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "published_fixture_items": 18,
+    "fixture_limits": [
+      "All category values are Accessibility; mixed-category filter semantics are not represented.",
+      "The fixture has no numeric or date fields for numeric/date sorting and comparison cases.",
+      "Representative authored values do not exhaust arbitrary field values, collection sizes, or responsive settings."
+    ]
+  },
+  "cases": [
+    {
+      "id": "L01",
+      "purpose": "Create a Collection List, bind title content, and verify empty/no-source states after reload.",
+      "controls": ["Collection", "Bind the fields inside…"],
+      "evidence": [
+        "l01-initial-source-binding.json",
+        "l01-bound-source-reload.json",
+        "l01-empty-source-reload.json",
+        "l01-no-source-reload.json",
+        "setup-in-progress.json"
+      ],
+      "proof": [
+        "Bound source repeats the 18 published fixture titles at Desktop, Tablet, and Mobile after reload.",
+        "Empty source and no-source public states render zero lists/headings at all three devices.",
+        "The setup record documents the empty Bind-fields guidance and List template-column insertion flow."
+      ],
+      "status": "evidenced_with_limits"
+    },
+    {
+      "id": "L02",
+      "purpose": "Grid/Slider layout and responsive Wrap behavior after reload.",
+      "controls": ["Layout", "Wrap"],
+      "evidence": ["l02-grid-wrap-reload.json", "l02-slider-reload.json", "l02-nowrap-reload.json"],
+      "proof": [
+        "Grid Wrap is recorded at all three devices with 18 items and no page overflow.",
+        "Slider is recorded at all three devices with nowrap, overflow-x:auto, and no page overflow.",
+        "Grid No wrap is recorded at all three devices; Mobile has pageOverflow true with scrollWidth 395 versus width 374."
+      ],
+      "status": "evidenced_with_open_mobile_overflow_concern",
+      "limits": ["No-wrap behavior is intentionally preserved; the Mobile overflow is unresolved and is not counted as a pass."]
+    },
+    {
+      "id": "L03",
+      "purpose": "Sort by title and direction, including CMS order, across reload/device states.",
+      "controls": ["Sort by", "Direction"],
+      "evidence": ["l03-cms-order-reload.json", "l03-title-ascending-reload.json", "l03-title-descending-reload.json"],
+      "proof": [
+        "CMS order matches published fixture order at Desktop, Tablet, and Mobile.",
+        "Title A–Z and Z–A actual arrays match their expected arrays at all three devices.",
+        "The lexical order is the renderer's localeCompare order, so 11 precedes 2 in A–Z."
+      ],
+      "status": "evidenced_with_limits"
+    },
+    {
+      "id": "L04",
+      "purpose": "Filter/Test/Value behavior, including category and title contains cases.",
+      "controls": ["Filter", "Test", "Value"],
+      "evidence": [],
+      "status": "unverified",
+      "limits": ["No native filter evidence is persisted in this candidate; fixture category is homogeneous Accessibility and has no numeric/date fields."]
+    },
+    {
+      "id": "L05",
+      "purpose": "Items per page, Show at most, precedence, and reload.",
+      "controls": ["Items per page", "Show at most"],
+      "evidence": [],
+      "status": "unverified"
+    },
+    {
+      "id": "L06",
+      "purpose": "Responsive Gap, Vertical align, and Wrap overrides/resets.",
+      "controls": ["Gap", "Vertical align", "Wrap"],
+      "evidence": [],
+      "status": "unverified"
+    },
+    {
+      "id": "L07",
+      "purpose": "Repeated child content, nested links, and card sizing/content edge cases.",
+      "controls": ["Repeated card content", "Nested link behavior", "Column Min basis"],
+      "evidence": ["authored-card-basis-setup.json"],
+      "proof": ["An existing candidate83 List was manually authored through Column Min basis 280px; recorded card width was 282px at a 1200px list width."],
+      "status": "partial_setup_only",
+      "limits": ["This is not proof of the candidate84 factory default; no new factory-default native receipt is promoted here."]
+    },
+    {
+      "id": "L08",
+      "purpose": "Shared Advanced, Visibility, and condition behavior on a Collection List.",
+      "controls": ["Advanced", "Visibility", "Condition"],
+      "evidence": [],
+      "status": "unverified"
+    }
+  ],
+  "remaining_scope": [
+    "L04 filter operators and dependent Value visibility",
+    "L05 pagination and limit precedence",
+    "L06 responsive spacing/alignment overrides and reset",
+    "L07 repeated child/link edge cases and factory-default card basis acceptance",
+    "L08 Advanced/Visibility/condition controls",
+    "mixed-category and numeric/date fixture coverage",
+    "shared Motion/Hover/Focus and arbitrary-value coverage"
+  ],
+  "provenance": "Evidence files were read-only audited from this candidate's qa-evidence/list-native-2026-10-22 directory. Candidate84's new factory default basis fix is intentionally not represented as native acceptance here."
+}

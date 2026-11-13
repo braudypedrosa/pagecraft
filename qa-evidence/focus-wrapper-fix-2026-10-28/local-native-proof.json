@@ -1,0 +1,125 @@
+{
+  "cases": {
+    "form": {
+      "background": "rgb(211, 226, 234)",
+      "focusVisible": true,
+      "testDestination": "https://example.invalid/qa-focus-unused",
+      "submitted": false,
+      "scope": "local standalone import only, no request sent"
+    },
+    "code": {
+      "background": "rgb(229, 212, 220)",
+      "focusVisible": true
+    },
+    "tabs": {
+      "background": "rgb(216, 211, 233)",
+      "focusVisible": true,
+      "peerBackground": "rgba(0, 0, 0, 0)"
+    },
+    "accordion": {
+      "background": "rgb(233, 217, 203)",
+      "focusVisible": true,
+      "peerBackground": "rgba(0, 0, 0, 0)"
+    }
+  },
+  "responsiveControls": [
+    {
+      "device": "Desktop",
+      "form": {
+        "background": "rgb(211, 226, 234)",
+        "focusVisible": true,
+        "overflow": false,
+        "width": 1269
+      },
+      "code": {
+        "background": "rgb(229, 212, 220)",
+        "focusVisible": true,
+        "formAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "device": "Tablet",
+      "form": {
+        "background": "rgb(211, 226, 234)",
+        "focusVisible": true,
+        "overflow": false,
+        "width": 823
+      },
+      "code": {
+        "background": "rgb(229, 212, 220)",
+        "focusVisible": true,
+        "formAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "device": "Mobile",
+      "form": {
+        "background": "rgb(211, 226, 234)",
+        "focusVisible": true,
+        "overflow": false,
+        "width": 414
+      },
+      "code": {
+        "background": "rgb(229, 212, 220)",
+        "focusVisible": true,
+        "formAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    }
+  ],
+  "responsiveWidgets": [
+    {
+      "device": "Desktop",
+      "pointer": {
+        "background": "rgb(205, 224, 186)",
+        "focusVisible": false
+      },
+      "tabs": {
+        "background": "rgb(216, 211, 233)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)"
+      },
+      "accordion": {
+        "background": "rgb(233, 217, 203)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)",
+        "tabsAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "device": "Tablet",
+      "pointer": {
+        "background": "rgb(205, 224, 186)",
+        "focusVisible": false
+      },
+      "tabs": {
+        "background": "rgb(216, 211, 233)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)"
+      },
+      "accordion": {
+        "background": "rgb(233, 217, 203)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)",
+        "tabsAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "device": "Mobile",
+      "pointer": {
+        "background": "rgb(205, 224, 186)",
+        "focusVisible": false
+      },
+      "tabs": {
+        "background": "rgb(216, 211, 233)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)"
+      },
+      "accordion": {
+        "background": "rgb(233, 217, 203)",
+        "focusVisible": true,
+        "peer": "rgba(0, 0, 0, 0)",
+        "tabsAfterBlur": "rgba(0, 0, 0, 0)"
+      }
+    }
+  ]
+}

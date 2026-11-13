@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-21",
+  "timezone": "Asia/Manila",
+  "status": "local candidate accepted in native review; ready for integration",
+  "baseCommit": "b01176d93be64ae6a357e3cf74b30870aae2fc4b",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/rich-link-state-b01176d",
+  "scope": {
+    "source": [
+      "app/src/core/index.ts"
+    ],
+    "tests": [
+      "tests/rich-text-link-state.test.ts"
+    ],
+    "summary": "Emit Rich Text link colour rules on the rendered anchor for base, Hover and keyboard Focus states across local and reusable-class responsive CSS. Preserve local-over-class priority and default unstyled anchor behavior."
+  },
+  "checks": {
+    "redProof": {
+      "result": "failed before the fix as expected",
+      "detail": "2 of 2 initial regressions failed because reusable-class Rich anchor state rules were absent.",
+      "log": "logs/focused-red.log"
+    },
+    "focused": {
+      "result": "pass",
+      "filesPassed": 6,
+      "testsPassed": 696,
+      "log": "logs/focused-final.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck.log"
+    },
+    "fullSuiteBounded": {
+      "command": "npm test -- --maxWorkers=2",
+      "result": "pass",
+      "filesPassed": 230,
+      "filesSkipped": 2,
+      "testsPassed": 2502,
+      "testsSkipped": 5,
+      "durationSeconds": 150.24,
+      "log": "logs/full-max-workers-2.log"
+    },
+    "deterministicBuild": {
+      "result": "pass",
+      "artifacts": 11,
+      "hashDiffBytes": 0,
+      "hashes": "generated-build-2.sha256",
+      "diff": "generated-determinism.diff",
+      "logs": [
+        "logs/build-1.log",
+        "logs/build-2.log"
+      ]
+    },
+    "demo": {
+      "result": "pass",
+      "components": 1,
+      "instances": 6,
+      "collectionItems": 4,
+      "findings": 0,
+      "log": "logs/demo.log"
+    },
+    "uiBaselineGate": {
+      "result": "pass unchanged",
+      "images": 24,
+      "sourceFiles": 28,
+      "log": "logs/ui-baseline-check.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "qaHarness": {
+      "result": "ready",
+      "url": "http://localhost:4960/",
+      "fixture": "fictional UI fixture with in-memory reset",
+      "httpStatus": 200,
+      "sessionId": 96259
+    }
+  },
+  "acceptanceCoveredByTests": [
+    "base, Hover and keyboard Focus Link colour at Desktop, Tablet and Mobile",
+    "public CSS and WordPress CSS parity",
+    "local node rules override reusable-class rules at equal specificity",
+    "clearing a local Focus value restores the reusable-class value",
+    "pointer Hover and keyboard Focus remain separate",
+    "rules are restricted to Rich Text wrappers and do not leak to other nodes",
+    "an unstyled Rich Text anchor retains existing user-agent or theme colour behavior"
+  ],
+  "nativeAcceptance": {
+    "result": "pass",
+    "owner": "root agent using the built-in browser",
+    "viewports": {
+      "desktop": 1280,
+      "tablet": 834,
+      "mobile": 414
+    },
+    "verified": [
+      "Actual anchor computed local base #112233, Hover #9b3f21 and keyboard Focus #245f2f over the reusable class at all three settled viewports.",
+      "Clearing local Focus restored distinct class values at Desktop #704090, Tablet #225577 and Mobile #667722.",
+      "Explicit Tablet #224488 and Mobile #886622 Focus values persisted through actual reload; resetting Tablet restored the class Tablet value while Mobile stayed explicit.",
+      "Clearing local base and Hover restored the class values; distinct Tablet base #556677 / Hover #775533 and Mobile base #778899 / Hover #337755 were consumed by the actual anchor.",
+      "Ink token Focus resolved on the actual anchor as rgb(17, 19, 17)."
+    ],
+    "evidence": [
+      "Main qdir/native/local-richtext-link-state-acceptance.json",
+      "Main qdir/native/local-richtext-link-state-mobile.jpg",
+      "Main qdir/native/local-richtext-link-state-final.jpg"
+    ],
+    "measurementNote": "Two fast chained Preview/viewport samples were rejected because they still reported the prior Mobile width. The accepted record uses explicitly settled viewport widths; no product defect was established from those discarded samples."
+  },
+  "generated": {
+    "deterministicSnapshot": "generated-build-2.sha256",
+    "changedFromBase": [
+      "index.html",
+      "dist/core.cjs",
+      "packages/editor/dist/editor.html",
+      "packages/editor/dist/compiler.js",
+      "packages/editor/dist/compiler-worker.js"
+    ],
+    "integrationNotes": [
+      "dist/demo/index.html was produced only by the demo check and must remain excluded from integration.",
+      "tools/.qa-ui-4960.mjs is a temporary port-only harness runner and must remain excluded from integration.",
+      "The two compiler JavaScript files are generated and untracked in this checkout; root should apply its established generated-artifact policy."
+    ]
+  },
+  "hashes": {
+    "app/src/core/index.ts": "85bc57c06c5d82d294c2487ba85bec1b3937d1424c041d29d01843546f06e573",
+    "tests/rich-text-link-state.test.ts": "fad50f5cfb745656dab073f723ea579a83e2f5a6c026272848c314558fa03d7d",
+    "index.html": "f31f73ce455c611d7a82bce2ceccbb413cf54bf8e7a80bb899b78b0e30177982",
+    "dist/core.cjs": "051cbd41f0509375df88f9339ba5db4a07fba42a3f504c5e01f58b264816d7d7",
+    "packages/editor/dist/editor.html": "1a207642674f81d339f9f4a9afa002c86ea819ce6c1aeaa89122b6d3e4e01e57",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "6479f91450ff5fa8a365579429b86c4790d260d851ed35cb0c9ecf2c8a18e344"
+  },
+  "delivery": "isolated local candidate only; no Main, browser, baseline, commit, push, deployment or database write",
+  "remaining": [
+    "Root-owned integration and release decisions."
+  ]
+}

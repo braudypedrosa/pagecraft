@@ -20,6 +20,8 @@
    Both, in that order, or a client could rewrite the layout of a site they were given a
    text-editing account for. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import type { AccountPlan } from './plans.ts';
+export type { AccountPlan } from './plans.ts';
 
 export const SITE_ROLES = ['owner', 'content', 'reviewer'] as const;
 export type Role = typeof SITE_ROLES[number];
@@ -31,8 +33,6 @@ export function roleLabel(role: Role) {
   if (role === 'reviewer') return 'Reviewer';
   return 'Content editor';
 }
-export type AccountPlan = 'free';
-
 export interface User {
   id: string;
   email: string;
@@ -57,6 +57,7 @@ export interface ManualImportCredential {
   id: string;
   ownerId: string;
   installationId: string;
+  siteUrl?: string | null;
   accessTokenDigest: string;
   accessExpiresAt: number;
   refreshTokenDigest: string;
@@ -65,11 +66,17 @@ export interface ManualImportCredential {
   updatedAt: number;
   revokedAt: number | null;
 }
+export type ManualImportRefreshResult =
+  | { status: 'rotated'; credential: ManualImportCredential }
+  | { status: 'reused' | 'invalid' };
 
 /** Fifteen minutes. Long enough to find the email, short enough that a leaked one is stale. */
 export const LINK_TTL_MS = 15 * 60 * 1000;
 /** Thirty days. A client who edits monthly should not be locked out for being slow. */
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+/** Ninety days. A WordPress refresh token unused for this long stops working. Every refresh
+    rotates it and moves `updatedAt`, so that column is when it was last used. */
+export const MANUAL_IMPORT_IDLE_MS = 90 * 24 * 60 * 60 * 1000;
 
 /** 32 bytes of urandom, base64url. Guessing is not a threat model at this width. */
 export const newToken = () => randomBytes(32).toString('base64url');
@@ -138,8 +145,16 @@ export interface AuthStore {
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>): Promise<ManualImportCredential>;
   manualImportByAccess(digest: string): Promise<ManualImportCredential | null>;
   manualImportByRefresh(digest: string): Promise<ManualImportCredential | null>;
-  rotateManualImportAccess(id: string, digest: string, expiresAt: number): Promise<ManualImportCredential | null>;
+  /** New access token; with `refresh`, also a new refresh token, only while `previous` is current. */
+  rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }): Promise<ManualImportCredential | null>;
+  /** Atomically spend one refresh token. Reuse revokes its whole credential family. */
+  exchangeManualImportRefresh(presentedDigest: string, nextAccessDigest: string,
+    nextAccessExpiresAt: number, nextRefreshDigest: string): Promise<ManualImportRefreshResult>;
   revokeManualImportCredential(id: string, refreshDigest: string): Promise<boolean>;
+  /** The owner's active WordPress credentials, newest first, so they can see and revoke them. */
+  manualImportsForOwner(ownerId: string): Promise<ManualImportCredential[]>;
+  revokeManualImportForOwner(id: string, ownerId: string): Promise<boolean>;
 }
 
 /** The auth half of the schema, beside the site half in `store-pg.ts`. */
@@ -198,6 +213,7 @@ create table if not exists wordpress_import_credentials (
   id text primary key,
   owner_id text not null references users (id) on delete cascade,
   installation_id text not null,
+  site_url text,
   access_token_digest text not null unique,
   access_expires_at timestamptz not null,
   refresh_token_digest text not null unique,
@@ -207,8 +223,18 @@ create table if not exists wordpress_import_credentials (
   revoked_at timestamptz,
   unique (owner_id, installation_id)
 );
+alter table wordpress_import_credentials add column if not exists site_url text;
 create index if not exists wordpress_import_credentials_owner_idx
   on wordpress_import_credentials (owner_id, status);
+create table if not exists wordpress_import_used_refresh_tokens (
+  digest text primary key,
+  credential_id text not null references wordpress_import_credentials (id) on delete cascade,
+  expires_at timestamptz not null
+);
+create index if not exists wordpress_import_used_refresh_credential_idx
+  on wordpress_import_used_refresh_tokens (credential_id);
+create index if not exists wordpress_import_used_refresh_expiry_idx
+  on wordpress_import_used_refresh_tokens (expires_at);
 `;
 
 /**
@@ -236,6 +262,7 @@ export class MemoryAuthStore implements AuthStore {
   private sessions = new Map<string, Session>();
   private memberships = new Map<string, Membership>();
   private manualImports = new Map<string, ManualImportCredential>();
+  private manualImportUsedRefreshes = new Map<string, { credentialId: string; expiresAt: number }>();
   private seq = 0;
 
   async userByEmail(email: string) {
@@ -413,11 +440,15 @@ export class MemoryAuthStore implements AuthStore {
     const now = Date.now();
     for (const item of this.manualImports.values()) {
       if (item.ownerId === input.ownerId && item.installationId === input.installationId) {
+        for (const [digest, used] of this.manualImportUsedRefreshes) {
+          if (used.credentialId === item.id) this.manualImportUsedRefreshes.delete(digest);
+        }
         item.status = 'revoked'; item.revokedAt = item.updatedAt = now;
       }
     }
     const credential: ManualImportCredential = {
-      ...input, status: 'active', createdAt: now, updatedAt: now, revokedAt: null
+      ...input, siteUrl: input.siteUrl ?? null,
+      status: 'active', createdAt: now, updatedAt: now, revokedAt: null
     };
     this.manualImports.set(input.id, credential);
     return { ...credential };
@@ -429,21 +460,65 @@ export class MemoryAuthStore implements AuthStore {
   }
   async manualImportByRefresh(digest: string) {
     const item = [...this.manualImports.values()].find(candidate =>
-      candidate.status === 'active' && candidate.refreshTokenDigest === digest);
+      candidate.status === 'active' && candidate.refreshTokenDigest === digest &&
+      candidate.updatedAt > Date.now() - MANUAL_IMPORT_IDLE_MS);
     return item ? { ...item } : null;
   }
-  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }) {
     const item = this.manualImports.get(id);
     if (!item || item.status !== 'active') return null;
+    if (refresh && item.refreshTokenDigest !== refresh.previous) return null;
     item.accessTokenDigest = digest;
     item.accessExpiresAt = expiresAt;
+    if (refresh) item.refreshTokenDigest = refresh.digest;
     item.updatedAt = Date.now();
     return { ...item };
+  }
+  async exchangeManualImportRefresh(presentedDigest: string, nextAccessDigest: string,
+    nextAccessExpiresAt: number, nextRefreshDigest: string): Promise<ManualImportRefreshResult> {
+    const now = Date.now();
+    for (const [digest, used] of this.manualImportUsedRefreshes) {
+      if (used.expiresAt <= now) this.manualImportUsedRefreshes.delete(digest);
+    }
+    const current = [...this.manualImports.values()].find(item =>
+      item.status === 'active' && item.refreshTokenDigest === presentedDigest);
+    if (current) {
+      if (current.updatedAt <= now - MANUAL_IMPORT_IDLE_MS) return { status: 'invalid' };
+      this.manualImportUsedRefreshes.set(presentedDigest, {
+        credentialId: current.id,
+        expiresAt: now + MANUAL_IMPORT_IDLE_MS,
+      });
+      current.accessTokenDigest = nextAccessDigest;
+      current.accessExpiresAt = nextAccessExpiresAt;
+      current.refreshTokenDigest = nextRefreshDigest;
+      current.updatedAt = now;
+      return { status: 'rotated', credential: { ...current } };
+    }
+    const used = this.manualImportUsedRefreshes.get(presentedDigest);
+    const reused = used ? this.manualImports.get(used.credentialId) : null;
+    if (!reused || reused.status !== 'active') return { status: 'invalid' };
+    reused.status = 'revoked';
+    reused.revokedAt = reused.updatedAt = now;
+    return { status: 'reused' };
   }
   async revokeManualImportCredential(id: string, refreshDigest: string) {
     const item = this.manualImports.get(id);
     if (!item || item.refreshTokenDigest !== refreshDigest) return false;
     if (item.status === 'revoked') return true;
+    item.status = 'revoked';
+    item.revokedAt = item.updatedAt = Date.now();
+    return true;
+  }
+  async manualImportsForOwner(ownerId: string) {
+    return [...this.manualImports.values()]
+      .filter(item => item.ownerId === ownerId && item.status === 'active')
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(item => ({ ...item }));
+  }
+  async revokeManualImportForOwner(id: string, ownerId: string) {
+    const item = this.manualImports.get(id);
+    if (!item || item.ownerId !== ownerId || item.status !== 'active') return false;
     item.status = 'revoked';
     item.revokedAt = item.updatedAt = Date.now();
     return true;

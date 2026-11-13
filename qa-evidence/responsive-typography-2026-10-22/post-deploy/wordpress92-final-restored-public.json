@@ -1,0 +1,25 @@
+{
+  "views": {
+    "414": {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "pageOverflow": false,
+      "size": "17px"
+    },
+    "834": {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "pageOverflow": false,
+      "size": "18px"
+    },
+    "1280": {
+      "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+      "pageOverflow": false,
+      "size": "18px"
+    }
+  },
+  "cleanup": {
+    "tab": "23",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

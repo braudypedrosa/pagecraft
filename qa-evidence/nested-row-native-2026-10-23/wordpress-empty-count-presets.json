@@ -1,0 +1,621 @@
+[
+  {
+    "count": "1",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "100 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 1340
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "50% / 50%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 658
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 658
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "67% / 33%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "66.6666 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 877.328125
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 438.671875
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "33% / 67%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "33.3333 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 438.671875
+        },
+        {
+          "flex": "66.6666 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 877.328125
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "75% / 25%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "75 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 987
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 329
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "2",
+    "ratio": "25% / 75%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "25 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 329
+        },
+        {
+          "flex": "75 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 987
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "3",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "33.3333 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.65625
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.671875
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.671875
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "3",
+    "ratio": "33% / 33% / 33%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "33.3333 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.65625
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.671875
+        },
+        {
+          "flex": "33.3333 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 430.671875
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "3",
+    "ratio": "50% / 25% / 25%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "50 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 646
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "3",
+    "ratio": "25% / 50% / 25%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "25 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 646
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "3",
+    "ratio": "25% / 25% / 50%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "25 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 323
+        },
+        {
+          "flex": "50 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 646
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "4",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "25 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "4",
+    "ratio": "25% / 25% / 25% / 25%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "25 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        },
+        {
+          "flex": "25 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 317
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "4",
+    "ratio": "40% / 20% / 20% / 20%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "40 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 507.203125
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.59375
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.609375
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.59375
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "4",
+    "ratio": "20% / 20% / 20% / 40%",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "20 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.59375
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.609375
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 253.59375
+        },
+        {
+          "flex": "40 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 507.203125
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "5",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "20 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 248.796875
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 248.8125
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 248.796875
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 248.796875
+        },
+        {
+          "flex": "20 1 0%",
+          "id": "nu0des8u1",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 248.796875
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "count": "6",
+    "ratio": "default",
+    "computed": {
+      "align": "stretch",
+      "columns": [
+        {
+          "flex": "16.6666 1 0%",
+          "id": "ntzek41f2",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.328125
+        },
+        {
+          "flex": "16.6666 1 0%",
+          "id": "nu06y052n",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.34375
+        },
+        {
+          "flex": "16.6666 1 0%",
+          "id": "nu09ni64a",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.328125
+        },
+        {
+          "flex": "16.6666 1 0%",
+          "id": "nu0br37yd",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.34375
+        },
+        {
+          "flex": "16.6666 1 0%",
+          "id": "nu0des8u1",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.328125
+        },
+        {
+          "flex": "16.6666 1 0%",
+          "id": "nu0dvq9gb",
+          "text": " Drop a component",
+          "type": "column",
+          "width": 203.328125
+        }
+      ],
+      "distribution": "flex-start",
+      "gap": "24px",
+      "width": 1340,
+      "wrap": "wrap"
+    }
+  }
+]

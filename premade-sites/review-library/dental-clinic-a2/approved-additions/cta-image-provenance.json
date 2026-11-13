@@ -1,0 +1,19 @@
+{
+  "actor": "user",
+  "quote": "Approve this image",
+  "source": "Reply to the exact generated CTA image approval question in this chat",
+  "at": "2026-11-12T15:45:30.739Z",
+  "master": {
+    "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement/cta-clinic-entrance-candidate.png",
+    "sha256": "94c3aa69b427e1ccef3a02001d113eb174409f4123ac1ff162431fc0bb5e8dff"
+  },
+  "delivery": {
+    "path": "premade-sites/review-library/dental-clinic-a2/approved-additions/cta-clinic-entrance.webp",
+    "sha256": "f6745633f19c4d28964ec6cad1e07ce3c32cf4cb93ec2555a1709e704676f5e8",
+    "width": 1774,
+    "height": 887
+  },
+  "scope": "Use this exact image as the native Dental closing CTA background. Complete-site and catalog approvals remain separate.",
+  "generator": "Built-in image_gen",
+  "prompt": "Use case: photorealistic-natural. One unique editorial architectural photograph for the closing call-to-action background of Linden Dental, a calm family dental practice template. Image asset only, no words, logos, UI or collage. Landscape panoramic composition for a wide banner crop. Welcoming contemporary dental-practice entrance seen from inside, frosted glass doorway, bright softly focused corridor, light natural oak details, one leafy plant, pale sky-blue upholstery at far right. Avoid treatment chair or the same reception counter seen in common dental stock scenes. Quiet pale wall on left half, architectural detail and daylight on right half. Natural afternoon daylight, realistic materials and perspective, warm human atmosphere without people. Ice white, pale sky blue, warm oak and subtle leaf green compatible with #076A9F and #183A50. Attractive under a dark blue overlay with white text added later in native Pagecraft. Crisp professional interior photography, physically plausible, no glossy 3D render appearance. One coherent scene, no split panels."
+}

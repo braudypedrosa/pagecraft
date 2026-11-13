@@ -1,0 +1,11 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft
+
+(node:2586) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  21:58:24
+   Duration  4.57s (transform 423ms, setup 0ms, import 589ms, tests 3.86s, environment 0ms)
+

@@ -1,0 +1,58 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451
+
+ ❯ tests/inspector-blur-button-click.test.tsx (8 tests | 2 failed) 636ms
+   × pointer blur cleans pending activation before any later release 75ms
+   × pointer lostpointercapture cleans pending activation before any later release 70ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/inspector-blur-button-click.test.tsx > pointer blur cleans pending activation before any later release
+AssertionError: interruption releases exactly one pending repaint
+
+0 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/inspector-blur-button-click.test.tsx:187:12
+    185|     window.dispatchEvent(interruption === 'blur' ? new Event('blur') :…
+    186|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+    187|     assert.equal(paints, before + 1, 'interruption releases exactly on…
+       |            ^
+    188|     document.dispatchEvent(new PointerEvent('pointerup', { bubbles: tr…
+    189|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/inspector-blur-button-click.test.tsx > pointer lostpointercapture cleans pending activation before any later release
+AssertionError: interruption releases exactly one pending repaint
+
+2 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ tests/inspector-blur-button-click.test.tsx:187:12
+    185|     window.dispatchEvent(interruption === 'blur' ? new Event('blur') :…
+    186|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+    187|     assert.equal(paints, before + 1, 'interruption releases exactly on…
+       |            ^
+    188|     document.dispatchEvent(new PointerEvent('pointerup', { bubbles: tr…
+    189|     await new Promise(resolve => requestAnimationFrame(() => requestAn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 7 passed (9)
+   Start at  10:31:23
+   Duration  1.94s (transform 958ms, setup 0ms, import 1.21s, tests 929ms, environment 1.20s)

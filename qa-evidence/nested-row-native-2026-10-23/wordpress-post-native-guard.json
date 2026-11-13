@@ -1,0 +1,90 @@
+{
+  "status": "Read-only Row102 WordPress guard passed",
+  "wordpressCommit": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "editorVersion": "0.2.17-preview.20261023.98",
+  "baseline": "Table post-native Version30 /391 revisions",
+  "actualVersion": 32,
+  "actualRevisions": 395,
+  "newRevisions": [
+    {
+      "id": 676,
+      "parent": 616,
+      "storedDocumentVersion": 30
+    },
+    {
+      "id": 677,
+      "parent": 616,
+      "storedDocumentVersion": 30
+    },
+    {
+      "id": 678,
+      "parent": 616,
+      "storedDocumentVersion": 31
+    },
+    {
+      "id": 679,
+      "parent": 616,
+      "storedDocumentVersion": 31
+    }
+  ],
+  "revisionCountReconciliation": "Four actual new revisions, two with stored Version30 and two with stored Version31; two native actions (Save and History restore). No additional authoring inferred.",
+  "newMetaCount": 116,
+  "changedExistingMeta": [
+    {
+      "id": 11146,
+      "key": "_pagecraft_document_version"
+    }
+  ],
+  "tables": 133,
+  "unchangedInsertTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2113,
+      "afterRowId": 2115,
+      "autoloadExact": true,
+      "changedField": "time",
+      "before": 1792690466,
+      "after": 1792691317,
+      "otherFieldsExact": true
+    }
+  ],
+  "checks": {
+    "tables133": true,
+    "only3ExpectedChangedTables": true,
+    "onlyExistingPost616Changed": true,
+    "fourNewRevisions676679": true,
+    "allNewRevisionsParent616": true,
+    "all116NewMetaOnlyNewRevisions": true,
+    "noPostsOrMetaRemoved": true,
+    "allPrevious391RevisionsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "qa616Version32": true,
+    "actual395Revisions": true,
+    "restoredSourceDocumentAndCompiledArtifactsExact": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "original487Version73": true,
+    "allOptionNamesExact": true,
+    "allPagecraftOptionsExact": true,
+    "allAccountsSessionsExact": true,
+    "onlyKnownTimestampCacheOption": true,
+    "currentWPCommitD13": true,
+    "builderInstalledSourceExact": true,
+    "themeInstalledSourceExact": true,
+    "importerInstalledSourceExact": true,
+    "historical130Exact": true,
+    "current132PackageInventory": true
+  },
+  "failures": [],
+  "baselineSQLSHA256": "e5e0809ce6a45b72e502a3da3213e060acfe8dbc1f1bdae4419fb7a5186475b8",
+  "postNativeSQLSHA256": "19cb707084a7a057e1e6b48280892779996a611a2b1f430c4c8fe2a3473c0e75",
+  "postNativeSnapshotSHA256": "2f5a22a3c3a1e538c187561e7e1f2ba7fcda06cafb939d990fcce702fca85db6",
+  "workerDatabaseWrites": false,
+  "fullQAComplete": false
+}

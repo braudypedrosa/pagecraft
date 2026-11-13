@@ -1,0 +1,54 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inline-rich-select-3188/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (710 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inline-rich-select-3188/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inline-rich-select-3188
+
+(node:917) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1589) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/customer-editor-regressions.test.mjs (16 tests | 2 failed) 643ms
+   × inline edit checkpoints and saves only after the first real DOM mutation 69ms
+   × viewing inherited component text does not materialize an own property 14ms
+(node:2416) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/customer-editor-regressions.test.mjs > inline edit checkpoints and saves only after the first real DOM mutation
+AssertionError: expected -1 to be greater than 317105
+ ❯ inlineSyncHarness tests/customer-editor-regressions.test.mjs:126:48
+    124|  const instSet=(n,key,value)=>{n.vals ||= {};n.vals[key]=value;};
+    125|  const start=source.indexOf('const EDIT_IN ='),end=source.indexOf('\nf…
+    126|  expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
+       |                                                ^
+    127|  const api=new Function('editing','locate','checkpoint','paintHistory'…
+    128|    `${source.slice(start,end)}; return {inlineEditValue,syncEdit};`
+ ❯ tests/customer-editor-regressions.test.mjs:135:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/customer-editor-regressions.test.mjs > viewing inherited component text does not materialize an own property
+AssertionError: expected -1 to be greater than 317105
+ ❯ inlineSyncHarness tests/customer-editor-regressions.test.mjs:126:48
+    124|  const instSet=(n,key,value)=>{n.vals ||= {};n.vals[key]=value;};
+    125|  const start=source.indexOf('const EDIT_IN ='),end=source.indexOf('\nf…
+    126|  expect(start).toBeGreaterThan(-1);expect(end).toBeGreaterThan(start);
+       |                                                ^
+    127|  const api=new Function('editing','locate','checkpoint','paintHistory'…
+    128|    `${source.slice(start,end)}; return {inlineEditValue,syncEdit};`
+ ❯ tests/customer-editor-regressions.test.mjs:150:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 288 passed | 2 skipped (291)
+      Tests  2 failed | 2920 passed | 5 skipped (2927)
+   Start at  02:40:40
+   Duration  82.33s (transform 31.61s, setup 0ms, import 184.40s, tests 582.42s, environment 120.03s)

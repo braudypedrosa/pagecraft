@@ -1,0 +1,94 @@
+[
+  {
+    "choice": "Default",
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "auto",
+      "overflowY": "auto",
+      "position": "relative",
+      "rect": {
+        "height": 212.890625,
+        "left": 60,
+        "top": 639.046875,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    }
+  },
+  {
+    "choice": "Visible",
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 5849,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "visible",
+      "overflowY": "visible",
+      "position": "relative",
+      "rect": {
+        "height": 212.890625,
+        "left": 60,
+        "top": 639.046875,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    }
+  },
+  {
+    "choice": "Hidden",
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "hidden",
+      "overflowY": "hidden",
+      "position": "relative",
+      "rect": {
+        "height": 212.890625,
+        "left": 60,
+        "top": 639.046875,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    }
+  },
+  {
+    "choice": "Auto",
+    "computed": {
+      "bodyClient": 1320,
+      "bodyScroll": 1320,
+      "clientWidth": 320,
+      "maxWidth": "320px",
+      "overflowX": "auto",
+      "overflowY": "auto",
+      "position": "relative",
+      "rect": {
+        "height": 212.890625,
+        "left": 60,
+        "top": 639.046875,
+        "width": 320
+      },
+      "scrollWidth": 5789,
+      "tableWidth": 5789,
+      "top": "12px",
+      "width": "320px",
+      "zIndex": "5"
+    }
+  }
+]

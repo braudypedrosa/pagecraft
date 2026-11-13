@@ -1,0 +1,29 @@
+{
+  "status": "Locally sealed, root native acceptance pending",
+  "base": "45d01dc24650eb388668d69f1b57c125bdadbbe2",
+  "source3": {
+    "app/src/ui/inspector/Controls.tsx": "8977812b09c873d1103e9a3aa997ba4a1b83bd922a85884e70ad8a33bf5c70fb",
+    "tests/component-bool-authoring.test.tsx": "20910e4fbb2e26ba9cd98aa3ec9396b65d20528329dd65df735b842d020e702a",
+    "public/internal-ui-baselines/manifest.json": "02c76410d15242a0131dcb4a01c7275daf98e41b6c0bf3788e19ac23c67580b5"
+  },
+  "twoOrderedGenerated10PairsExact": true,
+  "fullTestsPassed": 2788,
+  "fullTestsSkipped": 5,
+  "fullFilesPassed": 272,
+  "typecheckExit": 0,
+  "buildOrderExit": 0,
+  "focusedTestsPassed": 20,
+  "coreUnchanged": true,
+  "signedWordPressGoldenUnchanged": true,
+  "runtimeSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+  "mainProtected11Exact": true,
+  "mainIndexExact": true,
+  "baselineException": "Root authorized only Controls fingerprint; no fresh captures; all24 PNGs/provenance/30behavior records unchanged.",
+  "failuresPreserved": [
+    "initial fileURL harness setup failure",
+    "missing definition bool property badge RED",
+    "first full suite sole gallery fingerprint gate"
+  ],
+  "nativeBrowserPerformed": false,
+  "noMainCanonicalWPDatabaseCommitPush": true
+}

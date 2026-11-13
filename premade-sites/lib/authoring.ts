@@ -9,9 +9,14 @@ export interface TemplateAssetSource {
   id: string;
   /** File path relative to the release directory. */
   file: string;
+  /** Original portable-package asset name, when it differs from the source filename. */
+  name?: string;
+  /** Original packaged dimensions, used by document-json-v1 when the source format cannot infer them. */
+  width?: number;
+  height?: number;
 }
 
-export interface TemplateSourceConfig {
+interface TemplateSourceBase {
   format: typeof TEMPLATE_SOURCE_FORMAT;
   id: string;
   version: string;
@@ -20,7 +25,6 @@ export interface TemplateSourceConfig {
   description: string;
   categories: string[];
   source: string;
-  sourceExport: string;
   previewPage: string;
   assets: TemplateAssetSource[];
   customCssPolicy: CustomCssPolicy;
@@ -28,14 +32,33 @@ export interface TemplateSourceConfig {
   customCssReason?: string;
 }
 
+/** Legacy TypeScript factories remain valid without a sourceKind field. */
+export interface TypeScriptTemplateSourceConfig extends TemplateSourceBase {
+  sourceKind?: 'typescript-factory-v1';
+  sourceExport: string;
+}
+
+/** Declarative native documents are parsed as data and are never imported as code. */
+export interface JsonTemplateSourceConfig extends TemplateSourceBase {
+  sourceKind: 'document-json-v1';
+  source: 'document.json';
+  provenance?: import('../../app/src/package/types.ts').PortablePackageProvenanceV1;
+  /** Original package hash retained when a native document is imported and recompiled. */
+  importedPackageSha256?: string;
+  sourceExport?: never;
+}
+
+export type TemplateSourceConfig = TypeScriptTemplateSourceConfig | JsonTemplateSourceConfig;
+
 const SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 const SOURCE_FILE = /^[a-z0-9][a-z0-9._/-]*\.ts$/;
 const ASSET_FILE = /^(?!\/)[a-zA-Z0-9._/-]+$/;
 
 export function validateTemplateSourceConfig(value: unknown): TemplateSourceConfig {
-  const item = value as Partial<TemplateSourceConfig>;
   const fail = (detail: string): never => { throw new Error(`template source config: ${detail}`); };
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail('must be an object');
+  const item = value as Record<string, unknown>;
   if (item.format !== TEMPLATE_SOURCE_FORMAT) fail(`format must be ${TEMPLATE_SOURCE_FORMAT}`);
   if (!SEGMENT.test(String(item.id || ''))) fail('id must be a lowercase hyphenated segment');
   if (!VERSION.test(String(item.version || ''))) fail('version must use semver x.y.z');
@@ -43,19 +66,41 @@ export function validateTemplateSourceConfig(value: unknown): TemplateSourceConf
   if (!String(item.sampleName || '').trim()) fail('sampleName is required');
   if (!String(item.description || '').trim()) fail('description is required');
   if (!Array.isArray(item.categories) || !item.categories.length
-    || !item.categories.every(category => typeof category === 'string' && category.trim())) {
+    || !item.categories.every((category: unknown) => typeof category === 'string' && category.trim())) {
     fail('categories must contain at least one label');
   }
-  if (!SOURCE_FILE.test(String(item.source || '')) || String(item.source).includes('..')) {
-    fail('source must be a relative TypeScript file inside the release');
+  const jsonSource = item.sourceKind === 'document-json-v1';
+  if (jsonSource) {
+    if (item.source !== 'document.json') fail('document-json-v1 source must be document.json');
+    if (item.sourceExport !== undefined) fail('document-json-v1 does not support sourceExport');
+  } else {
+    if (item.sourceKind !== undefined && item.sourceKind !== 'typescript-factory-v1') {
+      fail('sourceKind must be typescript-factory-v1 or document-json-v1');
+    }
+    if (!SOURCE_FILE.test(String(item.source || '')) || String(item.source).includes('..')) {
+      fail('source must be a relative TypeScript file inside the release');
+    }
+    if (!/^[A-Za-z_$][\w$]*$/.test(String(item.sourceExport || ''))) fail('sourceExport is invalid');
   }
-  if (!/^[A-Za-z_$][\w$]*$/.test(String(item.sourceExport || ''))) fail('sourceExport is invalid');
   if (!/^[a-z0-9][a-z0-9/-]*\.html$/.test(String(item.previewPage || ''))) fail('previewPage is invalid');
   if (!Array.isArray(item.assets)) fail('assets must be an array');
   const ids = new Set<string>();
   for (const asset of item.assets as TemplateAssetSource[]) {
     if (!SEGMENT.test(String(asset?.id || ''))) fail(`asset id ${String(asset?.id || '')} is invalid`);
     if (!ASSET_FILE.test(String(asset?.file || ''))) fail(`asset file for ${asset.id} is unsafe`);
+    if (asset.name !== undefined && (typeof asset.name !== 'string' || !asset.name.trim())) {
+      fail(`asset name for ${asset.id} is invalid`);
+    }
+    if ((asset.width === undefined) !== (asset.height === undefined)) {
+      fail(`asset width and height for ${asset.id} must be provided together`);
+    }
+    if (asset.width !== undefined && (!Number.isSafeInteger(asset.width) || asset.width < 0
+      || !Number.isSafeInteger(asset.height) || asset.height! < 0)) {
+      fail(`asset dimensions for ${asset.id} must be nonnegative safe integers`);
+    }
+    if (!jsonSource && (asset.width !== undefined || asset.height !== undefined)) {
+      fail(`asset dimensions for ${asset.id} are only supported for document-json-v1`);
+    }
     if (ids.has(asset.id)) fail(`asset id ${asset.id} is duplicated`);
     ids.add(asset.id);
   }
@@ -65,7 +110,20 @@ export function validateTemplateSourceConfig(value: unknown): TemplateSourceConf
   if (item.customCssPolicy === 'reviewed-exception' && !String(item.customCssReason || '').trim()) {
     fail('reviewed-exception requires customCssReason');
   }
-  return item as TemplateSourceConfig;
+  if (jsonSource && item.provenance !== undefined) {
+    const provenance = item.provenance as JsonTemplateSourceConfig['provenance'];
+    if (!provenance || provenance.format !== 'pagecraft.provenance.v1'
+      || !['pagecraft-cloud', 'wordpress-local'].includes(provenance.origin)
+      || typeof provenance.sourceId !== 'string' || !provenance.sourceId.trim()
+      || !Number.isInteger(provenance.sourceVersion) || provenance.sourceVersion < 0) {
+      fail('provenance is invalid');
+    }
+  }
+  if (jsonSource && item.importedPackageSha256 !== undefined
+    && !/^[a-f0-9]{64}$/.test(String(item.importedPackageSha256))) {
+    fail('importedPackageSha256 must be a lowercase SHA-256 hash');
+  }
+  return item as unknown as TemplateSourceConfig;
 }
 
 export function templateNodes(document: Doc): Node[] {

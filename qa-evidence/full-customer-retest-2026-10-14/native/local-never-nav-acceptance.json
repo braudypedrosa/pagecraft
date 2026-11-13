@@ -1,0 +1,323 @@
+{
+  "cases": [
+    {
+      "device": "Mobile",
+      "alignment": "Right",
+      "align": "flex-end",
+      "brand": {
+        "right": 197,
+        "w": 177,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "right": 314.5,
+          "text": "Projects",
+          "w": 89.40625,
+          "x": 225.09375,
+          "y": 48
+        },
+        {
+          "right": 394,
+          "text": "About",
+          "w": 59.5,
+          "x": 334.5,
+          "y": 48
+        },
+        {
+          "right": 394,
+          "text": "Contact",
+          "w": 84.234375,
+          "x": 309.765625,
+          "y": 96.796875
+        },
+        {
+          "right": 394,
+          "text": "Services",
+          "w": 83.140625,
+          "x": 310.859375,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "flex-end",
+      "listWidth": 177,
+      "nav": {
+        "right": 394,
+        "w": 177,
+        "x": 217
+      },
+      "viewport": 414,
+      "toggleExists": true,
+      "toggleDisplay": "none"
+    },
+    {
+      "device": "Mobile",
+      "alignment": "Left",
+      "align": "flex-start",
+      "brand": {
+        "right": 197,
+        "w": 177,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "right": 306.40625,
+          "text": "Projects",
+          "w": 89.40625,
+          "x": 217,
+          "y": 48
+        },
+        {
+          "right": 385.90625,
+          "text": "About",
+          "w": 59.5,
+          "x": 326.40625,
+          "y": 48
+        },
+        {
+          "right": 301.234375,
+          "text": "Contact",
+          "w": 84.234375,
+          "x": 217,
+          "y": 96.796875
+        },
+        {
+          "right": 300.140625,
+          "text": "Services",
+          "w": 83.140625,
+          "x": 217,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "flex-start",
+      "listWidth": 177,
+      "nav": {
+        "right": 394,
+        "w": 177,
+        "x": 217
+      },
+      "viewport": 414,
+      "toggleExists": true
+    },
+    {
+      "device": "Mobile",
+      "alignment": "Centre",
+      "align": "center",
+      "brand": {
+        "right": 197,
+        "w": 177,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "right": 310.453125,
+          "text": "Projects",
+          "w": 89.40625,
+          "x": 221.046875,
+          "y": 48
+        },
+        {
+          "right": 389.953125,
+          "text": "About",
+          "w": 59.5,
+          "x": 330.453125,
+          "y": 48
+        },
+        {
+          "right": 347.609375,
+          "text": "Contact",
+          "w": 84.234375,
+          "x": 263.375,
+          "y": 96.796875
+        },
+        {
+          "right": 347.0625,
+          "text": "Services",
+          "w": 83.140625,
+          "x": 263.921875,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "center",
+      "listWidth": 177,
+      "nav": {
+        "right": 394,
+        "w": 177,
+        "x": 217
+      },
+      "viewport": 414,
+      "toggleExists": true
+    },
+    {
+      "device": "Tablet",
+      "align": "flex-end",
+      "brand": {
+        "right": 405,
+        "w": 381,
+        "x": 24
+      },
+      "document": 834,
+      "links": [
+        {
+          "right": 523.125,
+          "text": "Projects",
+          "w": 89.40625,
+          "x": 433.71875,
+          "y": 72
+        },
+        {
+          "right": 602.625,
+          "text": "About",
+          "w": 59.5,
+          "x": 543.125,
+          "y": 72
+        },
+        {
+          "right": 706.859375,
+          "text": "Contact",
+          "w": 84.234375,
+          "x": 622.625,
+          "y": 72
+        },
+        {
+          "right": 810,
+          "text": "Services",
+          "w": 83.140625,
+          "x": 726.859375,
+          "y": 72
+        }
+      ],
+      "listAlign": "normal",
+      "listWidth": 376.28125,
+      "nav": {
+        "right": 810,
+        "w": 381,
+        "x": 429
+      },
+      "viewport": 834,
+      "toggleExists": true
+    },
+    {
+      "device": "Desktop",
+      "align": "flex-end",
+      "brand": {
+        "right": 628,
+        "w": 588,
+        "x": 40
+      },
+      "document": 1280,
+      "links": [
+        {
+          "right": 953.125,
+          "text": "Projects",
+          "w": 89.40625,
+          "x": 863.71875,
+          "y": 72
+        },
+        {
+          "right": 1032.625,
+          "text": "About",
+          "w": 59.5,
+          "x": 973.125,
+          "y": 72
+        },
+        {
+          "right": 1136.859375,
+          "text": "Contact",
+          "w": 84.234375,
+          "x": 1052.625,
+          "y": 72
+        },
+        {
+          "right": 1240,
+          "text": "Services",
+          "w": 83.140625,
+          "x": 1156.859375,
+          "y": 72
+        }
+      ],
+      "listAlign": "normal",
+      "listWidth": 376.28125,
+      "nav": {
+        "right": 1240,
+        "w": 588,
+        "x": 652
+      },
+      "viewport": 1280,
+      "toggleExists": true
+    }
+  ],
+  "savedReload": {
+    "align": "center",
+    "brand": {
+      "right": 197,
+      "w": 177,
+      "x": 20
+    },
+    "document": 414,
+    "links": [
+      {
+        "right": 310.453125,
+        "text": "Projects",
+        "w": 89.40625,
+        "x": 221.046875,
+        "y": 48
+      },
+      {
+        "right": 389.953125,
+        "text": "About",
+        "w": 59.5,
+        "x": 330.453125,
+        "y": 48
+      },
+      {
+        "right": 347.609375,
+        "text": "Contact",
+        "w": 84.234375,
+        "x": 263.375,
+        "y": 96.796875
+      },
+      {
+        "right": 347.0625,
+        "text": "Services",
+        "w": 83.140625,
+        "x": 263.921875,
+        "y": 145.59375
+      }
+    ],
+    "listAlign": "center",
+    "listWidth": 177,
+    "nav": {
+      "right": 394,
+      "w": 177,
+      "x": 217
+    },
+    "viewport": 414,
+    "toggleExists": true
+  },
+  "dropdown": {
+    "layout": "dropdown",
+    "links": 4,
+    "viewport": 414,
+    "w": 414,
+    "x": 0
+  },
+  "fullscreen": {
+    "close": 1,
+    "h": 668,
+    "layout": "fullscreen",
+    "role": "dialog",
+    "viewport": {
+      "h": 668,
+      "w": 414
+    },
+    "w": 414
+  },
+  "notes": [
+    "toggleExists is DOM presence; right-aligned Never case independently verified toggleDisplay=none.",
+    "All mobile alignment cases keep every link inside its nav bounds, outside branding."
+  ]
+}

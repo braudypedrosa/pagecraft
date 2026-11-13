@@ -12,7 +12,8 @@ export const ANIM_SHA = "57ea9d90ca358f192ff17d705e82ef378afb8e0e";
 export const ANIM_PFX = "pc-";
 export const ANIM_NAMES: string[] = ["bounce","bounce-down","bounce-in","bounce-up","elastic","fade-down","fade-in","fade-out","fade-up","flip-x","flip-y","rotate-in","rotate-in-left","rotate-in-right","scale-down","scale-up","slide-down","slide-fade-down","slide-fade-left","slide-fade-right","slide-fade-up","slide-left","slide-right","slide-up","spin","zoom-in","zoom-out"];
 export const ANIM_CSS = `@keyframes bpFadeIn{from{opacity:0}to{opacity:1}}@keyframes bpSlideLeft{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}}@keyframes bpSlideRight{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}@keyframes bpScaleUp{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}@keyframes bpFadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpFadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpCard{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes bpDoneDemo{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes bpFadeOut{from{opacity:1}to{opacity:0}}@keyframes bpSlideUp{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideDown{from{opacity:0;transform:translateY(-50px)}to{opacity:1;transform:translateY(0)}}@keyframes bpScaleDown{from{opacity:0;transform:scale(1.2)}to{opacity:1;transform:scale(1)}}@keyframes bpZoomIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}@keyframes bpZoomOut{from{opacity:0;transform:scale(1.5)}to{opacity:1;transform:scale(1)}}@keyframes bpRotateIn{from{opacity:0;transform:rotate(-180deg)}to{opacity:1;transform:rotate(0deg)}}@keyframes bpRotateInLeft{from{opacity:0;transform:rotate(-90deg) translateX(-50px)}to{opacity:1;transform:rotate(0deg) translateX(0)}}@keyframes bpRotateInRight{from{opacity:0;transform:rotate(90deg) translateX(50px)}to{opacity:1;transform:rotate(0deg) translateX(0)}}@keyframes bpBounce{0%,20%,50%,80%,100%{opacity:1;transform:translateY(0)}40%{opacity:1;transform:translateY(-30px)}60%{opacity:1;transform:translateY(-15px)}}@keyframes bpBounceIn{0%{opacity:0;transform:scale(0.3)}50%{opacity:1;transform:scale(1.05)}70%{transform:scale(0.9)}100%{opacity:1;transform:scale(1)}}@keyframes bpBounceUp{0%{opacity:0;transform:translateY(50px)}60%{opacity:1;transform:translateY(-10px)}80%{transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}@keyframes bpBounceDown{0%{opacity:0;transform:translateY(-50px)}60%{opacity:1;transform:translateY(10px)}80%{transform:translateY(-5px)}100%{opacity:1;transform:translateY(0)}}@keyframes bpFlipX{from{opacity:0;transform:perspective(400px) rotateX(90deg)}to{opacity:1;transform:perspective(400px) rotateX(0deg)}}@keyframes bpFlipY{from{opacity:0;transform:perspective(400px) rotateY(90deg)}to{opacity:1;transform:perspective(400px) rotateY(0deg)}}@keyframes bpSpin{from{opacity:0;transform:rotate(0deg) scale(0.8)}to{opacity:1;transform:rotate(360deg) scale(1)}}@keyframes bpElastic{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1.1)}70%{transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}@keyframes bpSlideFadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideFadeDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:translateY(0)}}@keyframes bpSlideFadeLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}@keyframes bpSlideFadeRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}.pc-fade-in{opacity:0}.pc-fade-in.bp-is-animating{animation:bpFadeIn .6s ease-in-out forwards}.pc-slide-left{opacity:0;transform:translateX(-50px)}.pc-slide-left.bp-is-animating{animation:bpSlideLeft .6s ease-in-out forwards}.pc-slide-right{opacity:0;transform:translateX(50px)}.pc-slide-right.bp-is-animating{animation:bpSlideRight .6s ease-in-out forwards}.pc-scale-up{opacity:0;transform:scale(0.8)}.pc-scale-up.bp-is-animating{animation:bpScaleUp .6s ease-in-out forwards}.pc-fade-up{opacity:0;transform:translateY(30px)}.pc-fade-up.bp-is-animating{animation:bpFadeUp .6s ease-in-out forwards}.pc-fade-down{opacity:0;transform:translateY(-30px)}.pc-fade-down.bp-is-animating{animation:bpFadeDown .6s ease-in-out forwards}.pc-fade-out{opacity:1}.pc-fade-out.bp-is-animating{animation:bpFadeOut .6s ease-in-out forwards}.pc-slide-up{opacity:0;transform:translateY(50px)}.pc-slide-up.bp-is-animating{animation:bpSlideUp .6s ease-in-out forwards}.pc-slide-down{opacity:0;transform:translateY(-50px)}.pc-slide-down.bp-is-animating{animation:bpSlideDown .6s ease-in-out forwards}.pc-scale-down{opacity:0;transform:scale(1.2)}.pc-scale-down.bp-is-animating{animation:bpScaleDown .6s ease-in-out forwards}.pc-zoom-in{opacity:0;transform:scale(0.5)}.pc-zoom-in.bp-is-animating{animation:bpZoomIn .6s ease-in-out forwards}.pc-zoom-out{opacity:0;transform:scale(1.5)}.pc-zoom-out.bp-is-animating{animation:bpZoomOut .6s ease-in-out forwards}.pc-rotate-in{opacity:0;transform:rotate(-180deg)}.pc-rotate-in.bp-is-animating{animation:bpRotateIn .8s ease-in-out forwards}.pc-rotate-in-left{opacity:0;transform:rotate(-90deg) translateX(-50px)}.pc-rotate-in-left.bp-is-animating{animation:bpRotateInLeft .8s ease-in-out forwards}.pc-rotate-in-right{opacity:0;transform:rotate(90deg) translateX(50px)}.pc-rotate-in-right.bp-is-animating{animation:bpRotateInRight .8s ease-in-out forwards}.pc-bounce{opacity:0}.pc-bounce.bp-is-animating{animation:bpBounce 1s ease-in-out forwards}.pc-bounce-in{opacity:0;transform:scale(0.3)}.pc-bounce-in.bp-is-animating{animation:bpBounceIn .8s ease-in-out forwards}.pc-bounce-up{opacity:0;transform:translateY(50px)}.pc-bounce-up.bp-is-animating{animation:bpBounceUp .8s ease-in-out forwards}.pc-bounce-down{opacity:0;transform:translateY(-50px)}.pc-bounce-down.bp-is-animating{animation:bpBounceDown .8s ease-in-out forwards}.pc-flip-x{opacity:0;transform:perspective(400px) rotateX(90deg)}.pc-flip-x.bp-is-animating{animation:bpFlipX .8s ease-in-out forwards}.pc-flip-y{opacity:0;transform:perspective(400px) rotateY(90deg)}.pc-flip-y.bp-is-animating{animation:bpFlipY .8s ease-in-out forwards}.pc-spin{opacity:0;transform:rotate(0deg) scale(0.8)}.pc-spin.bp-is-animating{animation:bpSpin .8s ease-in-out forwards}.pc-elastic{opacity:0;transform:scale(0)}.pc-elastic.bp-is-animating{animation:bpElastic .8s ease-in-out forwards}.pc-slide-fade-up{opacity:0;transform:translateY(40px)}.pc-slide-fade-up.bp-is-animating{animation:bpSlideFadeUp .6s ease-in-out forwards}.pc-slide-fade-down{opacity:0;transform:translateY(-40px)}.pc-slide-fade-down.bp-is-animating{animation:bpSlideFadeDown .6s ease-in-out forwards}.pc-slide-fade-left{opacity:0;transform:translateX(-40px)}.pc-slide-fade-left.bp-is-animating{animation:bpSlideFadeLeft .6s ease-in-out forwards}.pc-slide-fade-right{opacity:0;transform:translateX(40px)}.pc-slide-fade-right.bp-is-animating{animation:bpSlideFadeRight .6s ease-in-out forwards}
-`;
+`.replace(/(\.pc-(?!fade-out\{)[a-z-]+)(\{[^}]*\})(?=\1\.bp-is-animating)/g,
+  '$1:where(:not(.bp-is-done-animating))$2');
 export const ANIM_JS = `/**
  * BP Animate Library
  * 
@@ -26,6 +27,39 @@ export const ANIM_JS = `/**
 
 (function() {
     'use strict';
+
+    const reducedMotion = typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    const animationEndHandlers = new WeakMap();
+
+    function removeAnimationEnd(element) {
+        const handler = animationEndHandlers.get(element);
+        if (!handler) return;
+        element.removeEventListener('animationend', handler);
+        animationEndHandlers.delete(element);
+    }
+
+    function settleReducedMotion(element) {
+        removeAnimationEnd(element);
+        element.classList.remove('bp-is-hidden', 'bp-is-animating');
+        element.classList.add('bp-is-visible', 'bp-is-done-animating');
+        element.style.animation = '';
+        element.style.animationDuration = '';
+        element.style.animationDelay = '';
+        element.style.animationTimingFunction = '';
+    }
+
+    function startAnimation(element) {
+        if (reducedMotion && reducedMotion.matches) {
+            settleReducedMotion(element);
+            return;
+        }
+        const attributes = getAnimationAttributes(element);
+        if (attributes !== null) applyAnimationStyles(element, attributes);
+        element.classList.remove('bp-is-done-animating');
+        element.classList.add('bp-is-animating');
+        handleAnimationComplete(element);
+    }
 
     /**
      * Get animation attributes from element
@@ -48,14 +82,14 @@ export const ANIM_JS = `/**
             return null;
         }
         
-        // Get duration (default: 0.6s if attribute exists but is empty)
-        const duration = hasDuration ? (element.getAttribute('bp-duration') || '0.6s') : '0.6s';
-        
-        // Get delay (default: 0s if attribute exists but is empty)
-        const delay = hasDelay ? (element.getAttribute('bp-delay') || '0s') : '0s';
-        
-        // Get easing (default: ease-in-out if attribute exists but is empty)
-        const easing = hasEasing ? (element.getAttribute('bp-easing') || 'ease-in-out') : 'ease-in-out';
+        // Keep absent or empty values unset so the chosen preset retains its own defaults.
+        const duration = hasDuration ? (element.getAttribute('bp-duration') || '').trim() : '';
+        const delay = hasDelay ? (element.getAttribute('bp-delay') || '').trim() : '';
+        const easing = hasEasing ? (element.getAttribute('bp-easing') || '').trim() : '';
+
+        if (!duration && !delay && !easing) {
+            return null;
+        }
         
         return {
             duration: duration,
@@ -120,8 +154,8 @@ export const ANIM_JS = `/**
     /**
      * Apply animation styles to element
      * 
-     * Applies custom duration, delay, and easing to the element
-     * by setting the animation property directly via inline styles.
+     * Applies only the supplied duration, delay, and easing longhands. The animation name,
+     * fill mode, and any timing value the author left empty stay owned by the CSS preset.
      * 
      * @param {HTMLElement} element - The element to apply styles to
      * @param {Object} attributes - Animation attributes object
@@ -132,10 +166,12 @@ export const ANIM_JS = `/**
         const keyframeName = getKeyframeName(element);
         
         if (keyframeName) {
-            // Build the animation property: name duration easing delay fill-mode
-            // Using 'forwards' to keep the final state after animation completes
-            const animationValue = \`\${keyframeName} \${attributes.duration} \${attributes.easing} \${attributes.delay} forwards\`;
-            element.style.animation = animationValue;
+            element.style.animationDuration = '';
+            element.style.animationDelay = '';
+            element.style.animationTimingFunction = '';
+            if (attributes.duration) element.style.animationDuration = attributes.duration;
+            if (attributes.delay) element.style.animationDelay = attributes.delay;
+            if (attributes.easing) element.style.animationTimingFunction = attributes.easing;
         }
     }
 
@@ -249,45 +285,33 @@ export const ANIM_JS = `/**
     /**
      * Handle animation completion
      * 
-     * This function listens for transitionend and animationend events
-     * to detect when CSS animations/transitions are complete.
+     * This function listens for the element's own preset animationend event.
      * When complete, it adds the "bp-is-done-animating" class.
      * 
      * @param {HTMLElement} element - The element that is animating
      * @since 1.0.0
      */
     function handleAnimationComplete(element) {
-        // Track if we've already added the done class for this animation cycle
-        // This prevents multiple triggers if there are multiple transitions
-        let isDone = false;
+        const keyframeName = getKeyframeName(element);
+        removeAnimationEnd(element);
 
-        /**
-         * Function to add the done class (only once per animation cycle)
-         */
-        function addDoneClass() {
-            if (!isDone) {
-                isDone = true;
-                element.classList.add('bp-is-done-animating');
+        function onAnimationEnd(event) {
+            // Ignore child animations and unrelated animations on the same element.
+            if (event.target !== element || event.animationName !== keyframeName) {
+                return;
+            }
+            removeAnimationEnd(element);
+            element.classList.add('bp-is-done-animating');
+            // Entrance keyframes must release transform and opacity so authored
+            // Hover and Focus styles can own those properties after completion.
+            // Legacy Fade out intentionally retains its forwards-filled state.
+            if (keyframeName !== 'bpFadeOut') {
+                element.classList.remove('bp-is-animating');
             }
         }
 
-        // Listen for CSS transition end events
-        // This fires when any CSS transition property finishes animating
-        element.addEventListener('transitionend', function(event) {
-            // Only handle transitions on the element itself, not child elements
-            if (event.target === element) {
-                addDoneClass();
-            }
-        }, { once: true }); // { once: true } removes listener after first trigger
-
-        // Listen for CSS animation end events
-        // This fires when any CSS animation finishes
-        element.addEventListener('animationend', function(event) {
-            // Only handle animations on the element itself, not child elements
-            if (event.target === element) {
-                addDoneClass();
-            }
-        }, { once: true }); // { once: true } removes listener after first trigger
+        animationEndHandlers.set(element, onAnimationEnd);
+        element.addEventListener('animationend', onAnimationEnd);
     }
 
     /**
@@ -351,23 +375,7 @@ export const ANIM_JS = `/**
                         const hasAnimationClass = getKeyframeName(element) !== null;
                         
                         if (hasAnimationClass) {
-                            // Get animation attributes (duration, delay, easing)
-                            // Returns null if no custom attributes are provided
-                            const attributes = getAnimationAttributes(element);
-                            
-                            // Apply animation styles only if custom attributes are provided
-                            if (attributes !== null) {
-                                applyAnimationStyles(element, attributes);
-                            }
-                            
-                            // Remove done class if it exists (for re-animations)
-                            element.classList.remove('bp-is-done-animating');
-                            
-                            // Add the bp-is-animating class to trigger the animation
-                            element.classList.add('bp-is-animating');
-                            
-                            // Set up listeners to detect when animation completes
-                            handleAnimationComplete(element);
+                            startAnimation(element);
                             
                             // Check if animation should only run once
                             const animationOnce = element.getAttribute('bp-animation-once');
@@ -386,6 +394,7 @@ export const ANIM_JS = `/**
                     }
                 } else {
                     const element = entry.target;
+                    removeAnimationEnd(element);
                     // Remove all state classes when element leaves viewport
                     element.classList.remove('bp-is-animating');
                     element.classList.remove('bp-is-visible');
@@ -393,6 +402,9 @@ export const ANIM_JS = `/**
                     // Clear inline animation style when element leaves view
                     // This allows CSS defaults to work if element re-enters without custom attributes
                     element.style.animation = '';
+                    element.style.animationDuration = '';
+                    element.style.animationDelay = '';
+                    element.style.animationTimingFunction = '';
                 }
             });
         }
@@ -542,22 +554,7 @@ export const ANIM_JS = `/**
             const hasAnimationClass = getKeyframeName(element) !== null;
             
             if (hasAnimationClass) {
-                // Get animation attributes
-                const attributes = getAnimationAttributes(element);
-                
-                // Apply animation styles if custom attributes provided
-                if (attributes !== null) {
-                    applyAnimationStyles(element, attributes);
-                }
-                
-                // Remove done class if it exists (for re-animations)
-                element.classList.remove('bp-is-done-animating');
-                
-                // Add the bp-is-animating class to trigger the animation
-                element.classList.add('bp-is-animating');
-                
-                // Set up listeners to detect when animation completes
-                handleAnimationComplete(element);
+                startAnimation(element);
             }
             
             return true;
@@ -632,6 +629,22 @@ export const ANIM_JS = `/**
                 attributeFilter: ['class', 'style']
             });
         });
+    }
+
+    // CSS cancels animations without animationend under reduced motion. Settle the
+    // runtime state too, so restoring the preference cannot start a deferred entrance.
+    if (reducedMotion) {
+        const onMotionChange = function(event) {
+            if (!event.matches) return;
+            document.querySelectorAll('.bp-animate.bp-is-visible, .bp-animate.bp-is-animating').forEach(function(element) {
+                if (getKeyframeName(element) !== null) settleReducedMotion(element);
+            });
+        };
+        if (typeof reducedMotion.addEventListener === 'function') {
+            reducedMotion.addEventListener('change', onMotionChange);
+        } else if (typeof reducedMotion.addListener === 'function') {
+            reducedMotion.addListener(onMotionChange);
+        }
     }
 
     /**

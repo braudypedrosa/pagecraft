@@ -1,0 +1,209 @@
+[
+  {
+    "option": "Between rows",
+    "device": "Desktop",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "rows"
+  },
+  {
+    "option": "Between rows",
+    "device": "Tablet",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "rows"
+  },
+  {
+    "option": "Between rows",
+    "device": "Mobile",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "rows"
+  },
+  {
+    "option": "Full grid",
+    "device": "Desktop",
+    "cell": [
+      {
+        "bottom": "1px solid rgb(180, 95, 60)",
+        "left": "1px solid rgb(180, 95, 60)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "all"
+  },
+  {
+    "option": "Full grid",
+    "device": "Tablet",
+    "cell": [
+      {
+        "bottom": "1px solid rgb(180, 95, 60)",
+        "left": "1px solid rgb(180, 95, 60)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "all"
+  },
+  {
+    "option": "Full grid",
+    "device": "Mobile",
+    "cell": [
+      {
+        "bottom": "1px solid rgb(180, 95, 60)",
+        "left": "1px solid rgb(180, 95, 60)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "all"
+  },
+  {
+    "option": "None",
+    "device": "Desktop",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "none"
+  },
+  {
+    "option": "None",
+    "device": "Tablet",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "none"
+  },
+  {
+    "option": "None",
+    "device": "Mobile",
+    "cell": [
+      {
+        "bottom": "0px none rgb(36, 52, 71)",
+        "left": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "overflow": false,
+    "rows": [
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      },
+      {
+        "border": "0px none rgb(36, 52, 71)"
+      }
+    ],
+    "rules": "none"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "zero": {
+    "invalid": null,
+    "value": "0s"
+  },
+  "cleared": {
+    "animation": "0.6s ease-in-out forwards bpFadeIn",
+    "delay": null,
+    "duration": null,
+    "easing": null
+  }
+}

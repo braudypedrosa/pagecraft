@@ -1,0 +1,10 @@
+Server session: 48052
+Gallery URL: http://localhost:4944/internal/components
+Capture directory: /private/tmp/pagecraft-nav-combined-one-d84-v1/qa-evidence/nav-combined-verification/gallery/nav-combined-final
+Built-in browser capture after root writes behavior-checks.json:
+var captureModule = await import('/private/tmp/pagecraft-nav-combined-one-d84-v1/tools/capture-ui-gallery.mjs');
+var captureDirectory = '/private/tmp/pagecraft-nav-combined-one-d84-v1/qa-evidence/nav-combined-verification/gallery/nav-combined-final';
+await captureModule.captureGallery(tab, captureDirectory,
+  await captureModule.readBehaviorChecks(captureDirectory));
+Compare only, do not record in this phase:
+node tools/ui-baselines.mjs compare /private/tmp/pagecraft-nav-combined-one-d84-v1/qa-evidence/nav-combined-verification/gallery/nav-combined-final

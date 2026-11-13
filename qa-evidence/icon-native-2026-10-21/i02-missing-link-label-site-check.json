@@ -1,0 +1,10 @@
+{
+  "rendered": {
+    "html": "<a id=\"pagecraft-icon-5bcvc5jg\" class=\"pagecraft-icon pagecraft-5bcvc5jg\" href=\"https://example.test/icons\"><svg class=\"pagecraft-icon-glyph\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M10.2 8.4l6 3.6-6 3.6z\"></path></svg></a>",
+    "label": null,
+    "text": "",
+    "title": null
+  },
+  "siteCheck": "Pagecraft\nQA UI Foundations — community workshops and accessibility resources\n· Home\nDraft saved 21:31\nPublish\nPreview displayed.\nSite checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem · 3 suggestions\nHide details\nA linked icon in the page has no accessible label, so the link has no name at all for anyone using a screen reader.\nHome · page\nShow me\n“Work” in the page links to the top of “Home”. Choose a section or a page that matches the label.\nHome · page\nShow me\n“About” in the page links to the top of “Home”. Choose a section or a page that matches the label.\nHome · page\nShow me\n“Contact” in the page links to the top of “Home”. Choose a section or a page that matches the label.\nHome · page\nShow me\nClose",
+  "classification": "Invalid draft is flagged as a site-check problem; no renderer fallback inferred or added."
+}

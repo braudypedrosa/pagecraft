@@ -1,0 +1,13 @@
+{
+  "field": {
+    "describedby": "P0-1",
+    "error": "Enter a duration such as 0.6s.",
+    "invalid": "true",
+    "value": "banana"
+  },
+  "public": {
+    "animation": "0.6s ease-in-out forwards bpFadeIn",
+    "duration": null
+  },
+  "reloaded": ""
+}

@@ -1,0 +1,23 @@
+{
+  "typecheck-final": {
+    "exitCode": 0
+  },
+  "full-pre-native": {
+    "exitCode": 1
+  },
+  "full-final-pre-native": {
+    "exitCode": 0
+  },
+  "build-final-1": {
+    "exitCode": 0
+  },
+  "editor-final-1": {
+    "exitCode": 0
+  },
+  "build-final-2": {
+    "exitCode": 0
+  },
+  "editor-final-2": {
+    "exitCode": 0
+  }
+}

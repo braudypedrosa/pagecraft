@@ -1,0 +1,44 @@
+[
+  {
+    "name": "match",
+    "device": "Desktop",
+    "wrapper": 1,
+    "table": 1,
+    "caption": 1
+  },
+  {
+    "name": "match",
+    "device": "Tablet",
+    "wrapper": 1,
+    "table": 1,
+    "caption": 1
+  },
+  {
+    "name": "match",
+    "device": "Mobile",
+    "wrapper": 1,
+    "table": 1,
+    "caption": 1
+  },
+  {
+    "name": "nonmatch",
+    "device": "Desktop",
+    "wrapper": 0,
+    "table": 0,
+    "caption": 0
+  },
+  {
+    "name": "nonmatch",
+    "device": "Tablet",
+    "wrapper": 0,
+    "table": 0,
+    "caption": 0
+  },
+  {
+    "name": "nonmatch",
+    "device": "Mobile",
+    "wrapper": 0,
+    "table": 0,
+    "caption": 0
+  }
+]

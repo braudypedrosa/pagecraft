@@ -1,0 +1,67 @@
+{
+  "allOpenWithSingle": true,
+  "rows": [
+    {
+      "device": "Desktop",
+      "details": [
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": true
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        }
+      ]
+    },
+    {
+      "device": "Tablet",
+      "details": [
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": true
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        }
+      ]
+    },
+    {
+      "device": "Mobile",
+      "details": [
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": true
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        },
+        {
+          "name": "pagecraft-accordion-gn4901he-ac",
+          "open": false
+        }
+      ]
+    }
+  ],
+  "keyboardDevice": "Mobile",
+  "afterSecondEnter": [
+    false,
+    true,
+    false
+  ],
+  "afterThirdSpace": [
+    false,
+    false,
+    true
+  ]
+}

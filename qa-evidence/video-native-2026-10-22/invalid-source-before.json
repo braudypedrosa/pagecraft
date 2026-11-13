@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "37f65d4b83de12d6959bfa982c935bc945e31461",
+  "nativeInput": "not a video",
+  "rendered": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\"><iframe src=\"not a video\" title=\"Video\" allowfullscreen=\"\" loading=\"lazy\"></iframe></div>",
+  "issue": "Malformed non-video text becomes a relative iframe URL. Isolated validation fix in progress."
+}

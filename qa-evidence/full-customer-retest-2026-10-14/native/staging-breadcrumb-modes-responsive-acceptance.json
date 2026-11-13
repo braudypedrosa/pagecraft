@@ -1,0 +1,346 @@
+{
+  "baselineVersion": 844,
+  "tests": [
+    {
+      "mode": "From the page",
+      "sep": "›",
+      "text": "Home & garden <sample>\nQA Modules",
+      "dom": {
+        "html": "<ol><li><a href=\"index.html\">Home &amp; garden &lt;sample&gt;</a></li><li><span aria-current=\"page\">QA Modules</span></li></ol>",
+        "links": [
+          {
+            "href": "index.html",
+            "label": "Home & garden <sample>",
+            "rel": "",
+            "target": ""
+          }
+        ]
+      },
+      "renderedSeparator": "\"›\"",
+      "passed": true
+    },
+    {
+      "mode": "From the page",
+      "sep": "/",
+      "text": "Home & garden <sample>\nQA Modules",
+      "dom": {
+        "html": "<ol><li><a href=\"index.html\">Home &amp; garden &lt;sample&gt;</a></li><li><span aria-current=\"page\">QA Modules</span></li></ol>",
+        "links": [
+          {
+            "href": "index.html",
+            "label": "Home & garden <sample>",
+            "rel": "",
+            "target": ""
+          }
+        ]
+      },
+      "renderedSeparator": "\"/\"",
+      "passed": true
+    },
+    {
+      "mode": "From the page",
+      "sep": "·",
+      "text": "Home & garden <sample>\nQA Modules",
+      "dom": {
+        "html": "<ol><li><a href=\"index.html\">Home &amp; garden &lt;sample&gt;</a></li><li><span aria-current=\"page\">QA Modules</span></li></ol>",
+        "links": [
+          {
+            "href": "index.html",
+            "label": "Home & garden <sample>",
+            "rel": "",
+            "target": ""
+          }
+        ]
+      },
+      "renderedSeparator": "\"·\"",
+      "passed": true
+    },
+    {
+      "mode": "From the page",
+      "sep": "—",
+      "text": "Home & garden <sample>\nQA Modules",
+      "dom": {
+        "html": "<ol><li><a href=\"index.html\">Home &amp; garden &lt;sample&gt;</a></li><li><span aria-current=\"page\">QA Modules</span></li></ol>",
+        "links": [
+          {
+            "href": "index.html",
+            "label": "Home & garden <sample>",
+            "rel": "",
+            "target": ""
+          }
+        ]
+      },
+      "renderedSeparator": "\"—\"",
+      "passed": true
+    },
+    {
+      "mode": "Written here",
+      "sep": "›",
+      "text": "Our practice\nCurrent space",
+      "dom": {
+        "html": "<ol><li class=\"qa-breadcrumb\"><a href=\"about.html\" target=\"_blank\" rel=\"nofollow noopener\">Our practice</a></li><li><span aria-current=\"page\">Current space</span></li></ol>",
+        "links": [
+          {
+            "href": "about.html",
+            "label": "Our practice",
+            "rel": "nofollow noopener",
+            "target": "_blank"
+          }
+        ]
+      },
+      "renderedSeparator": "\"›\"",
+      "passed": true
+    },
+    {
+      "mode": "Written here",
+      "sep": "/",
+      "text": "Our practice\nCurrent space",
+      "dom": {
+        "html": "<ol><li class=\"qa-breadcrumb\"><a href=\"about.html\" target=\"_blank\" rel=\"nofollow noopener\">Our practice</a></li><li><span aria-current=\"page\">Current space</span></li></ol>",
+        "links": [
+          {
+            "href": "about.html",
+            "label": "Our practice",
+            "rel": "nofollow noopener",
+            "target": "_blank"
+          }
+        ]
+      },
+      "renderedSeparator": "\"/\"",
+      "passed": true
+    },
+    {
+      "mode": "Written here",
+      "sep": "·",
+      "text": "Our practice\nCurrent space",
+      "dom": {
+        "html": "<ol><li class=\"qa-breadcrumb\"><a href=\"about.html\" target=\"_blank\" rel=\"nofollow noopener\">Our practice</a></li><li><span aria-current=\"page\">Current space</span></li></ol>",
+        "links": [
+          {
+            "href": "about.html",
+            "label": "Our practice",
+            "rel": "nofollow noopener",
+            "target": "_blank"
+          }
+        ]
+      },
+      "renderedSeparator": "\"·\"",
+      "passed": true
+    },
+    {
+      "mode": "Written here",
+      "sep": "—",
+      "text": "Our practice\nCurrent space",
+      "dom": {
+        "html": "<ol><li class=\"qa-breadcrumb\"><a href=\"about.html\" target=\"_blank\" rel=\"nofollow noopener\">Our practice</a></li><li><span aria-current=\"page\">Current space</span></li></ol>",
+        "links": [
+          {
+            "href": "about.html",
+            "label": "Our practice",
+            "rel": "nofollow noopener",
+            "target": "_blank"
+          }
+        ]
+      },
+      "renderedSeparator": "\"—\"",
+      "passed": true
+    },
+    {
+      "case": "fresh automatic label",
+      "text": "Home & garden <sample>\nQA Modules",
+      "label": "Home & garden <sample>",
+      "passed": true
+    },
+    {
+      "case": "settled Style Desktop",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "10px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "settled Style Tablet",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "16px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "8px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "settled Style Mobile",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "14px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "6px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "fresh Style Desktop",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "10px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "fresh Style Tablet",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "16px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "8px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "fresh Style Mobile",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "14px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "6px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "Preview Style Desktop",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "10px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "Preview Style Tablet",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "16px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "8px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    },
+    {
+      "case": "Preview Style Mobile",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "14px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "6px",
+        "text": "Home & garden <sample>QA Modules"
+      },
+      "passed": true
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "harnessNote": "Initial font probe measured nav wrapper, which inherits parent18px. Link and current label correctly use responsive --cb-size. Spacing is ol gap, not pseudo-element margin. No product defect.",
+  "restoredCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "restoredIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "restored": true,
+  "harnessInitialStyleProbes": [
+    {
+      "case": "Style Desktop",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "0px",
+        "text": "Home & garden <sample>QA Modules"
+      }
+    },
+    {
+      "case": "Style Tablet",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "0px",
+        "text": "Home & garden <sample>QA Modules"
+      }
+    },
+    {
+      "case": "Style Mobile",
+      "actual": {
+        "current": "rgb(108, 71, 47)",
+        "font": "18px",
+        "link": "rgb(36, 44, 39)",
+        "separator": "\"›\"",
+        "spacing": "0px",
+        "text": "Home & garden <sample>QA Modules"
+      }
+    }
+  ],
+  "allPassed": true
+}

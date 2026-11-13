@@ -1,0 +1,79 @@
+{
+  "cases": [
+    {
+      "name": "desktop",
+      "box": 1200,
+      "document": 1280,
+      "dotRows": 1,
+      "dotSize": {
+        "h": 36,
+        "w": 36
+      },
+      "dots": 26,
+      "left": 0,
+      "overflow": 31800,
+      "track": 1200,
+      "viewport": 1280
+    },
+    {
+      "name": "tablet",
+      "box": 786,
+      "document": 834,
+      "dotRows": 2,
+      "dotSize": {
+        "h": 36,
+        "w": 36
+      },
+      "dots": 25,
+      "left": 0,
+      "overflow": 10506,
+      "track": 786,
+      "viewport": 834
+    },
+    {
+      "name": "mobile",
+      "box": 374,
+      "document": 414,
+      "dotRows": 6,
+      "dotSize": {
+        "h": 44,
+        "w": 44
+      },
+      "dots": 26,
+      "left": 0,
+      "overflow": 8762,
+      "track": 374,
+      "viewport": 414
+    },
+    {
+      "name": "mobile-End-settled",
+      "box": 374,
+      "document": 414,
+      "dotRows": 6,
+      "dotSize": {
+        "h": 44,
+        "w": 44
+      },
+      "dots": 26,
+      "left": 8388,
+      "overflow": 8762,
+      "track": 374,
+      "viewport": 414
+    },
+    {
+      "name": "mobile-next-settled",
+      "box": 374,
+      "document": 414,
+      "dotRows": 6,
+      "dotSize": {
+        "h": 44,
+        "w": 44
+      },
+      "dots": 26,
+      "left": 338,
+      "overflow": 8762,
+      "track": 374,
+      "viewport": 414
+    }
+  ]
+}

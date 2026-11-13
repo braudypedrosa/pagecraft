@@ -1,0 +1,49 @@
+{
+  "additionalCases": [
+    {
+      "setting": "All closed",
+      "single": true,
+      "rows": [
+        {
+          "device": "Desktop",
+          "open": 0
+        },
+        {
+          "device": "Tablet",
+          "open": 0
+        },
+        {
+          "device": "Mobile",
+          "open": 0
+        }
+      ]
+    },
+    {
+      "setting": "The first one",
+      "single": true,
+      "rows": [
+        {
+          "device": "Desktop",
+          "open": 1
+        },
+        {
+          "device": "Tablet",
+          "open": 1
+        },
+        {
+          "device": "Mobile",
+          "open": 1
+        }
+      ]
+    }
+  ],
+  "otherCases": [
+    "a02-open-on-load.json",
+    "a03-single-open-keyboard.json",
+    "a03-independent-panels.json"
+  ],
+  "restored": {
+    "single": false,
+    "open": "The first one"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Isolated server-only publication validation-order verification from committed parent 1935; editor/core outputs remain parent-identical.",
+  "parentCommit": "1935ba30f7820c8d2fa83ce09e31b3a7b5de469c",
+  "exports": [
+    "/tmp/pagecraft-publication-validation-order-one-1935",
+    "/tmp/pagecraft-publication-validation-order-two-1935"
+  ],
+  "overlayCount": 2,
+  "overlays": {
+    "server/src/app.ts": {
+      "sha256": "57fef648b349964b6d99bb03de40e36e48dea09f685f0f058a46a52b102dae5b",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "server/tests/app.test.ts": {
+      "sha256": "07afd1ee32965200c334de3ae2caf7e8ecb216d08380a6e8b1b2b1c902e67887",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-publication-validation-order-one-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-one-1935/npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-publication-validation-order-two-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-two-1935/npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-publication-validation-order-one-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-one-1935/package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-publication-validation-order-two-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-two-1935/package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-publication-validation-order-one-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-one-1935/demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-publication-validation-order-two-1935",
+        "log": "/tmp/pagecraft-publication-validation-order-two-1935/demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "rawNodeImport": {
+      "command": "node --experimental-strip-types -e import app.ts and font-freeze.ts",
+      "cwd": "/tmp/pagecraft-publication-validation-order-one-1935",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- server/src/app.ts server/tests/app.test.ts",
+      "cwd": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft",
+      "exitCode": 0
+    },
+    "canonicalBaselineCheck": {
+      "command": "node tools/ui-baselines.mjs check",
+      "cwd": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft",
+      "exitCode": 0,
+      "images": 24,
+      "sourceFiles": 28,
+      "note": "UI baseline contract unchanged; no gallery recapture."
+    },
+    "fullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-publication-validation-order-one-1935",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-publication-validation-order-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 206,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 208,
+      "testsPassed": 2340,
+      "testsSkipped": 5,
+      "testsTotal": 2345,
+      "duration": "46.89s"
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "ba662f5935b5f40179aa87654e9944d6f27c5fc3270571e60dff0e80ac5861ff",
+        "two": "ba662f5935b5f40179aa87654e9944d6f27c5fc3270571e60dff0e80ac5861ff",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "ba662f5935b5f40179aa87654e9944d6f27c5fc3270571e60dff0e80ac5861ff"
+      },
+      "dist/core.cjs": {
+        "one": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f",
+        "two": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f"
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "9372f9f2ecf22c5a2001bad97c4da7a491d5d6a1bfb622f7a6e97a688bb71023",
+        "two": "9372f9f2ecf22c5a2001bad97c4da7a491d5d6a1bfb622f7a6e97a688bb71023",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "9372f9f2ecf22c5a2001bad97c4da7a491d5d6a1bfb622f7a6e97a688bb71023"
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6"
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc"
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+        "two": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de"
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495"
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": null,
+        "parentCommittedSha256": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "c1c4f232bf2f9ada2e21b9cbcde9b0a7d0521f7b4461e134587d8e3b631b9219",
+        "two": "c1c4f232bf2f9ada2e21b9cbcde9b0a7d0521f7b4461e134587d8e3b631b9219",
+        "oneEqualsTwo": true,
+        "equalsParentCommitted": null,
+        "parentCommittedSha256": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "mainProtected11Unchanged": true,
+    "mainProtected11Count": 11,
+    "mainProtectedEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json",
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExact": true,
+    "untrackedGeneratedCount": 2
+  },
+  "sourceScope": "Only server/src/app.ts and server/tests/app.test.ts overlaid; no builder/core/editor files changed."
+}

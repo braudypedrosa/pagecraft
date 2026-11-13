@@ -1,0 +1,22 @@
+{
+  "base": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+  "sources": [
+    "app/src/core/index.ts",
+    "app/src/core/types.ts",
+    "app/src/ui/inspector/Controls.tsx",
+    "app/src/ui/inspector/Inspector.tsx",
+    "tests/unit-control-validation.test.tsx"
+  ],
+  "nativeReport": "../native/local-integer-v2-acceptance.json",
+  "localNativeCases": 24,
+  "fullTestsPassed": 2421,
+  "fullTestsSkipped": 5,
+  "behaviorChecks": 30,
+  "images": 24,
+  "changedPixels": 0,
+  "protectedGenerated11Exact": true,
+  "stagingNative": "native/staging-24ec-integer-acceptance.json:10cases accepted/restored",
+  "wordpressParity": "Preview55:15cases accepted/restored; final WPbbde657e2170ed804c57c00215577d444749b855; new513/514; protected15+legacy14exact",
+  "overallPass": false,
+  "fullCustomerRetestComplete": false
+}

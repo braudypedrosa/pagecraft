@@ -1,0 +1,50 @@
+{
+  "status": "Root-reviewed private baseline cache rebase completed",
+  "rootReviewedChanges": [
+    {
+      "name": "_elementor_pro_free_trial_data",
+      "beforeRowId": 326,
+      "afterRowId": 326,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792693786,
+      "after": 1792697416,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2121,
+      "afterRowId": 2128,
+      "autoloadExact": true,
+      "changedField": "timeout",
+      "before": 1792693935,
+      "after": 1792695795
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2122,
+      "afterRowId": 2129,
+      "autoloadExact": true,
+      "valueExact": true
+    }
+  ],
+  "originalSQLSHA256": "13eb9dfb7b0601f8b2f5338c1cd347f850ee8791d82c920ba70a508d7a431469",
+  "rebasedSQLSHA256": "45908ac2c80a6d55d6ac5ba45ced02ac504b19147982670c259268995bb7dd5f",
+  "freshCaptureByteExactReviewedSQL": true,
+  "protectedSnapshotByteExact": true,
+  "tables": 133,
+  "unchangedInsertTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "allOtherDataExact": true,
+  "installed55Theme19Importer16Exact": true,
+  "all22PreguardInvariantsRetained": true,
+  "currentQA616Version": 34,
+  "currentRevisions": 399,
+  "candidateWordPressCommit": "150998dd4a878a3171c72a35c34c176966eff23e",
+  "installerSHA256": "9e37f1d5838a68dae4b46646029b76ec342b09e246a3dfb8db52b20b96ce820b",
+  "databaseWritesPerformed": false,
+  "installerExecuted": false,
+  "baselineFilesPreserved": "historical-before-approved-cache-rebase-*"
+}

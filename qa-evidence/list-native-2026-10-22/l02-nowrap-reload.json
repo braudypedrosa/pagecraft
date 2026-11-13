@@ -1,0 +1,26 @@
+[
+  {
+    "count": 18,
+    "device": "Desktop",
+    "pageOverflow": false,
+    "scrollWidth": 1200,
+    "width": 1200,
+    "wrap": "nowrap"
+  },
+  {
+    "count": 18,
+    "device": "Tablet",
+    "pageOverflow": false,
+    "scrollWidth": 792,
+    "width": 786,
+    "wrap": "nowrap"
+  },
+  {
+    "count": 18,
+    "device": "Mobile",
+    "pageOverflow": true,
+    "scrollWidth": 395,
+    "width": 374,
+    "wrap": "nowrap"
+  }
+]

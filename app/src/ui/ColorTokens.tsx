@@ -11,6 +11,10 @@
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 
+/** Text Styles is a separate mounted root inside Project Settings, so changes to the shared
+    palette must explicitly refresh its colour choices. */
+const repaintColorDependents = () => repaint('styles');
+
 function Row({ id }: { id: string }) {
   const t = C.findColor(id);
   if (!t) return null;
@@ -29,16 +33,22 @@ function Row({ id }: { id: string }) {
     const cv = row.querySelector('.hexval') as HTMLInputElement | null;
     if (cp && /^#[0-9a-f]{6}$/i.test(v) && cp.value !== v) cp.value = v;
     if (cv && cv.value !== v) cv.value = v;
-    L.paintCss(); L.save();
+    L.paintCss(); L.save(); repaintColorDependents();
   };
 
   const remove = async () => {
+    let check = C.colorDeleteCheck(id);
+    if (!check.ok) { L.toast(check.reason, { tone: 'error' }); return; }
     const used = C.colorUsage(id);
     if (used && !await L.askConfirm('Delete this colour token?',
       `<b>${esc(t.name)}</b> is used ${used}×. Those elements keep the colour, as a `
       + 'literal value — they just stop following the token.', { ok: 'Delete token' })) return;
-    C.edit(() => C.colorDelete(id));
+    /* Confirmation is asynchronous. Recheck the exact current CSS before opening history. */
+    check = C.colorDeleteCheck(id);
+    if (!check.ok) { L.toast(check.reason, { tone: 'error' }); return; }
+    C.edit(() => C.colorDelete(id), 'Delete colour token');
     repaint('colors');
+    repaintColorDependents();
     L.toast('Token deleted, colours kept');
   };
 
@@ -56,7 +66,7 @@ function Row({ id }: { id: string }) {
           onInput={e => {
             L.tx('tokname:' + id);
             const tok = C.findColor(id);
-            if (tok) { tok.name = (e.target as HTMLInputElement).value; L.save(); }
+            if (tok) { tok.name = (e.target as HTMLInputElement).value; L.save(); repaintColorDependents(); }
           }} onBlur={L.endTx} aria-label="Colour token name" />
       </span>
       <input class="ctl hexval" value={t.value}
@@ -78,6 +88,7 @@ export function ColorTokens() {
     if (name === null) return;
     C.edit(() => C.colorAdd(name, '#888888'));
     repaint('colors');
+    repaintColorDependents();
   };
   return (
     <>

@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Desktop",
+    "input": {
+      "type": "text",
+      "value": "16px 18px"
+    },
+    "computed": "16px 18px"
+  },
+  {
+    "device": "Tablet",
+    "input": {
+      "type": "text",
+      "value": "16px 18px"
+    },
+    "computed": "16px 18px"
+  },
+  {
+    "device": "Mobile",
+    "input": {
+      "type": "text",
+      "value": "12px 13px"
+    },
+    "computed": "12px 13px"
+  }
+]

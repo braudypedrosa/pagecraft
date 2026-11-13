@@ -1,0 +1,77 @@
+{
+  "changedPackages": [
+    {
+      "package": "",
+      "old": "0.2.0",
+      "new": "0.2.0",
+      "dev": null
+    },
+    {
+      "package": "node_modules/@vitest/expect",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/mocker",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/pretty-format",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/runner",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/snapshot",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/spy",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/@vitest/utils",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    },
+    {
+      "package": "node_modules/chai",
+      "old": "6.2.2",
+      "new": "6.3.0",
+      "dev": true
+    },
+    {
+      "package": "node_modules/tinyrainbow",
+      "old": "3.1.1",
+      "new": "3.2.0",
+      "dev": true
+    },
+    {
+      "package": "node_modules/vitest",
+      "old": "4.1.11",
+      "new": "4.1.12",
+      "dev": true
+    }
+  ],
+  "sourceHashes": {
+    "package.json": "53178c6d2aeba5fb91b7c34b2dcd0ae578ffa7f02138466d814cee88427209ca",
+    "package-lock.json": "928cd274831b30951f784e36fca7c844b8325f6b89aa7140f5f775a41cedeecd"
+  },
+  "explicitExitsChecked": true,
+  "zeroAuditChecked": true,
+  "status": "Reviewed local dev-only patch; integration pending accepted List release. No generated artifacts selected."
+}

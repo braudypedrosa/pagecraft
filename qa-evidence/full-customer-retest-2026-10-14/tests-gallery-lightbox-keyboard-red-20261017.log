@@ -1,0 +1,53 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft
+
+ ❯ tests/gallery-lightbox-keyboard-runtime.test.ts (2 tests | 2 failed) 62ms
+     × Tab wraps only at the visible control boundaries 54ms
+     × a single-image lightbox skips hidden controls and keeps Tab on Close 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gallery-lightbox-keyboard-runtime.test.ts > Gallery lightbox keyboard runtime > Tab wraps only at the visible control boundaries
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/gallery-lightbox-keyboard-runtime.test.ts:58:39
+     56|     previous.focus();
+     57|     const backward = tab(dom, previous, true);
+     58|     expect(backward.defaultPrevented).toBe(true);
+       |                                       ^
+     59|     expect(dom.window.document.activeElement).toBe(close);
+     60|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/gallery-lightbox-keyboard-runtime.test.ts > Gallery lightbox keyboard runtime > a single-image lightbox skips hidden controls and keeps Tab on Close
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/gallery-lightbox-keyboard-runtime.test.ts:83:38
+     81|     close.focus();
+     82|     const forward = tab(dom, close);
+     83|     expect(forward.defaultPrevented).toBe(true);
+       |                                      ^
+     84|     expect(dom.window.document.activeElement).toBe(close);
+     85|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  12:24:51
+   Duration  796ms (transform 163ms, setup 0ms, import 636ms, tests 62ms, environment 0ms)
+

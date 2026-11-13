@@ -120,7 +120,8 @@ For each linked item, compare the new version with the link:
 - **Table.** `library_members(library_id, user_id, invited_by, created_at)` (migration
   `20261001200000_library_members.sql`), with RLS on and client grants revoked. Membership is by
   user row: an address with no account yet gets a pending `users` row, exactly like a site
-  invitation. The share takes effect when they sign in with that address.
+  invitation. New shares are pending in `collaboration_invitations` and take effect only when
+  the addressed person signs in and accepts at `/invitations`. Existing memberships are kept.
 - **Access.** Every library route goes through one gate (`libraryGate` in `server/src/app.ts`),
   backed by the gateway op `library.getFor`. A library nobody shared with you is a 404, like
   someone else's site.
@@ -130,18 +131,20 @@ For each linked item, compare the new version with the link:
     actions get a 403 `only_owner`, with a reason.
 - **Members API.**
   - `GET /api/libraries/:id/members` lists members.
-  - `POST` with `{email}` adds one and returns just that member. It is throttled with the
-    site-invitation limits, and a library holds at most 50 members. The member count and the
+  - `POST` with `{email}` invites one and returns that pending member with `awaitingAcceptance`.
+    It is throttled with the site-invitation limits, and a library holds at most 50 active and
+    pending members combined. The member count and the
     address lookup run in parallel, and the notice is sent after the response, because each
     gateway round trip costs about half a second.
   - `DELETE /api/libraries/:id/members/:userId` removes someone; `me` means leave.
 - **Notice.** A new share posts an in-app notice and, when mail is configured, an email: "Owner
-  shared a library with you". It goes through the same path as review notices.
+  invited you to a library". Both point to `/invitations` for acceptance or decline.
 - **Leaving or removal.** Imported items stay in the member's sites as their own copies. Their
   links remain, but the library stops appearing, so no update is offered.
 - **Editor.**
-  - Owners get **Share…** in a library: an email field, the member list with "No Pagecraft
-    account yet" for pending people, and a remove button.
+  - Owners get **Share…** in a library: an email field, the member list with "Awaiting
+    acceptance" for new invitations, and a remove button. Older memberships without an account
+    retain the "No Pagecraft account yet" label.
   - Viewers see "Shared by …" in the list, and no Publish or Share. They can import, take updates,
     and choose "Leave this library".
   - "Add to library…" offers only libraries you own.

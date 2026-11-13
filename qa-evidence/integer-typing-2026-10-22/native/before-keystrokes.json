@@ -1,0 +1,21 @@
+{
+  "version": "85",
+  "field": "Items per page",
+  "steps": [
+    {
+      "key": "2",
+      "value": "2"
+    },
+    {
+      "key": ".",
+      "value": "2"
+    },
+    {
+      "key": "5",
+      "value": "52"
+    }
+  ],
+  "expectedFinal": "3",
+  "actualFinal": "52",
+  "method": "Native pressSequentially one character per step after ControlOrMeta+A"
+}

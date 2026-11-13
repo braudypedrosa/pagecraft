@@ -1,0 +1,32 @@
+{
+  "controls": "Collection list\nLayout\nGrid\nSort by\nCMS order\nDirection\nA–Z\nZ–A\nFilter\nEvery item\nItems per page\n—\nVertical align\nInherited\nBase\nFill\nGap\nOverride\npx\nCollection\nCommunity workshops, events and accessibility resources · 27 items\nBind the fields inside…\nWrap\nInherited\nWrap",
+  "rows": [
+    {
+      "device": "Desktop",
+      "titles": [
+        "12. Community workshop and accessibility review for local teams"
+      ],
+      "count": 1,
+      "expectedCount": 1,
+      "pass": true
+    },
+    {
+      "device": "Tablet",
+      "titles": [
+        "12. Community workshop and accessibility review for local teams"
+      ],
+      "count": 1,
+      "expectedCount": 1,
+      "pass": true
+    },
+    {
+      "device": "Mobile",
+      "titles": [
+        "12. Community workshop and accessibility review for local teams"
+      ],
+      "count": 1,
+      "expectedCount": 1,
+      "pass": true
+    }
+  ]
+}

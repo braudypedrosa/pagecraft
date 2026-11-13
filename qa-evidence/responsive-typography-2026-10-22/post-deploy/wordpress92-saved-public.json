@@ -1,0 +1,90 @@
+{
+  "editorReload": {
+    "Desktop": [
+      {
+        "id": "n4f0tt272",
+        "size": "18px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "18px"
+      }
+    ],
+    "Tablet": [
+      {
+        "id": "n4f0tt272",
+        "size": "16px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "16px"
+      }
+    ],
+    "Mobile": [
+      {
+        "id": "n4f0tt272",
+        "size": "16px"
+      },
+      {
+        "id": "n698yp1ha",
+        "size": "16px"
+      }
+    ]
+  },
+  "public": {
+    "414": [
+      {
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "id": "qa-room",
+        "pageOverflow": false,
+        "size": "16px",
+        "width": 359
+      },
+      {
+        "html": "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>",
+        "id": "pagecraft-wysiwyg-698yp1ha",
+        "pageOverflow": false,
+        "size": "16px",
+        "width": 359
+      }
+    ],
+    "834": [
+      {
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "id": "qa-room",
+        "pageOverflow": false,
+        "size": "16px",
+        "width": 771
+      },
+      {
+        "html": "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>",
+        "id": "pagecraft-wysiwyg-698yp1ha",
+        "pageOverflow": false,
+        "size": "16px",
+        "width": 771
+      }
+    ],
+    "1280": [
+      {
+        "html": "<ul><li><b><a href=\"#qa-room\">Community workshop guide</a></b></li><li><b><a href=\"#qa-room\">Quiet room bookings</a></b></li></ul>",
+        "id": "qa-room",
+        "pageOverflow": false,
+        "size": "18px",
+        "width": 1217
+      },
+      {
+        "html": "<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>",
+        "id": "pagecraft-wysiwyg-698yp1ha",
+        "pageOverflow": false,
+        "size": "18px",
+        "width": 1217
+      }
+    ]
+  },
+  "cleanup": {
+    "tab": "22",
+    "cpu": {},
+    "viewport": {},
+    "media": {}
+  }
+}

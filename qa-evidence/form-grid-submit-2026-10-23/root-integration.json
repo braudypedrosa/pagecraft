@@ -1,0 +1,9 @@
+{
+  "status": "staged and verified",
+  "protected11Exact": true,
+  "explicitStagePaths": 111,
+  "sourceAndGeneratedExact": true,
+  "productWhitespaceCheck": "pass",
+  "rawEvidenceWhitespace": "15 raw logs contain trailing blank line; preserved unchanged",
+  "integrationScriptStoppedAt": "full cached whitespace check only, all mutation and exact-byte checks completed"
+}

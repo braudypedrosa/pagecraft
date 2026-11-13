@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Desktop",
+    "class": "pagecraft-accordion pagecraft-gn4901he qa-faq qa-interaction",
+    "id": "qa-accordion-native",
+    "items": 4,
+    "outline": "rgb(21, 85, 119) solid 2px",
+    "overflow": false
+  },
+  {
+    "device": "Tablet",
+    "class": "pagecraft-accordion pagecraft-gn4901he qa-faq qa-interaction",
+    "id": "qa-accordion-native",
+    "items": 4,
+    "outline": "rgb(21, 85, 119) solid 2px",
+    "overflow": false
+  },
+  {
+    "device": "Mobile",
+    "class": "pagecraft-accordion pagecraft-gn4901he qa-faq qa-interaction",
+    "id": "qa-accordion-native",
+    "items": 4,
+    "outline": "rgb(21, 85, 119) solid 2px",
+    "overflow": false
+  }
+]

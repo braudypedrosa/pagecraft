@@ -1,0 +1,44 @@
+{
+  "duplicateNames": [
+    {
+      "name": "name",
+      "type": "text"
+    },
+    {
+      "name": "email",
+      "type": "email"
+    },
+    {
+      "name": "message",
+      "type": "textarea"
+    },
+    {
+      "name": "project-type",
+      "type": "select-one"
+    },
+    {
+      "name": "email",
+      "type": "checkbox"
+    },
+    {
+      "name": "_pc_trap",
+      "type": "text"
+    }
+  ],
+  "checkMentions": [
+    "    - generic: Email *",
+    "    - textbox \"Email\"",
+    "    - checkbox \"QA field <sample>\"",
+    "    - generic: QA field <sample>",
+    "    - generic: Email *",
+    "    - textbox \"Email\"",
+    "  - button \"Duplicate (⌘D)\":",
+    "      - generic: Email",
+    "      - generic: QA field <sample>",
+    "    - generic: Field name",
+    "      - text: email",
+    "    - text: Duplicate",
+    "  - generic: 1 problem · 27 suggestions",
+    "    - text: Two fields in a form in the page both submit as “email”, so one value will overwrite the other."
+  ]
+}

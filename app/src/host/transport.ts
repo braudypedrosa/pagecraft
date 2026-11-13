@@ -6,7 +6,14 @@ export interface HostRequest {
   headers?: Readonly<Record<string, string>>;
   body?: BodyInit | Record<string, unknown>;
   responseType?: HostResponseType;
+  /** Let the request outlive the page, for a save sent while the tab closes. Honoured only for a
+      body the browser accepts as keepalive; a larger one goes as an ordinary request. */
+  keepalive?: boolean;
 }
+
+/* Browsers refuse a keepalive request whose body, with every other keepalive in flight, passes
+   64 KiB — refuse it outright, not by sending less. A little under, for the headers' sake. */
+const KEEPALIVE_MAX = 60_000;
 
 export interface HostResponse<T> {
   status: number;
@@ -46,8 +53,10 @@ export class FetchHostTransport implements HostTransport {
       customHeaders['content-type'] ||= 'application/json';
       body = JSON.stringify(body);
     }
+    const keepalive = !!request.keepalive
+      && (typeof body !== 'string' || new TextEncoder().encode(body).length < KEEPALIVE_MAX);
     const response = await this.fetcher(this.baseUrl + request.path, {
-      method: request.method, headers: customHeaders, body
+      method: request.method, headers: customHeaders, body, ...(keepalive ? { keepalive } : {})
     });
     const type = request.responseType || 'json';
     let parsed: unknown;

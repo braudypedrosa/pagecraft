@@ -1,0 +1,26 @@
+{
+  "index.html": {
+    "beforeBytes": 2205744,
+    "afterBytes": 2390897,
+    "deltaBytes": 185153,
+    "beforeGzipBytes": 664923,
+    "afterGzipBytes": 727965,
+    "gzipDeltaBytes": 63042
+  },
+  "dist/core.cjs": {
+    "beforeBytes": 648779,
+    "afterBytes": 741251,
+    "deltaBytes": 92472,
+    "beforeGzipBytes": 179338,
+    "afterGzipBytes": 210938,
+    "gzipDeltaBytes": 31600
+  },
+  "packages/editor/dist/editor.html": {
+    "beforeBytes": 2205720,
+    "afterBytes": 2390873,
+    "deltaBytes": 185153,
+    "beforeGzipBytes": 664938,
+    "afterGzipBytes": 727972,
+    "gzipDeltaBytes": 63034
+  }
+}

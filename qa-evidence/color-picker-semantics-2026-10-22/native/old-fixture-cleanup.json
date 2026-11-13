@@ -1,0 +1,6 @@
+{
+  "tabClosed": "54",
+  "ownedProcessVerified": 98219,
+  "command": "node --experimental-strip-types tools/.qa-ui-4986.mjs",
+  "port4986ListenerAbsent": true
+}

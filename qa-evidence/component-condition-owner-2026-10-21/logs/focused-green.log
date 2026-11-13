@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-condition-owner-1827aaf
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  10:11:47
+   Duration  1.55s (transform 325ms, setup 0ms, import 383ms, tests 55ms, environment 977ms)

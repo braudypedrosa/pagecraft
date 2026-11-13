@@ -1,0 +1,30 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+ ❯ tests/component-rename.test.tsx (7 tests | 1 failed | 6 skipped) 80ms
+   × mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit 79ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rename.test.tsx > mixed delete explains ordinary retention separately from mobile fallback and commits one reversible edit
+AssertionError: expected '1 mobile menu · no properties yet' to contain '1 instance'
+
+Expected: "1 instance"
+Received: "1 mobile menu · no properties yet"
+
+ ❯ tests/component-rename.test.tsx:183:20
+    181|   const before = C.clone(C.doc());
+    182|   const metadata = row(definition.name).querySelector('small')!.textCo…
+    183|   expect(metadata).toContain('1 instance'); expect(metadata).toContain…
+       |                    ^
+    184|   const message = remove(definition.name);
+    185|   expect(message).toContain('one place using it keep what they show, a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 skipped (7)
+   Start at  06:23:57
+   Duration  1.13s (transform 284ms, setup 0ms, import 340ms, tests 80ms, environment 583ms)
+

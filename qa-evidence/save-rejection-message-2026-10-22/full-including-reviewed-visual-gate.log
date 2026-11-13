@@ -1,0 +1,22 @@
+
+> pagecraft@0.2.0 test
+> node tools/test-editor-build-order.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+Public form control runtimes written to /private/tmp/pagecraft-save-error-contract.dxjdy1wr/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (686 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-save-error-contract.dxjdy1wr/packages/editor/dist
+Direct editor package build refreshed stale public form runtimes before importing Core
+
+ RUN  v4.1.12 /private/tmp/pagecraft-save-error-contract.dxjdy1wr
+
+(node:8499) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8504) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:8665) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  261 passed | 2 skipped (263)
+      Tests  2724 passed | 5 skipped (2729)
+   Start at  23:02:15
+   Duration  100.48s (transform 6.33s, setup 0ms, import 65.19s, tests 241.71s, environment 44.89s)

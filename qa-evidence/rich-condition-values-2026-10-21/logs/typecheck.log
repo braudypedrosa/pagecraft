@@ -1,0 +1,16 @@
+
+> pagecraft@0.2.0 typecheck
+> tsc --noEmit
+
+tests/rich-condition-values.test.ts(22,21): error TS2322: Type 'Binding | null' is not assignable to type 'Binding'.
+  Type 'null' is not assignable to type 'Binding'.
+tests/rich-condition-values.test.ts(69,21): error TS2322: Type 'Binding | null' is not assignable to type 'Binding'.
+  Type 'null' is not assignable to type 'Binding'.
+tests/rich-condition-values.test.ts(71,21): error TS2322: Type 'Binding | null' is not assignable to type 'Binding'.
+  Type 'null' is not assignable to type 'Binding'.
+tests/rich-condition-values.test.ts(74,21): error TS2322: Type 'Binding | null' is not assignable to type 'Binding'.
+  Type 'null' is not assignable to type 'Binding'.
+tests/rich-condition-values.test.ts(84,21): error TS2322: Type 'Binding | null' is not assignable to type 'Binding'.
+  Type 'null' is not assignable to type 'Binding'.
+tests/rich-condition-values.test.ts(142,39): error TS2741: Property 'edit' is missing in type '{}' but required in type 'RenderOpts'.
+tests/rich-condition-values.test.ts(145,39): error TS2741: Property 'edit' is missing in type '{}' but required in type 'RenderOpts'.

@@ -1,0 +1,20 @@
+{
+  "reason": "Trailing blank lines only; original logs retained in isolated checkout.",
+  "logs": [
+    {
+      "file": "focused-tests.log",
+      "originalSha256": "d7b720a5c299b4d40d517fa4cfea82c257f26ae994ef45fc766c2c54babfbc3b",
+      "savedSha256": "5c52540b81404f18d615845fb913b15f138f4cb5d7b001d85caa79e046fa5b1f"
+    },
+    {
+      "file": "full-suite.log",
+      "originalSha256": "0d4931271b20d284e65de0aa005a0c02b47db5884f23e62a92d5120e303c7a1b",
+      "savedSha256": "be4dd75d47cd514d421c0df012f2fa8d860f804451a0401a328f8f25a56175d6"
+    },
+    {
+      "file": "typecheck.log",
+      "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "savedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    }
+  ]
+}

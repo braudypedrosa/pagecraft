@@ -1,0 +1,51 @@
+{
+  "invalidPublic": {
+    "animation": "0.6s ease-in-out forwards bpFadeIn",
+    "duration": null
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "fields": {
+        "Duration": ".75s",
+        "Delay": "-100ms",
+        "Easing": "steps(2, end)"
+      },
+      "public": {
+        "animation": "0.75s steps(2) -0.1s forwards bpFadeIn",
+        "delay": "-100ms",
+        "duration": ".75s",
+        "easing": "steps(2, end)"
+      }
+    },
+    {
+      "device": "Tablet",
+      "fields": {
+        "Duration": ".75s",
+        "Delay": "-100ms",
+        "Easing": "steps(2, end)"
+      },
+      "public": {
+        "animation": "0.75s steps(2) -0.1s forwards bpFadeIn",
+        "delay": "-100ms",
+        "duration": ".75s",
+        "easing": "steps(2, end)"
+      }
+    },
+    {
+      "device": "Mobile",
+      "fields": {
+        "Duration": ".75s",
+        "Delay": "-100ms",
+        "Easing": "steps(2, end)"
+      },
+      "public": {
+        "animation": "0.75s steps(2) -0.1s forwards bpFadeIn",
+        "delay": "-100ms",
+        "duration": ".75s",
+        "easing": "steps(2, end)"
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,7 @@
+# Released empty Rich canvas hit area
+
+Cloud/staging37820488905becc37e9870ca5d9c93fe370015ab exactmarker verified. CI39554454805/deployment39554454718 green. Native desktop/mobile414 selection of saved empty component `ncups019k` gains24px hit target; source condition action works. History1029 restores20IDs and bothnew-release style texts exactly. Local ordinary/source/false+true/inline-edit/reload/public-output cases pass. Automated2527pass/5skip,11deterministic,audit0,demo0,baseline24/28.
+
+WordPressPreview78 exact378 is installed/pushed778a137a28f32bcd0fcce629293c2aa2d9323cbe. Rootnative empty `np3jg4173`24px/D/M414 selection and source action pass; History53restored11IDs/styles/SaveDisabled ascurrent55. Rootindependent installSQLbyteexact; final133tables/131exact, changesonlyfixture487/new578-581revisions/meta; prior294revisions/meta exact, alloptions exact. ActualBuilder55/Theme19/Importer16 exact and historical92packages preserved. Rootindependently verifiedCI39557434249 greenPHP8.1/8.2/8.3. FinishedWordPressownedtabclosed afterevidence; noCPU/networkthrottle.
+
+Separatepre-existing nested n.use selection defect exposed by wrapping the component insideColumn. Nativefollowupfile recordsfailure; isolatededitorPathcandidate passesnativefixbut is not yetreleased atthisrecord. PublicnestedgeneratedduplicateIDs separatelyconfirmed; fixingthose requirespreservingcanonicalanchors. Fourteenbroaderareasopen; fullcustomerQA/productionreadinessunclaimed.

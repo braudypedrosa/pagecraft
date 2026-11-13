@@ -1,0 +1,42 @@
+{
+  "version": 26,
+  "verifyJwt": false,
+  "files": [
+    {
+      "name": "index.ts",
+      "liveSha": "62d335f51a5af7bd6e1cbc4eed0e417ba912fa66766507769e1c865949c6e38f",
+      "mainSha": "62d335f51a5af7bd6e1cbc4eed0e417ba912fa66766507769e1c865949c6e38f",
+      "exact": true
+    },
+    {
+      "name": "collaboration-invitations.ts",
+      "liveSha": "c4ea313ea0483ab0b68b607084ea6c50ac45c04786efeac4f62a81e5ee61d9ef",
+      "mainSha": "c4ea313ea0483ab0b68b607084ea6c50ac45c04786efeac4f62a81e5ee61d9ef",
+      "exact": true
+    },
+    {
+      "name": "manual-import-refresh.ts",
+      "liveSha": "f34d4d9201ea4d1d41bb02c7feda462ce62660807923e31ee7ec90657e35e384",
+      "mainSha": "f34d4d9201ea4d1d41bb02c7feda462ce62660807923e31ee7ec90657e35e384",
+      "exact": true
+    },
+    {
+      "name": "plan-entitlements.ts",
+      "liveSha": "3e844a2340fd128f256cd74f53124f7253633db06115d96cf055280258a19f1b",
+      "mainSha": "3e844a2340fd128f256cd74f53124f7253633db06115d96cf055280258a19f1b",
+      "exact": true
+    },
+    {
+      "name": "blob-protocol.ts",
+      "liveSha": "bafd7153598bd341c38f46e03a5cfb3ef89e2ddd1b72155804aa79b30be9dbfa",
+      "mainSha": "bafd7153598bd341c38f46e03a5cfb3ef89e2ddd1b72155804aa79b30be9dbfa",
+      "exact": true
+    },
+    {
+      "name": "deno.json",
+      "liveSha": "fe05ea49ed3f237e7a7a08009c8170c8fbcc4352ce4093b3c26707eebfadf962",
+      "mainSha": "fe05ea49ed3f237e7a7a08009c8170c8fbcc4352ce4093b3c26707eebfadf962",
+      "exact": true
+    }
+  ]
+}

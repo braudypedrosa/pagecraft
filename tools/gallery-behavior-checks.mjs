@@ -13,6 +13,15 @@ async function page(tab, base, host, section, { reducedMotion }) {
 }
 const js = (tab, fn, arg) => tab.playwright.evaluate(fn, arg);
 const click = (tab, role, name) => tab.playwright.getByRole(role, { name, exact: true }).click();
+// Observe the 120ms exit before a native input wrapper's settling delay completes.
+// This is real pointer input on a measured, visible gallery control.
+async function immediateClick(tab, role, name) {
+  const rect = await tab.playwright.getByRole(role, { name, exact: true }).evaluate(element => element.getBoundingClientRect().toJSON());
+  const cdp = await tab.capabilities.get('cdp');
+  const pointer = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, button: 'left', clickCount: 1 };
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...pointer });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...pointer });
+}
 
 const CHECKS = [
   ['Select Escape preserves Home, closes picker and returns focus', async (tab, base, host) => {
@@ -32,12 +41,76 @@ const CHECKS = [
     return { passed: before === 'Home' && opened.expanded === 'true' && opened.popovers === 1 && after.value === 'Home' && after.expanded === 'false' && after.role === 'combobox' && !after.popovers,
       detail: { before, opened, after } };
   }],
+  ['Modal picker receives pointer input above the dialog and preserves value on resize', async (tab, base, host) => {
+    const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    const before = await js(tab, () => {
+      const menu = document.querySelector('#sample-dialog .pc-custom-select-popover:not([hidden])');
+      const option = menu?.querySelector('[data-value="public"]'), r = option?.getBoundingClientRect();
+      return { modal: document.getElementById('sample-dialog').matches(':modal'),
+        topLayer: menu?.matches(':popover-open'), receivesPointer: !!r && option.contains(document.elementFromPoint(r.x+r.width/2, r.y+r.height/2)),
+        withinViewport: !!r && r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight };
+    });
+    await click(tab, 'option', 'Anyone with the link');
+    await click(tab, 'combobox', 'Sample access');
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 768, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(250);
+    const resized = await js(tab, () => {
+      const trigger = document.querySelector('#sample-dialog .pc-custom-select-trigger'), menu = document.querySelector('#sample-dialog .pc-custom-select-popover:not([hidden])');
+      const t = trigger.getBoundingClientRect(), m = menu.getBoundingClientRect();
+      return { value: document.getElementById('dialog-access').value, anchored: Math.abs(t.left-m.left)<2,
+        overflow: document.documentElement.scrollWidth > innerWidth, menuVisible: m.width > 0 && m.right <= innerWidth && m.bottom <= innerHeight };
+    });
+    await tab.pressKey('Escape');
+    await tab.pressKey('Escape');
+    return { passed: before.modal && before.topLayer && before.receivesPointer && before.withinViewport && resized.value === 'public' && resized.anchored && !resized.overflow && resized.menuVisible, detail: { before, resized } };
+  }],
+  ['Modal picker Escape cancels first and Tab preserves dialog navigation', async (tab, base, host) => {
+    await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('ArrowDown');
+    await tab.pressKey('Escape');
+    const escaped = await js(tab, () => ({ open: document.getElementById('sample-dialog').open, value: document.getElementById('dialog-access').value,
+      focus: document.activeElement?.getAttribute('aria-label'), expanded: document.activeElement?.getAttribute('aria-expanded'),
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length }));
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Tab');
+    const tabbed = await js(tab, () => ({ open: document.getElementById('sample-dialog').open, focusInDialog: document.getElementById('sample-dialog').contains(document.activeElement),
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length }));
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Shift+Tab');
+    const backwards = await js(tab, () => document.activeElement?.id);
+    await click(tab, 'combobox', 'Sample access');
+    await tab.pressKey('Escape');
+    await tab.pressKey('Escape');
+    await sleep(200);
+    const parentClosed = await js(tab, () => !document.getElementById('sample-dialog').open);
+    return { passed: escaped.open && escaped.value === 'private' && escaped.focus === 'Sample access' && escaped.expanded === 'false' && !escaped.menus && tabbed.open && tabbed.focusInDialog && !tabbed.menus && backwards === 'dialog-name' && parentClosed, detail: { escaped, tabbed, backwards, parentClosed } };
+  }],
+  ['Modal picker rapid reopening cancels exit and parent close leaves no orphan', async (tab, base, host) => {
+    await page(tab, base, host, 'dialogs', { reducedMotion: false });
+    await click(tab, 'button', 'Open dialog');
+    await click(tab, 'combobox', 'Sample access');
+    await immediateClick(tab, 'combobox', 'Sample access');
+    await immediateClick(tab, 'combobox', 'Sample access');
+    await sleep(350);
+    const reopened = await js(tab, () => ({ expanded: document.querySelector('#sample-dialog .pc-custom-select-trigger').getAttribute('aria-expanded'),
+      visible: [...document.querySelectorAll('#sample-dialog .pc-custom-select-popover')].some(m => !m.hidden && m.matches(':popover-open') && m.getBoundingClientRect().height > 0) }));
+    await click(tab, 'button', 'Close dialog');
+    await sleep(350);
+    const closed = await js(tab, () => ({ open: document.getElementById('sample-dialog').open,
+      menus: document.querySelectorAll('.pc-custom-select-popover:not([hidden])').length,
+      topLayer: document.querySelectorAll('.pc-custom-select-popover:popover-open').length }));
+    return { passed: reopened.expanded === 'true' && reopened.visible && !closed.open && !closed.menus && !closed.topLayer, detail: { reopened, closed } };
+  }],
   ['Unsaved dialog value survives resize from 1440px to 768px', async (tab, base, host) => {
     const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
     await click(tab, 'button', 'Open dialog');
     await sleep(200);
     await tab.playwright.locator('#dialog-name').click();
-    await js(tab, () => { const input = document.getElementById('dialog-name'); input.setSelectionRange(input.value.length, input.value.length); });
+    await tab.playwright.locator('#dialog-name').press('End');
     await tab.type(' (unsaved QA edit)');
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 768, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(400);
@@ -64,6 +137,47 @@ const CHECKS = [
       return { display: cs.display, height: r.height, border: cs.borderTopWidth, children: f.children.length, open: document.getElementById('sample-dialog').open }; });
     await tab.pressKey('Escape');
     return { passed: footer.open && footer.children === 0 && (footer.display === 'none' || footer.height === 0), detail: footer };
+  }],
+  ['Long native form keeps fixed dialog edges and a scrolling body', async (tab, base, host) => {
+    const cdp = await page(tab, base, host, 'dialogs', { reducedMotion: true });
+    await click(tab, 'button', 'Open long form dialog');
+    await sleep(200);
+    const sizes = [[1440, 900], [768, 600], [768, 900]];
+    const measurements = [];
+    for (const [width, height] of sizes) {
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+      await sleep(250);
+      await tab.playwright.locator('#long-dialog-field-1').click();
+      const beforeScroll = await js(tab, () => document.querySelector('#long-form-dialog .pc-dialog-body').scrollTop);
+      await tab.playwright.locator('#long-dialog-field-10').click();
+      measurements.push(await js(tab, beforeScroll => {
+        const dialog = document.getElementById('long-form-dialog');
+        const form = dialog.querySelector('.pc-dialog-form');
+        const header = form.querySelector('.pc-dialog-head');
+        const body = form.querySelector('.pc-dialog-body');
+        const footer = form.querySelector('.pc-dialog-foot');
+        const action = footer.querySelector('button');
+        const inputs = [...body.querySelectorAll('input')];
+        const dr = dialog.getBoundingClientRect(), hr = header.getBoundingClientRect(), fr = footer.getBoundingClientRect(), ar = action.getBoundingClientRect();
+        const footerStyle = getComputedStyle(footer);
+        return { width: innerWidth, height: innerHeight, open: dialog.open, modal: dialog.matches(':modal'),
+          headerInside: hr.top >= dr.top - 1 && hr.bottom <= dr.bottom + 1,
+          footerInside: fr.top >= dr.top - 1 && fr.bottom <= dr.bottom + 1,
+          footerPadding: Number.parseFloat(footerStyle.paddingBottom), actualBottomPadding: fr.bottom - ar.bottom,
+          inputHeights: [...new Set(inputs.map(input => Math.round(input.getBoundingClientRect().height)))],
+          bodyScrollable: body.scrollHeight > body.clientHeight && body.scrollTop > beforeScroll,
+          scrollBefore: beforeScroll, scrollAfter: body.scrollTop,
+          horizontalOverflow: document.documentElement.scrollWidth > innerWidth };
+      }, beforeScroll));
+    }
+    await tab.pressKey('Escape');
+    await sleep(200);
+    const closed = await js(tab, () => ({ open: document.getElementById('long-form-dialog').open,
+      focus: document.activeElement?.textContent.trim() }));
+    const layoutsPass = measurements.every(state => state.open && state.modal && state.headerInside && state.footerInside
+      && state.footerPadding === 16 && Math.abs(state.actualBottomPadding - state.footerPadding) < 1
+      && state.inputHeights.length === 1 && state.inputHeights[0] === 44 && state.bodyScrollable && !state.horizontalOverflow);
+    return { passed: layoutsPass && !closed.open && closed.focus === 'Open long form dialog', detail: { measurements, closed } };
   }],
   ['Processing prevents duplicate activation', async (tab, base, host) => {
     await page(tab, base, host, 'actions', { reducedMotion: true });
@@ -106,9 +220,9 @@ const CHECKS = [
     await click(tab, 'button', 'Toggle details');
     await sleep(400);
     const open = await state();
-    await click(tab, 'button', 'Toggle details');
+    await immediateClick(tab, 'button', 'Toggle details');
     const exiting = await state();
-    await click(tab, 'button', 'Toggle details');
+    await immediateClick(tab, 'button', 'Toggle details');
     await sleep(500);
     const reopened = await state();
     return { passed: !open.hidden && open.expanded === 'true' && !exiting.hidden && exiting.height > 0 && exiting.expanded === 'false'
@@ -141,10 +255,12 @@ const CHECKS = [
   }],
 ];
 
-export async function runBehaviorChecks(tab, base) {
+export const behaviorCheckNames = CHECKS.map(([name]) => name);
+export async function runBehaviorChecks(tab, base, { hosts = ['cloud', 'builder'], checks = behaviorCheckNames } = {}) {
   const results = [];
-  for (const host of ['cloud', 'builder']) {
+  for (const host of hosts) {
     for (const [check, run] of CHECKS) {
+      if (!checks.includes(check)) continue;
       let outcome;
       try { outcome = await run(tab, base, host); } catch (error) { outcome = { passed: false, detail: String(error.message) }; }
       results.push({ host, check, passed: outcome.passed === true, detail: outcome.detail });

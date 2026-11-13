@@ -1,0 +1,1445 @@
+{
+  "environment": "Cloud staging",
+  "nativeRuntime": "b2c94c6d7417604a7faf7e7a97600c5dbb3293a2",
+  "evidenceOnlyDeployment": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+  "module": "Rich text",
+  "element": "nk8y2k11g",
+  "startedAt": "2026-10-17T12:53:53.161Z",
+  "baselineCssSha": "5f6f938170d93345554a6b40ff8b86f4a8911204b9abd527e37521fcb46cc028",
+  "baselineIds": [
+    "ndaf5i5ai",
+    "ndaf5i4ie",
+    "ndaf5i3u8",
+    "ndaf5h2uo",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "n0ixrm339",
+    "n16nly2l",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph4io",
+    "nfijph1o1",
+    "nfkqui5jb",
+    "nfijph2tj",
+    "nfli4f6uf",
+    "nfijph3od",
+    "nfljgi79t",
+    "nfzf4v2ot",
+    "nfzf4v1jd",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nut4a76ef",
+    "nut4a751d",
+    "nut4a74wk"
+  ],
+  "tests": [
+    {
+      "name": "Inherit clears explicit font selection",
+      "selected": "Inherit",
+      "render": {
+        "font": "Arial, sans-serif",
+        "fontLinks": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+        ],
+        "innerFont": "Arial, sans-serif",
+        "parentFont": "Arial, sans-serif"
+      },
+      "pass": true
+    },
+    {
+      "name": "Font System sans",
+      "scope": "Native Desktop runtime",
+      "selected": "System sans",
+      "expectedFirstFamily": "system-ui",
+      "render": {
+        "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font System serif",
+      "scope": "Native Desktop runtime",
+      "selected": "System serif",
+      "expectedFirstFamily": "Georgia",
+      "render": {
+        "font": "Georgia, \"Times New Roman\", serif",
+        "innerFont": "Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font System monospace",
+      "scope": "Native Desktop runtime",
+      "selected": "System monospace",
+      "expectedFirstFamily": "ui-monospace",
+      "render": {
+        "font": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Manrope",
+      "scope": "Native Desktop runtime",
+      "selected": "Manrope",
+      "expectedFirstFamily": "Manrope",
+      "render": {
+        "font": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font DM Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "DM Sans",
+      "expectedFirstFamily": "DM Sans",
+      "render": {
+        "font": "\"DM Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"DM Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Inter",
+      "scope": "Native Desktop runtime",
+      "selected": "Inter",
+      "expectedFirstFamily": "Inter",
+      "render": {
+        "font": "Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Figtree",
+      "scope": "Native Desktop runtime",
+      "selected": "Figtree",
+      "expectedFirstFamily": "Figtree",
+      "render": {
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Plus Jakarta Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "Plus Jakarta Sans",
+      "expectedFirstFamily": "Plus Jakarta Sans",
+      "render": {
+        "font": "\"Plus Jakarta Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Plus Jakarta Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Work Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "Work Sans",
+      "expectedFirstFamily": "Work Sans",
+      "render": {
+        "font": "\"Work Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Work Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Outfit",
+      "scope": "Native Desktop runtime",
+      "selected": "Outfit",
+      "expectedFirstFamily": "Outfit",
+      "render": {
+        "font": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Outfit, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Sora",
+      "scope": "Native Desktop runtime",
+      "selected": "Sora",
+      "expectedFirstFamily": "Sora",
+      "render": {
+        "font": "Sora, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Sora, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Space Grotesk",
+      "scope": "Native Desktop runtime",
+      "selected": "Space Grotesk",
+      "expectedFirstFamily": "Space Grotesk",
+      "render": {
+        "font": "\"Space Grotesk\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Space Grotesk\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Epilogue",
+      "scope": "Native Desktop runtime",
+      "selected": "Epilogue",
+      "expectedFirstFamily": "Epilogue",
+      "render": {
+        "font": "Epilogue, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Epilogue, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Epilogue:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Archivo",
+      "scope": "Native Desktop runtime",
+      "selected": "Archivo",
+      "expectedFirstFamily": "Archivo",
+      "render": {
+        "font": "Archivo, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Archivo, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Archivo:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Karla",
+      "scope": "Native Desktop runtime",
+      "selected": "Karla",
+      "expectedFirstFamily": "Karla",
+      "render": {
+        "font": "Karla, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Karla, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Karla:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Rubik",
+      "scope": "Native Desktop runtime",
+      "selected": "Rubik",
+      "expectedFirstFamily": "Rubik",
+      "render": {
+        "font": "Rubik, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Rubik, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Poppins",
+      "scope": "Native Desktop runtime",
+      "selected": "Poppins",
+      "expectedFirstFamily": "Poppins",
+      "render": {
+        "font": "Poppins, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Poppins, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Montserrat",
+      "scope": "Native Desktop runtime",
+      "selected": "Montserrat",
+      "expectedFirstFamily": "Montserrat",
+      "render": {
+        "font": "Montserrat, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Montserrat, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Raleway",
+      "scope": "Native Desktop runtime",
+      "selected": "Raleway",
+      "expectedFirstFamily": "Raleway",
+      "render": {
+        "font": "Raleway, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Raleway, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Nunito Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "Nunito Sans",
+      "expectedFirstFamily": "Nunito Sans",
+      "render": {
+        "font": "\"Nunito Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Nunito Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Open Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "Open Sans",
+      "expectedFirstFamily": "Open Sans",
+      "render": {
+        "font": "\"Open Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Open Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Lato",
+      "scope": "Native Desktop runtime",
+      "selected": "Lato",
+      "expectedFirstFamily": "Lato",
+      "render": {
+        "font": "Lato, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Lato, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lato:wght@400;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Roboto",
+      "scope": "Native Desktop runtime",
+      "selected": "Roboto",
+      "expectedFirstFamily": "Roboto",
+      "render": {
+        "font": "Roboto, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Roboto, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Source Sans 3",
+      "scope": "Native Desktop runtime",
+      "selected": "Source Sans 3",
+      "expectedFirstFamily": "Source Sans 3",
+      "render": {
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font IBM Plex Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "IBM Plex Sans",
+      "expectedFirstFamily": "IBM Plex Sans",
+      "render": {
+        "font": "\"IBM Plex Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"IBM Plex Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Mulish",
+      "scope": "Native Desktop runtime",
+      "selected": "Mulish",
+      "expectedFirstFamily": "Mulish",
+      "render": {
+        "font": "Mulish, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "Mulish, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Mulish:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Public Sans",
+      "scope": "Native Desktop runtime",
+      "selected": "Public Sans",
+      "expectedFirstFamily": "Public Sans",
+      "render": {
+        "font": "\"Public Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "innerFont": "\"Public Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Playfair Display",
+      "scope": "Native Desktop runtime",
+      "selected": "Playfair Display",
+      "expectedFirstFamily": "Playfair Display",
+      "render": {
+        "font": "\"Playfair Display\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Playfair Display\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Fraunces",
+      "scope": "Native Desktop runtime",
+      "selected": "Fraunces",
+      "expectedFirstFamily": "Fraunces",
+      "render": {
+        "font": "Fraunces, Georgia, \"Times New Roman\", serif",
+        "innerFont": "Fraunces, Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Lora",
+      "scope": "Native Desktop runtime",
+      "selected": "Lora",
+      "expectedFirstFamily": "Lora",
+      "render": {
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "innerFont": "Lora, Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Merriweather",
+      "scope": "Native Desktop runtime",
+      "selected": "Merriweather",
+      "expectedFirstFamily": "Merriweather",
+      "render": {
+        "font": "Merriweather, Georgia, \"Times New Roman\", serif",
+        "innerFont": "Merriweather, Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Source Serif 4",
+      "scope": "Native Desktop runtime",
+      "selected": "Source Serif 4",
+      "expectedFirstFamily": "Source Serif 4",
+      "render": {
+        "font": "\"Source Serif 4\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Source Serif 4\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Crimson Pro",
+      "scope": "Native Desktop runtime",
+      "selected": "Crimson Pro",
+      "expectedFirstFamily": "Crimson Pro",
+      "render": {
+        "font": "\"Crimson Pro\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Crimson Pro\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Libre Baskerville",
+      "scope": "Native Desktop runtime",
+      "selected": "Libre Baskerville",
+      "expectedFirstFamily": "Libre Baskerville",
+      "render": {
+        "font": "\"Libre Baskerville\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Libre Baskerville\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font EB Garamond",
+      "scope": "Native Desktop runtime",
+      "selected": "EB Garamond",
+      "expectedFirstFamily": "EB Garamond",
+      "render": {
+        "font": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=EB+Garamond:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Cormorant Garamond",
+      "scope": "Native Desktop runtime",
+      "selected": "Cormorant Garamond",
+      "expectedFirstFamily": "Cormorant Garamond",
+      "render": {
+        "font": "\"Cormorant Garamond\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Cormorant Garamond\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Spectral",
+      "scope": "Native Desktop runtime",
+      "selected": "Spectral",
+      "expectedFirstFamily": "Spectral",
+      "render": {
+        "font": "Spectral, Georgia, \"Times New Roman\", serif",
+        "innerFont": "Spectral, Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Spectral:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Newsreader",
+      "scope": "Native Desktop runtime",
+      "selected": "Newsreader",
+      "expectedFirstFamily": "Newsreader",
+      "render": {
+        "font": "Newsreader, Georgia, \"Times New Roman\", serif",
+        "innerFont": "Newsreader, Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font DM Serif Display",
+      "scope": "Native Desktop runtime",
+      "selected": "DM Serif Display",
+      "expectedFirstFamily": "DM Serif Display",
+      "render": {
+        "font": "\"DM Serif Display\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"DM Serif Display\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:wght@400&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Instrument Serif",
+      "scope": "Native Desktop runtime",
+      "selected": "Instrument Serif",
+      "expectedFirstFamily": "Instrument Serif",
+      "render": {
+        "font": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+        "innerFont": "\"Instrument Serif\", Georgia, \"Times New Roman\", serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:wght@400&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Bebas Neue",
+      "scope": "Native Desktop runtime",
+      "selected": "Bebas Neue",
+      "expectedFirstFamily": "Bebas Neue",
+      "render": {
+        "font": "\"Bebas Neue\", system-ui, -apple-system, sans-serif",
+        "innerFont": "\"Bebas Neue\", system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Bebas+Neue:wght@400&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Anton",
+      "scope": "Native Desktop runtime",
+      "selected": "Anton",
+      "expectedFirstFamily": "Anton",
+      "render": {
+        "font": "Anton, system-ui, -apple-system, sans-serif",
+        "innerFont": "Anton, system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Anton:wght@400&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Oswald",
+      "scope": "Native Desktop runtime",
+      "selected": "Oswald",
+      "expectedFirstFamily": "Oswald",
+      "render": {
+        "font": "Oswald, system-ui, -apple-system, sans-serif",
+        "innerFont": "Oswald, system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Archivo Black",
+      "scope": "Native Desktop runtime",
+      "selected": "Archivo Black",
+      "expectedFirstFamily": "Archivo Black",
+      "render": {
+        "font": "\"Archivo Black\", system-ui, -apple-system, sans-serif",
+        "innerFont": "\"Archivo Black\", system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Archivo+Black:wght@400&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Syne",
+      "scope": "Native Desktop runtime",
+      "selected": "Syne",
+      "expectedFirstFamily": "Syne",
+      "render": {
+        "font": "Syne, system-ui, -apple-system, sans-serif",
+        "innerFont": "Syne, system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Chivo",
+      "scope": "Native Desktop runtime",
+      "selected": "Chivo",
+      "expectedFirstFamily": "Chivo",
+      "render": {
+        "font": "Chivo, system-ui, -apple-system, sans-serif",
+        "innerFont": "Chivo, system-ui, -apple-system, sans-serif",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Chivo:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font JetBrains Mono",
+      "scope": "Native Desktop runtime",
+      "selected": "JetBrains Mono",
+      "expectedFirstFamily": "JetBrains Mono",
+      "render": {
+        "font": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font IBM Plex Mono",
+      "scope": "Native Desktop runtime",
+      "selected": "IBM Plex Mono",
+      "expectedFirstFamily": "IBM Plex Mono",
+      "render": {
+        "font": "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Space Mono",
+      "scope": "Native Desktop runtime",
+      "selected": "Space Mono",
+      "expectedFirstFamily": "Space Mono",
+      "render": {
+        "font": "\"Space Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"Space Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Roboto Mono",
+      "scope": "Native Desktop runtime",
+      "selected": "Roboto Mono",
+      "expectedFirstFamily": "Roboto Mono",
+      "render": {
+        "font": "\"Roboto Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"Roboto Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font Fira Code",
+      "scope": "Native Desktop runtime",
+      "selected": "Fira Code",
+      "expectedFirstFamily": "Fira Code",
+      "render": {
+        "font": "\"Fira Code\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"Fira Code\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Font DM Mono",
+      "scope": "Native Desktop runtime",
+      "selected": "DM Mono",
+      "expectedFirstFamily": "DM Mono",
+      "render": {
+        "font": "\"DM Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "innerFont": "\"DM Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+        "links": [
+          "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        ]
+      },
+      "stylesheetFamilyPresent": true,
+      "pass": true
+    },
+    {
+      "name": "Custom font family",
+      "scope": "Native Desktop runtime",
+      "input": "\"Courier New\", monospace",
+      "render": {
+        "font": "\"Courier New\", monospace",
+        "innerFont": "\"Courier New\", monospace"
+      },
+      "pass": true
+    },
+    {
+      "name": "Line height 1.5—",
+      "scope": "Native Desktop runtime",
+      "render": {
+        "childLineHeight": "33px",
+        "fontSize": "22px",
+        "lineHeight": "33px",
+        "overflow": false
+      },
+      "pass": true
+    },
+    {
+      "name": "Line height 28px",
+      "scope": "Native Desktop runtime",
+      "render": {
+        "childLineHeight": "28px",
+        "fontSize": "22px",
+        "lineHeight": "28px",
+        "overflow": false
+      },
+      "pass": true
+    },
+    {
+      "name": "Line height 1.5em",
+      "scope": "Native Desktop runtime",
+      "render": {
+        "childLineHeight": "33px",
+        "fontSize": "22px",
+        "lineHeight": "33px",
+        "overflow": false
+      },
+      "pass": true
+    },
+    {
+      "name": "Line height 150%",
+      "scope": "Native Desktop runtime",
+      "render": {
+        "childLineHeight": "33px",
+        "fontSize": "22px",
+        "lineHeight": "33px",
+        "overflow": false
+      },
+      "pass": true
+    }
+  ],
+  "fontChoices": [
+    {
+      "label": "Inherit",
+      "value": ""
+    },
+    {
+      "label": "System sans",
+      "value": "system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "System serif",
+      "value": "Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "System monospace",
+      "value": "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "Manrope",
+      "value": "'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "DM Sans",
+      "value": "'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Inter",
+      "value": "'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Figtree",
+      "value": "'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Plus Jakarta Sans",
+      "value": "'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Work Sans",
+      "value": "'Work Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Outfit",
+      "value": "'Outfit',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Sora",
+      "value": "'Sora',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Space Grotesk",
+      "value": "'Space Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Epilogue",
+      "value": "'Epilogue',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Archivo",
+      "value": "'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Karla",
+      "value": "'Karla',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Rubik",
+      "value": "'Rubik',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Poppins",
+      "value": "'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Montserrat",
+      "value": "'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Raleway",
+      "value": "'Raleway',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Nunito Sans",
+      "value": "'Nunito Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Open Sans",
+      "value": "'Open Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Lato",
+      "value": "'Lato',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Roboto",
+      "value": "'Roboto',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Source Sans 3",
+      "value": "'Source Sans 3',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "IBM Plex Sans",
+      "value": "'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Mulish",
+      "value": "'Mulish',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Public Sans",
+      "value": "'Public Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+    },
+    {
+      "label": "Playfair Display",
+      "value": "'Playfair Display',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Fraunces",
+      "value": "'Fraunces',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Lora",
+      "value": "'Lora',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Merriweather",
+      "value": "'Merriweather',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Source Serif 4",
+      "value": "'Source Serif 4',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Crimson Pro",
+      "value": "'Crimson Pro',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Libre Baskerville",
+      "value": "'Libre Baskerville',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "EB Garamond",
+      "value": "'EB Garamond',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Cormorant Garamond",
+      "value": "'Cormorant Garamond',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Spectral",
+      "value": "'Spectral',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Newsreader",
+      "value": "'Newsreader',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "DM Serif Display",
+      "value": "'DM Serif Display',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Instrument Serif",
+      "value": "'Instrument Serif',Georgia,'Times New Roman',serif"
+    },
+    {
+      "label": "Bebas Neue",
+      "value": "'Bebas Neue',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "Anton",
+      "value": "'Anton',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "Oswald",
+      "value": "'Oswald',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "Archivo Black",
+      "value": "'Archivo Black',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "Syne",
+      "value": "'Syne',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "Chivo",
+      "value": "'Chivo',system-ui,-apple-system,sans-serif"
+    },
+    {
+      "label": "JetBrains Mono",
+      "value": "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "IBM Plex Mono",
+      "value": "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "Space Mono",
+      "value": "'Space Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "Roboto Mono",
+      "value": "'Roboto Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "Fira Code",
+      "value": "'Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "DM Mono",
+      "value": "'DM Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+    },
+    {
+      "label": "Custom…",
+      "value": "__custom"
+    }
+  ],
+  "restored": true,
+  "fullCustomerRetestComplete": false,
+  "fontLoadBoundary": "Built-in read-only DOM scope does not expose FontFaceSet iteration. Computed family and stylesheet link presence are observed; font network completion is not yet claimed.",
+  "responsiveMatrices": [
+    {
+      "config": {
+        "device": "Desktop",
+        "font": "Custom…",
+        "custom": "\"Courier New\", monospace",
+        "unit": "px",
+        "line": "28",
+        "first": "Courier New"
+      },
+      "runtime": {
+        "childFont": "\"Courier New\", monospace",
+        "font": "\"Courier New\", monospace",
+        "line": "28px",
+        "overflow": false,
+        "size": "22px"
+      },
+      "pass": true
+    },
+    {
+      "config": {
+        "device": "Tablet",
+        "font": "Lora",
+        "unit": "em",
+        "line": "1.5",
+        "first": "Lora"
+      },
+      "runtime": {
+        "childFont": "Lora, Georgia, \"Times New Roman\", serif",
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "27px",
+        "overflow": false,
+        "size": "18px"
+      },
+      "pass": true
+    },
+    {
+      "config": {
+        "device": "Mobile",
+        "font": "System sans",
+        "unit": "%",
+        "line": "150",
+        "first": "system-ui"
+      },
+      "runtime": {
+        "childFont": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "line": "24px",
+        "overflow": false,
+        "size": "16px"
+      },
+      "pass": true
+    }
+  ],
+  "freshReload": [
+    {
+      "device": "Desktop",
+      "ui": {
+        "font": "Custom…",
+        "unit": "px",
+        "value": "28"
+      },
+      "render": {
+        "childFont": "\"Courier New\", monospace",
+        "font": "\"Courier New\", monospace",
+        "line": "28px",
+        "overflow": false,
+        "size": "22px"
+      },
+      "pass": true
+    },
+    {
+      "device": "Tablet",
+      "ui": {
+        "font": "Lora",
+        "unit": "em",
+        "value": "1.5"
+      },
+      "render": {
+        "childFont": "Lora, Georgia, \"Times New Roman\", serif",
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "27px",
+        "overflow": false,
+        "size": "18px"
+      },
+      "pass": true
+    },
+    {
+      "device": "Mobile",
+      "ui": {
+        "font": "System sans",
+        "unit": "%",
+        "value": "150"
+      },
+      "render": {
+        "childFont": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "line": "24px",
+        "overflow": false,
+        "size": "16px"
+      },
+      "pass": true
+    }
+  ],
+  "harnessInitialReloadProbes": [
+    {
+      "device": "Desktop",
+      "ui": {
+        "font": "Custom…",
+        "unit": "px",
+        "value": null
+      },
+      "render": {
+        "childFont": "\"Courier New\", monospace",
+        "font": "\"Courier New\", monospace",
+        "line": "28px",
+        "overflow": false,
+        "size": "22px"
+      },
+      "pass": false
+    },
+    {
+      "device": "Tablet",
+      "ui": {
+        "font": "Lora",
+        "unit": "em",
+        "value": null
+      },
+      "render": {
+        "childFont": "Lora, Georgia, \"Times New Roman\", serif",
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "27px",
+        "overflow": false,
+        "size": "18px"
+      },
+      "pass": false
+    },
+    {
+      "device": "Mobile",
+      "ui": {
+        "font": "System sans",
+        "unit": "%",
+        "value": null
+      },
+      "render": {
+        "childFont": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "line": "24px",
+        "overflow": false,
+        "size": "16px"
+      },
+      "pass": false
+    }
+  ],
+  "harnessNotes": [
+    "First reload probe incorrectly read input value attribute, which is absent for controlled inputs. Corrected probe reads visible input value property; computed CSS and unit/font labels already matched.",
+    "FontFaceSet is unavailable in built-in read-only DOM scope; stylesheet presence is verified, network completion of each Google font is not claimed."
+  ],
+  "workingDraftPreview": [
+    {
+      "device": "Desktop",
+      "render": {
+        "childFont": "\"Courier New\", monospace",
+        "font": "\"Courier New\", monospace",
+        "line": "28px",
+        "scrollWidth": 1514,
+        "size": "22px",
+        "width": 1514
+      },
+      "pass": true
+    },
+    {
+      "device": "Tablet",
+      "render": {
+        "childFont": "Lora, Georgia, \"Times New Roman\", serif",
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "27px",
+        "scrollWidth": 834,
+        "size": "18px",
+        "width": 834
+      },
+      "pass": true
+    },
+    {
+      "device": "Mobile",
+      "render": {
+        "childFont": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "line": "24px",
+        "scrollWidth": 414,
+        "size": "16px",
+        "width": 414
+      },
+      "pass": true
+    }
+  ],
+  "resets": [
+    {
+      "device": "Mobile",
+      "expected": {
+        "device": "Mobile",
+        "font": "Lora",
+        "unit": "em",
+        "line": "1.5",
+        "first": "Lora"
+      },
+      "ui": {
+        "font": "System sans",
+        "unit": "%",
+        "value": "1.5",
+        "fontOwnResetCount": 0,
+        "lineOwnResetCount": 0
+      },
+      "render": {
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "24px"
+      },
+      "pass": false
+    },
+    {
+      "device": "Tablet",
+      "expected": {
+        "device": "Tablet",
+        "font": "Custom…",
+        "unit": "px",
+        "line": "28",
+        "first": "Courier New"
+      },
+      "ui": {
+        "font": "Custom…",
+        "unit": "em",
+        "value": "28",
+        "fontOwnResetCount": 0,
+        "lineOwnResetCount": 0
+      },
+      "render": {
+        "font": "\"Courier New\", monospace",
+        "line": "28px"
+      },
+      "pass": false
+    }
+  ],
+  "confirmedResetDefect": {
+    "severity": "Medium",
+    "impact": "After clearing a responsive override, the visible dropdown can retain its previous label while the number and canvas inherit correctly. A follow-up numeric edit produced 30px while the visible unit remained %, confirming misleading UI. No wrong-unit CSS write is claimed.",
+    "firstProbes": [
+      {
+        "device": "Mobile",
+        "expected": {
+          "device": "Mobile",
+          "font": "Lora",
+          "unit": "em",
+          "line": "1.5",
+          "first": "Lora"
+        },
+        "ui": {
+          "font": "System sans",
+          "unit": "%",
+          "value": "1.5",
+          "fontOwnResetCount": 0,
+          "lineOwnResetCount": 0
+        },
+        "render": {
+          "font": "Lora, Georgia, \"Times New Roman\", serif",
+          "line": "24px"
+        },
+        "pass": false
+      },
+      {
+        "device": "Tablet",
+        "expected": {
+          "device": "Tablet",
+          "font": "Custom…",
+          "unit": "px",
+          "line": "28",
+          "first": "Courier New"
+        },
+        "ui": {
+          "font": "Custom…",
+          "unit": "em",
+          "value": "28",
+          "fontOwnResetCount": 0,
+          "lineOwnResetCount": 0
+        },
+        "render": {
+          "font": "\"Courier New\", monospace",
+          "line": "28px"
+        },
+        "pass": false
+      }
+    ],
+    "settledReproduction": {
+      "device": "Mobile",
+      "ui": {
+        "font": "Custom…",
+        "unit": "%",
+        "line": "28"
+      },
+      "render": {
+        "font": "\"Courier New\", monospace",
+        "line": "28px"
+      },
+      "ownResetCount": 0
+    },
+    "axRelevant": "\t\t\t\t\t1030 container Line height\n\t\t\t\t\t\t\t1032 text Line height\n\t\t\t\t\t\t1037 stepper (settable, integer) Description: Line height value, Value: 28, ID: inspector-field-7-0-0\n\t\t\t\t\t\t1038 combo box (collapsed) Description: Line height unit, Value: %, Secondary Actions: Expand\n\t\t\t\t\t1040 container Font\n\t\t\t\t\t\t\t1042 text Font\n\t\t\t\t\t\t1047 combo box (collapsed) Description: Font, Value: Custom…, Secondary Actions: Expand\n\t\t\t\t\t\t1530 text field (settable) Font, Value: \"Courier New\", monospace, ID: inspector-field-8-1",
+    "numericEditConsequence": {
+      "typedValue": "30",
+      "uiUnit": "%",
+      "render": {
+        "fontSize": "16px",
+        "lineHeight": "30px"
+      }
+    }
+  },
+  "restoration": {
+    "method": "Native History Restore Version 781",
+    "fullCssExact": true,
+    "idsExact": true,
+    "verifiedAt": "2026-10-17T13:07:28.012Z",
+    "currentVersion": 818
+  },
+  "passed": false,
+  "status": "Font and line-height runtime choices plus three fresh/Preview matrices pass. Responsive reset label defect confirmed; fix and retest pending."
+}

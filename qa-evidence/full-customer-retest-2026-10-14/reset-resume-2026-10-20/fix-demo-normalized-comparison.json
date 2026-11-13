@@ -1,0 +1,12 @@
+{
+  "method": "derive four-character run prefix from first generated CSS class, then replace matching generated ID tokens",
+  "onePrefix": "c3um",
+  "twoPrefix": "bpl6",
+  "oneGeneratedIds": 77,
+  "twoGeneratedIds": 77,
+  "normalizedExact": true,
+  "oneNormalizedSha256": "f61c8595621b152dd71e39758854ff3e4b8ada9e91ecf69b310ea1f02f186f3e",
+  "twoNormalizedSha256": "f61c8595621b152dd71e39758854ff3e4b8ada9e91ecf69b310ea1f02f186f3e",
+  "oneBytes": 63067,
+  "twoBytes": 63062
+}

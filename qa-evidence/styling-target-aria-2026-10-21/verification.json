@@ -1,0 +1,92 @@
+{
+  "base": "aa664f27052db9aa32b5b4d3719b95cd766fa238",
+  "status": "native-and-gallery-accepted-full-suite-timing-failure-recorded",
+  "changedSource": {
+    "app/src/core/index.ts": "2c4af41b103c3a8ba68472b981b4ab7da99ddbbdf004805b59d9aa6c7bed9feb",
+    "app/src/ui/inspector/Inspector.tsx": "ce006bdf643797b3c78cf5da352b72e8b5764b736e7d1ef8d0a4a317e1dbef49",
+    "tests/rich-text-focus-state.test.ts": "7e21e07ed6a2bb1d8d10f1cccdff48b0498b862996e1b4802bf45d0401bfd85f",
+    "tests/inspector-styling-target-accessibility.test.tsx": "b9e85527b0866b28784369d444429f4f62fce918332346271e1acb392626a956"
+  },
+  "changes": {
+    "stylingTarget": "This element and applied-class buttons expose mutually exclusive aria-pressed state.",
+    "richTextFocus": "Rich Text focus styles also target a contained keyboard-focused link through :has(a:focus-visible); pointer focus, non-Rich nodes, and Link Block ancestors remain outside the bridge.",
+    "precedence": "Reusable-class focus CSS is emitted before the node focus bridge at equal state specificity, so a local Rich Text focus value wins."
+  },
+  "checks": {
+    "redRegressions": [
+      "Styling target: This element aria-pressed was null, expected true.",
+      "Rich Text focus: expected contained-link class bridge was absent from generated CSS."
+    ],
+    "focusedFinal": "9/9 passed across Rich Text focus, styling target pressed state, Nav focus, and Gallery focus.",
+    "typecheck": "passed",
+    "serverTimeoutRetry": "gateway-db and store-pg passed together in isolation: 48/48.",
+    "buildDeterminism": "11/11 generated artifact hashes identical across two builds and after the final test-triggered build.",
+    "demo": "passed; 1 component, 6 instances, 4 collection items, 0 findings",
+    "impeccableDetector": "0 findings from the single required detector run",
+    "diffCheck": "passed",
+    "fullPostGallery": "2497 passed, 5 skipped; one submissions filesystem stress test timed out at 30.140s against its explicit 30s limit.",
+    "submissionsIsolatedRetry": "The unchanged submissions file passed 16/16 in 9.11s; the stress test completed within the same explicit limit.",
+    "uiBaselinesPostGallery": "passed: 24 images, 28 source files",
+    "typecheckPostGallery": "passed",
+    "generatedPostGallery": "11/11 hashes match generated-focus-current.sha256 after the npm test build step; generated-post-gallery.diff is empty.",
+    "diffCheckPostGallery": "passed",
+    "fullBeforeGallery": "2482 passed, 19 skipped; expected Inspector source-fingerprint gate plus gateway-db beforeAll and one store-pg test timing out under combined load.",
+    "fullMaxWorkers2Diagnostic": "passed: 229 files, 2 skipped; 2498 tests passed, 5 skipped; 206.94s. Diagnostic only; default-concurrency full run remains reported as non-green."
+  },
+  "expectedGate": {
+    "uiBaselines": "reviewed, recorded, and passing",
+    "fullSuite": "not green because the submissions stress test timed out under the full parallel suite; unchanged file passed 16/16 in isolation"
+  },
+  "nativeAcceptance": {
+    "status": "accepted by root in the built-in browser",
+    "proofJson": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/full-customer-retest-2026-10-14/native/local-richtext-contained-keyboard-focus.json",
+    "proofImage": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/full-customer-retest-2026-10-14/native/local-richtext-contained-keyboard-focus-final.jpg",
+    "accepted": "Keyboard focus on the contained link applies the local Focus colour; pointer focus does not; class/local target pressed states and local-over-class/reset precedence pass."
+  },
+  "generatedNotes": {
+    "deterministicSnapshot": "generated-focus-current.sha256",
+    "distDemo": "changed by the existing nondeterministic demo generation and must not be integrated",
+    "qaHarnessTemp": "tools/.qa-ui-4956.mjs is a temporary port-only runner and must not be integrated"
+  },
+  "boundaries": [
+    "This worker made no Main writes and used no browser.",
+    "This worker made no commit, push, deployment, database, or external action."
+  ],
+  "galleryReview": {
+    "status": "accepted and recorded by root in the built-in browser",
+    "behaviorChecks": "30/30 passed",
+    "thresholdComparison": "24/24 passed the repository 0.1% tolerance",
+    "exactComparison": "23/24 byte-identical and pixel-identical to the prior reviewed baseline",
+    "acceptedDifference": "builder-fields-1440.png contains a visible native 2 x 19 caret: 38 changed pixels at [302,304,303,322].",
+    "comparisonEvidence": "gallery-old-baseline-exact-comparison.json",
+    "captureEvidence": "gallery-final/",
+    "baselineManifestSha256": "475ae74adc5a72bf3e04c28efe047afe6684d6f572d57b9b983791cd25f42030",
+    "builderFields1440Sha256": "aa7761f8a5e760d5fbf7d32017c52d29239b87414b0d1e6f95220a33ff8bca41"
+  },
+  "integrationOwned": {
+    "sourceAndTests": [
+      "app/src/core/index.ts",
+      "app/src/ui/inspector/Inspector.tsx",
+      "tests/rich-text-focus-state.test.ts",
+      "tests/inspector-styling-target-accessibility.test.tsx"
+    ],
+    "reviewedBaseline": [
+      "public/internal-ui-baselines/manifest.json",
+      "public/internal-ui-baselines/builder-fields-1440.png"
+    ],
+    "generatedChangedFromBase": [
+      "index.html",
+      "dist/core.cjs",
+      "packages/editor/dist/editor.html"
+    ],
+    "evidence": [
+      "qa-evidence/styling-target-aria-2026-10-21/"
+    ],
+    "exclude": [
+      "dist/demo/index.html",
+      "packages/editor/dist/compiler.js",
+      "packages/editor/dist/compiler-worker.js",
+      "tools/.qa-ui-4956.mjs"
+    ]
+  }
+}

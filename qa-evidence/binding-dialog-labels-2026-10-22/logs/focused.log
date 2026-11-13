@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/binding-dialog-labels-f70e9ad
+
+
+ Test Files  3 passed (3)
+      Tests  12 passed (12)
+   Start at  00:32:35
+   Duration  1.10s (transform 477ms, setup 0ms, import 1.11s, tests 175ms, environment 502ms)

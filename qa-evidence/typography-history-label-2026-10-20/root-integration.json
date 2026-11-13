@@ -1,0 +1,20 @@
+{
+  "protected11WorkingFilesPreserved": true,
+  "nativeUndoRedoLabelsPass": true,
+  "sourceReview": [
+    "app/src/ui/inspector/Controls.tsx",
+    "tests/text-style-update-ui.test.tsx"
+  ],
+  "logTerminalBlankNormalization": [
+    {
+      "file": "focused-tests.log",
+      "originalSha256": "50c572c60ec600bcc654a2fa1841dfd6d0ebe4a16c9f70cf6fe627d11e0fba01",
+      "savedSha256": "d26cb9587ab1079983fe3e3ef7e5662f3063108f575c44ac7e2f8c8a8e9b5bd8"
+    },
+    {
+      "file": "full-suite.log",
+      "originalSha256": "f2f74e4fdfb263a1a4520362ea3ebced5c290f3f5f329e514bf2e901c4bab1ba",
+      "savedSha256": "fafebcb7d8c07981270958ffa7bb398e5252fe6c7593a6ec27cd7439b2975c9b"
+    }
+  ]
+}

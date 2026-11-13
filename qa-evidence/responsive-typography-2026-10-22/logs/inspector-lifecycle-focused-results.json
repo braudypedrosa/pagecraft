@@ -1,0 +1,32 @@
+[
+  {
+    "attempt": 1,
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 0,
+    "log": "inspector-lifecycle-focused-1.log"
+  },
+  {
+    "attempt": 2,
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 0,
+    "log": "inspector-lifecycle-focused-2.log"
+  },
+  {
+    "attempt": 3,
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 0,
+    "log": "inspector-lifecycle-focused-3.log"
+  },
+  {
+    "attempt": 4,
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 0,
+    "log": "inspector-lifecycle-focused-4.log"
+  },
+  {
+    "attempt": 5,
+    "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx",
+    "exit": 0,
+    "log": "inspector-lifecycle-focused-5.log"
+  }
+]

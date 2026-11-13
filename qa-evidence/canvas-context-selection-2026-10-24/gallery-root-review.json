@@ -1,0 +1,21 @@
+{
+  "status": "reviewed behavior-only source fingerprint",
+  "changedSource": [
+    "builder.html"
+  ],
+  "nativeBrowser": "Codex In-app Browser",
+  "nativeTab": "47",
+  "actualFunctionOutputPairsExact": 12,
+  "behaviorChecks": 30,
+  "freshCaptureComparisons": 24,
+  "changedPixelsAcrossAllComparisons": 0,
+  "existingBaselinePNGBytesPreserved": true,
+  "existingCaptureProvenancePreserved": true,
+  "beforeManifestSHA256": "f392a0852ce820c98df726456d93c00719ebda79f8f65900ba91c26ff457c268",
+  "afterManifestSHA256": "c12f93b42c61879e91d14dc2011e9740be0a7ef528e8b3563e13f0abae30f30d",
+  "representativeVisualReview": [
+    "builder-actions-768.png",
+    "builder-dialogs-1440.png"
+  ],
+  "scope": "secondary pointer selection only; real canvas native acceptance still pending"
+}

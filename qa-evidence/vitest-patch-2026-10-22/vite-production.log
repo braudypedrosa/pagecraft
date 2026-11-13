@@ -1,0 +1,15 @@
+
+> pagecraft@0.2.0 build:next
+> vite build
+
+vite v8.2.4 building client environment for production...
+transforming...
+✓ 19 modules transformed.
+rendering chunks...
+[plugin vite:singlefile]
+
+[plugin vite:singlefile] Inlining: index-DzIZgxCU.js
+computing gzip size...
+dist/next/index.html  411.04 kB │ gzip: 139.81 kB
+
+✓ built in 70ms

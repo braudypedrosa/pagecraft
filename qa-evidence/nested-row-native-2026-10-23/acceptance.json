@@ -1,0 +1,112 @@
+{
+  "status": "Bounded Row102 native slice accepted on Cloud and WordPress",
+  "scope": {
+    "counts": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "recordedCountAndChooserCasesPerHost": 18,
+    "chooserCases": 12,
+    "alignChoices": [
+      "Top",
+      "Middle",
+      "Bottom",
+      "Base",
+      "Fill"
+    ],
+    "distributionChoices": [
+      "Start",
+      "Center",
+      "End",
+      "Space between",
+      "Space around"
+    ],
+    "wrapChoices": [
+      "No wrap",
+      "Wrap"
+    ],
+    "gapCases": [
+      "0px",
+      "-5px clamps0",
+      "12.5px",
+      "2rem",
+      "5%",
+      "reset"
+    ],
+    "populatedReduction": "Two columns to one; warning Cancel exact, Continue retained both headings, Undo/Redo exact",
+    "savedRepresentative": "Two columns67/33, gapsD24/T36/M12; clearMobile36, clearTablet24"
+  },
+  "checks": {
+    "cloud18CountPresetRows": true,
+    "cloudCountsMatchColumns": true,
+    "cloud5Align5Distribution2Wrap": true,
+    "cloudSixGapBoundaries": true,
+    "cloudCancelExact": true,
+    "cloudUndoExact": true,
+    "cloudRedoExact": true,
+    "cloudReductionRetainsBothHeadings": true,
+    "cloudResponsiveClear": true,
+    "cloudSeededMobile20": true,
+    "cloud0SavedResponsive": true,
+    "cloud1SavedResponsive": true,
+    "cloud2SavedResponsive": true,
+    "cloudExactRestoration": true,
+    "wordpress18CountPresetRows": true,
+    "wordpressCountsMatchColumns": true,
+    "wordpress5Align5Distribution2Wrap": true,
+    "wordpressSixGapBoundaries": true,
+    "wordpressCancelExact": true,
+    "wordpressUndoExact": true,
+    "wordpressRedoExact": true,
+    "wordpressReductionRetainsBothHeadings": true,
+    "wordpressResponsiveClear": true,
+    "wordpressSeededMobile20": true,
+    "wordpress0SavedResponsive": true,
+    "wordpress1SavedResponsive": true,
+    "wordpress2SavedResponsive": true,
+    "wordpressExactRestoration": true,
+    "WordPressEscapedMarkupAndLoadedEmoji": true
+  },
+  "sourceProof": "row-default-source-proof.json",
+  "cloudCaptureFieldCorrection": "cloud-responsive-clear.json key inherited describes the pre-existing Mobile20 override, not inherited Tablet36. It is not an inheritance failure.",
+  "restoration": {
+    "cloud": {
+      "baselineVersion": "Version 1154",
+      "nodes": 20,
+      "exact": true
+    },
+    "wordpress": {
+      "baselineVersion": 30,
+      "nodes": 8,
+      "exact": true
+    },
+    "wordpressCurrentVersion": 32,
+    "wordpressActualRevisions": 395
+  },
+  "wordpressGuard": {
+    "checksPassed": 25,
+    "failures": 0,
+    "file": "wordpress-post-native-guard.json",
+    "sha256": "068ceca296f077eb8b88ae660316be890ad77f6fe2f5ea9ca6848829a7edd9bb"
+  },
+  "screenshots": {
+    "cloud-desktop-preview.png": "3b49a1d7d292e7e11f05046dd0741c2734182313ac60baa169ce0d8900eb3eb9",
+    "cloud-tablet-preview.png": "d86843c7155feba43d4a796cf0cba08c4050b38ace683e949b308a925019ce55",
+    "cloud-mobile-preview.png": "6de283e6b1ede2d699d26fcb8d0734a6abee1b3f4732ef5f84420114dbb169cf",
+    "wordpress-desktop-public.png": "46ed12860a3757a123910cf7bad59556a2da2c0a000ee369e934bf1268bb035a",
+    "wordpress-tablet-public.png": "67144fea44a2c21a8b18e6c540ff52633b84790a3109bdc67369e02e17275643",
+    "wordpress-mobile-public.png": "e6dfa8c68676a7ff6ee9327883828b7ce98940bf3d26857a7c368394f5b062d1"
+  },
+  "provenance": "Root performed native flows. Worker reviewed records, actual WordPress mobile screenshot, exact committed default source and independent read-only DB/file guard.",
+  "fullQAComplete": false,
+  "limits": [
+    "Broader Section, Column, Box, arbitrary nesting and gutter dragging are not accepted by this slice.",
+    "Representative gap values only; arbitrary values and all units/combinations remain open.",
+    "Shared Advanced, Motion/State, physical touch and full customer flows remain open.",
+    "No generic CSS architecture or production readiness claim."
+  ]
+}

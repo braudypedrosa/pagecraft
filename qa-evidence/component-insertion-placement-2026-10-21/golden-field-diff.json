@@ -1,0 +1,146 @@
+[
+  {
+    "path": "/artifact/routes/0/css",
+    "kind": "value",
+    "beforeSha256": "eb07bdcbe3802d9116aa0b0c5131a411e31eacc436657ded355532e908b74f07",
+    "afterSha256": "809f6d0b29fa21c83ced4fd0a6474a3bc6c9509b64942f5e3d522fe834422942"
+  },
+  {
+    "path": "/artifact/routes/0/sourceHash",
+    "kind": "value",
+    "beforeSha256": "0dd34fb826102d97e8b38b39dab0a104464c719d20de44435d568a9cdadb20ea",
+    "afterSha256": "7a693eb091d2beae77635efcfdad47bd8788df8ae8e395f2db2d8f37d3ee01e2"
+  },
+  {
+    "path": "/artifact/routes/1/css",
+    "kind": "value",
+    "beforeSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+    "afterSha256": "5827b28def66f732fa5cb4571f829929b9f1bc9ca6c6dff2ef5743fb4a3bd8d7"
+  },
+  {
+    "path": "/artifact/routes/1/runtime",
+    "kind": "value",
+    "beforeSha256": "2055adb12eafa1396e801cffe1e82a9b2d77a19c62cae31116cf4ab9f57e6928",
+    "afterSha256": "f634ea89b73d9ec19d4b64148aaf247152ee8e49e0d487e56dce99ac803fc8da"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/4/hash",
+    "kind": "value",
+    "beforeSha256": "94cf2a1829423455281f1c4684bb7703c4531c1182efb3971289495b142f5abb",
+    "afterSha256": "cc054dcab236101f4ff546ec2f349ce76184ef2ba44c7b9402e080ba51b82113"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/4/occurrenceId",
+    "kind": "value",
+    "beforeSha256": "62cc2e0ed4e5997010997d44ea88de6045e48105da413648c0178390ce8ea03b",
+    "afterSha256": "f8dc8fb69214e46650e14d2686183f1b89e8bf015c57cb8cfdf0d9533962be75"
+  },
+  {
+    "path": "/artifact/routes/1/scripts/4/token",
+    "kind": "value",
+    "beforeSha256": "6dc45b638b91030c7932b4d6a338279128b9a96ea6fcff819562d50268cc06cc",
+    "afterSha256": "b5eb8d8599ef16ae85ef03398e7a579850110b992a17b015b2dd398854afce33"
+  },
+  {
+    "path": "/artifact/routes/1/sourceHash",
+    "kind": "value",
+    "beforeSha256": "1057c4a03df865cd68eaaba13c7b90611a2e217af91ecc1919ecd623587cde40",
+    "afterSha256": "56fa30c8aa3843556cdd87551f312076021b414a6441247640a32a879d1db14c"
+  },
+  {
+    "path": "/artifact/routes/2/css",
+    "kind": "value",
+    "beforeSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+    "afterSha256": "5827b28def66f732fa5cb4571f829929b9f1bc9ca6c6dff2ef5743fb4a3bd8d7"
+  },
+  {
+    "path": "/artifact/routes/2/runtime",
+    "kind": "value",
+    "beforeSha256": "2055adb12eafa1396e801cffe1e82a9b2d77a19c62cae31116cf4ab9f57e6928",
+    "afterSha256": "f634ea89b73d9ec19d4b64148aaf247152ee8e49e0d487e56dce99ac803fc8da"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/4/hash",
+    "kind": "value",
+    "beforeSha256": "94cf2a1829423455281f1c4684bb7703c4531c1182efb3971289495b142f5abb",
+    "afterSha256": "cc054dcab236101f4ff546ec2f349ce76184ef2ba44c7b9402e080ba51b82113"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/4/occurrenceId",
+    "kind": "value",
+    "beforeSha256": "cd82c290a59ed7bbcde90f35c046df2f8ca24aa56899291627e67bbd3aedeb87",
+    "afterSha256": "0659e3dce94b148e7fc2616587e21115b12e2080721611a7fa0f11a90188e5b9"
+  },
+  {
+    "path": "/artifact/routes/2/scripts/4/token",
+    "kind": "value",
+    "beforeSha256": "352aeb6bd7db9e398a55970b6d2e751feb86223a414017bf8700c31b90131fb5",
+    "afterSha256": "55115c25f639e5cfa98b06647f0dfb0b51ffdd0fe7f1756a29001be3e006f652"
+  },
+  {
+    "path": "/artifact/routes/2/sourceHash",
+    "kind": "value",
+    "beforeSha256": "4db44390ba855043b7d6d1688d5f8eb49fd91f6539e001d1098470e3bcdccdb0",
+    "afterSha256": "c0bbce891f3a16a5aa37a395254e4f09fb0dee2f812459a874c0d699bb040bb9"
+  },
+  {
+    "path": "/artifact/routes/3/css",
+    "kind": "value",
+    "beforeSha256": "e9bac6da2b21ddd8be873fd0df22cb1b6c720ccfd661ee2621b6d239d8ff38a4",
+    "afterSha256": "5827b28def66f732fa5cb4571f829929b9f1bc9ca6c6dff2ef5743fb4a3bd8d7"
+  },
+  {
+    "path": "/artifact/routes/3/runtime",
+    "kind": "value",
+    "beforeSha256": "2055adb12eafa1396e801cffe1e82a9b2d77a19c62cae31116cf4ab9f57e6928",
+    "afterSha256": "f634ea89b73d9ec19d4b64148aaf247152ee8e49e0d487e56dce99ac803fc8da"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/4/hash",
+    "kind": "value",
+    "beforeSha256": "94cf2a1829423455281f1c4684bb7703c4531c1182efb3971289495b142f5abb",
+    "afterSha256": "cc054dcab236101f4ff546ec2f349ce76184ef2ba44c7b9402e080ba51b82113"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/4/occurrenceId",
+    "kind": "value",
+    "beforeSha256": "9f212c9c9ca40645eaae0d6e9e11cd2f82096889637ac4ef5773252f23c65ed3",
+    "afterSha256": "f929e5942596a8b5386311cf11793c377e2df93d0b8c8ab1369735ab483ab660"
+  },
+  {
+    "path": "/artifact/routes/3/scripts/4/token",
+    "kind": "value",
+    "beforeSha256": "37b500201fdee70d6552d81f81627fb8a14bba06870fbdc45ad932bea1636966",
+    "afterSha256": "38fae570ef2215b1cab47bf5a96f8250f2c01336b7dcd3941ab0cb7ba3738958"
+  },
+  {
+    "path": "/artifact/routes/3/sourceHash",
+    "kind": "value",
+    "beforeSha256": "3216c476024a320bde0722709e1e00738ceb2d954c86214c4afb8b4a06a5a03c",
+    "afterSha256": "1511ef60c25bfee90a8ea7bddfe1be6becf260d8af8f14c0c853526db1226f57"
+  },
+  {
+    "path": "/desired/deployment/envelope",
+    "kind": "value",
+    "beforeSha256": "3406f26abcd7da59922ee5570fdc97cd6ce0b8571498f3a5eaa3a39604a55781",
+    "afterSha256": "c6bb9370d249a61641feb29c7caa3b8234424bbc928c648a7b106e75aefba8b3"
+  },
+  {
+    "path": "/desired/deployment/signature",
+    "kind": "value",
+    "beforeSha256": "c1bb6bea20e806d2d5cdca3ab50154b107a48d8f80961d102aead7c3340d104d",
+    "afterSha256": "8b3a72d6db0eb8ac2fe31aed2d8c2dcccb3c58e70a956b872f0d4765d3fc95bb"
+  },
+  {
+    "path": "/desired/release/manifest",
+    "kind": "value",
+    "beforeSha256": "9d1f3f3cb411c16cb65fe9abf4d19463d1caae7d57bf47daf412336a7f7a6158",
+    "afterSha256": "91710068607f6db855721f60a3c6e6d05d28e4b7275d8c7fd47ebefa30bf26b0"
+  },
+  {
+    "path": "/desired/release/signature",
+    "kind": "value",
+    "beforeSha256": "3a09f88bd498902d8bfc3cd64ee218693afe1b7f735661750c2107af69904f24",
+    "afterSha256": "71acf96ffaa2410ad87993d9df5d6b356fdd29ccf5a29c58f89afd3132c87656"
+  }
+]

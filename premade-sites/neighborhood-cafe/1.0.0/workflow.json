@@ -1,0 +1,27 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent neighborhood cafes presenting their menu, character, hours and location",
+    "primaryAction": "Read the current menu and plan a visit; reservation remains an explicitly unconfigured external placeholder",
+    "pages": ["index", "menu", "story", "visit"],
+    "content": "Fictional Morning Field cafe with illustrative dishes, prices, address and hours. All operational details must be replaced before publishing; the reservation form has no configured delivery or availability service.",
+    "imagery": "Warm generated editorial cafe photography with separate opening-time, tabletop and street roles; original vector logo.",
+    "provenance": [
+      {"asset":"logo","source":"Original SVG authored for Morning Field in this template directory, 2026-10-08","license":"Original template artwork; fictional mark with no third-party trademark claim."},
+      {"asset":"counter","source":"OpenAI image generation, 2026-10-08, exec-eef6e12b-aa1d-418b-9824-84b662ac003e.png","license":"AI-generated demonstration image; not a real cafe or employee."},
+      {"asset":"table","source":"OpenAI image generation, 2026-10-08, exec-6f6b6b11-02f7-4ed5-b284-97214d29c67e.png","license":"AI-generated demonstration food image; not a real menu item."},
+      {"asset":"street","source":"OpenAI image generation, 2026-10-08, exec-1eed9068-a323-42a4-aad2-fd4ee6735ca6.png","license":"AI-generated demonstration place; not a real address or venue."}
+    ]
+  },
+  "directions": [
+    {"id":"dawn-counter","thesis":"Warm opening-time photography and a practical menu ledger make the cafe feel familiar before the first visit.","fingerprint":{"header":"warm paper bar with olive graphic logo","hero":"full-width dawn counter photograph","textAnchor":"lower-left serif invitation","inventory":"open divider menu ledger","cta":"visit details beside hours","footer":"compact dark olive utility row"},"comparison":"Selected as the concrete authored draft because it makes menu and location the strongest functional content while keeping the identity image-led. Awaiting user review.","sections":[{"purpose":"Establish atmosphere and direct menu browsing","archetype":"hero-photo-opening","composition":"edge-to-edge counter scene with left overlay","typography":"large restrained serif with compact sans labels","imagery":"opening-time cafe counter","action":"Read the sample menu"},{"purpose":"Help someone decide when and where to visit","archetype":"location-hours-split","composition":"street photograph beside compact hours ledger","typography":"editorial heading and scannable rows","imagery":"fictional corner exterior","action":"Open visit details"}]},
+    {"id":"street-notebook","thesis":"A lighter neighborhood journal direction led by the exterior, rotating specials and handwritten-style editorial notes.","fingerprint":{"header":"slim cream masthead","hero":"street corner panorama","textAnchor":"upper-left compact stack","inventory":"daily specials ribbon","cta":"map and hours strip","footer":"cream colophon"},"comparison":"More place-led and casual than Dawn Counter; retained as an unselected fingerprint only.","sections":[{"purpose":"Locate the cafe in its neighborhood","archetype":"street-panorama","composition":"wide exterior with small editorial caption","typography":"compact serif headline","imagery":"corner cafe exterior","action":"Plan the walk"},{"purpose":"Surface changing menu content","archetype":"specials-ribbon","composition":"single horizontal list with date context","typography":"sans utility labels","imagery":"one food detail","action":"Read menu"}]},
+    {"id":"table-club","thesis":"A close tabletop direction focused on food, shared tables and reservation intent.","fingerprint":{"header":"centered olive mark","hero":"close pastry and coffee crop","textAnchor":"centered below image","inventory":"paired meal chapters","cta":"reservation-first panel","footer":"minimal paper links"},"comparison":"More food-led and conversion-forward than Dawn Counter; retained as an unselected fingerprint because booking is not configured.","sections":[{"purpose":"Lead with food and craft","archetype":"tabletop-poster","composition":"large still life above centered invitation","typography":"serif display with short body","imagery":"pastry and flat white","action":"Read menu"},{"purpose":"Invite a future table request","archetype":"reservation-panel","composition":"form-led split with clear unconfigured notice","typography":"plain field labels","imagery":"none","action":"External reservation placeholder"}]}
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

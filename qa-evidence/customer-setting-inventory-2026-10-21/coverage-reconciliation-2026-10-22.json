@@ -1,0 +1,397 @@
+{
+  "date": "2026-10-22",
+  "title": "Read-only native coverage reconciliation through release95",
+  "main_head_observed": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+  "method": "Read existing named coverage, native receipts and post-deploy records only. No browser, source edit, tests, build or server. Existing inventory untouched.",
+  "cutoff": {
+    "last_accepted_release": 95,
+    "cloud": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+    "wordpress": "03be088fe037e2ad9ef5a158f9b8248b05c32b79",
+    "wordpress_preview": "0.2.17-preview.20261022.94",
+    "candidate96": "Excluded; confirmed focus failure remains open through95."
+  },
+  "policy": [
+    "Latest exact post-deploy record supersedes an older candidate pending status only for that named slice.",
+    "Local module cases, portable compiler parity and saved native host frontend checks are separate scopes.",
+    "No unit/build/gallery pass promotes native setting coverage. No percentage or all-controls pass inferred.",
+    "Original static inventory284 rows is a planning catalog, not runtime completeness or native completion.",
+    "14 broad QA areas remain open; production readiness not established."
+  ],
+  "accepted_bounded_scopes": [
+    {
+      "module": "Quote",
+      "accepted": "Q01-Q06 bounded module evidence recorded as 82-era acceptance",
+      "evidence": [
+        "qa-evidence/quote-native-2026-10-21/coverage.json",
+        "qa-evidence/quote-native-2026-10-21/task-close.md"
+      ],
+      "limits": [
+        "Representative 14 direct controls and named Advanced/Visibility cases only. No all-values, Motion or Hover/Focus claim.",
+        "Release82 generic condition-label recovery acceptance does not establish per-module condition coverage."
+      ]
+    },
+    {
+      "module": "Breadcrumb",
+      "accepted": "B01-B06 bounded module evidence recorded as 82-era acceptance",
+      "evidence": [
+        "qa-evidence/breadcrumb-native-2026-10-21/coverage.json",
+        "qa-evidence/breadcrumb-native-2026-10-21/task-close.md"
+      ],
+      "limits": [
+        "Eight direct controls and four separators plus recorded Advanced/Visibility cases only. Arbitrary rows and common state/Motion combinations open."
+      ]
+    },
+    {
+      "module": "Icon",
+      "accepted": "I01-I07 bounded module evidence; release82 deployed unnamed Icon recovery and frontend checks",
+      "evidence": [
+        "qa-evidence/icon-native-2026-10-21/coverage.json",
+        "qa-evidence/condition-control-labels-2026-10-21/post-deploy/task-close.md"
+      ],
+      "limits": [
+        "All 35 exported icon choices are recorded, but link modes are not all-device reload proof. Hover/Focus proof is Desktop-specific."
+      ]
+    },
+    {
+      "module": "Table",
+      "accepted": "T01-T07 local bounded module cases; release83 shorthand padding/layout host acceptance",
+      "evidence": [
+        "qa-evidence/table-native-2026-10-21/coverage.json",
+        "qa-evidence/padding-list-controls-2026-10-21/post-deploy/task-close.md"
+      ],
+      "limits": [
+        "Edge rows and conditional-controls-off proof are Mobile-only. Position, max-width, overflow and common state/Motion combinations remain open."
+      ]
+    },
+    {
+      "module": "Code",
+      "accepted": "C01-C07 local bounded module cases; release83 shorthand padding/layout host acceptance",
+      "evidence": [
+        "qa-evidence/code-native-2026-10-21/coverage.json",
+        "qa-evidence/padding-list-controls-2026-10-21/post-deploy/task-close.md"
+      ],
+      "limits": [
+        "Eight languages and representative syntax/style values only. Runtime-generated controls and arbitrary units/fonts/colors plus common state/Motion remain open."
+      ]
+    },
+    {
+      "module": "Accordion",
+      "accepted": "Candidate85 A01-A05/S01-S10 local native content/style matrix, plus additional local X01/X02 and M01-M04 receipts",
+      "evidence": [
+        "qa-evidence/accordion-native-2026-10-22/coverage.json",
+        "qa-evidence/accordion-native-2026-10-22/task-close.md",
+        "qa-evidence/accordion-native-2026-10-22/x01-identity-custom-css.json",
+        "qa-evidence/accordion-native-2026-10-22/x02-hide-breakpoint-matrix.json",
+        "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json",
+        "qa-evidence/accordion-native-2026-10-22/m03-transitions-and-reload.json",
+        "qa-evidence/accordion-native-2026-10-22/m04-motion-cleared.json",
+        "qa-evidence/color-picker-semantics-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/motion-validation-2026-10-22/post-deploy/task-close.md"
+      ],
+      "additional_native": [
+        "X01 records custom HTML ID/classes/outline at D/T/M with no overflow.",
+        "X02 records each breakpoint hidden independently, four details retained, Navigator recovery after reload and all-visible restoration.",
+        "M01 records 26 computed animation preset names; M03 transition presets/custom and timing reload; M04 runtime-attribute reset.",
+        "Release87 accepts named Colour dialog/focus semantics and release88 accepts shared timing validation on Cloud/WP. These do not promote the entire candidate85 Accordion module matrix to host acceptance."
+      ],
+      "limits": [
+        "No trajectory/performance/reduced-motion/scroll-once proof. Physical devices, whitespace-only answers, malformed/long boundaries and full keyboard/state/condition combinations remain open.",
+        "Default reset means currentColor/rgb(17,19,17), not an original factory token."
+      ]
+    },
+    {
+      "module": "Collection List",
+      "accepted": "L01-L08 contain bounded native receipts beyond stale coverage.json. Releases84,86,89 separately close fresh-card basis, whole-count typing and No-wrap/Preview keyboard slices.",
+      "evidence": [
+        "qa-evidence/list-native-2026-10-22/task-close.md",
+        "qa-evidence/list-native-2026-10-22/l04-l05-summary.json",
+        "qa-evidence/list-native-2026-10-22/l08-condition-category-committed.json",
+        "qa-evidence/binding-dialog-labels-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/integer-typing-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/list-nowrap-2026-10-22/post-deploy/task-close.md"
+      ],
+      "additional_native": [
+        "L01 bound18 published items and empty/no-source reload at D/T/M; L03 CMS/title direction ordering.",
+        "L04 category operators, boolean filter yes/no/has-any/empty, exact/contains title and dependent hiding are recorded at D/T/M. These are filters, distinct from conditions.",
+        "L05 recorded count/limit precedence and Mobile page navigation; release89 adds explicit5items across4pages, last3items, Next/Previous/restoration.",
+        "L06 all five vertical alignment values, gaps24/16/8, zero and inheritance resets.",
+        "L07 literal escaped long text, required title rejection, repeated external metadata, unsafe URL omission without activation, restore18 headings/unique IDs.",
+        "L08 ID/class/custom outline, breakpoint hiding, committed Accessibility/Design positive/negative whole-list conditions and Always-show restoration.",
+        "Release84 fresh factory basis280px/280px/100% is Cloud native; release86 actual typing normalizes per/limit to3 and reloads; release89 fixes No-wrap readable local scrolling, final-card reachability and Preview Delete/CmdZ ownership."
+      ],
+      "limits": [
+        "Do not credit rejected equality1/0 probes in l08-condition-bool-native.json. Value was not committed. Has-value receipt and later committed category conditions are valid bounded evidence.",
+        "No-wrap physical touch remains unverified. WordPress provider omits Collection; its parity is portable Core/source, not native Collection authoring.",
+        "Mixed category/numeric/date fields, larger datasets, duplicates/missing images/unavailable references, child-per-item/nested/blank/legacy-invalid conditions, complete pagination reset matrix and arbitrary values remain open."
+      ]
+    },
+    {
+      "module": "Button",
+      "accepted": "B01-B13 candidate88 local bounded mixed typography/surface, responsive/history, variants/icons, alignment/wrap/links, two component instances, actual focus/hover",
+      "evidence": [
+        "qa-evidence/button-native-2026-10-22/task-close.md",
+        "qa-evidence/customer-module-next-2026-10-22/continuation-coverage.md",
+        "qa-evidence/responsive-typography-2026-10-22/post-deploy/task-close.md"
+      ],
+      "limits": [
+        "16 variant/icon combinations were Mobile editor DOM only. No wholesale host/public or all-device state promotion.",
+        "B09 authored anchor activation and B13 actual settled hover supersede earlier pending bullets. Generated default IDs lack picker labels, a recorded UX gap.",
+        "Release93 accepts shared typography Update/Detach inheritance using Rich text. It is not a deployed mixed Button surface/typography/component matrix."
+      ]
+    },
+    {
+      "module": "Tabs",
+      "accepted": "Local T01-T09 receipts plus release91 bounded Cloud containment/keyboard and native WordPress editor containment",
+      "evidence": [
+        "qa-evidence/tabs-overflow-2026-10-22/root-acceptance.json",
+        "qa-evidence/tabs-overflow-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/tabs-native-2026-10-22/t07-all-direct-style-matrix.json",
+        "qa-evidence/tabs-native-2026-10-22/t09-responsive-clear-zero.json"
+      ],
+      "limits": [
+        "All eight direct Style controls on prior fixture do not mean all shared controls.",
+        "WordPress public Tabs is portable compiler proof, not a saved native frontend Tabs test. Physical devices, broader Advanced/state/Motion and every combination open."
+      ]
+    },
+    {
+      "module": "Divider and Spacer",
+      "accepted": "Local direct-control evidence only: Divider all3styles/5widthunits/2thicknessunits/responsiveclear/zero; Spacer5heightunits/D80T40M20/clear/zero/duplicatehistory/reloadpreview",
+      "evidence": [
+        "qa-evidence/spacing-native-2026-10-22/task-close.md"
+      ],
+      "limits": [
+        "Host parity, common Advanced/Style/Motion and physical devices open. No source fix needed or host acceptance inferred."
+      ]
+    },
+    {
+      "module": "Rich text and shared typography",
+      "accepted": "Release92 native Cloud and saved WordPress draft/public list/link/selection safety; release93 Update/Detach responsive inheritance and explicit-peer-override slice",
+      "evidence": [
+        "qa-evidence/richtext-list-safety-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/responsive-typography-2026-10-22/post-deploy/task-close.md"
+      ],
+      "limits": [
+        "Not every Rich text toolbar/inspector control or shared typography combination.",
+        "WordPress93 global design settings were semantically restored; serialized order and reviewed generated CSS changed. Do not claim byte-exact global CSS restoration."
+      ]
+    },
+    {
+      "module": "Video",
+      "accepted": "Local direct ratios/file/playback/poster/facade/responsive records; release94 functional source safety; release95 contextual Site checks and full-area empty/invalid saved WordPress placeholders",
+      "evidence": [
+        "qa-evidence/video-native-2026-10-22/coverage.json",
+        "qa-evidence/video-source-safety-2026-10-22/post-deploy/task-close.md",
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/continuation.md",
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/staging-invalid-acceptance.json",
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-site-checks.json",
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-empty-public.json",
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-invalid-public.json"
+      ],
+      "additional_native": [
+        "Cloud invalid source has exact Show-me target, no players, and full-box placeholder at D/T/M.",
+        "WordPress empty suggestion/invalid problem Show-me selects exactVideo. Actual Save/public1280/834/414 full-area placeholders contain zero players.",
+        "Correction to valid source clears Video findings; functional MP4 actual playback accepted in94.",
+        "Staging20 original nodes and WordPress draft616 four original nodes restored; original487/global settings protected."
+      ],
+      "limits": [
+        "Confirmed keyboard activation focus loss remains open through95. Candidate96 not included.",
+        "Unmuted playsinline, Vimeo playback, actual third-party provider playback, physical iOS, uploads, full aspect/controls/provider/state matrix remain open.",
+        "CMS/component Site checks contexts automated only. No new gallery run claimed for Core-only95."
+      ]
+    }
+  ],
+  "stale_status_corrections": [
+    {
+      "location": "module_progress Accordion and its task-close",
+      "reconciliation": "Retain candidate85 local A/S status, append X01/X02/M receipts and accepted shared Colour87/Motion88 slices. Do not replace the entire module with accepted87."
+    },
+    {
+      "location": "Quote/Breadcrumb/Table limits: condition-label fix pending82",
+      "reconciliation": "Generic labels/recovery accepted in82. Per-module condition behavior still requires individual evidence."
+    },
+    {
+      "location": "broad_open_areas: all modules outside five mapped modules",
+      "reconciliation": "Stale map count. Additional named local/deployed slices exist for Accordion,List,Button,Tabs,Divider,Spacer,Rich text,Video. No whole-module completion follows."
+    },
+    {
+      "location": "List coverage.json L04-L08 unverified/partial_setup_only",
+      "reconciliation": "Superseded in part by named L04-L08 files and appended task-close. Preserve original receipts and map exact scope."
+    },
+    {
+      "location": "List decimal inconsistency pending85/86",
+      "reconciliation": "Whole-count real-typing fix86 accepted. Historical decimal receipts remain reproduction evidence."
+    },
+    {
+      "location": "List fresh factory basis pending84",
+      "reconciliation": "Release84 Cloud native fresh basis accepted. WP Collection provider remains absent."
+    },
+    {
+      "location": "List No-wrap open / release89_candidate.remaining",
+      "reconciliation": "Release89 accepted Cloud native and WP portable Core. Physical touch remains open."
+    },
+    {
+      "location": "List pagination reset/last partial page all open",
+      "reconciliation": "Release89 adds5per-page across4pages and last3; do not infer every filter/order/route reset combination."
+    },
+    {
+      "location": "List corrected category conditions pending in summary.remaining",
+      "reconciliation": "Committed positive/negative category conditions are evidenced. Boolean equality probes remain rejected; child/nested edge matrix open."
+    },
+    {
+      "location": "Button earlier B09 anchor/B13 hover pending bullets",
+      "reconciliation": "B09 authored anchor activation and B13 settled real pointer hover are evidenced locally. Host/state combinations remain open."
+    },
+    {
+      "location": "tabs_partial deployment pending",
+      "reconciliation": "Release91 accepted bounded Cloud and WP editor; public WP Tabs remains portable proof."
+    },
+    {
+      "location": "richtext_partial deployment pending",
+      "reconciliation": "Release92 accepted Cloud and saved WP draft/public. Broader Rich text controls remain open."
+    },
+    {
+      "location": "responsive_typography_current_failure",
+      "reconciliation": "Historical reproduction resolved by bounded93 host acceptance. Preserve restoration caveat."
+    },
+    {
+      "location": "video_source_current_failure and video_native invalidURLs open",
+      "reconciliation": "Malformed source safety accepted94. Do not confuse iframe-creation proof with third-party playback."
+    },
+    {
+      "location": "video_site_checks_candidate95 rollout pending / source-safety task-close95 pending",
+      "reconciliation": "Release95 accepted Cloud/WP placeholder and contextual checks. Latest continuation/receipts supersede older local checkpoints."
+    },
+    {
+      "location": "video_focus_current_failure",
+      "reconciliation": "Still open through95. Native Enter replaces Play with iframe, activeElement BODY;96 candidate excluded."
+    }
+  ],
+  "next_native_priorities": [
+    {
+      "priority": "P1",
+      "order": 1,
+      "area": "Video keyboard focus and inline playback",
+      "next_checks": [
+        "Finish isolated96 focus fix native keyboard Enter/Space, visible focus transfer to iframe, next/previous Tab route and pointer activation without forced focus.",
+        "Verify corrected saved Cloud Preview and actual saved WordPress frontend at D/T/M, then restore fixtures and record guards.",
+        "Separately check playsinline for unmuted/non-autoplay file video; physical iOS remains a distinct unavailable-device limit."
+      ],
+      "reason": "Existing confirmed user-visible keyboard failure survives accepted95.",
+      "evidence": [
+        "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-valid-keyboard.json"
+      ]
+    },
+    {
+      "priority": "P1",
+      "order": 2,
+      "area": "Shared styles and Button host acceptance",
+      "next_checks": [
+        "Exercise one mixed Button typography+surface edit, Cancel then Update typography, across ordinary linked buttons and two component instances.",
+        "Prove intended propagation versus local override across D/T/M, Undo/Redo, Save/reload and saved WordPress public output.",
+        "Retain explicit peer override and unrelated Body negative controls; include actual hover/focus and safe destination metadata."
+      ],
+      "reason": "Original customer defect class. B01-B13 is local;93 Rich text inheritance proof is narrower than mixed Button host behavior."
+    },
+    {
+      "priority": "P2",
+      "order": 3,
+      "area": "Gallery, next fresh module matrix",
+      "next_checks": [
+        "Create via palette, add/reorder/remove images, empty/long/missing caption and missing-image states with saved reload.",
+        "Exercise all nine direct control families: Images, Columns, Tile shape, Fit, Open full size, Captions, Lazy load, Gap, Tile radius.",
+        "Native lightbox open/Next/Previous/Escape, focus return and keyboard route; D/T/M responsive values/reset and public no-overflow.",
+        "Actual WordPress Save/reopen/public check, not only portable Core or the86 Columns typing subset."
+      ],
+      "reason": "High-use visual module.86 covers numeric Columns and89 smoke covers lightbox/Slider; these do not establish a full direct-control Gallery matrix."
+    },
+    {
+      "priority": "P2",
+      "order": 4,
+      "area": "List CMS and condition edge matrix",
+      "next_checks": [
+        "Use mixed categories and numeric/date fields for sort/filter, empty/missing/null and unavailable references.",
+        "Native repeated-child true/false conditions distinct from whole-list category visibility; nested/blank/legacy-invalid controls after committed-value/reload guard.",
+        "Filter/order/per-page change while on later page, explicit aria-current/title reset, last partial page and limit precedence."
+      ],
+      "reason": "Named receipts have homogeneous category/no numeric-date schema and rejected boolean equality probes. Avoid rerunning already accepted No-wrap and basic pagination unchanged."
+    },
+    {
+      "priority": "P2",
+      "order": 5,
+      "area": "Shared layout and form combinations",
+      "next_checks": [
+        "Table Position/Max width/Overflow and sticky/z-index interactions with long content at D/T/M.",
+        "Section/Row/Column/Box nested widths/wrap/min-basis/alignment, insertion/drag/selection/undo with real content.",
+        "Form conditional layout, required/invalid controls, date/select keyboard and save/reload/provider handling, using only bounded authorized test delivery."
+      ],
+      "reason": "Broader common-control and customer-flow gaps remain; this read-only pass does not assert absence of older narrow evidence."
+    }
+  ],
+  "remaining_broad_areas": [
+    "All builder modules outside the five mapped modules.",
+    "Shared Style/common controls and Advanced groups across modules.",
+    "Motion, transition, animation, duration, delay, easing and once controls.",
+    "Hover and keyboard Focus state controls and state-specific DOM/computed output.",
+    "Exhaustive Desktop/Tablet/Mobile plus state combinations beyond named cases.",
+    "Arbitrary values, units, fonts, colors, token sets and named styles.",
+    "Runtime-generated and conditional inspector controls not represented by named cases.",
+    "CMS bindings, source selectors and dynamic collection-field controls.",
+    "Dynamic component properties, component instances, variants and library workflows.",
+    "Collection contexts, repeated items, pagination and CMS rendering.",
+    "Add/drag/drop/block/pattern/media insertion and selection/undo behavior.",
+    "Full create/edit/save/reload flows for every module and setting family.",
+    "Physical devices, alternate browser engines, accessibility technology and keyboard-only workflows beyond recorded cases.",
+    "External integrations, roles, publishing, production/staging and recovery workflows."
+  ],
+  "reviewed_file_sha256": {
+    "qa-evidence/accordion-native-2026-10-22/coverage.json": "03606beb3ef1e021cd1f3e0fd4b0d5d3ca887768a60fb5c1b0dd1e1d2eb64350",
+    "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json": "93f7eff68ade0f9f8315aba804774547e09a1d41894e91b5f8c60f15fc0fbbb1",
+    "qa-evidence/accordion-native-2026-10-22/m03-transitions-and-reload.json": "d62795d293d4fc8687cf415bb23bb1966d11e28745764b42ef8670daf21cdf1a",
+    "qa-evidence/accordion-native-2026-10-22/m04-motion-cleared.json": "d9d6f25a951943a36904ac21bcbb6a432ba9ddb4a3c04b57e0f0b7d394646adc",
+    "qa-evidence/accordion-native-2026-10-22/task-close.md": "4877792c6ef9c05ff1070feff6564e2cf0eec2de9edbaff25aefbbe95dfc8a7d",
+    "qa-evidence/accordion-native-2026-10-22/x01-identity-custom-css.json": "c0ce96ce86f97f615357e57b2bb29a59bf6ec957beb5f0b7fb80cb42c6d239b3",
+    "qa-evidence/accordion-native-2026-10-22/x02-hide-breakpoint-matrix.json": "c63d0165f7029564583a8a6a8bde10f4e756f471644adb5335f63ac58a9a146c",
+    "qa-evidence/binding-dialog-labels-2026-10-22/post-deploy/task-close.md": "05e665bab8ae60f7edcaf53c8b561a459a57cba9cc7c8d3c6b345b0dec3a4e1c",
+    "qa-evidence/breadcrumb-native-2026-10-21/coverage.json": "dd27f73c263a0e8b412ba1f70b5c0870fc8e6393b4b408f89bdf18069e879576",
+    "qa-evidence/breadcrumb-native-2026-10-21/task-close.md": "2105e72c0e022536e0fc93f1c4c30e39ee1a35d2f21de3cd1fe1136b939b8b31",
+    "qa-evidence/button-native-2026-10-22/task-close.md": "32622cb7ed2a4e2ed94b790d8a9f27793f4a9ef2590df000466b595e21443a38",
+    "qa-evidence/code-native-2026-10-21/coverage.json": "d356d57c5dcab08aa6687ab68565952d785937ae8f9a587b5b0219b5966d6990",
+    "qa-evidence/color-picker-semantics-2026-10-22/post-deploy/task-close.md": "6a3ac67d34fc7271177f4597a3377e8d9a54e430791856b48aa449e57c06c6a0",
+    "qa-evidence/condition-control-labels-2026-10-21/post-deploy/task-close.md": "2d014e71c5b7a8170a8fb3c5e9372ecc7b07860520b72b7f6498ce74041b58bb",
+    "qa-evidence/customer-module-next-2026-10-22/continuation-coverage.md": "27d1c400a5450957766960d0803bd49d485aa4275882d3d4fdb3a5718260f0ed",
+    "qa-evidence/customer-setting-inventory-2026-10-21/inventory.json": "ad74f62143cd182ac1f319d28e03c6b5c0f5a656a34b79869b2bd1f2fdbf829a",
+    "qa-evidence/customer-setting-inventory-2026-10-21/native-progress.json": "6cc7bccaf388575037323683387a98b620e6b2a7f97ab8695b69672aceeb4fa8",
+    "qa-evidence/customer-setting-inventory-2026-10-21/native-progress.md": "9266aa6df76b496515b7bf58b1fef476ed9fd09dcd1bb552158ce2597fef56a2",
+    "qa-evidence/icon-native-2026-10-21/coverage.json": "1bb0acf0775eb3b4bf4e59ac84124f2eed893eea65096995640031eac7a479bf",
+    "qa-evidence/integer-typing-2026-10-22/post-deploy/task-close.md": "9c5b6d7330262b8602644eaf3e55f6b2dbdb973867ca27de844ad121df717c41",
+    "qa-evidence/list-native-2026-10-22/l04-l05-summary.json": "4d582adf76968d646768b4ead343d3cf53a2ebb13b66f525ed87f3f0918865f4",
+    "qa-evidence/list-native-2026-10-22/l08-condition-category-committed.json": "3a2480a9da06b2e50402c675cdd6498620ba34ce9966d5fdd7efb1ce4ae20e88",
+    "qa-evidence/list-native-2026-10-22/task-close.md": "afaf2148a21c701bd5f7efbc0170f8bde8913e2c9cbe4d179c3783f51a2f4b93",
+    "qa-evidence/list-nowrap-2026-10-22/post-deploy/task-close.md": "b3d36c6987cb03ea2a46afb677ae6e9552a4ed776bce2653e5b955a894a070fc",
+    "qa-evidence/motion-validation-2026-10-22/post-deploy/task-close.md": "aaa47e385fd1a8abc03e67f76c5e2f1315655c259c4a62f817aab2b3101faed0",
+    "qa-evidence/padding-list-controls-2026-10-21/post-deploy/task-close.md": "d4805860194652a67dc5d7ce046ef9c2d3f26a728e22f474cfe80593e87353d3",
+    "qa-evidence/quote-native-2026-10-21/coverage.json": "2aaac31f01d0310edebcab5318cb4bf3fe5cd432b76c915282d8733acb30ea4e",
+    "qa-evidence/quote-native-2026-10-21/task-close.md": "cd29b5d44921f4d7cf30102286614fbfe2d0feba7de5c208a1f4c46388ec5e76",
+    "qa-evidence/responsive-typography-2026-10-22/post-deploy/task-close.md": "6b779f670d27b004ee440460abc51c41ea03c908a9d608c38e831ed73242ab90",
+    "qa-evidence/richtext-list-safety-2026-10-22/post-deploy/task-close.md": "40e677f2b412afd8e1c5ee1de04cf792960390158873488d4ab69a3e2038440c",
+    "qa-evidence/spacing-native-2026-10-22/task-close.md": "b514802cb17de28fd2c3006a3d41c1f659c41cfe7e1ff6e2a9fafe0cc291ce65",
+    "qa-evidence/table-native-2026-10-21/coverage.json": "93c18bdd6bb924bfa8664a6bf1b77e8c5f22b9433c695864d0d65396c4368e87",
+    "qa-evidence/tabs-native-2026-10-22/t07-all-direct-style-matrix.json": "587f25412624ea2accecbfff1b5fd57870f5af63804a5b69575747364d0ad48d",
+    "qa-evidence/tabs-native-2026-10-22/t09-responsive-clear-zero.json": "eb47372156e48ce3bf0cb0766f6e25aef7eb32b228e58aa9a9abd150ce96a736",
+    "qa-evidence/tabs-overflow-2026-10-22/post-deploy/task-close.md": "455f52643a71e4d6a7812bef189713b665edb0bc3fcdc30b9d6c208ad38cf759",
+    "qa-evidence/tabs-overflow-2026-10-22/root-acceptance.json": "c86c41dbb1200a22b09d7ecedaa6d6ae81489e9d30732a967e4705677913e86a",
+    "qa-evidence/video-native-2026-10-22/coverage.json": "0902d1c337b2fb66bbeab054b2ff3ad7b335dead56602b998bed859d4eb38fd9",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/continuation.md": "b18ebb7fc093571f84ba07cdb1f543520539b0bffece1890ce33f7c1ab472f0b",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/staging-invalid-acceptance.json": "b35373af4ff95a06138d549d1ee3c8ba39dab059b0649f54e4d5ce6873cbac52",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-empty-public.json": "c6bbd3835b57a0ea28bc01a5bf351ad6cba7632f51040d29b1a99c01e898699b",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-invalid-public.json": "86c28df937d82985d17c9e0aca154d2fdea85d7a3a521a0063e129597ffbf640",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-site-checks.json": "a60ad3ef8cfee870103b1d51cf5a33c717c87869c2de2f78b9574393f68607dd",
+    "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-valid-keyboard.json": "853295bc2549c6e4d3f4256c647eb04c86ef728141cdf333baa3ba1ce08b43b8",
+    "qa-evidence/video-source-safety-2026-10-22/post-deploy/task-close.md": "68b92e8f8d69aa5551aa7647bb295a9190cf2ce9d146c3ac298f50163afbd120"
+  },
+  "limitations": [
+    "Historical records were not edited, and no current live UI/deployment was independently rechecked in this task.",
+    "Scope is named records through95. Older broad QA material may contain narrower proofs not exhaustively reindexed here.",
+    "Screenshots were referenced through existing root-accepted records, not newly visually inspected in this task."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+    "site": "http://127.0.0.1:4397",
+    "packageSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+    "packageBytes": 1980531,
+    "result": {
+        "jobId": 134,
+        "created": 0,
+        "updated": 6,
+        "absent": 0,
+        "projectId": "template:dental-clinic-a2:0.1.0",
+        "sourceVersion": 32,
+        "homepageId": 17
+    },
+    "beforePageIds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+    ],
+    "beforeHeading": "Good care,\nfor every smile.",
+    "beforeImage": "http://127.0.0.1:4397/wp-content/uploads/2026/11/family-care-hero.webp"
+}

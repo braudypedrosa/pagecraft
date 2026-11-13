@@ -1,0 +1,62 @@
+[
+  {
+    "pageId": 17,
+    "revision": 24,
+    "disabledRequest": null,
+    "h1": "Good care,for every smile.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 8
+  },
+  {
+    "pageId": 18,
+    "revision": 24,
+    "disabledRequest": null,
+    "h1": "Care that starts with you.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 6
+  },
+  {
+    "pageId": 19,
+    "revision": 24,
+    "disabledRequest": null,
+    "h1": "A team that listens.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 5
+  },
+  {
+    "pageId": 20,
+    "revision": 24,
+    "disabledRequest": null,
+    "h1": "A little more ease, from the start.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 5
+  },
+  {
+    "pageId": 21,
+    "revision": 24,
+    "disabledRequest": null,
+    "h1": "Helpful information, before you visit.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 6
+  },
+  {
+    "pageId": 22,
+    "revision": 24,
+    "disabledRequest": true,
+    "h1": "Let’s talk about your visit.",
+    "hasPortableToken": false,
+    "images": true,
+    "overflow": false,
+    "sections": 4
+  }
+]

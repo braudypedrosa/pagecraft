@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/motion-reduced-8f1a3b1
+
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  03:54:22
+   Duration  996ms (transform 26ms, setup 0ms, import 37ms, tests 441ms, environment 417ms)
+

@@ -17,8 +17,9 @@
    what has run — this one is safe to re-run only because every statement in it says
    `if not exists`. */
 import type { Doc } from '../../app/src/core/types.ts';
+import { planEntitlements } from './plans.ts';
 import {
-  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store,
+  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SiteRevisionMeta, type SaveResult, type Store,
   type ScheduledPublishInput, type ScheduledPublishResult
 } from './store.ts';
 import {
@@ -27,10 +28,10 @@ import {
   type Asset, type AssetQuota, type AssetRecord, type AssetStore
 } from './assets.ts';
 import {
-  AUTH_SCHEMA, normalEmail, type AuthStore, type InviteDeliveryResult,
+  AUTH_SCHEMA, MANUAL_IMPORT_IDLE_MS, normalEmail, type AuthStore, type InviteDeliveryResult,
   type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
-  type ManualImportCredential, type User
+  type ManualImportCredential, type ManualImportRefreshResult, type User, type AccountPlan
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -393,9 +394,14 @@ interface RevisionRow {
   site_id: string; version: number; doc: Doc; saved_by: string | null;
   context: Record<string, unknown> | null; created_at: Date | string;
 }
+type RevisionMetaRow = Omit<RevisionRow, 'doc' | 'context'>;
 const toRevision = (r: RevisionRow): SiteRevision => ({
   siteId: r.site_id, version: r.version, doc: r.doc, savedBy: r.saved_by,
   context: r.context,
+  createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
+});
+const toRevisionMeta = (r: RevisionMetaRow): SiteRevisionMeta => ({
+  siteId: r.site_id, version: r.version, savedBy: r.saved_by,
   createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
 });
 
@@ -571,9 +577,9 @@ export class PgStore implements Store {
   }
 
   async history(id: string) {
-    const { rows } = await this.db.query<RevisionRow>(
-      'select * from site_revisions where site_id = $1 order by version desc', [id]);
-    return rows.map(toRevision);
+    const { rows } = await this.db.query<RevisionMetaRow>(
+      'select site_id, version, saved_by, created_at from site_revisions where site_id = $1 order by version desc', [id]);
+    return rows.map(toRevisionMeta);
   }
 
   async revision(id: string, version: number) {
@@ -1752,15 +1758,16 @@ export class PgAssetStore implements AssetStore {
     try {
       await client.query('begin');
       if (quota) {
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [quota.ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [quota.ownerId]);
         if (!owner.rows[0]) throw new Error('storage owner does not exist');
         const current = await client.query<{ used: string }>(
           `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [quota.ownerId]);
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [id, quota.ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
-          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        if (used - replacing + a.bytes.byteLength > limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }
       }
       const { rows } = await client.query<AssetMetaRow>(
@@ -1806,15 +1813,16 @@ export class PgAssetStore implements AssetStore {
       }
       const ownerId = quota?.ownerId || guard.rows[0].created_by;
       if (quota) {
-        const owner = await client.query<{ id: string }>('select id from users where id = $1 for update', [ownerId]);
+        const owner = await client.query<{ id: string; plan: AccountPlan }>('select id, plan from users where id = $1 for update', [ownerId]);
         if (!owner.rows[0]) throw new Error('storage owner does not exist');
         const current = await client.query<{ used: string }>(
           `select coalesce(sum(stored_bytes),0)::text as used from assets where owner_id = $1`, [ownerId]);
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [a.id, ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        if (used - replacing + a.bytes.byteLength > quota.limitBytes) {
-          throw new AssetQuotaError({ usedBytes: used, limitBytes: quota.limitBytes });
+        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        if (used - replacing + a.bytes.byteLength > limitBytes) {
+          throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }
       }
       const { rows } = await client.query<AssetMetaRow>(
@@ -1870,7 +1878,7 @@ export class PgAssetStore implements AssetStore {
 
 interface UserRow {
   id: string; email: string; name: string; auth_user_id?: string | null;
-  plan?: 'free'; created_at?: Date | string;
+  plan?: AccountPlan; created_at?: Date | string;
 }
 interface SessionRow { digest: string; user_id: string; expires_at: Date | string }
 interface MemberRow { site_id: string; user_id: string; role: Role }
@@ -1930,7 +1938,7 @@ export class PgAuthStore implements AuthStore {
     const unique = [...new Set(ids)];
     if (!unique.length) return [];
     const { rows } = await this.db.query<UserRow>(
-      'select id, email, name, auth_user_id from users where id = any($1::text[])', [unique]);
+      'select id, email, name, auth_user_id, plan, created_at from users where id = any($1::text[])', [unique]);
     return rows.map(row => this.user(row));
   }
   async createUser(email: string, name = '') {
@@ -2170,23 +2178,35 @@ export class PgAuthStore implements AuthStore {
   }
   async createManualImportCredential(input: Omit<ManualImportCredential,
     'status' | 'createdAt' | 'updatedAt' | 'revokedAt'>) {
-    const { rows } = await this.db.query<{
-      id:string; owner_id:string; installation_id:string; access_token_digest:string;
-      access_expires_at:Date|string; refresh_token_digest:string; status:'active'|'revoked';
-      created_at:Date|string; updated_at:Date|string; revoked_at:Date|string|null;
-    }>(`insert into wordpress_import_credentials (
-        id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
-      ) values ($1, $2, $3, $4, $5, $6)
-      on conflict (owner_id, installation_id) do update set
-        access_token_digest = excluded.access_token_digest,
-        access_expires_at = excluded.access_expires_at,
-        refresh_token_digest = excluded.refresh_token_digest,
-        status = 'active', revoked_at = null, updated_at = now()
-      returning *`, [
-      input.id, input.ownerId, input.installationId, input.accessTokenDigest,
-      new Date(input.accessExpiresAt).toISOString(), input.refreshTokenDigest
-    ]);
-    return this.manualCredential(rows[0]);
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      const { rows } = await client.query<any>(`insert into wordpress_import_credentials (
+          id, owner_id, installation_id, site_url, access_token_digest,
+          access_expires_at, refresh_token_digest
+        ) values ($1, $2, $3, $4, $5, $6, $7)
+        on conflict (owner_id, installation_id) do update set
+          site_url = excluded.site_url,
+          access_token_digest = excluded.access_token_digest,
+          access_expires_at = excluded.access_expires_at,
+          refresh_token_digest = excluded.refresh_token_digest,
+          status = 'active', revoked_at = null, updated_at = now()
+        returning *`, [
+        input.id, input.ownerId, input.installationId, input.siteUrl ?? null,
+        input.accessTokenDigest, new Date(input.accessExpiresAt).toISOString(),
+        input.refreshTokenDigest
+      ]);
+      await client.query(
+        'delete from wordpress_import_used_refresh_tokens where credential_id = $1',
+        [rows[0].id]);
+      await client.query('commit');
+      return this.manualCredential(rows[0]);
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
   }
   async manualImportByAccess(digest: string) {
     const { rows } = await this.db.query<any>(
@@ -2197,14 +2217,92 @@ export class PgAuthStore implements AuthStore {
   async manualImportByRefresh(digest: string) {
     const { rows } = await this.db.query<any>(
       `select * from wordpress_import_credentials
-       where refresh_token_digest = $1 and status = 'active' limit 1`, [digest]);
+       where refresh_token_digest = $1 and status = 'active'
+         and updated_at > now() - interval '90 days' limit 1`, [digest]);
     return rows[0] ? this.manualCredential(rows[0]) : null;
   }
-  async rotateManualImportAccess(id: string, digest: string, expiresAt: number) {
-    const { rows } = await this.db.query<any>(
-      `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3, updated_at = now()
-       where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
+  async rotateManualImportAccess(id: string, digest: string, expiresAt: number,
+    refresh?: { digest: string; previous: string }) {
+    const { rows } = refresh
+      ? await this.db.query<any>(
+        `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3,
+           refresh_token_digest = $4, updated_at = now()
+         where id = $1 and status = 'active' and refresh_token_digest = $5 returning *`,
+        [id, digest, new Date(expiresAt).toISOString(), refresh.digest, refresh.previous])
+      : await this.db.query<any>(
+        `update wordpress_import_credentials set access_token_digest = $2, access_expires_at = $3, updated_at = now()
+         where id = $1 and status = 'active' returning *`, [id, digest, new Date(expiresAt).toISOString()]);
     return rows[0] ? this.manualCredential(rows[0]) : null;
+  }
+  async exchangeManualImportRefresh(presentedDigest: string, nextAccessDigest: string,
+    nextAccessExpiresAt: number, nextRefreshDigest: string): Promise<ManualImportRefreshResult> {
+    const client = this.db.connect ? await this.db.connect() : this.db;
+    try {
+      await client.query('begin');
+      const current = await client.query<any>(
+        `select * from wordpress_import_credentials
+         where refresh_token_digest = $1 for update`, [presentedDigest]);
+      const credential = current.rows[0];
+      if (credential) {
+        if (credential.status !== 'active' ||
+            ms(credential.updated_at) <= Date.now() - MANUAL_IMPORT_IDLE_MS) {
+          await client.query('commit');
+          return { status: 'invalid' };
+        }
+        /* Re-pairing locks the credential before clearing its history. Keep this same lock
+           order, so refresh and reconnect cannot deadlock each other. */
+        await client.query(
+          `delete from wordpress_import_used_refresh_tokens
+           where credential_id = $1 and expires_at <= now()`, [credential.id]);
+        await client.query(
+          `insert into wordpress_import_used_refresh_tokens (digest, credential_id, expires_at)
+           values ($1, $2, now() + interval '90 days')`,
+          [presentedDigest, credential.id]);
+        const rotated = await client.query<any>(
+          `update wordpress_import_credentials
+           set access_token_digest = $2, access_expires_at = $3,
+             refresh_token_digest = $4, updated_at = now()
+           where id = $1 and status = 'active' and refresh_token_digest = $5
+           returning *`, [credential.id, nextAccessDigest,
+            new Date(nextAccessExpiresAt).toISOString(), nextRefreshDigest, presentedDigest]);
+        if (!rotated.rows[0]) {
+          await client.query('rollback');
+          return { status: 'invalid' };
+        }
+        await client.query('commit');
+        return { status: 'rotated', credential: this.manualCredential(rotated.rows[0]) };
+      }
+      const reused = await client.query<any>(
+        `select credential.* from wordpress_import_used_refresh_tokens used
+         join wordpress_import_credentials credential on credential.id = used.credential_id
+         where used.digest = $1 and used.expires_at > now()
+         for update of credential`, [presentedDigest]);
+      if (!reused.rows[0] || reused.rows[0].status !== 'active') {
+        await client.query('commit');
+        return { status: 'invalid' };
+      }
+      /* The join can find old history before waiting on a concurrent re-pair's credential
+         lock. Re-read after acquiring that lock: re-pair may have cleared the old family. */
+      const stillUsed = await client.query<{ digest: string }>(
+        `select digest from wordpress_import_used_refresh_tokens
+         where digest = $1 and credential_id = $2 and expires_at > now()`,
+        [presentedDigest, reused.rows[0].id]);
+      if (!stillUsed.rows[0]) {
+        await client.query('commit');
+        return { status: 'invalid' };
+      }
+      await client.query(
+        `update wordpress_import_credentials
+         set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+         where id = $1 and status = 'active'`, [reused.rows[0].id]);
+      await client.query('commit');
+      return { status: 'reused' };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      if ('release' in client && typeof client.release === 'function') client.release();
+    }
   }
   async revokeManualImportCredential(id: string, refreshDigest: string) {
     const { rows } = await this.db.query<{ id:string }>(
@@ -2212,9 +2310,22 @@ export class PgAuthStore implements AuthStore {
        where id = $1 and refresh_token_digest = $2 returning id`, [id, refreshDigest]);
     return rows.length > 0;
   }
+  async manualImportsForOwner(ownerId: string) {
+    const { rows } = await this.db.query<any>(
+      `select * from wordpress_import_credentials
+       where owner_id = $1 and status = 'active' order by created_at desc`, [ownerId]);
+    return rows.map(row => this.manualCredential(row));
+  }
+  async revokeManualImportForOwner(id: string, ownerId: string) {
+    const { rows } = await this.db.query<{ id:string }>(
+      `update wordpress_import_credentials set status = 'revoked', revoked_at = coalesce(revoked_at, now()), updated_at = now()
+       where id = $1 and owner_id = $2 and status = 'active' returning id`, [id, ownerId]);
+    return rows.length > 0;
+  }
   private manualCredential(row: any): ManualImportCredential {
     return {
       id: row.id, ownerId: row.owner_id, installationId: row.installation_id,
+      siteUrl: row.site_url ?? null,
       accessTokenDigest: row.access_token_digest, accessExpiresAt: ms(row.access_expires_at),
       refreshTokenDigest: row.refresh_token_digest, status: row.status,
       createdAt: ms(row.created_at), updatedAt: ms(row.updated_at),

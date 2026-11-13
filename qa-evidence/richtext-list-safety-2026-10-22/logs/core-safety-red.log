@@ -1,0 +1,102 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/richtext-list-1f4b2cc
+
+ ❯ tests/rich-text-render-safety.test.ts (20 tests | 20 failed) 24ms
+   × rich-text render sanitizes stored executable links in edit=true without altering the document 13ms
+   × rich-text render sanitizes stored executable links in edit=false without altering the document 2ms
+   × rich-text content blocks executable tags and attributes while preserving toolbar markup and words 5ms
+   × toolbar and output retain safe rich-text link https://example.com/visit 1ms
+   × toolbar and output retain safe rich-text link http://example.com 1ms
+   × toolbar and output retain safe rich-text link mailto:hello@example.com 0ms
+   × toolbar and output retain safe rich-text link tel:+15550100 0ms
+   × toolbar and output retain safe rich-text link #rooms 0ms
+   × toolbar and output retain safe rich-text link /visit 0ms
+   × toolbar and output retain safe rich-text link ../visit 0ms
+   × toolbar and output retain safe rich-text link visit.html?day=1#rooms 0ms
+   × toolbar rejects unsafe rich-text link javascript:alert(1) 0ms
+   × toolbar rejects unsafe rich-text link JaVaScRiPt:alert(1) 0ms
+   × toolbar rejects unsafe rich-text link java&#x73;cript:alert(1) 0ms
+   × toolbar rejects unsafe rich-text link java&Tab;script:alert(1) 0ms
+   × toolbar rejects unsafe rich-text link vbscript:msgbox(1) 0ms
+   × toolbar rejects unsafe rich-text link data:text/html,test 0ms
+   × toolbar rejects unsafe rich-text link data:image/svg+xml,test 0ms
+   × toolbar rejects unsafe rich-text link asset:test 0ms
+   × toolbar rejects unsafe rich-text link //untrusted.example/path 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 20 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/rich-text-render-safety.test.ts > rich-text render sanitizes stored executable links in edit=true without altering the document
+ FAIL  tests/rich-text-render-safety.test.ts > rich-text render sanitizes stored executable links in edit=false without altering the document
+AssertionError: javascript:alert(1): expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/rich-text-render-safety.test.ts:19:65
+     17|     const output = C.renderNode(node, { edit });
+     18|     const host = document.createElement('div'); host.innerHTML = outpu…
+     19|     expect(host.querySelector('a')?.hasAttribute('href'), href).toBe(f…
+       |                                                                 ^
+     20|     expect(host.querySelector('a')?.hasAttribute('onclick'), href).toB…
+     21|     expect(host.querySelector('strong')?.textContent).toBe('Workshop g…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯
+
+ FAIL  tests/rich-text-render-safety.test.ts > rich-text content blocks executable tags and attributes while preserving toolbar markup and words
+AssertionError: expected <script></script> to be null
+
+- Expected:
+null
+
++ Received:
+<script>
+  alert(1)
+</script>
+
+ ❯ tests/rich-text-render-safety.test.ts:29:54
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯
+
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link https://example.com/visit
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link http://example.com
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link mailto:hello@example.com
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link tel:+15550100
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link #rooms
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link /visit
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link ../visit
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar and output retain safe rich-text link visit.html?day=1#rooms
+TypeError: safeRichUrl is not a function
+ ❯ tests/rich-text-render-safety.test.ts:38:12
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯
+
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link javascript:alert(1)
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link JaVaScRiPt:alert(1)
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link java&#x73;cript:alert(1)
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link java&Tab;script:alert(1)
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link vbscript:msgbox(1)
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link data:text/html,test
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link data:image/svg+xml,test
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link asset:test
+ FAIL  tests/rich-text-render-safety.test.ts > toolbar rejects unsafe rich-text link //untrusted.example/path
+TypeError: safeRichUrl is not a function
+ ❯ tests/rich-text-render-safety.test.ts:45:12
+     43|
+     44| test.each(unsafe)('toolbar rejects unsafe rich-text link %s', href => {
+     45|   expect(C.safeRichUrl(href)).toBe('');
+       |            ^
+     46| });
+     47|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  20 failed (20)
+   Start at  12:58:35
+   Duration  764ms (transform 249ms, setup 0ms, import 293ms, tests 24ms, environment 285ms)

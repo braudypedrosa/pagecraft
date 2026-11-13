@@ -1,0 +1,39 @@
+{
+  "pageScroll": 403,
+  "pageWidth": 403,
+  "panels": [
+    {
+      "height": 122,
+      "scroll": 363,
+      "scrollHeight": 122,
+      "text": "WorkshopBookingReference2026A37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9CA37B9C",
+      "width": 363
+    }
+  ],
+  "tabs": [
+    {
+      "id": "pagecraft-tabs-0ywhd1c0-t0",
+      "index": 0,
+      "label": "AccessibilitySupportAndQuietRoomBookingInformationForEveryVisitorAtTheCommunityWorkshop",
+      "scroll": 363,
+      "selected": "true",
+      "width": 363
+    },
+    {
+      "id": "pagecraft-tabs-0ywhd1c0-t1",
+      "index": -1,
+      "label": "Details",
+      "scroll": 47,
+      "selected": "false",
+      "width": 47
+    },
+    {
+      "id": "pagecraft-tabs-0ywhd1c0-t2",
+      "index": -1,
+      "label": "Pricing",
+      "scroll": 47,
+      "selected": "false",
+      "width": 47
+    }
+  ]
+}

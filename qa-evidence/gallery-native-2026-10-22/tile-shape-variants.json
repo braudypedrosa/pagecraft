@@ -1,0 +1,44 @@
+[
+  {
+    "choice": "4:3",
+    "result": {
+      "aspect": "4 / 3",
+      "rectRatio": 1.3333333333333333
+    }
+  },
+  {
+    "choice": "3:2",
+    "result": {
+      "aspect": "3 / 2",
+      "rectRatio": 1.5
+    }
+  },
+  {
+    "choice": "16:9",
+    "result": {
+      "aspect": "16 / 9",
+      "rectRatio": 1.7777777777777777
+    }
+  },
+  {
+    "choice": "3:4 portrait",
+    "result": {
+      "aspect": "3 / 4",
+      "rectRatio": 0.75
+    }
+  },
+  {
+    "choice": "Whatever each image is",
+    "result": {
+      "aspect": "auto",
+      "rectRatio": 1.5
+    }
+  },
+  {
+    "choice": "Square",
+    "result": {
+      "aspect": "1 / 1",
+      "rectRatio": 1
+    }
+  }
+]

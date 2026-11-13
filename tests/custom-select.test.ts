@@ -9,7 +9,8 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
     <option value="updated">Last edited</option><option value="name">Name</option>
   </select>`;
   const select = document.querySelector('select')!;
-  let changes = 0;
+  let inputs = 0, changes = 0;
+  select.addEventListener('input', () => { inputs++; });
   select.addEventListener('change', () => { changes++; });
 
   installCustomSelects();
@@ -32,9 +33,20 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.equal(name.isConnected, true);
   name.click();
   a.equal(select.value, 'name');
+  a.equal(inputs, 1);
   a.equal(changes, 1);
   a.equal(trigger.textContent?.trim(), 'Name');
   a.equal(menu.hidden, true);
+
+  trigger.click();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  [...menu.querySelectorAll<HTMLButtonElement>('[role="option"]')]
+    .find(option => option.textContent?.includes('Name'))!.click();
+  a.equal(select.value, 'name');
+  a.equal(inputs, 1, 'choosing the selected option does not emit a native input event');
+  a.equal(changes, 1, 'choosing the selected option does not emit a native change event');
+  a.equal(menu.hidden, true, 'the same-value choice still closes the popup');
+  a.equal(document.activeElement, trigger, 'the same-value choice returns focus to the trigger');
 
   // Closing a menu must not also invoke the builder's Escape-to-select-parent shortcut.
   let escapedToEditor = 0;
@@ -58,6 +70,88 @@ test('custom select mirrors native values, events, keyboard focus, and dynamic c
   a.ok(dynamicTrigger.classList.contains('pc-custom-select-trigger'));
   dynamicTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
   a.equal(dynamicTrigger.getAttribute('aria-expanded'), 'true');
+});
+
+test('conditional controls cannot separate native selects from their visible triggers', async () => {
+  document.body.innerHTML = `
+    <div id="url-field"><select id="link-type" aria-label="Link type">
+      <option value="url">A URL</option><option value="page" selected>A page in this project</option>
+    </select></div>
+    <div id="page-field"><select id="target-type" aria-label="Target type">
+      <option value="url">A URL</option><option value="page" selected>A page in this project</option>
+    </select></div>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const link = document.querySelector<HTMLSelectElement>('#link-type')!;
+  const linkTrigger = link.nextElementSibling as HTMLButtonElement;
+  const url = document.createElement('input');
+  url.id = 'link-url';
+  url.value = 'https://example.test/';
+  link.parentElement!.insertBefore(url, linkTrigger);
+  await new Promise(resolve => setTimeout(resolve, 30));
+  a.equal(link.nextElementSibling, linkTrigger, 'a conditional text field stays after the Link type trigger');
+  a.equal(linkTrigger.nextElementSibling, url);
+  a.equal(link.value, 'page');
+  a.match(linkTrigger.textContent || '', /A page in this project/);
+
+  const target = document.querySelector<HTMLSelectElement>('#target-type')!;
+  const targetTrigger = target.nextElementSibling as HTMLButtonElement;
+  const page = document.createElement('select');
+  page.id = 'link-page';
+  page.setAttribute('aria-label', 'Link page');
+  page.innerHTML = '<option value="home">Home</option><option value="about" selected>About</option>';
+  const anchor = document.createElement('input');
+  anchor.id = 'link-anchor';
+  target.parentElement!.insertBefore(page, targetTrigger);
+  target.parentElement!.insertBefore(anchor, targetTrigger);
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const pageTrigger = page.nextElementSibling as HTMLButtonElement;
+  a.equal(target.nextElementSibling, targetTrigger, 'conditional page controls stay after the Target type trigger');
+  a.equal(targetTrigger.nextElementSibling, page);
+  a.equal(page.nextElementSibling, pageTrigger);
+  a.equal(pageTrigger.nextElementSibling, anchor);
+  a.equal(target.value, 'page');
+  a.equal(page.value, 'about');
+  a.match(pageTrigger.textContent || '', /About/);
+  a.equal(document.querySelectorAll('.pc-custom-select-trigger').length, 3, 'one visible trigger remains per native select');
+  a.equal(document.querySelectorAll('.pc-custom-select-popover').length, 3, 'no orphan popup is created');
+});
+
+test('command-modified printable keys stay available to app shortcuts without opening the menu', async () => {
+  HTMLElement.prototype.scrollIntoView = () => {};
+  document.body.innerHTML = `<label for="style">Text style</label><select id="style">
+    <option value="body">Body</option><option value="section">Section title</option>
+  </select>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  let saves = 0;
+  const save = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') saves++;
+  };
+  document.addEventListener('keydown', save);
+
+  trigger.focus();
+  for (const modifier of [{ metaKey: true }, { ctrlKey: true }, { altKey: true }]) {
+    const event = new KeyboardEvent('keydown', { key: 's', ...modifier, bubbles: true, cancelable: true });
+    trigger.dispatchEvent(event);
+    a.equal(trigger.getAttribute('aria-expanded'), 'false');
+    a.equal(document.activeElement, trigger);
+    a.equal(event.defaultPrevented, false, 'the owning app can handle its shortcut');
+  }
+  a.equal(saves, 2, 'Command/Ctrl+S still reaches the draft-save shortcut');
+
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'Alt+Arrow keeps native combobox opening semantics');
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'Space still opens the menu');
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true, cancelable: true }));
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  a.equal(trigger.getAttribute('aria-expanded'), 'true', 'unmodified printable keys still type ahead');
+  a.match(document.activeElement?.textContent || '', /Section title/);
+  document.removeEventListener('keydown', save);
 });
 
 test('menus fit below, above or in the larger scrollable space and clamp to the viewport', async () => {
@@ -94,6 +188,44 @@ test('menus fit below, above or in the larger scrollable space and clamp to the 
   trigger.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 });
 
+test('menu scrolling stays under pointer control while external scroll and keyboard positioning remain active', async () => {
+  HTMLElement.prototype.scrollIntoView = () => {};
+  document.body.innerHTML = `<div id="scroll-host"><select aria-label="Font family">${Array.from({ length: 40 }, (_, index) =>
+    `<option value="font-${index}">${index === 0 ? 'Inherit' : `Font ${index}`}</option>`).join('')}</select></div>`;
+  installCustomSelects();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  let triggerTop = 100;
+  trigger.getBoundingClientRect = () => ({ top: triggerTop, bottom: triggerTop + 37, left: 20, right: 220, width: 200, height: 37 } as DOMRect);
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+  trigger.click();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const menu = document.querySelector<HTMLElement>('.pc-custom-select-popover:not([hidden])')!;
+  const active = menu.querySelector<HTMLButtonElement>('[aria-selected="true"]')!;
+  Object.defineProperty(menu, 'scrollHeight', { configurable: true, value: 2122 });
+  Object.defineProperty(menu, 'offsetHeight', { configurable: true, value: 360 });
+  Object.defineProperty(menu, 'clientHeight', { configurable: true, value: 360 });
+  Object.defineProperty(menu, 'scrollTop', { configurable: true, writable: true, value: 40 });
+  menu.getBoundingClientRect = () => ({ top: 100, bottom: 460, left: 20, right: 220, width: 200, height: 360 } as DOMRect);
+  active.getBoundingClientRect = () => ({ top: 20, bottom: 54, left: 20, right: 220, width: 200, height: 34 } as DOMRect);
+
+  menu.dispatchEvent(new Event('scroll'));
+  a.equal(menu.scrollTop, 40, 'wheel scrolling the menu does not snap back to its active option');
+
+  active.getBoundingClientRect = () => ({ top: 120, bottom: 154, left: 20, right: 220, width: 200, height: 34 } as DOMRect);
+  triggerTop = 200;
+  document.querySelector('#scroll-host')!.dispatchEvent(new Event('scroll'));
+  a.equal(menu.style.top, '243px', 'scrolling an ancestor still repositions the floating menu');
+
+  const last = menu.querySelectorAll<HTMLButtonElement>('[role="option"]')[39];
+  let revealed = 0;
+  last.scrollIntoView = () => { revealed++; };
+  active.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+  a.equal(document.activeElement, last);
+  a.equal(revealed, 1, 'keyboard navigation still reveals the newly active option');
+});
+
 
 test('floating options stay opaque when toolbar triggers are transparent or tinted', async () => {
   document.body.innerHTML = '<select aria-label="Current page"><option>Home</option><option>Plan your stay</option></select>';
@@ -109,4 +241,25 @@ test('floating options stay opaque when toolbar triggers are transparent or tint
     a.equal(menu.hidden, true);
     a.equal(document.activeElement, trigger);
   }
+});
+
+test('visible combobox carries native validation state and error descriptions as they change', async () => {
+  document.body.innerHTML = '<p id="currency-help">Choose a supported currency.</p><select aria-label="Currency" required aria-invalid="true" aria-describedby="currency-help" aria-errormessage="currency-help"><option value="">Choose currency</option><option value="USD">USD</option></select>';
+  await new Promise(resolve => setTimeout(resolve, 30));
+  const select = document.querySelector('select')!;
+  const trigger = document.querySelector<HTMLButtonElement>('.pc-custom-select-trigger')!;
+  a.equal(trigger.getAttribute('aria-required'), 'true');
+  a.equal(trigger.getAttribute('aria-invalid'), 'true');
+  a.equal(trigger.getAttribute('aria-describedby'), 'currency-help');
+  a.equal(trigger.getAttribute('aria-errormessage'), 'currency-help');
+
+  select.removeAttribute('aria-invalid');
+  select.removeAttribute('aria-errormessage');
+  select.setAttribute('aria-describedby', 'new-help');
+  select.required = false;
+  await new Promise(resolve => setTimeout(resolve, 30));
+  a.equal(trigger.getAttribute('aria-invalid'), null);
+  a.equal(trigger.getAttribute('aria-errormessage'), null);
+  a.equal(trigger.getAttribute('aria-describedby'), 'new-help');
+  a.equal(trigger.getAttribute('aria-required'), null);
 });

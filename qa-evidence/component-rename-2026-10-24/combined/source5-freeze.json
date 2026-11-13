@@ -1,0 +1,7 @@
+{
+  "app/src/ui/Add.tsx": "44a521f1f751ee6807a38dab21f0976b833fbc4145beada4d4bcfc2bc73c3529",
+  "tests/component-rename.test.tsx": "91c52c76ae4b5fdb1d3446caa53b8f4353003803f5f4fe5b6de3f0a1cc8c2732",
+  "app/src/core/index.ts": "3a6559c5dd3b3a8354e12143235f2727621c8ae82a907a26ece7c77ef176ccd1",
+  "tests/component-mobile-menu-delete.test.ts": "6dcbbb7b0841cb62e741ade34480093a69fc4ba4b7871b358b8461c3713542ce",
+  "public/internal-ui-baselines/manifest.json": "69ca45d2a835068c8905171e7f3af888833dba27b2be62e7ec5b249e441fc94c"
+}

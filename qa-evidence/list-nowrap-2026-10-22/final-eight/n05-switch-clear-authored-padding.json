@@ -1,0 +1,20 @@
+{
+  "slider": {
+    "card": 363,
+    "left": 0,
+    "padding": "0px",
+    "pageOverflow": false,
+    "slider": true
+  },
+  "next": {
+    "left": 383
+  },
+  "clearedWrap": {
+    "padding": "0px",
+    "wrap": "wrap"
+  },
+  "authoredPadding": {
+    "padding": "12px 8px 8px"
+  },
+  "restored": true
+}

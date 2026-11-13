@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451
+
+
+ Test Files  4 passed (4)
+      Tests  13 passed (13)
+   Start at  11:41:09
+   Duration  1.89s (transform 1.30s, setup 0ms, import 1.58s, tests 912ms, environment 1.88s)

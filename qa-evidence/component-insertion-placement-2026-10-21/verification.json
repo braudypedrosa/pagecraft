@@ -1,0 +1,177 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "ca2a2cf6338e4e824ea8a817b70b092ee089fb12",
+  "status": "isolated combined81 accepted by root native and reviewed gallery; final full suite passes; root integration pending",
+  "source": [
+    "app/src/core/index.ts",
+    "builder.html"
+  ],
+  "tests": [
+    "tests/slotless-component-insertion.test.ts",
+    "tests/mobile-menu-placement.test.mjs"
+  ],
+  "additionalApprovedGeneratedFixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+  "changes": [
+    "Insertion destinations treat slotless component placements as non-owning containers and redirect to a visible valid destination; explicit slots remain insertable. Core direct/library/pattern/component/paste/Navigator paths and builder findDrop align.",
+    "Dropdown uses actual header/body-toggle bounds; below if it fits, otherwise larger side. Opened popover is measured while hidden; max-height bounds scrolling, fresh opens reset scroll, resize/window scroll reposition. Fullscreen behavior preserved."
+  ],
+  "checks": {
+    "focusedPlacementAndInsertion": {
+      "files": 5,
+      "tests": 72,
+      "result": "pass",
+      "evidence": "../mobile-menu-placement-2026-10-21/logs/focused.log"
+    },
+    "typecheck": {
+      "result": "pass",
+      "evidence": "../mobile-menu-placement-2026-10-21/logs/typecheck.log"
+    },
+    "firstFull": {
+      "result": "expected gallery gate plus intentional golden output drift, not bypassed",
+      "testsPassed": 2572,
+      "testsFailed": 2,
+      "testsSkipped": 5,
+      "log": "logs/full-pre-gallery.log"
+    },
+    "goldenSemanticReview": {
+      "result": "approved output-contract update; no schema/content/entity changes",
+      "changedFields": 24,
+      "fieldDiff": "golden-field-diff.json",
+      "semanticReview": "golden-semantic-review.json",
+      "regenerationLog": "logs/golden-regenerate.log",
+      "focusedReleaseTests": 30,
+      "focusedReleaseResult": "pass",
+      "focusedLog": "logs/releases-focused.log"
+    },
+    "fullAfterGolden": {
+      "result": "sole expected builder gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 238,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2573,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 97.15,
+      "log": "logs/full-after-golden.log"
+    },
+    "determinism": {
+      "result": "11/11 artifacts byte-identical twice",
+      "files": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "audit": {
+      "result": "all severity counts zero",
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "zero findings; 1 component, 6 instances, 4 collection items",
+      "log": "logs/demo.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "historicalPublicSnapshot": {
+      "result": "unchanged",
+      "sha256": "0d5c6d6519d99d181a748e23d295248c3c2da1b1f33c6a0c8c362f04141ae9d7"
+    },
+    "fullFinal": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 239,
+      "filesSkipped": 2,
+      "testsPassed": 2574,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 97.81,
+      "log": "logs/full-final.log"
+    },
+    "native": {
+      "result": "root accepted bounded insertion/menu customer sequence",
+      "scope": [
+        "Selected slotless Section component: Add Tabs creates visible adjacent Section and selects fresh controls. Root reported Undo0Tabs/Redo1 and actual reload1Tabs.",
+        "Follow-built body menu at Mobile414x668: trigger587.69..627.69, panel265.69..587.25 height321.56, scrollTop0, Work/About/Contact all fully within panel and actual elementFromPoint hits true.",
+        "Escape returns focus/restores overflow, reopen Tab focuses Work with scrollTop0, Desktop transition closes menu.",
+        "Header HTML tag moved to top: header bottom225.98, dropdown top225.98/bottom547.55.",
+        "Fullscreen real dialog covers414x668; one Close control works.",
+        "Short428px canvas: panel225.98..428, available202.02, scrollHeight322, scrollTop60, focused Contact360.36..419.55 visible."
+      ],
+      "evidence": [
+        "native/slotless-add-tabs.json",
+        "native/mobile-menu-above.json",
+        "native/menu-keyboard-close-resize.json",
+        "native/header-dropdown-below.json",
+        "native/fullscreen-preserved.json",
+        "native/short-viewport.json"
+      ],
+      "screenshots": [
+        "native/mobile-menu-above.png",
+        "native/header-dropdown-below.png",
+        "native/short-viewport.png"
+      ],
+      "cleanup": "native/cleanup.json",
+      "rejectedAttempt": "Initial compact-viewport Contact.pressTab closed the menu through expected focus-out; root rejected that as the visibility test and repeated About\u2192Tab\u2192Contact successfully.",
+      "limits": [
+        "No form submission.",
+        "Other library/pattern/paste/drag insertion routes and actual transformed-header layout have automated/mocked coverage only; no native acceptance claimed for them."
+      ]
+    },
+    "gallery": {
+      "result": "root captured/reviewed and recorded --reviewed baseline",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "baselineImages": 24,
+      "baselineSourceFiles": 28,
+      "capture": "gallery/capture.json",
+      "behaviors": "gallery/behavior-checks.json",
+      "comparison": "gallery/diffs/results.json",
+      "baselineCheck": "logs/baseline-final.log",
+      "cleanup": "gallery/cleanup.json",
+      "rejectedHarnessAttempts": [
+        {
+          "evidence": "gallery/interrupted-attempt.json",
+          "cause": "Origin supplied instead of full gallery route, timeout/kernel recovery; explicit CPU1/viewport/media cleanup recorded; no product failure inferred."
+        },
+        {
+          "evidence": "gallery/behavior-adapter-rejected.json",
+          "cause": "Missing adapter.clickAt produced14/15 first Cloud checks; corrected adapter then fresh Cloud15/15 and Builder15/15 passed."
+        }
+      ]
+    }
+  },
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 18,
+  "harness": {
+    "url": "http://localhost:4972/edit/s1",
+    "pid": 74645,
+    "sessionId": 73979,
+    "result": "HTTP200; preserve for root native",
+    "provenance": "Trusted prior4970 harness copied with only4970\u21924972 port substitution; fictional default in-memory data; no hidden fixture injection.",
+    "sha256": "4620c76da29bdafee36864e1bd24070318d1013334d8fc24264b2054f1d53a57"
+  },
+  "remaining": [
+    "Root integration/release decision.",
+    "Broader customer QA remains open; no overall production-ready claim."
+  ],
+  "limits": [
+    "No native behavior or rendered geometry proof by this worker. Root owns browser.",
+    "DOM mocks establish placement decisions/lifecycle, not actual native CSS/top-layer rendering.",
+    "Post-open dynamic content growth without resize/window scroll is not newly observed.",
+    "Very large headers can leave little space on either side; larger space chosen with scrolling.",
+    "No overall production-ready claim."
+  ],
+  "boundaries": "No Main, WordPress, browser, baseline recording, commit or push; preserved4970 fixture.",
+  "integrationNote": "NAV runtime/CSS intentionally change editor runtime.js and portable fixture archives; include reviewed generated artifacts. Demo drift/temporary harness/ignored compiler JS remain excluded under existing root policy.",
+  "finalReceipt": "final-receipt.json"
+}

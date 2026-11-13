@@ -1,0 +1,190 @@
+{
+  "commit": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+  "cases": [
+    {
+      "name": "Deployed Follow component Preview and keyboard Focus Desktop",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        "About"
+      ],
+      "links": [
+        "Projects",
+        "About",
+        "Services",
+        "Contact"
+      ],
+      "width": 1514,
+      "passed": true
+    },
+    {
+      "name": "Deployed Follow component Preview and keyboard Focus Tablet",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        "About"
+      ],
+      "links": [
+        "Projects",
+        "About",
+        "Services",
+        "Contact"
+      ],
+      "width": 834,
+      "passed": true
+    },
+    {
+      "name": "Deployed Follow component Preview and keyboard Focus Mobile",
+      "background": "rgb(187, 204, 221)",
+      "focused": [
+        "About"
+      ],
+      "links": [
+        "Projects",
+        "About",
+        "Services",
+        "Contact"
+      ],
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Deployed managed Mobile background",
+      "background": "rgb(221, 238, 255)",
+      "passed": true
+    },
+    {
+      "name": "Deployed ordinary parent keyboard Focus Desktop",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "About"
+      ],
+      "width": 1503,
+      "passed": true
+    },
+    {
+      "name": "Deployed Tablet pointer excludes Focus with responsive managed background",
+      "background": "rgba(0, 0, 0, 0)",
+      "focus": 0,
+      "managedBackground": "rgba(0, 0, 0, 0)",
+      "width": 834,
+      "passed": true
+    },
+    {
+      "name": "Deployed Tablet keyboard toggle Focus",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "BUTTON"
+      ],
+      "passed": true
+    },
+    {
+      "name": "Deployed Mobile pointer excludes Focus with responsive managed background",
+      "background": "rgba(0, 0, 0, 0)",
+      "focus": 0,
+      "managedBackground": "rgb(221, 238, 255)",
+      "width": 414,
+      "passed": true
+    },
+    {
+      "name": "Deployed Mobile keyboard toggle Focus",
+      "background": "rgb(187, 204, 221)",
+      "focus": [
+        "BUTTON"
+      ],
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "originalHeader": {
+    "links": [
+      {
+        "href": "projects.html",
+        "text": "Projects"
+      },
+      {
+        "href": "about.html",
+        "text": "About"
+      },
+      {
+        "href": "services.html",
+        "text": "Services"
+      },
+      {
+        "href": "contact.html",
+        "text": "Contact"
+      },
+      {
+        "href": "projects.html",
+        "text": "Explore shared spaces"
+      },
+      {
+        "href": "about.html",
+        "text": "About"
+      },
+      {
+        "href": "services.html",
+        "text": "Services"
+      },
+      {
+        "href": "contact.html",
+        "text": "Contact"
+      }
+    ],
+    "text": "ProjectsAboutServicesContactExplore shared spacesAboutServicesContact"
+  },
+  "originalIds": [
+    "n0ixrm339",
+    "n16nly2l",
+    "ndaf5h2uo",
+    "ndaf5i3u8",
+    "ndaf5i4ie",
+    "ndaf5i5ai",
+    "ndg0tb6h3",
+    "ndkykp1ph",
+    "ndqnyz12r",
+    "nekp7m18n",
+    "new39q14y",
+    "nf2dwm1sr",
+    "nf2mtp1tt",
+    "nf79yr1ny",
+    "nf9pkh1qj",
+    "nfijph1o1",
+    "nfijph2tj",
+    "nfijph3od",
+    "nfijph4io",
+    "nfkqui5jb",
+    "nfli4f6uf",
+    "nfljgi79t",
+    "nfzf4v1jd",
+    "nfzf4v2ot",
+    "ngwr2y1hh",
+    "nk8y2k11g",
+    "nlm3id1i6",
+    "nlyfiy6wd",
+    "nlyfiy7ci",
+    "nlyfiy7ci",
+    "nm2n7s85a",
+    "nm2n7s85a",
+    "nmekzi9lf",
+    "nmekzi9lf",
+    "nmiqidanw",
+    "nnevx9171",
+    "nnkziz2pl",
+    "nut4a73l1",
+    "nut4a74wk",
+    "nut4a751d",
+    "nut4a76ef"
+  ],
+  "managedMenuBackgroundControls": 0,
+  "undoLabels": [
+    "Undo: Change menu colour (⌘Z)",
+    "Undo: Change menu colour (⌘Z)",
+    "Undo: Change menu colour (⌘Z)",
+    "Undo: Follow navigation links (⌘Z)"
+  ],
+  "passed": true,
+  "restoration": {
+    "freshReload": true,
+    "originalLegacyCustomHeaderExact": true,
+    "originalPageIdsExact": true
+  }
+}

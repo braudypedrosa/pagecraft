@@ -1,0 +1,39 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (458 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-reset-resume-one-Y66W8f/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-reset-resume-one-Y66W8f
+
+(node:57292) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:57274) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:57627) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ server/tests/submissions.test.ts (16 tests | 1 failed) 31134ms
+   × failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200 30259ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/tests/submissions.test.ts > failed attempts never fill the inbox: only successful entries count, and failed ones keep the latest 200
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ server/tests/submissions.test.ts:247:1
+    245| });
+    246|
+    247| test('failed attempts never fill the inbox: only successful entries co…
+       | ^
+    248|   const root = await mkdtemp(join(tmpdir(), 'pc-inbox-cap-'));
+    249|   try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 217 passed | 2 skipped (220)
+      Tests  1 failed | 2425 passed | 5 skipped (2431)
+   Start at  14:49:59
+   Duration  88.47s (transform 31.86s, setup 0ms, import 191.86s, tests 582.14s, environment 99.84s)
+

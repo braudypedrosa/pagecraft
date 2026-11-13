@@ -1,0 +1,61 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Families and adults choosing a general dental practice",
+    "primaryAction": "Review care information and request a visit after the inquiry destination is configured",
+    "pages": [
+      "index",
+      "treatments",
+      "care-team",
+      "first-visit",
+      "patient-information",
+      "contact"
+    ],
+    "content": "Six-page Linden Dental A2 site with eight purposeful home sections and expanded inner-page content. No invented provider names, credentials, results, address or availability. The request form is unconfigured.",
+    "imagery": "A2 palette and type, exact L2 identity, nine approved initial photographs, two approved board extractions, approved CTA image, and three sourced Iconify Lucide service icons.",
+    "provenance": [
+      {
+        "asset": "Selected A2 direction, L2 identity, and nine photographs",
+        "source": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/approval-summary.json",
+        "license": "User-approved generated artwork and original vector identity; private source records contain details."
+      },
+      {
+        "asset": "Six home section boards and extracted image areas",
+        "source": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/revisions-v3/build-approval.json",
+        "license": "Approved section designs and their specific extracted illustrative photo areas for native build; complete-site and catalog approvals remain separate."
+      },
+      {
+        "asset": "Closing CTA clinic entrance image",
+        "source": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement/cta-image-approval.json",
+        "license": "Exact generated image approved for the native closing CTA; complete-site and catalog approvals remain separate."
+      },
+      {
+        "asset": "First Visit consultation detail background image",
+        "source": "premade-sites/review-library/dental-clinic-a2/approved-additions/visit-image-provenance.json",
+        "license": "Exact generated image approved for the native First Visit section background; complete-site and catalog approvals remain separate."
+      },
+      {
+        "asset": "Three Lucide service icons",
+        "source": "premade-sites/review-library/dental-clinic-a2/approved-additions/icon-provenance.json",
+        "license": "Iconify Lucide sources and ISC/MIT notices recorded in the provenance file."
+      }
+    ]
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [
+    {
+      "severity": "warning",
+      "page": "all",
+      "node": "release-ledger",
+      "viewport": "all",
+      "detail": "Frozen revision 32 private review candidate, package 82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4. Complete-site approval and exact-package host compatibility evidence are not yet a release ledger. The inquiry form remains unconfigured.",
+      "correction": "Complete Cloud and WordPress fresh-import, editing, responsive and interaction checks for revision 32, then obtain exact-package review and promotion approval.",
+      "resolved": false
+    }
+  ],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

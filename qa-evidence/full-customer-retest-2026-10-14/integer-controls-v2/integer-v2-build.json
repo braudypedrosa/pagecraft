@@ -1,0 +1,133 @@
+{
+  "task": "Integer controls v2 canonical serialization and scalar readback",
+  "status": "verification complete; root native/integration/staging remain external",
+  "baseCommit": "02979a836aff95253ee01cecb6dc92b37b2abe6e",
+  "approvedCandidate": "/private/tmp/pagecraft-integer-v2-029",
+  "exports": [
+    "/private/tmp/pagecraft-integer-v2-one-029",
+    "/private/tmp/pagecraft-integer-v2-two-029"
+  ],
+  "sourceOverlays": {
+    "app/src/core/index.ts": "7134189cba49c48e7ac81656244335f477922a81b595e5d13230f407a853421c",
+    "app/src/core/types.ts": "8570d1df80a684ec308843c13f5bbc67cc1b419436c675048169b76ea90951cb",
+    "app/src/ui/inspector/Controls.tsx": "74e17c537aa14b892da99dfa92229829c9588f786f9ed93aca7e927eca4a8060",
+    "app/src/ui/inspector/Inspector.tsx": "04e982914385ca26d1a7b2545d9baa7711760d5cc98847234c3e59342b688ac2",
+    "tests/unit-control-validation.test.tsx": "4d0a90c0b21ce7e633d6e96510935889b9f8f5d8cc8ebfac2807f96e0843ca61"
+  },
+  "allFiveSourcesExactAcrossExports": true,
+  "red": {
+    "integerCanonicalization": {
+      "summary": "2 failed, 8 passed against v1",
+      "log": "/private/tmp/pagecraft-integer-v2-red-029/qa-evidence/integer-v2/red.log"
+    },
+    "unitParseFollowup": {
+      "summary": "1 failed, 10 passed against pre-follow-up v2",
+      "log": "/private/tmp/pagecraft-integer-v2-029/qa-evidence/integer-v2/unitparse-red.log"
+    }
+  },
+  "install": {
+    "command": "npm ci --ignore-scripts",
+    "oneExit": 0,
+    "twoExit": 0,
+    "auditSummary": "Both clean installs report the existing 3 high-severity findings; no dependency change applied."
+  },
+  "build": {
+    "commands": [
+      "npm run build:editor-package",
+      "npm run build"
+    ],
+    "oneExits": [
+      0,
+      0
+    ],
+    "twoExits": [
+      0,
+      0
+    ]
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "oneExit": 0,
+    "twoExit": 0
+  },
+  "focused": {
+    "command": "npx vitest run tests/unit-control-validation.test.tsx tests/module-control-behavior.test.tsx tests/nav-focus-state.test.ts tests/responsive-visibility.test.ts tests/responsive-visual-controls.test.tsx tests/inspector-responsive-scope.test.tsx",
+    "one": "6 files, 31 tests passed",
+    "two": "6 files, 31 tests passed"
+  },
+  "wordpressGolden": {
+    "command": "npx vitest run server/tests/releases.test.ts -t 'shared WordPress golden vector'",
+    "one": "1 passed, 29 skipped",
+    "two": "1 passed, 29 skipped",
+    "sha256": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "exactToMain": true
+  },
+  "generated": {
+    "count": 11,
+    "deterministicAcrossExports": true,
+    "details": "determinism-and-guards.json"
+  },
+  "mainProtected11": {
+    "reference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "allExact": true,
+    "count": 11
+  },
+  "uiBaseline": {
+    "command": "node tools/ui-baselines.mjs check",
+    "oneExit": 1,
+    "twoExit": 1,
+    "expectedFailure": "Only app/src/ui/inspector/Inspector.tsx requires reviewed gallery baselines.",
+    "recorded": false,
+    "reviewedByRoot": true,
+    "reviewedBaselineFiles": 25,
+    "copiedExactToTwo": true,
+    "finalTwoExit": 0,
+    "finalTwoSummary": "UI baselines verified: 24 images, 28 source files",
+    "finalTwoLog": "/private/tmp/pagecraft-integer-v2-two-029/qa-evidence/integer-controls-v2/ui-baseline-final.log"
+  },
+  "provisionalFullSuiteOne": {
+    "command": "npm test -- --maxWorkers=4",
+    "exit": 1,
+    "summary": "216 files passed, 2 skipped, 1 failed; 2420 tests passed, 5 skipped, 1 failed",
+    "onlyFailure": "tests/ui-baselines.test.mjs: Inspector.tsx needs reviewed gallery baselines",
+    "log": "full-suite-provisional.log"
+  },
+  "gallery": {
+    "serverSession": 39769,
+    "url": "http://localhost:4944/internal/components",
+    "captureDirectory": "/private/tmp/pagecraft-integer-v2-one-029/qa-evidence/integer-controls-v2/gallery/integer-controls-v2-final",
+    "instructions": "gallery-capture-instructions.txt",
+    "owner": "Root built-in browser only",
+    "reviewStatus": "Root built-in-browser review complete",
+    "behaviorChecks": "30 of 30 passed",
+    "captureFiles": 24,
+    "comparison": "24 of 24 passed with 0 changed pixels",
+    "rootViewed": [
+      "builder-fields-1440",
+      "builder-fields-768"
+    ],
+    "wrongBaseHarness": "gallery/behavior-wrong-base-harness.json",
+    "wrongBaseClassification": "Initial origin-only helper route opened the dashboard, producing 15 missing-control harness failures; corrected /internal/components route passed 15 cloud and 15 builder checks. No product failure."
+  },
+  "mainExecution": "No install, build, typecheck, or tests run in main.",
+  "pending": [
+    "Root native v2 fixture acceptance",
+    "Root integration, staging, WordPress packaging, commit, and push",
+    "Stop gallery server session 39769 only after root confirms built-in-browser tab 35 is closed"
+  ],
+  "finalFullSuiteOne": {
+    "command": "npm test -- --maxWorkers=4",
+    "exit": 0,
+    "summary": "217 files passed, 2 skipped; 2421 tests passed, 5 skipped",
+    "log": "full-suite-final.log"
+  },
+  "finalGuards": {
+    "fiveSourcesFrozenExact": true,
+    "generated11Deterministic": true,
+    "mainProtected11Exact": true,
+    "reviewedBaseline25ExactAcrossExports": true,
+    "wordpressGoldenExact": true,
+    "gallery30Behavior24ImagesZeroPixels": true,
+    "evidence": "final-guards.json"
+  }
+}

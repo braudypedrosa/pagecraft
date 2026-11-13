@@ -1,0 +1,92 @@
+[
+  {
+    "device": "Desktop",
+    "dom": {
+      "cards": [
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 282
+        },
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 282
+        },
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 282
+        }
+      ],
+      "client": 1200,
+      "count": 18,
+      "overflowX": "visible",
+      "page": 1269,
+      "pageScroll": 1269,
+      "scroll": 1200,
+      "width": 1200,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Tablet",
+    "dom": {
+      "cards": [
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 375.5
+        },
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 375.5
+        },
+        {
+          "flex": "100 1 280px",
+          "min": "0px",
+          "width": 375.5
+        }
+      ],
+      "client": 775,
+      "count": 18,
+      "overflowX": "visible",
+      "page": 823,
+      "pageScroll": 823,
+      "scroll": 775,
+      "width": 775,
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "cards": [
+        {
+          "flex": "100 1 100%",
+          "min": "0px",
+          "width": 1.28125
+        },
+        {
+          "flex": "100 1 100%",
+          "min": "0px",
+          "width": 1.265625
+        },
+        {
+          "flex": "100 1 100%",
+          "min": "0px",
+          "width": 1.28125
+        }
+      ],
+      "client": 363,
+      "count": 18,
+      "overflowX": "visible",
+      "page": 403,
+      "pageScroll": 405,
+      "scroll": 385,
+      "width": 363,
+      "wrap": "nowrap"
+    }
+  }
+]

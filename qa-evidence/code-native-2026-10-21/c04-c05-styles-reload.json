@@ -1,0 +1,149 @@
+[
+  {
+    "device": "Desktop",
+    "bg": "rgb(23, 32, 42)",
+    "figureRadius": "12px",
+    "overflow": false,
+    "pre": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(244, 241, 234)",
+      "pad": "18px",
+      "size": "16px"
+    },
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "color": "rgb(160, 160, 160)",
+        "text": "// note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "const"
+      },
+      {
+        "cls": "pc-c-num",
+        "color": "rgb(245, 196, 122)",
+        "text": "12"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "function"
+      },
+      {
+        "cls": "pc-c-fn",
+        "color": "rgb(145, 207, 240)",
+        "text": "greet"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "return"
+      },
+      {
+        "cls": "pc-c-str",
+        "color": "rgb(211, 232, 154)",
+        "text": "\"Hi \""
+      }
+    ]
+  },
+  {
+    "device": "Tablet",
+    "bg": "rgb(23, 32, 42)",
+    "figureRadius": "12px",
+    "overflow": false,
+    "pre": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(244, 241, 234)",
+      "pad": "18px",
+      "size": "16px"
+    },
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "color": "rgb(160, 160, 160)",
+        "text": "// note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "const"
+      },
+      {
+        "cls": "pc-c-num",
+        "color": "rgb(245, 196, 122)",
+        "text": "12"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "function"
+      },
+      {
+        "cls": "pc-c-fn",
+        "color": "rgb(145, 207, 240)",
+        "text": "greet"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "return"
+      },
+      {
+        "cls": "pc-c-str",
+        "color": "rgb(211, 232, 154)",
+        "text": "\"Hi \""
+      }
+    ]
+  },
+  {
+    "device": "Mobile",
+    "bg": "rgb(23, 32, 42)",
+    "figureRadius": "12px",
+    "overflow": false,
+    "pre": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(244, 241, 234)",
+      "pad": "12px 13px",
+      "size": "13px"
+    },
+    "tokens": [
+      {
+        "cls": "pc-c-com",
+        "color": "rgb(160, 160, 160)",
+        "text": "// note"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "const"
+      },
+      {
+        "cls": "pc-c-num",
+        "color": "rgb(245, 196, 122)",
+        "text": "12"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "function"
+      },
+      {
+        "cls": "pc-c-fn",
+        "color": "rgb(145, 207, 240)",
+        "text": "greet"
+      },
+      {
+        "cls": "pc-c-kw",
+        "color": "rgb(233, 169, 222)",
+        "text": "return"
+      },
+      {
+        "cls": "pc-c-str",
+        "color": "rgb(211, 232, 154)",
+        "text": "\"Hi \""
+      }
+    ]
+  }
+]

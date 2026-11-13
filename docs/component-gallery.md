@@ -4,7 +4,7 @@ Open [the staging component gallery](https://staging.itspagecraft.com/internal/c
 
 The gallery renders Cloud through its real account shell and route styles. Builder specimens consume the compiled editor's actual style blocks, with the same local product font files. Menus, selects, notifications and dialogs use the existing shared implementations. Gallery-specific CSS owns only composition, navigation and specimen-container sizing; it does not redefine input or button geometry. Specimen markup is representative, not a substitute for testing the consuming application screens.
 
-Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedback. Read the sample's role before comparing: full forms are 44px, inspector fields 37px, CMS schema 36px, dense rows 32px and nested toolbar pickers 30px. Multiline fields grow. These intentional densities are not supposed to collapse into one height.
+Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedback. Read the sample's role before comparing: full forms are 44px, inspector fields 40px, CMS schema 36px, dense rows 32px and nested toolbar pickers 30px. Multiline fields grow. These intentional densities are not supposed to collapse into one height.
 
 ## Baseline coverage
 
@@ -13,13 +13,13 @@ Choose Cloud or Builder, then Fields, Actions, Tables, Menus, Dialogs or Feedbac
 | Family | Captured state |
 | --- | --- |
 | Fields | Focused input with neutral background; disabled and readonly examples; labels, help and validation |
-| Actions | Busy and disabled controls; progress feedback; disclosure and panel enter/exit examples |
+| Actions | Busy and disabled controls; progress feedback; Builder inspector Layout and Motion disclosures; panel enter/exit examples |
 | Tables | First row hovered, next row neutral; compact actions and empty results |
 | Menus | Open enhanced select; selected and disabled options; link/button/destructive menu items |
 | Dialogs | Open dialog with header, body, footer and corner close |
 | Feedback | Persistent error notification and recoverable refresh error |
 
-The behavior checklist additionally covers select Escape/value preservation, dialog focus return, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, silent refresh recovery, mounted-through-exit behavior, rapid reopening, and reduced-motion completion. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
+The behavior checklist additionally covers select Escape/value preservation, dialog focus return, modal dropdown pointer visibility and value preservation on resize, picker-first Escape, Tab/Shift+Tab navigation within the dialog, rapid picker reopening and parent-close cleanup, empty footer, unsaved dialog values across resizing, processing state and success/failure recovery, silent refresh recovery, Builder inspector disclosure state and keyboard activation, mounted-through-exit behavior, rapid reopening, and reduced-motion completion. Success notifications and ordinary keyboard interaction remain interactive examples; the PNG set is not exhaustive state coverage.
 
 Each family also contains a **Long content and recovery** fixture using production
 components: multiline labels/help, long action labels, populated multiline rows,
@@ -50,6 +50,23 @@ await captureModule.captureGallery(tab, captureDirectory,
   await captureModule.readBehaviorChecks(captureDirectory));
 ```
 
+For a browser session with a short command deadline, capture in batches using the same recipe:
+
+```js
+var steps = captureModule.captureGallerySteps(tab, captureDirectory,
+  await captureModule.readBehaviorChecks(captureDirectory));
+// Run this batch again in later calls until all 24 images have been yielded.
+for (var i = 0; i < 6; i++) nodeRepl.write(await steps.next());
+// Resume once after the final image to validate sources and reset emulation.
+nodeRepl.write(await steps.next());
+```
+
+Use `await steps.return()` when abandoning a partial run so viewport and media emulation are restored. Keep the iterator paused between calls rather than launching browser work in the background. The helper checkpoints `capture.json` after each PNG. A partial checkpoint is recovery data, not review evidence: recording still requires all 24 captures and passing source and behavior checks.
+
+If an interruption such as a built-in browser command timeout loses the iterator, create a new one with `{resume: true}` as the fourth argument. It verifies the saved source and capture-code hashes, behavior checks, browser environment, capture recipe, and each recorded PNG hash and color metadata before skipping completed captures. A mismatch stops the resume and requires investigation or a fresh capture. Checkpoints created before this resume support lack the required image hashes and cannot be resumed.
+
+The recovery path is covered by `npx vitest run tests/gallery-capture-steps.test.mjs tests/ui-capture-provenance.test.mjs`, including interruption, skipped captures, changed source evidence, changed image bytes and emulation cleanup.
+
 4. Compare the candidate captures:
 
 ```sh
@@ -68,6 +85,10 @@ node tools/demo-site.mjs
 ```
 
 The recorder requires a complete 24-image inventory, successful behavior evidence and unchanged sources since capture began. It never generates screenshots or accepts an incomplete set. Commit the reviewed PNGs and manifest with the implementation. The initial set records the current gallery; subsequent sets should always include comparison evidence. Staging acceptance must confirm `/__deployment` before repeating the relevant interactions and image comparison.
+
+New captures use capture schema 2. Evidence records the full `Browser.getVersion` result when the provider supports it, runtime user-agent, display and color characteristics after a common 1440x900 1x preflight, sanitized optional browser and GPU probes, exact CDP capture parameters, capture-helper hashes, and each PNG's color-chunk signature. The recorder rejects schema-2 evidence when capture-helper code changed after capture. Unsupported probes are recorded as unsupported; they do not block capture or receive guessed values. The built-in browser may reject `Browser.getVersion` through raw CDP, so its precise engine, revision, JavaScript and protocol versions can remain unavailable. Schema-less historical evidence remains readable and must not be presented as fresh engine or color-pipeline provenance.
+
+Before migrating the complete baseline set, capture the same reviewed revision twice with the built-in browser. Require both runs to pass the behavior checklist, use matching available schema-2 provenance and source hashes, produce identical dimensions and color signatures, and pass all 24 A/B image comparisons under the existing threshold. Inspect both sets before recording either one. When version probes are unsupported, an A/B pass proves repeatability only within the observed current session; it does not identify or pin the browser engine. Never retrofit historical capture metadata or replace only part of the baseline set.
 
 ## Extending the gallery
 

@@ -1,0 +1,11 @@
+{
+  "filterLabel": "Every item",
+  "actualAfter": {
+    "titles": [
+      "Gamma",
+      "Delta"
+    ],
+    "current": "2",
+    "pager": "Previous\n1\n2\n3\nNext"
+  }
+}

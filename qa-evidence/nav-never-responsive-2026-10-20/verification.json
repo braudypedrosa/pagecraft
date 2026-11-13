@@ -1,0 +1,83 @@
+{
+  "base": "c3f9e6ea60a42490cec156dfb1b8090fce49d3df",
+  "checkout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nav-never-responsive",
+  "sourceFiles": {
+    "app/src/core/index.ts": "11d450a63d1709145d0618b46fe560ac9fb9351d04defc7f9c447f1065845be0",
+    "tests/core.test.ts": "50ac8326e67a6cfe893ac215f0aa99afe6954df8ff99458b8e2c8145a4fd20c5"
+  },
+  "behavior": {
+    "ordinaryNeverNav": "At mobile width, the node-scoped nav host is bounded to 100% and its direct list wraps within that bound.",
+    "alignment": "The direct list explicitly inherits the authored nav host alignment; no right alignment is forced.",
+    "managedNav": "Managed mobile navigation does not receive the ordinary Never-nav rules."
+  },
+  "checks": {
+    "focused": "2 tests passed",
+    "fullSuite": "222 files passed, 2 skipped; 2465 tests passed, 5 skipped",
+    "typecheck": "passed as part of npm test",
+    "editorBuildTwice": "passed; 11 generated artifact SHA-256 hashes identical",
+    "postSuiteGeneratedIntegrity": "passed; identical to second deterministic build",
+    "demo": "passed; 1 component, 6 instances, 4 collection items, 0 findings",
+    "uiBaselines": "passed; 24 images, 28 source files",
+    "npmAudit": "0 vulnerabilities",
+    "npmAuditProduction": "0 vulnerabilities",
+    "diffCheck": "passed",
+    "impeccableDetector": "one pre-existing unrelated <img onerror> pattern at app/src/core/index.ts:5368; no navigation finding",
+    "qaHarness": "http://localhost:4950/ returned HTTP 200 with fictional in-memory QA UI data; session 14435"
+  },
+  "generatedArtifacts": [
+    {
+      "path": "app/src/core/public-form-controls.generated.ts",
+      "sha256": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19"
+    },
+    {
+      "path": "index.html",
+      "sha256": "8ba974bfc596864d725fe61b5fe021054f06500af28506968d442e717dc6cb01"
+    },
+    {
+      "path": "dist/core.cjs",
+      "sha256": "2ec53ec6686e0bce50ea98da677e0ff6d2ff87b50438c78bd978dcd219c42834"
+    },
+    {
+      "path": "packages/editor/dist/editor.html",
+      "sha256": "b788eb7e32b6d25fbaecc3c52167d26ab9b7fb139eede1301b8bd2709d2181f7"
+    },
+    {
+      "path": "packages/editor/dist/compiler.js",
+      "sha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0"
+    },
+    {
+      "path": "packages/editor/dist/compiler-worker.js",
+      "sha256": "6ac3bd6b99a8d39711ac0be228c7797b2a17677d7094a908e1204760dfcb9aae"
+    },
+    {
+      "path": "packages/editor/dist/runtime.js",
+      "sha256": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c"
+    },
+    {
+      "path": "packages/editor/dist/templates.json",
+      "sha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db"
+    },
+    {
+      "path": "packages/editor/dist/contract.json",
+      "sha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+      "sha256": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11"
+    },
+    {
+      "path": "packages/editor/dist/fixtures/site.pagecraft-site.zip",
+      "sha256": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+    }
+  ],
+  "scope": {
+    "mainChanged": false,
+    "browserUsed": false,
+    "committed": false,
+    "pushed": false,
+    "baselineChanged": false
+  },
+  "limitations": [
+    "Root owns native browser acceptance, final Main integration, and deployment."
+  ]
+}

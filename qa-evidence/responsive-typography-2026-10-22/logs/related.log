@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/responsive-typography-67c6838
+
+
+ Test Files  6 passed (6)
+      Tests  696 passed (696)
+   Start at  13:41:53
+   Duration  2.38s (transform 553ms, setup 0ms, import 1.17s, tests 410ms, environment 246ms)

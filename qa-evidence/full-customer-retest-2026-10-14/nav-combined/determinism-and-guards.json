@@ -1,0 +1,173 @@
+{
+  "generatedCount": 11,
+  "allGeneratedDeterministic": true,
+  "mainProtected11AllExact": true,
+  "allSourcesExact": true,
+  "generated": {
+    "index.html": {
+      "one": "09487cf925f32cfa68fc6de064417eca8364304b96e0ae64d1d5e3f2b6130742",
+      "two": "09487cf925f32cfa68fc6de064417eca8364304b96e0ae64d1d5e3f2b6130742",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "b68bba6100aefcfeb878bdc5a3929b0e313b8db5eead25138650decfa0099ca7",
+      "changedFromParent": true,
+      "main": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "mainProtectedExpected": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "mainProtectedExact": true
+    },
+    "dist/core.cjs": {
+      "one": "bb3e158cf1515d5ec2f0ab2a78cd3d58292ae88ae184572f9b60cb546f532e76",
+      "two": "bb3e158cf1515d5ec2f0ab2a78cd3d58292ae88ae184572f9b60cb546f532e76",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "5d961b1b8f4be64283c622cb0e94da635dc533a091a601a44180f84091e9b772",
+      "changedFromParent": true,
+      "main": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "mainProtectedExpected": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "changedFromParent": false,
+      "main": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "mainProtectedExpected": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "one": "c76cbeb5656d235d3d9cf868c06c4f748d8c305feada69a3ca67a239ab364b28",
+      "two": "c76cbeb5656d235d3d9cf868c06c4f748d8c305feada69a3ca67a239ab364b28",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "364e9aa393468a895c3838cce52e445d21d2581c78f76f0cf876f2d1fca2e2ad",
+      "changedFromParent": true,
+      "main": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "mainProtectedExpected": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "changedFromParent": false,
+      "main": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "mainProtectedExpected": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "changedFromParent": false,
+      "main": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "mainProtectedExpected": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "two": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "changedFromParent": false,
+      "main": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "mainProtectedExpected": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "mainProtectedExact": true
+    },
+    "dist/demo/index.html": {
+      "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "changedFromParent": false,
+      "main": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "mainProtectedExpected": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "sameAcrossExports": true,
+      "parentExists": true,
+      "parent": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "changedFromParent": false,
+      "main": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "mainProtectedExpected": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "sameAcrossExports": true,
+      "parentExists": false,
+      "parent": null,
+      "changedFromParent": true,
+      "main": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "mainProtectedExpected": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "mainProtectedExact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": "389cadcd9c29423635a436a44bafbbbd5e3d5b1dee1d78ad486232ef046b419e",
+      "two": "389cadcd9c29423635a436a44bafbbbd5e3d5b1dee1d78ad486232ef046b419e",
+      "sameAcrossExports": true,
+      "parentExists": false,
+      "parent": null,
+      "changedFromParent": true,
+      "main": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "mainProtectedExpected": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "mainProtectedExact": true
+    }
+  },
+  "sources": {
+    "app/src/core/index.ts": {
+      "approved": "6f744b39878e4b745271516dcbaee9fa22f5739823c5465b10ede05461fb0a73",
+      "one": "6f744b39878e4b745271516dcbaee9fa22f5739823c5465b10ede05461fb0a73",
+      "two": "6f744b39878e4b745271516dcbaee9fa22f5739823c5465b10ede05461fb0a73",
+      "allExact": true
+    },
+    "tests/module-control-behavior.test.tsx": {
+      "approved": "30c5eb292a1b02d05c00bcb1d73e300c2288f7ced00b70db6c1a0e3ab6039525",
+      "one": "30c5eb292a1b02d05c00bcb1d73e300c2288f7ced00b70db6c1a0e3ab6039525",
+      "two": "30c5eb292a1b02d05c00bcb1d73e300c2288f7ced00b70db6c1a0e3ab6039525",
+      "allExact": true
+    },
+    "tests/mobile-menu-follow-content.test.tsx": {
+      "approved": "916d2e2d011f82331c846eb20b53b48934018f5b6182a99910de3595118c3abd",
+      "one": "916d2e2d011f82331c846eb20b53b48934018f5b6182a99910de3595118c3abd",
+      "two": "916d2e2d011f82331c846eb20b53b48934018f5b6182a99910de3595118c3abd",
+      "allExact": true
+    },
+    "tests/nav-focus-state.test.ts": {
+      "approved": "bffacb884cfbe24fe6b7346cd0ca501b1b2e8df39e6e8b67d464097c94b67e6a",
+      "one": "bffacb884cfbe24fe6b7346cd0ca501b1b2e8df39e6e8b67d464097c94b67e6a",
+      "two": "bffacb884cfbe24fe6b7346cd0ca501b1b2e8df39e6e8b67d464097c94b67e6a",
+      "allExact": true
+    },
+    "builder.html": {
+      "approved": "606926347d429046342a36580ad2be53eb7ad0df86f0657a4e22c8bc1965735a",
+      "one": "606926347d429046342a36580ad2be53eb7ad0df86f0657a4e22c8bc1965735a",
+      "two": "606926347d429046342a36580ad2be53eb7ad0df86f0657a4e22c8bc1965735a",
+      "allExact": true
+    },
+    "tests/boot.test.mjs": {
+      "approved": "33a8e72382be85e9d6c7164676a659f615aa0eb1370cc08d7d29e389e56a6d52",
+      "one": "33a8e72382be85e9d6c7164676a659f615aa0eb1370cc08d7d29e389e56a6d52",
+      "two": "33a8e72382be85e9d6c7164676a659f615aa0eb1370cc08d7d29e389e56a6d52",
+      "allExact": true
+    }
+  },
+  "wordpressGolden": {
+    "main": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "one": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "two": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "allExact": true
+  }
+}

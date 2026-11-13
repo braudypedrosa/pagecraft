@@ -1,0 +1,49 @@
+{
+  "status": "open; layout acceptance failed; identity references passed",
+  "links": [
+    {
+      "bottom": 541.1875,
+      "height": 59.1875,
+      "id": "",
+      "overflow": "visible",
+      "position": "static",
+      "tag": "A",
+      "text": "Work",
+      "top": 482
+    },
+    {
+      "bottom": 604.375,
+      "height": 59.1875,
+      "id": "",
+      "overflow": "visible",
+      "position": "static",
+      "tag": "A",
+      "text": "About",
+      "top": 545.1875
+    },
+    {
+      "bottom": 667.5625,
+      "height": 59.1875,
+      "id": "",
+      "overflow": "visible",
+      "position": "static",
+      "tag": "A",
+      "text": "Contact",
+      "top": 608.375
+    }
+  ],
+  "panel": {
+    "bottom": 668,
+    "height": 80,
+    "id": "",
+    "overflow": "auto",
+    "position": "fixed",
+    "tag": "DIV",
+    "top": 588
+  },
+  "scrollTop": 174,
+  "viewport": {
+    "height": 668,
+    "width": 414
+  }
+}

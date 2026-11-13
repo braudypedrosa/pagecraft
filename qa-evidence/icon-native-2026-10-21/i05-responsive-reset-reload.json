@@ -1,0 +1,20 @@
+[
+  {
+    "device": "Desktop",
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "width": "40px"
+  },
+  {
+    "device": "Tablet",
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "width": "40px"
+  },
+  {
+    "device": "Mobile",
+    "padding": "8px 12px 10px 14px",
+    "radius": "16px",
+    "width": "40px"
+  }
+]

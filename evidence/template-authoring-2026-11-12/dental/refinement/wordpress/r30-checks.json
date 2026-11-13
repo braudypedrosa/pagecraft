@@ -1,0 +1,408 @@
+{
+  "checks": {
+    "exact_package": true,
+    "native_import_counts": true,
+    "six_draft_pages_and_sections": true,
+    "media_18_stable_unique_local": true,
+    "baseline_and_global_ids_stable": true,
+    "cta_background_local": true,
+    "cta_zero_padding": true,
+    "icon_sources_local": true,
+    "seven_native_image_corners": true,
+    "contact_controls_disabled": true
+  },
+  "nativeEvidence": {
+    "backgrounds": [
+      {
+        "id": "dental-a2-211",
+        "css": {
+          "d": {
+            "background-color": "var(--c-ink)",
+            "background-image": "url(\"http://127.0.0.1:4397/wp-content/uploads/2026/11/cta-clinic-entrance.webp\")",
+            "background-position": "center 50%",
+            "background-repeat": "no-repeat",
+            "background-size": "cover",
+            "padding-bottom": "0",
+            "padding-left": "0",
+            "padding-right": "0",
+            "padding-top": "0",
+            "position": "relative"
+          },
+          "m": {
+            "padding-bottom": "0",
+            "padding-left": "0",
+            "padding-right": "0",
+            "padding-top": "0"
+          },
+          "t": {
+            "padding-bottom": "0",
+            "padding-left": "0",
+            "padding-right": "0",
+            "padding-top": "0"
+          }
+        }
+      }
+    ],
+    "nodes": {
+      "dental-a2-210": {
+        "type": "box",
+        "props": {
+          "layout": "block",
+          "link": "",
+          "tag": "div",
+          "target": ""
+        },
+        "css": {
+          "d": {
+            "background-color": "var(--c-ink)",
+            "inset": "0",
+            "opacity": ".82",
+            "pointer-events": "none",
+            "position": "absolute"
+          },
+          "m": [],
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-147": {
+        "type": "image",
+        "props": {
+          "alt": "",
+          "caption": "",
+          "decorative": 1,
+          "h": 32,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/icon-preventive.svg",
+          "target": "",
+          "w": 32
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "0",
+            "height": "36px",
+            "margin-bottom": "22px",
+            "max-width": "100%",
+            "object-fit": "contain",
+            "width": "36px"
+          },
+          "m": [],
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-152": {
+        "type": "image",
+        "props": {
+          "alt": "",
+          "caption": "",
+          "decorative": 1,
+          "h": 32,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/icon-restorative.svg",
+          "target": "",
+          "w": 32
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "0",
+            "height": "36px",
+            "margin-bottom": "22px",
+            "max-width": "100%",
+            "object-fit": "contain",
+            "width": "36px"
+          },
+          "m": [],
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-157": {
+        "type": "image",
+        "props": {
+          "alt": "",
+          "caption": "",
+          "decorative": 1,
+          "h": 32,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/icon-planning.svg",
+          "target": "",
+          "w": 32
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "0",
+            "height": "36px",
+            "margin-bottom": "22px",
+            "max-width": "100%",
+            "object-fit": "contain",
+            "width": "36px"
+          },
+          "m": [],
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-28": {
+        "type": "image",
+        "props": {
+          "alt": "An adult smiling during a dental visit",
+          "caption": "",
+          "decorative": 0,
+          "h": 1000,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/everyday-care-adult.webp",
+          "target": "",
+          "w": 1600
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "100%",
+            "inset": "0",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "object-position": "50% 10%",
+            "position": "absolute",
+            "width": "100%"
+          },
+          "m": {
+            "height": "100%",
+            "object-position": "50% 50%"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-36": {
+        "type": "image",
+        "props": {
+          "alt": "A child at a dental visit",
+          "caption": "",
+          "decorative": 0,
+          "h": 1000,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/first-visit-child.webp",
+          "target": "",
+          "w": 1600
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "100%",
+            "inset": "0",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "object-position": "50% 10%",
+            "position": "absolute",
+            "width": "100%"
+          },
+          "m": {
+            "height": "100%",
+            "object-position": "50% 50%"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-135": {
+        "type": "image",
+        "props": {
+          "alt": "A clinician listening to a patient during a conversation",
+          "caption": "",
+          "decorative": 0,
+          "h": 669,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/approach-conversation.webp",
+          "target": "",
+          "w": 703
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "380px",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "object-position": "50% 35%",
+            "width": "100%"
+          },
+          "m": {
+            "height": "300px"
+          },
+          "t": {
+            "height": "340px"
+          }
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-73": {
+        "type": "image",
+        "props": {
+          "alt": "Dental team member in a bright practice",
+          "caption": "",
+          "decorative": 0,
+          "h": 1402,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/care-team-portrait-01.webp",
+          "target": "",
+          "w": 1122
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "auto",
+            "max-width": "100%",
+            "object-fit": "contain",
+            "width": "100%"
+          },
+          "m": {
+            "height": "auto"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-77": {
+        "type": "image",
+        "props": {
+          "alt": "Dental team member in a clinical setting",
+          "caption": "",
+          "decorative": 0,
+          "h": 1402,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/care-team-portrait-02.webp",
+          "target": "",
+          "w": 1122
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "auto",
+            "max-width": "100%",
+            "object-fit": "contain",
+            "width": "100%"
+          },
+          "m": {
+            "height": "auto"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-110": {
+        "type": "image",
+        "props": {
+          "alt": "A clinician and patient in conversation",
+          "caption": "",
+          "decorative": 0,
+          "h": 1086,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/comfortable-consultation.webp",
+          "target": "",
+          "w": 1448
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "auto",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          },
+          "m": {
+            "height": "auto"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      },
+      "dental-a2-121": {
+        "type": "image",
+        "props": {
+          "alt": "Everyday oral care products",
+          "caption": "",
+          "decorative": 0,
+          "h": 1086,
+          "label": "",
+          "lazy": 0,
+          "link": "",
+          "src": "http://127.0.0.1:4397/wp-content/uploads/2026/11/everyday-oral-care.webp",
+          "target": "",
+          "w": 1448
+        },
+        "css": {
+          "d": {
+            "align-self": "flex-start",
+            "border-radius": "12px",
+            "display": "block",
+            "height": "auto",
+            "max-width": "100%",
+            "object-fit": "cover",
+            "width": "100%"
+          },
+          "m": {
+            "height": "auto"
+          },
+          "t": []
+        },
+        "childrenCount": 0
+      }
+    },
+    "contactTags": [
+      "<input id=\"pagecraft-form-dental-a2-124-f0\" name=\"name\" type=\"text\" required disabled>",
+      "<input id=\"pagecraft-form-dental-a2-124-f1\" name=\"email\" type=\"email\" required disabled>",
+      "<textarea id=\"pagecraft-form-dental-a2-124-f2\" name=\"message\" rows=\"4\" required disabled>",
+      "<button type=\"button\" class=\"pagecraft-form-button\" disabled>"
+    ]
+  },
+  "previewUrls": [
+    "http://127.0.0.1:4397/?page_id=17&preview=true",
+    "http://127.0.0.1:4397/?page_id=18&preview=true",
+    "http://127.0.0.1:4397/?page_id=19&preview=true",
+    "http://127.0.0.1:4397/?page_id=20&preview=true",
+    "http://127.0.0.1:4397/?page_id=21&preview=true",
+    "http://127.0.0.1:4397/?page_id=22&preview=true"
+  ],
+  "editorUrls": [
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=17",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=18",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=19",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=20",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=21",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=22"
+  ],
+  "browserVerification": "Pending parent review"
+}

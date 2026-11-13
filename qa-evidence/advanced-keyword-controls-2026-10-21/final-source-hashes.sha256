@@ -1,0 +1,5 @@
+997a0663d80da03de40d1a1367184b0604a8732f1f01ec2a697306a68b4749fd  app/src/ui/inspector/Controls.tsx
+afb612d44c25660b700af8f150edac5359da6c057e895d4ae078dcab22ca6444  app/src/ui/inspector/Inspector.tsx
+07ae76ef8a3a6111565babc9b0c5fd6afb84f0f19fbf763aeed9b09cd126f6b6  tests/unit-control-validation.test.tsx
+200e9af4a25ce660e0491881984c9c304fe7654863f33b5b2a0b1d0e7c356852  tests/responsive-semantic-resets.test.tsx
+863a25849366a8d20edf89b8e2d82bdf02e6fbf4be8dd210a26cb387b5caa4f9  public/internal-ui-baselines/manifest.json

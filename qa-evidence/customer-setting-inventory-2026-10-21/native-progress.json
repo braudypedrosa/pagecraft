@@ -1,0 +1,877 @@
+{
+  "title": "Native QA progress overlay",
+  "date": "2026-10-21",
+  "purpose": "Prevent bounded native module work from being repeated blindly while preserving the original all-unverified inventory and history.",
+  "coverage_policy": "Only named evidence records are mapped. Representative values and behavior do not promote untested controls or arbitrary values to tested.",
+  "module_progress": [
+    {
+      "module": "Quote",
+      "case_ids": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06"
+      ],
+      "status": "accepted_bounded_82",
+      "control_scope": "14 direct controls plus recorded Advanced/Visibility/condition behavior",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/quote-native-2026-10-21",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md"
+      ],
+      "limits": [
+        "Representative values only; arbitrary values, all fonts/styles, Motion, Hover and Focus remain open.",
+        "Generic condition-label recovery passed in82; per-module condition combinations remain partial."
+      ]
+    },
+    {
+      "module": "Breadcrumb",
+      "case_ids": [
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06"
+      ],
+      "status": "accepted_bounded_82",
+      "control_scope": "8 direct controls plus recorded Advanced/Visibility/condition behavior",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/breadcrumb-native-2026-10-21",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md"
+      ],
+      "limits": [
+        "Four separator variants and representative responsive values are covered; arbitrary row counts/values, Motion, Hover and Focus remain open.",
+        "Generic condition-label recovery passed in82; per-module condition combinations remain partial."
+      ]
+    },
+    {
+      "module": "Icon",
+      "case_ids": [
+        "I01",
+        "I02",
+        "I03",
+        "I04",
+        "I05",
+        "I06",
+        "I07"
+      ],
+      "status": "accepted_bounded_82",
+      "control_scope": "10 direct controls plus recorded Advanced/State/Visibility behavior",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/icon-native-2026-10-21",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md"
+      ],
+      "limits": [
+        "All 35 exported icon choices are recorded, but link modes are not all-device reload proof and Hover/Focus proof is Desktop-specific.",
+        "Site checks recovery is separate and not Icon coverage."
+      ]
+    },
+    {
+      "module": "Table",
+      "case_ids": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07"
+      ],
+      "status": "accepted_bounded_83",
+      "control_scope": "14 direct controls plus recorded Advanced/Visibility/condition behavior and separate padding/layout follow-up",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/table-native-2026-10-21",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md",
+        "final-table-mobile.png",
+        "../padding-list-controls-2026-10-21/native/final-layout-table-acceptance.json"
+      ],
+      "limits": [
+        "Edge rows and conditional-controls-off proof are Mobile-only.",
+        "Named Position/max-width/Overflow cases are accepted in layout_slice101. Actual sticky movement in a tall parent, arbitrary combinations and shared Motion/State remain open. Generic condition labels passed82; per-module behavior still needs named evidence.",
+        "Padding fix accepted locally and in deployed Cloud/installed WordPress; broader module/common control combinations remain open.",
+        "Named Position/max-width/Overflow representative coverage is accepted in layout_slice101; actual sticky movement in a tall parent, arbitrary combinations and common Motion/State remain open."
+      ],
+      "layout_slice101": {
+        "status": "Bounded native Cloud and WordPress acceptance passed",
+        "evidence": "qa-evidence/table-layout-native-2026-10-23/acceptance.json",
+        "scope": "Six Position, four Overflow, six max-width and six Top/z-index rows per host; saved representative D/T/M keyboard horizontal scroll; exact restoration.",
+        "stickyActualScrollInTallParent": "NOT TESTED",
+        "wordpressCurrentVersion": 30,
+        "wordpressActualRevisions": 391,
+        "fullQAComplete": false
+      }
+    },
+    {
+      "module": "Code",
+      "case_ids": [
+        "C01",
+        "C02",
+        "C03",
+        "C04-C05",
+        "C05-plain-text",
+        "C06",
+        "C07"
+      ],
+      "status": "accepted_bounded_83",
+      "control_scope": "Recorded content/language/copy/line/wrap/style/token/responsive/Advanced/Visibility/condition cases and separate padding/layout follow-up",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/code-native-2026-10-21",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md",
+        "final-code-mobile.png",
+        "padding-control-blank-before.json",
+        "padding-control-blank-before.png",
+        "../padding-list-controls-2026-10-21/native/final-layout-code-acceptance.json"
+      ],
+      "limits": [
+        "Eight languages and representative values are covered; arbitrary values/units/fonts/colors, common Motion/State/Hover/Focus and runtime-generated controls remain open.",
+        "Padding fix accepted locally and in deployed Cloud/installed WordPress; broader module/common control combinations remain open."
+      ]
+    },
+    {
+      "module": "Accordion",
+      "case_ids": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "S01-S10"
+      ],
+      "status": "bounded_candidate85_local_only",
+      "control_scope": "4 direct Content controls plus 10 direct Style controls in the recorded native fixture",
+      "devices": [
+        "Desktop",
+        "Tablet",
+        "Mobile"
+      ],
+      "evidence_dir": "qa-evidence/accordion-native-2026-10-22",
+      "evidence_files": [
+        "coverage.json",
+        "task-close.md",
+        "final-native-state.json",
+        "final-accordion-desktop.png",
+        "final-accordion-mobile.png"
+      ],
+      "limits": [
+        "Candidate85 local evidence only; it is not Cloud/WordPress or production acceptance.",
+        "Representative values and recorded matrices do not cover arbitrary units/values, whitespace-only answers, Hover/Focus/Motion, shared Advanced/visibility/conditions, or exhaustive keyboard parity.",
+        "Default-color reset observed currentColor/rgb(17,19,17), not restoration to an original factory token."
+      ]
+    },
+    {
+      "module": "Row",
+      "status": "accepted_bounded_slice102",
+      "row_slice102": {
+        "status": "Bounded Row102 Cloud and WordPress native acceptance passed",
+        "evidence": "qa-evidence/nested-row-native-2026-10-23/acceptance.json",
+        "scope": {
+          "counts": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "recordedCountAndChooserCasesPerHost": 18,
+          "chooserCases": 12,
+          "alignChoices": [
+            "Top",
+            "Middle",
+            "Bottom",
+            "Base",
+            "Fill"
+          ],
+          "distributionChoices": [
+            "Start",
+            "Center",
+            "End",
+            "Space between",
+            "Space around"
+          ],
+          "wrapChoices": [
+            "No wrap",
+            "Wrap"
+          ],
+          "gapCases": [
+            "0px",
+            "-5px clamps0",
+            "12.5px",
+            "2rem",
+            "5%",
+            "reset"
+          ],
+          "populatedReduction": "Two columns to one; warning Cancel exact, Continue retained both headings, Undo/Redo exact",
+          "savedRepresentative": "Two columns67/33, gapsD24/T36/M12; clearMobile36, clearTablet24"
+        },
+        "fullQAComplete": false,
+        "remaining": [
+          "Broader Section, Column, Box, arbitrary nesting and gutter dragging are not accepted by this slice.",
+          "Representative gap values only; arbitrary values and all units/combinations remain open.",
+          "Shared Advanced, Motion/State, physical touch and full customer flows remain open.",
+          "No generic CSS architecture or production readiness claim."
+        ]
+      }
+    }
+  ],
+  "pending_next_checks": [
+    "Follow remaining-native-cases-2026-10-22.json; only named evidence counts as a native pass.",
+    "List/CMS references, deleted providers, active-filter schema removal and entry-driven pagination; do not repeat accepted CMS107 direct filter or nested Bool/Text cases.",
+    "Shared Style and Advanced, Motion and Hover/Focus combinations beyond accepted bounded cases.",
+    "Dynamic component, variant, library and insertion workflows, then full journey/recovery coverage beyond accepted records."
+  ],
+  "broad_open_areas": [
+    "Native control branches and host workflows without named evidence across the24 canonical module types. See remaining-native-cases-2026-10-22.json; static inventory is not a pass.",
+    "Shared Style/common controls and Advanced groups across modules.",
+    "Motion, transition, animation, duration, delay, easing and once controls.",
+    "Hover and keyboard Focus state controls and state-specific DOM/computed output.",
+    "Exhaustive Desktop/Tablet/Mobile plus state combinations beyond named cases.",
+    "Arbitrary values, units, fonts, colors, token sets and named styles.",
+    "Runtime-generated and conditional inspector controls not represented by named cases.",
+    "CMS bindings, source selectors and dynamic collection-field controls.",
+    "Dynamic component properties, component instances, variants and library workflows.",
+    "Collection contexts, repeated items, pagination and CMS rendering.",
+    "Add/drag/drop/block/pattern/media insertion and selection/undo behavior.",
+    "Full create/edit/save/reload flows for every module and setting family.",
+    "Physical devices, alternate browser engines, accessibility technology and keyboard-only workflows beyond recorded cases.",
+    "External integrations, roles, publishing, production/staging and recovery workflows."
+  ],
+  "do_not_claim": [
+    "Do not convert a bounded case record into an all-values or all-controls pass.",
+    "Do not infer native coverage from DEF rows or unit tests alone.",
+    "Do not count the pre-fix padding blank-field observation as post-fix success."
+  ],
+  "updated": "2026-10-22",
+  "release83": {
+    "cloud": "f70e9ad7f309a1dd33323907664009bfaa99b082",
+    "cloud_ci": 39630194634,
+    "cloud_deploy": 39630194667,
+    "wordpress": "e2bdd63301476aa3e60d50a1b08137f663eba1a0",
+    "wordpress_ci": 39633809752,
+    "evidence": "qa-evidence/padding-list-controls-2026-10-21/post-deploy/task-close.md",
+    "status": "native accepted; fixtures restored; no production promotion"
+  },
+  "release84": {
+    "cloud": "0a8c0c19944c3f68898ea49e70b44825fead23f3",
+    "cloud_ci": 39641734707,
+    "cloud_deploy": 39641734532,
+    "wordpress": "3604eb74b0bc6dd6e042ecd2fc1e4c7b2657f8fb",
+    "wordpress_ci": 39646072783,
+    "evidence": "qa-evidence/binding-dialog-labels-2026-10-22/post-deploy/task-close.md",
+    "status": "accepted bounded Cloud native; WordPress source parity and native read-only provider scope; fixtures restored; no production promotion"
+  },
+  "release85": {
+    "cloud": "218f115",
+    "wordpress": "e334d57",
+    "status": "Accepted bounded release; real character-typing regression subsequently fixed and accepted in release86.",
+    "verification": "2,606 tests passed, 5 skipped; 30 gallery interactions and 24 screenshot comparisons with zero changed pixels",
+    "limits": [
+      "This overlay records release identity and bounded native continuation only; it does not promote full customer QA or production readiness.",
+      "The Accordion A/S evidence is candidate85 local-only and is listed separately above."
+    ]
+  },
+  "release86_accepted": {
+    "cloud": "2aedc6d5f50cd3bc3dd47d33d4b6b0d8ef0eaa49",
+    "wordpress": "5deb391f929d779e9847533019425bec0742717f",
+    "evidence": "qa-evidence/integer-typing-2026-10-22/post-deploy",
+    "scope": "Native typing/focused-selection/save-reload/responsive output accepted; exact restoration; frontend screenshot visual limit recorded."
+  },
+  "release87_candidate": {
+    "scope": "Named Colour picker dialog and outside-pointer destination focus. Local native6/6, Escape3/3, keyboard/reload;2615tests5skip;30gallery24zero. Pending staging/WP acceptance.",
+    "status": "Historical local checkpoint; superseded by release87_accepted."
+  },
+  "accordion_motion_partial": {
+    "evidence": "qa-evidence/accordion-native-2026-10-22/m01-all-presets-preview.json",
+    "scope": "All26preset computed public animation names; transition presets/custom output; shared timing reloadall3; reset removes runtimeattrs. No physicaldevice/trajectory/performance/reducedmotion/scroll-onceproof. Invalid timing persistence reproduced here was fixed and accepted separately in release88."
+  },
+  "release87_accepted": {
+    "cloud": "3c30b1b8f50577a4e7fdadcd0298ad2e414af7b4",
+    "wordpress": "25797d7271651ef42334ff8a8fa5f241c8a6c528",
+    "evidence": "qa-evidence/color-picker-semantics-2026-10-22/post-deploy",
+    "scope": "Namedpicker/focus nativeD/T/M accepted; stagingHistory1089 unchanged20IDs; WordPressall133tablesexact326revisions."
+  },
+  "release88_candidate": {
+    "scope": "MotionDuration/Delay/Easing validation,draftidentity,actualUndo/Redo,validmodernCSS/reload.2620tests5skip,30interactions24zero. Localaccepted; deploymentpending.",
+    "status": "Historical local checkpoint; superseded by release88_accepted."
+  },
+  "release88_accepted": {
+    "cloud": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "cloud_ci": 39677292833,
+    "cloud_deploy": 39677292780,
+    "wordpress": "71056129ace3c4055c9ab3f9cf6cf1f9883f07e1",
+    "wordpress_preview": "0.2.17-preview.20261022.88",
+    "wordpress_ci": 39680348483,
+    "evidence": "qa-evidence/motion-validation-2026-10-22/post-deploy/task-close.md",
+    "scope": "Bounded Motion draft validation, valid timing save/reload/output at three breakpoints, fixture restoration and WordPress SQL/archive guards accepted. WordPress final Version73/revisions332; six new paired revision rows610-615 all parent487. Production untouched."
+  },
+  "button_partial": {
+    "evidence": "qa-evidence/button-native-2026-10-22/task-close.md",
+    "cases": "B01-B13",
+    "scope": "Current88 local native mixed typography/local surface values; Cancel/Update, responsive clears/reload, detach/Undo/Redo,16variant/icon combinations, alignment, long label, column position, link metadata/authored anchor activation, actual focus/pointer hover, two reusable component instances. Bounded cases only; host parity and other combinations open."
+  },
+  "list_nowrap_current_failure": {
+    "source": "33ed365303df0f7723de9e6c7c236f3865300145",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/before-native.json",
+    "scope": "Fresh native Collection18published items; Mobile nowrap stored in css.m, card width about1.28px, page403/405 horizontal overflow. Isolated fix and acceptance in progress.",
+    "status": "Historical88 reproduction; bounded89 fix accepted in Cloud staging and WP portableCore/local native regression. Physical touch remains open."
+  },
+  "release89_candidate": {
+    "status": "Historical local checkpoint, superseded by release89_accepted.",
+    "scope": "List No-wrap readable local scrolling and Preview keyboard ownership.2634pass5skip;30gallery interactions and24matching captures. Fresh Desktop215/215 and Mobile101/101, no page overflow, finalcard reachable; Slider, responsive clear and authored padding pass.",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/final-eight/acceptance.json",
+    "remaining": "Cloud exact deployment/native and WordPress pin/guard acceptance. Physical touch unverified. Fourteen broad QA areas remain open."
+  },
+  "release89_accepted": {
+    "cloud": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+    "cloud_ci": 39712803307,
+    "cloud_deploy": 39712803305,
+    "wordpress": "47385b0f37683fd0b5d340aab19e102ea716ba97",
+    "wordpress_preview": "0.2.17-preview.20261022.89",
+    "wordpress_ci": 39716869821,
+    "scope": "Bounded List No-wrap/Preview key ownership. Native Cloud accepted/restored; WP portableCore plus nativeSlider/Gallery/localguard accepted. Full QA open.",
+    "evidence": "qa-evidence/list-nowrap-2026-10-22/post-deploy/task-close.md"
+  },
+  "release90_accepted": {
+    "cloud": "b8ffc02e85a7eb314ae7d0da7d10e8e887a0ab3f",
+    "ci": 39717201878,
+    "deploy": 39717201856,
+    "scope": "Dev-only Vitest security patch. Full2634pass5skip and zero all/production audit. Exact staging marker/native sanity."
+  },
+  "tabs_partial": {
+    "status": "Local bounded native acceptance, deployment pending",
+    "evidence": "qa-evidence/tabs-overflow-2026-10-22/root-acceptance.json",
+    "scope": "Direct content/history/all8Style controls on preceding fixture; current fix long labels/panels across3breakpoints, keyboard/authoredstyles/reload. FullmoduleQA remains open."
+  },
+  "release91_accepted": {
+    "commit": "1f4b2ccd2dcfeb5e994a17c716af6284e06fe041",
+    "ci": 39720271992,
+    "deploy": 39720271985,
+    "status": "Bothsuccess, exact marker/nativeD/T/M/keys accepted. Original20IDs restored with3Undo/reload.",
+    "wordpress": "496d7de4f1b3878671201bd569a083d4e1d6c825",
+    "wordpressPreview": "0.2.17-preview.20261022.90",
+    "wordpressCI": 39721615417,
+    "scope": "Bounded Tabs containment. Cloud native3breakpoints/keys, localWPeditornative3breakpoints, portablepublicCore. FullQAopen."
+  },
+  "spacing_partial": {
+    "evidence": "qa-evidence/spacing-native-2026-10-22/task-close.md",
+    "scope": "Native Dividerall3styles/4directfields/5widthunits/2thicknessunits/zero/responsiveclear. Spacerall5heightunits/D80T40M20/clear/zero/duplicatehistory/reloadpreview. Localonly; hostparity/commonAdvanced/Motionopen."
+  },
+  "richtext_partial": {
+    "evidence": "qa-evidence/richtext-list-safety-2026-10-22/root-acceptance.json",
+    "scope": "Toolbar marks, blocks, links and list structure; new URL/output safety and selection fix localaccepted.2662pass5skip,30gallery24zero. Deploymentpending; broaderRichText/14QAareasopen."
+  },
+  "release92_accepted": {
+    "cloud": "67c6838312397200157c498a3952bb55635998b9",
+    "cloudCI": 39727653731,
+    "cloudDeploy": 39727653549,
+    "wordpress": "fcc9f5efc9007d620a529710ba47ee24e5396512",
+    "wordpressPreview": "0.2.17-preview.20261022.91",
+    "wordpressCI": 39728914983,
+    "scope": "Richtextlistnormalization andstrictlink/render safety. NativeCloud3breakpoints andrestored20IDs; nativeWPfreshdraft616Save/reopen/public1280/768/414/anchor accepted. Originalallposts/meta/revisions exact; new616and617-619only. FullQAopen.",
+    "evidence": "qa-evidence/richtext-list-safety-2026-10-22/post-deploy"
+  },
+  "responsive_typography_current_failure": {
+    "status": "Historical67 reproduction; bounded93 accepted Cloud staging and installed WordPress92.",
+    "evidence": "qa-evidence/responsive-typography-2026-10-22/root-acceptance.json",
+    "scope": "Update and Detach preserve responsive inheritance; explicit peer override retained. FullQAopen."
+  },
+  "release93_accepted": {
+    "cloud": "37f65d4b83de12d6959bfa982c935bc945e31461",
+    "ci": 39732948892,
+    "deploy": 39732948870,
+    "wordpress": "249bf8e7f60b6aba0af8186a36e3693646e690ea",
+    "wordpressPreview": "0.2.17-preview.20261022.92",
+    "wordpressCI": 39734891275,
+    "evidence": "qa-evidence/responsive-typography-2026-10-22/post-deploy/task-close.md",
+    "scope": "Bounded responsive typography Update/Detach; Cloud native/restored20; WP nativeSave/reopen/public3widths/restoredoriginalsizes. FullQAopen."
+  },
+  "video_partial": {
+    "evidence": "qa-evidence/video-native-2026-10-22/coverage.json",
+    "scope": "Native5ratios, filecontrols/autoplay/muted/loop and actualplayback, mediaLibraryposter, providerfacadeactivation, responsivewidth/radius/reload. MalformedURLiframefailureconfirmed; isolatedfix94pending. FullmoduleQAopen."
+  },
+  "video_source_current_failure": {
+    "status": "Reproduced on37f65d4; isolated fix94 root native accepted; rollout pending",
+    "evidence": "qa-evidence/video-source-safety-2026-10-22/root-acceptance.json"
+  },
+  "release94_url_safety_accepted": {
+    "cloud": "5d80a7513aa2c4ed8d7acb39414f9a969fc187cb",
+    "ci": 39737644659,
+    "deploy": 39737644520,
+    "wordpress": "ef9c7ea44b886bc99d924a785c9a0ea9b4653ad4",
+    "wordpressPreview": "0.2.17-preview.20261022.93",
+    "wordpressCI": 39738545396,
+    "evidence": "qa-evidence/video-source-safety-2026-10-22/post-deploy/task-close.md",
+    "status": "Bounded functional URL-safety accepted. Native WP placeholder layout failed and is isolated in95. FullQAopen."
+  },
+  "video_site_checks_candidate95": {
+    "status": "Root finalnativeaccepted, rolloutpending",
+    "evidence": "qa-evidence/video-source-lint-2026-10-22/root-acceptance.json"
+  },
+  "video_focus_current_failure": {
+    "status": "Nativekeyboardfailureconfirmed, separate96queued",
+    "evidence": "qa-evidence/video-focus-2026-10-22/before.json",
+    "native_keyboard_activation": {
+      "before": "Play button is keyboard focus-visible",
+      "after": "Enter replaces button with iframe, activeElement BODY and focus lost",
+      "evidence": "qa-evidence/video-source-lint-2026-10-22/post-deploy/wordpress94-valid-keyboard.json",
+      "status": "Isolated96 candidate extended after root native confirmation. Not deployed."
+    }
+  },
+  "release95_accepted": {
+    "cloudCommit": "bfe25c52d103d456a4fb4d7804ce89eb014f42e1",
+    "ci": 39746421821,
+    "stagingDeployment": 39746421823,
+    "wordpressCommit": "03be088fe037e2ad9ef5a158f9b8248b05c32b79",
+    "wordpressCI": 39747848646,
+    "wordpressPreview": "0.2.17-preview.20261022.94",
+    "native": [
+      "Contextual Video invalid and empty checks, Show me exact target, valid source clears Video findings",
+      "WordPress actual Save and public preview at1280/834/414 with full-area empty and invalid placeholders and zero players",
+      "Four WordPress Saves, original4 nodes restored exactly after reload",
+      "Staging original20 restored; original WordPress487 and global design settings protected"
+    ],
+    "evidence": "qa-evidence/video-source-lint-2026-10-22/post-deploy",
+    "limits": [
+      "CMS and component contexts automated only",
+      "Core-only gallery source contract unchanged; no new gallery run claimed",
+      "Full customer QA remains open"
+    ]
+  },
+  "video_focus_candidate96": {
+    "status": "Root native accepted, rollout pending",
+    "evidence": "qa-evidence/video-focus-2026-10-22/root-acceptance.json"
+  },
+  "release96_accepted": {
+    "cloud": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+    "cloudCI": 39775381935,
+    "stagingDeploy": 39775381846,
+    "wordpress": "62636ace3c3ac1cd57f766ee549fa9363388fbde",
+    "wordpressCI": 39777439076,
+    "wordpressPreview": "0.2.17-preview.20261022.95",
+    "evidence": "qa-evidence/video-focus-2026-10-22/post-deploy",
+    "native": "Node Focus40 persists across keyboard player activation in builder, actualexport andsavedWP at D/T/M; blurclearsmarker; pointeropenremainsResting; contentrestored",
+    "limits": [
+      "Class/localprecedence automatedonly",
+      "Provider internalTabnavigation notcertified",
+      "FullQA remainsopen"
+    ]
+  },
+  "wordpress_facade_only_current_failure": {
+    "nativeConfirmed": true,
+    "evidence": "qa-evidence/facade-only-guard-2026-10-22/native",
+    "facadeSave": "Valid no-poster facade-onlymain rejected",
+    "rollback": "Failure rewrites dates of unrelated assigned menu items; exact test effects restored fromprivatebaseline",
+    "candidateStatus": "Separate isolated Fallback guard and menu preflight fixes underway"
+  },
+  "gallery_partial": {
+    "scope": "All nine direct control families with bounded values; local only",
+    "evidence": "qa-evidence/gallery-native-2026-10-22",
+    "passed": [
+      "Upload3images/alt/captions/order/removeUndo/emptyUndo",
+      "All6tileshapes,bothFitmodes,lightbox/caption/lazy togglesbothdirections",
+      "D4/T2/M1columns,gap24 with existingM8,radius20",
+      "Columns0/-2clamp1 and2.5rounds3",
+      "KeyboardLightboxOpen/Next/Escape/openerrestoration",
+      "Imagespersistandreloadfullyloaded"
+    ],
+    "limits": [
+      "Cloud/WordPress not covered",
+      "SharedAdvanced/Motion/states,libraryreuse,arbitraryvaluesandunits remainopen"
+    ],
+    "wordpressPreview98BoundedAcceptance": {
+      "status": "Bounded WordPress preview98 native acceptance passed",
+      "evidence": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/native/wordpress-acceptance.json",
+      "scope": "D/T/M lightbox rest/hover contrast, Close placement, keyboard focus, Next/Left/Escape opener restoration, saved reload with stale global CSS; 29 database/source guard checks.",
+      "actualRevisions": 387,
+      "qa616Version": 28,
+      "fullQAComplete": false,
+      "genericFoundationArchitecture": "OPEN"
+    },
+    "library_reset_slice103": {
+      "status": "Bounded Gallery103 library/reuse/reset accepted both hosts; failed-image handling OPEN",
+      "evidence": "qa-evidence/gallery-library-reset-native-2026-10-23/acceptance.json",
+      "scope": [
+        "Library selection reuses existing asset identity; append2to3, Undo2, Redo3",
+        "Responsive Columns seededMobile2/Tablet4, clearMobile4 then clearTablet3",
+        "Gap Mobile8/Tablet20, clearMobile20 then clearTablet12",
+        "Radius Tablet14/Mobile14, Mobile override24, clearMobile14 then clearTablet10",
+        "Desktop ownColumns4/Gap20/Radius30 reset to base3/12/10 and modified badges removed",
+        "Saved reload and D/T/M public/preview: three loaded images and no page overflow"
+      ],
+      "fullGalleryQAComplete": false,
+      "fullQAComplete": false,
+      "failedImageHandling": "OPEN, separate Core fix in progress",
+      "remaining": [
+        "Failed image grid/lightbox fallback remains OPEN; a separate Core fix is in progress and has not been accepted here.",
+        "Missing reference could not be safely created through the UI; invalid upload was not tested.",
+        "Early Cloud column-only radius reads targeted img and are excluded from radius acceptance; frame radius proof uses style captures.",
+        "Library reuse, responsive clearing and base resets only; no full Gallery, shared controls or full customer QA claim.",
+        "Physical touch, arbitrary values/combinations and generic CSS architecture remain open."
+      ]
+    },
+    "load_recovery_preview99": {
+      "status": "WordPress existing-page CSS compatibility FAILED; OPEN",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/preview99-acceptance-status.json",
+      "cloudBoundedAccepted": true,
+      "wordpressBoundedAccepted": false,
+      "fullGalleryQAComplete": false,
+      "fullQAComplete": false
+    }
+  },
+  "historical_pending_next_checks": [
+    "Collection List L01-L08 partial native evidence: source/layout/order/filter/count/spacing/identity/hide cases recorded; corrected L07 child/link/unsafe-URL and required-title cases are bounded but child edge cases and boolean/nested/blank conditions remain open. No Wrap mobile overflow remains an open concern.",
+    "Per-module condition-label checks beyond the generic accepted82 labels.",
+    "Table position, max-width and overflow controls.",
+    "Common Motion, Hover/Focus, dynamic component and full customer-flow combinations outside named records."
+  ],
+  "current_coverage_record": {
+    "inventory": "remaining-native-cases-2026-10-22.json",
+    "reconciliationThrough95": "coverage-reconciliation-2026-10-22.json",
+    "latestBoundedCloudAcceptance": 109,
+    "latestWordPressEditorPreview": 103,
+    "moduleTypes": 24,
+    "directDescriptors": 231,
+    "sharedAndConditionalFamilies": "Recorded separately; not included as native passes.",
+    "fullQAComplete": false,
+    "latestCloudCommit": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+    "latestBoundedWordPressAcceptance": "Shared Style/Advanced109 native inheritance/filter/reset and public Focus/HoverD/T/M; restoredVersion49/424, guard31. FullQAopen.",
+    "sharedRecovery99": "deployed Cloud99, native WordPresspreview97accepted; Cloudvalidationnotindependentlyforced",
+    "genericFoundationArchitecture": "OPEN"
+  },
+  "release98_accepted": {
+    "cloudCommit": "c20caf3096ca7e11cec39edc17fee000994c0582",
+    "cloudStagingCI": "success39789997545",
+    "stagingDeploy": "success39789997616",
+    "localGalleryControls": "desktop/tablet/mobile passed",
+    "cloudGalleryControls": "desktop/tablet/mobile Enter/open/Next/hover/Escape/opener-focus passed",
+    "cloudOriginalDraft": "20 authored nodes exact after five Undo and reload; signed tokens/selection-only attribute excluded",
+    "wordpressGallery": "pending preview96 pin",
+    "evidence": "qa-evidence/gallery-lightbox-contrast-2026-10-22/post-deploy/staging-acceptance.json"
+  },
+  "wordpress_php97": {
+    "commit": "08686905d90b6a790369ec29e8f66349a2c39f4c",
+    "CI39792717483": "success PHP8.1/8.2/8.3",
+    "fixes": [
+      "allow preserved structural and blank drafts",
+      "validate decoded runtime video URLs",
+      "validate page/global payload before menu mutations",
+      "rollback only touched menus"
+    ],
+    "rootCombinedChecks": "158 real-core page/global cases and34 security assertions on WP6.6+7.1.3; Node62/PHP contracts/quality pass",
+    "nativeAfter": {
+      "videoOnly": "Save/reopen/public pass",
+      "dividerOnly": "Save/reopen/public pass",
+      "freshInertScriptRejection": "all133 table INSERT data unchanged",
+      "menuPostsAndAllMeta": "exact to baseline",
+      "originalDraft": "restored four authored nodes exact after fresh reopen",
+      "revisionDelta": "12 authorized QA616 revisions",
+      "rootGuard": "qa-evidence/facade-only-guard-2026-10-22/root-native-review.json"
+    }
+  },
+  "save_recovery_ui99": {
+    "status": "Cloud deployed; combined WordPress package pushed for CI",
+    "fixes": [
+      "400/422 save validation guidance with allowlisted safe reason",
+      "confirmed history restore clears stale failed-tab unload guard"
+    ],
+    "rootChecks": "30 gallery interactions per run, two runs;24reference and24A/B image comparisons pass; baseline PNG bytes unchanged;2724full tests passed5skipped",
+    "consumerNative": {
+      "safeValidationMessage": "passed actual inertJSONscript400branch",
+      "retainedUnsavedContent": "passed",
+      "historyRestoreAfterFailedSave": "passed originalfourexact,draftready,noNOTSAVED,noextraUIreload",
+      "normalRestoreGallery": "passed version20; fixtureactive"
+    },
+    "cloudCommit": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
+    "cloudTestRun39802672814": "success",
+    "stagingDeployRun39802672790": "success; exactmarkerconfirmed",
+    "originalCloud20Nodes": "exact after deployedreload",
+    "wordpressPinCommit": "1207cf10c4b5a28da051611e737c10fe51d0121e",
+    "wordpressPackage": "0.2.17-preview.20261022.97",
+    "wordpressInstalled": "1207cf10c4b5a28da051611e737c10fe51d0121e /preview97",
+    "wordpressCIRun39804686160": "success"
+  },
+  "wordpress_gallery_cascade_failure": {
+    "status": "reproduced after exactpreview97 install, fixinvestigationopen",
+    "source": "1207cf10c4b5a28da051611e737c10fe51d0121e",
+    "evidence": "qa-evidence/preview97-native-2026-10-22/gallery-css-cascade-before.json",
+    "passedSlices": [
+      "saved/reopenedaltscaptionsorder",
+      "4/2/1columns",
+      "squarecover",
+      "Focus40off/onretention",
+      "NextPreviousEscapefocusreturn"
+    ],
+    "failedSlice": "old header/footer globalCSS .14/.26 overrides new pagebase .72/.88",
+    "pendingDesign": "chooseauthoritativecurrent/newercompatiblefoundation; testbothmixedversiondirections",
+    "fullGalleryAcceptance": false,
+    "resolution": {
+      "status": "Historical preview97 reproduction; bounded Gallery fix accepted in preview98",
+      "evidence": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/native/wordpress-acceptance.json",
+      "genericFoundationArchitecture": "OPEN"
+    }
+  },
+  "button_mixed_cloud_99": {
+    "status": "Cloud bounded mixed Button acceptance passed; WordPress pending",
+    "evidence": "qa-evidence/button-mixed-native-2026-10-22/acceptance-cloud.json",
+    "case": "P1-BUTTON-HOST-CLOUD",
+    "restorationExact": true,
+    "wordpressPending": true
+  },
+  "button_mixed_wordpress_97": {
+    "status": "Bounded native mixed Button flow accepted",
+    "case": "P1-BUTTON-HOST-WORDPRESS",
+    "evidence": "qa-evidence/button-mixed-native-2026-10-22/acceptance-wordpress.json",
+    "globalOptionsRestoredExact": true,
+    "fullQAComplete": false
+  },
+  "gallery_stale_cascade_100": {
+    "cloudCommit": "b927f6435cb5d3a0903f386b62741ecc2376b1c5",
+    "cloudNativeDtmPassed": true,
+    "singleImageHiddenControlsPassed": true,
+    "wordpressPreview98Native": "Bounded accepted; see wordpressNativeAcceptance",
+    "themeOrderingChanged": false,
+    "genericFoundationArchitecture": "Open",
+    "wordpressNativeAcceptance": {
+      "status": "Bounded WordPress preview98 native acceptance passed",
+      "evidence": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/native/wordpress-acceptance.json",
+      "scope": "D/T/M lightbox rest/hover contrast, Close placement, keyboard focus, Next/Left/Escape opener restoration, saved reload with stale global CSS; 29 database/source guard checks.",
+      "actualRevisions": 387,
+      "qa616Version": 28,
+      "fullQAComplete": false,
+      "genericFoundationArchitecture": "OPEN"
+    }
+  },
+  "gallery_failed_image_current_failure": {
+    "status": "Native WordPress exact-asset failed-load reproduction confirmed; isolated fix in progress",
+    "evidence": "qa-evidence/gallery-library-reset-native-2026-10-23/wordpress-failed-load.json",
+    "failure": "Unreadable dark alt text/no usable failure message in grid and lightbox",
+    "testCleanup": "Recorded successful CDP reset/reload and test tab closed by root",
+    "missingReference": "Not safely authored through UI",
+    "invalidUpload": "Not tested",
+    "fullQAComplete": false,
+    "preview99Compatibility": {
+      "status": "OPEN: Cloud bounded passed, existing saved WordPress page CSS failed before resave",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/preview99-acceptance-status.json",
+      "pageVersion34Preserved": true,
+      "nextPreview100Pending": true,
+      "fullQAComplete": false
+    },
+    "preview100Resolution": {
+      "status": "Bounded native accepted on unchanged WordPress616v34 before any Save",
+      "cloud": "7a996d83a131ba0151404d98a3febb234b8bac17",
+      "wordpress": "2b737d42b67e77b850551c76529aa23db937780a",
+      "evidence": "qa-evidence/gallery-load-recovery-2026-10-23/native/wordpress100-no-resave-recovery.json",
+      "noResaveGuardChecks": 24,
+      "limits": "Failed exact-asset load and lightbox recovery only. Invalid upload and missing reference remain open.",
+      "fullQAComplete": false
+    }
+  },
+  "spacer_percent_editor_preview_parity_104": {
+    "status": "Bounded deployed Cloud and WordPress100 native accepted",
+    "evidence": "qa-evidence/spacing-host-native-2026-10-23/open-percent-height-parity.json",
+    "cloudRestoredExact": true,
+    "wordPressTested": true,
+    "fullQAComplete": false,
+    "cloudEvidence": "qa-evidence/spacing-host-native-2026-10-23/staging105-acceptance.json",
+    "wordpressEvidence": "qa-evidence/spacing-host-native-2026-10-23/wordpress100-fixed-parent-devices.json",
+    "guardChecks": 26
+  },
+  "custom_select_stale_option_105": {
+    "status": "Bounded native accepted both deployed hosts",
+    "cloud": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+    "rootFullTests": 2737,
+    "skipped": 5,
+    "nativeSharedInteractions": 30,
+    "baselinePng24ByteExact": true,
+    "ab24Passed": true,
+    "evidence": "qa-evidence/custom-select-stale-2026-10-23/acceptance.json",
+    "fullQAComplete": false,
+    "wordpress": "20b9e4b3531c2eb977d6244e6739ac92e6050b4e",
+    "preview": 101,
+    "wordpressGuardChecks": 27
+  },
+  "nested_layout_conditional106": {
+    "status": "Bounded native accepted, both drafts restored",
+    "evidence": "qa-evidence/nested-layout-conditional-native-2026-10-23/acceptance.json",
+    "originalCloudBaseline": "Version1199",
+    "fullQAComplete": false,
+    "wordpressGuardChecks": 28
+  },
+  "cms_mixed_conditions107": {
+    "status": "Bounded Cloud107 and WordPress102 source sync/native Save accepted; fullQA open",
+    "evidence": "qa-evidence/cms-mixed-conditions-native-2026-10-23/local-acceptance.json",
+    "source": "9595855d62bc83302c19d608a16b402c450a0117",
+    "fixes": [
+      "Reset preview page after collection result-shaping edits",
+      "Done on pristine or saved CMS entry/schema form; Cancel while dirty"
+    ],
+    "cases": [
+      "Option/Number/Date filters",
+      "Nested Bool and blank/populated Text conditions",
+      "Saved comparison reload",
+      "Unique repeated nested IDs",
+      "Page3/filter and page2/clear reset"
+    ],
+    "restoration": "All9pages4collections byte-exact native backup",
+    "fullQAComplete": false,
+    "wordpressPostGuard": {
+      "checks": 29,
+      "version": 45,
+      "revisions": 418,
+      "original8AndCompiled98Exact": true
+    }
+  },
+  "cms_schema_cleanup108": {
+    "status": "Bounded slice108 accepted; full customer QA remains open",
+    "cloud": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+    "wordpress": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+    "wordpressPreview": 103,
+    "cloudCI": 39871406980,
+    "cloudDeploy": 39871406877,
+    "wordpressCI": 39873794785,
+    "allCI": "success",
+    "tests": {
+      "rootFullPass": 2750,
+      "skipped": 5,
+      "sharedNativePass": 30,
+      "visual24ByteExact": true,
+      "wordpress713NodePass": 62,
+      "wordpress713SecurityPass": 34,
+      "wordpressNativeGuard": 26
+    },
+    "nativeStagingCases": [
+      "Legacy Boolean custom value retained without mutation",
+      "Yes selects Alpha/Delta",
+      "No selects Beta/Epsilon",
+      "Empty selects Gamma",
+      "is not Yes selects Beta/Gamma/Epsilon",
+      "Delete active Category filter on preview page2 resets page1 Alpha/Beta",
+      "Delete numeric Score sort on preview page2 resets page1 CMS order Alpha/Beta",
+      "Both deletion warnings exclude unrelated same-ID image bindings",
+      "Other8pages and unrelated image bindings preserved",
+      "All9pages and4collections restored byte-exact"
+    ],
+    "wordpressNativeScope": [
+      "Installed exact103 source",
+      "Native Gap24to25 Save",
+      "Reload25 and public25px",
+      "History45 restore",
+      "Public1280 and414 no overflow, all3imagesloaded",
+      "Original8nodes and compiled98 artifacts exact; finalVersion47/420revisions"
+    ],
+    "limitations": [
+      "CMS warning traversal does not newly enumerate dotted terminal-reference fields or component-definition bindings",
+      "CMS native acceptance performed on Cloud. WordPress proof covers packaged code plus native host Save/reload/public/restore, not every CMS journey",
+      "Representative values only; shared Style/Advanced/Motion combinations remain open",
+      "FullQAComplete false; no production release"
+    ],
+    "fullQAComplete": false
+  },
+  "shared_style_advanced109": {
+    "status": "Bounded shared Style/Advanced matrix accepted on both hosts",
+    "cloud": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+    "wordpress": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+    "preview": 103,
+    "scope": [
+      "Nested Box/Heading insertion",
+      "Desktop padding/background/overflow/max-width",
+      "Tablet/Mobile own padding and max-width",
+      "Modified-only Style and Advanced filtering",
+      "Independent Hover/Focus declarations",
+      "Reset Tablet Hover preserves Focus and Resting",
+      "Reset Tablet Resting preserves Mobile override",
+      "Reset Mobile Resting inherits Desktop",
+      "Keyboard focus at1280/834/414",
+      "Actual pointer hover after responsive reset",
+      "Editor reload and public saved rendering",
+      "Native history restoration and exact source guards"
+    ],
+    "controlsNotCovered": [
+      "All other Style/Advanced fields",
+      "Class-target bulk reset",
+      "Multi-selection",
+      "Motion entrance animation and transition interaction under separate110"
+    ],
+    "cloudRestored": true,
+    "wordpressRestored": true,
+    "wordpressFinalVersion": 49,
+    "wordpressRevisions": 424,
+    "wordpressPostGuard": 31,
+    "fullQAComplete": false
+  },
+  "motion_interaction110": {
+    "status": "complete for bounded motion interaction regression",
+    "cloud": "2451da8b0cea3594ca8a12bf0413854d7b6f5f41",
+    "wordpress": "6602337dc8477a48c41f1058c7b2b7addd286a75",
+    "wordpressEditor": "0.2.17-preview.20261023.104",
+    "nativeHosts": [
+      "Cloud Preview",
+      "WordPress saved public page"
+    ],
+    "viewports": [
+      1280,
+      834,
+      414
+    ],
+    "focusTransform": "translateX(8px)",
+    "hoverOpacity": 0.5,
+    "completedAnimation": "none",
+    "horizontalOverflow": false,
+    "cloudRestoredByteExact": true,
+    "wordpressRestoredVersion": 51,
+    "wordpressRevisionCount": 428,
+    "postRestorationChecks": 31,
+    "fullCustomerQA": "OPEN",
+    "productionReadiness": "unconfirmed"
+  },
+  "inspector_input111112": {
+    "status": "Local native candidate accepted; staging deployment and WordPress105 pending",
+    "issues": [
+      "First inspector button click lost after text blur",
+      "Custom URL disappears after first hash character"
+    ],
+    "candidate": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451",
+    "rootNativeCases": [
+      "First Hover click after HTML id edit",
+      "Held pointer survives blur until release",
+      "Held Space200ms activates focused State button",
+      "Sequential #qa-link112-native retains focus and complete href",
+      "First Style click after URL commit works"
+    ],
+    "sharedBehaviors": 30,
+    "visual24ByteExact": true,
+    "fullQAComplete": false
+  }
+}

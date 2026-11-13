@@ -1,0 +1,24 @@
+{
+  "environment": "Local WordPress preview89",
+  "fixture": 487,
+  "ids": [
+    "nxo96g5qr",
+    "nxo96g47r",
+    "nxo96g3zt",
+    "nxo96g28f",
+    "ny2qsh9qo",
+    "ny2qsh6e8",
+    "ny5zleam3",
+    "ny2qsh74a",
+    "ny6igvbfj",
+    "ny2qsh8kv",
+    "ny6kabci2"
+  ],
+  "expected11": true,
+  "previewOpenedActualFrontend": true,
+  "source": "Native builder Preview control; actual frontend Slider Next/Right and Gallery Next/Escape",
+  "noEditorChanges": true,
+  "noSave": true,
+  "errors": [],
+  "limit": "Cloud Collection is not in WordPress Add. This is portable Core parity plus native Slider/Gallery regression only."
+}

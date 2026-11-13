@@ -1,0 +1,105 @@
+{
+  "changedLeafCount": 12,
+  "changes": [
+    {
+      "path": "/artifact/routes/0/css",
+      "kind": "value",
+      "beforeBytes": 32146,
+      "afterBytes": 32206,
+      "beforeSha256": "68c87765f7e0858eb39f785a02e75e4badb27367d51b5df17122374575772a52",
+      "afterSha256": "2c4b3d08060290689ba2f1db0ea41a6de6f4fa2c9b56327aa2555dc3507884d1",
+      "selectorOnly": true
+    },
+    {
+      "path": "/artifact/routes/0/sourceHash",
+      "kind": "value",
+      "beforeBytes": 64,
+      "afterBytes": 64,
+      "beforeSha256": "e32fefb98f636077085c564f058b7c39e41cb54649bbdf52295507471fef5caa",
+      "afterSha256": "944e33893dcf668f42fcd0aaa0aee70657e6e208aa7a2ad750bd727361c5ddb5"
+    },
+    {
+      "path": "/artifact/routes/1/css",
+      "kind": "value",
+      "beforeBytes": 50739,
+      "afterBytes": 50799,
+      "beforeSha256": "ea96c31e1a81c91e19396994be00691cdee80462bba10eddad9a8b0da82fdb27",
+      "afterSha256": "3c69aa20d3304c67a6c2cc86d9f713236e6be6d521d0e91e8d41176add934af1",
+      "selectorOnly": true
+    },
+    {
+      "path": "/artifact/routes/1/sourceHash",
+      "kind": "value",
+      "beforeBytes": 64,
+      "afterBytes": 64,
+      "beforeSha256": "4048b3882e79ae648a2eab4b38b9a1272d64b3c47e539db6490be4a90e141480",
+      "afterSha256": "296acc2f4f5edb069179a0ec9c83f67ccf45e211f7ce258812d3a31716880f04"
+    },
+    {
+      "path": "/artifact/routes/2/css",
+      "kind": "value",
+      "beforeBytes": 50739,
+      "afterBytes": 50799,
+      "beforeSha256": "ea96c31e1a81c91e19396994be00691cdee80462bba10eddad9a8b0da82fdb27",
+      "afterSha256": "3c69aa20d3304c67a6c2cc86d9f713236e6be6d521d0e91e8d41176add934af1",
+      "selectorOnly": true
+    },
+    {
+      "path": "/artifact/routes/2/sourceHash",
+      "kind": "value",
+      "beforeBytes": 64,
+      "afterBytes": 64,
+      "beforeSha256": "e351d64cfe7b4e3a7cd3fbda6c225befb71dbdd7d921928b0323167b4066f67a",
+      "afterSha256": "ec5dab4e82839540ecaff448a072b507427300c6539754577487f89d16ca9ae8"
+    },
+    {
+      "path": "/artifact/routes/3/css",
+      "kind": "value",
+      "beforeBytes": 50739,
+      "afterBytes": 50799,
+      "beforeSha256": "ea96c31e1a81c91e19396994be00691cdee80462bba10eddad9a8b0da82fdb27",
+      "afterSha256": "3c69aa20d3304c67a6c2cc86d9f713236e6be6d521d0e91e8d41176add934af1",
+      "selectorOnly": true
+    },
+    {
+      "path": "/artifact/routes/3/sourceHash",
+      "kind": "value",
+      "beforeBytes": 64,
+      "afterBytes": 64,
+      "beforeSha256": "86844c48054338812d47970fa7d3a059c7f0bae4b3adbf852aa2512c646c3d4b",
+      "afterSha256": "b9ddb522e078d1169951f11c47c6b17804dd738dffd78599ce072cce47eaf96f"
+    },
+    {
+      "path": "/desired/deployment/envelope",
+      "kind": "value",
+      "beforeBytes": 730,
+      "afterBytes": 730,
+      "beforeSha256": "9117471446c8f1fecbec9ab0f9eeed6f6b30671dd500cab6127b9149f1d3e301",
+      "afterSha256": "cf4ac2bc3bd62374e2487460d9a5be5fc814eba13d7e59e08bb9ff8e4c03b73b"
+    },
+    {
+      "path": "/desired/deployment/signature",
+      "kind": "value",
+      "beforeBytes": 86,
+      "afterBytes": 86,
+      "beforeSha256": "2ba62010462ca965e938ce77c89acb93a9d48bebf902a1d322c9e570a8dc9e3d",
+      "afterSha256": "5da1d117d338a0649b8941ff44509adec8f09722611347cda27e806845a77eb1"
+    },
+    {
+      "path": "/desired/release/manifest",
+      "kind": "value",
+      "beforeBytes": 18784,
+      "afterBytes": 18784,
+      "beforeSha256": "a8831e59b58c9006d074f6458fc4144696d52c6a3b6459539ebe4344ca0f89af",
+      "afterSha256": "a49ff3a4bb2463951a52fa2e5e666aa872d292172a011b5395e24dac9dcef5e8"
+    },
+    {
+      "path": "/desired/release/signature",
+      "kind": "value",
+      "beforeBytes": 86,
+      "afterBytes": 86,
+      "beforeSha256": "51b3846ef5bbccfa576622556ebc279127028172d0016034a58fee41eebb91e4",
+      "afterSha256": "637a57671c7ae786f2b733d870720a2f3d41b4af87d2e596ace1e72e03335799"
+    }
+  ]
+}

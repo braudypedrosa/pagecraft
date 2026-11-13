@@ -1,0 +1,198 @@
+{
+  "status": "Read-only Gallery103 WordPress guard passed",
+  "wordpressCommit": "d13a87267dd6b42f393a6064ef2fb15c4382aed9",
+  "editorVersion": "0.2.17-preview.20261023.98",
+  "baseline": "Row post-native Version32 /395 revisions",
+  "actualVersion": 34,
+  "actualRevisions": 399,
+  "newRevisions": [
+    {
+      "id": 680,
+      "parent": 616,
+      "storedDocumentVersion": 32
+    },
+    {
+      "id": 681,
+      "parent": 616,
+      "storedDocumentVersion": 32
+    },
+    {
+      "id": 682,
+      "parent": 616,
+      "storedDocumentVersion": 33
+    },
+    {
+      "id": 683,
+      "parent": 616,
+      "storedDocumentVersion": 33
+    }
+  ],
+  "revisionCountReconciliation": "Four actual new revisions, two with stored Version32 and two with stored Version33; two native actions (Save and History restore). No additional authoring inferred.",
+  "newMetaCount": 116,
+  "changedExistingMeta": [
+    {
+      "id": 11146,
+      "key": "_pagecraft_document_version"
+    }
+  ],
+  "tables": 133,
+  "unchangedInsertTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "environmentalOptions": [
+    {
+      "name": "_elementor_design_system_sync_css_meta",
+      "beforeRowId": 2115,
+      "afterRowId": 2127,
+      "autoloadExact": true,
+      "changedField": "time",
+      "before": 1792691317,
+      "after": 1792692446,
+      "otherFieldsExact": true
+    },
+    {
+      "name": "_site_transient_theme_roots",
+      "beforeRowId": 2104,
+      "afterRowId": 2120,
+      "autoloadExact": true,
+      "changedField": null,
+      "valueExact": true
+    },
+    {
+      "name": "_site_transient_timeout_theme_roots",
+      "beforeRowId": 2103,
+      "afterRowId": 2119,
+      "autoloadExact": true,
+      "changedField": "",
+      "before": 1792690228,
+      "after": 1792693835
+    },
+    {
+      "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2110,
+      "afterRowId": 2121,
+      "autoloadExact": true,
+      "changedField": "",
+      "before": 1792692103,
+      "after": 1792693935
+    },
+    {
+      "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "beforeRowId": 2111,
+      "afterRowId": 2122,
+      "autoloadExact": true,
+      "changedField": null,
+      "valueExact": true
+    },
+    {
+      "name": "cron",
+      "beforeRowId": 1,
+      "afterRowId": 1,
+      "autoloadExact": true,
+      "changedField": "cron",
+      "events": [
+        {
+          "hook": "wp_update_user_counts",
+          "payloadExact": true,
+          "timestampDelta": 43200
+        },
+        {
+          "hook": "wp_update_plugins",
+          "payloadExact": true,
+          "timestampDelta": 43200
+        },
+        {
+          "hook": "wp_update_themes",
+          "payloadExact": true,
+          "timestampDelta": 43200
+        },
+        {
+          "hook": "wp_privacy_delete_old_export_files",
+          "payloadExact": true,
+          "timestampDelta": 3600
+        },
+        {
+          "hook": "elementor/tracker/send_event",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_site_health_scheduled_check",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "recovery_mode_clean_expired_keys",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_version_check",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_privacy_personal_data_cleanup_requests",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_scheduled_delete",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "delete_expired_transients",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_scheduled_auto_draft_delete",
+          "payloadExact": true,
+          "timestampDelta": 0
+        },
+        {
+          "hook": "wp_delete_temp_updater_backups",
+          "payloadExact": true,
+          "timestampDelta": 0
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "tables133": true,
+    "only3ExpectedChangedTables": true,
+    "onlyExistingPost616Changed": true,
+    "fourNewRevisions680683": true,
+    "allNewRevisionsParent616": true,
+    "all116NewMetaOnlyNewRevisions": true,
+    "noPostsOrMetaRemoved": true,
+    "allPrevious395RevisionsExact": true,
+    "allPreviousRevisionMetaExact": true,
+    "onlyExistingMetaVersionChanged": true,
+    "qa616Version34": true,
+    "actual399Revisions": true,
+    "restoredSourceDocumentAndCompiledArtifactsExact": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "original487Version73": true,
+    "allOptionNamesExact": true,
+    "allPagecraftOptionsExact": true,
+    "allAccountsSessionsExact": true,
+    "sixKnownEnvironmentalOptions": true,
+    "currentWPCommitD13": true,
+    "builderInstalledSourceExact": true,
+    "themeInstalledSourceExact": true,
+    "importerInstalledSourceExact": true,
+    "historical130Exact": true,
+    "current132PackageInventory": true
+  },
+  "failures": [],
+  "baselineSQLSHA256": "19cb707084a7a057e1e6b48280892779996a611a2b1f430c4c8fe2a3473c0e75",
+  "postNativeSQLSHA256": "1ed0fa3387c1b70c8bedc4455bf9dfbf1f120051d93aded47324fef6879c1686",
+  "postNativeSnapshotSHA256": "211c67c292cd25327c4d306c82b20e34538045d6bcb0e0b2f77dc53406e94d99",
+  "workerDatabaseWrites": false,
+  "fullQAComplete": false
+}

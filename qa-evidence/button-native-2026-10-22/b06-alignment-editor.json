@@ -1,0 +1,146 @@
+[
+  {
+    "device": "Desktop",
+    "alignment": "Left",
+    "dom": {
+      "align": "flex-start",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 1200,
+      "width": 230.765625
+    }
+  },
+  {
+    "device": "Desktop",
+    "alignment": "Centre",
+    "dom": {
+      "align": "center",
+      "display": "flex",
+      "left": 484.609375,
+      "overflow": false,
+      "parentWidth": 1200,
+      "width": 230.765625
+    }
+  },
+  {
+    "device": "Desktop",
+    "alignment": "Right",
+    "dom": {
+      "align": "flex-end",
+      "display": "flex",
+      "left": 969.234375,
+      "overflow": false,
+      "parentWidth": 1200,
+      "width": 230.765625
+    }
+  },
+  {
+    "device": "Desktop",
+    "alignment": "Fill",
+    "dom": {
+      "align": "stretch",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 1200,
+      "width": 1200
+    }
+  },
+  {
+    "device": "Tablet",
+    "alignment": "Left",
+    "dom": {
+      "align": "flex-start",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 771,
+      "width": 185.078125
+    }
+  },
+  {
+    "device": "Tablet",
+    "alignment": "Centre",
+    "dom": {
+      "align": "center",
+      "display": "flex",
+      "left": 292.953125,
+      "overflow": false,
+      "parentWidth": 771,
+      "width": 185.078125
+    }
+  },
+  {
+    "device": "Tablet",
+    "alignment": "Right",
+    "dom": {
+      "align": "flex-end",
+      "display": "flex",
+      "left": 585.921875,
+      "overflow": true,
+      "parentWidth": 771,
+      "width": 185.078125
+    }
+  },
+  {
+    "device": "Tablet",
+    "alignment": "Fill",
+    "dom": {
+      "align": "stretch",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 771,
+      "width": 771
+    }
+  },
+  {
+    "device": "Mobile",
+    "alignment": "Left",
+    "dom": {
+      "align": "flex-start",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 359,
+      "width": 169.84375
+    }
+  },
+  {
+    "device": "Mobile",
+    "alignment": "Centre",
+    "dom": {
+      "align": "center",
+      "display": "flex",
+      "left": 94.578125,
+      "overflow": false,
+      "parentWidth": 359,
+      "width": 169.84375
+    }
+  },
+  {
+    "device": "Mobile",
+    "alignment": "Right",
+    "dom": {
+      "align": "flex-end",
+      "display": "flex",
+      "left": 189.15625,
+      "overflow": true,
+      "parentWidth": 359,
+      "width": 169.84375
+    }
+  },
+  {
+    "device": "Mobile",
+    "alignment": "Fill",
+    "dom": {
+      "align": "stretch",
+      "display": "flex",
+      "left": 0,
+      "overflow": false,
+      "parentWidth": 359,
+      "width": 359
+    }
+  }
+]

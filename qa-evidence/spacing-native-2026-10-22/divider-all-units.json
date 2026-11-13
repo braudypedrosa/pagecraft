@@ -1,0 +1,77 @@
+[
+  {
+    "authored": [
+      "px",
+      "160"
+    ],
+    "dom": {
+      "parent": 359,
+      "thickness": "4px",
+      "viewport": [
+        414,
+        550
+      ],
+      "width": "160px"
+    }
+  },
+  {
+    "authored": [
+      "rem",
+      "10"
+    ],
+    "dom": {
+      "parent": 359,
+      "thickness": "4px",
+      "viewport": [
+        414,
+        550
+      ],
+      "width": "160px"
+    }
+  },
+  {
+    "authored": [
+      "%",
+      "50"
+    ],
+    "dom": {
+      "parent": 359,
+      "thickness": "4px",
+      "viewport": [
+        414,
+        550
+      ],
+      "width": "179.5px"
+    }
+  },
+  {
+    "authored": [
+      "vw",
+      "50"
+    ],
+    "dom": {
+      "parent": 359,
+      "thickness": "4px",
+      "viewport": [
+        414,
+        550
+      ],
+      "width": "207px"
+    }
+  },
+  {
+    "authored": [
+      "vh",
+      "20"
+    ],
+    "dom": {
+      "parent": 359,
+      "thickness": "4px",
+      "viewport": [
+        414,
+        550
+      ],
+      "width": "110px"
+    }
+  }
+]

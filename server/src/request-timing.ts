@@ -15,6 +15,20 @@ export async function timed<T>(name: string, work: () => Promise<T>): Promise<T>
   finally { trace?.spans.push({ name: name.replace(/[^a-zA-Z0-9_.-]/g, ''), start: start - trace.start, duration: performance.now() - start }); }
 }
 
+/** Record a duration measured by a lower-level service in the active request trace. */
+export function recordTiming(name: string, durationMs: number): void {
+  const trace = requestTiming.getStore();
+  if (!trace || !Number.isFinite(durationMs) || durationMs < 0) return;
+  const cleaned = name.replace(/[^a-zA-Z0-9_.-]/g, '');
+  if (!cleaned) return;
+  const end = performance.now();
+  trace.spans.push({
+    name: cleaned,
+    start: Math.max(0, end - trace.start - durationMs),
+    duration: durationMs,
+  });
+}
+
 export function timingHeader(trace: Trace): string {
   return [...trace.spans.slice(0, 24).map((span, i) =>
     `${span.name}_${i};dur=${span.duration.toFixed(1)};desc="start ${span.start.toFixed(1)}ms"`),

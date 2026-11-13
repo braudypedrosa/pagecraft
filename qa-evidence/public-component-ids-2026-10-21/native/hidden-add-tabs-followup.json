@@ -1,0 +1,6 @@
+{
+  "ui": "QA repeated inner form\n1 instance · no properties yet\nQA repeated form outer\n2 instances · no properties yet\nQA repeated inner tabs\n1 instance · no properties yet\nSelect something to save",
+  "canvasTabs": 0,
+  "canvasText": "Page content\nCommunity workshops and accessibility resources\nName *\nEmail *\nMessage\nSend\nCommunity workshops and accessibility resources\nName *\nEmail *\nMessage\nSend",
+  "sourceInference": "smartTarget accepts holds(type,key) for n.use placement with no slot; new child stored but definition expansion does not render it. Pending independent pureCore proof."
+}

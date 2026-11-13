@@ -1,0 +1,56 @@
+{
+  "head": 0,
+  "rows": [
+    [
+      {
+        "scope": "row",
+        "tag": "TH",
+        "text": "Session"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "Time"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "Room"
+      }
+    ],
+    [
+      {
+        "scope": "row",
+        "tag": "TH",
+        "text": "Morning"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "09:00"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "Garden"
+      }
+    ],
+    [
+      {
+        "scope": "row",
+        "tag": "TH",
+        "text": "Afternoon"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "14:00"
+      },
+      {
+        "scope": null,
+        "tag": "TD",
+        "text": "Studio"
+      }
+    ]
+  ]
+}

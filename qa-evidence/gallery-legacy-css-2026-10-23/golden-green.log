@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/gallery-legacy-css-0328
+
+
+ Test Files  1 passed (1)
+      Tests  30 passed (30)
+   Start at  02:58:46
+   Duration  651ms (transform 237ms, setup 0ms, import 296ms, tests 258ms, environment 0ms)

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-richtext-reset-d4-v1
+
+
+ Test Files  6 passed (6)
+      Tests  34 passed (34)
+   Start at  21:06:47
+   Duration  1.20s (transform 1.53s, setup 0ms, import 1.90s, tests 729ms, environment 3.15s)
+

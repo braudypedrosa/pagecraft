@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/list-nowrap-33ed365
+
+ ❯ tests/preview-keyboard-scope.test.mjs (3 tests | 2 failed) 80ms
+   × Preview leaves List group arrow keys to the rendered page 57ms
+   × Preview content owns navigation, activation, deletion, and history keys while Cmd-P/S remain editor shortcuts 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/preview-keyboard-scope.test.mjs > Preview leaves List group arrow keys to the rendered page
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/preview-keyboard-scope.test.mjs:40:34
+     38|   const event = new group.ownerDocument.defaultView.KeyboardEvent('key…
+     39|   invoke(event);
+     40|   expect(event.defaultPrevented).toBe(false);
+       |                                  ^
+     41|   expect(select).not.toHaveBeenCalled();
+     42| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/preview-keyboard-scope.test.mjs > Preview content owns navigation, activation, deletion, and history keys while Cmd-P/S remain editor shortcuts
+AssertionError: ArrowUp: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/preview-keyboard-scope.test.mjs:58:41
+     56|     const event = new w.KeyboardEvent('keydown', { key, bubbles: true,…
+     57|     invoke(event);
+     58|     expect(event.defaultPrevented, key).toBe(false);
+       |                                         ^
+     59|   }
+     60|   for (const key of ['z', 'y', 'd', 'c', 'x', 'v']) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  07:40:48
+   Duration  707ms (transform 11ms, setup 0ms, import 506ms, tests 80ms, environment 0ms)
+
+red_exit=1

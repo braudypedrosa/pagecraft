@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-schema-cleanup-9595855
+
+
+ Test Files  4 passed (4)
+      Tests  15 passed (15)
+   Start at  07:06:26
+   Duration  2.04s (transform 2.21s, setup 0ms, import 2.72s, tests 422ms, environment 3.68s)

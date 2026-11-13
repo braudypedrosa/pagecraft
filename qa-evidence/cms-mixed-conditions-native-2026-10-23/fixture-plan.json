@@ -1,0 +1,58 @@
+{
+  "baselineVersion": 1238,
+  "nativeProjectBaseline": "native-baseline.json",
+  "collection": "QA mixed conditions 107",
+  "fields": {
+    "Title": "Text(required)",
+    "Category": "Option: Accessibility, Design, Community",
+    "Score": "Number",
+    "Event date": "Date",
+    "Include": "Yes/no, blank allowed",
+    "Note": "Text"
+  },
+  "entries": [
+    {
+      "Title": "Alpha",
+      "Category": "Accessibility",
+      "Score": 9,
+      "Event date": "2026-10-20",
+      "Include": "1",
+      "Note": "Ready"
+    },
+    {
+      "Title": "Beta",
+      "Category": "Design",
+      "Score": 10,
+      "Event date": "2026-10-21",
+      "Include": "0",
+      "Note": ""
+    },
+    {
+      "Title": "Gamma",
+      "Category": "Accessibility",
+      "Score": 2,
+      "Event date": "",
+      "Include": "",
+      "Note": ""
+    },
+    {
+      "Title": "Delta",
+      "Category": "Community",
+      "Score": 11,
+      "Event date": "2026-10-22",
+      "Include": "1",
+      "Note": "Ready"
+    },
+    {
+      "Title": "Epsilon",
+      "Category": "Design",
+      "Score": 10,
+      "Event date": "2026-10-23",
+      "Include": "0",
+      "Note": "Later"
+    }
+  ],
+  "allEligibleForNextPublish": true,
+  "sitePublished": false,
+  "status": "IN PROGRESS, not acceptance"
+}

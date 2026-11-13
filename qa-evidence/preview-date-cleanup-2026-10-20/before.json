@@ -1,0 +1,98 @@
+{
+  "first": {
+    "initiallyCapturedListeners": 58,
+    "globalListenersBeforeCleanup": {
+      "window:focus:cycle1-initial": 1,
+      "window:focusin:cycle1-initial": 1,
+      "window:keydown:cycle1-initial": 1,
+      "window:keyup:cycle1-initial": 1,
+      "window:mouseover:cycle1-initial": 1,
+      "window:mousedown:cycle1-initial": 1,
+      "window:mouseup:cycle1-initial": 1,
+      "window:click:cycle1-initial": 1,
+      "window:mouseout:cycle1-initial": 1,
+      "document:load:cycle1-deferred": 1
+    },
+    "globalListenersAfterCleanup": {
+      "document:load:cycle1-deferred": 1
+    },
+    "residualGlobalListenerCount": 1,
+    "residualRuntimeGlobalListenerCount": 0,
+    "alertBeforeCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    },
+    "alertAfterCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    }
+  },
+  "second": {
+    "initiallyCapturedListeners": 49,
+    "globalListenersBeforeCleanup": {
+      "document:load:cycle1-deferred": 1,
+      "document:keydown:cycle2-open": 1,
+      "window:scroll:cycle2-open": 1,
+      "window:resize:cycle2-open": 2,
+      "document:focusin:cycle2-open": 1,
+      "document:pointerdown:cycle2-open": 1
+    },
+    "globalListenersAfterCleanup": {
+      "document:load:cycle1-deferred": 1,
+      "document:keydown:cycle2-open": 1,
+      "window:scroll:cycle2-open": 1,
+      "window:resize:cycle2-open": 2,
+      "document:focusin:cycle2-open": 1,
+      "document:pointerdown:cycle2-open": 1
+    },
+    "residualGlobalListenerCount": 7,
+    "residualRuntimeGlobalListenerCount": 6,
+    "alertBeforeCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    },
+    "alertAfterCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    }
+  },
+  "third": {
+    "initiallyCapturedListeners": 49,
+    "globalListenersBeforeCleanup": {
+      "document:load:cycle1-deferred": 1,
+      "document:keydown:cycle3-open": 1,
+      "window:scroll:cycle3-open": 1,
+      "window:resize:cycle3-open": 2,
+      "document:focusin:cycle3-open": 1,
+      "document:pointerdown:cycle3-open": 1
+    },
+    "globalListenersAfterCleanup": {
+      "document:load:cycle1-deferred": 1,
+      "document:keydown:cycle3-open": 1,
+      "window:scroll:cycle3-open": 1,
+      "window:resize:cycle3-open": 2,
+      "document:focusin:cycle3-open": 1,
+      "document:pointerdown:cycle3-open": 1
+    },
+    "residualGlobalListenerCount": 7,
+    "residualRuntimeGlobalListenerCount": 6,
+    "alertBeforeCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    },
+    "alertAfterCleanup": {
+      "count": 1,
+      "text": "Thursday, October 1, 2026"
+    }
+  },
+  "finalGlobalListeners": {
+    "document:load:cycle1-deferred": 1,
+    "document:keydown:cycle3-open": 1,
+    "window:scroll:cycle3-open": 1,
+    "window:resize:cycle3-open": 2,
+    "document:focusin:cycle3-open": 1,
+    "document:pointerdown:cycle3-open": 1
+  },
+  "finalGlobalListenerCount": 7,
+  "finalLiveAnnouncerCount": 1
+}

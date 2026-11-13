@@ -162,7 +162,7 @@ test('a save bumps the version and moves the timestamp', async () => {
   a.ok(new Date(res.site!.updatedAt) >= new Date(site.updatedAt));
 });
 
-test('every accepted save is an immutable revision with its author', async () => {
+test('history lists immutable revision metadata while revision reads one full document', async () => {
   const { sites } = await fresh();
   const original = demo();
   const site = await sites.create({ host: 'acme.test', name: 'Acme', doc: original, savedBy: 'owner-1' });
@@ -172,7 +172,8 @@ test('every accepted save is an immutable revision with its author', async () =>
 
   const history = await sites.history(site.id);
   a.deepEqual(history.map(r => [r.version, r.savedBy]), [[2, 'owner-2'], [1, 'owner-1']]);
-  a.equal(history[0].doc.pages[0].title, 'Later');
+  a.equal(history.some(revision => Object.hasOwn(revision, 'doc') || Object.hasOwn(revision, 'context')), false);
+  a.equal((await sites.revision(site.id, 2))!.doc.pages[0].title, 'Later');
   a.equal((await sites.revision(site.id, 1))!.doc.pages[0].title, original.pages[0].title);
   a.equal(await sites.revision(site.id, 99), null);
 });

@@ -1,0 +1,181 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-source-37f65d4
+
+ ❯ tests/video-source-safety.test.ts (33 tests | 7 failed) 12ms
+   × rejects backslash network path without echoing it into edit or public media markup 4ms
+   × rejects backslash-slash network path without echoing it into edit or public media markup 0ms
+   × rejects slash-backslash network path without echoing it into edit or public media markup 0ms
+   × rejects tab-normalized JavaScript scheme without echoing it into edit or public media markup 0ms
+   × rejects newline-normalized JavaScript scheme without echoing it into edit or public media markup 0ms
+   × rejects percent-encoded tab prefix without echoing it into edit or public media markup 0ms
+   × rejects percent-encoded newline prefix without echoing it into edit or public media markup 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects backslash network path without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "\\\\evil.example\\clip.mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects backslash-slash network path without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "\\/evil.example/clip.mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects slash-backslash network path without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "/\\evil.example/clip.mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects tab-normalized JavaScript scheme without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "java	script:alert(1).mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects newline-normalized JavaScript scheme without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "java
++ script:alert(1).mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects percent-encoded tab prefix without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "%09javascript:alert(1).mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  tests/video-source-safety.test.ts > rejects percent-encoded newline prefix without echoing it into edit or public media markup
+AssertionError: expected { kind: 'file', …(1) } to deeply equal { kind: 'invalid', id: '' }
+
+- Expected
++ Received
+
+  {
+-   "id": "",
+-   "kind": "invalid",
++   "id": "%0Ajavascript:alert(1).mp4",
++   "kind": "file",
+  }
+
+ ❯ tests/video-source-safety.test.ts:49:29
+     47|   ['malformed absolute URL', 'https://'],
+     48| ])('rejects %s without echoing it into edit or public media markup', (…
+     49|   expect(C.vidSrc({ src })).toEqual({ kind: 'invalid', id: '' });
+       |                             ^
+     50|   expect(C.vid({ src })).toContain('Unsupported video URL');
+     51|   const node = C.N('video', { src, facade: 1, autoplay: 0 });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 26 passed (33)
+   Start at  14:52:47
+   Duration  449ms (transform 252ms, setup 0ms, import 300ms, tests 12ms, environment 0ms)

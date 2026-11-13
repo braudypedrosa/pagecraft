@@ -1,0 +1,19 @@
+{
+  "commit": "d84e79da7444500283b549cdb457b2a635063cf1",
+  "before": {
+    "listBackground": "rgba(0, 0, 0, 0)",
+    "rootBackground": "rgba(0, 0, 0, 0)",
+    "variable": "#faf9f6"
+  },
+  "after": {
+    "listBackground": "rgba(0, 0, 0, 0)",
+    "rootBackground": "rgba(0, 0, 0, 0)",
+    "variable": "#6c472f"
+  },
+  "confirmedIneffective": true,
+  "undos": [
+    "Undo: Change menu style (⌘Z)",
+    "Undo: Follow navigation links (⌘Z)"
+  ],
+  "restored": true
+}

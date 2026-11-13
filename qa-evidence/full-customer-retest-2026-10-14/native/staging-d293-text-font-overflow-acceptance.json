@@ -1,0 +1,44 @@
+{
+  "source": "d29371bf52bc65f720d1a4ed3d26b91293ad614f",
+  "observations": {
+    "modules": [
+      "Heading nnkziz2pl",
+      "Rich text nk8y2k11g"
+    ],
+    "desktop": {
+      "font": "Georgia, \"Times New Roman\", serif",
+      "overflow": "hidden"
+    },
+    "tablet": {
+      "font": "Arial, sans-serif",
+      "parentFont": "Arial, sans-serif",
+      "overflow": "visible"
+    },
+    "mobile": {
+      "font": "Arial, sans-serif",
+      "parentFont": "Arial, sans-serif",
+      "overflow": "visible"
+    },
+    "clearTablet": {
+      "headingFont": "Georgia, \"Times New Roman\", serif",
+      "headingOverflow": "hidden",
+      "richFont": "Arial, sans-serif",
+      "richOverflow": "visible"
+    }
+  },
+  "reload": {
+    "performed": true,
+    "screenshot": "staging-d293-text-font-overflow-tablet.jpg",
+    "note": "The exact transient reload probe payload was lost when a later independent gallery run timed out and reset the REPL; prior direct Desktop/Tablet/Mobile and clear-Tablet tool results are recorded above."
+  },
+  "gallery": {
+    "behaviorPassed": 30,
+    "capturesPassed": 24,
+    "path": "staging-d293-gallery"
+  },
+  "restoration": {
+    "version": 926,
+    "ids": 41,
+    "cssSha256": "dc18a25cdf665dbe3e31e4493ae7ebaaece77c00ea26ac797424cc84db034f90"
+  }
+}

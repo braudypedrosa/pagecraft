@@ -1,0 +1,26 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rich-0e24996
+
+ ❯ tests/component-rich-editing.test.tsx (3 tests | 1 failed) 71ms
+   × actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings 44ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rich-editing.test.tsx > actual instance Rich text button edits nested markup, isolates the instance and refreshes repeated bindings
+TypeError: Cannot read properties of undefined (reading 'pages')
+ ❯ tests/component-rich-editing.test.tsx:91:42
+     89|   expect(C.instValue(C.locate(second.id)!.node, C.findComponent(def.id…
+     90|   const reloaded = C.migrate(saved).doc;
+     91|   let restored: any; C.eachNode(reloaded.pages[0].tree, node => { if (…
+       |                                          ^
+     92|   expect(C.renderNode(restored, { edit: false })).toContain('Updated <…
+     93| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 18 passed (19)
+   Start at  00:31:44
+   Duration  859ms (transform 317ms, setup 0ms, import 659ms, tests 247ms, environment 338ms)
+

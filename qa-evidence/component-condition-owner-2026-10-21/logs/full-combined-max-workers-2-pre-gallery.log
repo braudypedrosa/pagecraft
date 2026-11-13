@@ -1,0 +1,29 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-condition-owner-1827aaf
+
+ ❯ tests/ui-baselines.test.mjs (2 tests | 1 failed) 16ms
+   × reviewed gallery baselines match the current shared UI sources 5ms
+(node:9215) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9422) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9680) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+app/src/ui/inspector/Inspector.tsx
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 231 passed | 2 skipped (234)
+      Tests  1 failed | 2505 passed | 5 skipped (2511)
+   Start at  10:50:27
+   Duration  125.48s (transform 3.44s, setup 0ms, import 35.92s, tests 163.49s, environment 23.25s)

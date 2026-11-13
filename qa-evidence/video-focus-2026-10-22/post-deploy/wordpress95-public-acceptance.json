@@ -1,0 +1,61 @@
+{
+  "tabId": "44",
+  "views": [
+    {
+      "width": 1280,
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "overflow": false,
+        "radius": "40px"
+      },
+      "blur": {
+        "marked": false,
+        "radius": "10px"
+      },
+      "pointer": {
+        "marked": false,
+        "radius": "10px"
+      }
+    },
+    {
+      "width": 834,
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "overflow": false,
+        "radius": "40px"
+      },
+      "blur": {
+        "marked": false,
+        "radius": "10px"
+      },
+      "pointer": {
+        "marked": false,
+        "radius": "10px"
+      }
+    },
+    {
+      "width": 414,
+      "keyboard": {
+        "active": "IFRAME",
+        "marked": true,
+        "overflow": false,
+        "radius": "40px"
+      },
+      "blur": {
+        "marked": false,
+        "radius": "10px"
+      },
+      "pointer": {
+        "marked": false,
+        "radius": "10px"
+      }
+    }
+  ],
+  "cleanup": [
+    {},
+    {},
+    {}
+  ]
+}

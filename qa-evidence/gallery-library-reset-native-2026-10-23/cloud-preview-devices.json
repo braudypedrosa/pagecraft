@@ -1,0 +1,74 @@
+[
+  {
+    "device": "Desktop",
+    "computed": {
+      "bodyClient": 1280,
+      "bodyScroll": 1280,
+      "columns": "392px 392px 392px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused courtyard",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused reading room",
+          "loaded": true
+        },
+        {
+          "alt": "QA courtyard reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  },
+  {
+    "device": "Tablet",
+    "computed": {
+      "bodyClient": 834,
+      "bodyScroll": 834,
+      "columns": "254px 254px 254px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused courtyard",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused reading room",
+          "loaded": true
+        },
+        {
+          "alt": "QA courtyard reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  },
+  {
+    "device": "Mobile",
+    "computed": {
+      "bodyClient": 414,
+      "bodyScroll": 414,
+      "columns": "116.656px 116.672px 116.656px",
+      "gap": "12px",
+      "images": [
+        {
+          "alt": "QA reused courtyard",
+          "loaded": true
+        },
+        {
+          "alt": "QA reused reading room",
+          "loaded": true
+        },
+        {
+          "alt": "QA courtyard reused again",
+          "loaded": true
+        }
+      ],
+      "tileRadius": "10px"
+    }
+  }
+]

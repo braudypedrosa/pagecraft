@@ -1,0 +1,66 @@
+{
+  "status": "combined source/native-root-review/final-full-suite accepted locally; no integration yet",
+  "base": "2d79f4b3811edd749d62a53edca52b6e22f144d1",
+  "source6": {
+    "app/src/core/index.ts": "ac0222e8466438851ef2907873f5a0830265b5cc0e7992fbf2fe580f17c24bff",
+    "tests/form-grid-submit.test.ts": "104acab600a2796373515c2c4923d8e14c4f28cf6d10bd0b34d9d09e10ac2445",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343",
+    "app/src/ui/inspector/Lists.tsx": "3a3712bec348643f706874097b47c3bf1ec3a5f42500b19d577b0c3cebad3a41",
+    "tests/form-field-name-uniqueness.test.tsx": "bbd81fe1c54cfead8da93229dc94a8ae922a4301798e17d9cac2c7d09594489e",
+    "public/internal-ui-baselines/manifest.json": "629022eec982c9a0ff3ff89b861b7567ce86faf241cdf81fead8ca4febdf5ac2"
+  },
+  "generated10": {
+    "index.html": "be8b2e926bb02bfbe836392db83917457f8ae6e176acfe759e3f0b6c39ce73cf",
+    "dist/core.cjs": "51d3782dbd8bac1a883c5f9896f5b328b3a757b716bc2f3c5e1469191edd4767",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "a4f24c8265c2b2d48ca54b201852b3868dcd12a7098ca12d5e47654191c66ebc",
+    "packages/editor/dist/runtime.js": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "2b588d5b8b23cc5db5222584eb9237bc275a85ffd67e4f2ccefdc4c9749cfee0"
+  },
+  "checks": {
+    "fullSuitePassed": 2783,
+    "fullSuiteSkipped": 5,
+    "filesPassed": 271,
+    "filesSkipped": 2,
+    "fullSuiteExit": 0,
+    "focusedPassed": 32,
+    "typecheckExit": 0,
+    "twoOrderedPairsExact": true,
+    "finalFullPrecheckGenerated10Exact": true,
+    "all24OfficialPngBytesUnchanged": true,
+    "manifestOnlyListsFingerprintChanged": true,
+    "runtimeUnchanged": true
+  },
+  "rootNativeReview": {
+    "gridDesktopWidth": 1200,
+    "gridTabletWidth": 775,
+    "gridMobileWidth": 363,
+    "buttonFullSpanAndNoOverflow": true,
+    "pauseBlurFirstStyleAndReloadPersistence": true,
+    "galleryBehaviorsPassed": 30,
+    "officialPixelComparisonsPassed": 24,
+    "newCaptureByteExact": 23,
+    "remainingDifference": "caret phase in builder-fields-1440, root reviewed; official PNG preserved",
+    "mobileEvidence": "native-grid-mobile-final-1280x720.png",
+    "reviewOwner": "root; worker did not operate browser"
+  },
+  "preservedFailure": "logs/full-before-golden.log",
+  "noExtraOrderedBuildNeeded": "Final full precheck reproduces all10 artifacts from earlier two ordered pairs after only manifest source hash update.",
+  "scope": [
+    "app/src/core/index.ts",
+    "app/src/ui/inspector/Lists.tsx",
+    "tests/form-grid-submit.test.ts",
+    "tests/form-field-name-uniqueness.test.tsx",
+    "server/tests/fixtures/wordpress-artifact-v1.json",
+    "public/internal-ui-baselines/manifest.json",
+    "generated builder/editor assets and own QA evidence"
+  ],
+  "limits": [
+    "No Main/PHP/WordPress/DB/browser/commit/push work by this worker.",
+    "Cloud deployment/WordPress parity and guarded install remain with root."
+  ]
+}

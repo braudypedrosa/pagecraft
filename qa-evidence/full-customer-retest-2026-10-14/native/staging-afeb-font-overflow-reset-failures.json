@@ -1,0 +1,18 @@
+{
+  "source": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "font": {
+    "font": "Georgia, \"Times New Roman\", serif",
+    "parent": "Arial, sans-serif",
+    "style": null
+  },
+  "fresh": {
+    "font": "Georgia, \"Times New Roman\", serif",
+    "overflow": "hidden",
+    "parentFont": "Arial, sans-serif"
+  },
+  "restoration": {
+    "version": 926,
+    "idsExact": true,
+    "cssSha256": "dc18a25cdf665dbe3e31e4493ae7ebaaece77c00ea26ac797424cc84db034f90"
+  }
+}

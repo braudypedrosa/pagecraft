@@ -7,6 +7,7 @@
 import type {
   ColorToken, ComponentDef, Doc, LibraryItemKind, LibraryLink, Node, SavedBlock, StyleClass, TextStyle,
 } from './types.ts';
+import { cleanRich, safeUrl } from './safe-html.ts';
 
 export type { LibraryItemKind, LibraryLink } from './types.ts';
 export interface LibraryItemRef { kind: LibraryItemKind; id: string }
@@ -159,9 +160,20 @@ function normalised(kind: LibraryItemKind, item: unknown) {
   const copy = clone(item) as Record<string, unknown>;
   delete copy.id;
   const root = (kind === 'component' || kind === 'block') ? copy.node as Node | undefined : undefined;
+  const ids = new Map<string, string>();
+  if (root) eachNode(root, n => { ids.set(n.id, `@local-node:${ids.size}`); });
   if (root) eachNode(root, n => {
     delete (n as Partial<Node>).id;
-    if (n.adv && 'htmlId' in n.adv) delete (n.adv as { htmlId?: string }).htmlId;
+    // Panel references are local identity too; preserve their association, not their IDs.
+    if (n.type === 'tabs' && Array.isArray(n.props.items)) {
+      for (const row of n.props.items as { panelId?: string }[]) {
+        if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+      }
+    }
+    /* Node ids are storage identity. A nonblank htmlId is authored content: ignoring it made a
+       local anchor invisible to conflict detection, then an upstream update silently erased it.
+       Keep normalising blank ids away so hashes stored for existing imports remain compatible. */
+    if (n.adv && !n.adv.htmlId && 'htmlId' in n.adv) delete (n.adv as { htmlId?: string }).htmlId;
   });
   return canonical({ kind, item: copy });
 }
@@ -257,6 +269,90 @@ export function remapBundleAssets(bundle: LibraryBundle, map: Record<string, str
 export const bundleItemCount = (bundle: LibraryBundle) =>
   BUNDLE_LISTS.reduce((n, [, field]) => n + (bundle[field] as unknown[]).length, 0);
 
+/* ---- what a bundle may carry into a site ------------------------------------
+   Anybody can publish a library and share it, and what it holds lands in the owner's editor.
+   So an import does not trust the bundle: the parts that become markup are cleaned on the way
+   in — rich text through the renderer's allowlist, links through `safeUrl`, a link target is
+   `_blank` or nothing, and a class or text style id that would not survive inside a class
+   attribute gets a new one. Names stay as they are; every place that shows one escapes it.
+
+   An Embed is the exception, because running code is its purpose. It is not cleaned — it is
+   reported, so the editor can name it and ask before it lands in the site. */
+
+const SAFE_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/i;
+const TOKEN_KINDS: LibraryItemKind[] = ['color', 'textStyle', 'class'];
+/** A token id that is safe wherever the renderer writes one: a class name, a CSS selector. */
+const safeTokenId = (kind: LibraryItemKind, id: string) => !TOKEN_KINDS.includes(kind) || SAFE_ID.test(id);
+const tokenIdFrom = (id: string, kind: LibraryItemKind) =>
+  String(id).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || kind.toLowerCase();
+
+/* `cms:item` and a WordPress reference are not URLs and are resolved, safely, where they render */
+const cleanHref = (v: unknown) => {
+  const s = String(v ?? '');
+  return s === 'cms:item' || s.startsWith('pagecraft:wordpress-content:') ? s : safeUrl(s);
+};
+const cleanTarget = (v: unknown) => (v === '_blank' ? '_blank' : '');
+const LINK_TARGET = '@link-target:';
+
+/** One item as a site may hold it. `components` is the bundle's, so a nested instance's values
+    can be cleaned by the kind its own definition gives them. */
+function cleanItem<T>(kind: LibraryItemKind, item: T, components: ComponentDef[]): T {
+  const byKind = (def: ComponentDef | undefined, k: string) => def?.props.find(p => p.k === k)?.t;
+  const cleanValue = (t: string | undefined, v: string) => (t === 'rich' ? cleanRich(v) : t === 'link' ? cleanHref(v) : v);
+  const cleanValues = (def: ComponentDef | undefined, values: Record<string, string> | undefined) => {
+    for (const k of Object.keys(values || {})) {
+      if (k.startsWith(LINK_TARGET)) {
+        const property = k.slice(LINK_TARGET.length);
+        if (byKind(def, property) === 'link') values![k] = cleanTarget(values![k]);
+        else delete values![k];
+      } else values![k] = cleanValue(byKind(def, k), values![k]);
+    }
+  };
+  const cleanNode = (n: Node) => {
+    const p = (n.props || {}) as Record<string, unknown>;
+    if (n.type === 'text' && typeof p.html === 'string') p.html = cleanRich(p.html);
+    if ('target' in p) p.target = cleanTarget(p.target);
+    if (typeof p.link === 'string') p.link = cleanHref(p.link);
+    if ((n.type === 'nav' || n.type === 'crumbs') && Array.isArray(p.items)) {
+      for (const row of p.items as Record<string, unknown>[]) {
+        if (!row || typeof row !== 'object') continue;
+        if (typeof row.href === 'string') row.href = cleanHref(row.href);
+        if ('target' in row) row.target = cleanTarget(row.target);
+      }
+    }
+    if (n.use) cleanValues(components.find(c => c.id === n.use), n.vals);
+  };
+  if (kind === 'component') {
+    const def = item as unknown as ComponentDef;
+    for (const prop of def.props || []) if (typeof prop.def === 'string') prop.def = cleanValue(prop.t, prop.def);
+    for (const variant of def.variants || []) cleanValues(def, variant.values);
+  }
+  const root = kind === 'component' ? (item as unknown as ComponentDef).node : kind === 'block' ? (item as unknown as SavedBlock).node : null;
+  if (root) eachNode(root, cleanNode);
+  return item;
+}
+
+/** A component or block of a bundle that carries custom code, and how many Embeds it holds. */
+export interface LibraryCustomCode { kind: LibraryItemKind; id: string; name: string; embeds: number }
+const embedsIn = (kind: LibraryItemKind, item: unknown) => {
+  const root = kind === 'component' ? (item as ComponentDef).node : kind === 'block' ? (item as SavedBlock).node : null;
+  let embeds = 0;
+  if (root) eachNode(root, n => { if (n.type === 'embed') embeds++; });
+  return embeds;
+};
+const customCodeOf = (bundle: LibraryBundle, refs: LibraryItemRef[]): LibraryCustomCode[] => {
+  const lists = bundleLists(bundle);
+  return refs.flatMap(ref => {
+    const item = find(lists, ref.kind, ref.id) as { id: string; name?: string } | undefined;
+    const embeds = item ? embedsIn(ref.kind, item) : 0;
+    return embeds ? [{ kind: ref.kind, id: ref.id, name: String(item!.name || ref.id), embeds }] : [];
+  });
+};
+/** The Embeds an import of `chosen` would bring, for the editor to name before anything is
+    copied: the chosen items and everything they depend on. */
+export const importCustomCode = (bundle: LibraryBundle, chosen: LibraryItemRef[]) =>
+  customCodeOf(bundle, closure(bundle, chosen));
+
 /* ---- import -------------------------------------------------------------- */
 
 export interface LibrarySource { libraryId: string; version: number }
@@ -268,12 +364,26 @@ export interface ImportedItem {
       imported from this library. site-foundation: the site's own token is used. */
   how: 'added' | 'renamed' | 'reused' | 'linked' | 'site-foundation';
 }
-export interface LibraryImportPlan { doc: Doc; items: ImportedItem[]; assets: string[] }
+export interface LibraryImportPlan {
+  doc: Doc; items: ImportedItem[]; assets: string[];
+  /** the new copies that carry Embeds, which the editor confirms before committing */
+  customCode: LibraryCustomCode[];
+}
 export interface LibraryImportOptions {
   /** library asset id → the site asset id the storage layer copied it to */
   assets?: Record<string, string>;
   /** fresh node ids; the editor passes its own uid so ids match everything else it makes */
   newId?: () => string;
+}
+
+export interface LibraryReadabilityPreview {
+  items: number;
+  minRatio: number;
+}
+export interface LibraryReadabilityColorTools {
+  /** The editor's canonical parser. Alpha below 1 is not confidently composited here. */
+  parse: (value: string) => { a: number } | null;
+  contrast: (foreground: string, background: string) => number | null;
 }
 
 let fallbackSeq = 0;
@@ -318,10 +428,20 @@ function replaceItem(doc: Doc, kind: LibraryItemKind, id: string, item: { id: st
   if (at >= 0) list[at] = item;
 }
 
-const reidTree = (node: Node, newId: () => string) => eachNode(node, n => {
-  n.id = newId();
-  if (n.adv && n.adv.htmlId) n.adv.htmlId = '';
-});
+const reidTree = (node: Node, newId: () => string) => {
+  const ids = new Map<string, string>();
+  eachNode(node, n => {
+    const id = newId(); ids.set(n.id, id); n.id = id;
+    if (n.adv && n.adv.htmlId) n.adv.htmlId = '';
+  });
+  eachNode(node, n => {
+    if (n.type === 'tabs' && Array.isArray(n.props.items)) {
+      for (const row of n.props.items as { panelId?: string }[]) {
+        if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+      }
+    }
+  });
+};
 
 /** The library images an import of `chosen` needs copied into the site first: everything the
     chosen items and their dependencies show. Copy these, then pass the id map to the plan. */
@@ -363,6 +483,8 @@ export function planLibraryImport(
       // Already imported from this library: keep the site's copy and its link exactly as they
       // are. Changes arrive only through an update, which knows what this site changed.
       if (linked && find(target, kind, linked.localId)) { localId = linked.localId; how = 'linked'; }
+      // An id that could break out of a class attribute is never kept, whatever is here already.
+      else if (!safeTokenId(kind, ref.id)) { localId = freeId(taken, tokenIdFrom(ref.id, kind)); how = 'renamed'; }
       else if (existing && isFoundation(kind, ref.id)) how = 'site-foundation';
       else if (existing && itemHash(kind, existing) === bundle.hashes[key(kind, ref.id)]) how = 'reused';
       else if (existing) { localId = freeId(taken, ref.id); how = 'renamed'; }
@@ -373,7 +495,8 @@ export function planLibraryImport(
   }
   for (const entry of items) {
     if (entry.how !== 'added' && entry.how !== 'renamed') continue;
-    const copy = rewrite(entry.kind, clone(find(lists, entry.kind, entry.sourceId)!), renames, assetMap) as { id: string; node?: Node };
+    const clean = cleanItem(entry.kind, clone(find(lists, entry.kind, entry.sourceId)!), bundle.components);
+    const copy = rewrite(entry.kind, clean, renames, assetMap) as { id: string; node?: Node };
     copy.id = entry.localId;
     if (copy.node) reidTree(copy.node, newId);
     place(next, entry.kind, copy);
@@ -389,7 +512,68 @@ export function planLibraryImport(
     if (at >= 0) links[at] = link; else links.push(link);
   }
   next.meta.libraryLinks = links;
-  return { doc: next, items, assets: needed };
+  const landed = items.filter(i => i.how === 'added' || i.how === 'renamed').map(i => ({ kind: i.kind, id: i.sourceId }));
+  return { doc: next, items, assets: needed, customCode: customCodeOf(bundle, landed) };
+}
+
+/** A deliberately bounded preflight for the direct solid-Button pair the editor authors.
+    Site checks remain the complete review after placement: inherited colours, classes, alpha
+    colours and unresolved values are skipped here rather than reported as safe. */
+export function previewLibraryImportReadability(
+  doc: Doc, bundle: LibraryBundle, source: LibrarySource, chosen: LibraryItemRef[],
+  color: LibraryReadabilityColorTools,
+): LibraryReadabilityPreview | null {
+  const assets = Object.fromEntries(importAssetsNeeded(bundle, chosen).map(id => [id, id]));
+  let seq = 0;
+  const plan = planLibraryImport(doc, bundle, source, chosen, { assets, newId: () => `preview-${++seq}` });
+  const affected = new Set<string>();
+  let minRatio = Infinity;
+  const colors = plan.doc.meta.tokens?.colors || [];
+  const textStyles = plan.doc.meta.tokens?.text || [];
+  const resolved = (value: unknown) => {
+    const text = String(value || '').trim();
+    const match = /^var\(--c-([\w-]+)\)$/.exec(text);
+    if (!match) return text;
+    const token = colors.find(color => color.id === match[1]);
+    return String(token?.value || '').trim();
+  };
+  for (const entry of plan.items) {
+    if ((entry.kind !== 'component' && entry.kind !== 'block')
+      || (entry.how !== 'added' && entry.how !== 'renamed')) continue;
+    const item = find(listsOf(plan.doc), entry.kind, entry.localId) as ComponentDef | SavedBlock | undefined;
+    const root = item?.node;
+    if (!root) continue;
+    eachNode(root, button => {
+      if (button.type !== 'button' || String(button.props.variant || 'solid') !== 'solid') return;
+      if ((button.cls || []).length) return;
+      const responsive = ['--pc-solid-fg', 'background-color', 'font-size', 'font-weight'];
+      if (responsive.some(prop => (button.css.t || {})[prop] || (button.css.m || {})[prop])) return;
+      if (button.st && JSON.stringify(button.st).match(/--pc-solid-fg|background-color|font-size|font-weight/)) return;
+      const foreground = String((button.css.d || {})['--pc-solid-fg'] || '');
+      const background = String((button.css.d || {})['background-color'] || '');
+      const refs = [foreground, background].map(value => /^var\(--c-([\w-]+)\)$/.exec(value)?.[1] || '');
+      if (!refs.some(id => isFoundation('color', id))) return;
+      const fg = resolved(foreground), bg = resolved(background);
+      if (!fg || !bg) return;
+      const fgColor = color.parse(fg), bgColor = color.parse(bg);
+      if (!fgColor || !bgColor || fgColor.a !== 1 || bgColor.a !== 1) return;
+      const styleId = String(button.props.ts || '');
+      const textStyle = styleId ? textStyles.find(style => style.id === styleId) : null;
+      if (!textStyle) return;
+      if (responsive.some(prop => (textStyle.css.t || {})[prop] || (textStyle.css.m || {})[prop])) return;
+      const sizeText = String((button.css.d || {})['font-size'] || (textStyle.css.d || {})['font-size'] || '').trim();
+      const weightText = String((button.css.d || {})['font-weight'] || (textStyle.css.d || {})['font-weight'] || '').trim();
+      if (!/^[\d.]+(?:px)?$/.test(sizeText) || !/^(?:[1-9]00|normal|bold)$/.test(weightText)) return;
+      const size = parseFloat(sizeText), weight = weightText === 'bold' ? 700 : weightText === 'normal' ? 400 : parseInt(weightText, 10);
+      if (size >= 24 || (size >= 18.66 && weight >= 700)) return;
+      const ratio = color.contrast(fg, bg);
+      if (ratio != null && Number.isFinite(ratio) && ratio < 4.5) {
+        affected.add(`${entry.kind}:${entry.localId}`);
+        minRatio = Math.min(minRatio, ratio);
+      }
+    });
+  }
+  return affected.size ? { items: affected.size, minRatio } : null;
 }
 
 /* ---- updates ------------------------------------------------------------- */
@@ -413,13 +597,19 @@ export interface LibraryUpdatePlan {
   doc: Doc | null;
   /** library asset ids the chosen updates need copied into the site */
   assets: string[];
+  /** what this update writes that carries Embeds: updated items and new dependencies */
+  customCode: LibraryCustomCode[];
 }
 
 /** Every instance of component `id` anywhere in the document. */
 function instancesOf(doc: Doc, id: string) {
   const found: Node[] = [];
   const visit = (node: Node) => eachNode(node, n => { if (n.use === id) found.push(n); });
-  doc.pages.forEach(page => page.tree.forEach(visit));
+  doc.pages.forEach(page => {
+    page.tree.forEach(visit);
+    if (Array.isArray(page.header)) page.header.forEach(visit);
+    if (Array.isArray(page.footer)) page.footer.forEach(visit);
+  });
   doc.header.forEach(visit);
   doc.footer.forEach(visit);
   (doc.meta.components || []).forEach(def => visit(def.node));
@@ -435,7 +625,7 @@ function componentWarnings(doc: Doc, localId: string, before: ComponentDef, afte
   const warnings: string[] = [];
   const instances = instancesOf(doc, localId);
   const variants = new Set((after.variants || []).map(v => v.id));
-  const props = new Set(after.props.map(p => p.k));
+  const props = new Set(after.props.flatMap(p => p.t === 'link' ? [p.k, LINK_TARGET + p.k] : [p.k]));
   const slots = slotNames(after);
   const firstSlot = [...slotNames(before)][0];
   const lostVariant = instances.filter(n => n.variant && !variants.has(n.variant)).length;
@@ -450,12 +640,34 @@ function componentWarnings(doc: Doc, localId: string, before: ComponentDef, afte
   return warnings;
 }
 
+/** Apply the removals an accepted component update warned about. Placements keep every value
+    and variant the new definition still declares, including a link property's target sidecar. */
+function pruneComponentPlacements(doc: Doc, localId: string, after: ComponentDef) {
+  const props = new Set(after.props.flatMap(p => p.t === 'link' ? [p.k, LINK_TARGET + p.k] : [p.k]));
+  const variants = new Set((after.variants || []).map(v => v.id));
+  for (const instance of instancesOf(doc, localId)) {
+    if (instance.vals) {
+      for (const key of Object.keys(instance.vals)) if (!props.has(key)) delete instance.vals[key];
+      if (!Object.keys(instance.vals).length) delete instance.vals;
+    }
+    if (instance.bind) {
+      for (const key of Object.keys(instance.bind)) {
+        if (key.startsWith('val:') && !props.has(key.slice(4))) delete instance.bind[key];
+      }
+      if (!Object.keys(instance.bind).length) delete instance.bind;
+    }
+    if (instance.variant && !variants.has(instance.variant)) delete instance.variant;
+  }
+}
+
 export interface LibraryUpdatePreview {
   items: UpdateItem[];
   /** conflict keys (`${kind}:${sourceId}`) still waiting for a resolution */
   unresolved: string[];
   /** library asset ids the chosen updates need copied into the site */
   assets: string[];
+  /** what this update writes that carries Embeds: updated items and new dependencies */
+  customCode: LibraryCustomCode[];
 }
 
 /** What moving to `bundle` would change, before anything is written: each linked item's action,
@@ -501,7 +713,8 @@ function updateScope(doc: Doc, bundle: LibraryBundle, source: LibrarySource, res
   const needed = new Set<string>();
   [...taking.map(i => ({ kind: i.kind, id: i.sourceId })), ...newDeps]
     .forEach(ref => referencesOf(ref.kind, find(lists, ref.kind, ref.id)).assets.forEach(id => needed.add(id)));
-  return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort() } };
+  const customCode = customCodeOf(bundle, [...taking.map(i => ({ kind: i.kind, id: i.sourceId })), ...newDeps]);
+  return { lists, items, taking, newDeps, preview: { items, unresolved, assets: [...needed].sort(), customCode } };
 }
 
 /** Plan moving every item linked to `source.libraryId` to `bundle`, a newer version. */
@@ -526,12 +739,18 @@ export function planLibraryUpdate(
   const allRenames: Renames = {};
   for (const link of nextLinks.filter(l => l.libraryId === source.libraryId)) (allRenames[link.kind] ||= new Map()).set(link.sourceId, link.localId);
 
+  const updatedComponents: { localId: string; definition: ComponentDef }[] = [];
   for (const item of taking) {
-    const copy = rewrite(item.kind, clone(find(lists, item.kind, item.sourceId)!), allRenames, assetMap) as { id: string; node?: Node };
+    const clean = cleanItem(item.kind, clone(find(lists, item.kind, item.sourceId)!), bundle.components);
+    const copy = rewrite(item.kind, clean, allRenames, assetMap) as { id: string; node?: Node };
     copy.id = item.localId;
     if (copy.node) reidTree(copy.node, newId);
     replaceItem(next, item.kind, item.localId, copy);
+    if (item.kind === 'component') updatedComponents.push({
+      localId: item.localId, definition: copy as unknown as ComponentDef,
+    });
   }
+  updatedComponents.forEach(({ localId, definition }) => pruneComponentPlacements(next, localId, definition));
   const touched = new Set(taking.map(i => key(i.kind, i.sourceId)));
   const kept = new Set(items.filter(i => i.action === 'conflict' && resolutions[key(i.kind, i.sourceId)] === 'mine').map(i => key(i.kind, i.sourceId)));
   const unlinked = new Set(items.filter(i => i.action === 'unlink').map(i => key(i.kind, i.sourceId)));
@@ -544,5 +763,5 @@ export function planLibraryUpdate(
     if (kept.has(k)) return { ...l, version: source.version, sourceHash: bundle.hashes[k] };
     return { ...l, version: Math.max(l.version, source.version), sourceHash: bundle.hashes[k] ?? l.sourceHash };
   });
-  return { items, unresolved, doc: next, assets: needed };
+  return { items, unresolved, doc: next, assets: needed, customCode: preview.customCode };
 }

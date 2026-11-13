@@ -1,0 +1,9 @@
+{
+  "scope": "Rotating signed asset download tokens removed from owned JSON evidence. Original boolean restoration checks ran before redaction. Node IDs and authored markup are retained.",
+  "files": [
+    {
+      "file": "qa-evidence/responsive-typography-2026-10-22/post-deploy/staging-restored.json",
+      "signedAssetTokensRedacted": 12
+    }
+  ]
+}

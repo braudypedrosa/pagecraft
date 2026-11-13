@@ -2,7 +2,9 @@ import { beforeEach, test } from 'vitest';
 import a from 'node:assert/strict';
 import * as C from '../app/src/core/index';
 import {
-  LibraryError, bundleItemCount, extractLibraryBundle, itemHash, planLibraryImport, planLibraryUpdate, remapBundleAssets, sha256,
+  LibraryError, bundleItemCount, extractLibraryBundle, importCustomCode, itemHash, planLibraryImport, planLibraryUpdate,
+  previewLibraryImportReadability,
+  previewLibraryUpdate, remapBundleAssets, sha256,
   type LibraryBundle,
 } from '../app/src/core/libraries';
 import type { ComponentDef, Doc, Node } from '../app/src/core/types';
@@ -52,6 +54,7 @@ function authorSite() {
 }
 const bundleOf = (doc = authorSite()) => extractLibraryBundle(doc, [{ kind: 'component', id: 'card' }], C.SCHEMA);
 const assets = { a0123456789ab: 'a9999999999ff' };
+const colorTools = { parse: C.parseColor, contrast: C.contrast };
 
 test('sha256 matches the published test vectors', () => {
   a.equal(sha256(''), 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
@@ -104,6 +107,52 @@ test('import makes locally owned copies with fresh node ids, records links and r
   a.deepEqual(site.meta.libraryLinks, undefined, 'the input document is never mutated');
 });
 
+test('native tab panels keep their associations and content hashes through library import and update', () => {
+  const author = authorSite();
+  const tabs = C.N('tabs', { items: [
+    { label: 'Workshop one', panel: 'First workshop content' },
+    { label: 'Workshop two', panel: 'Second workshop content' },
+  ] });
+  C.enableTabPanels(tabs);
+  const card = author.meta.components!.find(def => def.id === 'card')!;
+  card.node.children.push(tabs);
+  author.meta.blocks.push({ id: 'topics', name: 'Workshop topics', node: C.clone(tabs) });
+  const chosen = [{ kind: 'component', id: 'card' }, { kind: 'block', id: 'topics' }] as const;
+  const v1 = extractLibraryBundle(author, [...chosen], C.SCHEMA);
+  const before = clone(author);
+  const imported = planLibraryImport(blankSite('Workshop receiver'), v1, source(1), [...chosen], { assets, newId }).doc;
+  a.deepEqual(author, before, 'import planning never mutates the source');
+  const importedCard = imported.meta.components!.find(def => def.id === 'card')!;
+  const importedTabs = importedCard.node.children.at(-1)!;
+  const importedBlock = imported.meta.blocks.find(block => block.id === 'topics')!;
+  for (const placed of [importedTabs, importedBlock.node]) {
+    a.equal(C.tabPanelProblem(placed), null);
+    a.deepEqual((placed.props.items as { panelId: string }[]).map(row => row.panelId), placed.children.map(panel => panel.id));
+    a.ok(placed.children.every(panel => panel.id.startsWith('fresh-')));
+  }
+  a.equal(itemHash('block', importedBlock), v1.hashes['block:topics'], 'local identities do not change a tab bundle content hash');
+  const renumbered = C.clone(tabs); C.reid(renumbered);
+  a.equal(itemHash('block', { id: 'topics', name: 'Workshop topics', node: renumbered }), v1.hashes['block:topics']);
+  const swapped = C.clone(importedBlock);
+  const rows = swapped.node.props.items as { panelId: string }[];
+  [rows[0].panelId, rows[1].panelId] = [rows[1].panelId, rows[0].panelId];
+  a.notEqual(itemHash('block', swapped), v1.hashes['block:topics'], 'changing which content a label opens remains an authored difference');
+
+  card.node.css.d!['padding-top'] = '28px';
+  author.meta.blocks.find(block => block.id === 'topics')!.name = 'Workshop topics updated';
+  const v2 = extractLibraryBundle(author, [...chosen], C.SCHEMA);
+  const beforeUpdate = clone(author);
+  const updated = planLibraryUpdate(imported, v2, source(2), {}, { assets, newId }).doc!;
+  for (const placed of [updated.meta.components!.find(def => def.id === 'card')!.node.children.at(-1)!, updated.meta.blocks.find(block => block.id === 'topics')!.node]) {
+    a.equal(C.tabPanelProblem(placed), null);
+    a.deepEqual((placed.props.items as { panelId: string }[]).map(row => row.panelId), placed.children.map(panel => panel.id));
+    a.equal(placed.children[0].children[0].props.text, 'First workshop content');
+  }
+  a.notDeepEqual(updated.meta.blocks.find(block => block.id === 'topics')!.node.children.map(panel => panel.id), importedBlock.node.children.map(panel => panel.id));
+  a.deepEqual(author, beforeUpdate, 'update planning never mutates the source');
+  a.ok(importedCard.node.children.some(child => child.slot === 'body'), 'existing slot declarations also survive the transfer');
+});
+
 test('an id already used for something else is renamed, and every reference follows it', () => {
   const site = blankSite('Recipient');
   site.meta.components = [{ id: 'badge', name: 'Their own badge', props: [], node: node('x1', 'text') }];
@@ -133,6 +182,100 @@ test('importing again keeps the site copy and its link untouched', () => {
   a.equal(again.items.find(i => i.sourceId === 'card')!.how, 'linked');
   a.deepEqual(again.doc.meta.libraryLinks, before);
   a.equal(again.doc.meta.components!.filter(c => c.name.startsWith('Card')).length, 1);
+});
+
+function buttonBundle(foreground = 'var(--c-paper)', background = 'var(--c-brand)') {
+  const author = blankSite('Button author');
+  author.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  author.meta.tokens!.colors.push({ id: 'paper', name: 'Paper', value: '#faf9f6' });
+  const action: ComponentDef = { id: 'action', name: 'Action', props: [], node: node('a1', 'button', {
+    props: { text: 'Visit', variant: 'solid', ts: 'btn' } as never,
+    css: { d: { '--pc-solid-fg': foreground, 'background-color': background } } as never,
+  }) };
+  const card: ComponentDef = { id: 'button-card', name: 'Button card', props: [], node: node('bc1', 'box', {
+    children: [node('bc2', 'box', { use: 'action' }), node('bc3', 'box', { use: 'action' })],
+  }) };
+  author.meta.components = [action, card];
+  return extractLibraryBundle(author, [{ kind: 'component', id: 'button-card' }], C.SCHEMA);
+}
+
+test('import readability preview uses the receiving foundation and counts nested definitions once', () => {
+  const site = blankSite('Bright recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const preview = previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools);
+  a.equal(preview?.items, 1, 'the nested Action definition is counted once even when used twice');
+  a.equal(preview?.minRatio.toFixed(2), '1.25');
+
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  a.equal(previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+});
+
+test('readability preview follows portable colour collision and linked ownership', () => {
+  const site = blankSite('Bright recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  site.meta.tokens!.colors.push({ id: 'paper', name: 'Local paper', value: '#111311' });
+  const collision = previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools);
+  a.equal(collision?.minRatio.toFixed(2), '1.25', 'a renamed incoming Paper keeps its authored value');
+
+  site.meta.libraryLinks = [{ libraryId: 'lib-1', version: 1, kind: 'color', sourceId: 'paper', localId: 'paper', sourceHash: 'old', localHash: 'old' }];
+  a.equal(previewLibraryImportReadability(site, buttonBundle(), source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null,
+  'an already-linked portable colour keeps the readable local value');
+});
+
+test('readability preview skips unresolved alpha pairs instead of reporting a false pass', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  for (const foreground of ['#fff8', '#ffffff80', 'rgb(255 255 255 / .8)']) {
+    a.equal(previewLibraryImportReadability(site, buttonBundle(foreground), source(1),
+      [{ kind: 'component', id: 'button-card' }], colorTools), null, foreground);
+  }
+  const missing = buttonBundle();
+  missing.components.find(component => component.id === 'action')!.node.css.d['--pc-solid-fg'] = 'var(--c-missing)';
+  a.equal(previewLibraryImportReadability(site, missing, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+});
+
+test('readability preview skips cascade and large-text cases it does not fully evaluate without mutating input', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const cases = [buttonBundle(), buttonBundle(), buttonBundle()];
+  const buttons = cases.map(bundle => bundle.components.find(component => component.id === 'action')!.node);
+  buttons[0].cls = ['authored-class'];
+  buttons[1].css.t = { '--pc-solid-fg': '#111311' } as never;
+  buttons[2].css.d['font-size'] = '26px';
+  for (const bundle of cases) {
+    const beforeSite = JSON.stringify(site), beforeBundle = JSON.stringify(bundle);
+    a.equal(previewLibraryImportReadability(site, bundle, source(1),
+      [{ kind: 'component', id: 'button-card' }], colorTools), null);
+    a.equal(JSON.stringify(site), beforeSite);
+    a.equal(JSON.stringify(bundle), beforeBundle);
+  }
+});
+
+test('readability preview resolves small and large metrics through the planned text style', () => {
+  const site = blankSite('Recipient');
+  site.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const small = buttonBundle(), large = buttonBundle(), missing = buttonBundle();
+  missing.components.find(component => component.id === 'action')!.node.props.ts = 'missing-style';
+  const largeSite = clone(site);
+  largeSite.meta.tokens!.text.find(style => style.id === 'btn')!.css.d = { 'font-size': '19px', 'font-weight': '700' } as never;
+
+  a.equal(previewLibraryImportReadability(site, small, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools)?.minRatio.toFixed(2), '1.25');
+  a.equal(previewLibraryImportReadability(largeSite, large, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+  a.equal(previewLibraryImportReadability(site, missing, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
+
+  const responsive = buttonBundle();
+  const responsiveSite = clone(site);
+  responsiveSite.meta.tokens!.text.find(style => style.id === 'btn')!.css.m = { 'font-size': '19px', 'font-weight': '700' } as never;
+  a.equal(previewLibraryImportReadability(responsiveSite, responsive, source(1),
+    [{ kind: 'component', id: 'button-card' }], colorTools), null);
 });
 
 /* ---- updates ---- */
@@ -187,6 +330,31 @@ test('an item changed on both sides is a conflict that must be resolved', () => 
   a.equal(theirs.meta.components!.find(c => c.id === 'card')!.name, 'Card (theirs)');
 });
 
+test('a locally authored anchor makes a library update conflict instead of being erased', () => {
+  const site = imported();
+  const card = site.meta.components!.find(c => c.id === 'card')!;
+  const link = site.meta.libraryLinks!.find(l => l.sourceId === 'card')!;
+  const without = itemHash('component', card);
+  card.node.adv = { ...(card.node.adv || {}), htmlId: '' };
+  a.equal(itemHash('component', card), without,
+    'blank ids keep the legacy imported hash, so unchanged existing links do not conflict');
+  card.node.adv.htmlId = 'local-card';
+  a.notEqual(itemHash('component', card), link.localHash, 'a nonblank authored id is content');
+
+  const next = version2(doc => { doc.meta.components!.find(c => c.id === 'card')!.name = 'Card v2'; });
+  const waiting = planLibraryUpdate(site, next, source(2), {}, { assets, newId });
+  const change = waiting.items.find(i => i.sourceId === 'card')!;
+  a.equal(change.action, 'conflict');
+  a.deepEqual(waiting.unresolved, ['component:card']);
+  a.equal(waiting.doc, null, 'the update fails closed until the owner chooses');
+
+  const mine = planLibraryUpdate(site, next, source(2), { 'component:card': 'mine' }, { assets, newId }).doc!;
+  a.equal(mine.meta.components!.find(c => c.id === 'card')!.node.adv!.htmlId, 'local-card');
+  const theirs = planLibraryUpdate(site, next, source(2), { 'component:card': 'theirs' }, { assets, newId }).doc!;
+  a.equal(theirs.meta.components!.find(c => c.id === 'card')!.node.adv!.htmlId || '', '',
+    'discarding the local anchor requires the explicit library-version choice');
+});
+
 test('removed items are unlinked, never deleted', () => {
   const site = imported();
   site.meta.tokens!.classes = site.meta.tokens!.classes.filter(c => c.id !== 'shadow'); // deleted here
@@ -213,6 +381,82 @@ test('an update warns before it drops a variant, a property or slot content', ()
   const card = planLibraryUpdate(imported(), next, source(2), {}, { assets, newId }).items.find(i => i.sourceId === 'card')!;
   a.equal(card.warnings.length, 3);
   a.match(card.warnings.join(' '), /variant.*property.*slot/s);
+});
+
+test('taking a component update prunes removed placement values and stale variants everywhere', () => {
+  const v1 = authorSite();
+  const card = v1.meta.components!.find(c => c.id === 'card')!;
+  card.props.push(
+    { k: 'image-a', label: 'Image A', t: 'img', def: 'asset:a0123456789ab' },
+    { k: 'image-b', label: 'Image B', t: 'img', def: 'asset:a0123456789ab' },
+    { k: 'link-a', label: 'Link A', t: 'link', def: '/a' },
+    { k: 'link-b', label: 'Link B', t: 'link', def: '/b' },
+  );
+  card.variants = [{ id: 'combo', name: 'Combo', values: {
+    'image-a': 'asset:a0123456789ab', 'image-b': 'asset:a0123456789ab',
+    'link-a': '/variant-a', '@link-target:link-a': '_blank',
+    'link-b': '/variant-b', '@link-target:link-b': '_blank',
+  } }, { id: 'steady', name: 'Steady', values: { 'image-a': 'asset:a0123456789ab' } }];
+  const first = planLibraryImport(blankSite(), bundleOf(v1), source(1), [{ kind: 'component', id: 'card' }], { assets, newId }).doc;
+  const placement = (id: string) => node(id, 'box', {
+    use: 'card', variant: 'combo',
+    vals: {
+      'image-a': 'asset:a9999999999ff', 'image-b': '',
+      'link-a': '/local-a', '@link-target:link-a': '_blank',
+      'link-b': '/local-b', '@link-target:link-b': '',
+    },
+    bind: {
+      'val:link-a': { src: 'field', path: 'destination' },
+      'val:link-b': { src: 'field', path: 'old-destination' },
+    },
+    children: [node(id + '-slot', 'text', { slot: 'body' })],
+  });
+  first.pages[0].tree.push(placement('page-placement'));
+  first.header.push(placement('header-placement'));
+  first.footer.push(placement('footer-placement'));
+  first.meta.components!.find(c => c.id === 'badge')!.node.children = [placement('nested-placement')];
+  first.meta.blocks.push({ id: 'consumer-block', name: 'Consumer block', node: placement('block-placement') });
+  first.pages[0].tree.push(node('removed-only', 'box', {
+    use: 'card', variant: 'steady', vals: {
+      'image-b': '', 'link-b': '/old', '@link-target:link-b': '_blank',
+    }, bind: { 'val:link-b': { src: 'field', path: 'old-destination' } },
+  }));
+
+  const v2 = clone(v1);
+  const nextCard = v2.meta.components!.find(c => c.id === 'card')!;
+  nextCard.props = nextCard.props.filter(p => !['image-b', 'link-b'].includes(p.k));
+  nextCard.props.find(p => p.k === 'link-a')!.t = 'text';
+  nextCard.variants = nextCard.variants!.filter(v => v.id === 'steady');
+  nextCard.name = 'Card v2';
+  const unchanged = planLibraryUpdate(first, bundleOf(v1), source(2), {}, { assets, newId }).doc!;
+  a.deepEqual(unchanged.pages[0].tree.at(-2)!.vals, first.pages[0].tree.at(-2)!.vals);
+  a.equal(unchanged.pages[0].tree.at(-2)!.variant, 'combo');
+  const locallyEdited = clone(first);
+  locallyEdited.meta.components!.find(c => c.id === 'card')!.name = 'Keep my card';
+  const mine = planLibraryUpdate(locallyEdited, bundleOf(v2), source(2), { 'component:card': 'mine' }, { assets, newId }).doc!;
+  a.deepEqual(mine.pages[0].tree.at(-2)!.vals, first.pages[0].tree.at(-2)!.vals);
+  a.equal(mine.pages[0].tree.at(-2)!.variant, 'combo');
+  const input = clone(first);
+  const plan = planLibraryUpdate(first, bundleOf(v2), source(2), {}, { assets, newId });
+  a.deepEqual(first, input, 'planning never mutates the input document');
+
+  const placements = [
+    plan.doc!.pages[0].tree.at(-2)!, plan.doc!.header.at(-1)!, plan.doc!.footer.at(-1)!,
+    plan.doc!.meta.components!.find(c => c.id === 'badge')!.node.children[0],
+    plan.doc!.meta.blocks.find(b => b.id === 'consumer-block')!.node,
+  ];
+  for (const placed of placements) {
+    a.deepEqual(placed.vals, {
+      'image-a': 'asset:a9999999999ff', 'link-a': '/local-a',
+    });
+    a.equal(placed.variant, undefined);
+    a.deepEqual(placed.bind, { 'val:link-a': { src: 'field', path: 'destination' } });
+    a.equal(placed.children[0].slot, 'body');
+  }
+  const removedOnly = plan.doc!.pages[0].tree.at(-1)!;
+  a.equal(removedOnly.vals, undefined);
+  a.equal(removedOnly.bind, undefined);
+  a.equal(removedOnly.variant, 'steady', 'a variant still declared upstream remains selected');
 });
 
 test('dependencies new in the update are brought in as an import would', () => {
@@ -254,5 +498,83 @@ test('publishing swaps site image ids for content hashes, and equal content keep
   a.equal(again.hashes['component:card'], published.hashes['component:card']);
   a.equal(bundleItemCount(published), 7, "card, badge, shadow, accent, brand, ink, title");
   a.throws(() => remapBundleAssets(bundleOf(), {}), /No library copy for images: a0123456789ab/);
+});
+
+/* A library can be published by anyone and shared with anyone, so its bundle is untrusted: what
+   becomes markup is cleaned on the way in, and custom code is reported rather than slipped in. */
+const XSS = '<img src=x onerror=alert(1)>';
+const BAD_CLASS = 'x" onmouseover="alert(1)';
+const BAD_STYLE = 'y"><img src=x onerror=alert(1)>';
+function hostileBundle(withEmbed = true) {
+  const doc = blankSite('Hostile');
+  doc.meta.tokens!.classes.push({ id: BAD_CLASS, name: 'Evil class', css: { d: { color: 'red' } } as never });
+  doc.meta.tokens!.text.push({ id: BAD_STYLE, name: 'Evil style', css: { d: {}, t: {}, m: {} } as never });
+  const promo: ComponentDef = {
+    id: 'promo', name: XSS,
+    props: [{ k: 'body', label: 'Body', t: 'rich', def: `<p>Hi</p>${XSS}` }, { k: 'go', label: 'Go', t: 'link', def: 'javascript:alert(1)' }],
+    variants: [{ id: 'loud', name: 'Loud', values: {
+      body: `<p>Loud</p>${XSS}`, go: 'javascript:alert(2)',
+      '@link-target:go': '" onmouseover="alert(3)', '@link-target:missing': '_blank',
+    } }],
+    node: node('r', 'box', {
+      cls: [BAD_CLASS],
+      props: { link: 'javascript:alert(1)', target: '" onmouseover="alert(1)' } as never,
+      children: [
+        node('t', 'text', { props: { html: `<p>Words</p>${XSS}`, ts: BAD_STYLE } as never }),
+        node('c', 'crumbs', { props: { mode: 'manual', items: [{ label: 'Home', href: 'javascript:alert(1)', target: '"x' }, { label: 'Here', href: '' }] } as never }),
+        ...(withEmbed ? [node('e', 'embed', { props: { html: '<script>steal()</script>' } as never })] : []),
+      ],
+    }),
+  };
+  doc.meta.components = [promo];
+  return extractLibraryBundle(doc, [{ kind: 'component', id: 'promo' }], C.SCHEMA);
+}
+
+test('an import cleans what becomes markup: rich text, links, targets and unsafe ids', () => {
+  const bundle = hostileBundle();
+  const plan = planLibraryImport(blankSite('Owner'), bundle, source(1), [{ kind: 'component', id: 'promo' }], { newId });
+  const doc = plan.doc;
+  const cls = doc.meta.tokens!.classes.find(c => c.name === 'Evil class')!;
+  const ts = doc.meta.tokens!.text.find(t => t.name === 'Evil style')!;
+  a.match(cls.id, /^[a-z0-9][a-z0-9_-]*$/);
+  a.match(ts.id, /^[a-z0-9][a-z0-9_-]*$/);
+  a.ok(plan.items.some(i => i.kind === 'class' && i.sourceId === BAD_CLASS && i.how === 'renamed'));
+  const promo = doc.meta.components!.find(c => c.id === 'promo')!;
+  a.deepEqual(promo.node.cls, [cls.id], 'references follow the new id');
+  const [text, crumbs, embed] = promo.node.children;
+  a.equal((text.props as { ts: string }).ts, ts.id);
+  a.equal((text.props as { html: string }).html, '<p>Words</p>');
+  a.equal(promo.props[0].def, '<p>Hi</p>');
+  a.equal(promo.props[1].def, '');
+  a.deepEqual(promo.variants![0].values, { body: '<p>Loud</p>', go: '', '@link-target:go': '' });
+  a.deepEqual(promo.node.props, { link: '', target: '' });
+  a.deepEqual((crumbs.props as { items: unknown[] }).items[0], { label: 'Home', href: '', target: '' });
+  a.equal(promo.name, XSS, 'a name stays plain text; everything that shows one escapes it');
+  a.equal((embed.props as { html: string }).html, '<script>steal()</script>', 'an Embed is code by design: reported, not rewritten');
+
+  // and placed on a page, nothing of it can run in the canvas
+  C.restore(doc);
+  C.state.pages[0].tree = [node('p1', 'box', { use: 'promo' })];
+  const html = C.renderNode(C.state.pages[0].tree[0], { edit: true });
+  a.doesNotMatch(html, /\son\w+=|<img|javascript:|<script/);
+  a.equal((html.match(/"/g) || []).length % 2, 0, 'no attribute was broken open');
+});
+
+test('an import and an update report the Embeds they would bring, before anything is copied', () => {
+  const bundle = hostileBundle();
+  const chosen = [{ kind: 'component' as const, id: 'promo' }];
+  const expected = [{ kind: 'component', id: 'promo', name: XSS, embeds: 1 }];
+  a.deepEqual(importCustomCode(bundle, chosen), expected);
+  a.deepEqual(planLibraryImport(blankSite('Owner'), bundle, source(1), chosen, { newId }).customCode, expected);
+  a.deepEqual(importCustomCode(hostileBundle(false), chosen), []);
+
+  // Version 1 had no embed; version 2 adds one to an item this site already took.
+  const site = planLibraryImport(blankSite('Owner'), hostileBundle(false), source(1), chosen, { newId }).doc;
+  a.deepEqual(previewLibraryUpdate(site, bundle, source(2)).customCode, expected);
+  const plan = planLibraryUpdate(site, bundle, source(2), {}, { newId });
+  a.deepEqual(plan.customCode, expected);
+  // Taken from upstream, the update is cleaned exactly as an import is.
+  const promo = plan.doc!.meta.components!.find(c => c.id === 'promo')!;
+  a.doesNotMatch(JSON.stringify([promo.props, promo.variants, promo.node.props, promo.node.children[0]]), /<img|javascript:/);
 });
 

@@ -1,0 +1,50 @@
+{
+  "commit": "c20caf3096ca7e11cec39edc17fee000994c0582",
+  "breakpoints": [
+    {
+      "background": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "device": "Desktop",
+      "focusVisible": true,
+      "height": 46,
+      "imageLoaded": true,
+      "outline": "rgb(255, 255, 255) solid 2px",
+      "width": 46
+    },
+    {
+      "background": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "device": "Tablet",
+      "focusVisible": true,
+      "height": 46,
+      "imageLoaded": true,
+      "outline": "rgb(255, 255, 255) solid 2px",
+      "width": 46
+    },
+    {
+      "background": "rgba(10, 12, 10, 0.72)",
+      "color": "rgb(255, 255, 255)",
+      "device": "Mobile",
+      "focusVisible": true,
+      "height": 46,
+      "imageLoaded": true,
+      "outline": "rgb(255, 255, 255) solid 2px",
+      "width": 46
+    }
+  ],
+  "next": {
+    "alt": "QA reading room",
+    "background": "rgba(10, 12, 10, 0.88)",
+    "hover": true,
+    "loaded": true
+  },
+  "escapeReturnsFocus": true,
+  "restore": {
+    "nodes": 20,
+    "baseNodes": 20,
+    "exactCanonicalAfterReload": true,
+    "comparison": "innerHTML per authored data-id, signed asset tokens scrubbed and selection-only data-sel removed"
+  },
+  "persistedReload": "original restored and verified",
+  "wordpress": "pending"
+}

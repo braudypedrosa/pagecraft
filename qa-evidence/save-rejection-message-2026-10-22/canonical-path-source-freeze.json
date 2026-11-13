@@ -1,0 +1,11 @@
+{
+  "base": "c20caf3096ca7e11cec39edc17fee000994c0582",
+  "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/save-rejection-c20caf3",
+  "sourceTestReviewedManifest": {
+    "builder.html": "f9d9b32e66d288d486aea3a64926a08cd1f6c2188779ecd1edf7205b22a549a1",
+    "tests/editor-save-rejection.test.mjs": "a5183cd989715e4a0a59b949defdf320eb39832f0b7fa2e51935aeac44f41cf0",
+    "public/internal-ui-baselines/manifest.json": "ec9cb2bc886f67a4f53a4a45fc70ff0673514574966f980a695ccc8e71bc036b"
+  },
+  "generatedDependencyComments": "exactly match HEAD in both HTML outputs",
+  "trackedNonUIArtifacts": "byte-identical to HEAD"
+}

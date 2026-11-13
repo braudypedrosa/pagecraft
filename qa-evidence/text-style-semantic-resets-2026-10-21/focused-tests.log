@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/text-rich-reset-audit
+
+
+ Test Files  4 passed (4)
+      Tests  23 passed (23)
+   Start at  00:26:13
+   Duration  1.24s (transform 1.11s, setup 0ms, import 1.37s, tests 532ms, environment 2.02s)

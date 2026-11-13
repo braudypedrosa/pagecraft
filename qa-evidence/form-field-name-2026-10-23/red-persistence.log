@@ -1,0 +1,33 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/form-field-name-2d79f4b
+
+ ❯ tests/form-field-name-uniqueness.test.tsx (5 tests | 1 failed) 216ms
+   × a duplicate typed long enough to autosave is persisted again after blur repair 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/form-field-name-uniqueness.test.tsx > a duplicate typed long enough to autosave is persisted again after blur repair
+AssertionError: expected [ 'repaint' ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ tests/form-field-name-uniqueness.test.tsx:182:56
+    180|
+    181|   act(() => input.blur());
+    182|   expect(r.names().filter(name => name === 'repaint')).toHaveLength(re…
+       |                                                        ^
+    183|   expect(savedFields(persisted!, form.id)[2].name).toBe('email-3');
+    184|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  14:25:10
+   Duration  1.78s (transform 526ms, setup 0ms, import 623ms, tests 216ms, environment 737ms)
+

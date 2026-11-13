@@ -1,0 +1,42 @@
+{
+  "revision": "f2bcf2ef6233fd03df3a93c4d5ab1ea022cc58f1",
+  "reviewedRecord": {
+    "manifest": "public/internal-ui-baselines/manifest.json",
+    "sha256": "8698745cc5434874a498113bdfbb77554524f63625aeb62c4506afbb772010f7",
+    "changedBaselineFiles": [
+      "public/internal-ui-baselines/manifest.json"
+    ],
+    "unchangedBaselinePngs": 24
+  },
+  "captureComparison": {
+    "images": 24,
+    "passed": 24,
+    "changedPixels": 0
+  },
+  "sourceIntegrity": {
+    "tracked": 28,
+    "changedSinceCapture": []
+  },
+  "behaviorEvidence": {
+    "adaptedPassed": 30,
+    "retainedAttempts": "qa-evidence/gallery-f2-2026-10-20/behavior-native-attempts.json",
+    "sha256": "a85f3f89857b460093acba2edd05f7a0df1f5807a5ba712eacc4d5615f81118a"
+  },
+  "checks": {
+    "baseline": {
+      "exitCode": 0
+    },
+    "fullTest": {
+      "command": "npm test -- --maxWorkers=2",
+      "exitCode": 0,
+      "filesPassed": 218,
+      "filesSkipped": 2,
+      "testsPassed": 2426,
+      "testsSkipped": 5
+    },
+    "demo": {
+      "command": "node --experimental-strip-types tools/demo-site.mjs",
+      "exitCode": 0
+    }
+  }
+}

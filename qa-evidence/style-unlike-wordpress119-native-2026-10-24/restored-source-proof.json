@@ -1,0 +1,85 @@
+{
+  "status": "PENDING root review; intermediate restored capture, final public-read capture not yet audited",
+  "checks": {
+    "RestoredDocumentByteExactBaseline110": true,
+    "RestoredAllQAMetaExactExceptVersion112": true,
+    "RestoredOriginalEightNodesComponentsAndCompiled98": true,
+    "Old546RevisionRowsAndAllMetadataExact": true,
+    "ExactlyFourNewParent616RevisionRowsAnd116Meta": true,
+    "ExactBaseline110AndSaved111MetadataPairs": true,
+    "ExactRevisionContentSourceMatrix": true,
+    "Only833And835Recoverable836834ExplicitlyExcluded": true,
+    "AllOtherOldPostsMetadataExact": true,
+    "QAOnlyDateFieldsChangedContentExact": true,
+    "AllOtherTablesExceptPostsMetaOptionsExact": true,
+    "EveryGlobalPagecraftOptionRawRowExactIncludingQAClass": true,
+    "Old363UploadsExactOnlySavedOneCSSRetained": true,
+    "builderManifestExactPre": true,
+    "themeManifestExactPre": true,
+    "importerManifestExactPre": true,
+    "packagesManifestExactPre": true
+  },
+  "failures": [],
+  "SQLSHA256": {
+    "pre": "4b150cdfe26a6dbdbbbbc504262785e8e20dcbd4820c72a3a435c6a60ffd8395",
+    "saved-1": "f2cdf4b5d8a0fee892ba502df86841e2a1af2166b0c85c68a906c67eda051f06",
+    "restored": "1d9b65c3221f0a4a0b2122f7843c5c6248a770315ab181d34e67da20ef37a601"
+  },
+  "restoredVersion": 112,
+  "restoredRevisions": 550,
+  "restoredUploads": 364,
+  "newRevisionIDs": [
+    833,
+    834,
+    835,
+    836
+  ],
+  "newRevisionMetadataRows": 116,
+  "metadataKeys": [
+    "_pagecraft_absent_from_latest_import",
+    "_pagecraft_compiled_at",
+    "_pagecraft_compiled_css",
+    "_pagecraft_compiled_hash",
+    "_pagecraft_compiler_document_sha256",
+    "_pagecraft_compiler_editor_version",
+    "_pagecraft_compiler_render_context_sha256",
+    "_pagecraft_compiler_renderer_revision",
+    "_pagecraft_conversion_revision",
+    "_pagecraft_document",
+    "_pagecraft_document_version",
+    "_pagecraft_global_css_hash",
+    "_pagecraft_global_css_path",
+    "_pagecraft_import_job_id",
+    "_pagecraft_imported_at",
+    "_pagecraft_media_attachments",
+    "_pagecraft_package_hash",
+    "_pagecraft_page_css_hash",
+    "_pagecraft_page_css_path",
+    "_pagecraft_provenance",
+    "_pagecraft_renderer_version",
+    "_pagecraft_runtime_hash",
+    "_pagecraft_runtime_path",
+    "_pagecraft_schema_version",
+    "_pagecraft_source_origin",
+    "_pagecraft_source_page_id",
+    "_pagecraft_source_project_id",
+    "_pagecraft_source_version",
+    "_pagecraft_use_page_document"
+  ],
+  "recoverableRevisionIDs": [
+    833,
+    835
+  ],
+  "excludedTransitionRevisionIDs": [
+    834,
+    836
+  ],
+  "QA616ChangedPostFieldIndices": [
+    2,
+    14,
+    15
+  ],
+  "globalDesignExact": true,
+  "noWPCalls": true,
+  "fullQAComplete": false
+}

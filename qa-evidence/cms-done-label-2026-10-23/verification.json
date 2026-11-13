@@ -1,0 +1,20 @@
+{
+  "base": "0a873d24c22323133e236ef0d4308ce7ea6b04a1",
+  "focused": { "files": 2, "passed": 14, "failed": 0 },
+  "build1": { "builderExit": 0, "editorExit": 0, "filesPresent": 10 },
+  "build2": { "builderExit": 0, "editorExit": 0, "filesPresent": 10 },
+  "generatedDeterministic": true,
+  "postSuiteGeneratedMatches": true,
+  "fullSuite": {
+    "exit": 1,
+    "testFilesPassed": 264,
+    "testFilesFailed": 1,
+    "testFilesSkipped": 2,
+    "testsPassed": 2739,
+    "testsFailed": 1,
+    "testsSkipped": 5,
+    "failure": "UI baseline source review required for app/src/ui/CmsWorkspace.tsx"
+  },
+  "baselineUpdated": false,
+  "browserVerified": false
+}

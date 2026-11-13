@@ -1,0 +1,28 @@
+{
+  "base": "d443c83e69a4d0c3a837eaeb502fb87527e82300",
+  "scope": "Responsive text-transform None for Heading, Button, Nav, and project Text Styles",
+  "sourceFiles": {
+    "app/src/core/index.ts": "10936a562dc31cd28c1ed230a9ef236bdd9ec0f07214fdfd77d06927b034fd46",
+    "app/src/ui/TextStyles.tsx": "56eedc68c159f72bbaed282562839990afb7ae7a7e61e593595512f3fb1012b6",
+    "tests/responsive-transform-none.test.tsx": "6450f394211a2fb4b17e28cac3c54392fe7bd76d9ca058b5e3a5cd2c1ee84901"
+  },
+  "checks": {
+    "focused": "6 files passed; 696 tests passed",
+    "typecheck": "passed",
+    "fullSuite": "221 files passed, 2 skipped; 2455 tests passed, 5 skipped",
+    "build": "passed",
+    "editorBuildTwice": "passed; 11 generated artifact SHA-256 hashes identical",
+    "postSuiteGeneratedIntegrity": "passed; identical to second deterministic build",
+    "demo": "passed; 1 component, 6 instances, 4 collection items, 0 findings",
+    "uiBaselines": "passed; 24 images, 28 source files",
+    "npmAudit": "0 vulnerabilities",
+    "npmAuditProduction": "0 vulnerabilities",
+    "diffCheck": "passed",
+    "qaHarness": "http://localhost:4948/ returned HTTP 200; fictional in-memory data only"
+  },
+  "limitations": [
+    "Root owns final native browser verification and Main integration.",
+    "No signed golden or gallery baseline was changed.",
+    "Adjacent empty-reset and fullscreen-nav-size findings are documented without source changes."
+  ]
+}

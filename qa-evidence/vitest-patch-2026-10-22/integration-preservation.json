@@ -1,0 +1,61 @@
+{
+  "base": "6f915c64ddc94b7560be957c6fa63bfab02bdd48",
+  "protectedWorkingBytes": {
+    "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+    "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+    "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+    "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+  },
+  "all11Preserved": true,
+  "generatedOutputsStaged": false,
+  "method": "Only development dependency files and reviewed QA evidence. No Main build or dependency install.",
+  "normalizedLogs": [
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/npm-test-workers2.log",
+      "original": "aec8864611a664722f0e4056498286349d9dab41210e1d8e79f2ccf25886b69a",
+      "normalized": "8c2c39de5a2e200edfcd92b600aa95ef06c08f587d17f85d469814fcdabfcee6"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/vite-production.log",
+      "original": "7b59c31bb7ecd6a98fd777c99cd37c9638648a585cf995452f23fdbf668c2465",
+      "normalized": "69e275158b05ca97626e7e472292365e25a835e3576b87ac2c2be45f185f593b"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/npm-ls-final.log",
+      "original": "b52c6f7e75586ee49d212d047997c6740fba937e09f15fe3f6162e0984561af1",
+      "normalized": "810511698dad755d61873ab87ee5502f753e584947a4dd550af7c247d844f3a3"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/npm-test-final.log",
+      "original": "d4ca3afb6f3f2c1707aead2cbfbe01e111d847522e8e307669a816b65641af04",
+      "normalized": "eff84f84f7c1f77303e8da49e05cadacbfc052ba59d8fa738539fc05604dfd3f"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/combined-list-preview/npm-test.log",
+      "original": "1cfba07e787cf84c868666b3d15a726aca026b5cc548d4434f3247cd1d9e3d91",
+      "normalized": "2e344eb3ffb0cf6d3dd6ddda9aa7c0fcaefa489b311b0d0675aea1322eac3cd7"
+    },
+    {
+      "path": "qa-evidence/vitest-patch-2026-10-22/combined-list-preview/diff-check.log",
+      "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/list-nowrap-2026-10-22/final-eight/gallery-final-state.txt",
+      "original": "d3848c93a0fca6432d5c12dd929cd65ccf15d8d2b10614a94e2687596f380110",
+      "normalized": "0a1590073e5c176efbbd33986fc6d7912144025ad29f0b415e36b2f27b585df6"
+    }
+  ]
+}

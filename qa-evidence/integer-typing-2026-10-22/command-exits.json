@@ -1,0 +1,74 @@
+{
+  "build-initial": {
+    "exitCode": 0
+  },
+  "editor-initial": {
+    "exitCode": 0
+  },
+  "full-pre-native": {
+    "exitCode": 1
+  },
+  "build-final-1": {
+    "exitCode": 0
+  },
+  "editor-final-1": {
+    "exitCode": 0
+  },
+  "build-final-2": {
+    "exitCode": 0
+  },
+  "editor-final-2": {
+    "exitCode": 0
+  },
+  "audit": {
+    "exitCode": 0
+  },
+  "demo": {
+    "exitCode": 0
+  },
+  "diff-check": {
+    "exitCode": 0
+  },
+  "typecheck-final": {
+    "exitCode": 0
+  },
+  "lifecycle-build": {
+    "exitCode": 0
+  },
+  "lifecycle-editor": {
+    "exitCode": 0
+  },
+  "lifecycle-focused": {
+    "exitCode": 0
+  },
+  "lifecycle-typecheck": {
+    "exitCode": 0
+  },
+  "full-final": {
+    "exitCode": 0
+  },
+  "final-reviewed-build-1": {
+    "exitCode": 0
+  },
+  "final-reviewed-editor-1": {
+    "exitCode": 0
+  },
+  "final-reviewed-build-2": {
+    "exitCode": 0
+  },
+  "final-reviewed-editor-2": {
+    "exitCode": 0
+  },
+  "audit-final": {
+    "exitCode": 0
+  },
+  "typecheck-final-reviewed": {
+    "exitCode": 0
+  },
+  "baseline-final": {
+    "exitCode": 0
+  },
+  "diff-final": {
+    "exitCode": 0
+  }
+}

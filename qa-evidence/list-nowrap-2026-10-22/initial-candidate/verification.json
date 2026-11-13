@@ -1,0 +1,119 @@
+{
+  "baseCommit": "33ed365303df0f7723de9e6c7c236f3865300145",
+  "status": "Root source/golden review accepted; full suite and deterministic builds pass. Fresh4992 native acceptance pending.",
+  "source": [
+    "app/src/core/index.ts"
+  ],
+  "tests": [
+    "tests/list-nowrap-scroll.test.ts"
+  ],
+  "scope": [
+    "Private CSS fallback variables mirror actual responsive/class/state flex-wrap cascade for Lists only.",
+    "Ordinary Grid Lists use low-priority local overflow/min/max and direct-child shrink fallback; authored overflow/flex/basis values retain precedence.",
+    "List defaults reset inherited private variables, avoiding nested-list policy leakage. Slider selectors are excluded.",
+    "Grid Lists with potential nowrap in node/class/definition/instance styling expose a named keyboard-focusable group; no stored-data migration."
+  ],
+  "checks": {
+    "red": {
+      "exitCode": 1,
+      "testsFailed": 6,
+      "testsPassed": 2,
+      "evidence": "logs/red.log"
+    },
+    "focused": {
+      "exitCode": 0,
+      "files": 4,
+      "testsPassed": 670,
+      "evidence": "logs/focused.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck.log"
+    },
+    "diff": "pass",
+    "designDetector": {
+      "exitCode": 2,
+      "findings": 1,
+      "classification": "Pre-existing escaped-image example in a source comment, confirmed at HEAD line5403; no new UI finding.",
+      "evidence": "logs/design-detector.json"
+    },
+    "finalTypecheck": {
+      "exitCode": 0,
+      "evidence": "logs/typecheck-final.log"
+    },
+    "failedFilesRetest": {
+      "exitCode": 0,
+      "files": 4,
+      "testsPassed": 79,
+      "evidence": "logs/failed-files-retest.log"
+    },
+    "fullFinalPreNative": {
+      "exitCode": 0,
+      "filesPassed": 251,
+      "filesSkipped": 2,
+      "testsPassed": 2630,
+      "testsSkipped": 5,
+      "durationSeconds": 114.21,
+      "maxWorkers": 2,
+      "evidence": "logs/full-final-pre-native.log"
+    },
+    "determinism": {
+      "artifacts": 11,
+      "identical": true,
+      "receipts": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ]
+    },
+    "golden": {
+      "result": "Root reviewed/accepted official regeneration: List CSS changes and derived hashes/signatures only; route HTML/entities/schema/assets unchanged.",
+      "evidence": "golden-semantic-review.json"
+    },
+    "audit": {
+      "exitCode": 1,
+      "moderateEntries": 2,
+      "scope": "Unchanged development dependency Vitest4.1.11/@vitest/mocker; new advisories GHSA-qxg6-89mg-rqv8 and GHSA-xp26-3454-mjgp, fix4.1.12. Root explicitly deferred to separate item; no dependency changes here.",
+      "evidence": "logs/audit.json"
+    }
+  },
+  "hashes": {
+    "app/src/core/index.ts": "3a53db81bcf546e7c94a396e7cca74add823ff5cce68b594122dcfe4fa0ad727",
+    "tests/list-nowrap-scroll.test.ts": "44b3fffd964e5b561d51c3336158531cfa25bb6336764fa3611b019b05b42662",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "ecb2e76134d717f2061b41bced2d9553bd79a2dfdf6a14381b9f4f41d9f35aa2"
+  },
+  "fixtureContract": "Factory List card retains Desktop280px/Tablet inherited basis, Mobile100% and grow100; only default shrink changes when nowrap policy is active. Authored shrink overrides win.",
+  "limits": [
+    "jsdom has no geometry or CSS-variable resolution. Tests inspect compiled active media cascade and private variables separately, not actual card widths.",
+    "Native keyboard/touch scroll, first/last card reachability, page overflow, RTL, and vertical focus/shadow clipping remain root acceptance gates.",
+    "Potential-nowrap lists may retain one keyboard stop at a wider wrapping breakpoint; no runtime media focus toggling added.",
+    "Explicit overflow visible opts out of containment; hidden/clip remain authored behavior.",
+    "Custom CSS that sets flex-wrap outside supported node/class/state model is not detected for the fallback or keyboard metadata; custom authored overflow is preserved.",
+    "No browser, Main, commits/push/deployment by worker. Fresh native geometry remains required.",
+    "Direct Wrap rule shape retained for compatibility; class-focus and component-wrapper coverage added before final builds."
+  ],
+  "remaining": [
+    "Root fresh native factory geometry, keyboard/touch/local scroll and responsive/author override acceptance.",
+    "Root gallery/output review and integration/release decision.",
+    "Separate root triage of development-tool audit advisories."
+  ],
+  "historicalFailures": [
+    "First full run: old exact Wrap-rule CSS assertion failed; preserved original standalone rule and emitted vars separately, focused retest passes.",
+    "First full run: expected signed WordPress golden changed after new List CSS; explicitly regenerated using official flag, semantically reviewed and accepted by root.",
+    "First full run: gateway-db beforeAll timed out at10s,14cases skipped. Failed-file retest79passes and subsequent whole suite2630passes; initial failure retained."
+  ],
+  "newCases": 10,
+  "freeze": {
+    "entries": 17,
+    "manifest": "source-tests-assets.sha256",
+    "sha256": "8f284fcb8db24d4f315a642c2856485c757dd62a4f95f7e3ffb2b565daad9458"
+  },
+  "harness": {
+    "url": "http://localhost:4992/edit/s1",
+    "pid": 88212,
+    "sessionId": 66551,
+    "path": "tools/.qa-ui-4992.mjs",
+    "provenance": "Committed tools/qa-ui.mjs copied with port-only4944 to4992 substitution, fresh fictional default fixture and no injected state; started only after final builds.",
+    "servedProof": "served-ui-receipt.json",
+    "preserve": true
+  }
+}

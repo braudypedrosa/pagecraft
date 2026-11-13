@@ -1,0 +1,311 @@
+{
+  "candidate": "integer-v2 source on exact 029 archive",
+  "site": "local in-memory Pro QA Integer v2",
+  "authoring": "Native builder UI only",
+  "tests": [
+    {
+      "name": "Desktop Columns 2.5",
+      "expected": "3",
+      "got": {
+        "stepMismatch": false,
+        "value": "3"
+      },
+      "rendered": {
+        "columns": "3",
+        "grid": "392px 392px 392px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 0.4",
+      "expected": "1",
+      "got": {
+        "stepMismatch": false,
+        "value": "1"
+      },
+      "rendered": {
+        "columns": "1",
+        "grid": "1200px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns -1.8",
+      "expected": "1",
+      "got": {
+        "stepMismatch": false,
+        "value": "1"
+      },
+      "rendered": {
+        "columns": "1",
+        "grid": "1200px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2.4",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "grid": "594px 594px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2e0",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "grid": "594px 594px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2.0",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": {
+        "columns": "2",
+        "grid": "594px 594px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns 2e-1",
+      "expected": "1",
+      "got": {
+        "stepMismatch": false,
+        "value": "1"
+      },
+      "rendered": {
+        "columns": "1",
+        "grid": "1200px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Columns -0",
+      "expected": "1",
+      "got": {
+        "stepMismatch": false,
+        "value": "1"
+      },
+      "rendered": {
+        "columns": "1",
+        "grid": "1200px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet Columns3.5",
+      "expected": "4",
+      "got": "4",
+      "rendered": {
+        "columns": "4",
+        "grid": "187.5px 187.5px 187.5px 187.5px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Columns1.5",
+      "expected": "2",
+      "got": "2",
+      "rendered": {
+        "columns": "2",
+        "grid": "183px 183px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile empty inherits Tablet",
+      "expected": "4",
+      "got": {
+        "placeholder": "auto",
+        "value": "4"
+      },
+      "rendered": {
+        "columns": "4",
+        "grid": "87.5px 87.5px 87.5px 87.5px"
+      },
+      "passed": true
+    },
+    {
+      "name": "Desktop Z 2.5",
+      "expected": "3",
+      "got": {
+        "stepMismatch": false,
+        "value": "3"
+      },
+      "rendered": "3",
+      "passed": true
+    },
+    {
+      "name": "Desktop Z -2e0",
+      "expected": "-2",
+      "got": {
+        "stepMismatch": false,
+        "value": "-2"
+      },
+      "rendered": "-2",
+      "passed": true
+    },
+    {
+      "name": "Desktop Z 2.0",
+      "expected": "2",
+      "got": {
+        "stepMismatch": false,
+        "value": "2"
+      },
+      "rendered": "2",
+      "passed": true
+    },
+    {
+      "name": "Desktop Z -0",
+      "expected": "0",
+      "got": {
+        "stepMismatch": false,
+        "value": "0"
+      },
+      "rendered": "0",
+      "passed": true
+    },
+    {
+      "name": "Desktop Z 1e21",
+      "expected": "1000000000000000000000",
+      "got": {
+        "stepMismatch": false,
+        "value": "1000000000000000000000"
+      },
+      "rendered": "2147483647",
+      "passed": true
+    },
+    {
+      "name": "Desktop Position integer + fractional length",
+      "expected": {
+        "z": "3",
+        "top": "2.5px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "2.5px",
+        "z": "3"
+      },
+      "passed": true
+    },
+    {
+      "name": "Tablet Position integer + fractional length",
+      "expected": {
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Position integer + fractional length",
+      "expected": {
+        "z": "0",
+        "top": "0.75px"
+      },
+      "got": {
+        "position": "relative",
+        "top": "0.75px",
+        "z": "0"
+      },
+      "passed": true
+    },
+    {
+      "name": "Mobile Undo2/Redo2 restores inheritance then overrides",
+      "undo": {
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "redo": {
+        "top": "0.75px",
+        "z": "0"
+      },
+      "passed": true
+    },
+    {
+      "name": "Scientific length stays readable after inspector remount",
+      "got": {
+        "stepMismatch": false,
+        "value": "2e0"
+      },
+      "computed": "2px",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved Desktop readback",
+      "expected": {
+        "columns": "2",
+        "z": "3",
+        "top": "2px"
+      },
+      "got": {
+        "columns": "2",
+        "grid": "594px 594px",
+        "top": "2px",
+        "z": "3"
+      },
+      "topInput": "2e0",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved Tablet readback",
+      "expected": {
+        "columns": "4",
+        "z": "-2",
+        "top": "-1.25px"
+      },
+      "got": {
+        "columns": "4",
+        "grid": "187.5px 187.5px 187.5px 187.5px",
+        "top": "-1.25px",
+        "z": "-2"
+      },
+      "topInput": "-1.25",
+      "passed": true
+    },
+    {
+      "name": "Fresh saved Mobile readback",
+      "expected": {
+        "columns": "2",
+        "z": "0",
+        "top": "0.75px"
+      },
+      "got": {
+        "columns": "2",
+        "grid": "183px 183px",
+        "top": "0.75px",
+        "z": "0"
+      },
+      "topInput": ".75",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "harnessNotes": [
+    "Empty gallery uses editor data-id; attempted public export id did not match. Corrected after DOM inspection."
+  ],
+  "boundaries": [
+    "Local disposable empty Gallery; actual image Gallery retest on staging remains pending",
+    "Browser clamps very large Z-index to platform maximum; canonical authored value verified",
+    "Legacy scalar compiler paths verified by source tests, not authored through hidden state"
+  ]
+}

@@ -188,26 +188,40 @@ test('template preview serves package HTML and its packaged media only', async (
   a.ok(await store.preview('independent-studio', '1.0.0', 'index.html'));
 });
 
-test('Cloud templates link immutable placeholders without site asset uploads', async () => {
+test('every current template installs its images as site assets, never as editor-host links', async () => {
   const store = new FileSiteTemplateStore(root);
   for (const template of latestSiteTemplates(await store.list())) {
-    const installed = await store.instantiate(template.id, template.version, 'https://staging.itspagecraft.com');
+    const installed = await store.instantiate(template.id, template.version);
+    a.ok(installed);
+    a.equal(installed.assets.length, template.assetCount);
+    const serialized = JSON.stringify(installed.document);
+    a.doesNotMatch(serialized, /https?:\/\/[^"]*\/templates\//, `${template.id} links an absolute template URL`);
+    for (const asset of installed.assets) a.ok(serialized.includes(`asset:${asset.id}`));
+    const html = [...renderSite(installed.document, installed.assets).files.values()].join('\n');
+    a.doesNotMatch(html, /\/templates\//);
+    a.match(html, /src="assets\//);
+  }
+});
+
+test('a server with nowhere to store images links template images origin-relatively', async () => {
+  const store = new FileSiteTemplateStore(root);
+  for (const template of latestSiteTemplates(await store.list())) {
+    const installed = await store.instantiate(template.id, template.version, true);
     a.ok(installed);
     a.equal(installed.assets.length, 0);
     const serialized = JSON.stringify(installed.document);
     a.doesNotMatch(serialized, /asset:/);
-    const rendered = renderSite(installed.document, []);
-    const html = [...rendered.files.values()].join('\n');
-    a.ok(html.includes(`/templates/${template.id}/${template.version}/preview/assets/`));
-    const urls = [...new Set(serialized.match(/https:\/\/staging\.itspagecraft\.com\/templates\/[^"\s\\]+/g))];
+    a.doesNotMatch(serialized, /https?:\/\/[^"]*\/templates\//, 'no environment host is written into the site');
+    const html = [...renderSite(installed.document, []).files.values()].join('\n');
+    a.ok(html.includes(`"/templates/${template.id}/${template.version}/preview/assets/`));
+    const urls = [...new Set(serialized.match(/\/templates\/[a-z0-9-]+\/[\d.]+\/preview\/[^"\s\\]+/g))];
     a.ok(urls.length);
     for (const url of urls) {
-      const path = url.split('/preview/')[1];
-      const image = await store.preview(template.id, template.version, path);
+      const image = await store.preview(template.id, template.version, url.split('/preview/')[1]);
       a.ok(image && image.bytes.byteLength > 0, `missing shared image ${url}`);
     }
     installed.document.meta.name = 'Changed only this site';
-    const another = await store.instantiate(template.id, template.version, 'https://staging.itspagecraft.com');
+    const another = await store.instantiate(template.id, template.version, true);
     a.notEqual(another!.document.meta.name, installed.document.meta.name);
   }
 });

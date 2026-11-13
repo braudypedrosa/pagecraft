@@ -1,0 +1,26 @@
+[
+  {
+    "alignment": "flex-end",
+    "html": "<figure id=\"pagecraft-quote-3mc4hqj2\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>",
+    "id": "pagecraft-quote-3mc4hqj2",
+    "overflow": false,
+    "tag": "FIGURE",
+    "viewport": 1280
+  },
+  {
+    "alignment": "flex-end",
+    "html": "<figure id=\"pagecraft-quote-3mc4hqj2\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>",
+    "id": "pagecraft-quote-3mc4hqj2",
+    "overflow": false,
+    "tag": "FIGURE",
+    "viewport": 834
+  },
+  {
+    "alignment": "flex-end",
+    "html": "<figure id=\"pagecraft-quote-3mc4hqj2\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>",
+    "id": "pagecraft-quote-3mc4hqj2",
+    "overflow": false,
+    "tag": "FIGURE",
+    "viewport": 414
+  }
+]

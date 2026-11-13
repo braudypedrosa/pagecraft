@@ -14,6 +14,7 @@ import type { ComponentDef, Doc, Node } from '../app/src/core/types';
 import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../app/src/host/types';
 import { HostRequestError } from '../app/src/host/transport';
 import { Add } from '../app/src/ui/Add';
+import { L } from '../app/src/ui/ctx';
 import { rig, type Rig } from './ui.setup';
 
 const SITE = 'site-recipient';
@@ -29,11 +30,25 @@ const card = (title: string): ComponentDef => ({
     children: [node('c2', 'heading', { props: { text: title } as never })],
   }),
 });
+const contrastCard = () => {
+  const def = card('Contrast');
+  def.node.children.push(node('c3', 'button', {
+    props: { text: 'Visit', variant: 'solid', ts: 'btn' } as never,
+    css: { d: { '--pc-solid-fg': 'var(--c-paper)', 'background-color': 'var(--c-brand)' } } as never,
+  }));
+  return def;
+};
 /** A site other than the one open, holding `components`, to publish from. */
 function authorDoc(components: ComponentDef[]): Doc {
   const doc = clone(C.doc());
   doc.meta.tokens!.colors.push({ id: 'accent', name: 'Accent', value: '#c05621' });
   doc.meta.components = components;
+  return doc;
+}
+function contrastAuthorDoc(): Doc {
+  const doc = authorDoc([contrastCard()]);
+  doc.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#6c472f';
+  doc.meta.tokens!.colors.push({ id: 'paper', name: 'Paper', value: '#faf9f6' });
   return doc;
 }
 
@@ -77,7 +92,10 @@ function fakeLibraries() {
       const address = email.trim().toLowerCase();
       const found = rows.find(m => m.email === address);
       if (found) return { added: false, member: clone(found) };
-      const row = { userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'), createdAt: '' };
+      const row = {
+        userId: `u-${rows.length + 1}`, email: address, name: '', pending: address.startsWith('new'),
+        awaitingAcceptance: true, createdAt: '',
+      };
       members.set(id, [...rows, row]);
       return { added: true, member: clone(row) };
     },
@@ -153,30 +171,35 @@ async function openLibrary(name: string) {
   await click(r.$$('button.lib-row').find(b => b.querySelector('b')?.textContent === name));
 }
 
-test('the tab exists only where libraries do', async () => {
+test('the category exists only where libraries do', async () => {
   const plain = rig();
   C.state.ui.atab = 'libraries';
   plain.draw(() => <Add />, 'add');
-  const labels = plain.$$('.addSwitcher button').map(b => b.textContent?.trim());
+  const labels = plain.$$('#add-category-select option').map(option => option.textContent?.trim());
   expect(labels).toEqual(['Elements', 'Templates', 'Components', 'Blocks']);
-  expect(plain.$('.addSwitcher button[aria-selected="true"]')?.textContent?.trim()).toBe('Elements');
+  expect((plain.$('#add-category-select') as HTMLSelectElement).value).toBe('widgets');
   render(null, plain.host);
   plain.host.remove();
 
   r = rig({ libraries: fake.adapter, siteDraft: () => ({ siteId: SITE, version: draftVersion }) });
   await openTab();
-  expect(r.$$('.addSwitcher button').map(b => b.textContent?.trim())).toContain('Libraries');
+  expect(r.$$('#add-category-select option').map(option => option.textContent?.trim())).toContain('Libraries');
   expect(r.$('.hint')?.textContent).toMatch(/No libraries yet/);
 });
 
 test('importing copies the images first and lands as one undo step with links', async () => {
   const lib = await fake.adapter.create('Brand kit');
   fake.publishFrom(lib.id, authorDoc([card('From the library')]), [{ kind: 'component', id: 'card' }]);
+  const asked: string[] = [];
+  L.askConfirm = async (title: string) => { asked.push(title); return true; };
   await openLibrary('Brand kit');
   expect(r.$('.lib-head b')?.textContent).toBe('Brand kit');
   await tick('Card');
+  const documentTrees = clone({ pages: C.state.pages, header: C.state.header, footer: C.state.footer });
+  const ui = C.state.ui, currentPage = C.state.cur;
   await click(button('Import 1 item'));
 
+  expect(asked).toEqual([]); // a safe import keeps the one-click flow
   expect(fake.sent.copied).toEqual([['aauthorimage1']]);
   expect(r.calls.some(c => c[0] === 'assetsReload')).toBe(true);
   const imported = C.findComponent('card')!;
@@ -185,6 +208,10 @@ test('importing copies the images first and lands as one undo step with links', 
   expect(C.state.meta.libraryLinks!.map(l => `${l.kind}:${l.localId}@${l.version}`).sort())
     .toEqual(['color:accent@1', 'component:card@1']);
   expect(C.hist.u.length).toBe(1);
+  expect(C.historyLabel('undo')).toBe('Import library items');
+  expect({ pages: C.state.pages, header: C.state.header, footer: C.state.footer }).toEqual(documentTrees);
+  expect(C.state.ui).toBe(ui);
+  expect(C.state.cur).toBe(currentPage);
   expect(toasts().at(-1)).toMatch(/Imported 2 items from Brand kit/);
   // The row now says it is here, and is no longer offered.
   const row = r.$$('label.lib-item').find(l => l.querySelector('b')?.textContent === 'Card')!;
@@ -192,8 +219,12 @@ test('importing copies the images first and lands as one undo step with links', 
   expect((row.querySelector('input') as HTMLInputElement).disabled).toBe(true);
 
   C.undo();
+  expect(C.historyLabel('redo')).toBe('Import library items');
   expect(C.findComponent('card')).toBeFalsy();
   expect(C.state.meta.libraryLinks || []).toEqual([]);
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Import library items');
+  expect(C.findComponent('card')).toBeTruthy();
 });
 
 test('an import that meets a different item of the same id renames it', async () => {
@@ -205,6 +236,34 @@ test('an import that meets a different item of the same id renames it', async ()
   await click(button('Import 1 item'));
   expect(C.components().map(c => c.id)).toEqual(['card', 'card-2']);
   expect(toasts().at(-1)).toMatch(/1 was renamed to avoid a clash/);
+});
+
+test('a cross-theme Button asks before copying and keeps one Undo step when accepted', async () => {
+  C.state.meta.tokens!.colors.find(color => color.id === 'brand')!.value = '#b7f34a';
+  const lib = await fake.adapter.create('Contrast kit');
+  fake.publishFrom(lib.id, contrastAuthorDoc(), [{ kind: 'component', id: 'card' }]);
+  const asked: Array<[string, string, unknown]> = [];
+  let answer = false;
+  L.askConfirm = async (title: string, html: string, options: unknown) => { asked.push([title, html, options]); return answer; };
+  await openLibrary('Contrast kit');
+  await tick('Card');
+
+  await click(button('Import 1 item'));
+  expect(asked[0][0]).toBe('Check button readability');
+  expect(asked[0][1]).toMatch(/1 imported item has a Button.*1\.25:1/);
+  expect(asked[0][2]).toEqual({ ok: 'Import anyway' });
+  expect(fake.sent.copied).toEqual([]);
+  expect(C.findComponent('card')).toBeFalsy();
+  expect(C.hist.u).toHaveLength(0);
+
+  answer = true;
+  await click(button('Import 1 item'));
+  expect(fake.sent.copied).toEqual([['aauthorimage1']]);
+  expect(C.hist.u).toHaveLength(1);
+  expect(C.historyLabel('undo')).toBe('Import library items');
+  expect(C.findColor('brand')!.value).toBe('#b7f34a');
+  expect(C.findColor('paper')!.value).toBe('#faf9f6');
+  expect((C.findComponent('card')!.node.children[1].css.d || {})['--pc-solid-fg']).toBe('var(--c-paper)');
 });
 
 test('“Add to library…” on a component picks a library, then publishes the saved draft', async () => {
@@ -288,10 +347,149 @@ test('an update asks about each conflict, then applies as one undo step', async 
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Version two');
   expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
   expect(C.hist.u.length).toBe(1);
+  expect(C.historyLabel('undo')).toBe('Update library');
   expect(toasts().at(-1)).toBe('Updated to version 2 of Brand kit');
   expect(r.$('.lib-banner')).toBeNull();
   C.undo();
+  expect(C.historyLabel('redo')).toBe('Update library');
   expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Update library');
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Version two');
+});
+
+test('applying an update commits placement cleanup across the whole document and Undo restores it', async () => {
+  const v1 = card('Version one');
+  v1.props = [{ k: 'gone', label: 'Gone', t: 'link', def: '/old' }];
+  v1.variants = [{ id: 'old', name: 'Old', values: { gone: '/variant', '@link-target:gone': '_blank' } }];
+  const lib = await fake.adapter.create('Placement kit');
+  fake.publishFrom(lib.id, authorDoc([v1]), [{ kind: 'component', id: 'card' }]);
+  await openLibrary('Placement kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+
+  const placement = (id: string) => node(id, 'box', {
+    use: 'card', variant: 'old', vals: { gone: '/local', '@link-target:gone': '_blank' },
+  });
+  const pageIndex = C.state.pages.length;
+  C.state.pages.push({ ...clone(C.state.pages[0]), id: 'page-two', name: 'Two', slug: 'two', tree: [placement('page-use')] });
+  C.state.header = [placement('header-use')];
+  C.state.footer = [placement('footer-use')];
+  C.state.cur = pageIndex;
+  const ui = C.state.ui;
+
+  const v2 = card('Version two');
+  fake.publishFrom(lib.id, authorDoc([v2]), [{ kind: 'component', id: 'card' }]);
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  expect(C.state.pages[pageIndex].tree[0].vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+  C.hist.u.length = 0;
+  await click(button('Apply update'));
+
+  const uses = [C.state.pages[pageIndex].tree[0], C.state.header[0], C.state.footer[0]];
+  for (const use of uses) {
+    expect(use.vals).toBeUndefined();
+    expect(use.variant).toBeUndefined();
+  }
+  expect(C.state.cur).toBe(pageIndex);
+  expect(C.state.ui).toBe(ui);
+  expect(C.findComponent('card')!.node.children[0].props.text).toBe('Version two');
+  expect(C.hist.u).toHaveLength(1);
+  expect(C.hist.u[0].pages[pageIndex].tree[0].vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+  expect(C.historyLabel('undo')).toBe('Update library');
+
+  C.undo();
+  for (const use of [C.state.pages[pageIndex].tree[0], C.state.header[0], C.state.footer[0]]) {
+    expect(use.vals).toEqual({ gone: '/local', '@link-target:gone': '_blank' });
+    expect(use.variant).toBe('old');
+  }
+  expect(C.findComponent('card')!.node.children[0].props.text).toBe('Version one');
+  C.redo();
+  expect(C.state.pages[pageIndex].tree[0].vals).toBeUndefined();
+  expect(C.state.header[0].vals).toBeUndefined();
+  expect(C.state.footer[0].vals).toBeUndefined();
+});
+
+test('keeping a local library item labels its metadata-only update for Undo and Redo', async () => {
+  const lib = await fake.adapter.create('Brand kit');
+  fake.publishFrom(lib.id, authorDoc([card('Version one')]), [{ kind: 'component', id: 'card' }]);
+  await openLibrary('Brand kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+  C.findComponent('card')!.node.children[0].props.text = 'Changed here';
+  const documentTrees = clone({ pages: C.state.pages, header: C.state.header, footer: C.state.footer });
+  fake.publishFrom(lib.id, authorDoc([card('Version two')]), [{ kind: 'component', id: 'card' }]);
+
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  const mine = r.$$('.lib-res label').find(l => /Keep mine/.test(l.textContent || ''))!.querySelector('input')!;
+  await act(async () => { mine.checked = true; mine.dispatchEvent(new window.Event('change', { bubbles: true })); });
+  C.hist.u.length = 0;
+  const apply = r.$$('button').find(b => b.textContent === 'Apply update') as HTMLButtonElement;
+  await click(apply);
+
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('Changed here');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
+  expect({ pages: C.state.pages, header: C.state.header, footer: C.state.footer }).toEqual(documentTrees);
+  expect(C.historyLabel('undo')).toBe('Update library');
+  C.undo();
+  expect(C.historyLabel('redo')).toBe('Update library');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(1);
+  C.redo();
+  expect(C.historyLabel('undo')).toBe('Update library');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(2);
+});
+
+const withEmbed = (title: string) => {
+  const def = card(title);
+  def.node.children.push(node('c3', 'embed', { props: { html: '<script>track()</script>' } as never }));
+  return def;
+};
+
+test('custom code in a library is named and confirmed before an import copies anything', async () => {
+  const shared = fake.sharedWithMe('Agency kit', 'Riley <b>');
+  fake.publishFrom(shared.id, authorDoc([withEmbed('One')]), [{ kind: 'component', id: 'card' }]);
+  let answer = false;
+  const asked: string[][] = [];
+  L.askConfirm = async (title: string, html: string) => { asked.push([title, html]); return answer; };
+  await openTab();
+  await click(r.$$('button.lib-row')[0]);
+  await tick('Card');
+
+  await click(button('Import 1 item'));
+  expect(asked[0][0]).toBe('This library includes custom code');
+  expect(asked[0][1]).toContain('<b>Card</b> (1 embed)');
+  expect(asked[0][1]).toContain('Riley &lt;b&gt;');
+  expect(fake.sent.copied).toEqual([]);
+  expect(C.findComponent('card')).toBeFalsy();
+
+  answer = true;
+  await click(button('Import 1 item'));
+  expect(C.findComponent('card')).toBeTruthy();
+  expect(fake.sent.copied).toEqual([['aauthorimage1']]);
+});
+
+test('an update that would bring custom code asks first, and declining changes nothing', async () => {
+  const lib = await fake.adapter.create('Brand kit');
+  fake.publishFrom(lib.id, authorDoc([card('One')]), [{ kind: 'component', id: 'card' }]);
+  const asked: string[] = [];
+  L.askConfirm = async (title: string) => { asked.push(title); return false; };
+  await openLibrary('Brand kit');
+  await tick('Card');
+  await click(button('Import 1 item'));
+  expect(asked, 'no custom code, no question').toEqual([]);
+  expect(C.findComponent('card')).toBeTruthy();
+
+  fake.publishFrom(lib.id, authorDoc([withEmbed('Two')]), [{ kind: 'component', id: 'card' }]);
+  await click(r.$('.lib-back'));
+  await click(r.$$('button.lib-row')[0]);
+  await click(button('Review update'));
+  await click(r.$$('button').find(b => /Apply update/.test(b.textContent || '')));
+  expect(asked).toEqual(['This library includes custom code']);
+  expect((C.findComponent('card')!.node.children[0].props as { text: string }).text).toBe('One');
+  expect(C.state.meta.libraryLinks!.find(l => l.kind === 'component')!.version).toBe(1);
 });
 
 test('components imported from a library say where they came from', async () => {
@@ -328,8 +526,8 @@ test('the owner shares by email and can stop sharing', async () => {
   await act(async () => { r.type(field, 'newcomer@example.test'); });
   await act(async () => { r.$('.lib-share')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })); });
   await settle();
-  expect(toasts().at(-1)).toBe('Shared with newcomer@example.test');
-  expect(r.$$('.lib-member').map(m => m.textContent)).toEqual(['newcomer@example.testNo Pagecraft account yet']);
+  expect(toasts().at(-1)).toBe('Invitation sent to newcomer@example.test');
+  expect(r.$$('.lib-member').map(m => m.textContent)).toEqual(['newcomer@example.testAwaiting acceptance']);
   expect((r.$('.lib-share input') as HTMLInputElement).value).toBe('');
 
   await click(r.$('.lib-member .bx'));

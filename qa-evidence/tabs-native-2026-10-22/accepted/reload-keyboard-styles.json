@@ -1,0 +1,25 @@
+{
+  "gap": "24px",
+  "padding": "0px",
+  "scroll": 403,
+  "size": "18px",
+  "tabs": [
+    {
+      "label": "AccessibilitySupportAndQuietRoomBookingInformationForEveryVisitorAtTheCommunityWorkshop",
+      "selected": "true",
+      "tabindex": 0
+    },
+    {
+      "label": "Details",
+      "selected": "false",
+      "tabindex": -1
+    },
+    {
+      "label": "Pricing",
+      "selected": "false",
+      "tabindex": -1
+    }
+  ],
+  "visiblePanels": 1,
+  "width": 403
+}

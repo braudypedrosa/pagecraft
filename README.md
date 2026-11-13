@@ -47,7 +47,7 @@ Renamed from "Components", which now means something specific in this builder �
 | **Slider** | A row that scrolls and snaps. CSS only; the arrows are the one optional script |
 | **Collection list** | Repeats its contents once per item in a collection |
 | **Heading** | h1–h6/p/div, optional link, text style or direct typography |
-| **WYSIWYG** | Inline rich text: bold, italic, links, lists, headings, quotes |
+| **Rich text** | Inline rich text: bold, italic, links, lists, headings, quotes |
 | **Image** | Upload or reuse a stored image; alt, caption, link, fit, filters, intrinsic size |
 | **Video** | YouTube, Vimeo or self-hosted file; ratio, autoplay/loop/mute |
 | **Button** | Solid/outline/ghost/link, trailing icon. Its hover is the State control, the same as everything else |
@@ -215,9 +215,11 @@ preview them for real.
 
 ## Add panel
 
-Four tabs. **Widgets** are the elements, in four groups — Layout, Content, Interactive,
-Spacing — grouped by what a thing does rather than by how it is built, which is why the
-Accordion sits beside the Form. **Components** are the ones you have made, each staying
+The **Elements** tab starts with Heading, Rich text, Image, Button and Columns. Search finds
+the complete permitted catalog, including aliases such as “photo” and “paragraph”. Layout,
+Content, Interactive and Spacing groups expand when needed. **Browse starter sections** opens
+Templates; clicking content on an empty page creates the required layout automatically.
+**Components** are the ones you have made, each staying
 connected everywhere you place it. **Blocks** are saved starting points you paste and then own.
 **Templates** are twenty-six ready-made sections, grouped by what they are for:
 
@@ -553,7 +555,7 @@ rebrand is one edit rather than one edit per element.
   removed.
 - **Text styles** — eight presets (Display, Section title, Card title, Lead, Body, Small,
   Eyebrow, Button label), each responsive across all three breakpoints. Pick one from a
-  Heading, WYSIWYG or Button; anything you then set on that element overrides the style
+  Heading, Rich text or Button; anything you then set on that element overrides the style
   locally. **Update style** pushes the element's typography back up to the style so every
   other user of it moves too; **Detach** bakes the values in and stops following.
 
@@ -677,9 +679,20 @@ a slug is a published URL and moving one because a word changed is how links bre
 
 ## Export review
 
-A **Review** indicator sits in the top bar with a live count — green when clean, amber for
+A **Checks** indicator sits in the top bar with a live count — green when clean, amber for
 suggestions, red for problems — so failures surface while you work rather than when you try
 to publish. It recomputes on idle, not on every keystroke. Clicking it opens the full report.
+
+Site checks also retains failed-action guidance for the current page session after its
+notification closes. A successful retry clears the corresponding message. **Return to action**
+opens recovery or focuses an available control; it never retries automatically. Dismissing a
+message acknowledges it without claiming the operation succeeded.
+
+Cloud **Preview** shows the working draft, **Publish** prepares and publishes a frozen saved
+version, and **Live link** copies the published address. Live link becomes available after the
+first publication. Client feedback lives in **Reviews**, where links show the latest saved
+draft. **Help & keyboard shortcuts** explains this workflow and the first-page steps. Optional
+inspector guidance explains containers, responsive inheritance and the two-stage CMS setup.
 
 The Export dialog opens with the same review, because the failures that matter in static
 output are silent ones. It reports:

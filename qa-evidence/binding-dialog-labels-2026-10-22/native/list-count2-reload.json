@@ -1,0 +1,26 @@
+[
+  {
+    "basis": "280px",
+    "cardWidth": 588,
+    "count": 2,
+    "device": "Desktop",
+    "limit": 2,
+    "overflow": false
+  },
+  {
+    "basis": "280px",
+    "cardWidth": 375.5,
+    "count": 2,
+    "device": "Tablet",
+    "limit": 2,
+    "overflow": false
+  },
+  {
+    "basis": "100%",
+    "cardWidth": 363,
+    "count": 2,
+    "device": "Mobile",
+    "limit": 2,
+    "overflow": false
+  }
+]

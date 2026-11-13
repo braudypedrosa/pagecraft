@@ -1,0 +1,77 @@
+{
+  "environment": "Isolated local built candidate",
+  "base": "d4b3dc89cdc5d06f020fcae8a6f4c2df6079fc2b",
+  "patchSha": "f0fbee8937dc5645776bd50fc4469bf8c96ca2bd6e45dab237b072e11f7cd6b9",
+  "url": "http://127.0.0.1:4954/",
+  "tests": [
+    {
+      "name": "Mobile reset refreshes Unit, Box, Font labels",
+      "ui": {
+        "font": "Lora",
+        "unit": "em",
+        "line": "1.5",
+        "padUnit": "em",
+        "pad": "1.5"
+      },
+      "render": {
+        "font": "Lora, Georgia, \"Times New Roman\", serif",
+        "line": "22.5px",
+        "padding": "22.5px"
+      },
+      "pass": true
+    },
+    {
+      "name": "Tablet reset refreshes Unit, Box, Font labels",
+      "ui": {
+        "font": "Custom…",
+        "unit": "px",
+        "line": "28",
+        "padUnit": "px",
+        "pad": "28"
+      },
+      "render": {
+        "font": "\"Courier New\", monospace",
+        "line": "28px",
+        "padding": "28px"
+      },
+      "pass": true
+    },
+    {
+      "name": "Keyboard End/Enter after unit replacement keeps focus and selected label",
+      "focus": {
+        "label": "Line height unit",
+        "role": "combobox"
+      },
+      "selected": "%",
+      "pass": true
+    },
+    {
+      "name": "Empty numeric field keeps chosen unit for first value",
+      "pre": {
+        "unit": "%",
+        "n": ""
+      },
+      "after": {
+        "line": "20px",
+        "size": "16px"
+      },
+      "pass": true
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "authoringSupport": [
+    {
+      "action": "Authored Desktop font, line height and Padding",
+      "status": "UI action completed; acceptance checked below"
+    },
+    {
+      "action": "Authored Tablet font, line height and Padding",
+      "status": "UI action completed; acceptance checked below"
+    },
+    {
+      "action": "Authored Mobile font, line height and Padding",
+      "status": "UI action completed; acceptance checked below"
+    }
+  ],
+  "passed": true
+}

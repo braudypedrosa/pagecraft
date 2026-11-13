@@ -1,0 +1,8 @@
+{
+  "border": "5px solid rgb(180, 95, 60)",
+  "classes": "pagecraft-quote pagecraft-3mc4hqj2 ts-lead qa-quote pull-quote",
+  "html": "<figure id=\"quote-proof\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead qa-quote pull-quote\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>",
+  "line": "26.4px",
+  "padding": "12px 18px 14px 20px",
+  "size": "16px"
+}

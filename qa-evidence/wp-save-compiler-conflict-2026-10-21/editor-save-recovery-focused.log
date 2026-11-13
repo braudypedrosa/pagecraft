@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/wp-save-compiler-conflict
+
+ ✓ tests/editor-save-recovery.test.mjs > busy saves preserve edits, wait for explicit retry, and retain real conflict protection 1219ms
+ ✓ tests/editor-save-recovery.test.mjs > a WordPress compiler conflict preserves the draft and opens reload recovery from the Done action 1704ms
+ ✓ tests/editor-save-recovery.test.mjs > hosted network failure gives connection guidance and retry preserves the unsaved document 3242ms
+ ✓ tests/editor-save-recovery.test.mjs > a hosted document this build cannot open is never overwritten by the demo 1762ms
+ ✓ tests/editor-save-recovery.test.mjs > an unreadable project in this browser is left exactly as it was 1758ms
+ ✓ tests/editor-save-recovery.test.mjs > closing the tab inside the save debounce prompts, and pagehide writes the last edit 1048ms
+ ✓ tests/editor-save-recovery.test.mjs > an expired WordPress nonce is refreshed once; an ended session says so, never “not yours to make” 1040ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  03:48:38
+   Duration  12.33s (transform 16ms, setup 0ms, import 447ms, tests 11.77s, environment 0ms)

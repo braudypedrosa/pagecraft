@@ -1,0 +1,56 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "sanitize-html": {
+      "name": "sanitize-html",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1242620,
+          "name": "sanitize-html",
+          "dependency": "sanitize-html",
+          "title": "ApostropheCMS sanitize-html: nonTextTags discard region ends early on an implied close, letting <noscript> content render",
+          "url": "https://github.com/advisories/GHSA-x3q4-9hxx-gx8m",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<2.18.0"
+        }
+      ],
+      "effects": [],
+      "range": "<2.18.0",
+      "nodes": [
+        "node_modules/sanitize-html"
+      ],
+      "fixAvailable": {
+        "name": "sanitize-html",
+        "version": "2.18.1",
+        "isSemVerMajor": false
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 0,
+      "critical": 0,
+      "total": 1
+    },
+    "dependencies": {
+      "prod": 100,
+      "dev": 231,
+      "optional": 101,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 358
+    }
+  }
+}

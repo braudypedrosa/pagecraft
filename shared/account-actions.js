@@ -38,7 +38,7 @@ export function installAccountActions() {
     const path = new URL(form.action, location.href).pathname;
     if (/delete|remove/.test(path)) return 'Deleting…';
     if (/invite/.test(path)) return 'Sending invitation…';
-    if (/login/.test(path)) return 'Signing in…';
+    if (/login|^\/auth\/sign-in$/.test(path)) return 'Signing in…';
     if (/logout/.test(path)) return 'Signing out…';
     if (/signup/.test(path)) return 'Creating account…';
     if (/forgot-password/.test(path)) return 'Sending reset link…';
@@ -52,7 +52,7 @@ export function installAccountActions() {
     if (url.origin !== location.origin) return;
     const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
     // OAuth needs a real cross-origin navigation, not fetch following its redirect.
-    if (url.pathname === '/auth/google' || /^\/v1\/(oauth|wordpress-import)\/authorize$/.test(url.pathname)) {
+    if (url.pathname === '/auth/google' || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
       if(native.has(form)){event.preventDefault();return;}
       // A disabled native submitter is omitted from the request. Preserve its choice.
       let choice;
@@ -79,11 +79,11 @@ export function installAccountActions() {
       if(!response.ok||error||target.searchParams.has('error')) {
         throw new Error(error || accountActionFailure(text));
       }
-      if(!url.pathname.startsWith('/auth/') && target.pathname==='/login')throw new Error('Your session expired. Sign in again, then retry. Your input is still here.');
+      if(!url.pathname.startsWith('/auth/') && ['/login','/sign-in'].includes(target.pathname))throw new Error('Your session expired. Sign in again, then retry. Your input is still here.');
       if(target.origin!==location.origin)throw new Error('Could not complete this action. Refresh and try again.');
       // Only the server response confirms completion. Its redirect carries success copy.
       const success=result.querySelector('.notice[role="status"]')?.textContent?.trim();
-      const completed = success || (/delete|remove/.test(url.pathname) ? 'Deleted successfully.' : /logout/.test(url.pathname) ? 'Signed out.' : /login/.test(url.pathname) ? 'Signed in.' : /signup/.test(url.pathname) ? 'Account created. Check your email to confirm it.' : 'Changes saved.');
+      const completed = success || (/delete|remove/.test(url.pathname) ? 'Deleted successfully.' : /logout/.test(url.pathname) ? 'Signed out.' : /login|^\/auth\/sign-in$/.test(url.pathname) ? 'Signed in.' : /signup/.test(url.pathname) ? 'Account created. Check your email to confirm it.' : 'Changes saved.');
       action.update('Done. Opening the updated page…');
       feedback.flash(completed, target.pathname);
       active.delete(form);location.assign(target.href);

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Commonwell arched doorway mark">
+  <rect width="128" height="128" rx="24" fill="#16372c"/>
+  <g fill="none" stroke="#fff8e9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 103V56c0-22 17-39 39-39s39 17 39 39v47"/>
+    <path d="M44 103V61c0-11 9-20 20-20s20 9 20 20v42"/>
+    <path d="M25 103h78"/>
+  </g>
+  <path fill="#e3ad43" d="M104 16l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+</svg>

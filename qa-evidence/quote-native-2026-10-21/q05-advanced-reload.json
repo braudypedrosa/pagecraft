@@ -1,0 +1,10 @@
+{
+  "classes": "pagecraft-quote pagecraft-3mc4hqj2 ts-lead qa-quote pull-quote",
+  "html": "<figure id=\"quote-proof\" class=\"pagecraft-quote pagecraft-3mc4hqj2 ts-lead qa-quote pull-quote\"><blockquote cite=\"https://example.test/quote\"><p>A &lt;sample&gt; &amp;<br>Second line</p></blockquote><figcaption class=\"pagecraft-attrib\"><a href=\"https://example.test/quote\">Ada Example, Fictional Studio</a></figcaption></figure>",
+  "maxWidth": "530.297px",
+  "outline": "rgb(180, 95, 60) solid 1px",
+  "overflow": "visible",
+  "position": "relative",
+  "top": "4px",
+  "zIndex": "2"
+}

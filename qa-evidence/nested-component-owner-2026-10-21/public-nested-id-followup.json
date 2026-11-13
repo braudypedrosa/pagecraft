@@ -1,0 +1,22 @@
+{
+  "status": "confirmed structural public-render bug; root native Preview proof pending",
+  "scope": "separate broader QA follow-up; current editor fix preserves public output",
+  "baseCommit": "37820488905becc37e9870ca5d9c93fe370015ab",
+  "totalIds": 16,
+  "duplicateIds": {
+    "pagecraft-box-firstmiddle": 2,
+    "pagecraft-wysiwyg-nestedleaf": 4,
+    "pagecraft-box-slot-firstmiddle": 2,
+    "pagecraft-wysiwyg-filledleaf": 2,
+    "pagecraft-box-secondmiddle": 2,
+    "pagecraft-box-slot-secondmiddle": 2
+  },
+  "evidence": "tests/fixtures/nested-component-public.json",
+  "nextAcceptance": [
+    "Native Preview duplicated outer placements reproduce duplicate public IDs.",
+    "Choose stable nested identity path while retaining existing first/canonical authored anchors.",
+    "Definition/placement CSS class semantics remain unchanged.",
+    "Repeated nested nav, tabs, accordion and forms keep unique IDs and correctly paired aria-controls/labels/targets.",
+    "Repeated/CMS instances, filled slots, forward anchors and save/reload remain consistent."
+  ]
+}

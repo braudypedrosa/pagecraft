@@ -1,0 +1,143 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent hair salons that need an editorial, service-led site with clear consultation and appointment inquiry expectations",
+    "primaryAction": "Understand service fit and send an appointment inquiry; availability and message delivery remain explicitly unconfigured",
+    "pages": ["index", "services", "studio", "team", "contact"],
+    "content": "Fictional Morrow & Muse salon. The site uses natural salon marketing copy without invented reviews, prices, credentials, awards, years in business or performance claims. Team identities are fictional and labeled. Inquiry delivery is unconfigured and does not confirm an appointment.",
+    "imagery": "Original AI-generated editorial salon interior, texture-focused craft detail and fictional team scene in warm ivory, deep plum, dusty rose and stainless steel; original vector logo.",
+    "provenance": [
+      {
+        "asset": "logo",
+        "source": "Original SVG authored for Morrow & Muse in this template directory, 2026-10-13",
+        "license": "Original template artwork; fictional mark with no third-party trademark claim."
+      },
+      {
+        "asset": "studio-interior",
+        "source": "OpenAI image generation, 2026-10-13, exec-b8c47c10-a0ef-4c93-b4e4-aa7e2a43e2cf.png; converted to WebP locally",
+        "license": "AI-generated demonstration interior; not a real salon location."
+      },
+      {
+        "asset": "texture-craft",
+        "source": "OpenAI image generation, 2026-10-13, exec-58080c7f-675c-4159-ae95-80192eb79909.png; resized and converted to WebP locally",
+        "license": "AI-generated demonstration craft scene; no identifiable real client or service encounter."
+      },
+      {
+        "asset": "studio-team",
+        "source": "OpenAI image generation, 2026-10-13, exec-c5369e4e-45e2-4285-be33-a7286e83da32.png; converted to WebP locally",
+        "license": "AI-generated fictional team; no real identity, qualification or endorsement."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "plum-cutout",
+      "thesis": "A fashion-editorial salon identity where a deep plum copy panel cuts into a wide architectural photograph and service information reads like a precise studio ledger.",
+      "fingerprint": {
+        "header": "warm white masthead with interlaced plum mark",
+        "hero": "wide salon room with overlapping lower-left plum copy panel",
+        "textAnchor": "large serif statements paired with compact uppercase labels",
+        "inventory": "open three-column service ledger without prices",
+        "cta": "dusty rose appointment inquiry prompt",
+        "footer": "compact plum brand row with one wrapping link group"
+      },
+      "comparison": "Authored as the current local draft because it separates the salon identity from recent green split-hero templates and supports honest service detail. Awaiting human selection and rendered review.",
+      "sections": [
+        {
+          "purpose": "Introduce a premium but approachable salon point of view",
+          "archetype": "architectural-image-plum-cutout",
+          "composition": "full-width room image with an overlapping lower-edge copy block rather than a side-by-side split",
+          "typography": "high-contrast editorial serif with restrained sans labels",
+          "imagery": "warm salon architecture with plum lacquer and translucent curtains",
+          "action": "Explore services"
+        },
+        {
+          "purpose": "Make services scannable without inventing prices",
+          "archetype": "open-service-ledger",
+          "composition": "service, scope and consultation note arranged in ruled rows",
+          "typography": "serif service names with plain-language descriptions",
+          "imagery": "none",
+          "action": "Read the full service menu"
+        }
+      ]
+    },
+    {
+      "id": "mirror-notes",
+      "thesis": "A quieter monochrome direction organized as annotations around mirror views, material details and concise service notes.",
+      "fingerprint": {
+        "header": "centered narrow wordmark",
+        "hero": "framed mirror reflection with caption below",
+        "textAnchor": "small notes on a generous ivory field",
+        "inventory": "service chapters with short care notes",
+        "cta": "plain underlined consultation link",
+        "footer": "ivory colophon with charcoal rules"
+      },
+      "comparison": "More restrained and object-led than Plum Cutout; retained as an unselected fingerprint only.",
+      "sections": [
+        {
+          "purpose": "Frame the studio through material detail",
+          "archetype": "mirror-caption-opening",
+          "composition": "single framed image followed by editorial caption and statement",
+          "typography": "narrow sans labels with serif body statements",
+          "imagery": "mirror, steel station and tools",
+          "action": "See the studio"
+        },
+        {
+          "purpose": "Explain service maintenance",
+          "archetype": "care-note-chapters",
+          "composition": "long-form service groups separated by rules",
+          "typography": "compact chapter headings",
+          "imagery": "small material details",
+          "action": "Ask a service question"
+        }
+      ]
+    },
+    {
+      "id": "backstage-rhythm",
+      "thesis": "A team-led documentary direction that opens backstage and follows the rhythm from setup to consultation and finish.",
+      "fingerprint": {
+        "header": "dark plum bar with reverse symbol",
+        "hero": "wide team-preparation scene with bottom caption",
+        "textAnchor": "lower-edge documentary caption",
+        "inventory": "appointment rhythm in stacked statements",
+        "cta": "team matching inquiry",
+        "footer": "rose utility strip"
+      },
+      "comparison": "More human and process-led than Plum Cutout; retained as an unselected fingerprint only.",
+      "sections": [
+        {
+          "purpose": "Show the studio before client service begins",
+          "archetype": "backstage-team-opening",
+          "composition": "wide candid team scene with a low caption band",
+          "typography": "documentary sans with one oversized serif line",
+          "imagery": "fictional team preparing stations",
+          "action": "Meet the team"
+        },
+        {
+          "purpose": "Describe what an appointment makes room for",
+          "archetype": "appointment-rhythm-statements",
+          "composition": "three plain-language stages separated by rules without decorative counters",
+          "typography": "large action-led statements",
+          "imagery": "none",
+          "action": "Start an inquiry"
+        }
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [
+    {
+      "severity": "warning",
+      "page": "contact",
+      "node": "morrow-muse-appointment-inquiry-form-199",
+      "viewport": "all",
+      "detail": "The appointment inquiry form intentionally has no delivery action and remains disabled in published output until an owner configures it.",
+      "correction": "Configure and test an approved recipient or booking provider, then update inquiry and confirmation wording before release.",
+      "resolved": false
+    }
+  ],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

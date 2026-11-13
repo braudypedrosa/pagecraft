@@ -1,0 +1,35 @@
+{
+  "accepted": true,
+  "tables": 133,
+  "exactTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "changedExistingPostIds": [
+    "487"
+  ],
+  "newRevisionIds": [
+    "602",
+    "603",
+    "604",
+    "605",
+    "606",
+    "607"
+  ],
+  "allNewRevisionParents487": true,
+  "priorRevisionsAndMetadataExact": 318,
+  "optionsTimestampOnly": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data"
+  ],
+  "documentedOptionRowIdentityChanges": {
+    "_elementor_design_system_sync_css_meta": [
+      "1952",
+      "1957"
+    ]
+  },
+  "finalSqlSHA256": "6bd7511638086f161498b9c67b7dec701dad7d37bc58a785249e9cfdc0c35939",
+  "native": "Root native Code and Table shorthand defaults and D/M overrides saved and reloaded with exact field/computed parity. Quiet invalid typing and linked Enter error accepted. Actual frontend1280/414 exact padding and no overflow; readable414 screenshot viewed. History65 restored exact original11 editable IDs, Code/Table absent and Save disabled."
+}

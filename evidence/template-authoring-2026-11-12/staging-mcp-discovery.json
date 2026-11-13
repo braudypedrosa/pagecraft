@@ -1,0 +1,15 @@
+{
+  "endpoint": "https://staging.itspagecraft.com/mcp/template-authoring",
+  "tools": [
+    "pagecraft_template_schema",
+    "pagecraft_template_list",
+    "pagecraft_template_create",
+    "pagecraft_template_read",
+    "pagecraft_template_save",
+    "pagecraft_template_upload_image",
+    "pagecraft_template_validate",
+    "pagecraft_template_export"
+  ],
+  "draftCount": 0,
+  "verified": true
+}

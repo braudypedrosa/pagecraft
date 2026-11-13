@@ -93,6 +93,42 @@ test('empty, missing and referenced CMS fields resolve without leaking variant v
   a.equal(C.instValue(box, def, keys[0], col, one), 'Variant fallback');
 });
 
+test('a draft entry reached through a reference stays off the page, like a draft list item', () => {
+  const { box, def, keys, col, one, two } = fixture();
+  const people = C.collectionAdd('People')!;
+  const name = C.titleField(people)!;
+  const bio = C.fieldAdd(people.id, 'Bio', 'rich')!;
+  const ada = C.itemAdd(people.id)!;
+  const dee = C.itemAdd(people.id)!;
+  C.itemSet(people.id, ada.id, name.id, 'Ada Published'); C.itemSet(people.id, ada.id, bio.id, '<p><b>Ada bio</b></p>');
+  C.itemSet(people.id, dee.id, name.id, 'Dee Draft'); C.itemSet(people.id, dee.id, bio.id, '<p>Draft bio secret</p>');
+  C.itemDraft(people.id, dee.id, true);
+  const author = C.fieldAdd(col.id, 'Author', 'ref')!; author.ref = people.id;
+  C.itemSet(col.id, one.id, author.id, ada.id);
+  C.itemSet(col.id, two.id, author.id, dee.id);
+  C.bindSet(box, C.VAL + keys[0], C.bindField(`${author.id}.${name.id}`));
+  C.bindSet(box, C.VAL + keys[3], C.bindField(`${author.id}.${bio.id}`));
+  /* a direct binding through the same reference, outside any component */
+  const plain = C.N('heading');
+  C.bindSet(plain, 'text', C.bindField(`${author.id}.${name.id}`));
+  const list2 = C.N('list', {}, {}, [C.N('column', {}, {}, [plain])]); C.srcSet(list2, col.id);
+  C.state.pages[0].tree.push(C.N('section', {}, {}, [list2]));
+
+  a.equal(C.instValue(box, def, keys[0], col, one), 'Ada Published');
+  a.equal(C.instValue(box, def, keys[0], col, two), '', 'a draft target reads as no value, not as its saved text');
+  a.equal(C.fieldValue(col, two, `${author.id}.${name.id}`), '');
+
+  const html = C.buildPage(C.state.pages[0]);
+  a.match(html, /Ada Published/);
+  a.match(html, /<b>Ada bio<\/b>/, 'a published target keeps its rich text');
+  a.doesNotMatch(html, /Dee Draft|Draft bio secret/, 'nothing from the draft entry is published');
+  a.match(html, /cabin-1\.webp/, 'the published story itself still renders its own fields');
+
+  /* including the entry in the next publish brings its values back */
+  C.itemDraft(people.id, dee.id, false);
+  a.match(C.buildPage(C.state.pages[0]), /Dee Draft/);
+});
+
 test('CMS-bound component properties work on detail pages and in visibility conditions', () => {
   const { box, def, keys, col, one, two, yes } = fixture();
   const flag = C.propAdd(def.id, 'Featured', 'bool', '1')!;

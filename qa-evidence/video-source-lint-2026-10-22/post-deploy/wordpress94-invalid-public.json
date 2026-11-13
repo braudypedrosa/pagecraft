@@ -1,0 +1,64 @@
+{
+  "tabId": "37",
+  "views": [
+    {
+      "offset": [
+        0,
+        0
+      ],
+      "overflow": false,
+      "placeholder": [
+        1217,
+        684.5625
+      ],
+      "players": 0,
+      "text": "Unsupported video URL",
+      "width": 1280,
+      "wrapper": [
+        1217,
+        684.5625
+      ]
+    },
+    {
+      "offset": [
+        0,
+        0
+      ],
+      "overflow": false,
+      "placeholder": [
+        771,
+        433.6875
+      ],
+      "players": 0,
+      "text": "Unsupported video URL",
+      "width": 834,
+      "wrapper": [
+        771,
+        433.6875
+      ]
+    },
+    {
+      "offset": [
+        0,
+        0
+      ],
+      "overflow": false,
+      "placeholder": [
+        359,
+        201.9375
+      ],
+      "players": 0,
+      "text": "Unsupported video URL",
+      "width": 414,
+      "wrapper": [
+        359,
+        201.9375
+      ]
+    }
+  ],
+  "cleanup": [
+    {},
+    {},
+    {}
+  ]
+}

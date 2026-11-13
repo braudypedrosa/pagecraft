@@ -1,0 +1,74 @@
+[
+  {
+    "device": "Desktop",
+    "value": {
+      "cardWidths": [
+        282,
+        282,
+        282
+      ],
+      "clientHeight": 974,
+      "clientWidth": 1200,
+      "count": 18,
+      "first": "2. Community workshop and accessibility review for local teams",
+      "label": "Community workshops, events and accessibility resources",
+      "last": "27. Community workshop and accessibility review for local teams",
+      "padding": "0px",
+      "page": 1269,
+      "pageScroll": 1269,
+      "role": "group",
+      "scrollHeight": 979,
+      "scrollWidth": 1200,
+      "tabindex": "0",
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Tablet",
+    "value": {
+      "cardWidths": [
+        375.5,
+        375.5,
+        375.5
+      ],
+      "clientHeight": 1099,
+      "clientWidth": 775,
+      "count": 18,
+      "first": "2. Community workshop and accessibility review for local teams",
+      "label": "Community workshops, events and accessibility resources",
+      "last": "27. Community workshop and accessibility review for local teams",
+      "padding": "0px",
+      "page": 823,
+      "pageScroll": 823,
+      "role": "group",
+      "scrollHeight": 1103,
+      "scrollWidth": 775,
+      "tabindex": "0",
+      "wrap": "wrap"
+    }
+  },
+  {
+    "device": "Mobile",
+    "value": {
+      "cardWidths": [
+        355,
+        355,
+        355
+      ],
+      "clientHeight": 93,
+      "clientWidth": 363,
+      "count": 18,
+      "first": "2. Community workshop and accessibility review for local teams",
+      "label": "Community workshops, events and accessibility resources",
+      "last": "27. Community workshop and accessibility review for local teams",
+      "padding": "4px",
+      "page": 403,
+      "pageScroll": 403,
+      "role": "group",
+      "scrollHeight": 93,
+      "scrollWidth": 6738,
+      "tabindex": "0",
+      "wrap": "nowrap"
+    }
+  }
+]

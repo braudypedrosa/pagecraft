@@ -1,0 +1,13 @@
+{
+  "name": "Linden Dental Expanded QA",
+  "id": "8d74fb8c-dcca-4bfd-af97-c845c553d2b1",
+  "builderUrl": "https://staging.itspagecraft.com/edit/8d74fb8c-dcca-4bfd-af97-c845c553d2b1",
+  "published": false,
+  "packageSha256": "9263ec0f8927c7f25b155af5852583c44887f40e667152061715e4389fdd93d8",
+  "assets": 14,
+  "replacements": 16,
+  "importPath": "Native Media upload plus native project JSON import. No unpublished-template picker/ZIP UI exists.",
+  "initialPackageSha256": "1eec7af5e63881b0f639b5b4f6f5b623096c045fd66e99f46753a716d190bffc",
+  "revision": 24,
+  "finalImportDocument": "native-import-document-final.json"
+}

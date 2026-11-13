@@ -1,0 +1,202 @@
+{
+  "date": "2026-10-22",
+  "baseCommit": "f70e9ad7f309a1dd33323907664009bfaa99b082",
+  "status": "combined84 accepted by root native and reviewed29-source gallery; final full suite passes; root integration pending",
+  "source": [
+    "builder.html",
+    "app/src/core/index.ts"
+  ],
+  "test": [
+    "tests/binding-dialog-labels.test.mjs",
+    "tests/list-default-card-basis.test.ts"
+  ],
+  "change": [
+    "Bind-dialog selects have escaped per-row names, with indices only for duplicate descriptions; values/mapping unchanged.",
+    "Only palette-created empty Lists seed their one Column card with Desktop flex-basis280px and Mobile100%; Tablet inherits Desktop. Generic Columns, generic N(list), authored/imported Lists and Slider sizing remain unchanged."
+  ],
+  "checks": {
+    "typecheck": {
+      "result": "pass",
+      "log": "logs/typecheck-combined.log"
+    },
+    "focused": {
+      "result": "pass",
+      "files": 3,
+      "tests": 30,
+      "scope": [
+        "actual binding/custom-select2 tests",
+        "new palette List basis3 tests",
+        "customer rendering regressions25 tests"
+      ],
+      "log": "logs/focused-combined.log"
+    },
+    "relatedCore": {
+      "result": "pass",
+      "files": 2,
+      "tests": 668,
+      "scope": [
+        "existing Core binding helpers",
+        "render safety"
+      ],
+      "log": "logs/related-core-combined.log"
+    },
+    "determinism": {
+      "result": "11/11 artifacts byte-identical twice",
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-combined-1.log",
+        "logs/build-combined-2.log"
+      ]
+    },
+    "audit": {
+      "result": "all severity counts zero",
+      "log": "logs/audit-combined.json"
+    },
+    "demo": {
+      "result": "zero findings",
+      "log": "logs/demo-combined.log"
+    },
+    "diff": {
+      "result": "pass",
+      "log": "logs/diff-combined.log"
+    },
+    "outputContract": {
+      "result": "golden fixture, historical public snapshot and packaged runtime byte-identical to exact base; Core has only intended palette seed change",
+      "evidence": "output-contract-review.json"
+    },
+    "baselineBeforeGallery": {
+      "result": "expected builder.html source fingerprint gate; no baseline update",
+      "log": "logs/gate-pre-gallery.log"
+    },
+    "bindingOnlyFocused": {
+      "result": "pass",
+      "files": 3,
+      "tests": 12,
+      "scope": [
+        "actual binding dialog function and enhanced custom-select names/apply",
+        "component CMS binding behavior",
+        "existing Inspector bound controls"
+      ],
+      "log": "logs/focused.log"
+    },
+    "focusedIncompleteAttempt": {
+      "result": "rejected as incomplete test selection; no product failure",
+      "cause": "Initial combined command used a nonexistent List test filename; actual listed tests were inspected, then correct3-file selection reran and passed.",
+      "log": "logs/focused-combined-incomplete.log"
+    },
+    "fullFinal": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 244,
+      "filesSkipped": 2,
+      "testsPassed": 2591,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 100.99,
+      "log": "logs/full-final.log"
+    },
+    "baselineFinal": {
+      "result": "pass",
+      "images": 24,
+      "sourceFiles": 29,
+      "log": "logs/baseline-final.log"
+    },
+    "diffFinal": {
+      "result": "pass",
+      "log": "logs/diff-final.log"
+    },
+    "nativeListFinal": {
+      "result": "root accepted new palette List default and related scope",
+      "scope": [
+        "18 bound heading cards survive reload: Desktop1200 has282px cards/4 per first row, Tablet775 has375.5px/2, Mobile363 has100%/1; no page overflow.",
+        "Separate count1/count2/count4 JSON proofs verify all three devices after reload without overflow.",
+        "Existing Min basis control edits Desktop280\u2192320, Tablet200 then clear returns inherited320; Desktop restored280.",
+        "Slider preserves existing one-slide computed100% policy, horizontal internal scrolling and no page overflow across all three devices after reload."
+      ],
+      "evidence": [
+        "native/list-default-grid-reload.json",
+        "native/list-count1-reload.json",
+        "native/list-count2-reload.json",
+        "native/list-count4-reload.json",
+        "native/list-existing-basis-control.json",
+        "native/list-slider-basis-reload.json"
+      ],
+      "screenshots": [
+        "native/list-default-grid-desktop.png",
+        "native/list-default-grid-tablet.png",
+        "native/list-default-grid-mobile.png"
+      ],
+      "rejectedAttempt": {
+        "evidence": "native/small-count-batch-interruption.json",
+        "cause": "Browser-control30-second timeout/session reset lost aggregate; no aggregate credited. Separate bounded count proofs were written and accepted."
+      },
+      "limits": [
+        "Generic/authored List preservation has automated scope coverage; no broad migration or public runtime change.",
+        "No form submission; broader QA remains open."
+      ]
+    },
+    "galleryFinal": {
+      "result": "root captured, compared and recorded --reviewed baseline",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "sourceFiles": 29,
+      "capture": "gallery/capture.json",
+      "behaviors": "gallery/behavior-checks.json",
+      "comparison": "gallery/diffs/results.json",
+      "cleanup": "gallery/cleanup.json",
+      "cleanupTab": "41"
+    }
+  },
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 22,
+  "harness": {
+    "url": "http://localhost:4978/edit/s1",
+    "pid": 49913,
+    "sessionId": 17780,
+    "status": "restarted only4978 after combined assets;HTTP200; preserve for root",
+    "provenance": "Trusted83 .qa-ui-4976.mjs copied with only4976\u21924978 port substitution; fresh fictional default in-memory fixture; no hidden state injection.4972/4974/4976 untouched.",
+    "sha256": "506eab8c5e9de9615eae4c71a972befd2f8b892f62afc0fb488ce9f7547d13e7"
+  },
+  "remaining": [
+    "Root integration/release decision.",
+    "Broader customer QA remains open; no overall production-readiness claim."
+  ],
+  "limits": [
+    "DOM/custom-select tests do not establish actual native assistive-name and editing flow acceptance.",
+    "No full suite run yet by root instruction.",
+    "Broader customer QA remains open."
+  ],
+  "boundaries": "No source edits by build owner, Main/browser/WordPress/baseline recording/commit/push. Existing fixtures preserved.",
+  "integrationExclusions": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4978.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "historicalManifest": "source-tests-assets.binding-only.sha256",
+  "bindingNative": {
+    "result": "root accepted prior binding proof, Builder source unchanged",
+    "scope": "Unique descriptive enhanced names, duplicate distinction, keyboard and applied values; all3 breakpoints/reload; PNGs viewed by root.",
+    "evidence": [
+      "native/binding-reload-all-devices.json",
+      "native/duplicate-heading-fields.json",
+      "native/single-heading-fields.json"
+    ],
+    "screenshots": [
+      "native/binding-before.png",
+      "native/binding-after.png"
+    ]
+  },
+  "rejectedListDefault": {
+    "status": "historical tiny-card default fixed and accepted by root native reload/readability tests",
+    "symptom": "18 bound cards shrank to about44px each on Desktop1200 because unseeded card flex-basis was0%.",
+    "screenshot": "native/list-default-grid-desktop.png"
+  },
+  "finalReceipt": "final-receipt.json",
+  "reviewedBaselineManifest": "reviewed-baseline.sha256"
+}

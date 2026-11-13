@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/empty-rich-hit-area-0e808e5
+
+(node:31700) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31857) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31977) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  235 passed | 2 skipped (237)
+      Tests  2527 passed | 5 skipped (2532)
+   Start at  13:43:10
+   Duration  100.33s (transform 2.80s, setup 0ms, import 29.09s, tests 129.26s, environment 19.50s)

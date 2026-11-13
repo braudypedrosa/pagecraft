@@ -1,0 +1,35 @@
+{
+  "base": "b927f6435cb5d3a0903f386b62741ecc2376b1c5",
+  "source3": {
+    "app/src/core/index.ts": "a19ba0d32a6dfd15080f6486801be532d6ebb45203fb2b94212429f54185d1b3",
+    "tests/gallery-lightbox-load-error.test.ts": "81e320232e2ca7d259d423ca10b99e2d1e1c07203227629510e1399893ffd2cf",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "f4cb9713da809296477e16af392e07485c76f955d2b7e2f0a743283413da7a9f"
+  },
+  "candidateTrackedInputsChecked": 252,
+  "candidateContextMatchesBaseExceptOwnedSource": true,
+  "protected11Exact": true,
+  "generated8StagedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "orderedBuild10Exact": true,
+  "rootFullSuite": {
+    "testFiles": 262,
+    "skippedFiles": 2,
+    "passed": 2730,
+    "skipped": 5,
+    "exit": 0
+  },
+  "nativeAcceptance": "PENDING deployed Cloud and WordPress preview99",
+  "fullQAComplete": false,
+  "normalizedLogWhitespace": {
+    "before": "b9e48ef2195055566a7a6eb2c182ff59132ff7183e3fb85b231aa0dd41fcf809",
+    "after": "d66993caf25ee69c57813d06750fb658c1320f31a0905e488524abf181985f5c"
+  }
+}

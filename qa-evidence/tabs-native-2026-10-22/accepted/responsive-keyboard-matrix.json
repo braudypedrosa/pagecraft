@@ -1,0 +1,107 @@
+[
+  {
+    "device": "Tablet",
+    "dom": {
+      "scroll": 823,
+      "tabs": [
+        {
+          "scroll": 696,
+          "selected": "true",
+          "tabindex": 0,
+          "w": 696
+        },
+        {
+          "scroll": 53,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 53
+        },
+        {
+          "scroll": 53,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 53
+        }
+      ],
+      "visiblePanels": [
+        {
+          "height": 71,
+          "scroll": 775,
+          "scrollHeight": 71,
+          "width": 775
+        }
+      ],
+      "width": 823
+    }
+  },
+  {
+    "device": "Desktop",
+    "dom": {
+      "scroll": 1269,
+      "tabs": [
+        {
+          "scroll": 696,
+          "selected": "true",
+          "tabindex": 0,
+          "w": 696
+        },
+        {
+          "scroll": 53,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 53
+        },
+        {
+          "scroll": 53,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 53
+        }
+      ],
+      "visiblePanels": [
+        {
+          "height": 71,
+          "scroll": 1200,
+          "scrollHeight": 71,
+          "width": 1200
+        }
+      ],
+      "width": 1269
+    }
+  },
+  {
+    "device": "Mobile",
+    "dom": {
+      "scroll": 403,
+      "tabs": [
+        {
+          "scroll": 363,
+          "selected": "true",
+          "tabindex": 0,
+          "w": 363
+        },
+        {
+          "scroll": 50,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 50
+        },
+        {
+          "scroll": 49,
+          "selected": "false",
+          "tabindex": -1,
+          "w": 49
+        }
+      ],
+      "visiblePanels": [
+        {
+          "height": 122,
+          "scroll": 363,
+          "scrollHeight": 122,
+          "width": 363
+        }
+      ],
+      "width": 403
+    }
+  }
+]

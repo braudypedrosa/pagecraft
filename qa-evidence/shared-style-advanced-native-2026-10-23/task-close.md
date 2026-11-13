@@ -1,0 +1,13 @@
+# Task close: shared Style and Advanced matrix109
+
+23 October 2026, Asia/Manila. Pagecraft, staging and local WordPress. Bounded native matrix complete; exhaustive customer QA remains open. No product code changed in109.
+
+The same temporary nested Box and Heading were authored through the native builder on both hosts. Desktop padding24/28/32/36, background#e3e9df, overflow:hidden and max-width760px were combined with distinct Tablet/Mobile padding and widths. Modified-only filtering showed Padding under Style and Max width under Advanced. Tablet Hover opacity0.7 reset inherited Desktop0.5, preserving Tablet Focus translateX8px and Resting values. Resetting Tablet Resting preserved Mobile overrides. Clearing Mobile Resting restored Desktop values. Native fragment links made the block focusable.
+
+Saved keyboard focus and actual pointer hover passed at1280/834/414. Desktop focus had no transform; Tablet/Mobile focus used8px. Hover usedopacity0.5 without focus. Public pages had no horizontal overflow. The correct Link block parent was reselected after a canvas click initially selected its nested Heading; the saved parent transform survived editor reload on both hosts.
+
+Cloud History1295 restored the complete project byte-for-byte, SHA0826a13f998d879b0fe66028f1b2e9fd7f5855e3cdf91c47c8bdd5fe98acd9b7. WordPress History47 restored original8 nodes and compiled98 artifacts, finalVersion49/424revisions. The31-check exact29-key postguard passed. The initial two-revision expectation failed because WordPress creates post-content transition revisions in addition to explicit safety snapshots when HTML changes. All four705-708 revisions belong to616, with exact original/saved source pairs,116 metadata rows and exact ManagedPage29-key sets. Only safety snapshots705/707 match compiled hashes; transition706/708 are excluded by the existing revision filter. Both failed audit receipts and their unchanged proposals remain preserved. No database rollback or deletion occurred.
+
+All original420 revision rows/meta, accounts/sessions, global data, unrelated page487, installed55/19/16 files, PHP12, runtime and142 historical package files remain exact. Public temporary block is removed. CPU1/viewport/media reset responses succeeded on tab53. No production promotion or external sends. Time/billing not tracked or submitted.
+
+Next: Motion110 now has a confirmed entrance-animation versus Hover/Focus conflict. This matrix does not establish all12 shared Style controls, all8 Advanced controls or all arbitrary values. Evidence is in acceptance.json, the native matrix JSONs, responsive saved screenshots and final exact29 guard. Source remains Cloudfbb5f50 and WordPress1ed1613/preview103.

@@ -1,0 +1,204 @@
+{
+  "date": "2026-10-22",
+  "status": "Content, rejection and installed-file checks pass; strict option allowlist requires root review",
+  "wordpressCommit": "08686905d90b6a790369ec29e8f66349a2c39f4c",
+  "coreCommit": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+  "editorPreview": "0.2.17-preview.20261022.95",
+  "method": "Read-only WP-CLI snapshot and transactional SQL export, independent row parsing. No DB/source/browser/install/restoration mutations performed. RawSQL/private snapshots never copied to repository.",
+  "database": {
+    "tables": 133,
+    "unchangedInsertTables": 129,
+    "changedInsertTables": [
+      "wp_options",
+      "wp_postmeta",
+      "wp_posts",
+      "wp_usermeta"
+    ],
+    "oldRevisions": 359,
+    "finalRevisions": 371,
+    "newRevisions": [
+      644,
+      645,
+      646,
+      647,
+      648,
+      649,
+      650,
+      651,
+      652,
+      653,
+      654,
+      655
+    ],
+    "allNewRevisionParent": 616,
+    "changedExistingPosts": [
+      616
+    ],
+    "post616ChangedFields": [
+      "post_date",
+      "post_modified",
+      "post_modified_gmt"
+    ],
+    "newMetaCount": 318,
+    "newMetaIDRange": [
+      11634,
+      11951
+    ],
+    "newMetaParentCounts": {
+      "616": 10,
+      "644": 19,
+      "645": 19,
+      "646": 19,
+      "647": 19,
+      "648": 29,
+      "649": 29,
+      "650": 29,
+      "651": 29,
+      "652": 29,
+      "653": 29,
+      "654": 29,
+      "655": 29
+    },
+    "changedExistingMeta": [
+      {
+        "metaID": 11146,
+        "postID": 616,
+        "key": "_pagecraft_document_version"
+      }
+    ],
+    "changedUserMetaIDs": [
+      16
+    ],
+    "snapshotChangedKeys": [
+      "totalRevisionCount"
+    ],
+    "optionChanges": [
+      {
+        "name": "_elementor_design_system_sync_css_meta",
+        "oldRowID": 2070,
+        "newRowID": 2082,
+        "timestampMaskedExact": true,
+        "autoloadExact": true
+      },
+      {
+        "name": "_elementor_pro_free_trial_data",
+        "oldRowID": 326,
+        "newRowID": 326,
+        "timestampMaskedExact": true,
+        "autoloadExact": true
+      },
+      {
+        "name": "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+        "oldRowID": 2074,
+        "newRowID": 2080,
+        "timestampMaskedExact": true,
+        "autoloadExact": true
+      },
+      {
+        "name": "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+        "oldRowID": 2075,
+        "newRowID": 2081,
+        "timestampMaskedExact": true,
+        "autoloadExact": true
+      },
+      {
+        "name": "cron",
+        "oldRowID": 1,
+        "newRowID": 1,
+        "timestampMaskedExact": true,
+        "autoloadExact": true
+      }
+    ],
+    "strictOptionAllowlistAccepted": false,
+    "outsideStrictOptionAllowlist": [
+      "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+      "cron"
+    ],
+    "cronSemanticReview": {
+      "eventIdentitiesExact": true,
+      "changedEvents": [
+        {
+          "event": "wp_privacy_delete_old_export_files",
+          "oldTimestamp": 1792677590,
+          "newTimestamp": 1792681190,
+          "deltaSeconds": 3600,
+          "scheduleIntervalArgsExact": true
+        }
+      ],
+      "versionExact": true
+    },
+    "finalSQLSHA256": "8f24dc05259f110c756b35ee6dd04bd82691a7a46ca58862120f5327b8fd06e5"
+  },
+  "checks": {
+    "tableInventory133": true,
+    "onlyExpectedFourChangedTables": true,
+    "noPostMetaUserRemovals": true,
+    "existingPostChangesOnly616": true,
+    "new12RevisionsAllParent616": true,
+    "allChangedMetaOnly616OrItsNewRevisions": true,
+    "menuPostsByteExact": true,
+    "allMenuMetaByteExact": true,
+    "all359OldRevisionsAndTheirMetaExact": true,
+    "post616ContentRestored": true,
+    "post616StillDraft": true,
+    "onlySessionMeta16Changed": true,
+    "usersPasswordsExact": true,
+    "protectedSnapshotExactExceptRevisionCount": true,
+    "original487Version73": true,
+    "optionNamesExact": true,
+    "changedOptionsTimestampMaskedAndAutoloadExact": true,
+    "globalPagecraftOptionsByteExact": true,
+    "cronIdentitiesSchedulesIntervalsArgsExact": true,
+    "rejectionNoWritesBeyondTimestampOptions": true,
+    "fresh-rejectionNoWritesBeyondTimestampOptions": true,
+    "builder55Exact": true,
+    "theme19Exact": true,
+    "importer16Exact": true,
+    "expected4PHPOnly": true,
+    "historical128Exact": true
+  },
+  "rejectionComparisons": {
+    "rejection": {
+      "changedTables": [
+        "wp_options"
+      ],
+      "postsPostmetaRevisionsExact": true,
+      "protectedSnapshotExact": true,
+      "optionNamesExact": true,
+      "optionChanges": [
+        {
+          "name": "_elementor_pro_free_trial_data",
+          "timestampMaskedExact": true
+        }
+      ],
+      "all133InsertTablesExact": false,
+      "preSQLSHA256": "09394e575b7f817c02bba0eaa69939ae07bbb81807c396d43fd5bccf43c8dfee",
+      "postSQLSHA256": "bcbdd38880c33b7e4e9f186793161d0dc21c4b0ecd15ad22d9e77175a4b41549"
+    },
+    "fresh-rejection": {
+      "changedTables": [],
+      "postsPostmetaRevisionsExact": true,
+      "protectedSnapshotExact": true,
+      "optionNamesExact": true,
+      "optionChanges": [],
+      "all133InsertTablesExact": true,
+      "preSQLSHA256": "8f24dc05259f110c756b35ee6dd04bd82691a7a46ca58862120f5327b8fd06e5",
+      "postSQLSHA256": "8f24dc05259f110c756b35ee6dd04bd82691a7a46ca58862120f5327b8fd06e5"
+    }
+  },
+  "installed4PHPDelta": [
+    "includes/FallbackCompiler.php",
+    "includes/GlobalElementEditor.php",
+    "includes/NativeMenu.php",
+    "includes/PageEditor.php"
+  ],
+  "failures": [],
+  "reviewRequired": [
+    "Three environmental timestamp-only option deltas lie outside strict stated allowlist; root must explicitly review."
+  ],
+  "limits": [
+    "Native UI/public positive results remain root-owned receipts, not new live proof from this guard.",
+    "Full customer QA remains incomplete."
+  ]
+}

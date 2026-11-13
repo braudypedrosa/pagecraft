@@ -1,0 +1,20 @@
+{
+  "command": "npm test",
+  "exitCode": 0,
+  "testFilesPassed": 219,
+  "testFilesSkipped": 2,
+  "testsPassed": 2445,
+  "testsSkipped": 5,
+  "durationSeconds": 62.34,
+  "failures": [],
+  "warnings": [
+    "Node ExperimentalWarning: localStorage is not available because --localstorage-file was not provided."
+  ],
+  "gallery": {
+    "baselines": 24,
+    "changedPngs": 0,
+    "changedPixels": 0,
+    "behaviorChecksPassed": 30,
+    "rootManualReview": true
+  }
+}

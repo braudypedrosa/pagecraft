@@ -20,6 +20,16 @@ npm run template -- promote architecture-studio 1.0.0
 from the package's own renderer output. Builds do not modify the catalog and refuse released
 versions. Never use the legacy generator to rebuild released artifacts.
 
+New configs may opt into declarative native source with `sourceKind: "document-json-v1"` and
+`source: "document.json"`; this mode parses document data and never imports it as executable code.
+Legacy TypeScript factory configs remain supported without a `sourceKind` field and still require
+`sourceExport`. Import a validated portable site package into a new draft with
+`npm run template -- import-draft <id> <version> --package=<path> --name="..." --sample-name="..." --description="..." --categories="..."`.
+The command records the package provenance and asset names, checks that the native document and
+assets match the validated package, records the original package hash, and requires the ordinary
+draft package rebuild to match that hash before writing its preview. It refuses existing version
+directories and does not change the catalog.
+
 `check` recompiles and compares the document, assets, manifest, package and draft preview. It is
 read-only. Historical releases remain checkable without workflow records. `status` reports
 unbuilt/stale, revision, ready or released and the remaining release findings.
@@ -35,6 +45,11 @@ is forcibly terminated, inspect `.promotion-lock`, root artifacts and catalog be
 do not blindly remove a lock belonging to an active process.
 
 ## Creation flow
+
+For the 24-template expansion, use the [font and colour rotation review](../docs/template-style-rotation.md)
+and `style-rotation.json` before proposing a visual direction. Show at least two suitable
+font/palette choices, compare against existing sites, and record the user's selection.
+An exact font-pair and palette combination must not repeat within this collection.
 
 1. Record audience, action, sitemap, content, image roles/provenance, and native capability limits.
 2. Render three structurally different directions, each with a hero, body section and mobile view.

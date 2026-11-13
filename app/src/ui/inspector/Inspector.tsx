@@ -9,55 +9,81 @@
 
    None of that survives. A control's handlers are written beside its markup, `CUR` and
    `data-ci` are gone, and the guard has nothing left to check. */
-import { useEffect, useId } from 'preact/hooks';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { C, L, repaint } from '../ctx';
 import { Icon } from '../Icon';
+import { Disclosure } from '../Disclosure';
 import { Ctl } from './Controls';
-import type { Control, Node as PcNode } from '../../core/types';
+import { HelpTip } from '../HelpTip';
+import { ColorPop } from './ColorPop';
+import { MobileMenuBuilder } from './MobileMenuBuilder';
+import type { ComponentProp, Control, Node as PcNode } from '../../core/types';
+import {
+  advancedControlIsModified, clearOwnBreakpointChanges, commonControlsFirst,
+  controlIsModified, hasOwnBreakpointChanges, scopeDeclarations
+} from './scope';
+import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
 
 /* `askConfirm` takes HTML, so the one value interpolated into it is escaped by hand — the same
    reason Add.tsx has this line. */
 const esc = (v: string) => String(v ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
 
+const managedFormsAvailable = () => L.managedForms();
+
+/** Keep the portable document contract, but never offer a receiver the current host does not
+    have. A legacy managed value gets its own explicit recovery action below; omitting its
+    select here avoids both a blank native select and a choice that cannot be saved. */
+function formControlForHost(n: PcNode, c: Control): Control | null {
+  if (n.type !== 'form' || c.k !== 'mode' || C.cloudFormsEnabled() || managedFormsAvailable()) return c;
+  if (n.props.mode === 'wordpress') return null;
+  return { ...c, opts: [['external', 'External HTTPS endpoint']] };
+}
+
+function UnsupportedManagedForm({ n }: { n: PcNode }) {
+  if (n.type !== 'form' || n.props.mode !== 'wordpress' || C.cloudFormsEnabled() || managedFormsAvailable()) return null;
+  const useExternal = () => {
+    C.edit(() => { n.props.mode = 'external'; }, 'Use external HTTPS form handling');
+    repaint('right');
+  };
+  return (
+    <div class="note" role="alert" style="padding:12px">
+      WordPress-managed submissions are not available in this host.
+      <button type="button" class="btn block" style={{ marginTop: 'var(--gap-1)' }} onClick={useExternal}>
+        Use external HTTPS
+      </button>
+    </div>
+  );
+}
+
 /** A collapsible group. Its open state is keyed by widget type and title, so folding
     Spacing away on a Section does not fold it on every Heading too. */
 function Group({ title, n, items, gk, collapsed = false }: { title: string; n: PcNode; items?: Control[]; gk?: string; collapsed?: boolean; children?: any }) {
-  const bodyId = useId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false || (C.state.ui.open[key] === undefined && collapsed);
   /* `when` lets a control depend on the node: a background's position appears once
      there is a background, the collection filter's operator once a field is chosen. */
-  const shown = items ? items.filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && ['mode', 'action', 'method'].includes(c.k || ''))) : null;
+  const shown = items ? items
+    .filter(c => (!c.when || c.when(n)) && !(C.cloudFormsEnabled() && n.type === 'form' && c.k === 'mode'))
+    .map(c => formControlForHost(n, c)).filter((c): c is Control => c !== null) : null;
   /* A group whose every control is out of scope for this widget is not an empty group,
      it is no group — a heading has no Background section to collapse. */
   if (shown && !shown.length) return null;
   return (
-    <div class={'group' + (closed ? ' closed' : '')}>
-      <button type="button" class="gh" aria-expanded={closed ? 'false' : 'true'} aria-controls={bodyId}
-        onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
-        <Icon name="caret" size={10} /> {title}
-      </button>
-      <div class="gb" id={bodyId} aria-hidden={closed ? 'true' : undefined}>
-        {shown ? shown.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
-      </div>
-    </div>
+    <Disclosure title={title} open={!closed} onToggle={open => { C.state.ui.open[key] = open; repaint('right'); }}>
+      {shown ? shown.map((c, i) => <Ctl key={c.t + (c.c || c.k || i)} n={n} c={c} />) : null}
+    </Disclosure>
   );
 }
 
 /** Same, but for a group whose body is markup rather than a control list. */
 function Panel({ title, n, gk, children }: { title: string; n: PcNode; gk?: string; children: any }) {
-  const bodyId = useId();
   const key = gk || (n.type + ':' + title);
   const closed = C.state.ui.open[key] === false;
   return (
-    <div class={'group' + (closed ? ' closed' : '')}>
-      <button type="button" class="gh" aria-expanded={closed ? 'false' : 'true'} aria-controls={bodyId}
-        onClick={() => { C.state.ui.open[key] = closed; repaint('right'); }}>
-        <Icon name="caret" size={10} /> {title}
-      </button>
-      <div class="gb" id={bodyId} aria-hidden={closed ? 'true' : undefined}>{children}</div>
-    </div>
+    <Disclosure title={title} open={!closed} onToggle={open => { C.state.ui.open[key] = open; repaint('right'); }}>
+      {children}
+    </Disclosure>
   );
 }
 
@@ -103,8 +129,10 @@ function ClipStrip() {
   if (!C.styleClip.css) return null;
   const ids = C.selIds(), many = ids.length > 1;
   const paste = () => {
+    const check = C.stylePasteCheck();
+    if (!check.ok) { L.toast(check.reason); return; }
     let k = 0;
-    C.edit(() => { k = C.pasteStylesMany(C.selIds()); });
+    C.edit(() => { k = C.pasteStylesMany(C.selIds()); }, 'Paste styles');
     L.toast(k > 1 ? `Styles pasted onto ${k} elements` : k ? 'Styles pasted' : 'Nothing changed');
   };
   return (
@@ -116,7 +144,7 @@ function ClipStrip() {
         Paste{many ? ' to ' + ids.length : ''}
       </button>
       <button class="x" title="Forget it"
-        onClick={() => { C.styleClip.css = null; repaint('right'); L.toast('Style clipboard cleared'); }}>
+        onClick={() => { C.styleClipClear(); repaint('right'); L.toast('Style clipboard cleared'); }}>
         <Icon name="trash" size={11} />
       </button>
     </div>
@@ -126,6 +154,7 @@ function ClipStrip() {
 /** Which object styling lands on: this element, or one of its classes. */
 function StylingTarget({ n }: { n: PcNode }) {
   const applied = C.nodeClasses(n);
+  const sitewide = L.nativePageSource() != null;
   const target = C.state.ui.target && C.findClass(C.state.ui.target)
     && applied.some(c => c.id === C.state.ui.target) ? C.state.ui.target : '';
   const pool = C.classes().filter(c => !applied.some(x => x.id === c.id));
@@ -135,8 +164,17 @@ function StylingTarget({ n }: { n: PcNode }) {
     if (!v) return;
     if (v === '__new') {
       const name = await L.askText('New class', 'Class name', C.kindOf(n),
-        { ok: 'Create class', note: 'Restyling it reaches every element using it.' });
-      if (name === null) { el.value = ''; return; }
+        { ok: 'Create class', note: sitewide
+          ? 'Restyling it reaches every element using it on this WordPress site.'
+          : 'Restyling it reaches every element using it.' });
+      if (name === null) {
+        el.value = '';
+        /* The enhanced select mirrors native selection through its ordinary change contract.
+           Resetting the native value directly after a cancelled dialog otherwise leaves the
+           visible trigger on the cancelled option. */
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+      }
       C.edit(() => { C.state.ui.target = C.classFrom(n, name); });
       L.toast('Class created from this element');
       return;
@@ -147,14 +185,18 @@ function StylingTarget({ n }: { n: PcNode }) {
   return (
     <Panel title="Styling" n={n} gk={n.type + ':Styling'}>
       <div class="tgrow">
-        <button class={'tg' + (target ? '' : ' on')} onClick={() => pick('')}>This element</button>
+        <button class={'tg' + (target ? '' : ' on')} aria-pressed={target ? 'false' : 'true'}
+          title="Style this element only" onClick={() => pick('')}>This element</button>
       </div>
       {applied.map(c => {
         const uses = C.classUsage(c.id);
         return (
           <div class="tgrow" key={c.id}>
-            <button class={'tg' + (target === c.id ? ' on' : '')} onClick={() => pick(c.id)}>.{c.id}</button>
-            <small>{uses} use{uses === 1 ? '' : 's'}</small>
+            <button class={'tg' + (target === c.id ? ' on' : '')} aria-pressed={target === c.id ? 'true' : 'false'}
+              title={sitewide
+                ? 'Style every element using this class across this WordPress site'
+                : `Style all ${uses} elements using this class`} onClick={() => pick(c.id)}>.{c.id}</button>
+            <small>{sitewide ? 'Across site' : `${uses} use${uses === 1 ? '' : 's'}`}</small>
             <button class="tgx" title="Remove this class from the element"
               onClick={() => {
                 if (C.state.ui.target === c.id) C.state.ui.target = '';
@@ -167,13 +209,10 @@ function StylingTarget({ n }: { n: PcNode }) {
         onChange={e => add((e.target as HTMLSelectElement).value, e.target as HTMLSelectElement)}>
         <option value="">Add a class…</option>
         {pool.map(c => (
-          <option key={c.id} value={c.id}>.{c.id} · {C.classUsage(c.id)} use{C.classUsage(c.id) === 1 ? '' : 's'}</option>
+          <option key={c.id} value={c.id}>.{c.id} · {sitewide ? 'Across site' : `${C.classUsage(c.id)} use${C.classUsage(c.id) === 1 ? '' : 's'}`}</option>
         ))}
         <option value="__new">＋ New class from this element…</option>
       </select>
-      <div class="note">{target
-        ? <>Reaches all {C.classUsage(target)} element{C.classUsage(target) === 1 ? '' : 's'} using it.</>
-        : 'This element only.'}</div>
     </Panel>
   );
 }
@@ -205,19 +244,36 @@ function StylingTarget({ n }: { n: PcNode }) {
    right, and a dialog to retype them is how a variant ends up not quite matching the thing it
    was meant to capture. */
 function VariantPick({ n }: { n: PcNode }) {
+  const select = useRef<HTMLSelectElement>(null);
+  const focusAfterDelete = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusAfterDelete.current) return;
+    focusAfterDelete.current = false;
+    const trigger = select.current?.nextElementSibling;
+    const target = trigger instanceof HTMLElement && trigger.matches('.pc-custom-select-trigger')
+      ? trigger : select.current;
+    target?.focus({ preventScroll: true });
+  });
   const def = C.findComponent(n.use);
   if (!def) return null;
   const list = C.variantsOf(def);
   const own = C.instOwn(n).length;
+  const resetKeys = () => {
+    const allowed = L.canStructure() ? null : C.contentKeysOf(n);
+    return C.instOwn(n).filter(k => !allowed || allowed.has(C.VAL + k));
+  };
+  const resettable = resetKeys().length;
 
   const set = (vid: string) => {
+    if (!L.canStructure()) return;
     C.edit(() => C.variantSet(n, vid || null));
     L.paint(); L.save();
     repaint('right');
   };
   const save = async () => {
+    if (!L.canStructure()) return;
     const name = await L.askText('Save as variant', 'Name', 'Variant ' + (list.length + 1));
-    if (!name) return;
+    if (!name || !L.canStructure()) return;
     let made: string | null = null;
     C.edit(() => { made = C.variantFromInstance(n, name); });
     L.paint(); L.save();
@@ -225,26 +281,47 @@ function VariantPick({ n }: { n: PcNode }) {
     repaint('right');
   };
   const reset = () => {
-    C.edit(() => C.instOwn(n).forEach(k => C.instSet(n, k, undefined)));
+    const keys = resetKeys();
+    if (!keys.length) return;
+    C.edit(() => keys.forEach(k => C.instSet(n, k, undefined)));
+    L.paint(); L.save();
+    repaint('right');
+  };
+  const remove = async () => {
+    if (!L.canStructure()) return;
+    const variant = C.findVariant(def, n.variant);
+    if (!variant) return;
+    const used = C.variantUsage(def.id, variant.id);
+    const ok = await L.askConfirm('Delete this variant?',
+      `<b>${esc(variant.name)}</b> will be removed. `
+      + (used === 1 ? 'The one instance using it keeps its current values.'
+        : `${used} instances using it keep their current values.`),
+      { ok: 'Delete variant', danger: true });
+    if (!ok || !L.canStructure() || !C.findVariant(C.findComponent(def.id), variant.id)) return;
+    focusAfterDelete.current = true;
+    C.edit(() => C.variantDelete(def.id, variant.id), 'Delete variant ' + variant.name);
     L.paint(); L.save();
     repaint('right');
   };
 
   return (
     <div class="f">
-      <label>Variant</label>
-      <select aria-label="Variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+      <label>Component variant</label>
+      <select ref={select} aria-label="Component variant" disabled={!L.canStructure()} value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
           <option value="">Default</option>
           {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
-      <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
-        <button class="btn tiny" onClick={save}>Save as variant</button>
-        {own
+      {L.canStructure() || resettable ? <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
+        {L.canStructure() ? <button class="btn tiny" onClick={save}>Save as variant</button> : null}
+        {resettable
           ? <button class="btn tiny" onClick={reset}>
             {n.variant ? 'Back to the variant' : 'Back to the defaults'}
           </button>
           : null}
-      </div>
+      </div> : null}
+      {n.variant && C.findVariant(def, n.variant) && L.canStructure()
+        ? <button type="button" class="btn tiny block danger" style={{ marginTop: 'var(--gap-1)' }} onClick={remove}>Delete variant</button>
+        : null}
       {own
         ? <div class="note">
           {own === 1 ? 'One value is' : own + ' values are'} set on this instance
@@ -255,16 +332,19 @@ function VariantPick({ n }: { n: PcNode }) {
   );
 }
 
-function StatePick() {
+const focusStateAvailable = (n: PcNode) => n.type !== 'gallery' || !!n.props.lightbox;
+
+function StatePick({ n }: { n: PcNode }) {
   const cur = C.state.ui.st || '';
   const set = (k: string) => { C.state.ui.st = k as '' | 'hover' | 'focus'; repaint('right'); };
+  const states = C.STATES.filter(([k]) => k !== 'focus' || focusStateAvailable(n));
   return (
     <div class={'f statepick' + (cur ? ' on' : '')}>
       <label>State</label>
       <div class="pick">
         <button type="button" aria-pressed={cur ? 'false' : 'true'}
           class={cur ? '' : 'on'} onClick={() => set('')}>Resting</button>
-        {C.STATES.map(([k, label]) => (
+        {states.map(([k, label]) => (
           <button type="button" key={k} aria-pressed={cur === k ? 'true' : 'false'}
             class={cur === k ? 'on' : ''} onClick={() => set(k)}>{label}</button>
         ))}
@@ -273,6 +353,28 @@ function StatePick() {
           paragraph under every control is what makes a panel read as padding. */}
     </div>
   );
+}
+
+function ModifiedFilter({ active, onChange }: { active: boolean; onChange: (active: boolean) => void }) {
+  return (
+    <label class="inspector-modified-filter">
+      <input type="checkbox" checked={active}
+        onChange={e => onChange((e.target as HTMLInputElement).checked)} />
+      <span>Show modified settings</span>
+    </label>
+  );
+}
+
+function BreakpointReset({ n }: { n: PcNode }) {
+  const breakpoint = C.dk();
+  const state = C.state.ui.st || '';
+  if (breakpoint === 'd' || C.tgtIsClass(n) || !hasOwnBreakpointChanges(n, breakpoint, state)) return null;
+  const label = `Reset ${C.DEV_LABEL[breakpoint].toLowerCase()} changes`;
+  return <button type="button" class="btn tiny inspector-breakpoint-reset" onClick={() => {
+    C.edit(() => clearOwnBreakpointChanges(n, breakpoint, state), label);
+    L.toast(label);
+    repaint('right');
+  }}>{label}</button>;
 }
 
 /* Everything that moves, in one group. It held only the scroll animation, while Transition sat
@@ -295,53 +397,154 @@ const transitionCtl = (): Control => ({
   note: 'Animates a hover, a focus, or a class change.'
 });
 
-function Motion({ n }: { n: PcNode }) {
+const entranceAnimations = (current = '') => {
+  const choices = C.ANIM_NAMES.filter(name => name !== 'fade-out');
+  return current === 'fade-out' ? [...choices, 'fade-out'] : choices;
+};
+
+type TimingFieldProps = {
+  value: string;
+  label: string;
+  placeholder: string;
+  error: string;
+  valid: (value: string) => boolean;
+  onLive: (value: string) => void;
+  onDone: (event: Event, invalid: boolean) => void;
+};
+
+/* Keep a timing draft local until it is a valid CSS value. Invalid text must remain visible
+   long enough to explain the problem, but it must never reach bp-animate as an attribute. */
+function TimingField({ value, label, placeholder, error, valid, onLive, onDone }: TimingFieldProps) {
+  const errorId = useId();
+  const [draft, setDraft] = useState(value);
+  const [showError, setShowError] = useState(false);
+  const input = (next: string) => {
+    setDraft(next);
+    if (valid(next)) {
+      setShowError(false);
+      onLive(next.trim());
+    }
+  };
+  const finish = (event: Event) => {
+    const invalid = !valid(draft);
+    if (invalid) setShowError(true);
+    onDone(event, invalid);
+  };
+  return <div class="f"><label>{label}</label>
+    <input class="ctl" aria-label={label} value={draft} placeholder={placeholder}
+      aria-invalid={showError ? 'true' : undefined}
+      aria-describedby={showError ? errorId : undefined}
+      onInput={e => input((e.target as HTMLInputElement).value)}
+      onKeyDown={e => { if ((e as KeyboardEvent).key === 'Enter') finish(e); }}
+      onBlur={finish} />
+    {showError ? <div id={errorId} class="note" role="alert">{error}</div> : null}
+  </div>;
+}
+
+const cssVarOrCalc = (value: string) => /^(?:var\(--[\w-]+(?:\s*,\s*[^)]+)?\)|calc\(.+\))$/i.test(value);
+
+const cssTimeFallback = (value: string, allowNegative: boolean) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (cssVarOrCalc(v)) return true;
+  const match = v.match(/^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(ms|s)$/i);
+  if (!match) return false;
+  const number = Number(match[1]);
+  return Number.isFinite(number) && (allowNegative || number >= 0);
+};
+
+const cssSupports = (property: string, value: string, fallback: () => boolean) => {
+  if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function') return CSS.supports(property, value);
+  return fallback();
+};
+
+const cssTime = (value: string, allowNegative: boolean) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (!allowNegative && v.startsWith('-')) return false;
+  return cssSupports(allowNegative ? 'animation-delay' : 'animation-duration', v,
+    () => cssTimeFallback(v, allowNegative));
+};
+
+const cssEasingFallback = (value: string) => {
+  const v = value.trim();
+  if (!v) return true;
+  if (cssVarOrCalc(v) || /^linear\(.+\)$/i.test(v)) return true;
+  if (/^(?:linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/i.test(v)) return true;
+  if (/^steps\(\s*[1-9]\d*(?:\s*,\s*(?:start|end|jump-none|jump-both|jump-start|jump-end))?\s*\)$/i.test(v)) return true;
+  const number = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)';
+  const match = v.match(new RegExp(`^cubic-bezier\\(\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*,\\s*(${number})\\s*\\)$`, 'i'));
+  if (!match) return false;
+  const values = match.slice(1).map(Number);
+  return values.length === 4 && values.every(Number.isFinite) && values[0] >= 0 && values[0] <= 1 && values[2] >= 0 && values[2] <= 1;
+};
+
+const cssEasing = (value: string) => {
+  const v = value.trim();
+  if (!v) return true;
+  return cssSupports('animation-timing-function', v, () => cssEasingFallback(v));
+};
+
+function Motion({ n, showTransition = true, showAnimation = true }: { n: PcNode; showTransition?: boolean; showAnimation?: boolean }) {
   const a = n.anim || {};
-  const set = (patch: Record<string, unknown>) => {
-    C.edit(() => {
-      const next = { ...(n.anim || {}), ...patch };
-      /* dropped outright when there is nothing left in it, so a project carries no empty blocks
-         and `animUsed` cannot be fooled by one */
-      if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
-    });
+  const apply = (patch: Record<string, unknown>) => {
+    const next = { ...(n.anim || {}), ...patch };
+    for (const key of ['dur', 'delay', 'ease'] as const) if (next[key] === '') delete next[key];
+    /* dropped outright when there is nothing left in it, so a project carries no empty blocks
+       and `animUsed` cannot be fooled by one */
+    if (!next.name) delete n.anim; else n.anim = next as typeof n.anim;
+  };
+  const hard = (patch: Record<string, unknown>) => {
+    L.tx(n.id + '|motion');
+    apply(patch);
+    L.paint(); L.save(); L.endTx();
     repaint('right');
   };
+  const live = (k: 'dur' | 'delay' | 'ease', value: string) => {
+    /* Keep native typing outside C.edit's synchronous full-app render. The document changes
+       immediately; the normal debounced paint/save path closes as one undo step on blur. */
+    L.tx(n.id + '|motion|' + k);
+    apply({ [k]: value.trim() });
+    L.repaint();
+  };
   const time = (k: 'dur' | 'delay', label: string, ph: string) => (
-    <div class="f"><label>{label}</label>
-      <input class="ctl" value={(a as Record<string, string>)[k] || ''} placeholder={ph}
-        onChange={e => set({ [k]: (e.target as HTMLInputElement).value.trim() })} /></div>
+    <TimingField key={`${n.id}:${C.dk()}:${C.state.ui.st || ''}:${C.state.ui.target || ''}:${k}:${(a as Record<string, string>)[k] || ''}`} value={(a as Record<string, string>)[k] || ''}
+      label={label} placeholder={ph} valid={v => cssTime(v, k === 'delay')}
+      error={k === 'dur' ? 'Enter a duration such as 0.6s.' : 'Enter a delay such as 0s or -0.1s.'}
+      onLive={v => live(k, v)} onDone={(_event, invalid) => { L.endTx(); if (!invalid) repaint('right'); }} />
   );
 
   return (
     <Panel title="Motion" n={n} gk={n.type + ':Motion'}>
-      <div class="plabel">When it changes</div>
-      <Ctl n={n} c={transitionCtl()} />
+      {showTransition ? <><div class="plabel">When it changes</div>
+      <Ctl n={n} c={transitionCtl()} /></> : null}
 
-      <div class="plabel">When it enters the view</div>
-      <div class="f"><label>Animation</label>
-        <select class="ctl" value={a.name || ''}
-          onChange={e => set({ name: (e.target as HTMLSelectElement).value })}>
+      {showAnimation ? <><div class="plabel">When it enters the view</div>
+      <div class="f"><label>Animation <HelpTip label="Animation" text="Animations run in Preview and on the published site." /></label>
+        <select class="ctl" aria-label="Animation" value={a.name || ''}
+          onChange={e => hard({ name: (e.target as HTMLSelectElement).value })}>
           <option value="">— none —</option>
-          {C.ANIM_NAMES.map(x => (
-            <option key={x} value={x}>{x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
+          {entranceAnimations(a.name).map(x => (
+            <option key={x} value={x}>{x === 'fade-out'
+              ? 'Fade out (existing)'
+              : x.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase())}</option>
           ))}
         </select>
-        {a.name ? <div class="note">The canvas holds still — use Preview.</div> : null}
       </div>
       {a.name ? (
         <>
-          {time('dur', 'Duration', '0.6s')}
+          {time('dur', 'Duration', 'Preset default')}
           {time('delay', 'Delay', '0s')}
-          <div class="f"><label>Easing</label>
-            <input class="ctl" value={a.ease || ''} placeholder="ease-in-out"
-              onChange={e => set({ ease: (e.target as HTMLInputElement).value.trim() })} /></div>
+          <TimingField key={`${n.id}:${C.dk()}:${C.state.ui.st || ''}:${C.state.ui.target || ''}:ease:${a.ease || ''}`} value={a.ease || ''} label="Easing" placeholder="ease-in-out"
+            valid={cssEasing} error="Enter a CSS easing such as ease-in-out."
+            onLive={v => live('ease', v)} onDone={(_event, invalid) => { L.endTx(); if (!invalid) repaint('right'); }} />
           <label class="swrow" style={{ marginTop: 'var(--gap-1)' }}>
             <input type="checkbox" checked={!!a.once}
-              onChange={e => set({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />
+              onChange={e => hard({ once: (e.target as HTMLInputElement).checked ? 1 : 0 })} />
             <span>Only the first time it comes into view</span>
           </label>
         </>
-      ) : null}
+      ) : null}</> : null}
     </Panel>
   );
 }
@@ -351,26 +554,52 @@ function Motion({ n }: { n: PcNode }) {
 export const advControls = (n: PcNode): Control[] => [
   { t: 'text', k: '_id', label: 'HTML id', ph: C.autoId(n), note: 'What a link anchor targets. Auto unless you set one.' },
   { t: 'text', k: '_cls', label: 'CSS classes', ph: 'hero card--dark' },
-  { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
-  { t: 'unit', c: 'top', label: 'Top', r: 1, units: ['px', '%', 'rem'] },
-  { t: 'unit', c: 'z-index', label: 'Z-index', units: [''] },
-  { t: 'select', c: 'overflow', label: 'Overflow', opts: [['', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
-  { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'] },
+  { t: 'select', c: 'position', label: 'Position', r: 1, opts: [['', 'Default'], ['static', 'Static'], ['relative', 'Relative'], ['absolute', 'Absolute'], ['sticky', 'Sticky'], ['fixed', 'Fixed']] },
+  { t: 'unit', c: 'top', label: 'Top', r: 1, neg: 1, units: ['px', '%', 'rem'], opts: [['auto', 'Auto']] },
+  { t: 'unit', c: 'z-index', label: 'Z-index', r: 1, neg: 1, integer: 1, units: [''], opts: [['auto', 'Auto']] },
+  { t: 'select', c: 'overflow', label: 'Overflow', r: 1, opts: [['', 'Default'], ['visible', 'Visible'], ['hidden', 'Hidden'], ['auto', 'Auto']] },
+  { t: 'unit', c: 'max-width', label: 'Max width', r: 1, units: ['px', 'rem', '%', 'ch'], opts: [['none', 'None']] },
   { t: 'area', k: '_css', label: 'Custom CSS', rows: 4, ph: '& { … }' }
 ];
+
+function ManagedMobileLinks({ n }: { n: PcNode }) {
+  if (!n.props.managedMobileLinks) return null;
+  const owner = C.mobileMenuOwner(C.state.ui.cedit || '');
+  const open = () => {
+    if (!owner) return;
+    if (owner.mode === 'component' && owner.componentId) L.editComponent(owner.componentId);
+    else {
+      if (owner.page !== undefined) C.state.cur = owner.page;
+      L.editComponent(null);
+      L.setMode(owner.mode);
+    }
+    L.select(owner.node.id, { scroll: false });
+  };
+  return <Panel title="Navigation links" n={n}>
+    <button type="button" class="btn" title="Edit the links on the parent navigation" disabled={!owner} onClick={open}>
+      Edit navigation links
+    </button>
+  </Panel>;
+}
 
 function ContentSource({ n }: { n: PcNode }) {
   const col = n.src ? C.findCollection(n.src) : null;
   return (
     <Panel title="Content source" n={n}>
-      <select class="ctl" value={n.src || ''}
+      <label>Collection <HelpTip label="Content source" text="Choose a collection, then bind its fields to elements inside this container." /></label>
+      <select class="ctl" aria-label="Content source collection" value={n.src || ''}
         onChange={e => {
-          const v = (e.target as HTMLSelectElement).value;
-          C.edit(() => C.srcSet(n, v));
+          const select = e.currentTarget as HTMLSelectElement;
+          const original = n.src && C.findCollection(n.src) ? n.src : '';
+          const v = select.value;
+          const changed = changeContentSource(n, v);
+          if (changed.blocked) { select.value = original; L.toast(sourceChangeBlocked(changed)); return; }
+          if (!changed.changed) { select.value = original; return; }
           /* not "Bound to X" — that is what binding a *field* does, and reusing the
              word here is most of why setting a source reads as though it should have
              changed something on its own */
-          L.toast(v ? C.findCollection(v)!.name + ' is the scope — now bind a field' : 'Content source cleared');
+          L.toast((v ? 'Content source: ' + C.findCollection(v)!.name : 'Content source cleared')
+            + sourceChangeSuffix(changed));
         }}>
         <option value="">— None —</option>
         {C.collections().map(c => (
@@ -381,11 +610,7 @@ function ContentSource({ n }: { n: PcNode }) {
         <button class="btn block" style={{ marginTop: 'var(--gap-1)' }}
           onClick={() => L.bindModal(n.id)}><Icon name="cms" size={13} /> Bind the fields inside…</button>
       ) : null}
-      <div class="note">{col
-        ? 'Select something inside, then bind a field to it.'
-        : C.collections().length
-          ? 'Point this at a collection to bind fields inside it.'
-          : <>No collections yet — make one in <b>CMS</b>.</>}</div>
+      {!C.collections().length ? <div class="note">No collections yet. Create one in CMS.</div> : null}
     </Panel>
   );
 }
@@ -403,12 +628,85 @@ const DEV_ICON: Record<string, string> = { d: 'desktop', t: 'tablet', m: 'mobile
    Shown on the definition's root, because that is the node that stands for the component. The
    order is the order of the controls on every instance's panel, so moving one is a real
    decision rather than bookkeeping. */
+/** Draft only until Save: changing a shared default must not rewrite any instance's own
+    values, and Cancel must not create an Undo step or a save. Reuse the inspector's media
+    picker, colour picker and native control styling without using the live-value writer. */
+function PropertyDefaultEditor({ cid, pr, close }: { cid: string; pr: ComponentProp; close: () => void }) {
+  const [value, setValue] = useState(pr.def);
+  const [colourAnchor, setColourAnchor] = useState<HTMLElement | null>(null);
+  const id = useId();
+  const label = 'Default for ' + pr.label;
+  const assetId = pr.t === 'img' ? value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/)?.[1] : '';
+  const asset = assetId ? L.asset(assetId) : null;
+  const options = pr.t === 'bool' ? [['0', 'No'], ['1', 'Yes']]
+    : pr.t === 'icon' ? [['', 'No icon'], ...C.ICONS.flatMap(([, list]) => list.map(([name]) => [name, name]))]
+      : pr.opts || [];
+  const validColour = pr.t !== 'color' || !value || !!C.parseColor(C.resolveColor(value) || value)
+    || (typeof CSS !== 'undefined' && CSS.supports('color', value));
+  const save = () => {
+    const current = C.findProp(C.findComponent(cid), pr.k);
+    if (!current || current.t !== pr.t || !validColour || !L.canStructure()) return;
+    if (current.def !== value) {
+      C.edit(() => { current.def = value; }, 'Change default for ' + current.label);
+      L.paint(); L.save();
+    }
+    close();
+    repaint('right');
+  };
+  const chooseImage = async () => {
+    const selected = await L.mediaPicker({ title: 'Choose default image' });
+    if (selected && L.asset(selected)) setValue('asset:' + selected);
+  };
+  return <div class="f" role="group" aria-label={'Edit default for ' + pr.label}
+    style={{ paddingTop: 'var(--gap-1)', paddingBottom: 'var(--gap-2)' }}>
+    <label id={id} htmlFor={pr.t === 'img' ? undefined : id + '-value'}>{label}</label>
+    {pr.t === 'img' ? <>
+      {asset ? <div class="imgset">
+        <img src={asset.url} alt="" />
+        <span class="an"><b>{asset.name}</b><small>{C.kb(asset.size)}{asset.w ? ` · ${asset.w} × ${asset.h}` : ''}</small></span>
+      </div> : <div class="note">{value ? 'Not in this project: ' + value : 'No default image.'}</div>}
+      <div class="pc-field-actions">
+        <button type="button" class="btn grow" onClick={chooseImage} aria-label={'Choose default image for ' + pr.label}>
+          <Icon name="image" size={13} /> Library
+        </button>
+        {value ? <button type="button" class="btn" onClick={() => setValue('')}
+          aria-label={'Clear default image for ' + pr.label}>Clear</button> : null}
+      </div>
+    </> : pr.t === 'select' || pr.t === 'bool' || pr.t === 'icon'
+      ? <select id={id + '-value'} class="ctl" aria-labelledby={id} value={value}
+          onChange={e => setValue(e.currentTarget.value)}>
+          {!options.some(([v]) => v === value) ? <option value={value}>{value || 'None'}</option> : null}
+          {options.map(([v, name]) => <option key={v} value={v}>{name}</option>)}
+        </select>
+      : pr.t === 'rich'
+        ? <textarea id={id + '-value'} class="ctl" aria-labelledby={id} rows={4} value={value}
+            onInput={e => setValue(e.currentTarget.value)} />
+        : <div class={pr.t === 'color' ? 'clr' : undefined}>
+          {pr.t === 'color' ? <button type="button" class="sw" aria-label={'Pick default colour for ' + pr.label}
+            onClick={e => setColourAnchor(e.currentTarget)}><i style={{ background: C.resolveColor(value) || value || 'transparent' }} /></button> : null}
+          <input id={id + '-value'} class="ctl" aria-labelledby={id} value={value}
+            aria-invalid={!validColour ? 'true' : undefined} onInput={e => setValue(e.currentTarget.value)} />
+        </div>}
+    {colourAnchor ? <ColorPop start={C.resolveColor(value) || value} startRef={C.isRef(value) ? value : ''}
+      anchor={colourAnchor} onLive={setValue} onDone={setValue} onClose={() => setColourAnchor(null)} /> : null}
+    {!validColour ? <div class="note" role="alert">Enter a valid colour.</div> : null}
+    <p class="note">Instances without an override follow this default. Their own values and variants stay as saved.</p>
+    <div class="pc-field-actions">
+      <button type="button" class="btn grow" onClick={close}>Cancel</button>
+      <button type="button" class="btn grow primary" disabled={!validColour} onClick={save}>Save default</button>
+    </div>
+  </div>;
+}
+
 function ComponentProps({ n }: { n: PcNode }) {
+  const [editing, setEditing] = useState('');
+  const opener = useRef<HTMLButtonElement | null>(null);
   const cid = C.state.ui.cedit;
   if (C.state.ui.mode !== 'component' || !cid) return null;
   const def = C.findComponent(cid);
   if (!def || def.node.id !== n.id) return null;
   const list = def.props || [];
+  const closeDefault = () => { setEditing(''); opener.current?.focus(); };
 
   const rename = async (k: string, label: string) => {
     const name = await L.askText('Rename property', 'Label', label);
@@ -438,7 +736,8 @@ function ComponentProps({ n }: { n: PcNode }) {
   return (
     <Panel title="Properties" n={n}>
       {list.length ? list.map((pr, i) => (
-        <div class="lrow" key={pr.k} style={{ paddingLeft: 0, paddingRight: 0 }}>
+        <div key={pr.k}>
+        <div class="lrow" style={{ paddingLeft: 0, paddingRight: 0 }}>
           <button type="button" class="nm property-rename" onClick={() => rename(pr.k, pr.label)}
             title="Rename" aria-label={'Rename property ' + pr.label}>
             <b>{pr.label}</b> <small style={{ opacity: .6 }}>{pr.t}</small>
@@ -450,10 +749,16 @@ function ComponentProps({ n }: { n: PcNode }) {
           <button class="bx danger" title="Remove this property"
             onClick={() => remove(pr.k, pr.label)}><Icon name="trash" size={11} /></button>
         </div>
+        {L.canStructure() ? <button type="button" class="btn tiny" aria-label={'Edit default for ' + pr.label}
+          onClick={e => { opener.current = e.currentTarget; setEditing(cid + '|' + pr.k); }}>
+          Edit default
+        </button> : null}
+        {editing === cid + '|' + pr.k
+          ? <PropertyDefaultEditor key={editing} cid={cid} pr={pr} close={closeDefault} /> : null}
+        </div>
       )) : (
         <div class="note">
-          Nothing varies between instances yet. Every control that holds a value has a
-          <b> component badge</b> beside its label — press it to make that value a property.
+          No properties yet. <HelpTip label="Component properties" text="Use a control’s component badge to make its value editable on each instance." />
         </div>
       )}
     </Panel>
@@ -470,6 +775,27 @@ function ComponentProps({ n }: { n: PcNode }) {
    and a property of the component being edited. Both, when both apply. Nothing to offer means
    the control is not drawn: a condition with no value to test is a switch that does nothing. */
 function ShowIf({ n }: { n: PcNode }) {
+  /* An instance inherits its rendered condition from the definition root. Older documents can
+     still carry a cloned `showIf` on the placement, but editing that copy has no effect. Point
+     authors at the one condition the renderer owns, without rewriting either object. */
+  if (n.use) {
+    const definition = C.findComponent(n.use);
+    if (!definition?.node.showIf) return null;
+    const openDefinition = () => {
+      C.state.ui.stab = 'advanced';
+      L.editComponent(definition.id);
+      L.select(definition.node.id, { scroll: false });
+    };
+    return (
+      <div class="f">
+        <label>Condition</label>
+        <button type="button" class="btn block component-condition-owner"
+          title="This condition belongs to the component definition" onClick={openDefinition}>
+          Edit component condition
+        </button>
+      </div>
+    );
+  }
   const scope = C.bindScope(n.id);
   const cd = C.state.ui.mode === 'component' ? C.findComponent(C.state.ui.cedit) : null;
   const fields = scope ? C.fieldPaths(scope.col) : [];
@@ -478,6 +804,9 @@ function ShowIf({ n }: { n: PcNode }) {
 
   const cur = n.showIf || null;
   const key = cur ? cur.bind.src + ':' + cur.bind.path : '';
+  const boolField = cur?.bind.src === 'field'
+    ? fields.find(f => f.path === cur.bind.path)?.type === 'bool'
+    : false;
   const sources: [string, string][] = [
     ['', '— Always show —'],
     ...fields.map(f => [`field:${f.path}`, `${f.label} · ${f.type}`] as [string, string]),
@@ -502,27 +831,38 @@ function ShowIf({ n }: { n: PcNode }) {
     <>
       <div class="f">
         <label>Show only if</label>
-        <select value={key} onChange={e => write((e.target as HTMLSelectElement).value,
+        <select aria-label="Show only if" value={key} onChange={e => write((e.target as HTMLSelectElement).value,
           cur ? cur.op : 'set', cur && cur.value ? cur.value : '')}>
           {sources.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
         </select>
       </div>
       {cur ? (
         <div class="f">
-          <label>Condition</label>
-          <select value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
+          <label>Condition <HelpTip label="Condition" text="Hidden items have a dashed outline in the editor and are omitted from the published page." /></label>
+          <select aria-label="Condition" value={cur.op} onChange={e => write(key, (e.target as HTMLSelectElement).value,
             cur.value || '')}>
             {C.COND_OPS.map(([op, label]) => <option key={op} value={op}>{label}</option>)}
           </select>
           {cur.op === 'eq' || cur.op === 'ne' ? (
-            <input class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
-              placeholder="Value to compare"
-              onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
+            boolField ? (() => {
+              const currentValue = cur.value || '';
+              const options: [string, string][] = [['', 'Empty value'], ['1', 'Yes'], ['0', 'No']];
+              if (!options.some(([value]) => value === currentValue)) {
+                options.push([currentValue, `Custom value (${currentValue})`]);
+              }
+              return (
+                <select aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }}
+                  value={currentValue}
+                  onChange={e => write(key, cur.op, (e.target as HTMLSelectElement).value)}>
+                  {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              );
+            })() : (
+              <input aria-label="Value to compare" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={cur.value || ''}
+                placeholder="Value to compare"
+                onChange={e => write(key, cur.op, (e.target as HTMLInputElement).value)} />
+            )
           ) : null}
-          <div class="note">
-            Dashed blue on the canvas when it is not showing for the item you are looking at.
-            Left out of the exported page entirely.
-          </div>
         </div>
       ) : null}
     </>
@@ -536,18 +876,26 @@ function Visibility({ n }: { n: PcNode }) {
         <div class="tog-row" key={b} style={{ marginBottom: 'var(--gap-1)' }}>
           <span><Icon name={DEV_ICON[b]} size={12} /> Hide on {C.DEV_LABEL[b]}</span>
           <button type="button" role="switch" aria-label={`Hide on ${C.DEV_LABEL[b]}`}
+            title="Hidden elements remain selectable in the editor"
             aria-checked={n.hide && n.hide[b] ? 'true' : 'false'}
             class={'sw-tog' + (n.hide && n.hide[b] ? ' on' : '')}
             onClick={() => C.edit(() => { n.hide = n.hide || {}; n.hide[b] = !n.hide[b]; })}><i /></button>
         </div>
       ))}
-      <div class="note">Ghosted on the canvas, so you can still select them.</div>
       <ShowIf n={n} />
     </Panel>
   );
 }
 
-export function Inspector() {
+export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }: {
+  initialModifiedOnly?: boolean;
+  onModifiedOnlyChange?: (active: boolean) => void;
+} = {}) {
+  const [modifiedOnly, setModifiedOnlyState] = useState(initialModifiedOnly);
+  const setModifiedOnly = (active: boolean) => {
+    setModifiedOnlyState(active);
+    onModifiedOnlyChange?.(active);
+  };
   const h = C.state.ui.sel ? C.locate(C.state.ui.sel) : null;
 
   /* Joining or leaving changes the canvas width, so the selection frame and the px
@@ -568,10 +916,19 @@ export function Inspector() {
   if (!h) return null;
 
   const n = h.node, d = C.DEF[n.type];
+  /* A Gallery without lightbox links has no keyboard-focusable frame. Leave authored Focus
+     declarations stored for later re-enabling, but never leave the inspector writing through
+     a state the current Gallery cannot enter. */
+  if (C.state.ui.st === 'focus' && !focusStateAvailable(n)) C.state.ui.st = '';
   /* Forced, not merely defaulted: `stab` persists, so a session that was on Style before the
      role was known would otherwise render a Style pane with no tab row to leave it by. */
   const tab = L.canStructure() ? C.state.ui.stab : 'content';
-  const style = d.controls.style || [];
+  const style = commonControlsFirst(d.controls.style || []);
+  const moduleStyleKeys = new Set(style.flatMap(c => c.c ? ['css:' + c.c] : c.k ? ['prop:' + c.k] : []));
+  const commonStyle = C.COMMON_STYLE.map(group => ({
+    ...group,
+    items: group.items.filter(c => !moduleStyleKeys.has(c.c ? 'css:' + c.c : c.k ? 'prop:' + c.k : ''))
+  }));
   /* The Content tab is not the same line the server draws. It holds a heading's text, and
      also its HTML tag, its text style and its alignment — a tag is structure and the other
      two write CSS, so a content account offered them would be offered a refused save. The
@@ -582,8 +939,11 @@ export function Inspector() {
      to say about it. Same reader for the content-role filter, for the same reason. */
   const all = C.contentControls(n);
   const keys = L.canStructure() ? null : C.contentKeysOf(n);
-  const content = keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all;
+  const content = commonControlsFirst(keys ? all.filter(c => !c.c && !!c.k && keys.has(c.k)) : all);
+  const advanced = advControls(n);
   const many = C.selIds().length > 1;
+  const formHandling = n.type === 'form' && C.cloudFormsEnabled()
+    ? C.resolveFormHandling(n.props, n.id) : null;
   const inspectorTabs = [['content', 'Content'], ['style', 'Style'], ['advanced', 'Advanced']];
   const chooseTab = (key: string) => { C.state.ui.stab = key; repaint('right'); };
   const tabKey = (e: KeyboardEvent, key: string) => {
@@ -595,6 +955,21 @@ export function Inspector() {
     e.preventDefault(); chooseTab(keys[next]);
     requestAnimationFrame(() => document.getElementById('inspector-tab-' + keys[next])?.focus());
   };
+  const scopedDeclarations = scopeDeclarations(C.tgtObj(n), C.dk(), C.state.ui.st || '');
+  const visibleStyle = modifiedOnly ? style.filter(control => controlIsModified(control, scopedDeclarations)) : style;
+  const visibleCommonStyle = commonStyle.filter(group => group.g !== 'Effects').map(group => ({
+    ...group,
+    items: modifiedOnly ? group.items.filter(control => controlIsModified(control, scopedDeclarations)) : group.items
+  }));
+  const visibleAdvanced = modifiedOnly
+    ? advanced.filter(control => advancedControlIsModified(control, n, scopedDeclarations)) : advanced;
+  const effects = commonStyle.find(group => group.g === 'Effects');
+  const effectControls = C.canDo(n, 'effects') ? (effects?.items || []).filter(control => !modifiedOnly || controlIsModified(control, scopedDeclarations)) : [];
+  const showTransition = !modifiedOnly || controlIsModified(transitionCtl(), scopedDeclarations);
+  const showAnimation = !modifiedOnly || (C.dk() === 'd' && !C.state.ui.st && !C.tgtIsClass(n) && !!n.anim?.name);
+  const showMotion = !many && C.canDo(n, 'animation') && (showTransition || showAnimation);
+  const hasModifiedStyle = visibleStyle.length > 0 || visibleCommonStyle.some(group => C.canDo(n, group.cap) && group.items.length > 0) || showMotion;
+  const hasModifiedAdvanced = visibleAdvanced.length > 0 || effectControls.length > 0;
 
   return (
     <>
@@ -614,11 +989,18 @@ export function Inspector() {
       ) : null}
       <div class="pane" id="inspector-panel" role={L.canStructure() ? 'tabpanel' : undefined}
         aria-labelledby={L.canStructure() ? 'inspector-tab-' + tab : undefined}>
-        {tab === 'content' || many ? null : <StatePick />}
+        {tab === 'content' || many ? null : <StatePick n={n} />}
+        {tab === 'style' || tab === 'advanced' ? (
+          <div class="inspector-scope-actions">
+            <ModifiedFilter active={modifiedOnly} onChange={setModifiedOnly} />
+            {many ? null : <BreakpointReset n={n} />}
+          </div>
+        ) : null}
         {tab === 'content' && n.use ? <VariantPick n={n} /> : null}
-        {tab === 'content' && n.type === 'form' && C.cloudFormsEnabled() ? <p class="note" style="padding:12px">Saved to Submissions when published.</p> : null}
+        {tab === 'content' && formHandling ? <p class="note" style="padding:12px">{formHandling.note}</p> : null}
+        {tab === 'content' ? <UnsupportedManagedForm n={n} /> : null}
         {tab === 'content' ? <ComponentProps n={n} /> : null}
-        {tab === 'content' ? (
+        {tab === 'content' && n.props.managedMobileLinks ? <ManagedMobileLinks n={n} /> : tab === 'content' ? (
           content.length
             ? n.type === 'form' && !n.use
               ? [['Form fields', ['fields']], ['Button', ['submit']], ['Submission', ['mode', 'action', 'method']], ['Options', ['aria']]].map(([title, keys]) =>
@@ -630,19 +1012,18 @@ export function Inspector() {
                   properties come from, because the answer is not on this panel. */}
               {n.use
                 ? <div class="note">
-                  Nothing varies between instances yet. Open this component in the
-                  <b> Components</b> tab and mark what should.
+                  No editable properties. <HelpTip label="Component properties" text="Edit the component definition to add properties that vary between instances." />
                 </div>
                 : <div class="note">No content options — use the Style tab.</div>}
             </Panel>
         ) : tab === 'style' ? (
           <>
             <StylingTarget n={n} />
-            {style.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={style} /> : null}
+            {visibleStyle.length ? <Group title={d.styleLabel || (n.type === 'box' ? C.nameOf(n) : d.label)} n={n} items={visibleStyle} /> : null}
             {/* A group appears because the widget declares the capability it belongs to, not
                 because a predicate excludes nine widget types by name. A heading has no
                 `decoration`, so there is no Background group to hide controls inside. */}
-            {C.COMMON_STYLE.filter(g => C.canDo(n, g.cap))
+            {visibleCommonStyle.filter(g => C.canDo(n, g.cap))
               .map(g => <Group key={g.g} title={g.g} n={n} items={g.items} />)}
             {/* Last, and only for a single selection: motion is one value per element and a
                 group that wrote to several at once would be lying about what it edits.
@@ -651,22 +1032,29 @@ export function Inspector() {
                 changes nothing on screen — and a declared capability that nothing reads is a
                 wish rather than a description, which is the failure the registry exists to
                 avoid. The day a widget should not move, saying so will be enough. */}
-            {many || !C.canDo(n, 'animation') ? null : <Motion n={n} />}
+            {showMotion ? <Motion n={n} showTransition={showTransition} showAnimation={showAnimation} /> : null}
+            {modifiedOnly && !hasModifiedStyle ? <div class="empty inspector-modified-empty">No modified settings in this scope.</div> : null}
           </>
         ) : (
           <>
-            <Group title="Identity & layout" n={n} items={advControls(n)} />
-            {d.level < 4 ? <ContentSource n={n} /> : null}
-            <Visibility n={n} />
+            {visibleAdvanced.length ? <Group title="Identity & layout" n={n} items={visibleAdvanced} /> : null}
+            {effectControls.length ? <Group title="Effects" n={n} items={effectControls} /> : null}
+            {modifiedOnly ? null : d.level < 4 ? <ContentSource n={n} /> : null}
+            {modifiedOnly ? null : <Visibility n={n} />}
+            {modifiedOnly && !hasModifiedAdvanced ? <div class="empty inspector-modified-empty">No modified settings in this scope.</div> : null}
           </>
         )}
+        {tab === 'content' && n.type === 'nav' && !n.use && !many && L.canStructure()
+          && n.props.collapse !== 'never' && n.props.mobileMenu !== 'fullscreen' ? (
+          <Panel title="Mobile menu builder" n={n}><MobileMenuBuilder n={n} /></Panel>
+        ) : null}
       </div>
-      <div class="sFoot">
+      {L.canStructure() ? <div class="sFoot">
         <button class="btn" onClick={() => L.runAct('dup', C.selIds())}>
           <Icon name="copy" size={13} /> Duplicate{many ? ' all' : ''}</button>
         <button class="btn danger" onClick={() => L.runAct('del', C.selIds())}>
           <Icon name="trash" size={13} /> Delete{many ? ' all' : ''}</button>
-      </div>
+      </div> : null}
     </>
   );
 }

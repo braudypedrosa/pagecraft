@@ -1,6 +1,6 @@
 import a from 'node:assert/strict';
-import { test } from 'vitest';
-import { freezeGoogleFontStylesheets } from '../src/font-freeze.ts';
+import { test, vi } from 'vitest';
+import { FontFetchUnavailableError, freezeGoogleFontStylesheets } from '../src/font-freeze.ts';
 import { blankDoc } from '../src/render.ts';
 import { buildReleaseArtifact, canonicalJson, releaseStylesheetLinks } from '../src/releases.ts';
 
@@ -79,6 +79,109 @@ test('font stylesheet requests negotiate the WOFF2 response expected by the free
   a.match(userAgent, /(?:Chrome|Chromium)\/\d+/,
     'Google Fonts otherwise serves legacy TTF files to a product-specific user agent');
 });
+
+test('temporary font responses retry once and preserve deterministic frozen output', async () => {
+  const source = new Map([['index.html', page('home')]]);
+  const expected = await freezeGoogleFontStylesheets(source, fixtureFetch('retried-font', []));
+  for (const status of [408, 429, 503]) {
+    let cssCalls = 0;
+    const fetcher = (async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.hostname === 'fonts.googleapis.com' && cssCalls++ === 0) {
+        return new Response('temporary', { status });
+      }
+      if (url.hostname === 'fonts.googleapis.com') {
+        return new Response(css, { headers: { 'content-type': 'text/css' } });
+      }
+      return new Response(Buffer.from('wOF2retried-font'), {
+        headers: { 'content-type': 'font/woff2' }
+      });
+    }) as typeof fetch;
+    const frozen = await freezeGoogleFontStylesheets(source, fetcher);
+    a.equal(cssCalls, 2, `HTTP ${status} did not receive exactly one retry`);
+    a.deepEqual([...frozen], [...expected], `HTTP ${status} retry changed the frozen bytes`);
+    a.match(frozen.get('index.html') || '', /data-pagecraft-frozen-fonts=/);
+    a.doesNotMatch(frozen.get('index.html') || '', /fonts\.(?:googleapis|gstatic)\.com/);
+  }
+});
+
+test('font timeout is bounded and retried once without waiting on the real clock', async () => {
+  vi.useFakeTimers();
+  const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation((milliseconds: number) => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new DOMException('timed out', 'TimeoutError')), milliseconds);
+    return controller.signal;
+  });
+  let calls = 0;
+  const hanging = ((_input: string | URL | Request, init?: RequestInit) => {
+    calls++;
+    return new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true });
+    });
+  }) as typeof fetch;
+  try {
+    const pending = freezeGoogleFontStylesheets(
+      new Map([['index.html', page('home')]]), hanging
+    );
+    const settled = pending.then(
+      () => ({ error: null }),
+      error => ({ error })
+    );
+    await vi.advanceTimersByTimeAsync(20_000);
+    const { error } = await settled;
+    a.ok(error instanceof FontFetchUnavailableError);
+    a.equal(error.stage, 'stylesheet');
+    a.equal(error.category, 'timeout');
+    a.equal(calls, 2);
+    a.deepEqual(timeout.mock.calls, [[10_000], [10_000]]);
+  } finally {
+    timeout.mockRestore();
+    vi.useRealTimers();
+  }
+});
+
+test('font-file transport exhaustion reports a bounded stage and category', async () => {
+  let fontCalls = 0;
+  const fetcher = (async (input: string | URL | Request) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    if (url.hostname === 'fonts.googleapis.com') {
+      return new Response(css, { headers: { 'content-type': 'text/css' } });
+    }
+    fontCalls++;
+    throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } });
+  }) as typeof fetch;
+  await a.rejects(
+    () => freezeGoogleFontStylesheets(new Map([['index.html', page('home')]]), fetcher),
+    error => error instanceof FontFetchUnavailableError
+      && error.stage === 'font' && error.category === 'connection'
+  );
+  a.equal(fontCalls, 2);
+});
+
+test('font client and validation failures are deterministic and are not retried', async () => {
+  let clientCalls = 0;
+  const clientFailure = (async () => {
+    clientCalls++;
+    return new Response('bad request', { status: 400 });
+  }) as typeof fetch;
+  await a.rejects(
+    () => freezeGoogleFontStylesheets(new Map([['index.html', page('home')]]), clientFailure),
+    /font stylesheet fetch failed with HTTP 400/
+  );
+  a.equal(clientCalls, 1);
+
+  let validationCalls = 0;
+  const invalidType = (async () => {
+    validationCalls++;
+    return new Response(css, { headers: { 'content-type': 'text/html' } });
+  }) as typeof fetch;
+  await a.rejects(
+    () => freezeGoogleFontStylesheets(new Map([['index.html', page('home')]]), invalidType),
+    /unsupported content type/
+  );
+  a.equal(validationCalls, 1);
+});
+
 test('font freezing rejects redirect and dependency host escapes', async () => {
   const files = new Map([['index.html', page('home')]]);
   const redirected = (async () => new Response(null, {

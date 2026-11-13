@@ -1,0 +1,30 @@
+{
+  "protected11WorkingFilesPreserved": true,
+  "native9Passed": true,
+  "rootSourceReviewed": [
+    "app/src/core/index.ts",
+    "tests/button-variant-style-precedence.test.ts"
+  ],
+  "logTerminalBlankNormalization": [
+    {
+      "file": "full-suite.log",
+      "originalSha256": "c07b93dbcbc41a4519366d7ce5580e8f5b864f24e7432f09319963575f84da3b",
+      "savedSha256": "34c7d092dfb800597a8da6f285f6d049a5a97417ab9d7c2fa5e147082d28f2c5"
+    },
+    {
+      "file": "before-repro.log",
+      "originalSha256": "fdfd64872c894590887354c583ba8ca07eabceb4c0ce139fdfa770934f717be4",
+      "savedSha256": "8e9833705dc3889115e4c3d0f1284ba146151e73f2c5cf0445e94926411f7deb"
+    },
+    {
+      "file": "targeted.log",
+      "originalSha256": "230de2e59bc4c27516d1d4ed6ce2abce04d74ea172f5e2c29e7c82721e267de0",
+      "savedSha256": "e756d86dd7a1c398bcb1cc46dd4f871414dd37f097da9e46bc5898b70757b66e"
+    },
+    {
+      "file": "after-focused.log",
+      "originalSha256": "9f5865f553791154211809dcd30adfde9e1b279c21f15dd07c9d983b1652b93f",
+      "savedSha256": "730f969e015d2da2d6c2395347d59c6e6a87cbad8485836a9c7dcb437791d437"
+    }
+  ]
+}

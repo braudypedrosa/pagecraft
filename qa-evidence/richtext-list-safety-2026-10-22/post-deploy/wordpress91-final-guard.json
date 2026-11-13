@@ -1,0 +1,88 @@
+{
+  "tables": 133,
+  "unchangedTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_posts",
+    "wp_postmeta"
+  ],
+  "existingPostAndMetaRowsAllExact": true,
+  "newPage": 616,
+  "newRevisionsCreated": [
+    617,
+    618,
+    619
+  ],
+  "newRows": {
+    "wp_posts": [
+      616,
+      617,
+      618,
+      619
+    ],
+    "wp_postmeta": [
+      11135,
+      11136,
+      11137,
+      11138,
+      11139,
+      11140,
+      11141,
+      11142,
+      11143,
+      11144,
+      11145,
+      11146,
+      11147,
+      11148,
+      11149,
+      11150,
+      11151,
+      11152,
+      11153,
+      11154,
+      11155,
+      11156,
+      11157,
+      11158,
+      11159,
+      11160,
+      11161
+    ]
+  },
+  "newRevisionParent": 616,
+  "newPageStatus": "draft",
+  "newPageTitle": "QA Rich text and typography 2026-10-22",
+  "original487Version": 73,
+  "original487AndProtectedSnapshotsExact": true,
+  "oldRevisions": 332,
+  "newRevisions": 335,
+  "newOptionCacheNames": [
+    "_site_transient_timeout_wp_remote_block_patterns_59560b42f3b1375876ba66ba6dbc9ea3",
+    "_site_transient_timeout_wp_remote_block_patterns_cd5d1533d3f68dc43f0ca1cbc3dabf91",
+    "_site_transient_wp_remote_block_patterns_59560b42f3b1375876ba66ba6dbc9ea3",
+    "_site_transient_wp_remote_block_patterns_cd5d1533d3f68dc43f0ca1cbc3dabf91"
+  ],
+  "updatedOptions": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data",
+    "cron"
+  ],
+  "elementorTimestampOnly": true,
+  "cron": "Existing WordPress daily privacy cleanup event rescheduled by86400seconds; hook/signature/schedule/interval/args exact.",
+  "sqlSHA256": "923d40eef0abdfc206f3aa12b0375523bdbba2a54d41820ff2cb1c51c688e61c",
+  "nativeDraftCompiler": {
+    "documentVersion": 1,
+    "documentSha256": "837ce059c2dbb71f73ad7656d6e6ceb8fe172747f846a3c23bc45453e3fc006e",
+    "compilerDocumentSha256": "837ce059c2dbb71f73ad7656d6e6ceb8fe172747f846a3c23bc45453e3fc006e",
+    "compilerEditorVersion": "0.2.17-preview.20261022.91",
+    "compilerRendererRevision": "pagecraft-renderer-2",
+    "compiledCssSha256": "523ef70be9454b30cd72a9a6a20dbfef0ec632ba2faff13aa0082835c5828cfb"
+  },
+  "builder55Theme19Importer16Exact": true,
+  "historical118Exact": true,
+  "version": "0.2.17-preview.20261022.91",
+  "wordpressCommit": "fcc9f5efc9007d620a529710ba47ee24e5396512",
+  "cloudCommit": "67c6838312397200157c498a3952bb55635998b9",
+  "nativeSavedFrontendAccepted": true
+}

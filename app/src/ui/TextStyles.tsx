@@ -11,6 +11,7 @@
 import { C, L, repaint } from './ctx';
 import { Icon } from './Icon';
 import { FontSelect } from './FontSelect';
+import { HelpTip } from './HelpTip';
 import type { TextStyle, Bp } from '../core/types';
 
 let openStyle: string | null = null;
@@ -19,7 +20,7 @@ let styleDev: Bp = 'd';
 const WEIGHTS: string[][] = [['', 'Default'], ['300', 'Light 300'], ['400', 'Regular 400'],
   ['500', 'Medium 500'], ['600', 'Semibold 600'], ['700', 'Bold 700'],
   ['800', 'Extrabold 800'], ['900', 'Black 900']];
-const CASES: string[][] = [['', 'None'], ['uppercase', 'UPPERCASE'],
+const CASES: string[][] = [['none', 'None'], ['uppercase', 'UPPERCASE'],
   ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']];
 const TAGS: string[][] = [['', 'Leave as-is'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3'],
   ['h4', 'H4'], ['h5', 'H5'], ['h6', 'H6'], ['p', 'Paragraph'], ['div', 'div — not a heading']];
@@ -43,7 +44,7 @@ function Editor({ t }: { t: TextStyle }) {
   };
 
   /** number-and-unit pair, reading the unit off its own select so the two stay together */
-  const Unit = ({ prop, units }: { prop: string; units: string[] }) => {
+  const Unit = ({ prop, units, label }: { prop: string; units: string[]; label: string }) => {
     const p = C.parseU(b[prop]);
     const u = units.includes(p.u) ? p.u : units[0];
     const push = (root: HTMLElement) => {
@@ -53,11 +54,11 @@ function Editor({ t }: { t: TextStyle }) {
     };
     return (
       <div class="unit">
-        <input class="ctl" type="number" step="any" value={p.n}
+        <input class="ctl" type="number" step="any" value={p.n} aria-label={`${label} value`}
           placeholder={C.parseU(ph(prop)).n || 'auto'}
           onInput={e => push((e.target as HTMLElement).parentElement!)}
           onBlur={() => { L.endTx(); repaint('styles'); }} />
-        <select class="ctl" value={u}
+        <select class="ctl" value={u} aria-label={`${label} unit`}
           onChange={e => { push((e.target as HTMLElement).parentElement!); L.endTx(); }}>
           {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
         </select>
@@ -67,7 +68,7 @@ function Editor({ t }: { t: TextStyle }) {
 
   const Choice = ({ prop, opts, label }: { prop: string; opts: string[][]; label: string }) => (
     <div class="f"><label>{label}</label>
-      <select class="ctl" value={b[prop] || ''}
+      <select class="ctl" value={b[prop] || ''} aria-label={label}
         onChange={e => {
           write(prop, (e.target as HTMLSelectElement).value);
           L.endTx(); repaint('styles');
@@ -87,22 +88,27 @@ function Editor({ t }: { t: TextStyle }) {
 
   return (
     <div class="tsedit">
-      <div class="pick" style={{ marginBottom: 'var(--gap-2)' }}>
-        {(['d', 't', 'm'] as Bp[]).map(d => (
-          <button key={d} class={styleDev === d ? 'on' : ''}
-            onClick={() => { styleDev = d; repaint('styles'); }}>
-            <Icon name={DEV_ICON[d]} size={12} /> {C.DEV_LABEL[d]}
-          </button>
-        ))}
+      <div class="pc-label-with-help" style={{ marginBottom: 'var(--gap-2)' }}>
+        <div class="pick" style={{ flex: 1 }}>
+          {(['d', 't', 'm'] as Bp[]).map(d => (
+            <button key={d} class={styleDev === d ? 'on' : ''}
+              onClick={() => { styleDev = d; repaint('styles'); }}>
+              <Icon name={DEV_ICON[d]} size={12} /> {C.DEV_LABEL[d]}
+            </button>
+          ))}
+        </div>
+        <HelpTip label="Responsive text styles" text={styleDev === 'd'
+          ? 'Tablet and Mobile only need values that differ from Desktop.'
+          : 'Empty fields inherit the Desktop value shown as a placeholder.'} />
       </div>
 
       <div class="row2">
-        <div class="f"><label>Size</label><Unit prop="font-size" units={C.U.size} /></div>
+        <div class="f"><label>Size</label><Unit prop="font-size" units={C.U.size} label="Size" /></div>
         <Choice prop="font-weight" opts={WEIGHTS} label="Weight" />
       </div>
       <div class="row2">
-        <div class="f"><label>Line height</label><Unit prop="line-height" units={C.U.line} /></div>
-        <div class="f"><label>Letter spacing</label><Unit prop="letter-spacing" units={C.U.track} /></div>
+        <div class="f"><label>Line height</label><Unit prop="line-height" units={C.U.line} label="Line height" /></div>
+        <div class="f"><label>Letter spacing</label><Unit prop="letter-spacing" units={C.U.track} label="Letter spacing" /></div>
       </div>
       <div class="f"><label>Font</label>
         <FontSelect value={b['font-family'] || ''} ariaLabel="Font" onChange={v => {
@@ -115,9 +121,9 @@ function Editor({ t }: { t: TextStyle }) {
       {/* the tag is a property of the style itself, not of a breakpoint */}
       {styleDev === 'd' ? (
         <div class="f">
-          <label>Default HTML tag <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>
-            — applied when a heading takes this style</span></label>
-          <select class="ctl" value={t.tag || ''}
+          <div class="pc-label-with-help"><label>Default HTML tag</label>
+            <HelpTip label="Default HTML tag" text="Applied when a heading uses this text style." /></div>
+          <select class="ctl" value={t.tag || ''} aria-label="Default HTML tag"
             onChange={e => {
               L.tx('tstag:' + t.id);
               const v = (e.target as HTMLSelectElement).value;
@@ -130,13 +136,13 @@ function Editor({ t }: { t: TextStyle }) {
       ) : null}
 
       <div class="row2">
-        <Choice prop="text-transform" opts={CASES} label="Transform" />
+        <Choice prop="text-transform" opts={[['', 'Inherit'], ...CASES]} label="Transform" />
         <div class="f"><label>Colour</label>
           <div class="clr">
             <span class="sw"><i style={{ background: C.resolveColor(colVal) || 'transparent' }} /></span>
             {tok
               ? <span class="tokchip"><Icon name="link" size={10} /> {tok.name}</span>
-              : <input class="ctl hex" value={colVal} placeholder={ph('color') || 'inherit'}
+              : <input class="ctl hex" value={colVal} placeholder={ph('color') || 'inherit'} aria-label="Colour"
                 onInput={e => write('color', (e.target as HTMLInputElement).value.trim())}
                 onBlur={() => { L.endTx(); repaint('styles'); }} />}
             <button class="x" title="Clear" onClick={() => setColor(null)}>
@@ -146,15 +152,20 @@ function Editor({ t }: { t: TextStyle }) {
             {C.colors().map(c => (
               <button key={c.id} class={'tok' + (tok && tok.id === c.id ? ' on' : '')}
                 title={c.name} style={{ background: c.value }}
-                onClick={() => setColor(C.cvar(c.id))} />
+                onClick={() => {
+                  const live = C.findColor(c.id);
+                  if (!live) {
+                    repaint('styles');
+                    L.toast('That colour token no longer exists. Choose another colour.', { tone: 'error' });
+                    return;
+                  }
+                  setColor(C.cvar(live.id));
+                }} />
             ))}
           </div>
         </div>
       </div>
 
-      <div class="note">{styleDev === 'd'
-        ? 'The base values. Switch to Tablet or Mobile to override only what differs there.'
-        : 'Only what you set here overrides desktop. Empty fields fall through to the base value shown as a placeholder.'}</div>
     </div>
   );
 }

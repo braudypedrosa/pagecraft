@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-20T23:54:18.298Z",
+  "environment": "localhost4956 final combined candidate",
+  "node": "c7enz5gj",
+  "nativeKeyboard": {
+    "activeHref": "#qa-rich-keyboard",
+    "activeTag": "A",
+    "focusWithin": true,
+    "linkFocusVisible": true,
+    "wrapperColour": "rgb(36, 95, 47)"
+  },
+  "nativeMouse": {
+    "focusWithin": true,
+    "linkFocusVisible": false,
+    "wrapperColour": "rgb(17, 19, 17)"
+  },
+  "localTargetPressed": "true",
+  "keyboardAccepted": true,
+  "mouseDoesNotTriggerKeyboardStyle": true,
+  "classTargets": {
+    "classActive": {
+      "local": "false",
+      "shared": "true"
+    },
+    "localActive": {
+      "local": "true",
+      "shared": "false"
+    }
+  },
+  "localWins": "rgb(36, 95, 47)",
+  "clearLocalRestoresClass": "rgb(32, 80, 128)"
+}

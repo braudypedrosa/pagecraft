@@ -1,0 +1,38 @@
+{
+  "rows": [
+    {
+      "device": "Desktop",
+      "questions": [
+        "Shipping & returns?",
+        "How long does it take?",
+        "Who is it for?",
+        "What does it cost?"
+      ],
+      "open": [
+        true,
+        false,
+        false,
+        true
+      ],
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "questions": [
+        "Shipping & returns?",
+        "How long does it take?",
+        "Who is it for?",
+        "What does it cost?"
+      ],
+      "open": [
+        true,
+        false,
+        false,
+        true
+      ],
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "scope": "Actual candidate85 native Accordion authored fixture. Ephemeral preview click opens/closes last panel per breakpoint; saved default remains first open/singleoff."
+}

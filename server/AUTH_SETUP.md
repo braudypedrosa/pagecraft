@@ -22,6 +22,9 @@ In the Pagecraft Supabase project:
    that format too.
 6. Set the minimum password length to 12. Enable leaked-password protection when the project plan
    exposes it.
+7. Turn on the setting that requires the current password to change it (Secure password change).
+   Pagecraft lets a session set a password without the current one only for 15 minutes after it
+   arrives through a recovery or invitation link; Supabase should refuse every other attempt too.
 
 ## Google sign-in
 
@@ -45,6 +48,11 @@ environment, then enable Turnstile under Supabase Auth's Bot and Abuse Protectio
 the secret key there. Pagecraft passes each token to Supabase Auth for one-time validation during
 signup, login, and password recovery; the application never consumes it with a second verifier.
 
+Turnstile must be enabled in Supabase. Pagecraft cannot check this at startup, and it only checks
+that a token was sent: Supabase is what rejects a forged one. Login failures count against an
+address only when Supabase accepted the token, so with Turnstile off in Supabase anyone could
+lock an address out of sign-in for 15 minutes by sending wrong passwords with any token.
+
 ## Application environment
 
 Production requires all of these and refuses to start when one is missing:
@@ -57,6 +65,19 @@ SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 TURNSTILE_SITE_KEY=<site-key>
 ```
+
+Optional:
+
+```text
+PAGECRAFT_TRUST_CLOUDFLARE=1   # only when Cloudflare really fronts the origin
+PAGECRAFT_COOKIE_SECRET=<random 32+ bytes>   # needed when more than one Node process serves a host
+```
+
+Without `PAGECRAFT_TRUST_CLOUDFLARE`, `CF-Connecting-IP` is ignored and rate limits key on the
+leftmost `X-Forwarded-For` (LiteSpeed replaces it with the real client), then the socket peer.
+Without `PAGECRAFT_COOKIE_SECRET`, each process signs the short recovery cookie with its own
+random key, so a reset started on one process and finished on another (or across a restart)
+sends the person to Account settings, where the current password is required.
 
 Local development must also provide a local Supabase URL/publishable key and a site key. To use the
 deterministic challenge verifier in automated local tests, set `PAGECRAFT_AUTH_TEST_MODE=1` and send

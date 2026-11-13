@@ -1,0 +1,90 @@
+{
+  "task": "metadata-only site revision history",
+  "date": "2026-10-17",
+  "base": "24ec349dcec8182218a03c960f951c15ca83a77f",
+  "archive": "/private/tmp/pagecraft-history-investigation-24ec",
+  "patch": {
+    "path": "/private/tmp/pagecraft-history-investigation-24ec/qa-evidence/history-metadata/history-metadata.patch",
+    "sha256": "49dc351c03b2559183625894fecee3e72bc4bbfbee885e1a7dcc3cf01a460fac",
+    "changedFiles": [
+      "server/src/store.ts",
+      "server/src/store-pg.ts",
+      "server/src/store-gateway.ts",
+      "supabase/functions/pagecraft-db/index.ts",
+      "server/tests/gateway-db.test.ts",
+      "server/tests/store-gateway.test.ts",
+      "server/tests/store-pg.test.ts",
+      "server/tests/app.test.ts"
+    ]
+  },
+  "runtimeEvidence": {
+    "siteRevisionCount": 773,
+    "compressedDocBytes": 25304752,
+    "conclusiveFirstFailure": "MemoryLimitExceeded at 321204069 bytes joined to pagecraft-db-v3 Edge 546",
+    "retryQualification": "CPUTimeExceeded log had Edge response 200 and is not conclusively the second UI 500"
+  },
+  "checks": {
+    "redCore": {
+      "exit": 1,
+      "files": "3 failed, 1 passed",
+      "tests": "3 failed, 116 passed",
+      "log": "red.log"
+    },
+    "redMemory": {
+      "exit": 1,
+      "files": "1 failed",
+      "tests": "1 failed, 39 skipped",
+      "log": "red-memory-corrected.log"
+    },
+    "focusedFinal": {
+      "exit": 0,
+      "files": "5 passed",
+      "tests": "123 passed",
+      "log": "green-focused-final.log"
+    },
+    "typecheck": {
+      "exit": 0,
+      "log": "typecheck.log"
+    },
+    "denoCheck": {
+      "exit": 0,
+      "log": "deno-check.log"
+    },
+    "denoFmt": {
+      "exit": 1,
+      "classification": "pre-existing whole-file formatting drift outside the changed SQL hunk; no broad reformat applied",
+      "log": "deno-fmt.log"
+    },
+    "fullSuiteFinal": {
+      "exit": 0,
+      "files": "217 passed, 2 skipped",
+      "tests": "2423 passed, 5 skipped",
+      "log": "full-suite-final.log"
+    },
+    "patchApplyCheck": {
+      "exit": 0
+    },
+    "archiveScope": {
+      "exactChangedFiles": 8
+    },
+    "mainProtected11": {
+      "exact": true,
+      "count": 11,
+      "evidence": "main-protected11-final.json"
+    }
+  },
+  "executionNote": "One focused vitest command was accidentally launched from Main while preparing the additional MemoryStore red case. It passed 1 test with 39 skipped, did not invoke a build, and the protected 11 hashes remain exact. Corrected red ran in the clean archive and failed on the intended metadata assertion.",
+  "delivery": {
+    "mainEdited": false,
+    "databaseWritten": false,
+    "schemaChanged": false,
+    "deployed": false,
+    "browserUsed": false
+  },
+  "remaining": [
+    "Root review and integration",
+    "Coordinated rollout of shared pagecraft-db-v3; no deployment was performed",
+    "Staging verification against the 773-revision site",
+    "Pagination remains out of scope"
+  ]
+}

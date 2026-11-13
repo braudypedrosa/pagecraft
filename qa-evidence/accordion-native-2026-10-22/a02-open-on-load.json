@@ -1,0 +1,125 @@
+[
+  {
+    "setting": "All closed",
+    "rows": [
+      {
+        "device": "Desktop",
+        "marker": "plus",
+        "open": 0,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Tablet",
+        "marker": "plus",
+        "open": 0,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Mobile",
+        "marker": "plus",
+        "open": 0,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      }
+    ]
+  },
+  {
+    "setting": "The first one",
+    "rows": [
+      {
+        "device": "Desktop",
+        "marker": "plus",
+        "open": 1,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Tablet",
+        "marker": "plus",
+        "open": 1,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Mobile",
+        "marker": "plus",
+        "open": 1,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      }
+    ]
+  },
+  {
+    "setting": "All open",
+    "rows": [
+      {
+        "device": "Desktop",
+        "marker": "plus",
+        "open": 3,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Tablet",
+        "marker": "plus",
+        "open": 3,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      },
+      {
+        "device": "Mobile",
+        "marker": "plus",
+        "open": 3,
+        "overflow": false,
+        "rows": 3,
+        "summaries": [
+          "What do I get?",
+          "How long does it take?",
+          "What does it cost?"
+        ]
+      }
+    ]
+  }
+]

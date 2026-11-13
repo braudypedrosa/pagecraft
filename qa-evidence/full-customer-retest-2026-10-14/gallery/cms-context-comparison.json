@@ -1,0 +1,88 @@
+{
+  "format": "pagecraft.cms-context-gallery-comparison.v1",
+  "status": "complete-for-captured-a-b-pairs",
+  "tool": "temporary /tmp/compare-gallery.mjs using sharp ensureAlpha raw RGBA; existing threshold is max-channel delta >20 and ratio <=0.001",
+  "runA": {
+    "path": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-context-reviewed-a",
+    "capture": "capture.json",
+    "captures": 24,
+    "sources": 28,
+    "behaviorChecks": 30,
+    "dimensions": "24/24 decoded dimensions matched candidate; 22/24 matched old baseline",
+    "capturePngSignature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795",
+    "runtime": {"colorDepth": 30, "pixelDepth": 30, "colorGamut": {"srgb": true, "p3": true, "rec2020": false}}
+  },
+  "candidate": {
+    "path": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-context-final",
+    "capture": "capture.json",
+    "captures": 24,
+    "sources": 28,
+    "behaviorChecks": 30,
+    "capturePngSignature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795"
+  },
+  "runAVsCandidate": {
+    "byteExact": 23,
+    "decodedRgbaExact": 23,
+    "dimensionsEqual": 24,
+    "thresholdPass": 24,
+    "nonExactCapture": "cloud-fields-768.png",
+    "nonExactDetail": "dimensions equal; candidate differs from run A only in raw PNG/RGBA bytes for this capture; threshold still passes",
+    "sourceIdentity": "run A and candidate each report 28 sources; identities not asserted equivalent here"
+  },
+  "oldBaselineVsRunA": {
+    "reference": "public/internal-ui-baselines (manifest has no capture-schema runtime metadata)",
+    "byteExact": 0,
+    "decodedRgbaExact": 0,
+    "dimensionsEqual": 22,
+    "thresholdPass": 0,
+    "dimensionMismatches": [
+      {"name": "cloud-menus-768.png", "runA": [768, 1007], "old": [768, 1008]},
+      {"name": "builder-menus-768.png", "runA": [768, 958], "old": [768, 959]}
+    ],
+    "colorDifference": "All 24 fail raw decoded RGBA exactness; 22 dimension-equal pairs have broad channel deltas consistent with the run A/candidate runtime color metadata (30-bit/P3-capable screen, no PNG profile chunks).",
+    "largestThresholdRatios": [
+      {"name": "builder-actions-768.png", "ratio": 0.07957979052645296, "changedPixelsOver20": 78169, "pixelCount": 982272},
+      {"name": "cloud-actions-768.png", "ratio": 0.056201252052545156, "changedPixelsOver20": 43810, "pixelCount": 779520},
+      {"name": "cloud-menus-768.png", "ratio": 0.062313988095238096, "changedPixelsOver20": 48240, "pixelCount": 774144}
+    ],
+    "interpretation": "This is an A/B characterization only. No PNG normalization, threshold change, baseline migration, or release conclusion is made."
+  },
+  "runB": {
+    "path": "qa-evidence/full-customer-retest-2026-10-14/gallery/cms-context-reviewed-b",
+    "capture": "capture.json",
+    "captures": 24,
+    "sources": 28,
+    "behaviorChecks": 30,
+    "capturePngSignature": "6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795",
+    "runtime": {"colorDepth": 30, "pixelDepth": 30, "colorGamut": {"srgb": true, "p3": true, "rec2020": false}},
+    "sourceIdentitiesEqualRunA": true
+  },
+  "runAVsRunB": {
+    "byteExact": 22,
+    "decodedRgbaExact": 22,
+    "dimensionsEqual": 24,
+    "thresholdPass": 24,
+    "nonExactCaptures": [
+      {"name": "cloud-fields-768.png", "dimensionsEqual": true, "changedPixelsOver20": 40, "pixelCount": 1218816, "ratio": 0.00003281873555975636},
+      {"name": "builder-menus-1440.png", "dimensionsEqual": true, "changedPixelsOver20": 2, "pixelCount": 1296000, "ratio": 0.0000015432098765432098}
+    ],
+    "interpretation": "Two fresh same-source runs are dimension-stable and pass the existing threshold; the two raw-pixel differences are tiny capture repeatability deltas."
+  },
+  "contactSheets": {
+    "runAOnly": true,
+    "layout": "Each sheet is two columns by three rows with filename labels and resized screenshot tiles.",
+    "paths": [
+      "/tmp/gallery-cms-context-sheets/cloud-1440.png",
+      "/tmp/gallery-cms-context-sheets/cloud-768.png",
+      "/tmp/gallery-cms-context-sheets/builder-1440.png",
+      "/tmp/gallery-cms-context-sheets/builder-768.png"
+    ]
+  },
+  "canonicalBaselineRecord": {
+    "status": "recorded-by-root",
+    "scope": "candidate cms-context-final, 24 screenshots and 28 source files",
+    "recordedManifest": "public/internal-ui-baselines/manifest.json",
+    "postRecordCheck": "PASS: 24 images, 28 source files",
+    "migrationDecision": "Reviewed candidate accepted after run A/B behavior, dimensions, provenance and threshold checks; old baseline mismatch retained as documented capture-environment/source-history evidence."
+  }
+}

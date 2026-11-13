@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-17T05:18:21.720Z",
+  "environment": "local WordPress QA",
+  "package": "Preview48",
+  "postId": 487,
+  "node": "ny2qsh9qo",
+  "trigger": "Add panel search Slider, click Slider",
+  "observedUndoLabel": "Add column",
+  "undoRemovedEntireSlider": true,
+  "redoRestoredSliderChildren": 3,
+  "atomicUndoPass": true,
+  "wordingIssue": {
+    "priority": "P2",
+    "expected": "Add Slider",
+    "actual": "Add column",
+    "sourceFixPending": true
+  },
+  "harnessNote": "Initial .pagecraft-slider class lookup was not the rendered selector; exact known data-id confirmed zero nodes after Undo and three children after Redo."
+}

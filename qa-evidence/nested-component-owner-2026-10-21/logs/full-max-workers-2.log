@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/nested-component-owner-3782048
+
+(node:55503) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55546) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55644) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  236 passed | 2 skipped (238)
+      Tests  2535 passed | 5 skipped (2540)
+   Start at  14:40:17
+   Duration  101.24s (transform 2.71s, setup 0ms, import 28.50s, tests 131.68s, environment 19.45s)

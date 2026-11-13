@@ -1,0 +1,250 @@
+--- a/server/src/store.ts
++++ b/server/src/store.ts
+@@ -60,6 +60,11 @@
+   createdAt: string;
+ }
+ 
++/** The history index is intentionally metadata-only. Full immutable documents are loaded one
++    version at a time through `revision`, so a long-lived site does not multiply its document
++    size through the database gateway merely to paint a list. */
++export type SiteRevisionMeta = Pick<SiteRevision, 'siteId' | 'version' | 'savedBy' | 'createdAt'>;
++
+ export interface CmsWriteHead {
+   connectionId: string;
+   collectionId: string;
+@@ -103,7 +108,7 @@
+     id: string, doc: Doc, version: number, savedBy: string, connectionId: string,
+     context: Record<string, unknown>, active?: () => Promise<boolean>
+   ): Promise<SaveResult>;
+-  history(id: string): Promise<SiteRevision[]>;
++  history(id: string): Promise<SiteRevisionMeta[]>;
+   revision(id: string, version: number): Promise<SiteRevision | null>;
+   /** Latest WordPress write sequence per requested item, read without returning revision docs. */
+   cmsWriteHeads(id: string, connectionId: string, itemKeys: string[]): Promise<CmsWriteHead[]>;
+@@ -327,7 +332,7 @@
+   }
+ 
+   async history(id: string) {
+-    return (this.revisions.get(id) || []).slice().reverse().map(r => this.revisionCopy(r));
++    return (this.revisions.get(id) || []).slice().reverse().map(({ doc: _doc, context: _context, ...meta }) => meta);
+   }
+ 
+   async revision(id: string, version: number) {
+--- a/server/src/store-pg.ts
++++ b/server/src/store-pg.ts
+@@ -19,7 +19,7 @@
+ import type { Doc } from '../../app/src/core/types.ts';
+ import { planEntitlements } from './plans.ts';
+ import {
+-  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SaveResult, type Store,
++  validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SiteRevisionMeta, type SaveResult, type Store,
+   type ScheduledPublishInput, type ScheduledPublishResult
+ } from './store.ts';
+ import {
+@@ -394,9 +394,14 @@
+   site_id: string; version: number; doc: Doc; saved_by: string | null;
+   context: Record<string, unknown> | null; created_at: Date | string;
+ }
++type RevisionMetaRow = Omit<RevisionRow, 'doc' | 'context'>;
+ const toRevision = (r: RevisionRow): SiteRevision => ({
+   siteId: r.site_id, version: r.version, doc: r.doc, savedBy: r.saved_by,
+   context: r.context,
++  createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
++});
++const toRevisionMeta = (r: RevisionMetaRow): SiteRevisionMeta => ({
++  siteId: r.site_id, version: r.version, savedBy: r.saved_by,
+   createdAt: typeof r.created_at === 'string' ? r.created_at : r.created_at.toISOString()
+ });
+ 
+@@ -572,9 +577,9 @@
+   }
+ 
+   async history(id: string) {
+-    const { rows } = await this.db.query<RevisionRow>(
+-      'select * from site_revisions where site_id = $1 order by version desc', [id]);
+-    return rows.map(toRevision);
++    const { rows } = await this.db.query<RevisionMetaRow>(
++      'select site_id, version, saved_by, created_at from site_revisions where site_id = $1 order by version desc', [id]);
++    return rows.map(toRevisionMeta);
+   }
+ 
+   async revision(id: string, version: number) {
+--- a/server/src/store-gateway.ts
++++ b/server/src/store-gateway.ts
+@@ -38,6 +38,7 @@
+   type ScheduledPublishResult,
+   type Site,
+   type SiteRevision,
++  type SiteRevisionMeta,
+   slugFrom,
+   type Store,
+   validSlug,
+@@ -240,12 +241,19 @@
+   context: Record<string, unknown> | null;
+   created_at: string;
+ }
++type RevisionMetaRow = Omit<RevisionRow, "doc" | "context">;
+ const toRevision = (row: RevisionRow): SiteRevision => ({
+   siteId: row.site_id,
+   version: row.version,
+   doc: row.doc,
+   savedBy: row.saved_by,
+   context: row.context,
++  createdAt: new Date(row.created_at).toISOString(),
++});
++const toRevisionMeta = (row: RevisionMetaRow): SiteRevisionMeta => ({
++  siteId: row.site_id,
++  version: row.version,
++  savedBy: row.saved_by,
+   createdAt: new Date(row.created_at).toISOString(),
+ });
+ 
+@@ -502,8 +510,8 @@
+     return { ok: false, guarded: true };
+   }
+   async history(id: string) {
+-    return (await this.gateway.call<RevisionRow[]>("site.history", { id })).map(
+-      toRevision,
++    return (await this.gateway.call<RevisionMetaRow[]>("site.history", { id })).map(
++      toRevisionMeta,
+     );
+   }
+   async revision(id: string, version: number) {
+--- a/supabase/functions/pagecraft-db/index.ts
++++ b/supabase/functions/pagecraft-db/index.ts
+@@ -594,7 +594,7 @@
+     }
+     case "site.history":
+       return await sql`
+-        select site_id, version, doc, saved_by, context, created_at
++        select site_id, version, saved_by, created_at
+         from site_revisions where site_id = ${
+         text(args.id)
+       } order by version desc
+--- a/server/tests/gateway-db.test.ts
++++ b/server/tests/gateway-db.test.ts
+@@ -249,6 +249,40 @@
+     [siteId, `${siteId}.example.test`, doc]);
+   await db.query(`insert into site_users (site_id, user_id, role) values ($1, $2, 'owner')`, [siteId, userId]);
+ }
++
++test('site history stays metadata-only when saved documents exceed the gateway response budget', async () => {
++  const siteId = 'large-history', ownerId = 'large-history-owner';
++  await siteWithOwner(siteId, ownerId);
++  const payload = 'x'.repeat(1024 * 1024);
++  for (let version = 1; version <= 8; version++) {
++    await db.query(`insert into site_revisions
++      (site_id, version, doc, saved_by, context, created_at)
++      values ($1, $2, $3::jsonb, $4, $5::jsonb, $6)`, [
++      siteId, version,
++      JSON.stringify({ ...doc, meta: { payload: `${version}:${payload}` } }),
++      ownerId, JSON.stringify({ marker: `revision-${version}` }),
++      `2026-10-${String(version).padStart(2, '0')}T12:00:00.000Z`,
++    ]);
++  }
++
++  const history = await call('site.history', { id: siteId });
++  a.equal(history.status, 200, JSON.stringify(history.body));
++  a.ok(Buffer.byteLength(JSON.stringify(history.body), 'utf8') < 64 * 1024,
++    'listing metadata must not echo every immutable document through the Edge gateway');
++  const rows = history.body.data as Record<string, unknown>[];
++  a.deepEqual(rows.map(row => row.version), [8, 7, 6, 5, 4, 3, 2, 1]);
++  for (const row of rows) {
++    a.equal(Object.hasOwn(row, 'doc'), false);
++    a.equal(Object.hasOwn(row, 'context'), false);
++    a.equal(row.saved_by, ownerId);
++    a.equal(typeof row.created_at, 'string');
++  }
++
++  const detail = await operation('site.revision', { id: siteId, version: 4 });
++  a.equal(detail.status, 200);
++  a.equal(detail.body.doc.meta.payload, `4:${payload}`);
++  a.deepEqual(detail.body.context, { marker: 'revision-4' });
++});
+ 
+ /** A site paired with WordPress and published once: every table that refers to it has a row. */
+ async function connectedSite(siteId: string, userId: string) {
+--- a/server/tests/store-gateway.test.ts
++++ b/server/tests/store-gateway.test.ts
+@@ -355,6 +355,40 @@
+     "a hot public path does not call a multi-second gateway twice",
+   );
+   a.deepEqual(calls.map((call) => call.op), ["site.listMeta", "site.bySlug"]);
++});
++
++test("gateway store lists revision metadata and fetches one document only by version", async () => {
++  const metadata = [3, 2].map((version) => ({
++    site_id: "s1",
++    version,
++    saved_by: "owner-1",
++    created_at: `2026-10-0${version}T12:00:00.000Z`,
++  }));
++  const detail = {
++    ...metadata[1],
++    doc: siteRow.doc,
++    context: { marker: "revision-two" },
++  };
++  const { gateway, calls } = fakeGateway((call) => {
++    if (call.op === "site.history") return metadata;
++    if (call.op === "site.revision") return detail;
++    throw new Error(`unexpected ${call.op}`);
++  });
++  const sites = new GatewayStore(gateway);
++
++  const history = await sites.history("s1");
++  a.deepEqual(history.map((revision) => revision.version), [3, 2]);
++  for (const revision of history) {
++    a.equal(Object.hasOwn(revision, "doc"), false);
++    a.equal(Object.hasOwn(revision, "context"), false);
++  }
++  const revision = await sites.revision("s1", 2);
++  a.deepEqual(revision?.doc, siteRow.doc);
++  a.deepEqual(revision?.context, { marker: "revision-two" });
++  a.deepEqual(calls, [
++    { op: "site.history", args: { id: "s1" } },
++    { op: "site.revision", args: { id: "s1", version: 2 } },
++  ]);
+ });
+ 
+ test("gateway site rows expire in seconds, fresh reads skip them, and the save fast path keeps its exact version for minutes", async () => {
+--- a/server/tests/store-pg.test.ts
++++ b/server/tests/store-pg.test.ts
+@@ -162,7 +162,7 @@
+   a.ok(new Date(res.site!.updatedAt) >= new Date(site.updatedAt));
+ });
+ 
+-test('every accepted save is an immutable revision with its author', async () => {
++test('history lists immutable revision metadata while revision reads one full document', async () => {
+   const { sites } = await fresh();
+   const original = demo();
+   const site = await sites.create({ host: 'acme.test', name: 'Acme', doc: original, savedBy: 'owner-1' });
+@@ -172,7 +172,8 @@
+ 
+   const history = await sites.history(site.id);
+   a.deepEqual(history.map(r => [r.version, r.savedBy]), [[2, 'owner-2'], [1, 'owner-1']]);
+-  a.equal(history[0].doc.pages[0].title, 'Later');
++  a.equal(history.some(revision => Object.hasOwn(revision, 'doc') || Object.hasOwn(revision, 'context')), false);
++  a.equal((await sites.revision(site.id, 2))!.doc.pages[0].title, 'Later');
+   a.equal((await sites.revision(site.id, 1))!.doc.pages[0].title, original.pages[0].title);
+   a.equal(await sites.revision(site.id, 99), null);
+ });
+--- a/server/tests/app.test.ts
++++ b/server/tests/app.test.ts
+@@ -378,9 +378,16 @@
+ 
+   const listed = await admin(`/api/sites/${site.id}/history`, {}, cookie);
+   a.equal(listed.status, 200);
+-  const versions = await listed.json() as { version: number; author: { email: string } | null }[];
++  const versions = await listed.json() as { version: number; author: { email: string } | null; doc?: unknown; context?: unknown }[];
+   a.deepEqual(versions.map(v => v.version), [2, 1]);
+   a.equal(versions[0].author?.email, 'client@acme.test');
++  a.equal(versions.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
++    'history list responses never expose immutable document payloads');
++  const indexed = await store.history(site.id);
++  a.equal(indexed.some(version => Object.hasOwn(version, 'doc') || Object.hasOwn(version, 'context')), false,
++    'the in-memory history contract is metadata-only too');
++  a.deepEqual((await store.revision(site.id, 1))?.doc, site.doc,
++    'one-version detail reads still return the immutable document');
+ 
+   const restored = await admin(`/api/sites/${site.id}/history/1/restore`, {
+     method: 'POST', body: JSON.stringify({ currentVersion: 2 })

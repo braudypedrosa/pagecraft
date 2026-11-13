@@ -1,0 +1,346 @@
+{
+  "source": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "cases": [
+    {
+      "device": "Mobile",
+      "alignment": "Right",
+      "align": "flex-end",
+      "brand": {
+        "right": 184.453125,
+        "width": 164.453125,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "contained": true,
+          "right": 394,
+          "text": "Projects",
+          "x": 294.09375,
+          "y": 48
+        },
+        {
+          "contained": true,
+          "right": 280.40625,
+          "text": "About",
+          "x": 214.609375,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 394,
+          "text": "Services",
+          "x": 300.40625,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 394,
+          "text": "Contact",
+          "x": 304.828125,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "flex-end",
+      "nav": {
+        "right": 394,
+        "width": 185.546875,
+        "x": 208.453125
+      },
+      "toggle": [
+        {
+          "display": "none",
+          "label": "Main navigation menu"
+        }
+      ],
+      "viewport": 414
+    },
+    {
+      "device": "Mobile",
+      "alignment": "Left",
+      "align": "flex-start",
+      "brand": {
+        "right": 184.453125,
+        "width": 164.453125,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "contained": true,
+          "right": 308.359375,
+          "text": "Projects",
+          "x": 208.453125,
+          "y": 48
+        },
+        {
+          "contained": true,
+          "right": 274.25,
+          "text": "About",
+          "x": 208.453125,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 387.84375,
+          "text": "Services",
+          "x": 294.25,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 297.625,
+          "text": "Contact",
+          "x": 208.453125,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "flex-start",
+      "nav": {
+        "right": 394,
+        "width": 185.546875,
+        "x": 208.453125
+      },
+      "toggle": [
+        {
+          "display": "none",
+          "label": "Main navigation menu"
+        }
+      ],
+      "viewport": 414
+    },
+    {
+      "device": "Mobile",
+      "alignment": "Centre",
+      "align": "center",
+      "brand": {
+        "right": 184.453125,
+        "width": 164.453125,
+        "x": 20
+      },
+      "document": 414,
+      "links": [
+        {
+          "contained": true,
+          "right": 351.171875,
+          "text": "Projects",
+          "x": 251.265625,
+          "y": 48
+        },
+        {
+          "contained": true,
+          "right": 277.328125,
+          "text": "About",
+          "x": 211.53125,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 390.921875,
+          "text": "Services",
+          "x": 297.328125,
+          "y": 96.796875
+        },
+        {
+          "contained": true,
+          "right": 345.8125,
+          "text": "Contact",
+          "x": 256.640625,
+          "y": 145.59375
+        }
+      ],
+      "listAlign": "center",
+      "nav": {
+        "right": 394,
+        "width": 185.546875,
+        "x": 208.453125
+      },
+      "toggle": [
+        {
+          "display": "none",
+          "label": "Main navigation menu"
+        }
+      ],
+      "viewport": 414
+    },
+    {
+      "device": "Tablet",
+      "alignment": "inherited",
+      "align": "flex-end",
+      "brand": {
+        "right": 188.453125,
+        "width": 164.453125,
+        "x": 24
+      },
+      "document": 834,
+      "links": [
+        {
+          "contained": true,
+          "right": 567.6875,
+          "text": "Projects",
+          "x": 509.890625,
+          "y": 41
+        },
+        {
+          "contained": true,
+          "right": 637.5,
+          "text": "About",
+          "x": 595.6875,
+          "y": 41
+        },
+        {
+          "contained": true,
+          "right": 726.859375,
+          "text": "Services",
+          "x": 665.5,
+          "y": 41
+        },
+        {
+          "contained": true,
+          "right": 810,
+          "text": "Contact",
+          "x": 754.859375,
+          "y": 41
+        }
+      ],
+      "listAlign": "normal",
+      "nav": {
+        "right": 810,
+        "width": 597.546875,
+        "x": 212.453125
+      },
+      "toggle": [
+        {
+          "display": "none",
+          "label": "Main navigation menu"
+        }
+      ],
+      "viewport": 834
+    },
+    {
+      "device": "Desktop",
+      "alignment": "Right",
+      "align": "flex-end",
+      "brand": {
+        "right": 253.453125,
+        "width": 164.453125,
+        "x": 89
+      },
+      "document": 1378,
+      "links": [
+        {
+          "contained": true,
+          "right": 1046.6875,
+          "text": "Projects",
+          "x": 988.890625,
+          "y": 73
+        },
+        {
+          "contained": true,
+          "right": 1116.5,
+          "text": "About",
+          "x": 1074.6875,
+          "y": 73
+        },
+        {
+          "contained": true,
+          "right": 1205.859375,
+          "text": "Services",
+          "x": 1144.5,
+          "y": 73
+        },
+        {
+          "contained": true,
+          "right": 1289,
+          "text": "Contact",
+          "x": 1233.859375,
+          "y": 73
+        }
+      ],
+      "listAlign": "normal",
+      "nav": {
+        "right": 1289,
+        "width": 1011.546875,
+        "x": 277.453125
+      },
+      "toggle": [
+        {
+          "display": "none",
+          "label": "Main navigation menu"
+        }
+      ],
+      "viewport": 1378
+    }
+  ],
+  "savedReload": {
+    "device": "Mobile",
+    "align": "center",
+    "brand": {
+      "right": 184.453125,
+      "width": 164.453125,
+      "x": 20
+    },
+    "document": 414,
+    "links": [
+      {
+        "contained": true,
+        "right": 351.171875,
+        "text": "Projects",
+        "x": 251.265625,
+        "y": 48
+      },
+      {
+        "contained": true,
+        "right": 277.328125,
+        "text": "About",
+        "x": 211.53125,
+        "y": 96.796875
+      },
+      {
+        "contained": true,
+        "right": 390.921875,
+        "text": "Services",
+        "x": 297.328125,
+        "y": 96.796875
+      },
+      {
+        "contained": true,
+        "right": 345.8125,
+        "text": "Contact",
+        "x": 256.640625,
+        "y": 145.59375
+      }
+    ],
+    "listAlign": "center",
+    "nav": {
+      "right": 394,
+      "width": 185.546875,
+      "x": 208.453125
+    },
+    "toggle": [
+      {
+        "display": "none",
+        "label": "Main navigation menu"
+      }
+    ],
+    "viewport": 414
+  },
+  "dropdown": {
+    "links": 4,
+    "width": 414,
+    "x": 0
+  },
+  "fullscreen": {
+    "closeButtons": 1,
+    "height": 1134,
+    "links": 4,
+    "width": 414,
+    "x": 0,
+    "y": 0
+  },
+  "restoration": {
+    "version": 926,
+    "idsExact": true,
+    "cssSha256": "dc18a25cdf665dbe3e31e4493ae7ebaaece77c00ea26ac797424cc84db034f90"
+  }
+}

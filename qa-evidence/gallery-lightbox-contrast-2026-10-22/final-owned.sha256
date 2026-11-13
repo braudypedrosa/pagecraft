@@ -1,0 +1,6 @@
+ea6006194ed3d0b46ad2a7713de84e803c6eee750994a2752343912e720a85d4  app/src/core/index.ts
+30638e55d6eeaef77afee8bb6670dfefa0efbdd52d8e779a8d9addced77a563a  tests/gallery-lightbox-contrast.test.ts
+3c640e634136526b3a044d5a45f53aaa2d549e197254d06bac76db2adc33651e  server/tests/fixtures/wordpress-artifact-v1.json
+cbcc5c825604979b963a671c885a9d870d4c1a7c788d882e8defbf95546413f8  qa-evidence/gallery-lightbox-contrast-2026-10-22/golden-semantic-review.json
+cc77a6459862a3d9bcef38794bb8eb81b241ce3c188e326c543963f7fec50534  qa-evidence/gallery-lightbox-contrast-2026-10-22/verification.json
+881ca2399db09a3f47763d98e5b578204c7621211114e0b102efd97abcdd7850  qa-evidence/gallery-lightbox-contrast-2026-10-22/task-close.md

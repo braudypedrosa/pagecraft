@@ -1,0 +1,26 @@
+[
+  {
+    "command": "npm run build",
+    "pair": 1,
+    "exit": 0,
+    "log": "build-1-builder.log"
+  },
+  {
+    "command": "npm run build:editor-package",
+    "pair": 1,
+    "exit": 0,
+    "log": "build-1-editor.log"
+  },
+  {
+    "command": "npm run build",
+    "pair": 2,
+    "exit": 0,
+    "log": "build-2-builder.log"
+  },
+  {
+    "command": "npm run build:editor-package",
+    "pair": 2,
+    "exit": 0,
+    "log": "build-2-editor.log"
+  }
+]

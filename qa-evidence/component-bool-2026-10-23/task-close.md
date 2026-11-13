@@ -1,0 +1,12 @@
+# Component boolean property authoring
+
+- Date:23 October2026, Asia/Manila. Pagecraft Cloud isolated candidate, base45d01dc24650eb388668d69f1b57c125bdadbbe2.
+- Status: locally implemented and sealed, awaiting root integration/deployment and native acceptance. No production claim.
+- Change: component-definition toggles use the existing Field wrapper, exposing the existing property badge and dialog. Ordinary inline toggles and existing instance boolean fields retain their paths. The switch references its inline helper only on the inline branch; definition Field does not emit a dangling helper ID. No Core/schema/runtime/PHP/security/golden changes.
+- Regression: actual Image inspector, production builder dialog markup/functions, real property badge and choice; creates bool default/binding, two instances remain independent, explicit false survives named variant capture/local override/reset/JSONmigrate restore. Ordinary Image inline layout remains unchanged.
+- Checks: focused4files20tests pass; typecheck and official build-order guard pass; full272files2788tests pass,5tests and2files remain existing skips. Two ordered builder/editor generated10 pairs match. Core and signed WordPress golden byte-exact; runtime80e unchanged. Main protected11 bytes and index exact.
+- Baseline exception: root authorized only Controls source fingerprint after verifying gallery's static24 scenes never mount component-definition toggles. All24PNG bytes/dimensions, image records,30behavior checks,29other source hashes and capture provenance/timestamp remain unchanged. No new capture claimed.
+- Failures retained: initial URL helper environment failure; actual missing property-badge RED; first full suite sole expected source-fingerprint gate; root review found an introduced dangling switch description, new actual DOM RED preserved before correction. Superseded source/build seals are retained under rejected-before-description-fix. Final green receipts do not hide these.
+- Boundaries: no Main/canonicalWP writes, package pin, database, browser, commit, push or deploy by worker. Root captured the before defect on Cloud and WordPress and owns final rendered proof. Candidate changes alone are not deployment acceptance.
+- Next: independent root integration, exact commit/deployment marker, native property badge/dialog/two-instance/variant/reset/save/reload flow. WordPress packaging is a separate future task after exact committed Cloud source is supplied.
+- Time/billing: unknown, not prepared.

@@ -1,0 +1,29 @@
+[
+  {
+    "current": "rgb(116, 53, 34)",
+    "font": "16px",
+    "gap": "12px",
+    "link": "rgb(32, 80, 128)",
+    "overflow": false,
+    "separator": "dash",
+    "width": 1280
+  },
+  {
+    "current": "rgb(96, 48, 32)",
+    "font": "16px",
+    "gap": "10px",
+    "link": "rgb(48, 72, 96)",
+    "overflow": false,
+    "separator": "dash",
+    "width": 834
+  },
+  {
+    "current": "rgb(80, 32, 32)",
+    "font": "16px",
+    "gap": "6px",
+    "link": "rgb(24, 56, 72)",
+    "overflow": false,
+    "separator": "dash",
+    "width": 414
+  }
+]

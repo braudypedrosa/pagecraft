@@ -1,0 +1,20 @@
+[
+  {
+    "device": "Desktop",
+    "color": "rgb(36, 52, 71)",
+    "pad": "12px",
+    "size": "18px"
+  },
+  {
+    "device": "Tablet",
+    "color": "rgb(36, 52, 71)",
+    "pad": "12px",
+    "size": "18px"
+  },
+  {
+    "device": "Mobile",
+    "color": "rgb(36, 52, 71)",
+    "pad": "12px",
+    "size": "18px"
+  }
+]

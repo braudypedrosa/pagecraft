@@ -1,0 +1,21 @@
+{
+  "generator": "Built-in image_gen",
+  "purpose": "Unique native First Visit section background",
+  "approval": {
+    "actor": "user",
+    "quote": "Approve this image",
+    "source": "Exact generated photo shown and approved in this chat on 13 November 2026"
+  },
+  "master": {
+    "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement-2026-11-13/visit-consultation-detail-master.png",
+    "sha256": "c9275e0dde58c1bd05e62b9556d8e8bfbeb9d0feae3aeded7ee919fc9b6aaa93"
+  },
+  "delivery": {
+    "path": "premade-sites/review-library/dental-clinic-a2/approved-additions/visit-consultation-detail.webp",
+    "sha256": "a14dab2dd55ad94d15fd4304b84feb20f25b06612393900475c91e42ea4953fc",
+    "width": 1800,
+    "height": 600
+  },
+  "prompt": "One natural editorial consultation detail at an oak desk. A clinician in a pale blue sleeve holds a clean dental teaching model beside relaxed adult patient hands. Faces cropped out, no treatment, instruments, gloves, signage, UI, text or logo. Distinct from entrance/reception/dental-chair scenes. Quiet light wall and desk at left, model and people toward right, natural daylight, sky-blue/ice-white surroundings, warm oak and subtle distant plant. Wide photographic banner without baked overlay or panels. Correct hand anatomy and plausible dental model.",
+  "catalogApproval": false
+}

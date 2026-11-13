@@ -1,0 +1,16 @@
+{
+  "labelInput": [
+    {
+      "placeholder": "Leave empty if decorative",
+      "value": ""
+    },
+    {
+      "placeholder": "https://example.com",
+      "value": "https://example.test/qa"
+    }
+  ],
+  "modal": false,
+  "preview": true,
+  "previewButton": "Return to editing",
+  "selected": null
+}

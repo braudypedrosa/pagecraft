@@ -1,0 +1,38 @@
+[
+  {
+    "items": [
+      {
+        "box": true,
+        "heading": "Alpha",
+        "id": "n0z21y8di",
+        "marker": true
+      },
+      {
+        "box": true,
+        "heading": "Beta",
+        "id": "n0z21y8di-beta",
+        "marker": true
+      },
+      {
+        "box": true,
+        "heading": "Gamma",
+        "id": "n0z21y8di-gamma",
+        "marker": true
+      },
+      {
+        "box": true,
+        "heading": "Delta",
+        "id": "n0z21y8di-delta",
+        "marker": true
+      },
+      {
+        "box": true,
+        "heading": "Epsilon",
+        "id": "n0z21y8di-epsilon",
+        "marker": true
+      }
+    ],
+    "totalIds": 21,
+    "unique": true
+  }
+]

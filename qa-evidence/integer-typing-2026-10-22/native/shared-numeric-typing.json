@@ -1,0 +1,34 @@
+{
+  "method": "Native character typing, reload, computed output",
+  "typed": {
+    "limit": "2.5",
+    "gap": "2.5",
+    "zIndex": "-2.7"
+  },
+  "normalized": {
+    "limit": "3",
+    "gap": "2.5",
+    "zIndex": "-3"
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "gap": "2.5px",
+      "headings": 3,
+      "zIndex": "-3"
+    },
+    {
+      "device": "Tablet",
+      "gap": "2.5px",
+      "headings": 3,
+      "zIndex": "-3"
+    },
+    {
+      "device": "Mobile",
+      "gap": "20px",
+      "headings": 3,
+      "zIndex": "-3"
+    }
+  ],
+  "restoration": "pending via Navigator because negative z-index places card behind canvas"
+}

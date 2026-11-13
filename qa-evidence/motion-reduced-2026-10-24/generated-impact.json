@@ -1,0 +1,64 @@
+{
+  "index.html": {
+    "beforeHeadSha256": "f1a9c139cc55d3f2ac5aa9cc791d6f79cb89d3e06d60d7b56ab4dcca9f8b3dc6",
+    "afterSha256": "74ba0f66407156eaa0dd087a6115d7e8a6b82f510aec36746185415d7bfd388f",
+    "changed": true,
+    "trackedAtHead": true
+  },
+  "dist/core.cjs": {
+    "beforeHeadSha256": "24e750ede40cf3927065ac6eea113442ed2828e15d48023311548e67db7d2f63",
+    "afterSha256": "71e1f328ba4b4845fcbf3129e8f126a3cd9cf78013bfa82e0baf5cd02876cccb",
+    "changed": true,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/contract.json": {
+    "beforeHeadSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "afterSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "changed": false,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/editor.html": {
+    "beforeHeadSha256": "130e0e9a68e4bed4a4e59d9ccd33afc779da8fbf07701f316ba65c0babac68fe",
+    "afterSha256": "ee0e8104956c8dbb664db96092c550a8d749e5ddf1d86c6cce8c9473df08a037",
+    "changed": true,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/runtime.js": {
+    "beforeHeadSha256": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "afterSha256": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "changed": true,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/templates.json": {
+    "beforeHeadSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "afterSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "changed": false,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+    "beforeHeadSha256": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "afterSha256": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "changed": false,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+    "beforeHeadSha256": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "afterSha256": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "changed": false,
+    "trackedAtHead": true
+  },
+  "packages/editor/dist/compiler.js": {
+    "beforeHeadSha256": null,
+    "afterSha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "changed": false,
+    "trackedAtHead": false,
+    "beforeCommittedSourceSealSha256": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0"
+  },
+  "packages/editor/dist/compiler-worker.js": {
+    "beforeHeadSha256": null,
+    "afterSha256": "c0d23a56c1b5242d6007adfac4066477d7ca1b6048b7f44b7c0d92b43a925d79",
+    "changed": true,
+    "trackedAtHead": false,
+    "beforeCommittedSourceSealSha256": "98890cc675a0644d929accd70e0f41af8bab7b3fdac9bebdc7805b76439a8294"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "609528eb25b65d42c7cb41ebfe4d7017cecd9f5a",
+  "status": "isolated82 expanded batch accepted by root native and reviewed gallery; final full suite passes; root integration pending",
+  "acceptedSourceChange": {
+    "file": "app/src/ui/inspector/Inspector.tsx",
+    "scope": "Only three explicit aria-label attributes: Show only if source select, Condition operator select, Value to compare input.",
+    "unchanged": "Component-owned condition action branch, condition semantics, Core, CSS and visible copy remain unchanged. Builder has the separately accepted preview-exit fix."
+  },
+  "test": "tests/inspector-condition-labels.test.tsx",
+  "checks": {
+    "focused": {
+      "result": "pass",
+      "files": 5,
+      "tests": 17,
+      "scope": [
+        "rendered Inspector labels",
+        "existing component condition ownership",
+        "legacy publication recovery",
+        "actual showReviewTarget/CMS routing",
+        "rendered ReviewList legacy f.nodeId recovery"
+      ],
+      "log": "logs/focused-expanded.log"
+    },
+    "fullBeforeGallery": {
+      "result": "sole expected Inspector+builder gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 240,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2577,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 101.46,
+      "maxWorkers": 2,
+      "log": "logs/full-expanded-pre-gallery.log"
+    },
+    "determinism": {
+      "result": "11/11 artifacts byte-identical twice",
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-1.log",
+        "logs/build-final-2.log"
+      ]
+    },
+    "audit": {
+      "result": "all severity counts zero",
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "zero findings; 1 component,6 instances,4 collection items",
+      "log": "logs/demo.log"
+    },
+    "diffCheck": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "labelOnlyFullBeforeGallery": {
+      "result": "sole expected Inspector gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 239,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2574,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 101.99,
+      "maxWorkers": 2,
+      "log": "logs/full-pre-gallery.log"
+    },
+    "labelOnlyFocused": {
+      "result": "pass",
+      "files": 2,
+      "tests": 4,
+      "scope": [
+        "new rendered Inspector condition-label test",
+        "existing component-condition-owner tests"
+      ],
+      "log": "logs/focused.log"
+    },
+    "publicationOnlyFullBeforeGallery": {
+      "result": "sole expected Inspector+builder gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 240,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2575,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 104.22,
+      "maxWorkers": 2,
+      "log": "logs/full-batch-pre-gallery.log"
+    },
+    "publicationOnlyFocused": {
+      "result": "pass",
+      "files": 3,
+      "tests": 5,
+      "scope": [
+        "new rendered Inspector label test",
+        "existing component-condition-owner tests",
+        "actual Show me handler preview recovery regression"
+      ],
+      "log": "logs/focused-batch.log"
+    },
+    "structuredOnlyFullBeforeGallery": {
+      "result": "sole expected Inspector+builder gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 240,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2576,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 103.74,
+      "maxWorkers": 2,
+      "log": "logs/full-corrected-pre-gallery.log"
+    },
+    "structuredOnlyFocused": {
+      "result": "pass",
+      "files": 4,
+      "tests": 14,
+      "scope": [
+        "rendered Inspector labels",
+        "existing component-condition-owner tests",
+        "legacy publication Show me recovery",
+        "actual showReviewTarget preview recovery and CMS routing"
+      ],
+      "log": "logs/focused-corrected.log"
+    },
+    "goldenPublicRuntimeReview": {
+      "result": "all byte-identical to exact base; no fixture regeneration",
+      "evidence": "output-contract-review.json"
+    },
+    "fullFinal": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 241,
+      "filesSkipped": 2,
+      "testsPassed": 2578,
+      "testsSkipped": 5,
+      "durationSeconds": 99.14,
+      "maxWorkers": 2,
+      "log": "logs/full-final.log"
+    },
+    "native": {
+      "result": "root accepted final expanded actual finding flow and enhanced semantic controls",
+      "scope": [
+        "Actual legacy Icon finding: Preview\u2192Site checks\u2192Show me exits Preview, selects correct editable Icon and preserves https://example.test/qa.",
+        "Repairing the accessible label clears the reported problem; repeated Mobile and editor-mode routes pass.",
+        "Enhanced Show only if, Condition and Value to compare controls expose exact semantic names and native interactions work.",
+        "Matching condition persists through reload and outputs one match at Desktop, Tablet and Mobile."
+      ],
+      "evidence": [
+        "native/site-check-preview-recovery-pass.json",
+        "native/site-check-mobile-recovery.json",
+        "native/site-check-editor-recovery.json",
+        "native/condition-labels-native.json",
+        "native/condition-match-reload.json"
+      ],
+      "screenshots": [
+        "native/site-check-preview-recovery-pass.png",
+        "native/site-check-repair-clears-error.png",
+        "native/condition-labels-native.png"
+      ],
+      "limits": [
+        "No form submission performed.",
+        "Acceptance covers these bounded recovery and label flows; broader customer QA remains open."
+      ]
+    },
+    "gallery": {
+      "result": "root captured, compared and recorded reviewed baseline",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "baselineImages": 24,
+      "baselineSourceFiles": 28,
+      "capture": "gallery/capture.json",
+      "behaviors": "gallery/behavior-checks.json",
+      "comparison": "gallery/diffs/results.json",
+      "cleanup": "gallery/root-cleanup.json",
+      "baselineCheck": "logs/baseline-final.log"
+    },
+    "diffFinal": {
+      "result": "pass",
+      "log": "logs/diff-check-final.log"
+    }
+  },
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 25,
+  "harness": {
+    "url": "http://localhost:4974/edit/s1",
+    "pid": 4852,
+    "sessionId": 65587,
+    "result": "restarted after expanded final artifacts; HTTP200; preserve for root native",
+    "provenance": "Trusted81 harness copied with only4972\u21924974 substitution; fictional default in-memory fixture; no hidden state injection.",
+    "sha256": "4d26b70b54024c05d7c2ea08c319f0da77441c4bda98045650fb1d00ecce724f"
+  },
+  "remaining": [
+    "Root integration/release decision.",
+    "Broader customer QA continues; no overall production-readiness claim."
+  ],
+  "limits": [
+    "Rendered Inspector test asserts actual DOM labels; native enhanced-control accessible names remain for root browser acceptance.",
+    "No new condition behavior is claimed.",
+    "Broader customer QA remains open."
+  ],
+  "boundaries": "No source edits by this build/check owner; preserved accepted source patch. No Main, WordPress, browser, baseline record, commit or push. Existing harnesses untouched.",
+  "integrationExclusions": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4974.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "additionalAcceptedSource": {
+    "file": "builder.html",
+    "scope": "Exit preview in actual showReviewTarget before context restoration, retaining legacy publication finding.where fallback guard."
+  },
+  "additionalTest": "tests/publication-preview-recovery.test.mjs",
+  "source": [
+    "app/src/ui/inspector/Inspector.tsx",
+    "app/src/ui/ReviewList.tsx",
+    "app/src/ui/ctx.ts",
+    "builder.html"
+  ],
+  "tests": [
+    "tests/inspector-condition-labels.test.tsx",
+    "tests/publication-preview-recovery.test.mjs",
+    "tests/builder-cms-selection.test.mjs",
+    "tests/review-list-target.test.tsx",
+    "tests/ui.setup.tsx"
+  ],
+  "rejectedNativeAttempt": {
+    "evidence": "native/rejected-site-check-handler.json",
+    "screenshot": "native/rejected-site-check-handler.png",
+    "classification": "product bug remained; publication-only handler fix did not cover actual Site checks reviewBtn route",
+    "finalResolution": "Historical attempt remains rejected. Final expanded source/legacy bridge passed actual root native Icon finding retest; see checks.native."
+  },
+  "additionalRegression": "tests/builder-cms-selection.test.mjs",
+  "expandedSource": [
+    "app/src/ui/ReviewList.tsx",
+    "app/src/ui/ctx.ts",
+    "builder.html"
+  ],
+  "expandedTests": [
+    "tests/review-list-target.test.tsx",
+    "tests/ui.setup.tsx"
+  ],
+  "rejectedLegacyAttempt": {
+    "classification": "actual Icon finding still left Preview active because legacy f.nodeId bypassed showReviewTarget; native acceptance rejected",
+    "evidence": "native/rejected-structured-only-recovery.json",
+    "screenshot": "native/rejected-structured-only-recovery.png",
+    "finalResolution": "Historical attempt remains rejected. Final expanded source/legacy bridge passed actual root native Icon finding retest; see checks.native."
+  },
+  "finalReceipt": "final-receipt.json",
+  "reviewedBaselineManifest": "reviewed-baseline.sha256"
+}

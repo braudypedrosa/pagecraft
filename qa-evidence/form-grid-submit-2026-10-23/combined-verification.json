@@ -1,0 +1,40 @@
+{
+  "status": "combined source5 and generated10 frozen; await root native gallery/fingerprint",
+  "source": {
+    "app/src/core/index.ts": "ac0222e8466438851ef2907873f5a0830265b5cc0e7992fbf2fe580f17c24bff",
+    "tests/form-grid-submit.test.ts": "104acab600a2796373515c2c4923d8e14c4f28cf6d10bd0b34d9d09e10ac2445",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343",
+    "app/src/ui/inspector/Lists.tsx": "3a3712bec348643f706874097b47c3bf1ec3a5f42500b19d577b0c3cebad3a41",
+    "tests/form-field-name-uniqueness.test.tsx": "bbd81fe1c54cfead8da93229dc94a8ae922a4301798e17d9cac2c7d09594489e"
+  },
+  "generated": {
+    "index.html": "be8b2e926bb02bfbe836392db83917457f8ae6e176acfe759e3f0b6c39ce73cf",
+    "dist/core.cjs": "51d3782dbd8bac1a883c5f9896f5b328b3a757b716bc2f3c5e1469191edd4767",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "a4f24c8265c2b2d48ca54b201852b3868dcd12a7098ca12d5e47654191c66ebc",
+    "packages/editor/dist/runtime.js": "80e22127be29ae0ef53e7430164c65f7bc1cef2a939a46f4917ac9c7344efd09",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "2b588d5b8b23cc5db5222584eb9237bc275a85ffd67e4f2ccefdc4c9749cfee0"
+  },
+  "focused": {
+    "files": 6,
+    "tests": 32,
+    "exit": 0
+  },
+  "typecheckExit": 0,
+  "orderedBuildPairsExact": true,
+  "runtimeUnchanged": true,
+  "gridOnlyFullSuite": {
+    "testsPassed": 2778,
+    "skipped": 5,
+    "note": "Before Lists integration, combined full suite deliberately pending gallery review"
+  },
+  "servers": {
+    "static": "http://127.0.0.1:4948/index.html",
+    "gallery": "http://127.0.0.1:4949/internal/components?host=builder"
+  },
+  "noMoreSourceChanges": true
+}

@@ -1,0 +1,3 @@
+Browser tab: 65, Title: "Pagecraft Builder", URL: "http://localhost:4993/edit/s1".
+There has been no change in the accessibility tree.
+The focused UI element is 71 search text field (settable) Find an element, Value: Collection, ID: add-element-search

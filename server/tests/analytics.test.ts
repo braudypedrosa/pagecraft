@@ -1,11 +1,11 @@
 import { afterEach, test } from 'vitest';
 import a from 'node:assert/strict';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  AnalyticsRecorder, DIRECT, FileAnalyticsStore, NOT_FOUND, OTHER, change, cleanTarget, deviceOf, excluded,
-  rangeDays, referrerOf, sumBuckets, toCsv, withClickScript, emptyBucket,
+  AnalyticsRecorder, DIRECT, FileAnalyticsStore, NOT_FOUND, OTHER, change, cleanTarget, csvRows, deviceOf, excluded,
+  localParts, rangeDays, referrerOf, sumBuckets, toCsv, validTimeZone, withClickScript, emptyBucket,
 } from '../src/analytics.ts';
 
 const CHROME = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
@@ -40,6 +40,50 @@ test('what is not counted: privacy signals, prefetches, bots and signed-in Pagec
     a.equal(excluded(headers({ 'user-agent': ua })), 'bot', ua);
   }
   a.equal(excluded(headers({ 'user-agent': CHROME, cookie: 'theme=dark; pc_session=abc' })), 'signed-in');
+});
+
+test('signed-in exclusions recognize exact legacy, current and chunked auth cookie names', () => {
+  for (const cookie of [
+    'pc_session=workshop',
+    'pc_auth=workshop',
+    'pc_auth.0=workshop',
+    'pc_auth.1=workshop',
+    'theme=light; pc_auth.0=first; pc_auth.1=second',
+    ' theme=light;pc_auth=workshop; preference=compact',
+    ' pc_auth.12=workshop',
+  ]) a.equal(excluded(headers({ 'user-agent': CHROME, cookie })), 'signed-in', cookie);
+
+  for (const cookie of [
+    'theme=light',
+    'pc_auth-code-verifier=workshop',
+    'pc_auth.0-code-verifier=workshop',
+    'pc_auth_extra=workshop',
+    'other_pc_auth=workshop',
+    'pc_auth.1x=workshop',
+    'pc_auth.=workshop',
+    'pc_auth.-1=workshop',
+    'pc_session.extra=workshop',
+    'preference=pc_auth=workshop',
+    'pc_auth',
+  ]) a.equal(excluded(headers({ 'user-agent': CHROME, cookie })), null, cookie);
+});
+
+test('current auth and chunks create no counts or deduplication entries before an anonymous visit', async () => {
+  const { recorder, store } = await rig();
+  const cookies = ['pc_session=workshop', 'pc_auth=workshop', 'pc_auth.0=workshop', 'pc_auth.1=workshop'];
+  for (const [index, cookie] of cookies.entries()) {
+    const page = `/workshop-${index}`;
+    const action = { label: 'Workshop details', target: page };
+    a.equal(recorder.view('workshop-site', page, visitor({ cookie })), false, cookie);
+    a.equal(recorder.click('workshop-site', action, visitor({ cookie })), false, cookie);
+    a.equal(recorder.view('workshop-site', page, visitor()), true, 'excluded traffic did not populate view deduplication');
+    a.equal(recorder.click('workshop-site', action, visitor()), true, 'excluded traffic did not populate click deduplication');
+  }
+  await recorder.flush();
+  const total = sumBuckets((await store.read('workshop-site', '2026-10-02', '2026-10-02')).map(day => day.total));
+  a.equal(total.views, cookies.length);
+  a.equal(total.clicks, cookies.length);
+  a.deepEqual(total.pages, { '/workshop-0': 1, '/workshop-1': 1, '/workshop-2': 1, '/workshop-3': 1 });
 });
 
 test('devices, referrers and click targets keep only coarse, owner-meaningful values', () => {
@@ -102,7 +146,7 @@ test('counts reach disk per process, two processes add up, and nothing is counte
   a.deepEqual(total.devices, { desktop: 2, mobile: 1 });
   a.deepEqual(total.actions, { 'Call us\ttel:': 1 });
   a.deepEqual(total.formIds, { contact: 1 });
-  a.equal(days[1].hours!['09'].views, 3, 'hours are kept');
+  a.equal(days[1].hours!['2026-10-02T09:00Z'].views, 3, 'hours are kept, by local time with its offset');
 });
 
 test('finished days merge into one file and the month, then expire on schedule', async () => {
@@ -195,4 +239,139 @@ test('on SIGTERM the counts are flushed and the signal raised again, so the proc
     for (const l of added) process.removeListener('SIGTERM', l as () => void);
     recorder.stop();
   }
+});
+
+test('days follow the site’s time zone: an evening in UTC is the next morning in Manila', async () => {
+  const { clock, store, recorder } = await rig();
+  a.equal(validTimeZone('asia/manila'), 'Asia/Manila', 'canonicalised');
+  a.equal(validTimeZone('Mars/Olympus'), null);
+  a.deepEqual(localParts(Date.parse('2026-10-02T20:30:00Z'), 'Asia/Manila'), { day: '2026-10-03', hour: '04', minute: '30', offset: '+08:00' });
+  a.deepEqual(rangeDays('7d', new Date('2026-10-02T20:30:00Z'), 'Asia/Manila').to, '2026-10-03');
+
+  clock.at = Date.parse('2026-10-02T09:15:00Z'); // 17:15 in Manila, same day
+  recorder.view('s1', '/', visitor());
+  clock.at = Date.parse('2026-10-02T20:15:00Z'); // 04:15 the next morning in Manila
+  recorder.view('s1', '/', visitor({}, '198.51.100.3'));
+  await recorder.flush();
+
+  const utc = await store.read('s1', '2026-10-02', '2026-10-03');
+  a.deepEqual(utc.map(d => d.total.views), [2, 0]);
+  const manila = await store.read('s1', '2026-10-02', '2026-10-03', 'Asia/Manila');
+  a.deepEqual(manila.map(d => d.total.views), [1, 1]);
+  a.deepEqual(Object.keys(manila[1].hours!), ['2026-10-03T04:00+08:00']);
+  a.match(toCsv(csvRows(manila)), /2026-10-03T04:00\+08:00,views,,1/);
+
+  // Once merged, daily totals are filed under the site's local days.
+  await store.setTimeZone('s1', 'Asia/Manila', 'u1');
+  clock.at = Date.parse('2027-01-10T12:00:00Z');
+  await store.compact('s1', true);
+  const later = await store.read('s1', '2026-10-02', '2026-10-03', 'Asia/Manila');
+  a.deepEqual(later.map(d => [d.total.views, d.hours]), [[1, null], [1, null]]);
+  a.equal((await store.settings('s1')).timeZone, 'Asia/Manila');
+});
+
+const keys = (map: Record<string, number>) => Object.keys(map).length;
+const stored = async (file: string) => JSON.parse(await readFile(file, 'utf8'));
+
+test('stored hours, days and months keep the caps, however many flushes and processes add to them', async () => {
+  const root = await tempRoot();
+  const one = await rig(root, 'p1'), two = await rig(root, 'p2');
+  // Each flush is under the caps on its own; together they are well over.
+  for (const [r, from] of [[one, 0], [one, 150], [two, 300]] as const) {
+    for (let i = from; i < from + 150; i++) {
+      r.recorder.view('s1', `/p${i}`, visitor({ referer: `https://r${i}.example/` }, `198.51.100.${i % 250}`));
+      r.recorder.click('s1', { label: `Label ${i}`, target: '/go' }, visitor({}, `203.0.113.${i % 250}`));
+    }
+    await r.recorder.flush();
+  }
+  const own = (await stored(join(one.store.dir('s1'), 'hours', '2026-10-02.p1.json'))).hours['09'];
+  a.deepEqual([keys(own.pages), keys(own.referrers), keys(own.actions)], [201, 101, 201]);
+  a.equal(own.pages[OTHER], 100);
+  a.equal(own.views, 300, 'nothing is lost, only folded');
+
+  const [day] = await one.store.read('s1', '2026-10-02', '2026-10-02');
+  a.equal(day.total.views, 450);
+  a.deepEqual([keys(day.total.pages), keys(day.total.referrers), keys(day.total.actions)], [201, 101, 201]);
+
+  one.clock.at = Date.parse('2026-10-04T12:00:00Z');
+  await one.store.compact('s1', true);
+  const merged = (await stored(join(one.store.dir('s1'), 'hours', '2026-10-02.json'))).hours['09'];
+  const month = (await stored(join(one.store.dir('s1'), 'days', '2026-10.json'))).days['02'];
+  for (const bucket of [merged, month]) {
+    a.deepEqual([keys(bucket.pages), keys(bucket.referrers), keys(bucket.actions)], [201, 101, 201]);
+    a.equal(bucket.views, 450);
+  }
+});
+
+test('deleted numbers stay deleted when another process writes back what it still held', async () => {
+  const root = await tempRoot();
+  const one = await rig(root, 'p1'), two = await rig(root, 'p2');
+  two.recorder.view('s1', '/', visitor());
+  await two.recorder.flush(); // p2 now holds today's whole day, and has the settings cached
+  two.recorder.view('s1', '/about', visitor());
+  await one.store.remove('s1');
+  const settings = await one.store.settings('s1');
+  a.equal(settings.enabled, false);
+  a.equal(settings.resetAt, '2026-10-02T09:15:00.000Z');
+
+  // Within its 10-second cache p2 still writes the old day back; nobody counts it.
+  await two.recorder.flush();
+  a.deepEqual(await readdir(join(one.store.dir('s1'), 'hours')), ['2026-10-02.p2.json']);
+  a.equal((await one.store.read('s1', '2026-10-02', '2026-10-02'))[0].total.views, 0);
+  one.clock.at = Date.parse('2026-10-04T12:00:00Z');
+  await one.store.compact('s1', true);
+  a.deepEqual(await readdir(join(one.store.dir('s1'), 'hours')), ['2026-10-02.json'], 'dropped, not merged');
+  a.equal((await one.store.read('s1', '2026-10-02', '2026-10-02'))[0].total.views, 0);
+  a.equal((await one.store.read('s1', '2026-10-02', '2026-10-02', 'Asia/Manila'))[0].total.views, 0);
+});
+
+test('a process that learns of a delete drops what it held and counts only what comes after', async () => {
+  const root = await tempRoot();
+  const one = await rig(root, 'p1'), two = await rig(root, 'p2');
+  two.recorder.view('s1', '/', visitor());
+  await two.recorder.flush();
+  two.recorder.view('s1', '/about', visitor());   // buffered before the delete
+  await one.store.remove('s1');
+  await two.store.resetAt('s1');                   // p2's settings cache has expired
+  await two.recorder.flush();
+  a.deepEqual(await readdir(join(one.store.dir('s1'), 'hours')).catch(() => []), [], 'nothing written back');
+
+  await one.store.setEnabled('s1', true, 'u1');
+  a.ok((await one.store.settings('s1')).resetAt, 'turning it back on keeps the reset');
+  two.clock.at += 60_000;
+  two.recorder.view('s1', '/new', visitor({}, '198.51.100.40'));
+  await two.recorder.flush();
+  const [day] = await one.store.read('s1', '2026-10-02', '2026-10-02');
+  a.equal(day.total.views, 1);
+  a.deepEqual(day.total.pages, { '/new': 1 });
+});
+
+test('half-hour time zones keep their minutes in hour labels and the CSV', async () => {
+  const { store, recorder } = await rig();
+  a.deepEqual(localParts(Date.parse('2026-10-02T00:00:00Z'), 'Asia/Kolkata'), { day: '2026-10-02', hour: '05', minute: '30', offset: '+05:30' });
+  recorder.view('s1', '/', visitor()); // 09:15 UTC is 14:45 in Kolkata, in the hour from 14:30
+  await recorder.flush();
+  const days = await store.read('s1', '2026-10-02', '2026-10-02', 'Asia/Kolkata');
+  a.deepEqual(Object.keys(days[0].hours!), ['2026-10-02T14:30+05:30']);
+  a.match(toCsv(csvRows(days)), /\r\n2026-10-02T14:30\+05:30,views,,1\r\n/);
+  a.match(toCsv(csvRows(await store.read('s1', '2026-10-02', '2026-10-02', 'Asia/Kathmandu'))), /2026-10-02T14:45\+05:45,views,,1/);
+});
+
+test('the local day straddling the 90-day boundary is read from its daily total, not its surviving hours', async () => {
+  const { clock, store, recorder } = await rig();
+  await store.setTimeZone('s1', 'Asia/Manila', 'u1');
+  clock.at = Date.parse('2026-10-01T20:00:00Z'); // 04:00 on 2 October in Manila
+  recorder.view('s1', '/', visitor());
+  await recorder.flush();
+  clock.at = Date.parse('2026-10-02T09:15:00Z'); // 17:15 the same Manila day
+  recorder.view('s1', '/', visitor({}, '198.51.100.3'));
+  await recorder.flush();
+
+  // 90 days on, UTC 1 October's hours are retired and UTC 2 October's are kept.
+  clock.at = Date.parse('2026-12-31T12:00:00Z');
+  await store.compact('s1', true);
+  a.deepEqual(await readdir(join(store.dir('s1'), 'hours')), ['2026-10-02.json']);
+  const [straddling, next] = await store.read('s1', '2026-10-02', '2026-10-03', 'Asia/Manila');
+  a.deepEqual([straddling.total.views, straddling.hours], [2, null]);
+  a.deepEqual([next.total.views, next.hours], [0, {}], 'a whole day inside the window still reads by the hour');
 });

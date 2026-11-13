@@ -1,0 +1,115 @@
+{
+  "base": "6a4207870262a5a33322228f8030b992cf8ea3f4",
+  "candidateRoot": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078",
+  "candidateIndexSha256": "3de0d42b34b9378d34fd101a8eac804ee54cceb11e37062c27a18e8224ff570f",
+  "baseIndexSha256": "33f487185e7d758306e150aa1a99184b78a54d283f3e4475f270e56bbe51d15f",
+  "method": "Actual candidate componentGalleryPage with exact committed base index and candidate sealed index; gallery module and direct dependencies exact base.",
+  "outputs": [
+    {
+      "host": "cloud",
+      "section": "fields",
+      "bytes": 140769,
+      "candidateSha256": "19b3e80361bc81a21a4076921b5519d36ee0e86d92b154c2b89a73cdd845cb01",
+      "baseSha256": "19b3e80361bc81a21a4076921b5519d36ee0e86d92b154c2b89a73cdd845cb01",
+      "byteExact": true
+    },
+    {
+      "host": "cloud",
+      "section": "actions",
+      "bytes": 110273,
+      "candidateSha256": "835c28a18aee4c013282e8e9d7a47e76d0e2fcf332d0221ad33793e1ab34b10b",
+      "baseSha256": "835c28a18aee4c013282e8e9d7a47e76d0e2fcf332d0221ad33793e1ab34b10b",
+      "byteExact": true
+    },
+    {
+      "host": "cloud",
+      "section": "tables",
+      "bytes": 110694,
+      "candidateSha256": "e7b04f6fd11a6a15de50a997fabaf86b05dfd29a87ea9757d0fdbe5efc5d591b",
+      "baseSha256": "e7b04f6fd11a6a15de50a997fabaf86b05dfd29a87ea9757d0fdbe5efc5d591b",
+      "byteExact": true
+    },
+    {
+      "host": "cloud",
+      "section": "menus",
+      "bytes": 139498,
+      "candidateSha256": "602aa4cd3a7e7588b5169344b46bd348409ac1ec5401c35b286a3281ac6b065d",
+      "baseSha256": "602aa4cd3a7e7588b5169344b46bd348409ac1ec5401c35b286a3281ac6b065d",
+      "byteExact": true
+    },
+    {
+      "host": "cloud",
+      "section": "dialogs",
+      "bytes": 142893,
+      "candidateSha256": "b802403e11b3de3fe8e70d636407e9a89825c0182450832252b4cc15026c792f",
+      "baseSha256": "b802403e11b3de3fe8e70d636407e9a89825c0182450832252b4cc15026c792f",
+      "byteExact": true
+    },
+    {
+      "host": "cloud",
+      "section": "feedback",
+      "bytes": 109099,
+      "candidateSha256": "c5c28b79306d8425e03464971025a68eb2caa0d75deda296498aee273297873b",
+      "baseSha256": "c5c28b79306d8425e03464971025a68eb2caa0d75deda296498aee273297873b",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "fields",
+      "bytes": 212927,
+      "candidateSha256": "4f8de2deb4b386e286f159205d09c6921785fb081c07ed3cf04f663f7fecbf45",
+      "baseSha256": "4f8de2deb4b386e286f159205d09c6921785fb081c07ed3cf04f663f7fecbf45",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "actions",
+      "bytes": 213466,
+      "candidateSha256": "ef47a14287d2e0bec20cae78d79790974a00f69d8e668bccb4d192bf2e05264e",
+      "baseSha256": "ef47a14287d2e0bec20cae78d79790974a00f69d8e668bccb4d192bf2e05264e",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "tables",
+      "bytes": 212952,
+      "candidateSha256": "8adb61c5f1985b3d7a1224b39c56abd716a30ee624164f5509295d51c5394567",
+      "baseSha256": "8adb61c5f1985b3d7a1224b39c56abd716a30ee624164f5509295d51c5394567",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "menus",
+      "bytes": 210899,
+      "candidateSha256": "f829aa4a40dd8af37b0cab9b47adaea4067231c15f9af72483bf9fb7b203cc34",
+      "baseSha256": "f829aa4a40dd8af37b0cab9b47adaea4067231c15f9af72483bf9fb7b203cc34",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "dialogs",
+      "bytes": 214066,
+      "candidateSha256": "30668d7fba0712c30a7cd37aa24fb6181c789cd2a94948ce1c51d00b79a93ac7",
+      "baseSha256": "30668d7fba0712c30a7cd37aa24fb6181c789cd2a94948ce1c51d00b79a93ac7",
+      "byteExact": true
+    },
+    {
+      "host": "builder",
+      "section": "feedback",
+      "bytes": 210672,
+      "candidateSha256": "aea363fd57fc0ed6b5b8292f3d1c68cd33c37fde9055744b45afd1b03cc5e15e",
+      "baseSha256": "aea363fd57fc0ed6b5b8292f3d1c68cd33c37fde9055744b45afd1b03cc5e15e",
+      "byteExact": true
+    }
+  ],
+  "fixture": {
+    "url": "http://127.0.0.1:4953/internal/components",
+    "health": {
+      "ok": true,
+      "root": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078",
+      "port": 4953
+    },
+    "httpMatchesActualFunction": true
+  },
+  "baselineWrites": false
+}

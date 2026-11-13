@@ -1,0 +1,203 @@
+{
+  "rows": [
+    {
+      "device": "Desktop",
+      "ids": [
+        {
+          "id": "nxo96g5qr",
+          "type": "section"
+        },
+        {
+          "id": "nxo96g47r",
+          "type": "row"
+        },
+        {
+          "id": "nxo96g3zt",
+          "type": "column"
+        },
+        {
+          "id": "nxo96g28f",
+          "type": "gallery"
+        },
+        {
+          "id": "ny2qsh9qo",
+          "type": "slider"
+        },
+        {
+          "id": "ny2qsh6e8",
+          "type": "column"
+        },
+        {
+          "id": "ny5zleam3",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh74a",
+          "type": "column"
+        },
+        {
+          "id": "ny6igvbfj",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh8kv",
+          "type": "column"
+        },
+        {
+          "id": "ny6kabci2",
+          "type": "heading"
+        }
+      ],
+      "saveEnabled": false
+    },
+    {
+      "device": "Tablet",
+      "ids": [
+        {
+          "id": "nxo96g5qr",
+          "type": "section"
+        },
+        {
+          "id": "nxo96g47r",
+          "type": "row"
+        },
+        {
+          "id": "nxo96g3zt",
+          "type": "column"
+        },
+        {
+          "id": "nxo96g28f",
+          "type": "gallery"
+        },
+        {
+          "id": "ny2qsh9qo",
+          "type": "slider"
+        },
+        {
+          "id": "ny2qsh6e8",
+          "type": "column"
+        },
+        {
+          "id": "ny5zleam3",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh74a",
+          "type": "column"
+        },
+        {
+          "id": "ny6igvbfj",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh8kv",
+          "type": "column"
+        },
+        {
+          "id": "ny6kabci2",
+          "type": "heading"
+        }
+      ],
+      "saveEnabled": false
+    },
+    {
+      "device": "Mobile",
+      "ids": [
+        {
+          "id": "nxo96g5qr",
+          "type": "section"
+        },
+        {
+          "id": "nxo96g47r",
+          "type": "row"
+        },
+        {
+          "id": "nxo96g3zt",
+          "type": "column"
+        },
+        {
+          "id": "nxo96g28f",
+          "type": "gallery"
+        },
+        {
+          "id": "ny2qsh9qo",
+          "type": "slider"
+        },
+        {
+          "id": "ny2qsh6e8",
+          "type": "column"
+        },
+        {
+          "id": "ny5zleam3",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh74a",
+          "type": "column"
+        },
+        {
+          "id": "ny6igvbfj",
+          "type": "heading"
+        },
+        {
+          "id": "ny2qsh8kv",
+          "type": "column"
+        },
+        {
+          "id": "ny6kabci2",
+          "type": "heading"
+        }
+      ],
+      "saveEnabled": false
+    }
+  ],
+  "reloadIds": [
+    {
+      "id": "nxo96g5qr",
+      "type": "section"
+    },
+    {
+      "id": "nxo96g47r",
+      "type": "row"
+    },
+    {
+      "id": "nxo96g3zt",
+      "type": "column"
+    },
+    {
+      "id": "nxo96g28f",
+      "type": "gallery"
+    },
+    {
+      "id": "ny2qsh9qo",
+      "type": "slider"
+    },
+    {
+      "id": "ny2qsh6e8",
+      "type": "column"
+    },
+    {
+      "id": "ny5zleam3",
+      "type": "heading"
+    },
+    {
+      "id": "ny2qsh74a",
+      "type": "column"
+    },
+    {
+      "id": "ny6igvbfj",
+      "type": "heading"
+    },
+    {
+      "id": "ny2qsh8kv",
+      "type": "column"
+    },
+    {
+      "id": "ny6kabci2",
+      "type": "heading"
+    }
+  ],
+  "saveEnabled": false,
+  "scope": "Read-only editor smoke test; WordPress provider excludes Collection List. No native WordPress List workflow claim.",
+  "galleryInspector": "Gallery\nImages\nUpload\nLibrary\nTile shape\n4:3\nFit\nCover — fill and crop\nOpen full size on click\nShow captions under each tile\nLazy load\nColumns\n—"
+}

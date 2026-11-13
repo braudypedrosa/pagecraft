@@ -1,0 +1,3 @@
+0dae8ab7f1deab1b285a9190dabdecd26166cc9ae3f464c4e51adcaf977305fb  app/src/core/index.ts
+51d0449f5c94cec29dd4cf2b6fa3982a50399688084bd289262f817f8582918b  tests/text-style-responsive-transfer.test.ts
+23ce61e591857a9625ecf775f7f1a1d8d751635c87d7dbe47ed4fd4831606207  server/tests/fixtures/wordpress-artifact-v1.json

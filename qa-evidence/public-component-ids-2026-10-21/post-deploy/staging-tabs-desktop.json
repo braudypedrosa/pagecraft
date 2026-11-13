@@ -1,0 +1,152 @@
+{
+  "ids": [
+    "s-gf",
+    "s-fonts",
+    "s-css",
+    "s-preview-runtime",
+    "s-root",
+    "pagecraft-section-cg-header-11",
+    "pagecraft-box-cg-header-row-10",
+    "pagecraft-heading-cg-wordmark-8",
+    "pagecraft-nav-menu-cg-navigation-9",
+    "pagecraft-nav-menu-cg-navigation-9-menu",
+    "pagecraft-nav-menu-cg-navigation-9-menu-content",
+    "pagecraft-section-cg-navigation-9-mobile",
+    "pagecraft-row-mtuc1e4v-cg-navigation-9-mobile",
+    "pagecraft-column-mtuc1d2l-cg-navigation-9-mobile",
+    "pagecraft-button-mtuc09fv-cg-navigation-9-mobile",
+    "pagecraft-button-mtuc0ana-cg-navigation-9-mobile",
+    "pagecraft-button-mtuc0bcj-cg-navigation-9-mobile",
+    "pagecraft-button-mtuc0c7i-cg-navigation-9-mobile",
+    "pagecraft-section-cg-opening-25",
+    "pagecraft-box-cg-project-directory-24",
+    "pagecraft-box-cg-directory-20",
+    "pagecraft-heading-cg-heading-15",
+    "pagecraft-wysiwyg-cg-copy-16",
+    "pagecraft-box-cg-project-index-19",
+    "pagecraft-button-cg-link-17",
+    "pagecraft-button-cg-link-18",
+    "pagecraft-box-cg-featured-project-23",
+    "courtyard",
+    "pagecraft-wysiwyg-cg-copy-22",
+    "projects",
+    "pagecraft-box-cg-project-instance-26",
+    "pagecraft-box-cg-project-facts-6-cg-project-instance-26",
+    "pagecraft-heading-cg-heading-1-cg-project-instance-26",
+    "pagecraft-heading-cg-copy-2-cg-project-instance-26",
+    "pagecraft-heading-cg-copy-3-cg-project-instance-26",
+    "pagecraft-button-cg-link-5-cg-project-instance-26",
+    "pagecraft-image-cg-reading-room-4-cg-project-instance-26",
+    "practice",
+    "pagecraft-heading-cg-heading-28",
+    "pagecraft-wysiwyg-cg-copy-29",
+    "pagecraft-section-cg-inquiry-link-38",
+    "pagecraft-heading-cg-heading-35",
+    "pagecraft-wysiwyg-cg-copy-36",
+    "pagecraft-button-cg-link-37",
+    "pagecraft-section-0w0l749b",
+    "pagecraft-row-0w0l73uu",
+    "pagecraft-column-0w0l72xw",
+    "pagecraft-tabs-17jx57na",
+    "pagecraft-tabs-17jx57na-t0",
+    "pagecraft-tabs-17jx57na-t1",
+    "pagecraft-tabs-17jx57na-t2",
+    "pagecraft-tabs-17jx57na-p0",
+    "pagecraft-tabs-17jx57na-p1",
+    "pagecraft-tabs-17jx57na-p2",
+    "pagecraft-column-17k8f8sm",
+    "pagecraft-tabs-17jx57na-17k8f8sm",
+    "pagecraft-tabs-17jx57na-17k8f8sm-t0",
+    "pagecraft-tabs-17jx57na-17k8f8sm-t1",
+    "pagecraft-tabs-17jx57na-17k8f8sm-t2",
+    "pagecraft-tabs-17jx57na-17k8f8sm-p0",
+    "pagecraft-tabs-17jx57na-17k8f8sm-p1",
+    "pagecraft-tabs-17jx57na-17k8f8sm-p2",
+    "pagecraft-section-cg-footer-14",
+    "pagecraft-wysiwyg-cg-copy-12",
+    "pagecraft-button-cg-link-13",
+    "s-hud"
+  ],
+  "tabs": [
+    {
+      "id": "pagecraft-tabs-17jx57na",
+      "panels": [
+        {
+          "display": "block",
+          "height": 45.59375,
+          "id": "pagecraft-tabs-17jx57na-p0"
+        },
+        {
+          "display": "none",
+          "height": 0,
+          "id": "pagecraft-tabs-17jx57na-p1"
+        },
+        {
+          "display": "none",
+          "height": 0,
+          "id": "pagecraft-tabs-17jx57na-p2"
+        }
+      ],
+      "tabs": [
+        {
+          "controls": "pagecraft-tabs-17jx57na-p0",
+          "id": "pagecraft-tabs-17jx57na-t0",
+          "selected": "true",
+          "targetCount": 1
+        },
+        {
+          "controls": "pagecraft-tabs-17jx57na-p1",
+          "id": "pagecraft-tabs-17jx57na-t1",
+          "selected": "false",
+          "targetCount": 1
+        },
+        {
+          "controls": "pagecraft-tabs-17jx57na-p2",
+          "id": "pagecraft-tabs-17jx57na-t2",
+          "selected": "false",
+          "targetCount": 1
+        }
+      ]
+    },
+    {
+      "id": "pagecraft-tabs-17jx57na-17k8f8sm",
+      "panels": [
+        {
+          "display": "none",
+          "height": 0,
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-p0"
+        },
+        {
+          "display": "none",
+          "height": 0,
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-p1"
+        },
+        {
+          "display": "block",
+          "height": 45.59375,
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-p2"
+        }
+      ],
+      "tabs": [
+        {
+          "controls": "pagecraft-tabs-17jx57na-17k8f8sm-p0",
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-t0",
+          "selected": "false",
+          "targetCount": 1
+        },
+        {
+          "controls": "pagecraft-tabs-17jx57na-17k8f8sm-p1",
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-t1",
+          "selected": "false",
+          "targetCount": 1
+        },
+        {
+          "controls": "pagecraft-tabs-17jx57na-17k8f8sm-p2",
+          "id": "pagecraft-tabs-17jx57na-17k8f8sm-t2",
+          "selected": "true",
+          "targetCount": 1
+        }
+      ]
+    }
+  ]
+}

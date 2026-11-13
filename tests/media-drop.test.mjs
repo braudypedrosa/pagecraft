@@ -82,10 +82,14 @@ test('Upload chooses multiple images through the same path and canceled chooser 
   expect(chosen).toBeUndefined();
   d.querySelector('[data-media-choose]').click();
   expect(chosen.accept).toBe('image/*');expect(chosen.multiple).toBe(true);
-  chosen.dispatchEvent(new w.Event('change'));expect(w.assetAdd).not.toHaveBeenCalled();
+  const canceled=chosen;expect(canceled.isConnected).toBe(true);
+  canceled.dispatchEvent(new w.Event('cancel'));expect(w.assetAdd).not.toHaveBeenCalled();expect(canceled.isConnected).toBe(false);
+  d.querySelector('[data-media-choose]').click();
+  expect(chosen).not.toBe(canceled);expect(chosen.isConnected).toBe(true);
   Object.defineProperty(chosen,'files',{value:[file('chosen.png')]});
   chosen.dispatchEvent(new w.Event('change'));
   await vi.waitFor(()=>expect(d.querySelector('.mname').textContent).toBe('chosen.png'));
+  expect(chosen.isConnected).toBe(false);
   w.HTMLInputElement.prototype.click=click;
 });
 

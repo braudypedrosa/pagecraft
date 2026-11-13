@@ -1,0 +1,100 @@
+{
+  "format": "pagecraft.rich-condition-values.v1",
+  "date": "2026-10-21",
+  "timezone": "Asia/Manila",
+  "status": "Historical Rich-only final local acceptance; final combined candidate acceptance is in combined-verification.json.",
+  "baseCommit": "d2c244492b100450fdadd5ee66d39ffabc0da919",
+  "scope": {
+    "files": [
+      "app/src/core/index.ts",
+      "app/src/core/safe-html.ts",
+      "build.mjs",
+      "packages/editor/build.mjs",
+      "package.json",
+      "package-lock.json",
+      "tests/rich-condition-values.test.ts",
+      "NOTICE",
+      "vendor/entities/LICENSE"
+    ],
+    "summary": "Use visible text for typed Rich Text conditions, preserving raw HTML equality compatibility, plain Text semantics and author data."
+  },
+  "policy": {
+    "condValue": "unchanged raw public API",
+    "setAndEmpty": "Rich Text is tested by sanitized, decoded, whitespace-normalized visible text.",
+    "eq": "Existing raw trimmed equality OR normalized visible-text equality. The plain comparison input is not parsed as markup.",
+    "ne": "Exact complement of equality.",
+    "typeOwnership": "Terminal bound CMS field type overrides a component property kind. Rich own/default/variant properties normalize; a rich property bound to a Text field stays literal.",
+    "rendering": "No markup sanitizer, serialization, schema or output-content change."
+  },
+  "dependency": {
+    "direct": "entities4.5.0",
+    "source": "Already locked and installed dependency promoted to direct; no install and no new transitive entry.",
+    "entry": "Official package-exported entities/lib/decode.js; root export retains an unused encoding table.",
+    "entitySupport": "HTML named/numeric and text-context legacy semicolonless references; decoded once after tag removal.",
+    "notice": "Exact BSD2 vendor/entities/LICENSE retained in standalone editor/Core/compiler-worker; runtime and compiler-client contain no decoder."
+  },
+  "checks": {
+    "red": "Corrected pre-fix regression:9failed/2passed; focused-red-corrected.log. Earlier initial log includes a corrected test API mistake.",
+    "focusedPreMarker": "3files20tests pass, including full license/artifact assertions.",
+    "typecheck": "Pass as part of final npmtest",
+    "fullBeforeLicense": "2517passed/5skipped.",
+    "licensePlacementRegression": "First banner placement changed the existing startup marker and 19 injected host-mode tests failed. Notice now follows the unchanged header/use-strict. Final full suite passes 2518 tests/5skip.",
+    "determinism": "11 final marker-preserving artifacts identical across two builds.",
+    "demo": "1component/6instances/4collectionItems/0findings.",
+    "audit": "All dependency severities0.",
+    "uiBaseline": "24images/28sources pass; no fingerprinted UI source changed.",
+    "fullFinal": {
+      "result": "pass",
+      "filesPassed": 233,
+      "filesSkipped": 2,
+      "testsPassed": 2518,
+      "testsSkipped": 5,
+      "durationSeconds": 105.65,
+      "log": "logs/full-final-marker-max-workers-2.log"
+    },
+    "diffWhitespace": "pass"
+  },
+  "hashes": {
+    "app/src/core/index.ts": "3ada3fc146ea5d22fdf2d9cb40dda457df7447980775ccb7ad7dd5c08c78e3b2",
+    "app/src/core/safe-html.ts": "d004a165e90f99cdb732a86b0885b95992853069b4d6ec496a6fcc3fb5e22eb6",
+    "build.mjs": "7aaf53f8d4af904d06bb37edf8c857e40cdeed6315e1d53f8b99b5ac2e093600",
+    "packages/editor/build.mjs": "211835ee3250d5d8b66237bc87561ae7df47b7dbb2bd6ecd3186b7f5d4e35ece",
+    "package.json": "f07ed4888e7d973472af57b72677db396d41df2cbe5e444b027d54fbfcbde7ae",
+    "package-lock.json": "add0b488e906c263780f73e1875f9a0ea15d22d2989e71c634c9351142190d98",
+    "tests/rich-condition-values.test.ts": "53b19c39c226060ec74d34b4b4d0337fa9c3b58cba55037bef909fc0d2f5b2b9",
+    "NOTICE": "6d58ac85dc5632a07c0c756322e802c6bea4e8e76f0b66627b3acf2ea3b15ae4",
+    "vendor/entities/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "app/src/core/public-form-controls.generated.ts": "5b5636e2f42a82fd73f1865fb2e006607f486b4d1725669199770b6f25ed9c19",
+    "index.html": "9f306d584289e016b2b8eb47340ffc82a9d00ba46a5f8c7ffbefdbd892dcc0e5",
+    "dist/core.cjs": "40ced053899f7e4f7477969095c0c1402f78b35f2cbb244a0a533f5b7cca829f",
+    "packages/editor/dist/editor.html": "60a7d91e666591b25d241d5caf980754b77df918d898ef6785bb3b907b3b4af9",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "e253a5ba0716c376d2f0fe7dab06b292da829a28434326f9a6ce4f322586c5d2",
+    "packages/editor/dist/runtime.js": "dcb0610f2551e2eaff7072fa464ec841d0ed472f3c1c64175b6dbfb0f02dfa5c",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "b3a5f8e6b31e81da5d458571d278e57742f7a02d31375f04df2355ebd599ef11",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "1e0b0ff0b12dddcf1bfb664c7761bffd1540bdea97521de10b9d829dbe4ce9f3"
+  },
+  "bundleSize": "bundle-size-delta-final-marker.json",
+  "native": {
+    "reproduction": "Root supplied native/staging-failure.json and equality-failure.png; actual persistedcomparison verified. Final native results owned by root.",
+    "harness": "http://localhost:4964/edit/s1",
+    "harnessPid": 95438,
+    "harnessSession": 29108,
+    "cachedEditorHtml": "Fresh process started after final checks and two deterministic final builds; prior interim fixture discarded with root authorization.",
+    "browserActionsByWorker": false,
+    "interimResults": "Root reports eq1/ne0/has-value-empty0/is-empty-empty1 against prior same-logic build, explicitly interim until final native run.",
+    "separateFutureGap": "Empty Rich Text whose condition is off can have zero canvas height and cannot be clicked; root used Components/Edit. Not expanded into this condition-value fix.",
+    "finalRichOnlyAcceptance": "Root-supplied native/local-final-acceptance.json and screenshots: all four operators, actual Mobile414/no overflow, real reload passed before the additional modal-toast UI patch.",
+    "harnessSupersededBy": "combined-verification.json"
+  },
+  "excludedFromIntegration": [
+    "dist/demo/index.html",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js",
+    "tools/.qa-ui-4964.mjs"
+  ],
+  "delivery": "Isolated candidate only. No Main, WordPress, commit, push or database change by this worker.",
+  "combinedVerification": "combined-verification.json"
+}

@@ -1,0 +1,14 @@
+{
+  "source": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "maxWidth": {
+    "computed": "240px",
+    "tag": "H2"
+  },
+  "availableUnits": [
+    "px",
+    "rem",
+    "%",
+    "ch"
+  ],
+  "observation": "Clearing Tablet max-width removes this layer and retains Desktop240px. The control offers no explicit None keyword to cancel that restriction; Top/Z-index numeric control keyword omission is also source-audited."
+}

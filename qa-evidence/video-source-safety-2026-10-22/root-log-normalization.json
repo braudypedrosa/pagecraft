@@ -1,0 +1,77 @@
+[
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/task-close.md",
+    "original": "613411a64657b30abbce1ae93d93e5bf2d4409e1195407bfc31c6b55b8ee7788",
+    "normalized": "2f59c9fdf2b0a6e2fa17405530ff9655d283198160d2d8c94cfe5db20e40ca08"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/url-normalization-red.log",
+    "original": "9dcac173363ecac9398e92c51b683be59bec115e5b3b355f9ba297ab06611599",
+    "normalized": "39718c0c76427889e3fc63c4a5ee3be90c4fc5b0ab55519f48b51d263d1fb999"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/typecheck-final.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/wordpress-golden-check-final.log",
+    "original": "e510b97e4e447449df531a4da8cf21d61e0547ef9985f2705fa62c3f95937b75",
+    "normalized": "967d7a947932f618e2945477b5772bcd801a27baf76416ddf844f54ddaba1bff"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/full-suite.log",
+    "original": "0136a05d2ff08b95ac0063cc15e1fd889122196308a3dd68be1369ce063721c9",
+    "normalized": "2c6ce076e4a5f092ef1f81e141ecb114f9be4345e3d645759fbc4eaa282a2a17"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/red.log",
+    "original": "fb3615d709b192287c36d186a10324fe4b51dba03255014644017a3eaf1101cb",
+    "normalized": "d673445ea20a9b832fcefad41331a69778d9a219cb4eb8305919082b99035a7c"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/related-final.log",
+    "original": "c1f8bcbe945ef326721da3e03f79fb64d912bba238171d133e35fc61a1e9f17d",
+    "normalized": "f5ad603ee5a5d76392a4b6dc1d37c2dfa6d41e58fd87c90ae41703b16d3ec5b7"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/related.log",
+    "original": "9977474481f79da4726ac759371698daf17ac9cf5ef7a38367064937fba65695",
+    "normalized": "43d58e2d3c75ef0da47fb72840cb01cf820b1f0b06bf2e1fd33de028cec9fc84"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/wordpress-golden-check.log",
+    "original": "5f12f8e72c027b93e420cc99ae9ceab27012bdb06e7b9c7436e6778af4f0fdb1",
+    "normalized": "8c705fc387801942398f8283f40ceee973c4417c9245e52921b1cb8ecdab4af7"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/isolated-server-timeouts.log",
+    "original": "0c09a67b3cb8b3e69452d52243e89879437de3c2c10f76352dd12136eacaec4e",
+    "normalized": "392631f39f76f296e5c26a5cf04663271b203efeed35ec79fb90a294bb64d3a9"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/full-suite-final.log",
+    "original": "022a31dd70e005ffe34fcc8d52b822e26edd74a75fc50b1b9ccd542f1b6b97ee",
+    "normalized": "8ff3908eaf6f9b24c5191370de012d309935275d1cb63cf1269d0c8428f141d2"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/full-suite-retry.log",
+    "original": "7f76b80d2fb61a1be797d8581e36465da9490e1f782de796cd6711d27811cfb4",
+    "normalized": "21207b9295fe2d3ac832aed7f49c10698a6acb79e4dbffd30005c97e56e9d4e0"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/green-focused.log",
+    "original": "994612e2d1670bbbffb4ba6bc8d77e675d58ff434aeb9caea97215b3ec7432cc",
+    "normalized": "dac039f4a302cdbf1f734c6e0a5eafdc06da53a7cf79e13de164d5133a56ec8a"
+  },
+  {
+    "path": "qa-evidence/video-source-safety-2026-10-22/logs/url-normalization-green.log",
+    "original": "3a5a3787348ba579464ce56cc164c2746c03054364951a1f25780c59e16983f4",
+    "normalized": "777fb2184a3bf7516e172d1d2af96c902622954cd56cf64c86472fddcdf61102"
+  }
+]

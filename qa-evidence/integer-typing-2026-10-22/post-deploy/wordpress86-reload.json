@@ -1,0 +1,17 @@
+[
+  {
+    "device": "Desktop",
+    "columns": "438.656px 438.672px 438.656px",
+    "images": 2
+  },
+  {
+    "device": "Tablet",
+    "columns": "254px 254px 254px",
+    "images": 2
+  },
+  {
+    "device": "Mobile",
+    "columns": "119.328px 119.328px 119.344px",
+    "images": 2
+  }
+]

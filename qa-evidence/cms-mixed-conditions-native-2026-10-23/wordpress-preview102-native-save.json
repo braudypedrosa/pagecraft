@@ -1,0 +1,18 @@
+{
+  "installed": "0.2.17-preview.20261023.102",
+  "loadedMarker": [
+    {
+      "compilerUrls": [
+        "0.2.17-preview.20261023.102"
+      ],
+      "text": "Pagecraft\nQA Rich text and typography 2026-10-22\nWordPress draft ready\nSave\nAdd elements\nAdd\nElements\nFind an element\nRecently used\nHeading\nBox\nGrid\nSection\nSpacer\nGallery\nBrowse s"
+    }
+  ],
+  "editorReloadGap": [
+    "25"
+  ],
+  "publicGap": "25px",
+  "publicImagesLoaded": 3,
+  "saveScope": "Disposable existing QA616 Gallery gap24→25 only; native restore43 follows",
+  "cmsWorkspace": "Cloud-only authoring; WordPress package source parity tested separately"
+}

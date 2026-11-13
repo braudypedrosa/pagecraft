@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/video-focus-bfe25c5
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:20:30
+   Duration  1.08s (transform 295ms, setup 0ms, import 352ms, tests 28ms, environment 564ms)

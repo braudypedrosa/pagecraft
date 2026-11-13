@@ -1,0 +1,17 @@
+[
+  {
+    "command": "npm run build:next",
+    "exit": 0,
+    "log": "vite-production.log"
+  },
+  {
+    "command": "node --experimental-strip-types tools/demo-site.mjs",
+    "exit": 0,
+    "log": "demo.log"
+  },
+  {
+    "command": "git diff --check -- package.json package-lock.json",
+    "exit": 0,
+    "log": "diff-check.log"
+  }
+]

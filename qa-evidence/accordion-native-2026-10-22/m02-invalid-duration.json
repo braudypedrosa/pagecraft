@@ -1,0 +1,13 @@
+{
+  "fieldAfterReload": {
+    "describedby": null,
+    "invalid": null,
+    "value": "banana"
+  },
+  "publicPreview": {
+    "animation": "0.6s linear 0.2s forwards bpZoomOut",
+    "duration": "banana",
+    "inline": "animation-delay: 0.2s; animation-timing-function: linear;"
+  },
+  "status": "reproduced: invalid timing persists silently and runtime falls back, open bug"
+}

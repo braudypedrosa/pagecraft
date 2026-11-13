@@ -37,7 +37,10 @@ These follow from the roadmap and were not reopened:
 - **Device.** Mobile, tablet or desktop, worked out from the user agent at request time. The user
   agent itself is thrown away.
 - **Clicks.** A first-party script of about 600 bytes is added to published HTML at serve time,
-  and only while analytics is on. It never goes into exports, immutable publication files or
+  and only while analytics is on, and only for a visit that is itself counted. Signed-in
+  Pagecraft users, visitors with a privacy signal, prefetches and bots never receive it, so
+  their clicks can't be counted either. That matters for signed-in users, because the beacon
+  request wouldn't carry their cookie. It never goes into exports, immutable publication files or
   previews. On each button or link click it sends `{page, label, target}` to
   `POST /_pc/a/:siteId` with `navigator.sendBeacon`.
   - The label is the visible text or `aria-label`, cut to 60 characters.
@@ -75,6 +78,22 @@ These follow from the roadmap and were not reopened:
     publication.
   - Each site-hour keeps at most 200 pages, 100 referrers and 200 actions. The rest fold into
     "Other".
+
+## Time zones (added 2026-10-03)
+
+- **Storage stays UTC.** Counts are always stored by UTC hour.
+- **Setting.** Each site has `timeZone` in `settings.json`. The first time an owner turns analytics
+  on, it is taken from their browser. After that the Analytics page has a time zone picker. Sites
+  with no setting use UTC.
+- **Reading** regroups hours into local days. It covers one UTC day either side of the range,
+  which spans every possible offset. So 7, 30 and 90-day views are exact, and changing the zone
+  regroups them at once.
+- **Daily totals for 13 months** are filed by local day, in the zone the site had when that day
+  was merged. An hour that crosses midnight into another month lands in the right month file.
+  After a zone change, totals older than 90 days keep the zone they were counted in, and the
+  page says so.
+- **CSV hours** are local times with their offset, e.g. `2026-10-03T04:00+08:00` (zero offsets
+  written `Z`).
 
 ## Storage
 

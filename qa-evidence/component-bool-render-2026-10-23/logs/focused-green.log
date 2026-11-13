@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-bool-render-00b641a
+
+
+ Test Files  4 passed (4)
+      Tests  22 passed (22)
+   Start at  23:14:20
+   Duration  1.26s (transform 1000ms, setup 0ms, import 1.23s, tests 370ms, environment 1.84s)
+

@@ -1,0 +1,10 @@
+{
+  "generator": "PAGECRAFT_UPDATE_WORDPRESS_GOLDEN=1 npx vitest run server/tests/releases.test.ts -t the shared WordPress golden vector is deterministic and verifies end-to-end",
+  "beforeSha256": "0e387391e7c8de8c649e68ba0cb5063bdae9774a48889a83bdf2e8bf95f7b343",
+  "afterSha256": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430",
+  "matchesPreapprovedDiagnosticActualExactly": true,
+  "fixtureLeafDeltas": 19,
+  "sourceVersionBeforeAndAfter": 7,
+  "htmlHeadCssAndNonanimatedRouteExact": true,
+  "generated10UnchangedAfterGolden": true
+}

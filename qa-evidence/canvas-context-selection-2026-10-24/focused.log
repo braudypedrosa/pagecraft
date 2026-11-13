@@ -1,0 +1,9 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/canvas-context-selection-cfa3ca3
+
+
+ Test Files  4 passed (4)
+      Tests  18 passed (18)
+   Start at  04:49:31
+   Duration  936ms (transform 521ms, setup 0ms, import 2.35s, tests 411ms, environment 0ms)
+

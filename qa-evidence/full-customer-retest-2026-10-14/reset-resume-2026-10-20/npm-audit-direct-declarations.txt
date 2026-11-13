@@ -1,0 +1,3 @@
+vite-plugin-singlefile prod= dev=^2.3.3
+micromatch prod= dev=
+braces prod= dev=

@@ -1,0 +1,30 @@
+{
+  "buildOrder": [
+    "node build.mjs",
+    "node packages/editor/build.mjs",
+    "node build.mjs",
+    "node packages/editor/build.mjs"
+  ],
+  "changed": {
+    "index.html": {
+      "beforeSha256": "74ba0f66407156eaa0dd087a6115d7e8a6b82f510aec36746185415d7bfd388f",
+      "afterSha256": "dcbfadaa751909f7004b4276da3236c43d1394057ecc46923468d77cbf510514"
+    },
+    "packages/editor/dist/editor.html": {
+      "beforeSha256": "ee0e8104956c8dbb664db96092c550a8d749e5ddf1d86c6cce8c9473df08a037",
+      "afterSha256": "c221552f1d45943b914c5f2f50a2e2de5346a9d59ba4417e75bfb4f3a1b4735c"
+    }
+  },
+  "unchanged": {
+    "dist/core.cjs": "71e1f328ba4b4845fcbf3129e8f126a3cd9cf78013bfa82e0baf5cd02876cccb",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "c0d23a56c1b5242d6007adfac4066477d7ca1b6048b7f44b7c0d92b43a925d79"
+  },
+  "compiler2ExactPreviousCommittedSeal": true,
+  "generatedPairsByteExact": true
+}

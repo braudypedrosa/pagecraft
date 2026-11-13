@@ -1,0 +1,25 @@
+{
+  "environment": "isolated local fixture",
+  "checks": [
+    {
+      "name": "Collection creation",
+      "result": "Grid selected; one empty Column; Add Heading targets card; CMS title binding renders entries"
+    },
+    {
+      "name": "Pagination",
+      "result": "3 entries per page; Next changes 2/3/5 to 6/8/9; draft entries excluded"
+    },
+    {
+      "name": "Contains filter",
+      "input": "2.",
+      "result": [
+        "2. Community workshop and accessibility review for local teams",
+        "12. Community workshop and accessibility review for local teams"
+      ]
+    },
+    {
+      "name": "History restoration",
+      "result": "Restoring version 17 created version 19; entry count restored; version 18 retained"
+    }
+  ]
+}

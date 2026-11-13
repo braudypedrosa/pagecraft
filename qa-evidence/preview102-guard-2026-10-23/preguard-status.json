@@ -1,0 +1,20 @@
+{
+  "status": "BLOCKED: incomplete Preview102 preguard, not usable for installation",
+  "readOnlySnapshotExitCode": 1,
+  "error": "Error establishing a database connection.",
+  "observedServiceState": {
+    "expectedSocketPresent": false,
+    "LocalAppOrLightningServiceProcesses": 0,
+    "QADataDirectoryPresent": true,
+    "siteConfigurationFilePresent": true,
+    "staleManualPidRunning": false
+  },
+  "databaseSnapshotCaptured": false,
+  "authSessionVerified": false,
+  "protectedDataVerified": false,
+  "recovery": "Root opens Local.app, selects pagecraft-wordpress-qa and starts the existing site. No reset or deletion is required. Recapture a new complete baseline after service recovery.",
+  "previousGuardsPreserved": true,
+  "workerDatabaseWrites": false,
+  "workerServiceMutations": false,
+  "installerExecuted": false
+}

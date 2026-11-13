@@ -1,0 +1,33 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/startup-shortcuts-55daf13
+
+ ❯ tests/startup-shortcut-readiness.test.mjs (2 tests | 1 failed) 108ms
+   × document shortcuts stay inactive until hosted startup finishes 95ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/startup-shortcut-readiness.test.mjs > document shortcuts stay inactive until hosted startup finishes
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/startup-shortcut-readiness.test.mjs:76:37
+     74|     press('z', { metaKey: true }),
+     75|     press('ArrowDown')
+     76|   ]) expect(event.defaultPrevented).toBe(false);
+       |                                     ^
+     77|   expect(calls.exportModal).not.toHaveBeenCalled();
+     78|   expect(calls.saveExplicitly).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  09:14:02
+   Duration  1.69s (transform 32ms, setup 0ms, import 1.20s, tests 108ms, environment 0ms)
+

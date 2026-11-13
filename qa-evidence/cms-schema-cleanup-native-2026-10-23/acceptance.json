@@ -1,0 +1,46 @@
+{
+  "status": "Bounded slice108 accepted; full customer QA remains open",
+  "cloud": "fbb5f50e352039898fad6214d8d2623a8ee57c12",
+  "wordpress": "1ed161389b77c06f109dd71ddb26f6aae52a835a",
+  "wordpressPreview": 103,
+  "cloudCI": 39871406980,
+  "cloudDeploy": 39871406877,
+  "wordpressCI": 39873794785,
+  "allCI": "success",
+  "tests": {
+    "rootFullPass": 2750,
+    "skipped": 5,
+    "sharedNativePass": 30,
+    "visual24ByteExact": true,
+    "wordpress713NodePass": 62,
+    "wordpress713SecurityPass": 34,
+    "wordpressNativeGuard": 26
+  },
+  "nativeStagingCases": [
+    "Legacy Boolean custom value retained without mutation",
+    "Yes selects Alpha/Delta",
+    "No selects Beta/Epsilon",
+    "Empty selects Gamma",
+    "is not Yes selects Beta/Gamma/Epsilon",
+    "Delete active Category filter on preview page2 resets page1 Alpha/Beta",
+    "Delete numeric Score sort on preview page2 resets page1 CMS order Alpha/Beta",
+    "Both deletion warnings exclude unrelated same-ID image bindings",
+    "Other8pages and unrelated image bindings preserved",
+    "All9pages and4collections restored byte-exact"
+  ],
+  "wordpressNativeScope": [
+    "Installed exact103 source",
+    "Native Gap24to25 Save",
+    "Reload25 and public25px",
+    "History45 restore",
+    "Public1280 and414 no overflow, all3imagesloaded",
+    "Original8nodes and compiled98 artifacts exact; finalVersion47/420revisions"
+  ],
+  "limitations": [
+    "CMS warning traversal does not newly enumerate dotted terminal-reference fields or component-definition bindings",
+    "CMS native acceptance performed on Cloud. WordPress proof covers packaged code plus native host Save/reload/public/restore, not every CMS journey",
+    "Representative values only; shared Style/Advanced/Motion combinations remain open",
+    "FullQAComplete false; no production release"
+  ],
+  "fullQAComplete": false
+}

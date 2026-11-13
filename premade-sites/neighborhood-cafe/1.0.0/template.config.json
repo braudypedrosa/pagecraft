@@ -1,0 +1,22 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "neighborhood-cafe",
+  "version": "1.0.0",
+  "name": "Neighborhood Cafe",
+  "sampleName": "Morning Field",
+  "description": "A warm four-page neighborhood cafe template with an editorial menu, story and visit details.",
+  "categories": [
+    "Restaurant",
+    "Cafe"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "counter", "file": "assets/counter.png" },
+    { "id": "table", "file": "assets/table.png" },
+    { "id": "street", "file": "assets/street.png" }
+  ],
+  "customCssPolicy": "native-only"
+}

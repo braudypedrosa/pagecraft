@@ -1,0 +1,8 @@
+{
+  "environment": "staging",
+  "source": "Native Account settings > Plan & billing",
+  "plan": "Pro",
+  "complimentary": true,
+  "verifiedVisible": true,
+  "changesMade": false
+}

@@ -1,0 +1,36 @@
+{
+  "question": "Shipping & returns?",
+  "answer": "Plain <b>text</b> & \"quotes\".\nSecond line 🌱",
+  "rows": [
+    {
+      "device": "Desktop",
+      "answer": "Plain <b>text</b> & \"quotes\".Second line 🌱",
+      "answerHTML": "<p>Plain &lt;b&gt;text&lt;/b&gt; &amp; \"quotes\".<br>Second line 🌱</p>",
+      "markerHidden": "true",
+      "open": true,
+      "pageOverflow": false,
+      "summary": "Shipping & returns?",
+      "summaryChildren": 0
+    },
+    {
+      "device": "Tablet",
+      "answer": "Plain <b>text</b> & \"quotes\".Second line 🌱",
+      "answerHTML": "<p>Plain &lt;b&gt;text&lt;/b&gt; &amp; \"quotes\".<br>Second line 🌱</p>",
+      "markerHidden": "true",
+      "open": true,
+      "pageOverflow": false,
+      "summary": "Shipping & returns?",
+      "summaryChildren": 0
+    },
+    {
+      "device": "Mobile",
+      "answer": "Plain <b>text</b> & \"quotes\".Second line 🌱",
+      "answerHTML": "<p>Plain &lt;b&gt;text&lt;/b&gt; &amp; \"quotes\".<br>Second line 🌱</p>",
+      "markerHidden": "true",
+      "open": true,
+      "pageOverflow": false,
+      "summary": "Shipping & returns?",
+      "summaryChildren": 0
+    }
+  ]
+}

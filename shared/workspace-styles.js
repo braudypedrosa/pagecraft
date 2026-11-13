@@ -84,6 +84,7 @@ ${DIALOG_CSS}
 .project-settings .settings-content{container-type:inline-size}
 .project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
 @container(max-width:560px){.project-settings .pc-field-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1050px){.project-settings .settings-nav{width:146px;flex-basis:146px;padding:16px 8px}}
 
 /* Navigation and picker selection is distinct from the lighter green hover.
  * Main rail navigation, primary actions and boolean/status indicators retain

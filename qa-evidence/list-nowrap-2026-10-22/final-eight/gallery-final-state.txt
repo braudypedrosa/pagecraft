@@ -1,0 +1,47 @@
+Browser tab: 3, Title: "Component gallery — Pagecraft", URL: "http://localhost:4994/internal/components?host=builder&section=feedback".
+1 AXWebArea Component gallery — Pagecraft, URL: localhost:4994/internal/components?host=builder&section=feedback
+	2 container app
+		3 container
+			4 text Component gallery
+			5 container Style source
+				6 link Description: Cloud, Value: localhost:4994/internal/components?host=cloud&section=feedback
+				7 link Description: Builder, Value: localhost:4994/internal/components?host=builder&section=feedback
+			8 link Description: Back to sites, Value: localhost:4994/
+		9 container Component families
+			10 link Description: Fields, Value: localhost:4994/internal/components?host=builder&section=fields
+			11 link Description: Actions, Value: localhost:4994/internal/components?host=builder&section=actions
+			12 link Description: Tables, Value: localhost:4994/internal/components?host=builder&section=tables
+			13 link Description: Menus, Value: localhost:4994/internal/components?host=builder&section=menus
+			14 link Description: Dialogs, Value: localhost:4994/internal/components?host=builder&section=dialogs
+			15 link Description: Feedback, Value: localhost:4994/internal/components?host=builder&section=feedback
+		16 container
+			17 heading Feedback, Value: 1
+				18 text Feedback
+			19 text Preview progress, success and recoverable failure using the shared notification system.
+			20 link Description: Open 1440px baseline, Value: localhost:4994/internal/components/baselines/builder-feedback-1440.png, ID: gallery-baseline
+		21 container
+			22 heading Notifications, Value: 2
+				23 text Notifications
+			24 text Progress and errors remain until resolved or dismissed. Success uses status; failures use alert.
+			25 button Show success
+			26 button Show error
+			27 button Show progress
+			28 button Dismiss preview
+		29 container
+			30 heading Recoverable refresh failure, Value: 2
+				31 text Recoverable refresh failure
+			32 text Retain the previous result and offer retry; successful background refresh has no completion banner.
+			33 text Could not refresh the preview. The previous result is still shown.
+			34 button Retry refresh
+			35 text Sample inbox · 3 entries
+		36 container
+			37 heading Long content and recovery, Value: 2
+				38 text Long content and recovery
+			39 text Fictional edge cases use the same production components and density rules. The latest content could not be loaded. Your saved content is still available; try refreshing again.
+			40 button Retry loading content
+		41 text Internal reference · Local sample values only. Actions do not save, publish, connect, delete or change your clipboard.
+	42 container Description: Notifications, ID: pc-notifications
+		43 text Preview could not finish. Dismiss this message and retry.
+		44 button Dismiss notification
+
+The focused UI element is 26 button Show error

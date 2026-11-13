@@ -1,0 +1,277 @@
+{
+  "scope": "All26preset output names/attributes/computed styles through native Preview on Mobile; not visual trajectory or physical device proof.",
+  "rows": [
+    {
+      "case": "configured-fade-in",
+      "animation": "1.2s linear 0.2s forwards bpFadeIn",
+      "attributes": {
+        "bp-animation-once": "true",
+        "bp-delay": "0.2s",
+        "bp-duration": "1.2s",
+        "bp-easing": "linear",
+        "data-bp-watched": "true"
+      },
+      "transition": "0.15s"
+    },
+    {
+      "preset": "Bounce",
+      "animation": "1.2s linear 0.2s forwards bpBounce",
+      "animationName": "bpBounce",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-bounce bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Bounce down",
+      "animation": "1.2s linear 0.2s forwards bpBounceDown",
+      "animationName": "bpBounceDown",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-bounce-down bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Bounce in",
+      "animation": "1.2s linear 0.2s forwards bpBounceIn",
+      "animationName": "bpBounceIn",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-bounce-in bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Bounce up",
+      "animation": "1.2s linear 0.2s forwards bpBounceUp",
+      "animationName": "bpBounceUp",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-bounce-up bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Elastic",
+      "animation": "1.2s linear 0.2s forwards bpElastic",
+      "animationName": "bpElastic",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-elastic bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Fade down",
+      "animation": "1.2s linear 0.2s forwards bpFadeDown",
+      "animationName": "bpFadeDown",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-fade-down bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Fade in",
+      "animation": "1.2s linear 0.2s forwards bpFadeIn",
+      "animationName": "bpFadeIn",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-fade-in bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Fade up",
+      "animation": "1.2s linear 0.2s forwards bpFadeUp",
+      "animationName": "bpFadeUp",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-fade-up bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Flip x",
+      "animation": "1.2s linear 0.2s forwards bpFlipX",
+      "animationName": "bpFlipX",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-flip-x bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Flip y",
+      "animation": "1.2s linear 0.2s forwards bpFlipY",
+      "animationName": "bpFlipY",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-flip-y bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Rotate in",
+      "animation": "1.2s linear 0.2s forwards bpRotateIn",
+      "animationName": "bpRotateIn",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-rotate-in bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Rotate in left",
+      "animation": "1.2s linear 0.2s forwards bpRotateInLeft",
+      "animationName": "bpRotateInLeft",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-rotate-in-left bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Rotate in right",
+      "animation": "1.2s linear 0.2s forwards bpRotateInRight",
+      "animationName": "bpRotateInRight",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-rotate-in-right bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Scale down",
+      "animation": "1.2s linear 0.2s forwards bpScaleDown",
+      "animationName": "bpScaleDown",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-scale-down bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Scale up",
+      "animation": "1.2s linear 0.2s forwards bpScaleUp",
+      "animationName": "bpScaleUp",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-scale-up bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide down",
+      "animation": "1.2s linear 0.2s forwards bpSlideDown",
+      "animationName": "bpSlideDown",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-down bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide fade down",
+      "animation": "1.2s linear 0.2s forwards bpSlideFadeDown",
+      "animationName": "bpSlideFadeDown",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-fade-down bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide fade left",
+      "animation": "1.2s linear 0.2s forwards bpSlideFadeLeft",
+      "animationName": "bpSlideFadeLeft",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-fade-left bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide fade right",
+      "animation": "1.2s linear 0.2s forwards bpSlideFadeRight",
+      "animationName": "bpSlideFadeRight",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-fade-right bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide fade up",
+      "animation": "1.2s linear 0.2s forwards bpSlideFadeUp",
+      "animationName": "bpSlideFadeUp",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-fade-up bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide left",
+      "animation": "1.2s linear 0.2s forwards bpSlideLeft",
+      "animationName": "bpSlideLeft",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-left bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide right",
+      "animation": "1.2s linear 0.2s forwards bpSlideRight",
+      "animationName": "bpSlideRight",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-right bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Slide up",
+      "animation": "1.2s linear 0.2s forwards bpSlideUp",
+      "animationName": "bpSlideUp",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-slide-up bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Spin",
+      "animation": "1.2s linear 0.2s forwards bpSpin",
+      "animationName": "bpSpin",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-spin bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Zoom in",
+      "animation": "1.2s linear 0.2s forwards bpZoomIn",
+      "animationName": "bpZoomIn",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-zoom-in bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    },
+    {
+      "preset": "Zoom out",
+      "animation": "1.2s linear 0.2s forwards bpZoomOut",
+      "animationName": "bpZoomOut",
+      "class": "pagecraft-accordion pagecraft-gn4901he bp-animate pc-zoom-out bp-is-visible bp-is-animating",
+      "delay": "0.2s",
+      "duration": "1.2s",
+      "easing": "linear",
+      "once": "true"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "baseCommit": "0a8c0c19944c3f68898ea49e70b44825fead23f3",
+  "status": "Root native and gallery acceptance complete; ready for root integration, uncommitted and undeployed.",
+  "sourceAssetEntries": 21,
+  "sourceAssetDrift": [],
+  "sourceManifestSha256": "f9c6ad67ada488e7fab099d6a123e7bc4a859de34c1a9c7025d2a546b2305bf1",
+  "previousBaselineSha256": "c9f29c4217dc0cf651475a9d6a12171085093ac7fb86915891421bfe36d0745f",
+  "reviewedBaselineSha256": "68b8064f2080c3235ae7140b15c80ffc999cd5670305e1a7b71bd23eb6d5e42d",
+  "noRebuildOrSourceChangeDuringFinalization": true,
+  "evidenceHashes": {
+    "generated-build-1.sha256": "42da355c44861cbd9faef48babcf043903e6af911a5ff55053e75536352c9cc8",
+    "generated-build-2.sha256": "42da355c44861cbd9faef48babcf043903e6af911a5ff55053e75536352c9cc8",
+    "logs/full-pre-native.log": "862e4912b2360cacf47bab715eb28eae9e5f5f4ef8c6e37e047615cb2f9cba6f",
+    "gallery/behavior-checks.json": "2acfc7bb961337734e1a82094ba9515ed95baf374831c393d76fb16169a5932c",
+    "gallery/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "gallery/cleanup.json": "f301a90532ab9fc0af98d9cdc4e8f45ca3cf12704b88a957c892c5573f931992",
+    "native/limit-decimal-reload.json": "042f2c40b9f8169d5d058c36decbd048779e396188b04b0731fe4fe6082a789c",
+    "native/negative-clamp.json": "19caf3bba83311e39fb602ba16dd0e4d086599768d264a5ea0536e64481bf7f7",
+    "native/per-decimal-reload.json": "7c2d981a51fdb462b2946d687093d533b26d2175a4d467f758b51a7655d68da9",
+    "native/per-navigation-mobile.json": "6888b8d95f5f30a2a6641c4199028662564d34da2bdab89a3efd43f93c28c822",
+    "native/zero-reload.json": "cfc875066fdf942677e2710d7a52e3ec06dfa14a47e3935a5512fd5e500d9bfc"
+  }
+}

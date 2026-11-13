@@ -1,0 +1,50 @@
+[
+  {
+    "device": "Desktop",
+    "editor": {
+      "height": "50px",
+      "parentClass": "pagecraft-column pagecraft-wk7wo1wjt",
+      "parentHeight": 200,
+      "parentId": "nwk7wo1wjt",
+      "parentMinHeight": "auto",
+      "rectHeight": 50
+    },
+    "preview": {
+      "height": "50px",
+      "parentHeight": 200,
+      "rectHeight": 50
+    }
+  },
+  {
+    "device": "Tablet",
+    "editor": {
+      "height": "50px",
+      "parentClass": "pagecraft-column pagecraft-wk7wo1wjt",
+      "parentHeight": 200,
+      "parentId": "nwk7wo1wjt",
+      "parentMinHeight": "auto",
+      "rectHeight": 50
+    },
+    "preview": {
+      "height": "50px",
+      "parentHeight": 200,
+      "rectHeight": 50
+    }
+  },
+  {
+    "device": "Mobile",
+    "editor": {
+      "height": "50px",
+      "parentClass": "pagecraft-column pagecraft-wk7wo1wjt",
+      "parentHeight": 200,
+      "parentId": "nwk7wo1wjt",
+      "parentMinHeight": "auto",
+      "rectHeight": 50
+    },
+    "preview": {
+      "height": "50px",
+      "parentHeight": 200,
+      "rectHeight": 50
+    }
+  }
+]

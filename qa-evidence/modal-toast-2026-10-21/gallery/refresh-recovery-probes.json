@@ -1,0 +1,21 @@
+{
+  "initial": "One initial gallery Retry refresh click did not clear the error; later direct click did. Cause is unconfirmed. No product change inferred.",
+  "readinessGate": "Wait for html[data-gallery-ready=true] before each fresh route probe.",
+  "freshNativeProbes": [
+    {
+      "buttonDisabled": true,
+      "hidden": true,
+      "ready": "true"
+    },
+    {
+      "buttonDisabled": true,
+      "hidden": true,
+      "ready": "true"
+    },
+    {
+      "buttonDisabled": true,
+      "hidden": true,
+      "ready": "true"
+    }
+  ]
+}

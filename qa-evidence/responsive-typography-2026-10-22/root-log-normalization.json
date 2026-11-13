@@ -1,0 +1,97 @@
+[
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/task-close.md",
+    "original": "d0b519d61fe3ce3f98bb6fc117ab089eed5cdf6e560adef79e88aba8c657989a",
+    "normalized": "2e7e828572c54b174725024045f5c312a1667f2065a713ad6ecaf37b0985495d"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-typecheck.log",
+    "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/full-suite.log",
+    "original": "379fb582334606d878d02f6bd9b814b4fc3c763e2b02aa92f3a9c4a593071a6b",
+    "normalized": "70cc0f49608bdd6a2cde752c6f00b8a48b3ce87c87c5caed8e4c49f9a01cd417"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/red.log",
+    "original": "847aeef7909c84d08aacf052ac890f3726d9b38b99a903eb18b9feb02d754c17",
+    "normalized": "004dfa36e20d61d8e41215579f4c0f4ff95e77327fe37cf78d5867b99ccc0fe6"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/red-fixture-error.log",
+    "original": "0c214667a2399b7010d9152afe03e0fba58532f3161d7fabddbfbbed36876ade",
+    "normalized": "f6b9c6231c65d114265849e9099d6a1de63cc3aa35e7438856e34d49964906de"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/isolated-inspector-after-full-failure.log",
+    "original": "84bac3b900a44d7a45dd12c0e694eeeb0431ffa3829ef6b3921edcc33135e554",
+    "normalized": "9b903f1c12885baff4fafc6fad6d3b120a3a33e0350843b068565bb4ac22040e"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/related.log",
+    "original": "a038e81608664e9c43d7ddafec96a12fdaf94197ef687df6c58b7c5530dc7a0c",
+    "normalized": "aa60ef4b33d2182c3f67f7557ceb6585a2ad851dde834f42d5cff4e25bee559f"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/wordpress-golden-check.log",
+    "original": "457b599619f0d64908c7d254ae4aeeb07b263d6cd3610c2e6064e946f7e7a9d6",
+    "normalized": "4946f2e4cbf98ad211f83c52baf514bb6e4dd5ba8aa71e4af401c419efaab49a"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-focused-3.log",
+    "original": "58771d63093d5f51c395d5280755b359f4cdde8bf238e9775752867ef6a83004",
+    "normalized": "d31fd2365332c8b922392c88b35f0ac4a7f39d393132e44b76a9ca765c5ee9cf"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-focused-2.log",
+    "original": "349b0cc8300ec88ad67ef6fdc0959c066266b3ed2231d597a78c3c19157393c5",
+    "normalized": "2a063502a69628624b144673f02e776567cf056467a3633b1db04a9d9d1747a4"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-red.log",
+    "original": "ccec5d32d714ca3195702ef37874e0aba710c43535fc3e40338c0dbb7168baae",
+    "normalized": "3c50bc051f1b2769c2e51967b85708bf636d1b2a033b78e616ac9eb484011d18"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-focused-1.log",
+    "original": "70b1eb49797109a35bc90f4ce647ce30002bbf8dbb40cd41476f19b6c55645e6",
+    "normalized": "3525159ceed0a812d14d43983b04453584c696cd648eebecf2bc8a02bbe23514"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-focused-5.log",
+    "original": "01369504865398e1a63b6af77fb773f623d5fffd1ec8926bd685e3c6c81ad2dd",
+    "normalized": "2384f571fda6acada69c60af01802a0fa5406526b262bd6ca45a2b93147b1cad"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/full-suite-retry.log",
+    "original": "bcafdb705bd6ec374e515101c0fd8677072abb730837e91a276701a3de447879",
+    "normalized": "7717aa852f5d841fdf48af71c804ecddf308f353576f02b6e61243d369f0c3a2"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-diff-check.log",
+    "original": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalized": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-focused-4.log",
+    "original": "589329126d33e64d0407ad36ed4b000df75c25dee193afce4bebe5b159e60fa6",
+    "normalized": "b743c0de1e0fca0983767ec2307b24634d0181e55ecdc0c91c5a7225d18c68fa"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/green-focused.log",
+    "original": "08c9893f7ca68b769f55e66611d56dfebc7496b04694fa95453152c47d43e533",
+    "normalized": "4037301ae62c1cdc5be07a8445587ed7b5039436cb7e13bbde83a0b6fdaffe54"
+  },
+  {
+    "path": "qa-evidence/responsive-typography-2026-10-22/logs/inspector-lifecycle-full-suite.log",
+    "original": "9020f5795cc2d612aeb1a08eea4b37d9f673a66b2a2a09f5abd5eabbdc193779",
+    "normalized": "d558d1be822cfc65b235411ec99c5980648c768c7a5b945b452c321defc90237"
+  }
+]

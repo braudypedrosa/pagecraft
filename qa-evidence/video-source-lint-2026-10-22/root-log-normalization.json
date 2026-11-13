@@ -1,0 +1,72 @@
+[
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/submissions-timeout-isolation.log",
+    "original": "0417d364edea7ffe47cf2198b6b7ee8157347afea804a65fc2a1f752659195d4",
+    "normalized": "27771a7ce3e8890d21b792d475af219733e8e734961b6b17432d75ca9474a870"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/typecheck-final.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/wordpress-golden-check-final.log",
+    "original": "062619020bd82cfc4ab74ad0443c73f30c4311e0563a34419f36493c41a56459",
+    "normalized": "447f9dd49d4721a98725e69fbb68d3f90f538ac3d0bc80f4a325e1b0157fc4aa"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/full-suite.log",
+    "original": "1e6a3757b3764f4c47b53b1532d58f000f0d2442ca072ac04735bcb670e12784",
+    "normalized": "56189350f4b684cd013769bbf7af31c493e694d8d74ce141f1a8d7f3a489ae4e"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/red.log",
+    "original": "5066c49b74a5dd60cc23606f74df8f0008b1a30f3fb153aa48981f1c8829aba6",
+    "normalized": "08e586331fb5eda96ed05b3f5385467499991ff83462246b5dd024e1c84bed15"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/typecheck.log",
+    "original": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalized": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/related.log",
+    "original": "7b0085e1e410009b480a66873d5fa485dfccad2ac66ac730c661f79cc82ddd65",
+    "normalized": "a757aaca354aca5288ebfea4eb76e5eebfaf8393cf5e5e5ac5bbe5ba785f1715"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/wordpress-golden-check.log",
+    "original": "1e8eb72b04025fe7ac2d8379ebc051a0adc7f5aa1375d30719c5597b7e8166b7",
+    "normalized": "0c23a8e0732f864c71ee5d4f2774c2423e7e610382d63fffd867d6a052873008"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/full-suite-final.log",
+    "original": "08e89a62986e2af5c0e3dbb52e1b08161edde2280e2affd4450ca150aff35de4",
+    "normalized": "adf2a7e997b9bb0ff029ed30504291299e64004428f6bec25a45eb9ba65f86df"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/green-focused.log",
+    "original": "b9c1d5e65f58b5e609627d27f23d636d3303a3979a7c0d67edeb0614bbc81030",
+    "normalized": "b37dd65913496be413ebc43ff15a06e79a81068c446fc5e8c6bc6b1e063e7faf"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/wp-placeholder-green.log",
+    "original": "b4d0bb43c5e9d8b3a6f581e4aeef4406e94c07a829bd9c2072a3f7080767a022",
+    "normalized": "2bfba43e2742dd6ef5366486cdc891a27e85cf97b1edfd663e5e7aea5c2b3b6f"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/full-suite-final-retry.log",
+    "original": "6582ce6b43909290dd9f5c0907ee545d60b9eb0b7b911a413756bc43e2bfdc00",
+    "normalized": "70ae5cc4ac558d7207b46df32fe3a4526aa542978f05568e0aef03cd6537b4ea"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/green-focused-final.log",
+    "original": "40fb1cecfa0e6540daaad1dc646dc1dfd3c7d5251f4fbc0d95a0476c34095310",
+    "normalized": "044f766b1925a848073b72c1d6e4b2657e699c8724f83ae9d08d94301a8c3092"
+  },
+  {
+    "path": "qa-evidence/video-source-lint-2026-10-22/logs/wp-placeholder-red.log",
+    "original": "42e69026a0b486a07336c60151f01e49dcf1eedc90e4aa32a6eae1072bf1f11c",
+    "normalized": "fa4900cdc6e3f70c6786bae48cc7e913d27475206b47ad04cdcc45b5b0f563da"
+  }
+]

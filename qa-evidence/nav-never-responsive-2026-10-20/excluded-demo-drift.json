@@ -1,0 +1,9 @@
+{
+  "retained": "HEAD",
+  "path": "dist/demo/index.html",
+  "reason": "Candidate demo contains unrelated slider foundation and randomized fixture IDs; no Never-wrap CSS.",
+  "headSha256": "1aad67e1a84d1ecb7889a344901e033f82cab9a9059fffbd157f1d5c46090d0c",
+  "candidateSha256": "68ab45d7d7255e52e6a3bc87a984efd923624a2c71cf88351b87f9040c5b9d14",
+  "headBytes": 63136,
+  "candidateBytes": 63193
+}

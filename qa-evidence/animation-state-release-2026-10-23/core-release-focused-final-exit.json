@@ -1,0 +1,1 @@
+{"command":"npx vitest run tests/core.test.ts server/tests/releases.test.ts --maxWorkers=4","exit":0}

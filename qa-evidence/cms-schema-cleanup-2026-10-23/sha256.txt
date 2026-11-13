@@ -1,0 +1,9 @@
+88edce95c8ac1594bb18b83b5584c9f7d1d914b1d7bacf74f1287c54c5efe25f  app/src/core/index.ts
+9f03dd03116e2559c2128c965605ae2d953be645e1be8dd7520a36a05d2ad582  app/src/ui/CmsWorkspace.tsx
+79da4fe66e04a48c4eaabc697d1281f63496598add96d4ce09235a312f8900e5  tests/list-pagination-reset.test.ts
+8cef7728c84ed6b306023fe29985236342169fef7de631e3cc338e66d1a8912b  tests/cms-field-reference-cleanup.test.tsx
+3bec7a4191d167dfdb62921c9b25f38ac0be9adfe8e72762e8689c973fa91a0d  qa-evidence/cms-schema-cleanup-2026-10-23/green.log
+713ca203a9df2105d870989c19ad6240dbbeecd4fed85e665cd4fc09063dc903  qa-evidence/cms-schema-cleanup-2026-10-23/red.log
+334a19cf4431683a6363f8cf9e3e8cab635bf624cf4bcd203af142e831e2bf93  qa-evidence/cms-schema-cleanup-2026-10-23/related.log
+d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68  qa-evidence/cms-schema-cleanup-2026-10-23/typecheck.log
+dc75d4afb83f0dd01a82013e5a150ab7d14279b5af86b17db4ad5628b064515b  qa-evidence/cms-schema-cleanup-2026-10-23/task-close.md

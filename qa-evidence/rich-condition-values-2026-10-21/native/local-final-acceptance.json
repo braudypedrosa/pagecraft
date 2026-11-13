@@ -1,0 +1,34 @@
+{
+  "status": "Final Rich-condition assets native accepted before independent notification patch",
+  "finalIndexSha256": "9f306d584289e016b2b8eb47340ffc82a9d00ba46a5f8c7ffbefdbd892dcc0e5",
+  "sourceCoreSha256": "3ada3fc146ea5d22fdf2d9cb40dda457df7447980775ccb7ad7dd5c08c78e3b2",
+  "instance": "nmkuka17h",
+  "richMarkup": "<p>Seasonal workshop</p>",
+  "comparison": "Seasonal workshop",
+  "reloadComparison": "Seasonal workshop",
+  "eq": {
+    "expected": 1,
+    "actual": 1
+  },
+  "ne": {
+    "expected": 0,
+    "actual": 0
+  },
+  "mobile": {
+    "width": 414,
+    "overflow": false,
+    "count": 1
+  },
+  "emptyMarkup": "<p></p>",
+  "set": {
+    "expected": 0,
+    "actual": 0
+  },
+  "empty": {
+    "expected": 1,
+    "actual": 1
+  },
+  "tabId": "8",
+  "cpuThrottlingUsed": false,
+  "networkThrottlingUsed": false
+}

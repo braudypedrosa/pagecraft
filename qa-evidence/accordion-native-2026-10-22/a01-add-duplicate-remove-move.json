@@ -1,0 +1,38 @@
+{
+  "actions": [
+    "Added question4",
+    "Edited question/answer",
+    "Duplicated question4:5rows",
+    "Removed duplicate5",
+    "Moved item4 up to3"
+  ],
+  "rows": [
+    {
+      "device": "Desktop",
+      "summaries": [
+        "Shipping & returns?",
+        "How long does it take?",
+        "Who is it for?",
+        "What does it cost?"
+      ]
+    },
+    {
+      "device": "Tablet",
+      "summaries": [
+        "Shipping & returns?",
+        "How long does it take?",
+        "Who is it for?",
+        "What does it cost?"
+      ]
+    },
+    {
+      "device": "Mobile",
+      "summaries": [
+        "Shipping & returns?",
+        "How long does it take?",
+        "Who is it for?",
+        "What does it cost?"
+      ]
+    }
+  ]
+}

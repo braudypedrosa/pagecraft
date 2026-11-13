@@ -14,6 +14,8 @@ import {
   WordPressContentPicker, wordpressContentTargets, wordpressDestinationForValue,
   wordpressReferenceForItem
 } from '../WordPressContentPicker';
+import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
+import { HelpTip } from '../HelpTip';
 import type { Control, Node as PcNode } from '../../core/types';
 import { useRef, useState } from 'preact/hooks';
 import { MotionPresence } from '../MotionPresence';
@@ -27,22 +29,33 @@ const list = (n: PcNode, c: Control): any[] => {
 
 /** A text input bound to one property of one row. Typing coalesces into a single undo
     step per field, which is what `tx` keyed on the control gives us. */
-function RowInput({ n, c, k, prop, ...rest }: P & { k: number; prop: string } & Record<string, any>) {
+function RowInput({ n, c, k, prop, beforeCommit, onCommit, ...rest }: P & {
+  k: number; prop: string; beforeCommit?: () => boolean; onCommit?: () => void;
+} & Record<string, any>) {
   const key = n.id + '|' + (c.c || c.k || c.t);
+  const changed = useRef(false);
   return <input class="ctl" value={list(n, c)[k][prop] || ''} {...rest}
     onInput={e => {
+      changed.current = true;
       L.tx(key);
       rows(n, c)[k][prop] = (e.target as HTMLInputElement).value;
       L.repaint();
-    }} onBlur={L.endTx} />;
+    }} onBlur={() => {
+      const repaired = changed.current && beforeCommit?.();
+      if (repaired) L.repaint();
+      L.endTx();
+      if (!changed.current) return;
+      changed.current = false;
+      onCommit?.();
+    }} />;
 }
 
 /** Move-up and remove, which every row has. */
-function RowActs({ n, c, k }: P & { k: number }) {
+function RowActs({ n, c, k, context }: P & { k: number; context: string }) {
   return <>
-    <button class="x" title="Move up" disabled={k === 0} onClick={() => liftRow(n, c, k)}>
+    <button class="x" title="Move up" aria-label={`Move ${context} up`} disabled={k === 0} onClick={() => liftRow(n, c, k)}>
       <Icon name="caretUp" size={11} /></button>
-    <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
+    <button class="x" title="Remove" aria-label={`Remove ${context}`} onClick={() => dropRow(n, c, k)}>
       <Icon name="trash" size={11} /></button>
   </>;
 }
@@ -57,10 +70,42 @@ function AddButton({ label, onClick, gap, small }: { label: string; onClick: () 
 export function ItemsCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(arr.length ? 0 : null);
+  const [, setLabelRevision] = useState(0);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
+  const [nativePendingId, setNativePendingId] = useState<string | null>(null);
   const dragFrom = useRef<number | null>(null);
+  const legacyIds = useRef(new WeakMap<object, string>());
+  const usedIds = new Set<string>();
+  const itemIds = arr.map(item => {
+    const stored = String(item.id || '');
+    if (stored && !usedIds.has(stored)) { usedIds.add(stored); return stored; }
+    let id = legacyIds.current.get(item as object);
+    do { id ||= C.uid(); } while (usedIds.has(id));
+    legacyIds.current.set(item as object, id);
+    usedIds.add(id);
+    return id;
+  });
   const wordpressTargets = wordpressContentTargets();
+  const nativeSource = L.nativePageSource();
+  const nativePages = useNativePages(nativeSource);
+  const nativePageForItem = (it: any) => {
+    const byIdentity = nativePages.pages.find(page => page.id === String(it.objectId || ''));
+    if (byIdentity) return byIdentity;
+    const byUrl = nativePageForValue(nativePages.pages, it.href, window.location.origin);
+    if (byUrl) return byUrl;
+    const reference = C.parseWordPressContentReference(it.href);
+    if (!reference || reference.objectType !== 'page') return null;
+    const paths = nativePages.pages.map(page => {
+      try {
+        return { page, path: new URL(page.url).pathname };
+      } catch { return null; }
+    }).filter((entry): entry is { page: typeof nativePages.pages[number]; path: string } => !!entry);
+    const exact = paths.find(entry => entry.path === reference.path);
+    if (exact) return exact.page;
+    const suffixes = paths.filter(entry => entry.path.endsWith(reference.path));
+    return suffixes.length === 1 ? suffixes[0].page : null;
+  };
   const firstWordPressTarget = wordpressTargets.find(target => target.items.some(item =>
     !!wordpressReferenceForItem(target, item))) || null;
   const firstWordPress = firstWordPressTarget?.items.find(item =>
@@ -68,20 +113,56 @@ export function ItemsCtl({ n, c }: P) {
   const firstWordPressReference = firstWordPressTarget && firstWordPress
     ? wordpressReferenceForItem(firstWordPressTarget, firstWordPress)?.reference || '' : '';
   const commit = (k: number, prop: string, value: string) => C.edit(() => { rows(n, c)[k][prop] = value; });
-  const commitDestination = (k: number, value: string) => C.edit(() => {
+  const commitParent = (k: number, value: string) => C.edit(() => {
+    const items = rows(n, c);
+    items.forEach((item, index) => { if (String(item.id || '') !== itemIds[index]) item.id = itemIds[index]; });
+    items[k].parentId = value;
+  });
+  const commitDestination = (k: number, value: string, identity?: {
+    pageId?: string; objectType?: string; objectId?: string;
+  }) => C.edit(() => {
     const row = rows(n, c)[k];
     row.href = value;
-    delete row.objectId;
-    delete row.objectType;
+    if (identity?.pageId) row.pageId = identity.pageId; else delete row.pageId;
+    if (identity?.objectType && identity.objectId) {
+      row.objectType = identity.objectType;
+      row.objectId = identity.objectId;
+    } else {
+      delete row.objectId;
+      delete row.objectType;
+    }
     delete row.anchor;
   });
   const parsed = (it: any) => C.parseLink(it.href, C.page().slug) as any;
-  const pageName = (slug: string) => C.state.pages.find(p => p.slug === slug)?.name || 'Missing page';
-  const summary = (it: any) => {
+  const pageDestination = (it: any) => {
     const link = parsed(it);
-    if (link.mode === 'page') return `Page · ${pageName(link.page || C.page().slug)}`;
+    const storedId = String(it.pageId || '');
+    const storedPage = storedId ? C.state.pages.find(p => p.id === storedId) : null;
+    const nativeIdentity = !!it.objectId && ['page', 'post'].includes(String(it.objectType || ''));
+    const legacyPage = !storedId && !nativeIdentity && link.mode === 'page'
+      ? C.state.pages.find(p => p.slug === (link.page || C.page().slug)) : null;
+    const portable = storedId ? String(it.href || '').match(/^([\w-]+)\.html(?:#([\w-]+))?$/) : null;
+    const page = storedPage || legacyPage || null;
+    return {
+      link, storedId, page,
+      pageId: page?.id || storedId,
+      slug: page?.slug || portable?.[1] || link.page || C.page().slug,
+      frag: link.mode === 'page' ? link.frag || '' : portable?.[2] || '',
+      mode: !!storedId || (!nativeIdentity && link.mode === 'page')
+    };
+  };
+  const summary = (it: any) => {
+    const destination = pageDestination(it);
+    if (destination.mode) return `Page · ${destination.page?.name || 'Missing page'}`;
+    const native = nativePageForItem(it);
+    const reference = C.parseWordPressContentReference(it.href);
+    if (nativeSource && ((String(it.objectType || '') === 'page' && it.objectId)
+      || reference?.objectType === 'page' || native)) {
+      return `WordPress · Page · ${native?.title || reference?.path || 'Missing page'}`;
+    }
     const wordpress = wordpressDestinationForValue(it.href);
     if (wordpress) return `WordPress · ${wordpress.item.objectType === 'post' ? 'Post' : 'Page'} · ${wordpress.path}`;
+    if (reference) return `WordPress · ${reference.objectType === 'post' ? 'Post' : 'Page'} · ${reference.path}`;
     return String(it.href || '').trim() || 'Custom URL not set';
   };
   const finishDrag = (to: number) => {
@@ -96,10 +177,9 @@ export function ItemsCtl({ n, c }: P) {
     else if (open !== null && from > open && to <= open) setOpen(open + 1);
   };
   const wouldCreateParentCycle = (itemIndex: number, candidateIndex: number) => {
-    const itemId = String(arr[itemIndex]?.id || '');
-    let candidateId = String(arr[candidateIndex]?.id || '');
-    if (!itemId || !candidateId) return true;
-    const byId = new Map(arr.map(item => [String(item.id || ''), item]));
+    const itemId = itemIds[itemIndex];
+    let candidateId = itemIds[candidateIndex];
+    const byId = new Map(arr.map((item, index) => [itemIds[index], item]));
     const seen = new Set<string>();
     while (candidateId && !seen.has(candidateId)) {
       if (candidateId === itemId) return true;
@@ -112,20 +192,30 @@ export function ItemsCtl({ n, c }: P) {
   return <Field n={n} c={c}>
     {n.props.menuLocation ? <div class="note native-menu-note">
       WordPress menu · {String(n.props.menuLocation).replace(/(^|[-_])\w/g, value => value.replace(/[-_]/, ' ').toUpperCase())} navigation.
-      Content changes here also appear in Appearance → Menus; Pagecraft keeps the visual settings.
+      Content syncs to Appearance → Menus; Pagecraft controls styling.
     </div> : null}
     {arr.map((it, k) => {
-      const link = parsed(it);
+      const destination = pageDestination(it);
       const wordpress = wordpressDestinationForValue(it.href);
-      const mode = link.mode === 'page' ? 'page' : wordpress ? 'wordpress' : 'custom';
-      const page = link.page || C.page().slug;
-      const anchors = mode === 'page' ? C.anchorsOf(page) : [];
+      const reference = C.parseWordPressContentReference(it.href);
+      const native = nativePageForItem(it);
+      const nativePending = !!nativeSource && nativePendingId === itemIds[k];
+      const effectiveParentId = itemIds.includes(String(it.parentId || '')) ? String(it.parentId) : '';
+      const nativeMode = !!nativeSource
+        && ((String(it.objectType || '') === 'page' && !!it.objectId)
+          || reference?.objectType === 'page' || !!native);
+      const mode = nativePending ? 'native'
+        : destination.mode ? 'page' : nativeMode ? 'native'
+          : wordpress || reference ? 'wordpress' : 'custom';
+      const page = destination.slug;
+      const anchors = mode === 'page' && destination.page ? C.anchorsOf(page) : [];
       const isDragging = dragging === k;
+      const itemContext = `${it.label || 'untitled link'}, item ${k + 1}`;
       return <div class={'navitem' + (open === k ? ' on' : '') + (isDragging ? ' dragging' : '') + (dragOver === k && !isDragging ? ' dragover' : '')}
         key={k} onDragOver={e => { e.preventDefault(); if (dragFrom.current !== null && dragFrom.current !== k) setDragOver(k); }}
         onDrop={e => { e.preventDefault(); finishDrag(k); }}>
         <div class="navitem-head">
-          <button class="navitem-drag" draggable aria-label={`Drag ${it.label || 'untitled link'} to reorder`}
+          <button class="navitem-drag" draggable aria-label={`Drag ${itemContext} to reorder`}
             title="Drag to reorder"
             onDragStart={e => {
               dragFrom.current = k;
@@ -139,74 +229,113 @@ export function ItemsCtl({ n, c }: P) {
             onDragEnd={() => { dragFrom.current = null; setDragging(null); setDragOver(null); }}>
             <Icon name="drag" size={12} />
           </button>
-          <button class="navitem-main" aria-expanded={open === k ? 'true' : 'false'}
+          <button class="navitem-main" aria-label={`Edit ${itemContext}`} aria-expanded={open === k ? 'true' : 'false'}
             onClick={() => setOpen(open === k ? null : k)}>
             <span><b>{it.label || 'Untitled link'}</b><small>{summary(it)}</small></span>
             <Icon name="caret" size={11} />
           </button>
-          <button class="x" title="Remove" onClick={() => dropRow(n, c, k)}>
+          <button class="x" title="Remove" aria-label={`Remove ${itemContext}`} onClick={() => dropRow(n, c, k)}>
             <Icon name="trash" size={11} />
           </button>
         </div>
         <MotionPresence show={open === k} class="navitem-body" kind="panel">
           <label>Navigation label</label>
-          <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label" />
+          <RowInput n={n} c={c} k={k} prop="label" placeholder="Link label"
+            onCommit={() => setLabelRevision(revision => revision + 1)}
+            aria-label={`Navigation label for ${itemContext}`} />
 
-          <label>Destination</label>
-          <select class="ctl" value={mode} aria-label={`Destination for ${it.label || 'untitled link'}`} onChange={e => {
+          <div class="pc-label-with-help"><label>Destination</label><HelpTip label="Destination"
+            text="Custom destinations accept URLs, email, phone, and section links." /></div>
+          <select class="ctl" value={mode} aria-label={`Destination for ${itemContext}`} onChange={e => {
             const next = (e.target as HTMLSelectElement).value;
-            commitDestination(k, next === 'page'
-              ? C.buildLink({ mode: 'page', page: C.page().slug, frag: '' })
-              : next === 'wordpress' ? firstWordPressReference : '');
+            /* A detail template has no page of its own to link to; start at the front page. */
+            const linkable = C.linkablePages();
+            const current = linkable.includes(C.page()) ? C.page()
+              : linkable.find(C.isFront) || linkable[0] || C.page();
+            if (next === 'native') { setNativePendingId(itemIds[k]); return; }
+            setNativePendingId(null);
+            if (next === 'wordpress') {
+              const selected = wordpressDestinationForValue(firstWordPressReference);
+              commitDestination(k, firstWordPressReference, selected ? {
+                objectType: selected.item.objectType, objectId: selected.item.id
+              } : undefined);
+            } else commitDestination(k, next === 'page'
+              ? C.buildLink({ mode: 'page', page: current.slug, frag: '' }) : '',
+            next === 'page' ? { pageId: current.id } : undefined);
           }}>
             <option value="page">A Pagecraft page</option>
-            {firstWordPress ? <option value="wordpress">WordPress content</option> : null}
+            {nativeSource ? <option value="native">A WordPress page</option> : null}
+            {firstWordPress || reference ? <option value="wordpress">WordPress content</option> : null}
             <option value="custom">Custom URL</option>
           </select>
 
           {mode === 'page' ? <>
-            <select class="ctl" value={page} onChange={e => {
-              commitDestination(k, C.buildLink({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' }));
+            <select class="ctl" value={destination.pageId} aria-label={`Destination page for ${itemContext}`} onChange={e => {
+              const selected = C.state.pages.find(p => p.id === (e.target as HTMLSelectElement).value);
+              if (selected) commitDestination(k, C.buildLink({ mode: 'page', page: selected.slug, frag: '' }), { pageId: selected.id });
             }}>
-              {C.state.pages.map(p => <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
+              {!destination.page && destination.storedId
+                ? <option value={destination.storedId} disabled>Missing page · {String(it.href || '')}</option> : null}
+              {destination.page && C.isDetailTemplate(destination.page)
+                ? <option value={destination.page.id} disabled>{destination.page.name} · detail template, not a page</option> : null}
+              {C.linkablePages().map(p => <option key={p.id} value={p.id}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>)}
             </select>
-            <select class="ctl" value={link.frag || ''} onChange={e => {
-              commit(k, 'href', C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }));
+            <select class="ctl" value={destination.frag} aria-label={`Destination section/anchor for ${itemContext}`} onChange={e => {
+              commitDestination(k, C.buildLink({ mode: 'page', page, frag: (e.target as HTMLSelectElement).value }), { pageId: destination.pageId });
             }}>
               <option value="">Top of the page</option>
               {anchors.map(id => <option key={id} value={id}>#{id}</option>)}
-              {link.frag && !anchors.includes(link.frag)
-                ? <option value={link.frag}>#{link.frag} — missing</option> : null}
+              {destination.frag && !anchors.includes(destination.frag)
+                ? <option value={destination.frag}>#{destination.frag} — missing</option> : null}
             </select>
-          </> : mode === 'wordpress' ? (
-            <WordPressContentPicker value={it.href} onChange={url => commitDestination(k, url)} />
+          </> : mode === 'native' ? (
+            <NativePagePicker state={nativePages} value={native?.url || it.href}
+              savedLabel={reference ? `Saved WordPress page · ${reference.path}` : undefined}
+              onChange={(url, selected) => {
+                setNativePendingId(null);
+                commitDestination(k, url, { objectType: 'page', objectId: selected.id });
+              }} />
+          ) : mode === 'wordpress' ? (
+            firstWordPress ? <WordPressContentPicker value={it.href} onChange={url => {
+                const selected = wordpressDestinationForValue(url);
+                commitDestination(k, url, selected ? {
+                  objectType: selected.item.objectType, objectId: selected.item.id
+                } : undefined);
+              }} />
+              : <div class="note">Saved WordPress {reference?.objectType === 'post' ? 'post' : 'page'} · {reference?.path}</div>
           ) : <>
-            <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section" />
-            <div class="note">Supports external URLs, email, phone, and section links.</div>
+            <RowInput n={n} c={c} k={k} prop="href" placeholder="https://example.com or #section"
+              aria-label={`Custom URL or section for ${itemContext}`} />
           </>}
 
-          <label>CSS classes</label>
-          <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class" />
-          <div class="note">Applied to this menu item. Separate multiple classes with spaces.</div>
+          <div class="pc-label-with-help"><label>CSS classes</label><HelpTip label="CSS classes"
+            text="Applied to this menu item. Separate multiple classes with spaces." /></div>
+          <RowInput n={n} c={c} k={k} prop="cls" placeholder="featured-link another-class"
+            aria-label={`CSS classes for ${itemContext}`} />
 
-          <label>Parent item</label>
-          <select class="ctl" value={it.parentId || ''} onChange={e => commit(k, 'parentId', (e.target as HTMLSelectElement).value)}>
-            <option value="">Top level</option>
-            {arr.map((candidate, index) => index === k ? null : (
-              <option key={candidate.id || index} value={candidate.id || ''}
-                disabled={!candidate.id || wouldCreateParentCycle(k, index)}>
-                {candidate.label || 'Untitled link'}
-              </option>
-            ))}
-          </select>
+          {n.type !== 'crumbs' && <>
+            <label>Parent item</label>
+            <select key={itemIds[k] + '|' + effectiveParentId} class="ctl" value={effectiveParentId}
+              aria-label={`Parent item for ${itemContext}`}
+              onChange={e => commitParent(k, (e.target as HTMLSelectElement).value)}>
+              <option value="">Top level</option>
+              {arr.map((candidate, index) => index === k ? null : (
+                <option key={itemIds[index]} value={itemIds[index]}
+                  disabled={wouldCreateParentCycle(k, index)}>
+                  {candidate.label || 'Untitled link'}
+                </option>
+              ))}
+            </select>
+          </>}
 
-          <label>Link relationship</label>
-          <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored" />
-          <div class="note">Optional relationship values, separated by spaces.</div>
+          <div class="pc-label-with-help"><label>Link relationship</label><HelpTip label="Link relationship"
+            text="Optional values such as nofollow or sponsored, separated by spaces." /></div>
+          <RowInput n={n} c={c} k={k} prop="rel" placeholder="nofollow sponsored"
+            aria-label={`Link relationship for ${itemContext}`} />
 
           <div class="tog-row navitem-target">
             <span>Open in a new tab</span>
-            <button type="button" role="switch" aria-label="Open in a new tab"
+            <button type="button" role="switch" aria-label={`Open ${itemContext} in a new tab`}
               aria-checked={it.target === '_blank' ? 'true' : 'false'}
               class={'sw-tog' + (it.target === '_blank' ? ' on' : '')} onClick={() => {
               commit(k, 'target', it.target === '_blank' ? '' : '_blank');
@@ -233,6 +362,21 @@ export function ItemsCtl({ n, c }: P) {
 const FIELD_TYPES: string[][] = [['text', 'Text'], ['email', 'Email'], ['tel', 'Phone'],
   ['number', 'Number'], ['date', 'Date'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['checkbox', 'Checkbox']];
 
+/** A manually authored submission key follows the same suffix contract as Duplicate. Only
+    the row that just committed is repaired, so merely opening an older document cannot
+    rewrite a key or change what an existing integration receives. */
+function keepFormFieldNameUnique(n: PcNode, c: Control, k: number) {
+  const fields = rows(n, c);
+  const base = C.formFieldName(fields[k], k);
+  const existing = new Set(fields.flatMap((field, index) =>
+    index === k ? [] : [C.formFieldName(field, index)]));
+  if (!existing.has(base)) return false;
+  let suffix = 2;
+  while (existing.has(base + '-' + suffix)) suffix++;
+  fields[k].name = base + '-' + suffix;
+  return true;
+}
+
 /** Shared disclosure for text repeaters. Only the active item occupies editing space. */
 function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
   k: number; title: string; open: number | null; setOpen: (k: number | null) => void; children: any;
@@ -240,27 +384,28 @@ function RepeaterRow({ n, c, k, title, open, setOpen, children }: P & {
   const expanded = open === k;
   return <div class={'frow repeater-row' + (expanded ? ' on' : '')}>
     <div class="repeater-head">
-      <button type="button" class="repeater-toggle" aria-expanded={expanded}
+      <button type="button" class="repeater-toggle" aria-label={`Edit ${title}, item ${k + 1}`} aria-expanded={expanded}
         onClick={() => { L.endTx(); setOpen(expanded ? null : k); }}>
         <Icon name="caret" size={10} /><span>{title}</span>
       </button>
-      <button type="button" class="x" title="Move up" disabled={k === 0}
+      <button type="button" class="x" title="Move up" aria-label={`Move ${title}, item ${k + 1} up`} disabled={k === 0}
         onClick={() => { liftRow(n, c, k); setOpen(k - 1); }}><Icon name="caretUp" size={11} /></button>
-      <button type="button" class="x" title="Duplicate" onClick={() => {
+      <button type="button" class="x" title="Duplicate" aria-label={`Duplicate ${title}, item ${k + 1}`} onClick={() => {
         C.edit(() => {
           const copy = structuredClone(rows(n, c)[k]);
           // A copied form control must have a distinct submission key.
           if (c.t === 'fields') {
-            const base = copy.name || C.slugify(copy.label) || 'field';
+            const existing = new Set(rows(n, c).map((row, index) => C.formFieldName(row, index)));
+            const base = C.formFieldName(copy, k);
             let suffix = 2;
-            while (rows(n, c).some(row => row.name === base + '-' + suffix)) suffix++;
+            while (existing.has(base + '-' + suffix)) suffix++;
             copy.name = base + '-' + suffix;
           }
           rows(n, c).splice(k + 1, 0, copy);
         });
         setOpen(k + 1);
       }}><Icon name="copy" size={11} /></button>
-      <button type="button" class="x" title="Remove" onClick={() => {
+      <button type="button" class="x" title="Remove" aria-label={`Remove ${title}, item ${k + 1}`} onClick={() => {
         dropRow(n, c, k);
         setOpen(open === k ? null : open !== null && open > k ? open - 1 : open);
       }}><Icon name="trash" size={11} /></button>
@@ -273,6 +418,8 @@ export function FieldsCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(null);
   const [advanced, setAdvanced] = useState(false);
+  const [, setLabelRevision] = useState(0);
+  const grid = C.cssAt(n, C.dk(), '--f-layout') === 'grid';
   return <Field n={n} c={c}>
     {arr.map((f, k) => (
       <RepeaterRow n={n} c={c} k={k} key={k} title={f.label || 'Field ' + (k + 1)}
@@ -282,7 +429,9 @@ export function FieldsCtl({ n, c }: P) {
           <button type="button" aria-pressed={advanced} onClick={() => setAdvanced(true)}>Advanced</button>
         </div>
         {advanced ? <label class="frow-control"><span>Field name</span>
-          <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'} />
+          <RowInput n={n} c={c} k={k} prop="name" placeholder={C.slugify(f.label) || 'field-name'}
+            beforeCommit={() => keepFormFieldNameUnique(n, c, k)}
+            onCommit={() => setLabelRevision(revision => revision + 1)} />
         </label> : <>
           <label class="frow-control"><span>Type</span>
             <select class="ctl" aria-label="Field type" value={f.type || 'text'}
@@ -290,7 +439,8 @@ export function FieldsCtl({ n, c }: P) {
               {FIELD_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
-          <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label" /></label>
+          <label class="frow-control"><span>Label</span><RowInput n={n} c={c} k={k} prop="label" placeholder="Label"
+            onCommit={() => setLabelRevision(revision => revision + 1)} /></label>
           {f.type !== 'checkbox' ? <label class="frow-control"><span>{f.type === 'select' ? 'Options' : 'Placeholder'}</span>
             {f.type === 'select'
               ? <RowInput n={n} c={c} k={k} prop="opts" placeholder="Option one, Option two" />
@@ -298,7 +448,7 @@ export function FieldsCtl({ n, c }: P) {
           </label> : null}
           <label class="frow-control"><span>Required</span><input class="field-switch" type="checkbox" role="switch" checked={!!f.required}
             onChange={() => C.edit(() => { rows(n, c)[k].required = f.required ? 0 : 1; })} /></label>
-          <label class="frow-control"><span>Width</span>
+          {!grid ? <label class="frow-control"><span>Width</span>
             <select class="ctl" aria-label="Field width" value={f.width || (f.half ? 50 : 100)}
               onChange={e => C.edit(() => {
                 rows(n, c)[k].width = Number((e.target as HTMLSelectElement).value);
@@ -306,7 +456,7 @@ export function FieldsCtl({ n, c }: P) {
               })}>
               {[100, 50, 33, 25, 20].map(width => <option key={width} value={width}>{width === 100 ? 'Full width' : width + '%'}</option>)}
             </select>
-          </label>
+          </label> : null}
         </>}
       </RepeaterRow>
     ))}
@@ -318,19 +468,65 @@ export function FieldsCtl({ n, c }: P) {
   </Field>;
 }
 
+/** Rich tab panels are real Box children. Structural changes must update both
+    the panel references and children together through the Core operations. */
+function TabPanelsCtl({ n, c }: P) {
+  const items = list(n, c);
+  const [, setLabelRevision] = useState(0);
+  const canStructure = L.canStructure();
+  return <Field n={n} c={c}>
+    <p class="note">Each tab has an editable panel. Select a panel to add and arrange its content.</p>
+    {items.map((item, index) => <div class="frow repeater-row" key={item.panelId}>
+      <div class="repeater-head">
+        <span>{item.label || `Tab ${index + 1}`}</span>
+        <button type="button" class="x" title="Move up" aria-label={`Move tab ${index + 1} up`}
+          disabled={!canStructure || index === 0} onClick={() => C.edit(() => { C.tabMove(n, index, -1); }, 'Move tab')}><Icon name="caretUp" size={11} /></button>
+        <button type="button" class="x" title="Move down" aria-label={`Move tab ${index + 1} down`}
+          disabled={!canStructure || index === items.length - 1} onClick={() => C.edit(() => { C.tabMove(n, index, 1); }, 'Move tab')}><Icon name="caret" size={11} /></button>
+        <button type="button" class="x" title="Duplicate" aria-label={`Duplicate tab ${index + 1}`}
+          disabled={!canStructure} onClick={() => C.edit(() => { C.tabDuplicate(n, index); }, 'Duplicate tab')}><Icon name="copy" size={11} /></button>
+        <button type="button" class="x" title="Remove" aria-label={`Remove tab ${index + 1}`}
+          disabled={!canStructure || items.length <= 1} onClick={() => C.edit(() => { C.tabRemove(n, index); }, 'Remove tab')}><Icon name="trash" size={11} /></button>
+      </div>
+      <div class="repeater-body">
+        <label class="frow-control"><span>Tab label</span><RowInput n={n} c={c} k={index} prop="label"
+          placeholder="Tab label" aria-label={`Label for tab ${index + 1}`}
+          onCommit={() => setLabelRevision(revision => revision + 1)} /></label>
+        <button type="button" class="btn" onClick={() => {
+          L.endTx();
+          if (!C.tabSelect(n, index)) return;
+          L.paint();
+          L.select(String(item.panelId), { scroll: true });
+        }}>Edit panel</button>
+      </div>
+    </div>)}
+    {canStructure && <AddButton label="Add tab" gap={!!items.length} onClick={() => {
+      C.edit(() => { C.tabAdd(n); }, 'Add tab');
+    }} />}
+  </Field>;
+}
+
 /* Questions and tabs use the same compact repeater as form fields. */
 export function QaCtl({ n, c }: P) {
   const arr = list(n, c);
   const [open, setOpen] = useState<number | null>(null);
+  const [, setLabelRevision] = useState(0);
   const key = n.id + '|' + (c.c || c.k || c.t);
   const [kA, kB] = c.rowKeys || ['q', 'a'];
   const [phA, phB] = c.rowPhs || ['Question', 'Answer'];
+  if (n.type === 'tabs' && C.hasRichTabPanels(n)) return <TabPanelsCtl n={n} c={c} />;
   return <Field n={n} c={c}>
+    {n.type === 'tabs' && L.canStructure() && <button type="button" class="btn block" onClick={() => {
+      L.endTx(); C.edit(() => { C.enableTabPanels(n); }, 'Use editable tab panels');
+    }}>Use editable panels</button>}
     {arr.map((it, k) => <RepeaterRow n={n} c={c} k={k} key={k}
       title={it[kA] || 'Item ' + (k + 1)} open={open} setOpen={setOpen}>
-      <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA} /></label>
+      <label class="frow-control"><span>{phA}</span><RowInput n={n} c={c} k={k} prop={kA} placeholder={phA}
+        onCommit={() => setLabelRevision(revision => revision + 1)}
+        aria-label={`${phA} for ${it[kA] || 'untitled item'}, item ${k + 1}`} /></label>
       <label class="repeater-long"><span>{kB === 'a' ? 'Answer' : 'Content'}</span>
         <textarea class="ctl" rows={4} value={it[kB] || ''} placeholder={phB}
+          aria-label={`${kB === 'a' ? 'Answer' : 'Content'} for ${it[kA] || 'untitled item'}, item ${k + 1}`}
           onInput={e => { L.tx(key); rows(n, c)[k][kB] = (e.target as HTMLTextAreaElement).value; L.repaint(); }} onBlur={L.endTx} />
       </label>
     </RepeaterRow>)}
@@ -344,6 +540,8 @@ export function QaCtl({ n, c }: P) {
 
 export function ImgsCtl({ n, c }: P) {
   const arr = list(n, c);
+  const replacing = useRef(false);
+  const [replaceBusy, setReplaceBusy] = useState(false);
 
   /* intrinsic size is taken once, from what the library measured — the export writes it
      as width/height and the review reads it */
@@ -356,6 +554,25 @@ export function ImgsCtl({ n, c }: P) {
   const files = useImageUpload('gallery-' + n.id + '-' + c.k,
     ids => C.edit(() => ids.forEach(id => rows(n, c).push(tile(id)))), true);
 
+  const replace = async (item: any, index: number) => {
+    if (replacing.current || files.busy) return;
+    replacing.current = true; setReplaceBusy(true);
+    const source = item.src;
+    try {
+      const id = await L.mediaPicker({ title: `Replace image ${index + 1}`, multiple: false });
+      if (!id || !L.asset(id)) return;
+      // Row identity follows reorders, but removed/restored rows cannot receive a stale result.
+      if (C.locate(n.id)?.node !== n || !list(n, c).includes(item) || item.src !== source) return;
+      const { src, w, h } = tile(id);
+      if (item.src === src && item.w === w && item.h === h) return;
+      C.edit(() => { Object.assign(item, { src, w, h }); }, 'Replace gallery image');
+    } catch {
+      L.toast('Could not replace the image. Try again.', { tone: 'error' });
+    } finally {
+      replacing.current = false; setReplaceBusy(false);
+    }
+  };
+
   return <Field n={n} c={c}>
     {arr.map((it, k) => {
       const ref = String(it.src || '').match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
@@ -366,10 +583,17 @@ export function ImgsCtl({ n, c }: P) {
             {a ? <img src={a.url} alt="" /> : <span>not in<br />project</span>}
           </span>
           <span class="gmeta">
-            <RowInput n={n} c={c} k={k} prop="alt" placeholder="Alt text — describe it" />
-            <RowInput n={n} c={c} k={k} prop="caption" placeholder="Caption (optional)" />
+            <RowInput n={n} c={c} k={k} prop="alt" placeholder="Alt text — describe it"
+              aria-label={`Alt text for image ${k + 1}`} />
+            <RowInput n={n} c={c} k={k} prop="caption" placeholder="Caption (optional)"
+              aria-label={`Caption for image ${k + 1}`} />
           </span>
-          <span class="gacts"><RowActs n={n} c={c} k={k} /></span>
+          <span class="gacts">
+            <button type="button" class="x" title="Replace image" aria-label={`Replace image ${k + 1}`}
+              disabled={files.busy || replaceBusy} onClick={() => replace(it, k)}>
+              <Icon name="image" size={11} /></button>
+            <RowActs n={n} c={c} k={k} context={`image ${k + 1}`} />
+          </span>
         </div>
       );
     })}
@@ -386,6 +610,6 @@ export function ImgsCtl({ n, c }: P) {
           }}><Icon name="copy" size={13} /> Library</button>
       ) : null}
     </div>
-    <div class="note">Alt text is what a screen reader reads.</div>
+    <HelpTip label="Gallery alt text" text="Describe each image for screen readers." />
   </Field>;
 }

@@ -1,0 +1,38 @@
+{
+  "note": "Desktop and Tablet left at Fill; Mobile Right. Earlier editor Right overflow disappears in Preview; selection HUD excluded from public result.",
+  "rows": [
+    {
+      "device": "Desktop",
+      "value": {
+        "align": "stretch",
+        "left": 0,
+        "pageWidth": 1269,
+        "parentWidth": 1200,
+        "scrollWidth": 1269,
+        "width": 1200
+      }
+    },
+    {
+      "device": "Tablet",
+      "value": {
+        "align": "stretch",
+        "left": 0,
+        "pageWidth": 823,
+        "parentWidth": 775,
+        "scrollWidth": 823,
+        "width": 775
+      }
+    },
+    {
+      "device": "Mobile",
+      "value": {
+        "align": "flex-end",
+        "left": 193.15625,
+        "pageWidth": 403,
+        "parentWidth": 363,
+        "scrollWidth": 403,
+        "width": 169.84375
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "result": "Only four esbuild source import path comments differ from accepted85; all non-source-comment lines are identical.",
+  "changes": [
+    "-// ../dependency-audit-1f4895c/node_modules/entities/lib/esm/generated/decode-data-html.js",
+    "+// node_modules/entities/lib/esm/generated/decode-data-html.js",
+    "-// ../dependency-audit-1f4895c/node_modules/entities/lib/esm/generated/decode-data-xml.js",
+    "+// node_modules/entities/lib/esm/generated/decode-data-xml.js",
+    "-// ../dependency-audit-1f4895c/node_modules/entities/lib/esm/decode_codepoint.js",
+    "+// node_modules/entities/lib/esm/decode_codepoint.js",
+    "-// ../dependency-audit-1f4895c/node_modules/entities/lib/esm/decode.js",
+    "+// node_modules/entities/lib/esm/decode.js"
+  ]
+}

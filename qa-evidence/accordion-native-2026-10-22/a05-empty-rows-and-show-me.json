@@ -1,0 +1,35 @@
+{
+  "emptyAnswerCheck": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 suggestion\nHide details\n1 row of an accordion in the page open onto an empty answer.\nHome · page\nShow me\nClose",
+  "blankQuestionRows": [
+    {
+      "device": "Desktop",
+      "answer": "An answer without its question.",
+      "rows": 5,
+      "summary": ""
+    },
+    {
+      "device": "Tablet",
+      "answer": "An answer without its question.",
+      "rows": 5,
+      "summary": ""
+    },
+    {
+      "device": "Mobile",
+      "answer": "An answer without its question.",
+      "rows": 5,
+      "summary": ""
+    }
+  ],
+  "blankQuestionCheck": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem\nHide details\n1 row of an accordion in the page have no question, so there is nothing to click.\nHome · page\nShow me\nClose",
+  "showMe": {
+    "preview": false,
+    "inspector": "Accordion\nQuestions\nShared\nShipping & returns?\nHow long does it take?\nWho is it for?\nWhat does it cost?\nItem 5\nQuestion\nAnswer\nAdd question\nOpen on load\nAll open\nOne open at a time\nMarker\nPlus / minus",
+    "selected": [
+      {
+        "id": "ngn4901he",
+        "type": "accordion"
+      }
+    ]
+  },
+  "removedIncompleteItem5": true
+}

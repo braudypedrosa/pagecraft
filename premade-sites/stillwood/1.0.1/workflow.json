@@ -1,0 +1,104 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Couples, small groups and families seeking woodland cabin stays",
+    "primaryAction": "Preserve the approved site while correcting demonstrated usability findings",
+    "pages": [
+      "index",
+      "cabins",
+      "the-a-frame",
+      "waterline",
+      "meadow-house",
+      "experiences",
+      "field-guide",
+      "our-story",
+      "contact"
+    ],
+    "content": "Preserve released native pages, assets and identities. Correct demonstrated tablet wrapping and host-specific form guidance; separate booking-provider search from inquiry receipt.",
+    "imagery": "Original generated woodland cabin photography and geometric graphic logo",
+    "provenance": [
+      {
+        "asset": "forest",
+        "source": "../1.0.0/ASSETS.md: built-in-generated forest photograph; individual output filename was not recorded",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "lake",
+        "source": "../1.0.0/ASSETS.md: built-in-generated lake photograph; individual output filename was not recorded",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "meadow",
+        "source": "../1.0.0/ASSETS.md: built-in-generated meadow photograph; individual output filename was not recorded",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "interior",
+        "source": "../1.0.0/ASSETS.md: built-in-generated interior photograph; individual output filename was not recorded",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "logo",
+        "source": "../1.0.0/ASSETS.md: raster fallback rendered from the original logo.svg geometric pine/cabin mark and Georgia wordmark",
+        "license": "Original template artwork derived from the Stillwood SVG identity; no third-party mark or artwork."
+      },
+      {
+        "asset": "symbol",
+        "source": "../1.0.0/ASSETS.md: raster fallback rendered from the original logo.svg geometric mark",
+        "license": "Original template artwork derived from the Stillwood SVG identity; no third-party mark or artwork."
+      },
+      {
+        "asset": "woodland",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-738127aa-2c4d-4e38-8a22-3441ff917948.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "logo-light",
+        "source": "../1.0.0/ASSETS.md: original logo.svg identity rendered in ivory for the dark footer",
+        "license": "Original template artwork derived from the Stillwood SVG identity; no third-party mark or artwork."
+      },
+      {
+        "asset": "breakfast",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-dd11f50c-1ddf-4d74-9f9d-ce7d45c155c8.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "firepit",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-7e3ffe84-a805-4354-8c70-11a6ded22f86.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "bedroom",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-c0bb020a-0387-4c57-a2d6-d88d298d0d3e.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "picnic",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-205984cc-1204-4cf4-a931-f919794f6dac.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "trail",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-d18326c5-548d-4bd7-a4d3-4bb4d0c9f9fe.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "evening",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-b5e6aff0-51bd-4fbe-b639-9fe7c448cba0.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      },
+      {
+        "asset": "dining",
+        "source": "../1.0.0/ASSETS.md: built-in image generation output exec-23d668f8-1963-435d-a2ec-4539e549c5a6.png",
+        "license": "Original built-in-generated demonstration asset; no third-party photography copied."
+      }
+    ]
+  },
+  "directions": [],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

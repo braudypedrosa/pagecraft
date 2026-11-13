@@ -1,0 +1,56 @@
+{
+  "status": "Cloud bounded mixed Button acceptance passed; WordPress pending",
+  "source": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
+  "baselineVersion": 1124,
+  "case": "P1-BUTTON-HOST-CLOUD",
+  "nativeActions": [
+    "Add source and duplicate peers",
+    "Set explicit local override",
+    "Save selected Button as component",
+    "Duplicate reusable instance",
+    "Set size20 weight700 text#123456 background#e8d9be radius18 padding18/30 border2solid#223344 together",
+    "Cancel Update typography",
+    "Confirm Update typography",
+    "Undo and Redo",
+    "Desktop Tablet Mobile editor",
+    "Reload",
+    "Desktop Tablet Mobile Preview pointer click and keyboard Tab",
+    "Restore Version1124"
+  ],
+  "observations": {
+    "source": {
+      "size20": true,
+      "weight700": true,
+      "colorChanged": true,
+      "localAppearanceRetained": true
+    },
+    "ordinaryPeerAndTwoInstances": {
+      "typographyInherited": true,
+      "appearanceStayedLocal": true
+    },
+    "explicitOverride": {
+      "size27AndPurpleRetained": true,
+      "weightInherited700": true
+    },
+    "Body": {
+      "desktop18": true,
+      "tablet18": true,
+      "mobile17": true
+    },
+    "undoExact": true,
+    "redoExact": true,
+    "savedReloadExact": true,
+    "keyboardFocusRing": true,
+    "restoration20NodesAndStylesExact": true
+  },
+  "screenshotsReviewed": [
+    "cloud-editor-desktop.png",
+    "cloud-preview-mobile.png"
+  ],
+  "limits": [
+    "This intentionally mixed low-contrast QA colors to verify propagation; not customer visual design.",
+    "WordPress native counterpart not yet run.",
+    "No arbitrary values, full Button finite settings or all-state combinations credited."
+  ],
+  "fullQAComplete": false
+}

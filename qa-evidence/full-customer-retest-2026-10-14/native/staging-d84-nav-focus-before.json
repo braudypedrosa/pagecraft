@@ -1,0 +1,38 @@
+{
+  "commit": "d84e79da7444500283b549cdb457b2a635063cf1",
+  "authoredBackground": "#bbccdd",
+  "cases": [
+    {
+      "bp": "Desktop",
+      "actual": {
+        "background": "rgba(0, 0, 0, 0)",
+        "descendantFocused": true,
+        "rootFocused": false
+      }
+    },
+    {
+      "bp": "Tablet",
+      "actual": {
+        "background": "rgba(0, 0, 0, 0)",
+        "descendantFocused": true,
+        "rootFocused": false
+      }
+    },
+    {
+      "bp": "Mobile",
+      "actual": {
+        "background": "rgba(0, 0, 0, 0)",
+        "descendantFocused": true,
+        "rootFocused": false
+      }
+    }
+  ],
+  "restored": true,
+  "confirmedIneffective": true,
+  "undoLabel": "Undo: Change menu colour (⌘Z)",
+  "restoration": {
+    "freshReload": true,
+    "navExact": true,
+    "idsExact": true
+  }
+}

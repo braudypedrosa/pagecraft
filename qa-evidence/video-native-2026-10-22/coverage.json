@@ -1,0 +1,101 @@
+{
+  "status": "Local bounded native acceptance, broader module and host parity open",
+  "sourceCommit": "37f65d4b83de12d6959bfa982c935bc945e31461",
+  "node": "n5kl9i1x7",
+  "ratios": {
+    "16:9": {
+      "height": 201.9375,
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\" data-sel=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "ratio": "16 / 9",
+      "width": 359
+    },
+    "4:3": {
+      "height": 269.25,
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:4 / 3\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "ratio": "4 / 3",
+      "width": 359
+    },
+    "1:1": {
+      "height": 359,
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:1 / 1\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "ratio": "1 / 1",
+      "width": 359
+    },
+    "21:9": {
+      "height": 153.84375,
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:21 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "ratio": "21 / 9",
+      "width": 359
+    },
+    "9:16 vertical": {
+      "height": 638.21875,
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:9 / 16\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?mute=1&amp;muted=1\" aria-label=\"Play video\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "ratio": "9 / 16",
+      "width": 359
+    }
+  },
+  "actualMp4Playback": {
+    "autoplay": true,
+    "controls": false,
+    "error": null,
+    "loop": true,
+    "muted": true,
+    "paused": false,
+    "ready": 4,
+    "time": 2.640587,
+    "videoHeight": 540,
+    "videoWidth": 960
+  },
+  "responsiveStyle": {
+    "Desktop": {
+      "overflow": "hidden",
+      "parentWidth": 1200,
+      "radius": "24px",
+      "ratio": "16 / 9",
+      "width": "960px"
+    },
+    "Tablet": {
+      "overflow": "hidden",
+      "parentWidth": 771,
+      "radius": "16px",
+      "ratio": "16 / 9",
+      "width": "693.891px"
+    },
+    "Mobile": {
+      "overflow": "hidden",
+      "parentWidth": 359,
+      "radius": "8px",
+      "ratio": "16 / 9",
+      "width": "359px"
+    }
+  },
+  "facadeOn": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?\" aria-label=\"Play video\"><img src=\"/api/sites/s1/assets/a165cqb4\" alt=\"\" loading=\"lazy\" decoding=\"async\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+  "facadeOff": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\"><iframe src=\"https://www.youtube.com/embed/aqz-KE-bpKQ?\" title=\"Video\" allow=\"accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture\" allowfullscreen=\"\" loading=\"lazy\"></iframe></div>",
+  "facadeActivated": "<div id=\"pagecraft-video-5kl9i1x7\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><iframe src=\"https://www.youtube.com/embed/aqz-KE-bpKQ?&amp;autoplay=1\" title=\"Video\" allow=\"accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture\" allowfullscreen=\"\"></iframe></div>",
+  "reload": {
+    "Desktop": {
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?\" aria-label=\"Play video\"><img src=\"/api/sites/s1/assets/a165cqb4\" alt=\"\" loading=\"lazy\" decoding=\"async\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "radius": "24px",
+      "ratio": "16 / 9",
+      "width": "960px"
+    },
+    "Tablet": {
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?\" aria-label=\"Play video\"><img src=\"/api/sites/s1/assets/a165cqb4\" alt=\"\" loading=\"lazy\" decoding=\"async\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "radius": "16px",
+      "ratio": "16 / 9",
+      "width": "693.891px"
+    },
+    "Mobile": {
+      "html": "<div id=\"n5kl9i1x7\" data-id=\"n5kl9i1x7\" data-t=\"video\" class=\"pagecraft-video pagecraft-5kl9i1x7\" style=\"aspect-ratio:16 / 9\" data-facade=\"\"><button class=\"pagecraft-video-play\" type=\"button\" data-embed=\"https://www.youtube.com/embed/aqz-KE-bpKQ?\" aria-label=\"Play video\"><img src=\"/api/sites/s1/assets/a165cqb4\" alt=\"\" loading=\"lazy\" decoding=\"async\"><span class=\"pagecraft-video-icon\" aria-hidden=\"true\"></span></button></div>",
+      "radius": "8px",
+      "ratio": "16 / 9",
+      "width": "359px"
+    }
+  },
+  "limits": [
+    "YouTube activation verified iframe creation, not third-party video playback",
+    "Physical iOS playback not tested; playsinline absent for unmuted non-autoplay video requires follow-up",
+    "Vimeo, unsafe/invalid URLs, file upload, all style units, shared Advanced/Motion/state and host parity remain open"
+  ],
+  "method": "Native palette, inputs, switches, library selection and preview clicks only; read-only DOM measurements"
+}

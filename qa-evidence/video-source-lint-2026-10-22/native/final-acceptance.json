@@ -1,0 +1,64 @@
+{
+  "status": "Root final source native accepted, rollout pending",
+  "node": "n9h7sl1qt",
+  "coreSHA256": "0e1bd5d8bc9272b7999f4181cf15e53dc209c14f2a055eaa331345300aa9fff8",
+  "invalid": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 problem\nHide details\nA video in the page has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.\nHome · page\nShow me\nClose\nVideo added",
+  "showMeTarget": "n9h7sl1qt",
+  "invalidPreviewThreeWidths": {
+    "Desktop": {
+      "box": {
+        "height": 675,
+        "width": 1200
+      },
+      "html": "<div id=\"pagecraft-video-9h7sl1qt\" class=\"pagecraft-video pagecraft-9h7sl1qt\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "noPlayers": true,
+      "placeholder": {
+        "height": 675,
+        "left": 0,
+        "top": 0,
+        "width": 1200
+      }
+    },
+    "Tablet": {
+      "box": {
+        "height": 435.9375,
+        "width": 775
+      },
+      "html": "<div id=\"pagecraft-video-9h7sl1qt\" class=\"pagecraft-video pagecraft-9h7sl1qt\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "noPlayers": true,
+      "placeholder": {
+        "height": 435.9375,
+        "left": 0,
+        "top": 0,
+        "width": 775
+      }
+    },
+    "Mobile": {
+      "box": {
+        "height": 204.1875,
+        "width": 363
+      },
+      "html": "<div id=\"pagecraft-video-9h7sl1qt\" class=\"pagecraft-video pagecraft-9h7sl1qt\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Unsupported video URL</div></div>",
+      "noPlayers": true,
+      "placeholder": {
+        "height": 204.1875,
+        "left": 0,
+        "top": 0,
+        "width": 363
+      }
+    }
+  },
+  "emptyBox": {
+    "boxHeight": 201.9375,
+    "html": "<div id=\"n9h7sl1qt\" data-id=\"n9h7sl1qt\" data-t=\"video\" data-sel=\"\" class=\"pagecraft-video pagecraft-9h7sl1qt\" style=\"aspect-ratio:16 / 9\"><div style=\"position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif\">Add a video URL</div></div>",
+    "placeholderHeight": 201.9375
+  },
+  "emptyCheck": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\n1 suggestion\nHide details\nA video in the page has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.\nHome · page\nShow me\nClose",
+  "correctedSavedReload": "Site checks\n\nCheck links, content and accessibility before publishing. These checks are separate from client feedback.\n\nNo problems found\nClose",
+  "priorLintUndoRedoEvidence": "acceptance.json",
+  "limits": [
+    "WordPress sanitizer retains edges via actual safecss_filter_attr read-only proof; native installed WP pin pending",
+    "Native contextualCMS/component paths remain automated only",
+    "FullQAopen"
+  ]
+}

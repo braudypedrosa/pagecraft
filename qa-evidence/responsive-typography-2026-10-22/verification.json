@@ -1,0 +1,114 @@
+{
+  "baseCommit": "67c6838312397200157c498a3952bb55635998b9",
+  "status": "Implementation and local verification complete; root-owned native verification pending.",
+  "scope": {
+    "owned": [
+      "app/src/core/index.ts",
+      "tests/text-style-responsive-transfer.test.ts",
+      "generated outputs",
+      "qa-evidence/responsive-typography-2026-10-22"
+    ],
+    "excluded": [
+      "Main",
+      "browser",
+      "builder.html",
+      "Inspector",
+      "WordPress writes",
+      "dependencies",
+      "commit",
+      "push"
+    ]
+  },
+  "behavior": {
+    "tsUpdateFrom": "Clears old shared values per typography property from the earliest locally owned breakpoint through mobile, then moves the source values into the style.",
+    "tsUnlink": "Uses the same responsive merge before baking typography into the node.",
+    "tsCreateFrom": "Unchanged because no pre-existing style baseline is merged.",
+    "preserves": [
+      "unowned shared typography",
+      "local non-typography",
+      "other nodes and their explicit overrides",
+      "CSS-wide values including zero, inherit, initial and unset"
+    ]
+  },
+  "red": {
+    "command": "npx vitest run tests/text-style-responsive-transfer.test.ts --maxWorkers=1",
+    "exitCode": 1,
+    "testsFailed": 6,
+    "evidence": "logs/red.log",
+    "fixtureCorrection": "The first attempted RED lacked ensureTokens and is preserved at logs/red-fixture-error.log; the valid RED followed after correcting only the fixture."
+  },
+  "checks": {
+    "focused": {
+      "exitCode": 0,
+      "filesPassed": 1,
+      "testsPassed": 6,
+      "evidence": "logs/green-focused.log"
+    },
+    "related": {
+      "exitCode": 0,
+      "filesPassed": 6,
+      "testsPassed": 696,
+      "evidence": "logs/related.log"
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "logs/typecheck.log"
+    },
+    "wordpressGolden": {
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 29,
+      "updated": false,
+      "evidence": "logs/wordpress-golden-check.log"
+    },
+    "fullSuiteFirst": {
+      "exitCode": 1,
+      "testsPassed": 2668,
+      "testsSkipped": 5,
+      "error": "ReferenceError: cancelAnimationFrame is not defined from a delayed Preact timer attributed to inspector-first-click-after-blur.test.tsx",
+      "evidence": "logs/full-suite.log"
+    },
+    "isolatedFailure": {
+      "exitCode": 0,
+      "testsPassed": 2,
+      "evidence": "logs/isolated-inspector-after-full-failure.log"
+    },
+    "fullSuiteRetry": {
+      "exitCode": 0,
+      "filesPassed": 256,
+      "filesSkipped": 2,
+      "testsPassed": 2668,
+      "testsSkipped": 5,
+      "evidence": "logs/full-suite-retry.log"
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "builds": {
+    "sequence": "node build.mjs then node packages/editor/build.mjs, repeated twice",
+    "exitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "artifacts": 10,
+    "allExist": true,
+    "receiptsMatch": true,
+    "generatedReceiptSha256": "4bb5be1f6e4d33e4c039e550e115688eab62c5944dccd68524e4c2403d28c1c7"
+  },
+  "freeze": {
+    "entries": 13,
+    "verified": true,
+    "manifest": "freeze-13.sha256",
+    "manifestSha256": "0007226c7ebab0032921c5a4fce9ca5fbb428dd1ed6c2059763c3568c1007b2a",
+    "sourceTestsGoldenSha256": "b525942998e98e33bbc5f763d93ddeabfad05d37c3465ab34760d60fbab489c8"
+  },
+  "limits": [
+    "Root owns final native desktop, tablet and mobile comparison.",
+    "No native acceptance is claimed.",
+    "Full QA remains open."
+  ]
+}

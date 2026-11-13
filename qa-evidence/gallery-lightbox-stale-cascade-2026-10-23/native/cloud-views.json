@@ -1,0 +1,545 @@
+[
+  {
+    "device": "Desktop",
+    "keyboard": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "1220px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "nextAndHover": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "1220px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": true,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Reading room study",
+      "image": [
+        {
+          "alt": "QA reading room",
+          "loaded": true
+        }
+      ]
+    },
+    "previous": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": true,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "1220px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "escapeFocusReturned": true
+  },
+  {
+    "device": "Tablet",
+    "keyboard": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "774px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "nextAndHover": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "774px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": true,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Reading room study",
+      "image": [
+        {
+          "alt": "QA reading room",
+          "loaded": true
+        }
+      ]
+    },
+    "previous": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": true,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "774px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "escapeFocusReturned": true
+  },
+  {
+    "device": "Mobile",
+    "keyboard": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "354px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "nextAndHover": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "354px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": true,
+          "height": "46px",
+          "hover": true,
+          "label": "Next image",
+          "offset": "2px",
+          "outline": "rgb(255, 255, 255) solid 2px",
+          "right": "14px",
+          "shadow": "rgba(10, 12, 10, 0.92) 0px 0px 0px 5px",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Reading room study",
+      "image": [
+        {
+          "alt": "QA reading room",
+          "loaded": true
+        }
+      ]
+    },
+    "previous": {
+      "buttons": [
+        {
+          "bg": "rgba(10, 12, 10, 0.88)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": true,
+          "label": "Previous image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "354px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Next image",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "334px",
+          "transform": "matrix(1, 0, 0, 1, 0, -23)",
+          "width": "46px"
+        },
+        {
+          "bg": "rgba(10, 12, 10, 0.72)",
+          "color": "rgb(255, 255, 255)",
+          "display": "grid",
+          "focus": false,
+          "height": "46px",
+          "hover": false,
+          "label": "Close",
+          "offset": "0px",
+          "outline": "rgb(255, 255, 255) none 3px",
+          "right": "14px",
+          "shadow": "none",
+          "top": "14px",
+          "transform": "none",
+          "width": "46px"
+        }
+      ],
+      "caption": "Courtyard study",
+      "image": [
+        {
+          "alt": "QA courtyard house",
+          "loaded": true
+        }
+      ]
+    },
+    "escapeFocusReturned": true
+  }
+]

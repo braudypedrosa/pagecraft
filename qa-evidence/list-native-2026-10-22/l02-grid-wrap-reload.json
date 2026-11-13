@@ -1,0 +1,23 @@
+{
+  "restoredWrap83": "No wrap",
+  "listWrapReload83": [
+    {
+      "count": 18,
+      "device": "Desktop",
+      "pageOverflow": false,
+      "wrap": "wrap"
+    },
+    {
+      "count": 18,
+      "device": "Tablet",
+      "pageOverflow": false,
+      "wrap": "wrap"
+    },
+    {
+      "count": 18,
+      "device": "Mobile",
+      "pageOverflow": false,
+      "wrap": "wrap"
+    }
+  ]
+}

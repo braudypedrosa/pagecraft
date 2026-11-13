@@ -1,0 +1,62 @@
+[
+  {
+    "device": "Desktop",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-cg-heading-15",
+    "breadcrumb": "Section\n›\nBox\n›\nBox\n›\nPlaces shaped around peopl",
+    "inspectorCount": 1
+  },
+  {
+    "device": "Tablet",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-cg-heading-15",
+    "breadcrumb": "Section\n›\nBox\n›\nBox\n›\nPlaces shaped around peopl",
+    "inspectorCount": 1
+  },
+  {
+    "device": "Mobile",
+    "sequence": [
+      {
+        "key": "2",
+        "value": "2"
+      },
+      {
+        "key": ".",
+        "value": "2"
+      },
+      {
+        "key": "5",
+        "value": "3"
+      }
+    ],
+    "selected": "Heading\n#pagecraft-heading-cg-heading-15",
+    "breadcrumb": "Section\n›\nBox\n›\nBox\n›\nPlaces shaped around peopl",
+    "inspectorCount": 1
+  }
+]

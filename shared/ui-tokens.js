@@ -2,7 +2,7 @@
  * Density is intentional: spacious account/CMS forms, compact editor panels, dense rows.
  * These tokens are never injected into a user's published site.
  */
-export const UI_TEXT_SIZES = Object.freeze({ label: '11px', body: '12px' });
+export const UI_TEXT_SIZES = Object.freeze({ label: '13px', body: '14px' });
 
 export const UI_TOKENS_CSS = `:root{
   --pc-surface-subtle:#fafbfc;
@@ -24,7 +24,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-control-padding:var(--pc-control-padding-y) var(--pc-control-padding-x);
   --pc-control-height:44px;
   --pc-control-compact:36px;
-  --pc-control-editor:37px;
+  --pc-control-editor:40px;
   --pc-control-row:32px;
   --pc-field-label-gap:8px;
   --pc-field-gap:16px;
@@ -47,15 +47,17 @@ export const UI_TOKENS_CSS = `:root{
   --pc-table-icon-gap:8px;
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
-  --pc-text-caption:11px;
+  --pc-text-caption:12px;
   --pc-text-label:${UI_TEXT_SIZES.label};
   --pc-text-body:${UI_TEXT_SIZES.body};
-  --pc-text-panel:15px;
-  --pc-text-dialog:16px;
+  --pc-text-prose:16px;
+  --pc-text-panel:16px;
+  --pc-text-dialog:18px;
   --pc-text-section:18px;
   --pc-text-workspace:22px;
   --pc-type-input:400 var(--pc-text-body)/1.4 var(--pc-font-body);
   --pc-type-control:500 var(--pc-text-body)/1.4 var(--pc-font-body);
+  --pc-type-body:400 var(--pc-text-prose)/1.55 var(--pc-font-body);
   --pc-type-toolbar:500 var(--pc-text-label)/1.4 var(--pc-font-body);
   --pc-type-label:500 var(--pc-text-label)/1.5 var(--pc-font-label);
   --pc-type-description:400 var(--pc-text-label)/1.55 var(--pc-font-label);

@@ -101,7 +101,7 @@ export interface HeadingProps extends Linkable, Styled { text?: string; level?: 
 export interface TextProps extends Styled { html?: string }
 export interface QuoteProps extends Styled { text?: string; by?: string; source?: string }
 export interface ImageProps extends Linkable {
-  src?: string; alt?: string; caption?: string; decorative?: 0 | 1 | boolean;
+  src?: string; alt?: string; caption?: string; label?: string; decorative?: 0 | 1 | boolean;
   w?: string; h?: string; lazy?: 0 | 1 | boolean;
 }
 export interface GalleryProps {
@@ -119,6 +119,15 @@ export interface ButtonProps extends Linkable, Styled {
   text?: string; variant?: string; icon?: string; align?: string; wrap?: string;
 }
 export interface NavProps {
+  mobileMenu?: 'dropdown' | 'fullscreen';
+  /** How a built mobile panel gets its links. Missing preserves legacy custom definitions. */
+  mobileMenuMode?: 'follow' | 'custom';
+  /** The legacy/custom layout. Kept separate so switching back restores authored content. */
+  mobileMenuComponent?: string;
+  /** The managed layout whose links follow this navigation at render time. */
+  mobileMenuFollowComponent?: string;
+  /** Internal marker for the one managed link list inside a follow layout. */
+  managedMobileLinks?: 0 | 1 | boolean;
   items?: NavItem[];
   collapse?: string;
   aria?: string;
@@ -132,6 +141,8 @@ export interface NavItem {
   id?: string;
   label?: string;
   href?: string;
+  /** Stable Pagecraft page identity. The href remains the portable exported path. */
+  pageId?: string;
   /** Stable item identity, not an array index, so nesting survives reordering. */
   parentId?: string;
   /** Custom classes belong to the menu item (`li`), matching the WordPress menu model. */
@@ -214,7 +225,12 @@ export interface TableProps {
   rules?: string;
   zebra?: 0 | 1;
 }
-export interface TabPanel { label?: string; panel?: string }
+export interface TabPanel {
+  label?: string;
+  /** Legacy plain text content. Rich panels instead reference a direct native Box. */
+  panel?: string;
+  panelId?: string;
+}
 export interface AccordionProps {
   items?: QaItem[]; open?: string; single?: 0 | 1 | boolean; marker?: string;
 }
@@ -320,9 +336,11 @@ export interface Node {
       same shape `adv.block` had, back when a global block tagged its copies — which is what
       this replaced. */
   use?: string;
-  /** An instance's property values, by property key. Absent keys take the variant's value if
-      it names one, then the definition's default — so changing a default moves every instance
-      that never overrode it. */
+  /** An instance's property values, by property key. Link targets use the reserved companion
+      key `@link-target:<property>` so the href remains a backward-compatible string. Absent
+      keys take the variant's value if it names one, then the definition's default. */
+  /** Exposed images may carry JSON {src,w,h} under `@image-size:<property>`.
+      It describes only that exact effective asset source, not authored CSS dimensions. */
   vals?: Record<string, string>;
   /** which variant of the component this instance is, if any */
   variant?: string;
@@ -426,6 +444,10 @@ export interface Variant {
 }
 
 export interface ComponentDef {
+  /** Reusable native layout for a full-width mobile navigation panel. */
+  mobileMenu?: boolean;
+  /** Follow layouts are private to their parent Nav; absent means legacy/custom. */
+  mobileMenuSource?: 'follow' | 'custom';
   id: string;
   name: string;
   /** the tree. Nodes inside it bind props to `{ src: 'prop' }` and may be slots. */
@@ -447,13 +469,15 @@ export interface Handle {
 
 /** Every control kind the inspector can draw. */
 export type ControlKind =
-  | 'text' | 'area' | 'select' | 'unit' | 'slider' | 'color' | 'pick' | 'toggle'
+  | 'text' | 'area' | 'select' | 'unit' | 'lengthList' | 'slider' | 'color' | 'pick' | 'toggle'
   | 'box' | 'border' | 'img' | 'opt' | 'dims' | 'link' | 'rich' | 'tstyle' | 'source'
   | 'items' | 'fields' | 'qa' | 'imgs' | 'icon' | 'cols';
 
 export interface Control {
   t: ControlKind;
   label: string;
+  /** Numeric controls that write CSS integer grammars, such as repeat() counts or z-index. */
+  integer?: 1;
   /** Compact rows are opt-in after reviewing the label and choices. */
   layout?: 'inline';
   /** A colour that paints a background can also own a gradient. Text and border colours
@@ -648,6 +672,10 @@ export interface Page {
   desc: string;
   ogImage?: string;
   tree: Node[];
+  /** Absent inherits the shared region; null hides it; an array owns this page's region.
+      An empty custom array stays editable, unlike a hidden region. */
+  header?: Node[] | null;
+  footer?: Node[] | null;
   /** makes this page a detail template: one file per item of that collection */
   collection?: string;
   bindTitle?: string;
@@ -717,6 +745,16 @@ export interface Ui {
   mode: 'page' | 'header' | 'footer' | 'component';
   /** the component being edited, while `mode` is `component` */
   cedit?: string | null;
+  /** One-shot exact parent context supplied immediately before a mobile layout opens. */
+  mobileMenuOwnerPending?: {
+    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
+    page?: number; ownerComponentId?: string;
+  } | null;
+  /** Exact parent context active for the current mobile-layout editing session. */
+  mobileMenuOwner?: {
+    menuComponentId: string; nodeId: string; mode: 'page' | 'header' | 'footer' | 'component';
+    page?: number; ownerComponentId?: string;
+  } | null;
   dev: Device;
   /** the primary selection, whose controls the inspector draws */
   sel: string | null;
@@ -787,6 +825,13 @@ export interface RenderOpts {
       of itself would otherwise render until the stack runs out, and a page builder should not
       be able to hang the tab it renders in. */
   stack?: string[];
+  /** Transient placement expansion path: editor ownership and public nested-ID scope only.
+      Never stored in a document. */
+  placementPath?: string[];
+  /** One public render batch owns reservation/allocation; never shared between requests. */
+  publicIds?: { reserving: boolean; reserved: Set<string>; used: Set<string> };
+  /** Authoritative parent Nav links while its managed mobile component renders. */
+  mobileMenuItems?: NavItem[];
   /** how far this file sits from the root, e.g. '../' */
   rel?: string;
   /** set while a Collection list repeats its contents */
@@ -803,6 +848,9 @@ export interface RenderOpts {
       inlining five copies of every image to save bandwidth on one of them is worse than
       not trying. Off means a single `src` and no `srcset`. */
   variants?: boolean;
+  /** Preview on the editor's canvas, which shares the editor's origin. Otherwise the export's
+      markup, except that an Embed is drawn in a sandboxed frame of its own. */
+  canvas?: boolean;
 }
 
 /** One file the export will write. */
@@ -818,12 +866,32 @@ export interface Target {
 
 export type Level_ = 'error' | 'warn';
 
+/** A collection item needed to reproduce the rendered copy a review finding describes. */
+export interface FindingItemTarget {
+  collectionId: string;
+  itemId: string;
+}
+
+/** A stable, non-display route from a review finding to one rendered canvas copy. */
+export interface FindingTarget {
+  pageId: string;
+  scope: 'page' | 'header' | 'footer';
+  nodeId: string;
+  /** Detail-template and static-source choices, which are canvas state rather than DOM hooks. */
+  previewItems?: FindingItemTarget[];
+  /** Repeated list rows, ordered from the outermost list to the innermost. */
+  repeatPath?: FindingItemTarget[];
+  /** The row of the page's one driving paginator. Its current page is recomputed on use. */
+  pagination?: { listNodeId: string; itemId: string };
+}
+
 export interface Finding {
   level: Level_;
   code: string;
   msg: string;
   where: { page?: string; slug?: string; region?: string; node?: string };
   nodeId?: string;
+  target?: FindingTarget;
 }
 
 /* ---- find and replace ------------------------------------------------- */

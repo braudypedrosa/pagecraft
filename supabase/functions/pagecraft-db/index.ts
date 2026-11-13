@@ -1,6 +1,9 @@
 import "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts";
 import postgres from "npm:postgres@3.4.7";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import { dispatchCollaboration, isCollaborationOp } from "./collaboration-invitations.ts";
+import { exchangeManualImportRefresh } from "./manual-import-refresh.ts";
+import { planEntitlements } from "./plan-entitlements.ts";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -16,7 +19,10 @@ import {
 /* Namecheap blocks outbound PostgreSQL ports. This function is the deliberately narrow bridge:
    HTTPS in, a fixed operation set, parameterized SQL out. It never accepts SQL from its caller. */
 const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, {
-  max: 3,
+  /* Each warm Edge isolate owns its own postgres.js pool. Three connections per isolate
+     multiplied with traffic bursts and exhausted this project's direct Postgres slots. One
+     connection queues concurrent work inside the isolate instead of amplifying it. */
+  max: 1,
   prepare: false,
   connect_timeout: 10,
   idle_timeout: 20,
@@ -28,7 +34,6 @@ const supabase = createClient(
 );
 const storage = supabase.storage;
 const ASSET_BUCKET = "pagecraft-assets";
-const FREE_STORAGE_BYTES = 100 * 1024 * 1024;
 const invitationRedirect = (raw: unknown) => {
   const redirect = new URL(text(raw));
   const allowedOrigins = new Set([
@@ -64,6 +69,7 @@ const assetStoragePath = (
   }`;
 
 const MAX_BODY = 16 * 1024 * 1024;
+const MAX_PROPOSAL_ASSET_IDS = 10_000; // The assistant request element cap.
 const json = (data: unknown, status = 200) =>
   Response.json({ data }, { status });
 const failure = (error: string, status: number, code?: string) =>
@@ -183,16 +189,68 @@ const immutableAssetName = (name: unknown, id: unknown) => {
 const immutableAssetPath = (row: { id?: unknown; name?: unknown }) =>
   legacyAssetPath({ id: row.id, name: immutableAssetName(row.name, row.id) });
 
+/* The key check runs before every operation and anyone can send a key, so it must not cost a
+   pooled connection: three are easy to queue behind. The configured hash is cached for a minute.
+   A mismatch may mean the key was just rotated, so it refreshes early, but at most once every
+   ten seconds however many wrong keys arrive. */
+const GATEWAY_KEY_TTL_MS = 60_000;
+const GATEWAY_KEY_RETRY_MS = 10_000;
+let gatewayKey = { hash: "", loadedAt: -Infinity };
+let gatewayKeyTriedAt = -Infinity;
+let gatewayKeyLoad: Promise<void> | null = null;
+const CONNECTION_SLOT_RETRY_MS = 50;
+
+const connectionSlotsUnavailable = (caught: unknown) => {
+  const error = caught as { name?: unknown; code?: unknown } | null;
+  return error?.name === "PostgresError" && error.code === "53300";
+};
+
+async function loadConfiguredKeyHash() {
+  const select = () =>
+    sql<{ secret_hash: string }[]>`
+      select secret_hash from gateway_config where id = 'primary'
+    `;
+  try {
+    return await select();
+  } catch (error) {
+    /* Authentication has not accepted or dispatched an operation yet. Repeating this one
+       read once is safe; gateway operations include writes and must never be retried here. */
+    if (!connectionSlotsUnavailable(error)) throw error;
+    await new Promise((resolve) =>
+      setTimeout(resolve, CONNECTION_SLOT_RETRY_MS)
+    );
+    return await select();
+  }
+}
+
+async function configuredKeyHash(mismatch: boolean) {
+  const now = Date.now();
+  if (
+    !gatewayKeyLoad && now - gatewayKeyTriedAt >= GATEWAY_KEY_RETRY_MS &&
+    (mismatch || now - gatewayKey.loadedAt >= GATEWAY_KEY_TTL_MS)
+  ) {
+    gatewayKeyTriedAt = now;
+    gatewayKeyLoad = (async () => {
+      const rows = await loadConfiguredKeyHash();
+      gatewayKey = { hash: text(rows[0]?.secret_hash), loadedAt: Date.now() };
+    })().finally(() => {
+      gatewayKeyLoad = null;
+    });
+  }
+  if (gatewayKeyLoad) await gatewayKeyLoad;
+  return gatewayKey.hash;
+}
+
 async function authorised(request: Request) {
   const supplied = request.headers.get("x-pagecraft-gateway-key") || "";
   if (!supplied) return false;
-  const rows = await sql<{ secret_hash: string }[]>`
-    select secret_hash from gateway_config where id = 'primary'
-  `;
-  return !!rows[0] && sameHex(await sha256(supplied), rows[0].secret_hash);
+  const hash = await sha256(supplied);
+  return sameHex(hash, await configuredKeyHash(false)) ||
+    sameHex(hash, await configuredKeyHash(true));
 }
 
 async function dispatch(op: string, args: Record<string, unknown>) {
+  if (isCollaborationOp(op)) return await dispatchCollaboration(sql, op, args);
   switch (op) {
     case "site.list":
       return await sql`select * from sites order by name`;
@@ -293,17 +351,35 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
         )
       );
+    /* The owned-site limit counts sites a person created, not ones somebody else added them to
+       as an owner. The creator is the author of the site's first revision, which every created
+       site writes; a site with no recorded author still counts. */
+    case "account.ownedSiteCount":
+      return integer(one(
+        await sql<{ count: number }[]>`
+        select count(*)::integer as count from site_users membership
+        where membership.user_id = ${text(args.ownerId)} and membership.role = 'owner'
+          and coalesce((select first.saved_by from site_revisions first
+            where first.site_id = membership.site_id order by first.version limit 1),
+            membership.user_id) = membership.user_id
+      `,
+      )?.count);
     case "account.createOwnedSite":
       return await sql.begin(async (transaction) => {
         const ownerId = text(args.ownerId);
-        const owner =
-          await transaction`select id from users where id = ${ownerId} for update`;
-        if (!owner[0]) return { status: "missing" };
-        const owned = await transaction<{ count: number }[]>`
-          select count(*)::integer as count from site_users
-          where user_id = ${ownerId} and role = 'owner'
+        const owner = await transaction<Record<string, unknown>[]>`
+          select id, plan from users where id = ${ownerId} for update
         `;
-        if (integer(owned[0]?.count) >= 3) {
+        if (!owner[0]) return { status: "missing" };
+        const ownedSites = planEntitlements(text(owner[0].plan)).ownedSites;
+        const owned = await transaction<{ count: number }[]>`
+          select count(*)::integer as count from site_users membership
+          where membership.user_id = ${ownerId} and membership.role = 'owner'
+            and coalesce((select first.saved_by from site_revisions first
+              where first.site_id = membership.site_id order by first.version limit 1),
+              membership.user_id) = membership.user_id
+        `;
+        if (ownedSites !== null && integer(owned[0]?.count) >= ownedSites) {
           return { status: "limit" };
         }
         const made = one(
@@ -343,14 +419,42 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       `,
       );
     case "site.delete": {
-      const storedAssets = await sql<Record<string, unknown>[]>`
-        select storage_path from assets
-        where site_id = ${text(args.id)} and storage_path is not null
-      `;
-      const deleted = !!one(
-        await sql`delete from sites where id = ${text(args.id)} returning id`,
-      );
-      if (!deleted) return false;
+      const siteId = text(args.id);
+      /* WordPress connections refer to the site with `on delete restrict`, so they go first,
+         in the site's own transaction. Signed releases and their publication ledger are
+         immutable by trigger on purpose: a site that has any is refused cleanly, with nothing
+         changed, rather than having that history removed. */
+      const storedAssets = await sql.begin(async (transaction) => {
+        if (
+          !one(
+            await transaction`select id from sites where id = ${siteId} for update`,
+          )
+        ) return null;
+        if (
+          one(
+            await transaction`select id from site_releases where site_id = ${siteId} limit 1`,
+          )
+        ) {
+          throw Object.assign(
+            new Error(
+              "this site has signed WordPress releases, which are kept permanently",
+            ),
+            { status: 409, code: "SITE_HAS_RELEASES" },
+          );
+        }
+        const stored = await transaction<Record<string, unknown>[]>`
+          select storage_path from assets
+          where site_id = ${siteId} and storage_path is not null
+        `;
+        await transaction`
+          delete from wordpress_webhook_outbox
+          where connection_id in (select id from wordpress_connections where site_id = ${siteId})
+        `;
+        await transaction`delete from wordpress_connections where site_id = ${siteId}`;
+        await transaction`delete from sites where id = ${siteId}`;
+        return stored;
+      });
+      if (!storedAssets) return false;
       const paths = storedAssets.map((row) => text(row.storage_path)).filter(
         Boolean,
       );
@@ -395,6 +499,33 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         )
       );
     case "site.saveAuthorized":
+    case "site.saveAssistantProposal": {
+      let context: JsonValue = null;
+      let assetIds: string[] = [];
+      if (op === "site.saveAssistantProposal") {
+        const proposal = args.proposal as { id?: unknown; attemptId?: unknown; assetIds?: unknown } | undefined;
+        if (
+          typeof proposal?.id !== "string" || proposal.id.length !== 16 || !/^[a-f0-9]+$/.test(proposal.id) ||
+          typeof proposal.attemptId !== "string" || proposal.attemptId.length !== 32 || !/^[a-f0-9]+$/.test(proposal.attemptId)
+        ) {
+          throw Object.assign(new Error("invalid assistant proposal provenance"), {
+            status: 400,
+            code: "INVALID_PROPOSAL_PROVENANCE",
+          });
+        }
+        if (
+          !Array.isArray(proposal.assetIds) || proposal.assetIds.length > MAX_PROPOSAL_ASSET_IDS ||
+          proposal.assetIds.some(id => typeof id !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(id)) ||
+          new Set(proposal.assetIds).size !== proposal.assetIds.length
+        ) {
+          throw Object.assign(new Error("invalid assistant proposal assets"), {
+            status: 400,
+            code: "INVALID_PROPOSAL_ASSETS",
+          });
+        }
+        assetIds = proposal.assetIds;
+        context = { source: "assistant-proposal", proposalId: proposal.id, attemptId: proposal.attemptId };
+      }
       return await sql.begin(async (transaction) => {
         const existing = await transaction`
           update users set
@@ -421,45 +552,72 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             { status: 409, code: "AUTH_IDENTITY_CONFLICT" },
           );
         }
-        const membership = one(
-          await transaction`
+        const siteId = text(args.id);
+        const proposalSite = context
+          ? one(await transaction`select version from sites where id = ${siteId} for no key update`)
+          : null;
+        if (context && !proposalSite) return { status: "missing" };
+        // Member changes also lock the site first. Keep the member row locked against legacy
+        // grant/revoke calls that write it directly, until both the save and its receipt commit.
+        const membership = one(context ? await transaction`
             select role from site_users
-            where site_id = ${text(args.id)} and user_id = ${text(user.id)}
+            where site_id = ${siteId} and user_id = ${text(user.id)}
+            for share
+          ` : await transaction`
+            select role from site_users
+            where site_id = ${siteId} and user_id = ${text(user.id)}
             limit 1
-          `,
-        );
+          `);
         if (!membership) return { status: "missing" };
         const role = text(membership.role);
         const requiredRole = text(args.requiredRole);
         if (
           role !== "owner" &&
-          !(role === "content" && requiredRole === "write")
+          (context || !(role === "content" && requiredRole === "write"))
         ) return { status: "forbidden" };
+        if (proposalSite && integer(proposalSite.version) !== integer(args.version)) {
+          return { status: "conflict", currentVersion: integer(proposalSite.version) };
+        }
+        if (assetIds.length) {
+          // Retirement updates the same row. Read the active asset and keep the lock through
+          // the draft/revision write, using a consistent order when several assets are picked.
+          const active = await transaction`
+            select id from assets where site_id = ${siteId} and not retired and id in ${transaction(assetIds)}
+            order by id for share
+          `;
+          if (active.length !== assetIds.length) {
+            throw Object.assign(new Error("a selected proposal asset is no longer available"), {
+              status: 409,
+              code: "PROPOSAL_ASSET_UNAVAILABLE",
+            });
+          }
+        }
         const site = one(
           await transaction`
             with changed as (
               update sites set doc = ${
             transaction.json(jsonValue(args.doc))
           }, version = version + 1, updated_at = now()
-              where id = ${text(args.id)} and version = ${
+              where id = ${siteId} and version = ${
             integer(args.version)
           } returning *
             ), recorded as (
-              insert into site_revisions (site_id, version, doc, saved_by, created_at)
-              select id, version, doc, ${text(user.id)}, updated_at from changed
+              insert into site_revisions (site_id, version, doc, saved_by, context, created_at)
+              select id, version, doc, ${text(user.id)}, ${context ? transaction.json(context) : null}, updated_at from changed
             ) select * from changed
           `,
         );
         if (site) return { status: "saved", user, role, site };
         const current = one(
           await transaction`
-            select version from sites where id = ${text(args.id)} limit 1
+            select version from sites where id = ${siteId} limit 1
           `,
         );
         return current
           ? { status: "conflict", currentVersion: integer(current.version) }
           : { status: "missing" };
       });
+    }
     case "site.saveConnectedCms": {
       const connectionId = text(args.connectionId);
       if (!connectionId) throw new Error("connectionId is required");
@@ -491,7 +649,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
     }
     case "site.history":
       return await sql`
-        select site_id, version, doc, saved_by, context, created_at
+        select site_id, version, saved_by, created_at
         from site_revisions where site_id = ${
         text(args.id)
       } order by version desc
@@ -2171,13 +2329,17 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const w = integer(input.w);
       const h = integer(input.h);
       const requestedOwnerId = text(input.ownerId);
-      const limitBytes = Number(input.limitBytes || FREE_STORAGE_BYTES);
+      const requestedLimitBytes = input.limitBytes == null
+        ? null
+        : Number(input.limitBytes);
       const originalBytes = Number(input.originalBytes || blob.bytes);
       const contentHash = text(input.contentHash);
       const optimized = Boolean(input.optimized);
       if (
         !id || !siteId || !name || !type || (connected && !connectionId) ||
-        !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        (requestedLimitBytes !== null &&
+          (!Number.isSafeInteger(requestedLimitBytes) ||
+            requestedLimitBytes < 1)) ||
         !Number.isSafeInteger(originalBytes) || originalBytes < 0 ||
         !/^[a-f0-9]{64}$/i.test(contentHash) ||
         !Number.isSafeInteger(w) || w < 0 ||
@@ -2229,7 +2391,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           }
           const owner = one(
             await transaction<Record<string, unknown>[]>`
-          select id from users where id = ${ownerId} for update
+          select id, plan from users where id = ${ownerId} for update
         `,
           );
           if (!owner) {
@@ -2241,6 +2403,10 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               },
             );
           }
+          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const limitBytes = requestedLimitBytes === null
+            ? planStorageBytes
+            : Math.min(requestedLimitBytes, planStorageBytes);
           const prior = one(
             await transaction<Record<string, unknown>[]>`
           select id, site_id, owner_id, name, type, w, h, bytes, storage_path,
@@ -2337,20 +2503,20 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             : 0;
           if (usedBytes - replacingBytes + bytes.byteLength > limitBytes) {
             throw Object.assign(
-              new Error("free account media storage limit reached"),
+              new Error("account media storage limit reached"),
               {
                 status: 409,
                 code: "STORAGE_LIMIT",
               },
             );
           }
-          uploadedPath = assetStoragePath(ownerId, siteId, id, blob.hash, type);
+          const path = assetStoragePath(ownerId, siteId, id, blob.hash, type);
           replacedPath =
-            prior?.storage_path && text(prior.storage_path) !== uploadedPath
+            prior?.storage_path && text(prior.storage_path) !== path
               ? text(prior.storage_path)
               : "";
           const stored = await storage.from(ASSET_BUCKET).upload(
-            uploadedPath,
+            path,
             bytes,
             {
               contentType: type,
@@ -2366,13 +2532,16 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               `stored asset could not be written: ${stored.error.message}`,
             );
           }
+          /* A file that already existed may be a live asset's; only one this call wrote is
+             this call's to remove if the transaction then fails. */
+          if (!stored.error) uploadedPath = path;
           const row = connected
             ? one(
               await transaction<Record<string, unknown>[]>`
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
-                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
+                ${path}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set id = assets.id
               where assets.site_id = excluded.site_id
                 and assets.name = excluded.name and assets.type = excluded.type
@@ -2387,7 +2556,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               insert into assets (id, site_id, owner_id, name, type, w, h, bytes,
                 storage_path, stored_bytes, original_bytes, content_hash, optimized)
               values (${id}, ${siteId}, ${ownerId}, ${name}, ${type}, ${w}, ${h}, null,
-                ${uploadedPath}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
+                ${path}, ${bytes.byteLength}, ${originalBytes}, ${contentHash}, ${optimized})
               on conflict (id) do update set
                 name = excluded.name, type = excluded.type,
                 w = excluded.w, h = excluded.h, bytes = null,
@@ -2411,6 +2580,8 @@ async function dispatch(op: string, args: Record<string, unknown>) {
            abandoned staging rows without touching durable assets. */
           return row;
         });
+        // Committed: the row owns the file now, whatever happens below.
+        uploadedPath = "";
         if (replacedPath) {
           const removed = await storage.from(ASSET_BUCKET).remove([
             replacedPath,
@@ -2604,11 +2775,16 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const ownerId = text(args.ownerId);
       const id = text(args.id);
       const type = text(args.type);
-      const limitBytes = Number(args.limitBytes || FREE_STORAGE_BYTES);
+      const requestedLimitBytes = args.limitBytes == null
+        ? null
+        : Number(args.limitBytes);
       if (
         !libraryId || !ownerId || !/^[a-f0-9]{64}$/.test(id) ||
         !text(args.name) ||
-        !type || !Number.isSafeInteger(limitBytes) || limitBytes < 1 ||
+        !type ||
+        (requestedLimitBytes !== null &&
+          (!Number.isSafeInteger(requestedLimitBytes) ||
+            requestedLimitBytes < 1)) ||
         blob.bytes > GATEWAY_ASSET_BLOB_MAX_BYTES
       ) {
         throw Object.assign(new Error("invalid library asset"), {
@@ -2622,6 +2798,24 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       let uploaded = false;
       try {
         return await sql.begin(async (transaction) => {
+          /* The quota is shared with site media, whose uploads fence on the owner's row. Take
+             that row first here too, the same order as site uploads, so neither can deadlock
+             and two uploads cannot both fit into the last free bytes. */
+          const owner = one(
+            await transaction<Record<string, unknown>[]>`
+              select id, plan from users where id = ${ownerId} for update
+            `,
+          );
+          if (!owner) {
+            throw Object.assign(new Error("library owner does not exist"), {
+              status: 404,
+              code: "LIBRARY_NOT_FOUND",
+            });
+          }
+          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const limitBytes = requestedLimitBytes === null
+            ? planStorageBytes
+            : Math.min(requestedLimitBytes, planStorageBytes);
           const library = one(
             await transaction`
             select owner_id from libraries where id = ${libraryId}::uuid for update
@@ -2675,7 +2869,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           const usedBytes = Number(usedRow?.used || 0);
           if (usedBytes + bytes.byteLength > limitBytes) {
             throw Object.assign(
-              new Error("free account media storage limit reached"),
+              new Error("account media storage limit reached"),
               { status: 409, code: "STORAGE_LIMIT", usedBytes, limitBytes },
             );
           }
@@ -3251,13 +3445,14 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           !Array.isArray(args.input))
         ? args.input as Record<string, unknown>
         : {};
-      return one(
-        await sql`
+      return await sql.begin(async transaction => {
+      const credential = one(
+        await transaction`
         insert into wordpress_import_credentials (
-          id, owner_id, installation_id, access_token_digest, access_expires_at, refresh_token_digest
+          id, owner_id, installation_id, site_url, access_token_digest, access_expires_at, refresh_token_digest
         ) values (${text(input.id)}, ${text(input.ownerId)}, ${
           text(input.installationId)
-        },
+        }, ${input.siteUrl ? text(input.siteUrl) : null},
           ${text(input.accessTokenDigest)}, ${text(input.accessExpiresAt)}, ${
           text(input.refreshTokenDigest)
         })
@@ -3265,11 +3460,22 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           access_token_digest = excluded.access_token_digest,
           access_expires_at = excluded.access_expires_at,
           refresh_token_digest = excluded.refresh_token_digest,
+          site_url = excluded.site_url,
           status = 'active', revoked_at = null, updated_at = now()
         returning *
       `,
       );
+      if (credential) await transaction`delete from wordpress_import_used_refresh_tokens where credential_id = ${credential.id}`;
+      return credential;
+      });
     }
+    case "auth.manualImport.exchangeRefresh":
+      return await exchangeManualImportRefresh(sql, {
+        presentedDigest: text(args.presentedDigest),
+        nextAccessDigest: text(args.nextAccessDigest),
+        nextAccessExpiresAt: text(args.nextAccessExpiresAt),
+        nextRefreshDigest: text(args.nextRefreshDigest),
+      });
     case "auth.manualImport.byAccess":
       return one(
         await sql`
@@ -3280,16 +3486,35 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         limit 1
       `,
       );
+    /* A refresh token unused for 90 days stops working. Every refresh moves `updated_at`, so
+       that column is when the token was last used. */
     case "auth.manualImport.byRefresh":
       return one(
         await sql`
         select * from wordpress_import_credentials
         where refresh_token_digest = ${
           text(args.digest)
-        } and status = 'active' limit 1
+        } and status = 'active' and updated_at > now() - interval '90 days'
+        limit 1
       `,
       );
     case "auth.manualImport.rotate":
+      /* With `refreshDigest` the refresh token rotates too, but only while the presented one is
+         still current, so a replayed old token cannot rotate. Without it (older servers), only
+         the access token changes. */
+      if (args.refreshDigest) {
+        return one(
+          await sql`
+          update wordpress_import_credentials
+          set access_token_digest = ${text(args.digest)}, access_expires_at = ${
+            text(args.expiresAt)
+          }, refresh_token_digest = ${text(args.refreshDigest)}, updated_at = now()
+          where id = ${text(args.id)} and status = 'active'
+            and refresh_token_digest = ${text(args.previousRefreshDigest)}
+          returning *
+        `,
+        );
+      }
       return one(
         await sql`
         update wordpress_import_credentials
@@ -3388,14 +3613,34 @@ Deno.serve(async (request) => {
     const error = caught as Error & {
       code?: string;
       status?: number;
-      detail?: string;
+      constraint_name?: string;
     };
     console.error(error);
-    return failure(
-      [error.message, error.detail].filter(Boolean).join(" — ") ||
-        "gateway failure",
-      error.status || (error.code === "23505" ? 409 : 500),
-      error.code,
-    );
+    if (error.status) {
+      return failure(
+        error.message || "gateway failure",
+        error.status,
+        error.code,
+      );
+    }
+    /* Database and driver errors name tables, hosts and row values. They stay in this log;
+       the caller gets a stable code. A unique violation keeps its constraint's name, which is
+       how the server tells a taken slug or host from any other conflict. */
+    if (error.name === "PostgresError") {
+      return error.code === "23505"
+        ? failure(
+          `duplicate key value violates unique constraint "${
+            text(error.constraint_name)
+          }"`,
+          409,
+          "23505",
+        )
+        : failure("database operation failed", 500, "DATABASE_ERROR");
+    }
+    // This function's own refusals are plain errors with a message written for the server.
+    if (Object.getPrototypeOf(error) === Error.prototype && !error.code) {
+      return failure(error.message || "gateway failure", 500);
+    }
+    return failure("gateway failure", 500, "GATEWAY_FAILURE");
   }
 });

@@ -1,0 +1,34 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/inspector-blur-click-2451
+
+ ❯ tests/link-input-editing.test.tsx (2 tests | 1 failed) 34ms
+   × sequential hash URL typing keeps focus and classifies only after blur 28ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/link-input-editing.test.tsx > sequential hash URL typing keeps focus and classifies only after blur
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ 'index.html'
+- '#qa-image-111-b'
+
+
+Expected: "#qa-image-111-b"
+Received: "index.html"
+
+ ❯ tests/link-input-editing.test.tsx:33:10
+     31|   }
+     32|   assert.equal(r.names().filter(name => name === 'endTx').length, befo…
+     33|   assert.equal(node.props.link, '#qa-image-111-b');
+       |          ^
+     34|   assert.equal((r.$('[data-field-part="type"]') as HTMLSelectElement).…
+     35|   input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  10:51:23
+   Duration  1.68s (transform 409ms, setup 0ms, import 492ms, tests 34ms, environment 966ms)

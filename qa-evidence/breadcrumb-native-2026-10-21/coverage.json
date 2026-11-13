@@ -1,0 +1,97 @@
+{
+  "title": "Breadcrumb native coverage audit",
+  "date": "2026-10-21",
+  "scope": "B01-B06 only; 8 direct Breadcrumb controls plus the planned Advanced/Visibility behavior.",
+  "coverage_policy": "Evidence is bounded to the named native records and exact DOM/computed/reload observations. This is representative coverage, not an exhaustive arbitrary-value, font, runtime-control, or motion claim.",
+  "source_context": {
+    "environment": "candidate81 native QA evidence",
+    "module": "crumbs",
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "dom_root": "nav.pagecraft-crumbs",
+    "label_fix": "pending candidate82 native verification"
+  },
+  "cases": [
+    {
+      "id": "B01",
+      "purpose": "automatic trail on a non-front page",
+      "controls": ["Trail", "Front page is called"],
+      "exact_proof": ["b01-auto-nonfront-reload.json"],
+      "dom_assertions": ["nav[aria-label=\"Breadcrumb\"] > ol; prior item is a[href=\"index.html\"]; current item is span[aria-current=page]"],
+      "computed_assertions": ["custom Home base label and Annual community workshops, events and accessibility resources page title survive reload."],
+      "reload_devices": "Same automatic DOM and no overflow at 1280, 834, and 414px.",
+      "status": "evidenced"
+    },
+    {
+      "id": "B02",
+      "purpose": "manual rows and link normalization",
+      "controls": ["Crumbs"],
+      "exact_proof": ["b02-manual-reload.json"],
+      "dom_assertions": ["manual source row is class crumb-source with valid href; final row is class crumb-current with span[aria-current=page]; target=_blank adds rel=nofollow sponsored noopener."],
+      "computed_assertions": [],
+      "reload_devices": "Exact manual DOM repeats at 1280, 834, and 414px with no overflow.",
+      "status": "evidenced_with_limits",
+      "limits": ["The record proves a representative two-row list, not every row count or arbitrary link value."]
+    },
+    {
+      "id": "B03",
+      "purpose": "separator variants",
+      "controls": ["Separator"],
+      "exact_proof": ["b03-separator-options.json"],
+      "dom_assertions": ["data-sep and pseudo separator match chevron/›, slash, dot/·, and dash/—; readable ol text excludes the pseudo separator."],
+      "computed_assertions": ["all four variants report overflow false."],
+      "reload_devices": "Each of the four variants is recorded at 1280, 834, and 414px.",
+      "status": "evidenced"
+    },
+    {
+      "id": "B04",
+      "purpose": "responsive typography, colour, spacing, reset",
+      "controls": ["Text size", "Link colour", "Current page colour", "Spacing"],
+      "exact_proof": ["b04-authored.json", "b04-responsive-reload.json", "b04-reset-reload.json", "b04-text-size-corrected-probe.json"],
+      "dom_assertions": ["responsive records target nav ol/anchor/current text, not the discarded root-nav font probe."],
+      "computed_assertions": [
+        "corrected text probe reads 18px/16px/14px anchor/current/variable sizes at D/T/M",
+        "responsive colours are #205080/#304860/#183848 for links and #743522/#603020/#502020 for current page",
+        "spacing is 12/10/6 at D/T/M before reset and 12px on all devices after reset",
+        "reset colors remain the authored Desktop rgb(32,80,128) and rgb(116,53,34)"
+      ],
+      "reload_devices": "Responsive and reset records include 1280, 834, and 414px; overflow false.",
+      "status": "evidenced_with_limits",
+      "limits": ["Previous root-nav 16px measurement is explicitly rejected as wrong target; ol/anchor probe is authoritative for this record."]
+    },
+    {
+      "id": "B05",
+      "purpose": "empty automatic and manual trails",
+      "controls": ["Trail", "Crumbs"],
+      "exact_proof": ["b05-front-page-empty.json", "b05-manual-empty.json"],
+      "dom_assertions": ["front-page editor helper says no trail; published front-page and zero-row manual outputs have count 0."],
+      "computed_assertions": [],
+      "reload_devices": "Both empty branches are recorded for Desktop, Tablet, and Mobile.",
+      "status": "evidenced"
+    },
+    {
+      "id": "B06",
+      "purpose": "Advanced identity/layout, visibility, and condition",
+      "controls": ["HTML id", "CSS classes", "Custom CSS", "Overflow", "Max width", "Hide on Desktop", "Hide on Tablet", "Hide on Mobile", "Show only if", "Condition", "Value"],
+      "exact_proof": ["b06-advanced-reload.json", "b06-visibility-matrix.json", "b06-condition-reload.json"],
+      "dom_assertions": ["breadcrumb-proof id, qa-breadcrumb class, custom outline, max-width 100%, and visible overflow survive reload; condition non-match yields zero nav/linked crumbs."],
+      "computed_assertions": ["each breakpoint switch produces display:none only at selected width with visible nav at the other two widths."],
+      "reload_devices": "Visibility and condition matrices cover all three devices; Advanced DOM proof is exact after reload.",
+      "status": "evidenced_with_limits",
+      "limits": ["Condition controls are behaviorally evidenced but candidate82 accessible-label verification remains pending.", "Visibility switches retain DOM while hidden."]
+    }
+  ],
+  "direct_control_summary": {
+    "planned_direct_controls": 8,
+    "controls_with_exact_native_evidence": 8,
+    "cases": 6,
+    "separator_variants": 4,
+    "device_widths_in_proof": [1280, 834, 414],
+    "pending": ["candidate82 native verification of enhanced condition combobox labels"]
+  },
+  "scope_gaps": [
+    "No exhaustive arbitrary values, fonts, row counts, or runtime-generated control enumeration.",
+    "Generic Motion/State/Hover/Focus controls are outside B01-B06 proof scope.",
+    "No Icon or Quote coverage is claimed by this artifact.",
+    "Root-nav font-size probe is excluded because the actual Breadcrumb text is ol/anchor content; corrected probe is retained."
+  ]
+}

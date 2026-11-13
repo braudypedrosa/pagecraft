@@ -1,0 +1,65 @@
+{
+  "environment": "staging",
+  "sourceAtStart": "c336793cb0d9c3f41400204ea7f9ee017dd2999d",
+  "editorFreshReload": {
+    "animation": "Bounce",
+    "delay": "0.2s",
+    "once": true,
+    "duration": "",
+    "easing": ""
+  },
+  "cases": [
+    {
+      "breakpoint": "Desktop",
+      "render": {
+        "animation": "1s ease-in-out 0.2s forwards bpBounce",
+        "attrs": [
+          [
+            "bp-delay",
+            "0.2s"
+          ],
+          [
+            "bp-animation-once",
+            "true"
+          ]
+        ],
+        "className": "pagecraft-gallery pagecraft-gallery-fixed pagecraft-fzf4v1jd bp-animate pc-bounce bp-is-visible bp-is-animating",
+        "delay": "0.2s",
+        "duration": "1s",
+        "easing": "ease-in-out",
+        "name": "bpBounce",
+        "opacity": "0",
+        "transform": "none"
+      }
+    },
+    {
+      "breakpoint": "Mobile",
+      "render": {
+        "animation": "1s ease-in-out 0.2s forwards bpBounce",
+        "attrs": [
+          [
+            "bp-delay",
+            "0.2s"
+          ],
+          [
+            "bp-animation-once",
+            "true"
+          ]
+        ],
+        "className": "pagecraft-gallery pagecraft-gallery-fixed pagecraft-fzf4v1jd bp-animate pc-bounce bp-is-visible bp-is-animating",
+        "delay": "0.2s",
+        "duration": "1s",
+        "easing": "ease-in-out",
+        "name": "bpBounce",
+        "opacity": "1",
+        "transform": "matrix(1, 0, 0, 1, 0, -4.06378)"
+      }
+    }
+  ],
+  "restoredFresh": {
+    "animation": "— none —",
+    "transition": "None"
+  },
+  "passed": true,
+  "restoration": "Fresh reload confirms None and default Transition"
+}

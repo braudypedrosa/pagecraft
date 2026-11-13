@@ -11,14 +11,16 @@
    per item, so neither earns a modal over the canvas the owner is comparing against. */
 import { useEffect, useState } from 'preact/hooks';
 import {
-  extractLibraryBundle, importAssetsNeeded, isFoundation, itemHash, planLibraryImport, planLibraryUpdate,
+  extractLibraryBundle, importAssetsNeeded, importCustomCode, isFoundation, itemHash, planLibraryImport, planLibraryUpdate,
+  previewLibraryImportReadability,
   previewLibraryUpdate, LibraryError,
-  type LibraryBundle, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
+  type LibraryBundle, type LibraryCustomCode, type LibraryItemKind, type LibraryItemRef, type LibraryLink, type Resolution, type UpdateItem,
 } from '../core/libraries';
 import type { Doc } from '../core/types';
 import type { WebLibrary, WebLibraryAdapter, WebLibraryMember, WebLibraryVersionSummary } from '../host/types';
 import { C, L } from './ctx';
 import { Icon } from './Icon';
+import { HelpTip } from './HelpTip';
 
 /* ---- shared with the Components and Blocks tabs ------------------------ */
 
@@ -97,6 +99,14 @@ const behind = (library: WebLibrary) => {
 const esc = (s: string) => String(s ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]!));
 
+/* An Embed runs on the published site, and a library may come from anyone. Asked before anything
+   is copied, naming each item, so custom code never arrives as a side effect of taking a card. */
+const allowCustomCode = (library: WebLibrary, code: LibraryCustomCode[], ok: string) => !code.length
+  || L.askConfirm('This library includes custom code',
+    `This library includes custom code that runs on your published site: `
+    + code.map(c => `<b>${esc(c.name)}</b> (${esc(plural(c.embeds, 'embed'))})`).join(', ')
+    + `. Only continue if you trust ${esc(ownerOf(library))}.`, { ok, danger: true });
+
 /** One sentence for whatever went wrong, from the server's own detail when it gave one. */
 function problem(error: unknown) {
   if (error instanceof LibraryError) return error.problems.join(' ');
@@ -121,12 +131,17 @@ function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
   return { ...state, reload: () => setNonce(n => n + 1) };
 }
 
-/* Applying a plan: the whole meta at once, in one edit(), computed from the document as it is at
-   that moment rather than when the review was drawn. Then the full render cycle, because the
-   canvas, the layers and every panel may now show something new. */
-function commit(doc: Doc) {
-  const meta = doc.meta;
-  C.edit(() => { C.state.meta = meta; });
+/* Applying a plan: the whole document at once, in one edit(), computed from the document as it
+   is at that moment rather than when the review was drawn. Keep the live UI and current page;
+   library plans own document data only. Then run the full render cycle, because the canvas, the
+   layers and every panel may now show something new. */
+function commit(doc: Doc, label: string) {
+  C.edit(() => {
+    C.state.meta = doc.meta;
+    C.state.header = doc.header;
+    C.state.footer = doc.footer;
+    C.state.pages = doc.pages;
+  }, label);
   L.appRender();
 }
 
@@ -160,7 +175,6 @@ function LibraryList({ libs, open }: Props) {
   const create = async () => {
     const name = (await L.askText('New library', 'Name', '', {
       ok: 'Create library',
-      note: 'A library belongs to your account. Publish to it from any site you own, and import from it into any other.',
     }) || '').trim();
     if (!name) return;
     setBusy(true);
@@ -209,10 +223,7 @@ function LibraryList({ libs, open }: Props) {
           </button>
         );
       }) : (
-        <div class="hint">
-          No libraries yet. A library keeps components, blocks and styles that you can import into any
-          site you own, and update there when you choose.
-        </div>
+        <div class="hint">No libraries yet.</div>
       )}
       <button type="button" class="btn block" disabled={busy}
         style={{ marginTop: 'var(--gap-1)', fontSize: 'var(--fs-2)' }} onClick={create}>
@@ -222,7 +233,7 @@ function LibraryList({ libs, open }: Props) {
   );
 }
 
-function Head({ library, back, sub }: { library?: WebLibrary; back: () => void; sub?: string }) {
+function Head({ library, back, sub, help }: { library?: WebLibrary; back: () => void; sub?: string; help?: string }) {
   return (
     <div class="lib-head">
       <button type="button" class="bx lib-back" title="Back" aria-label="Back" onClick={back}>
@@ -232,6 +243,7 @@ function Head({ library, back, sub }: { library?: WebLibrary; back: () => void; 
         <b>{library ? library.name : 'Library'}</b>
         {sub && <small>{sub}</small>}
       </span>
+      {help && <HelpTip label={sub || 'Library'} text={help} />}
     </div>
   );
 }
@@ -291,13 +303,19 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
     if (!bundle || !summary || !picked.size) return;
     const chosen = [...picked].map(parseKey);
     const source = { libraryId: id, version: summary.version };
+    if (!await allowCustomCode(library, importCustomCode(bundle, chosen), 'Import with custom code')) return;
     setBusy(true);
     try {
+      const readability = previewLibraryImportReadability(C.doc(), bundle, source, chosen,
+        { parse: C.parseColor, contrast: C.contrast });
+      if (readability && !await L.askConfirm('Check button readability',
+        `${plural(readability.items, 'imported item has', 'imported items have')} a Button that may be hard to read with this site’s colours (${readability.minRatio.toFixed(2)}:1).`,
+        { ok: 'Import anyway' })) return;
       const needed = importAssetsNeeded(bundle, chosen);
       const assets = needed.length ? await libs.copyAssets({ libraryId: id, version: summary.version, assets: needed }) : {};
       if (needed.length) await L.assetsReload();
       const plan = planLibraryImport(C.doc(), bundle, source, chosen, { assets, newId: C.uid });
-      commit(plan.doc);
+      commit(plan.doc, 'Import library items');
       setPicked(new Set());
       const added = plan.items.filter(i => i.how === 'added' || i.how === 'renamed').length;
       const renamed = plan.items.filter(i => i.how === 'renamed').length;
@@ -371,8 +389,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
                 {busy ? 'Importing…' : picked.size ? `Import ${plural(picked.size, 'item')}` : 'Choose items to import'}
               </button>
               <p class="lib-note">
-                Imported items become this site’s own. Whatever they use — nested components, styles,
-                colors and images — comes with them.
+                Imports become site-owned copies; their dependencies come with them.
               </p>
             </>
           ) : (
@@ -398,8 +415,7 @@ function LibraryDetail({ libs, id, open }: Props & { id: string }) {
       ) : (
         <>
           <p class="lib-note">
-            Shared with you by {ownerOf(library)}. You can import from it and take its updates; only
-            they publish new versions.
+            Shared with you by {ownerOf(library)} · they publish updates.
           </p>
           <button type="button" class="btn ghost block" disabled={busy} style={{ fontSize: 'var(--fs-2)' }} onClick={leave}>
             Leave this library
@@ -431,7 +447,7 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
       const result = await libs.share(id, address);
       if (result.added) setMembers([...shown.filter(m => m.userId !== result.member.userId), result.member]);
       setEmail('');
-      L.toast(result.added ? `Shared with ${address}` : `${address} already has access`);
+      L.toast(result.member.awaitingAcceptance ? `Invitation sent to ${address}` : `${address} already has access`);
     } catch (error) {
       L.toast(problem(error), { tone: 'error' });
     } finally {
@@ -457,11 +473,8 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
 
   return (
     <>
-      <Head library={library} back={back} sub="Share" />
-      <p class="lib-note">
-        People you share with can import from this library into sites they own and take its updates.
-        Only you publish new versions.
-      </p>
+      <Head library={library} back={back} sub="Share"
+        help="Invited people can import and update. Only you can publish." />
       <form class="lib-share" onSubmit={share}>
         <input class="ctl" type="email" required placeholder="name@example.com" aria-label="Email address"
           value={email} disabled={busy} onInput={e => setEmail((e.currentTarget as HTMLInputElement).value)} />
@@ -474,7 +487,10 @@ function ShareView({ libs, id, open }: Props & { id: string }) {
             <div class="lib-member" key={member.userId}>
               <span class="bn">
                 <b>{member.name || member.email}</b>
-                <small>{member.name ? member.email : ''}{member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>
+                {member.awaitingAcceptance ? <>
+                  {member.name && <small>{member.email}</small>}
+                  <small>Awaiting acceptance</small>
+                </> : <small>{member.name ? member.email : ''}{member.pending ? `${member.name ? ' · ' : ''}No Pagecraft account yet` : ''}</small>}
               </span>
               <button type="button" class="bx danger" title={`Stop sharing with ${member.email}`}
                 aria-label={`Stop sharing with ${member.email}`} disabled={busy} onClick={() => remove(member)}>
@@ -563,11 +579,8 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
 
   return (
     <>
-      <Head library={library} back={back} sub={`Publish version ${next}`} />
-      <p class="lib-note">
-        Version {next} holds exactly what you tick, and whatever that uses. Sites that imported something
-        you leave out keep their copy.
-      </p>
+      <Head library={library} back={back} sub={`Publish version ${next}`}
+        help="Selected items and their dependencies are published. Existing imports keep anything omitted." />
       {GROUPS.map(([kind, label]) => {
         const items = siteList(kind).filter(item => !isFoundation(kind, item.id));
         if (!items.length) return null;
@@ -602,8 +615,7 @@ function PublishPick({ libs, id, open }: Props & { id: string }) {
       </button>
       {chosen.length > 0 && !problems.length && (
         <p class="lib-note">
-          {plural(chosen.length, 'item')}{carried > 0 ? `, plus ${plural(carried, 'thing')} they use` : ''}. The
-          draft is saved first, so the library gets exactly what you see.
+          {plural(chosen.length, 'item')}{carried > 0 ? `, plus ${plural(carried, 'thing')} they use` : ''} · current draft saved first.
         </p>
       )}
     </>
@@ -633,6 +645,8 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
   const resolve = (item: UpdateItem, choice: Resolution) => setResolutions(prev => ({ ...prev, [refKey({ kind: item.kind, id: item.sourceId })]: choice }));
 
   const apply = async () => {
+    const before = previewLibraryUpdate(C.doc(), bundle, source, resolutions);
+    if (!await allowCustomCode(library, before.customCode, 'Update with custom code')) return;
     setBusy(true);
     try {
       const needed = previewLibraryUpdate(C.doc(), bundle, source, resolutions).assets;
@@ -643,7 +657,7 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
         L.toast('Something here changed while the update was prepared. Review it again.', { tone: 'error' });
         return;
       }
-      commit(plan.doc);
+      commit(plan.doc, 'Update library');
       L.toast(`Updated to version ${summary.version} of ${library.name}`);
       open({ at: 'library', id });
     } catch (error) {
@@ -690,7 +704,7 @@ function UpdateReview({ libs, id, open }: Props & { id: string }) {
           : changes.length ? 'Apply update' : `Mark version ${summary.version} as seen`}
       </button>
       <p class="lib-note">
-        What each placement shows — its text, variant and slot content — is kept. Undo reverses the whole update.
+        Placement content is kept. Undo reverses the update.
       </p>
     </>
   );

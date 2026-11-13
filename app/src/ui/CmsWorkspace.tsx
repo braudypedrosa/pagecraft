@@ -20,11 +20,15 @@ import { AssetField } from './AssetField';
 import { Icon } from './Icon';
 import { installActionFeedback } from '../../../shared/action-feedback.js';
 import { recoverableFailure } from '../../../shared/account-actions.js';
+import { refreshCustomSelects } from '../../../shared/custom-select.js';
 
 /** Keep CMS save failures human-readable; never prefix recovery copy with a machine code. */
 function cmsSaveFailure(error: unknown) {
   const fallback = 'Could not save. Your changes are still here. Try again.';
-  const mapped = recoverableFailure(error instanceof Error ? error.message : '', fallback);
+  const message = error instanceof Error ? error.message : '';
+  if (/failed to fetch|networkerror|load failed/i.test(message))
+    return 'Could not reach Pagecraft. Your changes are still here. Try again when connected.';
+  const mapped = recoverableFailure(message, fallback);
   return /still here/i.test(mapped) ? mapped : `${mapped} Your changes are still here. Try again.`;
 }
 
@@ -66,6 +70,8 @@ export function CmsWorkspace({
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
+  const confirming = useRef(false);
+  const approvedNavigation = useRef(false);
   const [actionLabel, setActionLabel] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState('');
@@ -82,33 +88,54 @@ export function CmsWorkspace({
      from search/status so editing either simply drops back to the default. */
   const [viewId, setViewId] = useState('');
   const root = useRef<HTMLElement>(null);
+  // Controlled selects update native properties silently when a saved view is applied.
+  useLayoutEffect(() => { refreshCustomSelects(); });
   const dirty =
     !!(entry || schema) && JSON.stringify(entry || schema) !== baseline;
-  const discard = () =>
-    !dirty || window.confirm('Discard your unsaved CMS changes?');
-  const leave = () => {
-    if (!busy && discard()) close();
+  const confirm = async (title: string, message: string, ok: string) => {
+    if (pending.current || confirming.current) return false;
+    confirming.current = true;
+    try {
+      return await L.askConfirm(title, message, { ok, danger: true });
+    } finally {
+      confirming.current = false;
+    }
+  };
+  const discard = async () => !dirty || await confirm(
+    'Discard unsaved changes?', 'Your unsaved CMS changes will be lost.', 'Discard changes',
+  );
+  const leave = async () => {
+    if (!busy && !pending.current && await discard()) close();
   };
   // Navigation must be guarded as soon as the workspace is visible, including
   // before the first deferred effect runs on a busy browser.
   useLayoutEffect(() => {
     const navigate = (event: MouseEvent) => {
+      if (approvedNavigation.current) return;
       const target = event.target as Element;
       /* Undo and Redo work on the document from here too: the workspace stays open and the
          painter repaints it. A form holds a copy, so it is discarded (with consent) first. */
-      if (target.closest('#undoBtn, #redoBtn')) {
-        if (busy || pending.current || !discard()) {
-          event.preventDefault(); event.stopImmediatePropagation(); return;
-        }
-        reset();
-        setNotice('');
-        return;
-      }
-      if (!target.closest('#leftRail button, .topbar button, .topbar a')) return;
-      if (target.closest('#leftRail button[data-t="cms"]') || busy || !discard()) {
+      const history = target.closest('#undoBtn, #redoBtn');
+      const trigger = (history || target.closest('#leftRail button, .topbar button, .topbar a')) as HTMLElement | null;
+      if (!trigger) return;
+      if (target.closest('#leftRail button[data-t="cms"]') || busy || pending.current || confirming.current) {
         event.preventDefault(); event.stopImmediatePropagation(); return;
       }
-      close();
+      if (!dirty) {
+        if (history) { reset(); setNotice(''); } else close();
+        return;
+      }
+      // Stop the original action while the asynchronous app dialog owns focus.
+      // Replay only that action after consent, without asking a second time.
+      event.preventDefault(); event.stopImmediatePropagation();
+      void discard().then(accepted => {
+        if (!accepted) return;
+        reset(); setNotice('');
+        if (!history) close();
+        approvedNavigation.current = true;
+        try { if (trigger.isConnected) trigger.click(); }
+        finally { approvedNavigation.current = false; }
+      });
     };
     document.addEventListener('click', navigate, true);
     return () => document.removeEventListener('click', navigate, true);
@@ -147,15 +174,15 @@ export function CmsWorkspace({
   /* One step back or forward through the document's history. Forms hold copies of entries and
      schemas, so an open one is discarded first (asking when it has unsaved changes) and the
      list is shown afresh. */
-  const historyStep = (which: 'undo' | 'redo') => {
-    if (busy || pending.current || !discard()) return;
+  const historyStep = async (which: 'undo' | 'redo') => {
+    if (busy || pending.current || !await discard()) return;
     reset();
     setNotice('');
     if (which === 'undo') C.undo(); else C.redo();
     refresh((n) => n + 1);
   };
-  const openEntry = (item?: Item) => {
-    if (pending.current || !discard()) return;
+  const openEntry = async (item?: Item) => {
+    if (pending.current || !await discard()) return;
     const next = item
       ? copy(item)
       : { id: C.uid(), slug: '', draft: 1 as const, values: {} };
@@ -173,8 +200,10 @@ export function CmsWorkspace({
     setErrors({});
     try {
       const message = success + ' Saved to the site draft. Publish the site to make it public.';
-      const result = await installActionFeedback().run({key:'cms-save', pending:label, success:message,
-        error: cmsSaveFailure}, () => L.cmsCommit(next));
+      const result = await installActionFeedback().run(Object.assign(
+        {key:'cms-save', pending:label, success:message, error: cmsSaveFailure},
+        {announce:false},
+      ), () => L.cmsCommit(next));
       if (result.status === 'error') setErrors({ _save: result.message });
       if (result.status !== 'success') return false;
       refresh(revision + 1);
@@ -213,8 +242,10 @@ export function CmsWorkspace({
     if (
       old &&
       old.slug !== next.slug &&
-      !window.confirm(
-        `Change /${col.slug}/${old.slug} to /${col.slug}/${next.slug}? Existing links will stop working; no redirect is created.`,
+      !await confirm(
+        'Change this entry URL?',
+        `Change <b>/${esc(col.slug)}/${esc(old.slug)}</b> to <b>/${esc(col.slug)}/${esc(next.slug)}</b>? Existing links will stop working; no redirect is created.`,
+        'Change URL',
       )
     )
       return;
@@ -250,8 +281,10 @@ export function CmsWorkspace({
   const removeEntry = async (item: Item) => {
     if (pending.current) return;
     if (
-      !window.confirm(
-        `Delete “${C.itemTitle(col, item) || item.slug}”? References to this entry will need updating. Its public page is removed on the next site publish.`,
+      !await confirm(
+        'Delete this entry?',
+        `<b>${esc(C.itemTitle(col, item) || item.slug)}</b> will be removed. References to this entry will need updating. Its public page is removed on the next site publish.`,
+        'Delete entry',
       )
     )
       return;
@@ -456,8 +489,8 @@ export function CmsWorkspace({
             <button
               class={'btn block ' + (c.id === id ? 'primary' : '')}
               disabled={busy}
-              onClick={() => {
-                if (discard()) {
+              onClick={async () => {
+                if (await discard()) {
                   setId(c.id);
                   setSelected(new Set());
                   setViewId('');
@@ -487,7 +520,7 @@ export function CmsWorkspace({
                     ? 'Collection name and fields'
                     : importing
                       ? 'Match your columns, then review what changes'
-                      : `${col.items.length} entries`}
+                      : `${col.items.length} ${col.items.length === 1 ? 'entry' : 'entries'}`}
               </p>
             </div>
             {!entry && !schema && !importing && (
@@ -503,7 +536,7 @@ export function CmsWorkspace({
                   class="btn"
                   disabled={busy}
                   onClick={() => {
-                    if (discard()) fileInput.current?.click();
+                    fileInput.current?.click();
                   }}
                 >
                   Import CSV
@@ -627,11 +660,11 @@ export function CmsWorkspace({
                   type="button"
                   class="btn"
                   disabled={busy}
-                  onClick={() => {
-                    if (discard()) reset();
+                  onClick={async () => {
+                    if (await discard()) reset();
                   }}
                 >
-                  Cancel
+                  {dirty ? 'Cancel' : 'Done'}
                 </button>
                 {feedback}
               </div>
@@ -726,10 +759,12 @@ export function CmsWorkspace({
                         disabled={schema.fields.length === 1}
                         title="Delete field"
                         aria-label={'Delete field ' + f.name}
-                        onClick={() => {
+                        onClick={async () => {
                           if (
-                            window.confirm(
-                              `Delete ${f.name} and its stored values? ${bindingImpact(id, f.id)}`,
+                            await confirm(
+                              'Delete this field?',
+                              `Delete <b>${esc(f.name)}</b> and its stored values? ${esc(bindingImpact(id, f.id))}`,
+                              'Delete field',
                             )
                           )
                             setSchema({
@@ -810,11 +845,11 @@ export function CmsWorkspace({
                   class="btn"
                   type="button"
                   disabled={busy}
-                  onClick={() => {
-                    if (discard()) reset();
+                  onClick={async () => {
+                    if (await discard()) reset();
                   }}
                 >
-                  Cancel
+                  {dirty ? 'Cancel' : 'Done'}
                 </button>
                 {feedback}
               </div>
@@ -1061,7 +1096,7 @@ export function CmsWorkspace({
                   Previous
                 </button>
                 <span>
-                  Page {current + 1} of {pages} · {filtered.length} entries
+                  Page {current + 1} of {pages} · {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
                 </span>
                 <button
                   class="btn"
@@ -1233,7 +1268,7 @@ function RichValue({
     </div>
   );
 }
-function bindingImpact(collectionId: string, fieldId: string): string {
+export function bindingImpact(collectionId: string, fieldId: string): string {
   const affected = new Set<string>();
   for (const page of C.state.pages) {
     if (
@@ -1241,18 +1276,30 @@ function bindingImpact(collectionId: string, fieldId: string): string {
       [page.bindTitle, page.bindDesc].includes(fieldId)
     )
       affected.add(page.name + ' (SEO)');
-    C.eachNode(page.tree, (n) => {
-      if (
-        Object.values(n.bind || {}).some(
-          (b) =>
-            b.src === 'field' &&
-            (b.path === fieldId || b.path.startsWith(fieldId + '.')),
-        )
-      )
-        affected.add(page.name + ' / ' + C.nameOf(n));
-    });
+    const visit = (nodes: typeof page.tree, inherited = page.collection || '') => {
+      for (const n of nodes) {
+        const declared = n.src || C.findComponent(n.use)?.node.src || '';
+        const source = declared && C.findCollection(declared) ? declared : inherited;
+        const uses = (b?: { src: string; path: string } | null) =>
+          !!b && b.src === 'field' && (b.path === fieldId || b.path.startsWith(fieldId + '.'));
+        if (source === collectionId && Object.values(n.bind || {}).some(uses))
+          affected.add(page.name + ' / ' + C.nameOf(n));
+        /* a condition on the field decides visibility, and goes permanently one way without it */
+        if (source === collectionId && uses(n.showIf?.bind))
+          affected.add(page.name + ' / ' + C.nameOf(n) + ' (condition)');
+        visit(n.children || [], source);
+      }
+    };
+    C.pageTrees(page).forEach(nodes => visit(nodes));
   }
-  return affected.size
+  const bindings = affected.size
     ? 'Review these bindings: ' + [...affected].join(', ') + '.'
     : 'No page field bindings were found. Check shared components and references before publishing.';
+  const settings = C.collectionFieldSettingUsage(collectionId, fieldId);
+  const resets = [];
+  if (settings.sort)
+    resets.push(`${settings.sort} Collection List ${settings.sort === 1 ? 'sort' : 'sorts'} will reset to CMS order.`);
+  if (settings.filter)
+    resets.push(`${settings.filter} Collection List ${settings.filter === 1 ? 'filter' : 'filters'} will reset to show every item.`);
+  return bindings + (resets.length ? ' ' + resets.join(' ') : '');
 }

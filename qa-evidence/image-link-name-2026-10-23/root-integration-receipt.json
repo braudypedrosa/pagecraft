@@ -1,0 +1,12 @@
+{
+  "status": "root integrated exact Image117 candidate",
+  "protected11ExactHistoricalFreeze": true,
+  "generated8IndexOnly": true,
+  "stagedScopeExact": true,
+  "source2AndEvidenceStagedHashesVerified": true,
+  "productWhitespaceCheck": "pass",
+  "nativeFinalEvidence": "root-native-final-caption.json",
+  "fullTestsPassed": 2785,
+  "existingSkipped": 5,
+  "runtimeUnchanged": true
+}

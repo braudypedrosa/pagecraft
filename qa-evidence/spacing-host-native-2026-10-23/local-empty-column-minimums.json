@@ -1,0 +1,28 @@
+{
+  "nonEmptyMin200": {
+    "height": "50px",
+    "parentClass": "pagecraft-column pagecraft-wk7wo1wjt",
+    "parentHeight": 200,
+    "parentId": "nwk7wo1wjt",
+    "parentMinHeight": "200px",
+    "rectHeight": 50
+  },
+  "empty200": {
+    "class": "pagecraft-column s-column-empty pagecraft-wk7wo1wjt",
+    "height": 200,
+    "hint": true,
+    "minHeight": "200px"
+  },
+  "empty0": {
+    "class": "pagecraft-column s-column-empty pagecraft-wk7wo1wjt",
+    "height": 76,
+    "hint": true,
+    "minHeight": "0px"
+  },
+  "emptyDefault": {
+    "class": "pagecraft-column s-column-empty pagecraft-wk7wo1wjt",
+    "height": 76,
+    "hint": true,
+    "minHeight": "40px"
+  }
+}

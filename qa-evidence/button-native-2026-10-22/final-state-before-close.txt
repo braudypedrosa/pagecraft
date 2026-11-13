@@ -1,0 +1,3 @@
+Browser tab: 58, Title: "Pagecraft Builder", URL: "http://localhost:4991/edit/s1".
+There has been no change in the accessibility tree.
+The focused UI element is 27 button Description: Return to editing, Help: Return to editing (⌘P), ID: previewBtn

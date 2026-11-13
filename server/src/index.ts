@@ -22,6 +22,7 @@ import { MemoryStore, type Store } from "./store.ts";
 import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
 import { type LibraryStore, MemoryLibraryStore } from "./libraries.ts";
+import { GatewayCollaborationInvitationStore, MemoryCollaborationInvitationStore, PgCollaborationInvitationStore, type CollaborationInvitationStore } from "./collaboration-invitations.ts";
 import { mailRoles, smtpNoticeSender, smtpSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
@@ -43,17 +44,21 @@ import {
 import { FileHostedPublicationStore } from "./publications.ts";
 import { FilePublicationReviewStore } from "./reviews.ts";
 import { AnalyticsRecorder, FileAnalyticsStore } from "./analytics.ts";
+import { FileAssistantStore, FileOAuthStore } from "./assistants.ts";
 import { FilePublicationScheduleStore } from "./schedules.ts";
 import { runDueSchedules } from "./schedule-runner.ts";
 import { FileSiteTemplateStore } from "./site-templates.ts";
-import { validateStagingEnvironment } from "./staging-environment.ts";
+import { TemplateDraftStore } from './template-draft-store.ts';
+import { TemplateAuthorGrants } from './template-authoring-grants.ts';
+import { stagingProposalGatewayUrl } from "./staging-environment.ts";
+import { recordTiming } from "./request-timing.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
 
 const PORT = Number(process.env.PORT || 8787);
 const EDITOR_HOST = process.env.EDITOR_HOST || "localhost";
-validateStagingEnvironment(process.env);
+const proposalGatewayUrl = stagingProposalGatewayUrl(process.env);
 
 /* The builder, as built. `node build.mjs` writes it; the server does not build it, because
    a server that runs a bundler on boot is a server that fails to boot for bundler reasons. */
@@ -87,6 +92,7 @@ async function pickStores(): Promise<{
   cloudMutations?: CloudMutationFastPath;
   manualImports?: ManualImportReadFastPath;
   libraries?: LibraryStore;
+  collaborationInvitations: CollaborationInvitationStore;
 }> {
   const gatewayUrl = process.env.DATABASE_GATEWAY_URL;
   const gatewayKey = process.env.DATABASE_GATEWAY_KEY;
@@ -115,10 +121,14 @@ async function pickStores(): Promise<{
     console.log("store: supabase gateway");
     const auth = new GatewayAuthStore(gateway);
     const assets = new GatewayAssetStore(gateway);
+    const proposalGateway = proposalGatewayUrl
+      ? new PagecraftGateway(proposalGatewayUrl, gatewayKey, fetch, process.env.DATABASE_GATEWAY_REGION)
+      : undefined;
     const cloudMutations = new GatewayHostedPublishPreparer(
       gateway,
       store,
       assets,
+      proposalGateway,
     );
     return {
       store,
@@ -130,6 +140,7 @@ async function pickStores(): Promise<{
       cloudMutations,
       manualImports: new GatewayManualImportReader(gateway),
       libraries: new GatewayLibraryStore(gateway),
+      collaborationInvitations: new GatewayCollaborationInvitationStore(gateway),
     };
   }
   const url = process.env.DATABASE_URL;
@@ -143,14 +154,15 @@ async function pickStores(): Promise<{
       "DATABASE_URL is not set — using the in-memory stores. Nothing survives a restart,",
     );
     console.warn("including who is signed in and who has been invited.");
-    const store = new MemoryStore(), auth = new MemoryAuthStore();
+    const store = new MemoryStore(), auth = new MemoryAuthStore(), libraries = new MemoryLibraryStore();
     return {
       store,
       assets: new MemoryAssetStore(),
       auth,
       connected: new MemoryConnectedStore(),
       owned: new MemoryOwnedSiteStore(store, auth),
-      libraries: new MemoryLibraryStore(),
+      libraries,
+      collaborationInvitations: new MemoryCollaborationInvitationStore(store, auth, libraries),
     };
   }
   /* Imported here rather than at the top so a run without a database needs no driver. */
@@ -167,8 +179,10 @@ async function pickStores(): Promise<{
   await auth.init();
   await assets.init();
   await connected.init();
+  const collaborationInvitations = new PgCollaborationInvitationStore(pool);
+  await collaborationInvitations.init();
   console.log("store: postgres");
-  return { store, assets, auth, connected, owned: new PgOwnedSiteStore(pool) };
+  return { store, assets, auth, connected, owned: new PgOwnedSiteStore(pool), collaborationInvitations };
 }
 
 const {
@@ -181,6 +195,7 @@ const {
   cloudMutations,
   manualImports,
   libraries,
+  collaborationInvitations,
 } = await pickStores();
 
 const production = process.env.NODE_ENV === "production";
@@ -191,7 +206,10 @@ if (!publicationRoot) {
     "production requires PAGECRAFT_PUBLICATION_ROOT for immutable hosted publications",
   );
 }
-const publications = new FileHostedPublicationStore(publicationRoot);
+const publications = new FileHostedPublicationStore(publicationRoot, {
+  timing: ({ name, durationMs, outcome }) =>
+    recordTiming(`publication.${name}.${outcome}`, durationMs),
+});
 // A sibling private directory survives deployments and is isolated by environment.
 const cloudIntegrations = { connections: new FileCloudConnectionStore(resolve(publicationRoot) + "-integrations"), client: new UplistingClient() };
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -529,6 +547,17 @@ const schedulingEnabled = process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" || !!sch
    production's numbers. The flush only writes these local files; it is not one of the
    shared-database workers that PAGECRAFT_BACKGROUND_WORKERS turns off. */
 const analytics = new AnalyticsRecorder(new FileAnalyticsStore(join(resolve(publicationRoot), ".analytics")));
+const templateOperatorIds = (process.env.PAGECRAFT_TEMPLATE_AUTHOR_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
+let templateAuthoring;
+if (process.env.PAGECRAFT_TEMPLATE_AUTHORING === '1') {
+  if (!templateOperatorIds.length) throw new Error('Template authoring requires PAGECRAFT_TEMPLATE_AUTHOR_IDS');
+  const environment = EDITOR_HOST === 'staging.itspagecraft.com' ? 'staging' : production ? 'production' : 'test';
+  const drafts = new TemplateDraftStore({ root: join(resolve(publicationRoot), '.template-authoring'), environment });
+  await drafts.init();
+  const grants = new TemplateAuthorGrants(join(drafts.root, '.grants'), environment,
+    `${editorOrigin}/mcp/template-authoring`, templateOperatorIds);
+  templateAuthoring = { store: drafts, grants };
+}
 analytics.start();
 
 const app = createApp({
@@ -537,7 +566,12 @@ const app = createApp({
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
   libraries,
+  collaborationInvitations,
   analytics,
+  // Phase 7: per-environment, like reviews: a staging token is a staging token.
+  assistants: new FileAssistantStore(join(resolve(publicationRoot), ".assistants")),
+  assistantOAuth: new FileOAuthStore(join(resolve(publicationRoot), ".assistants")),
+  templateAuthoring,
   schedules: schedulingEnabled ? schedules : undefined,
   scheduleRunnerKey,
   liveReviews: new LiveReviewStore(join(resolve(publicationRoot), ".live-reviews", "reviews.json")),
@@ -558,6 +592,9 @@ const app = createApp({
   siteTemplates,
   challenge,
   turnstileSiteKey: testAuth ? "pagecraft-local-test" : turnstileSiteKey,
+  // Only when Cloudflare really fronts the origin; otherwise anyone can send CF-Connecting-IP.
+  trustCloudflare: process.env.PAGECRAFT_TRUST_CLOUDFLARE === "1",
+  cookieSecret: process.env.PAGECRAFT_COOKIE_SECRET || undefined,
   publications,
   hostedPublish,
   cloudMutations,
@@ -592,12 +629,13 @@ console.log(schedulingEnabled
   ? `scheduling enabled (run endpoint ${scheduleRunnerKey ? "on" : "off"}, timer ${process.env.PAGECRAFT_SCHEDULE_RUNNER === "1" ? "on" : "off"})`
   : "scheduling disabled: set PAGECRAFT_SCHEDULE_RUNNER=1 and/or PAGECRAFT_SCHEDULE_RUNNER_KEY");
 
-serve({ fetch: (request) => {
+serve({ fetch: (request, env) => {
   const url = new URL(request.url);
   if (deployment && url.hostname === EDITOR_HOST && url.pathname === "/__deployment") {
     return Response.json(deployment, { headers: { "cache-control": "no-store" } });
   }
-  return app.fetch(request);
+  // `env` carries the socket, the last resort for a client address with no proxy header.
+  return app.fetch(request, env);
 }, port: PORT, hostname: process.env.BIND_HOST }, (info) => {
   console.log(`editor   http://${EDITOR_HOST}:${info.port}/`);
   console.log(`api      http://${EDITOR_HOST}:${info.port}/api/sites`);

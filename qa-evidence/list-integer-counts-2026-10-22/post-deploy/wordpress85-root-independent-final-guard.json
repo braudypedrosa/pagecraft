@@ -1,0 +1,17 @@
+{
+  "accepted": true,
+  "tables": 133,
+  "exactTables": 132,
+  "changedTables": [
+    "wp_options"
+  ],
+  "allPostsAndMetadataExact": true,
+  "revisionsUnchanged": 324,
+  "noAddedOrDeletedRows": true,
+  "optionsTimestampOnly": [
+    "_elementor_pro_free_trial_data"
+  ],
+  "optionIdentityAndAutoloadExact": true,
+  "finalSqlSHA256": "0211aa758bd8ae84d11e64c22fedc577e24648d085444ea28b1f4f66f57c90cc",
+  "native": "Read-only editor: original11 editable IDs exact D/T/M and reload, Save disabled, Gallery inspector visible. No Collection List provider workflow claim."
+}

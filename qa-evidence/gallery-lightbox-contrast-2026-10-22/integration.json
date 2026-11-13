@@ -1,0 +1,17 @@
+{
+  "base": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+  "protectedWorkingFilesExact": 11,
+  "generatedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "nativeLocalAfterVisualReviewed": true,
+  "stagingAcceptance": "pending",
+  "wordpressAcceptance": "pending"
+}

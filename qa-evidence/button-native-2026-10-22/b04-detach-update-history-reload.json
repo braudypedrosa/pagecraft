@@ -1,0 +1,137 @@
+{
+  "detachUndo": "Button label",
+  "detachRedo": "— None (styled directly) —",
+  "sharedUpdateOverrideWeight": {
+    "beforeUndo": "500",
+    "afterUndo": "700"
+  },
+  "rows": [
+    {
+      "device": "Desktop",
+      "buttons": [
+        {
+          "background": "rgb(254, 220, 186)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action source",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "24px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action peer",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "22px",
+          "weight": "700"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action override",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(17, 19, 17)",
+          "label": "QA unrelated action",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "weight": "400"
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "device": "Tablet",
+      "buttons": [
+        {
+          "background": "rgb(254, 220, 186)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action source",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "18px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action peer",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "18px",
+          "weight": "700"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(18, 52, 86)",
+          "label": "QA action override",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(17, 19, 17)",
+          "label": "QA unrelated action",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "weight": "400"
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "device": "Mobile",
+      "buttons": [
+        {
+          "background": "rgb(254, 220, 186)",
+          "colour": "rgb(102, 51, 68)",
+          "label": "QA action source",
+          "padding": "16px 24px",
+          "radius": "12px",
+          "size": "16px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(102, 51, 68)",
+          "label": "QA action peer",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "16px",
+          "weight": "700"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(102, 51, 68)",
+          "label": "QA action override",
+          "padding": "0px",
+          "radius": "0px",
+          "size": "26px",
+          "weight": "500"
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "colour": "rgb(17, 19, 17)",
+          "label": "QA unrelated action",
+          "padding": "13px 26px",
+          "radius": "8px",
+          "size": "15px",
+          "weight": "400"
+        }
+      ],
+      "overflow": false
+    }
+  ],
+  "scope": "DetachUndoRedo, sharedUpdateUndoRedo, save/reload at all3. DetachedPeerkeeps22/18/16weight700; sharedsourceD24weight500; explicitSize26overridekeeps26andfollowsweight500. UnrelatedBodyownresponsive16/16/15."
+}

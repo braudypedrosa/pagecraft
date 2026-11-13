@@ -1,0 +1,17 @@
+{
+  "version": "0.2.17-preview.20261022.95",
+  "cloud": "2c0d4b402c1ff4790787851e2b83e94ae744336b",
+  "wordpress": "62636ace3c3ac1cd57f766ee549fa9363388fbde",
+  "rootIndependentFrozen10": true,
+  "sourceCommittedExact": true,
+  "sealedDistExact": true,
+  "builder55Exact": true,
+  "theme19Exact": true,
+  "importer16Exact": true,
+  "historical126Exact": true,
+  "SQLByteExact": true,
+  "sqlSHA256": "df6517512716e4961ab842cfa8ca38e11cd36fb38178dd1af170d78aba756a2c",
+  "builderZipSHA256": "8cc1b4b80942dbdc4dc130f50d5c672b132c431369a3ace7a1c8f6778b34113e",
+  "guard": "/private/tmp/pagecraft-preview95-guard.ixh9c9mr",
+  "nativeAcceptance": "Pending"
+}

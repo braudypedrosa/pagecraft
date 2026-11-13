@@ -1,0 +1,71 @@
+diff --git a/builder.html b/builder.html
+index af1d2b5..c61cb0d 100644
+--- a/builder.html
++++ b/builder.html
+@@ -4761,11 +4761,18 @@ function bindCanvas() {
+     const hit = canvasPointerHit(e);
+     if (!hit) { select(null); return; }
+     if (editing.on) exitEdit();
++    /* contextmenu preserves selected targets; its preceding secondary press must too. */
++    if (e.button === 2 && selIds().includes(hit.dataset.id)) {
++      rememberCanvasItem(hit);
++      paintSel();
++      renderRight();
++      return;
++    }
+     /* Both modifiers add here. A range needs a flat list to sweep, and the canvas
+        has depth instead — shift-clicking two headings would otherwise drag in
+        every row and column that happens to sit between them. The Navigator, which
+        does present a list, is where shift takes a range. */
+-    const add = e.metaKey || e.ctrlKey || e.shiftKey;
++    const add = e.button !== 2 && (e.metaKey || e.ctrlKey || e.shiftKey);
+     /* A modifier click is a selection gesture, not a text one. Without this the
+        browser also extends a native text selection across the canvas, so adding
+        three cards leaves everything between them highlighted blue. */
+diff --git a/tests/builder-cms-selection.test.mjs b/tests/builder-cms-selection.test.mjs
+index 713b6cd..aa84a8d 100644
+--- a/tests/builder-cms-selection.test.mjs
++++ b/tests/builder-cms-selection.test.mjs
+@@ -385,3 +385,42 @@ test('a stale or filtered review target never falls back to the first repeated c
+   expect(deleted.w.closeReviewSurface).not.toHaveBeenCalled();
+   expect(deleted.w.render).not.toHaveBeenCalled();
+ });
++
++for (const many of [false, true]) test(`selected secondary press refreshes repeated CMS row context without collapsing ${many ? 'multiple selections' : 'single selection'}`, () => {
++  const { w, d, cd, collection, courtyard, community } = harness();
++  let ids = ['heading'];
++  const expectedIds = many ? ['heading', 'card'] : ['heading'];
++  w.selIds = () => [...ids];
++  w.selSet = next => { ids = [...next]; w.state.ui.sel = ids[0] || null; };
++  w.state.ui.collapsed = {};
++  Object.assign(w, { renderModebar: () => {}, renderLayers: () => {}, drawBlocks: () => {}, revealSelection: () => {} });
++  w.eval(between('function selectsCanvasAncestor(id)', '// Panel changes can reflow the canvas.'));
++  const inspector = d.createElement('output');
++  d.body.append(inspector);
++  const refreshInspector = vi.fn(() => {
++    inspector.textContent = collection.items[w.state.ui.item.places].values.title;
++  });
++  Object.assign(w, { renderRight: refreshInspector });
++  w.eval(between('function positionHud()', '/* A grip per gutter'));
++  w.eval(between('function paintSel()', '/* ---- element clipboard identity'));
++  courtyard.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true }));
++  ids = [...expectedIds];
++  w.paintSel(); refreshInspector();
++  expect(w.selectedCanvasElement('heading')).toBe(courtyard);
++  expect(inspector.textContent).toBe('Courtyard');
++  const before = JSON.stringify({ pages: w.state.pages, collection });
++  refreshInspector.mockClear();
++
++  community.dispatchEvent(new w.cwin.MouseEvent('pointerdown', { bubbles: true, button: 2, buttons: 2 }));
++
++  expect(w.state.ui.item.places).toBe(0);
++  expect(w.selectedCanvasElement('heading')).toBe(community);
++  expect(w.selIds()).toEqual(expectedIds);
++  expect(community.hasAttribute('data-sel')).toBe(true);
++  expect(courtyard.hasAttribute('data-sel')).toBe(false);
++  expect(cd.querySelector('#s-hud .frame:not(.alt)').style.top).toBe('120px');
++  expect(cd.querySelector('#s-hud .nm').textContent).toBe(many ? '2 selected' : 'Heading');
++  expect(refreshInspector).toHaveBeenCalledOnce();
++  expect(inspector.textContent).toBe('Community Garden');
++  expect(JSON.stringify({ pages: w.state.pages, collection })).toBe(before);
++});

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/native/local-richtext-link-state-acceptance.json",
+    "originalSha256": "5f74a0c4908a106f50144366b13c3d099a174313b72d4d3eb72a7aa644ce3b39",
+    "normalizedSha256": "db58aa781b099c21c782389d5a0ce37cc193683315603d43f84c6e9be3667278"
+  },
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/native/wordpress-preview74-richtext-link-focus-failure.json",
+    "originalSha256": "fff54a551a26c76e3e8901188d2f47cd81adf6c0c98791918fd190485d691f2e",
+    "normalizedSha256": "2683c5743912e6d34bae0064c5cb19f5ba027e57e58b921316f87bb61a22e8e8"
+  },
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/logs/full-max-workers-2.log",
+    "originalSha256": "e181a7745a934d3a2d26e01e4f42188077b3b6b24ef3096d49be02b155639685",
+    "normalizedSha256": "356c3db5c0b6d06b415edc026db985f949eef186e422bfbcf0e6586ac7a8ccc0"
+  },
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/logs/focused-final.log",
+    "originalSha256": "b0727486d9fe101e15bbe7508db43cbfa35c4a6f44e64cfaa364645466006d5f",
+    "normalizedSha256": "941b55d3fd10b9fe9d686ea528f7f7079c79e85a9842cfde398766589e67a39f"
+  },
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/logs/typecheck.log",
+    "originalSha256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalizedSha256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "path": "qa-evidence/rich-link-state-2026-10-21/logs/focused-red.log",
+    "originalSha256": "a83564dd2292984e9e513b65c7f4fa6b582d1d49a57dbb5543a7b08c173b45e5",
+    "normalizedSha256": "cd30543a0c6049383c93776ff205d1df11de48f2a86e9278a9d237f36ec7c52d"
+  }
+]

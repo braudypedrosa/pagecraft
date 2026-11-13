@@ -1,0 +1,8 @@
+{
+  "exact": true,
+  "length": 58,
+  "expectedLength": 58,
+  "button": "Copied",
+  "clipboardRestored": true,
+  "cleanupNote": "Original clipboard was empty; restoring an empty item array is unsupported, so restored empty text."
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "electrician-service",
+    "nativeImport": true,
+    "editSaveReopen": true,
+    "restored": true,
+    "url": "http://127.0.0.1:4964/edit/s1?start=template"
+  },
+  {
+    "id": "residential-cleaning",
+    "nativeImport": true,
+    "editSaveReopen": true,
+    "restored": true,
+    "url": "http://127.0.0.1:4964/edit/s2?start=template"
+  },
+  {
+    "id": "landscaping-studio",
+    "nativeImport": true,
+    "editSaveReopen": true,
+    "restored": true,
+    "url": "http://127.0.0.1:4964/edit/s3?start=template"
+  },
+  {
+    "id": "salon-studio",
+    "nativeImport": true,
+    "editSaveReopen": true,
+    "restored": true,
+    "url": "http://127.0.0.1:4964/edit/s4?start=template"
+  },
+  {
+    "id": "bookkeeping-practice",
+    "nativeImport": true,
+    "editSaveReopen": true,
+    "restored": true,
+    "url": "http://127.0.0.1:4964/edit/s5?start=template"
+  }
+]

@@ -1,0 +1,36 @@
+
+> pagecraft@0.2.0 test
+> node packages/editor/build.mjs && tsc --noEmit && vitest run --maxWorkers=4
+
+index.html written (fonts 438 KB) · core compiled from TypeScript (457 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /private/tmp/pagecraft-nav-combined-one-d84-v1/packages/editor/dist
+
+ RUN  v4.1.11 /private/tmp/pagecraft-nav-combined-one-d84-v1
+
+(node:75223) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75248) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75340) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/ui-baselines.test.mjs (2 tests | 1 failed) 13ms
+   × reviewed gallery baselines match the current shared UI sources 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/ui-baselines.test.mjs > reviewed gallery baselines match the current shared UI sources
+Error: UI baselines need review after changes to:
+builder.html
+Capture the gallery in the built-in browser, compare, then record the reviewed images. See docs/component-gallery.md.
+ ❯ checkBaselines tools/ui-baselines.mjs:55:27
+
+ ❯ tests/ui-baselines.test.mjs:4:89
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 216 passed | 2 skipped (219)
+      Tests  1 failed | 2413 passed | 5 skipped (2419)
+   Start at  18:11:16
+   Duration  47.50s (transform 3.32s, setup 0ms, import 27.72s, tests 125.19s, environment 16.06s)
+

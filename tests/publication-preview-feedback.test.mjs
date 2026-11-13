@@ -1,0 +1,311 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, test, vi } from 'vitest';
+import { JSDOM } from 'jsdom';
+import { installCustomSelects } from '../shared/custom-select.js';
+
+const builder = readFileSync(new URL('../builder.html', import.meta.url), 'utf8');
+const siteApiRootSource = builder.match(/^const siteApiRoot = .*;$/m)?.[0];
+if (!siteApiRootSource) throw new Error('site API root helper is missing');
+const publicationSource = builder.slice(
+  builder.indexOf('const publicationFrameCleanup ='),
+  builder.indexOf('\n/* Scheduling publishes this exact reviewed version later')
+);
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+}
+
+function fixture(prepare) {
+  const dom = new JSDOM(`<body><div id="publicationChanges"><p>Old reviewed preview</p></div>
+    <button id="releasePrepare">Create publication preview</button>
+    <button id="releaseSchedule">Schedule…</button>
+    <button id="releasePublish">Publish reviewed version</button></body>`, {
+    url: 'https://example.test/edit/qa', runScripts: 'outside-only', pretendToBeVisual: true
+  });
+  const { window: w } = dom;
+  const doc = w.document;
+  w.HTMLElement.prototype.scrollIntoView = vi.fn();
+  const project = { pages: [{ id: 'home', name: 'Home', slug: 'index' }, { id: 'contact', name: 'Contact', slug: 'contact' }], ui: { mode: 'page' }, cur: 0 };
+  const notices = [];
+  const mountReview = vi.fn();
+  Object.assign(w, {
+    $: selector => doc.querySelector(selector),
+    esc: value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character])),
+    feedback: () => ({ begin: button => ({
+      success: message => notices.push(['success', message]),
+      error: message => notices.push(['error', message]),
+      cancel: () => notices.push(['cancel'])
+    }) }),
+    flushDraft: async () => {},
+    HOST: { releases: { prepare } },
+    SRV: { siteId: 'qa', version: 4 },
+    ui: () => ({ mountReview }),
+    doc: () => ({ pages: [] }),
+    state: project,
+    locate: id => id === 'form-1' ? { node: { id } } : null,
+    closeModal: vi.fn(), render: vi.fn(), select: vi.fn(), showPanel: vi.fn(),
+    showReviewTarget: vi.fn(() => true),
+    publishDraft: vi.fn(), openSchedulePanel: vi.fn(), toast: vi.fn()
+  });
+  w.eval(`${siteApiRootSource}\n${publicationSource}`);
+  return { dom, w, doc, notices, mountReview };
+}
+
+describe('publication preview failure feedback', () => {
+  test('review changes are counted rows with one page action and collapsed shared-page context', async () => {
+    const warning = { code: 'form-no-action', message: 'Choose a destination.', where: { page: 'Contact', slug: 'contact' }, target: { pageId: 'contact', scope: 'page', nodeId: 'form-1' } };
+    const { dom, w, doc, mountReview } = fixture(async () => ({
+      snapshotId: 'reviewed-4', sourceVersion: 4, baselinePublicationId: null,
+      comparisonAvailable: true, pages: ['index.html', 'workshop.html'], draftPages: ['index.html', 'workshop.html'],
+      changes: [
+        { group: 'Pages', label: 'Workshop', status: 'changed', pages: [{ name: 'Workshop', slug: 'workshop' }] },
+        { group: 'Global regions', label: 'Header', status: 'changed', pages: [{ name: 'Home', slug: 'index' }, { name: '<Workshop>', slug: 'workshop' }] }
+      ], warnings: [warning]
+    }));
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    const groups = doc.querySelectorAll('.publication-change-list>.review-group');
+    expect(groups.length).toBe(2);
+    expect(groups[0].querySelector('summary').textContent).toContain('1 change');
+    expect(groups[0].querySelectorAll('[data-review-page]').length).toBe(1);
+    expect(groups[0].querySelector('li .msg').textContent).toBe('Workshop');
+    expect(groups[0].querySelector('.review-status').textContent).toBe('Changed');
+    expect(groups[1].querySelector('.review-affected').open).toBe(false);
+    expect(groups[1].querySelector('workshop')).toBeNull();
+    expect(mountReview).toHaveBeenCalledWith('publicationWarnings', false, [{ ...warning, level: 'warn', msg: warning.message }]);
+    groups[0].querySelector('[data-review-page]').click();
+    expect(doc.querySelector('#publicationPage').value).toBe('workshop.html');
+    expect(doc.querySelector('#publicationAfter').src).toContain('/files/workshop.html');
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
+  test('clicking a snapshot link updates its enhanced page picker and keeps the destination hash', async () => {
+    const { dom, w, doc } = fixture(async () => ({
+      snapshotId:'reviewed-4', sourceVersion:4, baselinePublicationId:null,
+      comparisonAvailable:true, changes:[], pages:['index.html', 'menu.html'], warnings:[],
+      draftPages:['index.html', 'menu.html'], publishedPages:[]
+    }));
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    w.eval(`(${installCustomSelects.toString()})('');`);
+    const page = doc.querySelector('#publicationPage'), frame = doc.querySelector('#publicationAfter');
+    expect(page.nextElementSibling.textContent).toBe('Home');
+    const token = new URL(frame.src).searchParams.get('pcPreviewReady');
+    w.dispatchEvent(new w.MessageEvent('message', {source:frame.contentWindow, data:{
+      type:'pagecraft-preview-navigate', token, path:'menu.html', hash:'#pastries'
+    }}));
+    expect(page.value).toBe('menu.html');
+    expect(page.nextElementSibling.textContent).toBe('menu');
+    expect(new URL(frame.src).pathname.endsWith('/files/menu.html')).toBe(true);
+    expect(new URL(frame.src).hash).toBe('#pastries');
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
+  test('snapshot navigation stays gated by frame, token and exact page inventory after paint readiness', () => {
+    const { dom, w, doc } = fixture(async () => {});
+    const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');
+    wrapper.append(frame); doc.body.append(wrapper);
+    frame.setAttribute('sandbox', 'allow-scripts');
+    const onNavigate = vi.fn();
+    const source = '/api/sites/qa/publication-snapshots/reviewed-4/files/index.html';
+    const navigation = {pages:['index.html', 'menu.html', 'projects/study.html'], onNavigate};
+    w.loadPublicationFrame(frame, source, navigation);
+    const token = new URL(frame.src).searchParams.get('pcPreviewReady');
+    const send = (data, from = frame.contentWindow) => w.dispatchEvent(new w.MessageEvent('message', {source:from, data}));
+    send({type:'pagecraft-preview-ready', token, status:'ready'});
+    expect(wrapper.textContent).toContain('Page preview displayed.');
+    const valid = {type:'pagecraft-preview-navigate', token, path:'menu.html', hash:'#morning'};
+    send(valid, w); send({...valid, token:'wrong'});
+    for (const path of ['unknown.html', '../menu.html', '/menu.html', 'https://evil.test/menu.html']) send({...valid, path});
+    send({...valid, hash:'https://evil.test'});
+    expect(onNavigate).not.toHaveBeenCalled();
+    send(valid);
+    expect(onNavigate).toHaveBeenCalledExactlyOnceWith('menu.html', '#morning');
+    expect(frame.getAttribute('sandbox')).toBe('allow-scripts');
+    w.loadPublicationFrame(frame, source, navigation);
+    send(valid);
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    const freshToken = new URL(frame.src).searchParams.get('pcPreviewReady');
+    w.clearPublicationFrames();
+    send({...valid, token:freshToken});
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    dom.window.close();
+  });
+
+  test('persists escaped 422 findings with page context and safe navigation', async () => {
+    const error = Object.assign(new Error('publication_validation_failed'), {
+      status: 422,
+      payload: {
+        error: 'publication_validation_failed',
+        findings: [{
+          code: 'form-no-action',
+          message: '<img src=x onerror=alert(1)> Choose a submission destination.',
+          where: { page: 'Contact', slug: 'contact', region: 'page', node: 'Form' }
+        }]
+      }
+    });
+    const { dom, w, doc, notices } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    const host = doc.querySelector('#publicationChanges');
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain('did not pass publication checks');
+    expect(host.textContent).toContain('Choose a submission destination.');
+    expect(host.textContent).toContain('Contact · page · Form');
+    expect(host.querySelector('img')).toBeNull();
+    expect(doc.querySelector('#releasePublish').disabled).toBe(true);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(true);
+    expect(notices.at(-1)?.[1]).not.toContain('publication_validation_failed');
+
+    host.querySelector('[data-publication-finding]').click();
+    expect(w.closeModal).toHaveBeenCalledOnce();
+    expect(w.state.cur).toBe(1);
+    expect(w.showPanel).toHaveBeenCalledWith('layers');
+    dom.window.close();
+  });
+
+  test('retry removes stale failure immediately and keeps publish controls gated', async () => {
+    const next = deferred();
+    let attempt = 0;
+    const { dom, w, doc } = fixture(async () => {
+      attempt += 1;
+      if (attempt === 1) throw Object.assign(new Error('publication_validation_failed'), {
+        status: 422,
+        payload: { error: 'publication_validation_failed', findings: [{ message: 'Fix the form.', where: { page: 'Contact', slug: 'contact' } }] }
+      });
+      return next.promise;
+    });
+
+    const button = doc.querySelector('#releasePrepare');
+    await w.preparePublicationReview(button);
+    expect(doc.querySelector('.publication-preview-error')).not.toBeNull();
+
+    const retry = w.preparePublicationReview(button);
+    await Promise.resolve();
+    expect(doc.querySelector('.publication-preview-error')).toBeNull();
+    expect(doc.querySelector('#publicationChanges').textContent).toContain('Preparing a new publication preview');
+    expect(doc.querySelector('#releasePublish').disabled).toBe(true);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(true);
+
+    next.resolve({
+      snapshotId: 'reviewed-4', sourceVersion: 4, baselinePublicationId: null,
+      comparisonAvailable: true, changes: [], pages: ['index.html'], warnings: [],
+      draftPages: ['index.html'], publishedPages: []
+    });
+    await retry;
+    expect(doc.querySelector('.publication-preview-error')).toBeNull();
+    expect(doc.querySelector('#publicationChanges').textContent).toContain('Review of saved version 4');
+    expect(doc.querySelector('#releasePublish').disabled).toBe(false);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(false);
+    expect(typeof doc.querySelector('#releasePublish').onclick).toBe('function');
+    expect(typeof doc.querySelector('#releaseSchedule').onclick).toBe('function');
+    dom.window.close();
+  });
+
+  test('publication findings delegate structured CMS targets to validated navigation', async () => {
+    const target = {
+      pageId: 'page-contact', scope: 'page', nodeId: 'image-1',
+      repeatPath: [{ collectionId: 'places', itemId: 'courtyard' }],
+    };
+    const error = Object.assign(new Error('publication_validation_failed'), {
+      status: 422,
+      payload: { error: 'publication_validation_failed', findings: [{
+        code: 'no-alt', message: 'Describe the Courtyard image.', target,
+        where: { page: 'Contact', slug: 'contact', region: 'page', node: 'Image' },
+      }] },
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    doc.querySelector('[data-publication-finding]').click();
+
+    expect(w.showReviewTarget).toHaveBeenCalledExactlyOnceWith(target);
+    expect(w.closeModal).not.toHaveBeenCalled();
+    expect(w.select).not.toHaveBeenCalled();
+    dom.window.close();
+  });
+
+  test('generic server errors never expose internal code-only messages', async () => {
+    const error = Object.assign(new Error('snapshot_storage_failed'), {
+      status: 500, payload: { error: 'snapshot_storage_failed', detail: '<b>database table snapshots_internal failed</b>' }
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    expect(doc.querySelector('#publicationChanges').textContent).toContain('could not create the publication preview');
+    expect(doc.querySelector('#publicationChanges').textContent).not.toContain('snapshot_storage_failed');
+    expect(doc.querySelector('#publicationChanges').textContent).not.toContain('snapshots_internal');
+    expect(doc.querySelector('#publicationChanges b')?.textContent).not.toContain('database table');
+    dom.window.close();
+  });
+
+  test('temporary font dependency failure keeps the saved draft and gives an exact retry action', async () => {
+    const error = Object.assign(new Error('publication_dependency_unavailable'), {
+      status: 503,
+      payload: {
+        error: 'publication_dependency_unavailable', dependency: 'google_fonts', retryable: true,
+        stage: 'stylesheet', causeCategory: 'dns', detail: '<b>untrusted transport detail</b>'
+      }
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    const text = doc.querySelector('#publicationChanges').textContent;
+    expect(text).toContain('Your draft is saved, but Pagecraft could not prepare its webfonts right now. Try creating the publication preview again.');
+    expect(text).not.toContain('untrusted transport detail');
+    expect(text).not.toContain('dns');
+    expect(doc.querySelector('#releasePublish').disabled).toBe(true);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(true);
+    dom.window.close();
+  });
+
+  test('a validation failure without structured findings directs the user to Site checks', async () => {
+    const error = Object.assign(new Error('publication_validation_failed'), {
+      status: 422, payload: { error: 'publication_validation_failed', detail: 'schema internals' }
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    expect(doc.querySelector('#publicationChanges').textContent).toContain('Review Site checks');
+    expect(doc.querySelector('#publicationChanges').textContent).not.toContain('schema internals');
+    dom.window.close();
+  });
+
+  test('preserves the trusted stale-draft recovery message', async () => {
+    const { dom, w, doc, notices } = fixture(async () => ({
+      snapshotId: 'stale', sourceVersion: 3, baselinePublicationId: null,
+      comparisonAvailable: true, changes: [], pages: ['index.html'], warnings: []
+    }));
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    const message = 'The draft changed while preparing the preview. Create a new preview.';
+    expect(doc.querySelector('#publicationChanges').textContent).toContain(message);
+    expect(notices.at(-1)).toEqual(['error', message]);
+    expect(doc.querySelector('#releasePublish').disabled).toBe(true);
+    expect(doc.querySelector('#releaseSchedule').disabled).toBe(true);
+    dom.window.close();
+  });
+
+  test('labels mixed findings as problems and suggestions by level', async () => {
+    const error = Object.assign(new Error('publication_validation_failed'), {
+      status: 422,
+      payload: { error: 'publication_validation_failed', findings: [
+        { level: 'error', message: 'Fix the form.', where: { page: 'Contact', slug: 'contact' } },
+        { level: 'warn', message: 'Add a description.', where: { page: 'Contact', slug: 'contact' } }
+      ] }
+    });
+    const { dom, w, doc } = fixture(async () => { throw error; });
+
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+
+    expect(doc.querySelector('.publication-preview-findings .rh').textContent).toContain('1 problem · 1 suggestion');
+    expect(doc.querySelectorAll('.publication-preview-findings .review-level.error')).toHaveLength(1);
+    expect(doc.querySelectorAll('.publication-preview-findings .review-level.warn')).toHaveLength(1);
+    dom.window.close();
+  });
+});

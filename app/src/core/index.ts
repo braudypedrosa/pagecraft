@@ -18,26 +18,23 @@ import type {
   State, Ui, Tokens, Doc, Node as PcNode, Handle, WidgetDef, WidgetType, Css, Decls, Bp,
   StateKey, States, Anim, TabPanel, Capability, Binding, Condition, CondOp, ComponentDef, ComponentProp, PropKind,
   Collection, Field, FieldType, Item, Page, StyleClass, PropBag, GalleryTile, NavItem,
-  Finding, RenderOpts, MenuItem, Slot, SlotHit, Control
+  Finding, FindingItemTarget, FindingTarget, RenderOpts, MenuItem, Slot, SlotHit, Control, FormField
 } from './types.ts';
 import { UI_TEXT_SIZES } from '../../../shared/ui-tokens.js';
 import { IC, svg, ICONS, ICON_PATHS, ICON_NAMES, iconSvg } from './icons.ts';
 import { ANIM_CSS, ANIM_JS, ANIM_NAMES, ANIM_PFX, ANIM_SHA } from './anim.ts';
+/* `safeUrl` and the two markup cleaners live in their own module so the library import, which
+   must not pull in this stateful core, shares the same answers. */
+import { safeUrl, safeRichUrl, stripScripts, cleanRich, richTextContent } from './safe-html.ts';
+import { sha256 } from './libraries.ts';
+import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
+import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
+import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
 const uid = () => (_seq++, 'n' + Date.now().toString(36).slice(-5) + _seq.toString(36) + Math.floor(Math.random() * 1296).toString(36));
 const esc = (s: unknown) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/* Only link schemes that are safe to put in an exported href. Anything else
-   (javascript:, vbscript:, data:text/html, …) becomes an empty link. */
-const safeUrl = (u: unknown) => {
-  const v = String(u == null ? '' : u).trim();
-  if (!v) return '';
-  if (/^(https?:\/\/|mailto:|tel:|#|\/|\.{1,2}\/)/i.test(v)) return v;
-  if (/^data:image\//i.test(v) || /^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(v)) return v;
-  if (/^[\w.-]+(\/|\?|#|$)/.test(v)) return v;            // page.html, example.com/x
-  return '';
-};
 /** Nav menu and manual Breadcrumb are the two widgets whose links live in `props.items`.
  * Keep every link traversal on this semantic predicate so review, page renames, rendering,
  * and Connected release migration cannot quietly disagree about one of them. */
@@ -150,6 +147,56 @@ const safeFormAction = (u: unknown) => {
     return v;
   } catch { return ''; }
 };
+export type FormHandling = {
+  kind: 'cloud' | 'external' | 'wordpress' | 'disabled';
+  action: string;
+  method: 'get' | 'post';
+  reason: '' | 'missing' | 'unsafe';
+  note: string;
+};
+/** One answer for review, rendering and the inspector. Cloud owns only legacy blank POST
+ * forms; an explicit secure destination always remains the author's destination. */
+export function resolveFormHandling(props: PropBag, formId = '', cloudEndpoint = cloudFormEndpoint): FormHandling {
+  const rawAction = String(props.action || '').trim();
+  const external = safeFormAction(rawAction);
+  const method = props.method === 'get' ? 'get' : 'post';
+  if (cloudEndpoint) {
+    if (rawAction) return external
+      ? { kind: 'external', action: external, method, reason: '', note: 'Sends entries to the configured external HTTPS destination.' }
+      : { kind: 'disabled', action: '', method, reason: 'unsafe', note: 'Disabled until the destination is a complete HTTPS URL.' };
+    if (method === 'get') {
+      return { kind: 'disabled', action: '', method, reason: 'missing', note: 'Add an HTTPS destination for this search, or choose POST to save inquiries in Submissions.' };
+    }
+    return {
+      kind: 'cloud',
+      action: cloudEndpoint + '/' + encodeURIComponent(formId),
+      method: 'post',
+      reason: '',
+      note: 'Saves entries to this site’s Submissions inbox when published.',
+    };
+  }
+  if (props.mode === 'wordpress') {
+    return {
+      kind: 'wordpress',
+      action: `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%`,
+      method: 'post',
+      reason: '',
+      note: 'Handled by the connected WordPress site.',
+    };
+  }
+  if (external) {
+    return { kind: 'external', action: external, method, reason: '', note: 'Sends entries to the configured external HTTPS destination.' };
+  }
+  return {
+    kind: 'disabled',
+    action: '',
+    method,
+    reason: rawAction ? 'unsafe' : 'missing',
+    note: rawAction
+      ? 'Disabled until the destination is a complete HTTPS URL.'
+      : `${method.toUpperCase()} needs a complete HTTPS destination before publishing.`,
+  };
+}
 const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 const slugify = (s: unknown) => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'page';
 
@@ -175,6 +222,19 @@ const FILTER_OPS: [string, string][] = [
    level: 0 root · 1 section · 2 row · 3 column · 4 leaf                 */
 const BOX = (t: string, r: string, b: string, l: string) => ({ 'padding-top': t, 'padding-right': r, 'padding-bottom': b, 'padding-left': l });
 
+/* These are the Button factory declarations a variant is allowed to replace when untouched.
+   Keep one side-effect-free source for both new Buttons and renderer precedence checks. */
+const BUTTON_VARIANT_DEFAULTS: Decls = {
+  'padding-top': '13px', 'padding-right': '26px', 'padding-bottom': '13px', 'padding-left': '26px',
+  'border-radius': '8px', 'background-color': 'var(--c-brand)'
+};
+const BUTTON_VARIANT_BASES: Record<string, Decls> = {
+  solid: {},
+  outline: { 'background-color': 'transparent', 'background-image': 'none', 'border-width': '1px', 'border-style': 'solid', 'border-color': 'currentColor' },
+  ghost: { 'background-color': 'transparent', 'background-image': 'none', 'border-color': 'transparent' },
+  link: { 'background-color': 'transparent', 'background-image': 'none', 'border-width': '0', 'border-color': 'transparent', 'border-radius': '0', padding: '0' }
+};
+
 /* One vocabulary per kind of measurement, so the same property always offers
    the same units wherever it appears. */
 const U = {
@@ -186,6 +246,13 @@ const U = {
   track: ['em', 'px'],
   border: ['px', 'rem']
 };
+
+/* Generated column shares retain four decimals, including thirds in layout presets.
+   The inspector and gutter must accept the same raw range and precision. */
+const MIN_COL = 4;
+const MAX_COL = 100;
+const COLUMN_SHARE_DIGITS = 4;
+const COLUMN_SHARE_STEP = 10 ** -COLUMN_SHARE_DIGITS;
 
 /* A column's vertical alignment is a relationship with its row, not only a literal
    `justify-content`. The marker stays in the document so each breakpoint can either
@@ -331,7 +398,8 @@ function gfontsLink() {
 }
 /* picker options, grouped by category, with the non-Google defaults first */
 const FONT_BASE = [
-  ['', 'Inherit'],
+  ['', 'Default'],
+  ['inherit', 'Inherit'],
   ["system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", 'System sans'],
   ["Georgia,'Times New Roman',serif", 'System serif'],
   ['ui-monospace,SFMono-Regular,Menlo,Consolas,monospace', 'System monospace']
@@ -348,20 +416,23 @@ function fontGroups(): [string, string[][]][] {
   return groups;
 }
 const SHADOWS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['0 1px 2px rgba(17,19,17,.07)', 'Hairline'],
   ['0 8px 20px -8px rgba(17,19,17,.18)', 'Soft'],
   ['0 20px 44px -14px rgba(17,19,17,.28)', 'Elevated'],
   ['0 34px 70px -22px rgba(17,19,17,.38)', 'Deep']
 ];
 const TRANSITIONS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['all .15s ease', 'Fast'],
   ['all .25s ease', 'Standard'],
   ['all .4s cubic-bezier(.4,0,.2,1)', 'Smooth']
 ];
 const FILTERS = [
-  ['', 'None'],
+  ['', 'Default'],
+  ['none', 'None'],
   ['grayscale(1)', 'Greyscale'],
   ['saturate(1.25)', 'Richer'],
   ['contrast(1.1)', 'More contrast'],
@@ -446,7 +517,7 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Slider', icon: 'slider', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
-      props: { arrows: 1, aria: 'Slides' },
+      props: { arrows: 1, controlsPosition: 'sides', aria: 'Slides' },
       css: {
         d: { '--sl-gap': '24px', '--sl-w': 'calc((100% - 2 * var(--sl-gap,24px)) / 3)' },
         t: { '--sl-w': 'calc((100% - var(--sl-gap,24px)) / 2)' },
@@ -483,7 +554,9 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Collection list', icon: 'cms', level: 2,
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
-      props: { sort: '', dir: 'asc', limit: '' },
+      props: {
+        collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is', limit: ''
+      },
       css: { d: { gap: '24px', 'align-items': 'stretch', 'flex-wrap': 'wrap' }, t: {}, m: { gap: '20px' } }
     }),
     controls: {
@@ -513,11 +586,11 @@ const DEF: Record<string, WidgetDef> = {
           }
         },
         {
-          t: 'unit', k: 'per', label: 'Items per page', units: [''], ph: 'all on one page',
+          t: 'unit', k: 'per', label: 'Items per page', integer: 1, units: [''], ph: 'all on one page',
           note: 'Turns this page into one file per page of results.'
         },
         {
-          t: 'unit', k: 'limit', label: 'Show at most', units: [''], ph: 'all',
+          t: 'unit', k: 'limit', label: 'Show at most', integer: 1, units: [''], ph: 'all',
           note: 'Items per page wins where both are set.',
           when: n => !(parseInt(String((n.props as PropBag).per || ''), 10) > 0)
         },
@@ -528,7 +601,8 @@ const DEF: Record<string, WidgetDef> = {
            value away with no way back through the UI. Same defect as a unit control whose
            list omits the stored unit. */
         { t: 'pick', c: 'align-items', label: 'Vertical align', r: 1, opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['baseline', 'Base'], ['stretch', 'Fill']] },
-        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] }
+        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']],
+          when: n => n.props.collectionLayout !== 'slider' }
       ],
       style: []
     }
@@ -543,7 +617,7 @@ const DEF: Record<string, WidgetDef> = {
         /* Neither of these is a slide's business. Inside a slider a column's width comes from
            the slider's own "Slides in view" — the strip sets `flex` on its children with two
            classes, so a share or a basis set here is a control that does nothing. */
-        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: 5, max: 100, step: .01, raw: 1, when: notASlide },
+        { t: 'slider', c: 'flex-grow', label: 'Width (share)', r: 1, min: MIN_COL, max: MAX_COL, step: COLUMN_SHARE_STEP, raw: 1, when: notASlide },
         { t: 'unit', c: 'flex-basis', label: 'Min basis', layout: 'inline', r: 1, units: ['%', 'px', 'rem'], note: 'Set 100% to force a full-width stack.', when: notASlide },
         { t: 'select', c: COLUMN_V_ALIGN, label: 'Vertical align', r: 1, opts: columnVerticalOptions,
           note: 'Follows the parent row unless this column overrides it.' },
@@ -579,9 +653,9 @@ const DEF: Record<string, WidgetDef> = {
            asks — and named the way the row names them, so learning one teaches the other. */
         { t: 'pick', c: 'flex-direction', label: 'Direction', r: 1, when: n => n.props.layout === 'flex', opts: [['row', 'Row'], ['column', 'Column']] },
         { t: 'unit', c: 'gap', label: 'Gap', layout: 'inline', r: 1, units: U.space, when: n => n.props.layout !== 'block' },
-        { t: 'select', c: 'justify-content', label: 'Distribute', r: 1, when: n => n.props.layout !== 'block', opts: [['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['space-between', 'Space between'], ['space-around', 'Space around']] },
+        { t: 'select', c: 'justify-content', label: 'Distribute', r: 1, when: n => n.props.layout !== 'block', opts: [['', 'Default'], ['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['space-between', 'Space between'], ['space-around', 'Space around']] },
         { t: 'pick', c: 'align-items', label: 'Align', r: 1, when: n => n.props.layout !== 'block', opts: [['flex-start', 'vTop'], ['center', 'vMid'], ['flex-end', 'vBot'], ['stretch', 'Fill']] },
-        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, when: n => n.props.layout === 'flex', opts: [['wrap', 'Wrap'], ['nowrap', 'No wrap']] },
+        { t: 'select', c: 'flex-wrap', label: 'Wrap', r: 1, when: n => n.props.layout === 'flex', opts: [['', 'Default'], ['wrap', 'Wrap'], ['nowrap', 'No wrap']] },
         /* Grid. A count rather than a template string: `repeat(3, minmax(0, 1fr))` is the
            answer to "three across" every time, and `minmax(0, 1fr)` rather than `1fr` because
            a grid child with long content overflows its track otherwise — the single most
@@ -611,18 +685,18 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
+        { t: 'color', c: 'color', label: 'Colour', layout: 'inline', r: 1 },
         { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', r: 1, opts: [['', 'Default'], ['300', 'Light 300'], ['400', 'Regular 400'], ['500', 'Medium 500'], ['600', 'Semibold 600'], ['700', 'Bold 700'], ['800', 'Extrabold 800'], ['900', 'Black 900']] },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
-        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
+        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE'], ['lowercase', 'lowercase'], ['capitalize', 'Capitalize']] }
       ]
     }
   },
 
   text: {
-    label: 'WYSIWYG', icon: 'text', level: 4, edit: 'rich', styleLabel: 'Typography & fill',
+    label: 'Rich text', icon: 'text', level: 4, edit: 'rich', styleLabel: 'Typography & fill',
     caps: ['spacing', 'effects', 'typography', 'animation'],
     make: () => ({
       props: { html: '<p>Double-click to edit this block. A floating toolbar gives you <strong>bold</strong>, <em>italic</em>, links, lists and headings — everything exports as clean semantic HTML.</p>', ts: 'body' },
@@ -636,10 +710,10 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
-        { t: 'color', c: '--link', label: 'Link colour' }
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'color', c: '--link', label: 'Link colour', r: 1 }
       ]
     }
   },
@@ -687,16 +761,16 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'line-height', label: 'Line height', layout: 'inline', r: 1, units: U.line },
-        { t: 'opt', c: 'font-family', label: 'Font', og: fontGroups, ph: "'Family',sans-serif" },
+        { t: 'opt', c: 'font-family', label: 'Font', r: 1, og: fontGroups, ph: "'Family',sans-serif" },
         /* ch first, and not U.len: the default measure is in ch, and a unit control
            whose list omits the stored unit falls back to its first entry — which would
            quietly rewrite 34ch as 34px the moment anyone touched the field. */
         { t: 'unit', c: 'max-width', label: 'Measure', layout: 'inline', r: 1, units: ['ch', 'px', 'rem', '%'],
           note: 'How wide the lines may run. 34ch reads well.' },
         { t: 'pick', c: 'text-align', label: 'Text alignment', r: 1, opts: [['left', 'alignL'], ['center', 'alignC'], ['right', 'alignR']] },
-        { t: 'color', c: 'border-left-color', label: 'Rule colour', layout: 'inline' },
+        { t: 'color', c: 'border-left-color', label: 'Rule colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'border-left-width', label: 'Rule width', layout: 'inline', r: 1, units: U.border },
         { t: 'box', c: 'padding', label: 'Padding', r: 1 }
       ]
@@ -711,7 +785,7 @@ const DEF: Record<string, WidgetDef> = {
          'Descriptive alt text', which satisfied the review's alt check — so a
          hand-placed image exported meaningless alt text and nothing ever said so.
          The guidance belongs in the field's placeholder, which already carries it. */
-      props: { src: '', alt: '', link: '', target: '', caption: '', lazy: 1, w: '', h: '', decorative: 0 },
+      props: { src: '', alt: '', link: '', target: '', caption: '', label: '', lazy: 1, w: '', h: '', decorative: 0 },
       css: { d: { width: '100%', 'max-width': '100%', 'border-radius': '10px', 'object-fit': 'cover', 'align-self': 'flex-start' }, t: {}, m: {} }
     }),
     controls: {
@@ -720,6 +794,10 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'alt', label: 'Alt text', ph: 'Describe the image' },
         { t: 'toggle', k: 'decorative', label: 'Decorative image',
           note: 'Screen readers skip decorative images.' },
+        { t: 'text', k: 'label', label: 'Link label', ph: 'What the link opens',
+          note: 'Names the link while the decorative image stays hidden from screen readers.',
+          when: n => (!!n.props.decorative || !!n.bind?.decorative)
+            && (!!String(n.props.link || '').trim() || !!n.bind?.link) },
         { t: 'dims', label: 'Intrinsic size', note: 'Stops the page shifting as it loads.' },
         { t: 'text', k: 'caption', label: 'Caption', ph: 'Optional' },
         { t: 'link', k: 'link', label: 'Link' },
@@ -729,10 +807,10 @@ const DEF: Record<string, WidgetDef> = {
       style: [
         { t: 'unit', c: 'width', label: 'Width', layout: 'inline', r: 1, units: U.len },
         { t: 'unit', c: 'height', label: 'Height', layout: 'inline', r: 1, units: U.len },
-        { t: 'select', c: 'object-fit', label: 'Fit', opts: [['cover', 'Cover'], ['contain', 'Contain'], ['fill', 'Fill'], ['none', 'None']] },
+        { t: 'select', c: 'object-fit', label: 'Fit', r: 1, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['fill', 'Fill'], ['none', 'None']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-        { t: 'slider', c: 'opacity', label: 'Opacity', min: 0, max: 1, step: .01, raw: 1 },
-        { t: 'opt', c: 'filter', label: 'Filter', opts: FILTERS, ph: 'grayscale(1) blur(2px)' }
+        { t: 'slider', c: 'opacity', label: 'Opacity', r: 1, min: 0, max: 1, step: .01, raw: 1 },
+        { t: 'opt', c: 'filter', label: 'Filter', r: 1, opts: FILTERS, ph: 'grayscale(1) blur(2px)' }
       ]
     }
   },
@@ -749,10 +827,12 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'src', label: 'Video URL', ph: 'YouTube, Vimeo or .mp4' },
         { t: 'select', k: 'ratio', label: 'Aspect ratio', opts: [['16 / 9', '16:9'], ['4 / 3', '4:3'], ['1 / 1', '1:1'], ['21 / 9', '21:9'], ['9 / 16', '9:16 vertical']] },
         { t: 'img', k: 'poster', label: 'Poster image' },
-        { t: 'toggle', k: 'facade', label: 'Load player on click' },
+        { t: 'toggle', k: 'facade', label: 'Load player on click',
+          when: n => !n.props.autoplay && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) },
         { t: 'toggle', k: 'controls', label: 'Show controls' },
-        { t: 'toggle', k: 'autoplay', label: 'Autoplay' },
-        { t: 'toggle', k: 'muted', label: 'Muted' },
+        { t: 'toggle', k: 'autoplay', label: 'Autoplay',
+          note: 'Autoplay videos play without sound.' },
+        { t: 'toggle', k: 'muted', label: 'Muted', when: n => !n.props.autoplay },
         { t: 'toggle', k: 'loop', label: 'Loop' }
       ],
       style: [
@@ -769,8 +849,9 @@ const DEF: Record<string, WidgetDef> = {
       props: { text: 'Get started', link: '', target: '', variant: 'solid', icon: 'none', align: 'flex-start', wrap: 'inline-flex', ts: 'btn' },
       css: {
         d: {
-          'padding-top': '13px', 'padding-right': '26px', 'padding-bottom': '13px', 'padding-left': '26px',
-          'border-radius': '8px', 'background-color': cvar('brand'), color: cvar('ink'), 'align-self': 'flex-start'
+          '--pc-solid-fg': brandActionForeground(),
+          'align-self': 'flex-start',
+          ...BUTTON_VARIANT_DEFAULTS
         }, t: {}, m: {}
       }
     }),
@@ -784,19 +865,19 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         {
           t: 'select', c: 'margin-top', label: 'Position', r: 1,
-          opts: [['', 'In the normal flow'], ['auto', 'Push to column bottom']],
+          opts: [['', 'Default'], ['0', 'In the normal flow'], ['auto', 'Push to column bottom']],
           note: 'Uses the column’s remaining height above this button.',
           when: n => !!locate(n.id)?.parent && locate(n.id)!.parent!.type === 'column'
         }
       ],
       style: [
-        { t: 'color', c: 'background-color', label: 'Background' },
-        { t: 'color', c: 'color', label: 'Text colour', layout: 'inline' },
+        { t: 'color', c: 'background-color', label: 'Background', r: 1 },
+        { t: 'color', c: 'color', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.space },
-        { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['', 'Default'], ['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -812,7 +893,7 @@ const DEF: Record<string, WidgetDef> = {
            errors the author had not caused. Repeated destinations read as placeholders; a
            dead link reads as working markup. */
         items: [{ label: 'Work', href: HOME }, { label: 'About', href: HOME }, { label: 'Contact', href: HOME }],
-        collapse: 'mobile', aria: 'Main'
+        collapse: 'mobile', mobileMenu: 'dropdown', aria: 'Main'
       },
       css: {
         d: {
@@ -826,18 +907,19 @@ const DEF: Record<string, WidgetDef> = {
       content: [
         { t: 'items', k: 'items', label: 'Menu links' },
         { t: 'select', k: 'collapse', label: 'Collapse at', opts: [['mobile', 'On mobile (≤767px)'], ['tablet', 'On tablet and below (≤1024px)'], ['never', 'Never — always inline']] },
+        { t: 'select', k: 'mobileMenu', label: 'Mobile menu', opts: [['dropdown', 'Full-width dropdown'], ['fullscreen', 'Fullscreen']] },
         { t: 'pick', c: 'justify-content', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] },
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Main', note: 'Read by screen readers as “<name> menu”.' }
       ],
       style: [
         { t: 'unit', c: '--nav-gap', label: 'Link spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.space },
-        { t: 'select', c: 'font-weight', label: 'Weight', layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
-        { t: 'color', c: 'color', label: 'Link colour' },
-        { t: 'color', c: '--nav-hover', label: 'Hover colour' },
-        { t: 'color', c: '--nav-panel', label: 'Menu background' },
-        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, units: U.track },
-        { t: 'select', c: 'text-transform', label: 'Transform', opts: [['', 'None'], ['uppercase', 'UPPERCASE']] }
+        { t: 'select', c: 'font-weight', label: 'Weight', r: 1, layout: 'inline', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'color', c: 'color', label: 'Link colour', r: 1 },
+        { t: 'color', c: '--nav-hover', label: 'Hover colour', r: 1 },
+        { t: 'color', c: '--nav-panel', label: 'Menu background', r: 1, when: n => !n.props.managedMobileLinks },
+        { t: 'unit', c: 'letter-spacing', label: 'Letter spacing', r: 1, neg: 1, units: U.track },
+        { t: 'select', c: 'text-transform', label: 'Transform', r: 1, opts: [['', 'Default'], ['none', 'None'], ['uppercase', 'UPPERCASE']] }
       ]
     }
   },
@@ -858,7 +940,8 @@ const DEF: Record<string, WidgetDef> = {
         d: {
           width: '100%', '--f-gap': '16px', '--f-radius': '8px', '--f-pad': '11px 13px',
           '--f-bg': cvar('surface'), '--f-border': cvar('line'), '--f-text': cvar('text'),
-          '--f-label': cvar('muted'), '--f-btn-bg': cvar('brand'), '--f-btn-fg': cvar('ink'),
+          '--f-label': cvar('muted'), '--f-btn-bg': cvar('brand'),
+          '--f-btn-fg': brandActionForeground(),
           'font-size': '15px'
         }, t: {}, m: {}
       }
@@ -868,23 +951,23 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'fields', k: 'fields', label: 'Fields' },
         { t: 'text', k: 'submit', label: 'Submit button label' },
         { t: 'select', k: 'mode', label: 'Handling', opts: [['external', 'External HTTPS endpoint'], ['wordpress', 'WordPress managed']] },
-        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'https://formspree.io/f/…', note: 'Paste the complete https:// endpoint for the form service.', when: n => (n.props as PropBag).mode !== 'wordpress' },
-        { t: 'select', k: 'method', label: 'Method', layout: 'inline', opts: [['post', 'POST'], ['get', 'GET']], when: n => (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'text', k: 'action', label: 'Where submissions go', ph: 'Paste an HTTPS destination', note: 'Paste your service’s complete HTTPS URL. On Cloud, a blank POST form saves to Submissions.', when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
+        { t: 'select', k: 'method', label: 'Method', layout: 'inline', opts: [['post', 'POST'], ['get', 'GET']], when: n => cloudFormsEnabled() || (n.props as PropBag).mode !== 'wordpress' },
         { t: 'text', k: 'aria', label: 'Accessible name', ph: 'Contact form' }
       ],
       style: [
         { t: 'select', c: '--f-layout', label: 'Field layout', r: 1, opts: [['flex', 'Wrapped fields'], ['grid', 'Grid']] },
-        { t: 'select', c: '--f-columns', label: 'Grid columns', r: 1, opts: [['1fr', 'One'], ['repeat(2,minmax(0,1fr))', 'Two'], ['repeat(3,minmax(0,1fr))', 'Three'], ['repeat(4,minmax(0,1fr))', 'Four']] },
+        { t: 'select', c: '--f-columns', label: 'Grid columns', r: 1, when: n => cssAt(n, dk(), '--f-layout') === 'grid', opts: [['1fr', 'One'], ['repeat(2,minmax(0,1fr))', 'Two'], ['repeat(3,minmax(0,1fr))', 'Three'], ['repeat(4,minmax(0,1fr))', 'Four']] },
         { t: 'select', c: '--f-button-align', label: 'Alignment', r: 1, opts: [['flex-start', 'Top'], ['end', 'Bottom']] },
         { t: 'unit', c: '--f-gap', label: 'Field spacing', r: 1, units: U.space },
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--f-bg', label: 'Field background' },
-        { t: 'color', c: '--f-border', label: 'Field border' },
-        { t: 'color', c: '--f-text', label: 'Field text' },
-        { t: 'color', c: '--f-label', label: 'Label colour' },
+        { t: 'color', c: '--f-bg', label: 'Field background', r: 1 },
+        { t: 'color', c: '--f-border', label: 'Field border', r: 1 },
+        { t: 'color', c: '--f-text', label: 'Field text', r: 1 },
+        { t: 'color', c: '--f-label', label: 'Label colour', r: 1 },
         { t: 'unit', c: '--f-radius', label: 'Field radius', r: 1, units: U.radius },
-        { t: 'color', c: '--f-btn-bg', label: 'Button background' },
-        { t: 'color', c: '--f-btn-fg', label: 'Button text' }
+        { t: 'color', c: '--f-btn-bg', label: 'Button background', r: 1 },
+        { t: 'color', c: '--f-btn-fg', label: 'Button text', r: 1 }
       ]
     }
   },
@@ -903,8 +986,8 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'unit', c: 'border-top-width', label: 'Thickness', layout: 'inline', r: 1, units: U.border },
-        { t: 'select', c: 'border-top-style', label: 'Style', opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']] },
-        { t: 'color', c: 'border-top-color', label: 'Colour', layout: 'inline' },
+        { t: 'select', c: 'border-top-style', label: 'Style', r: 1, opts: [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']] },
+        { t: 'color', c: 'border-top-color', label: 'Colour', r: 1, layout: 'inline' },
         { t: 'unit', c: 'width', label: 'Width', layout: 'inline', r: 1, units: U.len }
       ], style: []
     }
@@ -944,8 +1027,8 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--cb-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--cb-color', label: 'Link colour' },
-        { t: 'color', c: '--cb-current', label: 'Current page colour' },
+        { t: 'color', c: '--cb-color', label: 'Link colour', r: 1 },
+        { t: 'color', c: '--cb-current', label: 'Current page colour', r: 1 },
         { t: 'unit', c: '--cb-gap', label: 'Spacing', layout: 'inline', r: 1, units: U.space }
       ]
     }
@@ -979,16 +1062,16 @@ const DEF: Record<string, WidgetDef> = {
           note: 'Hidden unless the browser can copy, so it is never a button that does nothing' }
       ],
       style: [
-        { t: 'color', c: '--cd-bg', label: 'Background' },
-        { t: 'color', c: '--cd-text', label: 'Text colour', layout: 'inline' },
+        { t: 'color', c: '--cd-bg', label: 'Background', r: 1 },
+        { t: 'color', c: '--cd-text', label: 'Text colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--cd-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'unit', c: '--cd-pad', label: 'Padding', r: 1, units: U.space },
+        { t: 'lengthList', c: '--cd-pad', label: 'Padding', r: 1, units: U.space },
         { t: 'unit', c: '--cd-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-        { t: 'color', c: '--cd-com', label: 'Comments', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-str', label: 'Strings', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-kw', label: 'Keywords', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-num', label: 'Numbers', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
-        { t: 'color', c: '--cd-key', label: 'Names', layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' }
+        { t: 'color', c: '--cd-com', label: 'Comments', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-str', label: 'Strings', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-kw', label: 'Keywords', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-num', label: 'Numbers', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' },
+        { t: 'color', c: '--cd-key', label: 'Names', r: 1, layout: 'inline', when: n => (n.props as PropBag).lang !== 'text' }
       ]
     }
   },
@@ -1026,18 +1109,18 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--tbl-size', label: 'Text size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--tbl-text', label: 'Text colour', layout: 'inline' },
-        { t: 'unit', c: '--tbl-pad', label: 'Cell padding', layout: 'inline', r: 1, units: U.space },
-        { t: 'color', c: '--tbl-line', label: 'Line colour', layout: 'inline' },
-        { t: 'color', c: '--tbl-head-bg', label: 'Header background' },
-        { t: 'color', c: '--tbl-head-text', label: 'Heading colour' },
-        { t: 'color', c: '--tbl-zebra', label: 'Shading', layout: 'inline', when: n => !!(n.props as PropBag).zebra },
-        { t: 'color', c: '--tbl-caption-color', label: 'Caption colour', when: n => !!String((n.props as PropBag).caption || '').trim() }
+        { t: 'color', c: '--tbl-text', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'lengthList', c: '--tbl-pad', label: 'Cell padding', r: 1, units: U.space },
+        { t: 'color', c: '--tbl-line', label: 'Line colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--tbl-head-bg', label: 'Header background', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },
+        { t: 'color', c: '--tbl-head-text', label: 'Heading colour', r: 1, when: n => !!((n.props as PropBag).head || (n.props as PropBag).rowhead) },
+        { t: 'color', c: '--tbl-zebra', label: 'Shading', r: 1, layout: 'inline', when: n => !!(n.props as PropBag).zebra },
+        { t: 'color', c: '--tbl-caption-color', label: 'Caption colour', r: 1, when: n => !!String((n.props as PropBag).caption || '').trim() }
       ]
     }
   },
   tabs: {
-    label: 'Tabs', icon: 'tabs', level: 4,
+    label: 'Tabs', icon: 'tabs', level: 4, takes: 4, alsoHolds: ['box'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
@@ -1066,13 +1149,13 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'pick', c: '--tb-align', label: 'Tabs sit', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
       style: [
-        { t: 'color', c: '--tb-on', label: 'Selected label' },
-        { t: 'color', c: '--tb-off', label: 'Other labels' },
-        { t: 'color', c: '--tb-line', label: 'Rule' },
+        { t: 'color', c: '--tb-on', label: 'Selected label', r: 1 },
+        { t: 'color', c: '--tb-off', label: 'Other labels', r: 1 },
+        { t: 'color', c: '--tb-line', label: 'Rule', r: 1 },
         { t: 'unit', c: '--tb-size', label: 'Label size', layout: 'inline', r: 1, units: U.size },
         { t: 'unit', c: '--tb-gap', label: 'Label spacing', r: 1, units: U.space },
         { t: 'unit', c: '--tb-body-size', label: 'Body size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--tb-body-color', label: 'Body colour', layout: 'inline' },
+        { t: 'color', c: '--tb-body-color', label: 'Body colour', r: 1, layout: 'inline' },
         { t: 'unit', c: '--tb-body-pad', label: 'Body padding', r: 1, units: U.space }
       ]
     }
@@ -1107,15 +1190,15 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'select', k: 'marker', label: 'Marker', opts: [['plus', 'Plus / minus'], ['caret', 'Caret'], ['none', 'None']] }
       ],
       style: [
-        { t: 'color', c: '--ac-line', label: 'Divider colour' },
+        { t: 'color', c: '--ac-line', label: 'Divider colour', r: 1 },
         { t: 'unit', c: '--ac-pad', label: 'Row padding', r: 1, units: U.space },
         { t: 'unit', c: '--ac-gap', label: 'Row gap', layout: 'inline', r: 1, units: U.space },
         { t: 'unit', c: '--ac-q-size', label: 'Question size', r: 1, units: U.size },
-        { t: 'select', c: '--ac-q-weight', label: 'Question weight', opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
-        { t: 'color', c: '--ac-q-color', label: 'Question colour' },
+        { t: 'select', c: '--ac-q-weight', label: 'Question weight', r: 1, opts: [['400', '400'], ['500', '500'], ['600', '600'], ['700', '700']] },
+        { t: 'color', c: '--ac-q-color', label: 'Question colour', r: 1 },
         { t: 'unit', c: '--ac-a-size', label: 'Answer size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: '--ac-a-color', label: 'Answer colour' },
-        { t: 'color', c: '--ac-mark', label: 'Marker colour' },
+        { t: 'color', c: '--ac-a-color', label: 'Answer colour', r: 1 },
+        { t: 'color', c: '--ac-mark', label: 'Marker colour', r: 1 },
         { t: 'unit', c: '--ac-radius', label: 'Row radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
@@ -1168,9 +1251,9 @@ const DEF: Record<string, WidgetDef> = {
       ],
       style: [
         { t: 'unit', c: '--icon-size', label: 'Glyph size', layout: 'inline', r: 1, units: U.size },
-        { t: 'color', c: 'color', label: 'Colour', layout: 'inline' },
-        { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', min: 1, max: 3, step: .05, raw: 1 },
-        { t: 'color', c: 'background-color', label: 'Badge background' },
+        { t: 'color', c: 'color', label: 'Colour', r: 1, layout: 'inline' },
+        { t: 'slider', c: '--icon-stroke', label: 'Stroke weight', r: 1, min: 1, max: 3, step: .05, raw: 1 },
+        { t: 'color', c: 'background-color', label: 'Badge background', r: 1 },
         { t: 'box', c: 'padding', label: 'Badge padding', r: 1 },
         { t: 'unit', c: 'border-radius', label: 'Badge radius', r: 1, units: U.radius }
       ]
@@ -1193,7 +1276,7 @@ const DEF: Record<string, WidgetDef> = {
     controls: {
       content: [
         { t: 'imgs', k: 'items', label: 'Images' },
-        { t: 'unit', c: '--g-cols', label: 'Columns', r: 1, units: [''], note: 'Responsive — set fewer on Tablet and Mobile.' },
+        { t: 'unit', c: '--g-cols', label: 'Columns', r: 1, min: 1, integer: 1, units: [''], note: 'Responsive — set fewer on Tablet and Mobile.' },
         { t: 'select', k: 'ratio', label: 'Tile shape', opts: [['4 / 3', '4:3'], ['1 / 1', 'Square'], ['3 / 2', '3:2'], ['16 / 9', '16:9'], ['3 / 4', '3:4 portrait'], ['', 'Whatever each image is']] },
         { t: 'select', k: 'fit', label: 'Fit', opts: [['cover', 'Cover — fill and crop'], ['contain', 'Contain — fit inside']] },
         { t: 'toggle', k: 'lightbox', label: 'Open full size on click' },
@@ -1423,6 +1506,10 @@ function codeSpans(src: unknown, lang?: string): string {
    is what tells you the strip moved rather than jumped. */
 const SLIDE_JS = `<script>
 (function(){var rm=matchMedia('(prefers-reduced-motion: reduce)');
+Array.prototype.forEach.call(document.querySelectorAll('[data-slides]'),function(t){
+function seek(left){t.scrollTo({left:left,behavior:rm.matches?'auto':'smooth'});}
+t.addEventListener('keydown',function(event){if(event.target!==t||event.key!=='Home'&&event.key!=='End')return;
+event.preventDefault();seek(event.key==='Home'?0:Math.max(0,t.scrollWidth-t.clientWidth));});});
 Array.prototype.forEach.call(document.querySelectorAll('[data-slider]'),function(box){
 var t=box.querySelector('[data-slides]'),p=box.querySelector('[data-slide-p]'),n=box.querySelector('[data-slide-n]'),d=box.querySelector('[data-slide-dots]');
 if(!t||!p||!n||!d)return;p.removeAttribute('hidden');n.removeAttribute('hidden');d.removeAttribute('hidden');
@@ -1547,15 +1634,15 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
   { g: 'Spacing', cap: 'spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
     g: 'Background', cap: 'decoration', items: [
-      { t: 'color', c: 'background-color', label: 'Colour', paint: 1 },
-      { t: 'img', c: 'background-image', label: 'Image', bg: 1 },
-      { t: 'select', c: 'background-size', label: 'Size', when: hasBackdrop, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
+      { t: 'color', c: 'background-color', label: 'Colour', r: 1, paint: 1 },
+      { t: 'img', c: 'background-image', label: 'Image', r: 1, bg: 1 },
+      { t: 'select', c: 'background-size', label: 'Size', r: 1, when: hasBackdrop, opts: [['', 'Default'], ['cover', 'Cover'], ['contain', 'Contain'], ['auto', 'Auto']] },
       /* A pick, not a select: where an image sits is a spatial choice, and five words in a
          dropdown make you read to find the one you could have pointed at. The glyphs are the
          alignment ones already in the set, which is what the same question looks like
          everywhere else in this panel. */
-      { t: 'pick', c: 'background-position', label: 'Position', when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
-      { t: 'select', c: 'background-repeat', label: 'Repeat', when: hasBackdrop, opts: [['no-repeat', 'No repeat'], ['repeat', 'Repeat']] }
+      { t: 'pick', c: 'background-position', label: 'Position', r: 1, when: hasBackdrop, opts: [['left center', 'alignL'], ['center center', 'alignC'], ['right center', 'alignR'], ['top center', 'vTop'], ['bottom center', 'vBot']] },
+      { t: 'select', c: 'background-repeat', label: 'Repeat', r: 1, when: hasBackdrop, opts: [['', 'Default'], ['no-repeat', 'No repeat'], ['repeat', 'Repeat']] }
     ]
   },
   {
@@ -1565,7 +1652,7 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
          render on the canvas while the inspector appeared to say there was no border. */
       { t: 'border', label: 'Border' },
       { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
-      { t: 'opt', c: 'box-shadow', label: 'Shadow', opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
+      { t: 'opt', c: 'box-shadow', label: 'Shadow', r: 1, opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
     ]
   },
   {
@@ -1574,8 +1661,8 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
        a change, so it belongs with the other motion rather than beside the properties it
        happens to animate. */
     g: 'Effects', cap: 'effects', items: [
-      { t: 'slider', c: 'opacity', label: 'Opacity', min: 0, max: 1, step: .01, raw: 1 },
-      { t: 'text', c: 'transform', label: 'Transform', ph: 'translateY(-4px) rotate(2deg)' }
+      { t: 'slider', c: 'opacity', label: 'Opacity', r: 1, min: 0, max: 1, step: .01, raw: 1 },
+      { t: 'text', c: 'transform', label: 'Transform', r: 1, ph: 'translateY(-4px) rotate(2deg)' }
     ]
   }
 ];
@@ -1588,7 +1675,7 @@ const N = (type: string, props: any = {}, css: any = {}, children: any[] = []): 
     props: { ...base.props, ...props },
     css: { d: { ...base.css.d, ...(css.d || {}) }, t: { ...base.css.t, ...(css.t || {}) }, m: { ...base.css.m, ...(css.m || {}) } },
     hide: {}, cls: [], adv: { htmlId: '', cls: '', css: '' },
-    children: DEF[type].level < 4 ? children : []
+    children: DEF[type].level < 4 || type === 'tabs' ? children : []
   };
 };
 const cols = (n: number, kids?: any, css?: any) => N('row', {}, css, Array.from({ length: n }, (_, i) =>
@@ -1654,6 +1741,36 @@ const doc = (): Doc => ({
   pages: state.pages
 });
 const page = () => state.pages[state.cur] || state.pages[0];
+/** Stored page-owned trees, never duplicated inherited shared trees. */
+function pageTrees(pg: Page): PcNode[][] {
+  return [pg.tree, ...(Array.isArray(pg.header) ? [pg.header] : []),
+    ...(Array.isArray(pg.footer) ? [pg.footer] : [])];
+}
+function pageRegion(pg: Page | undefined, kind: 'header' | 'footer'): PcNode[] {
+  return pg?.[kind] === null ? [] : pg?.[kind] ?? state[kind];
+}
+function pageRegionMode(pg: Page, kind: 'header' | 'footer'): 'shared' | 'custom' | 'hidden' {
+  return pg[kind] === undefined ? 'shared' : pg[kind] === null ? 'hidden' : 'custom';
+}
+/** Mutation only. The host groups the choice and its selection reset in one edit(). */
+function pageRegionSet(pg: Page, kind: 'header' | 'footer', mode: 'shared' | 'custom' | 'hidden'): boolean {
+  if (!state.pages.includes(pg) || pageRegionMode(pg, kind) === mode) return false;
+  if (mode === 'shared') delete pg[kind];
+  else if (mode === 'hidden') pg[kind] = null;
+  else {
+    const copy = clone(pageRegion(pg, kind));
+    // The copy replaces this page's shared region, so authored anchors remain valid. Only
+    // document node identities change; unlike Duplicate, both copies never render together.
+    const anchors = new Map<PcNode, string>();
+    eachNode(copy, node => { if (node.adv?.htmlId) anchors.set(node, node.adv.htmlId); });
+    copy.forEach(reid); // also remaps native tab labels to their newly identified panel Boxes
+    anchors.forEach((anchor, node) => { node.adv.htmlId = anchor; });
+    pg[kind] = copy;
+  }
+  selSet([]);
+  return true;
+}
+
 /* Which tree is being edited. A component definition is one of them, and that single line is
    most of what makes editing a component work: `locate`, `insert`, the drag targets, the
    layer list and the inspector all read `tree()`, so none of them needed to learn what a
@@ -1663,7 +1780,8 @@ const tree = (): PcNode[] => {
     const cd = findComponent(state.ui.cedit);
     return cd ? [cd.node] : [];
   }
-  return state.ui.mode === 'header' ? state.header : state.ui.mode === 'footer' ? state.footer : page().tree;
+  return state.ui.mode === 'header' || state.ui.mode === 'footer'
+    ? pageRegion(page(), state.ui.mode) : page().tree;
 };
 const dk = () => DEV_KEY[state.ui.dev];
 
@@ -1681,13 +1799,29 @@ function locateAny(id: string): any {
     const h = locate(id, list, null); if (h) return { ...h, mode: m };
   }
   for (let p = 0; p < state.pages.length; p++) {
-    const h = locate(id, state.pages[p].tree, null); if (h) return { ...h, mode: 'page', page: p };
+    for (const [mode, list] of [['page', state.pages[p].tree], ['header', state.pages[p].header], ['footer', state.pages[p].footer]] as const) {
+      const h = list && locate(id, list, null); if (h) return { ...h, mode, page: p };
+    }
   }
   return null;
 }
 function eachNode(list: PcNode[], fn: (n: PcNode, parent: PcNode | null, i: number, depth: number) => void, parent: PcNode | null = null, depth = 0) {
   list.forEach((n, i) => { fn(n, parent, i, depth); eachNode(n.children || [], fn, n, depth + 1); });
 }
+const RICH_TEXT_NAME_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+};
+const richTextName = (html: unknown) => String(html || '')
+  /* Strip markup before decoding so an author-written `&lt;sample&gt;` stays visible text. */
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (whole, dec, hex, name) => {
+    if (name) return RICH_TEXT_NAME_ENTITIES[name.toLowerCase()] ?? whole;
+    const cp = Number.parseInt(dec || hex, dec ? 10 : 16);
+    return cp > 0 && cp <= 0x10ffff && !(cp >= 0xd800 && cp <= 0xdfff)
+      ? String.fromCodePoint(cp) : '�';
+  })
+  .replace(/\s+/g, ' ')
+  .trim();
 const nameOf = (n: PcNode) => {
   /* An instance is called by what it is an instance of. Reading "Section" in the layer tree for
      something the author named "Pricing card" is the panel disagreeing with the page. */
@@ -1704,7 +1838,7 @@ const nameOf = (n: PcNode) => {
   }
   if (n.type === 'heading') return (n.props.text || '').slice(0, 26) || d.label;
   if (n.type === 'button') return n.props.text || d.label;
-  if (n.type === 'text') return (n.props.html || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 24) || d.label;
+  if (n.type === 'text') return richTextName(n.props.html).slice(0, 24) || d.label;
   if (n.type === 'quote') return (n.props.text || '').trim().slice(0, 24) || d.label;
   if (n.type === 'row') return `Row · ${n.children.length} col`;
   if (n.type === 'slider') return `Slider · ${n.children.length} slide${n.children.length === 1 ? '' : 's'}`;
@@ -1727,6 +1861,20 @@ function selIds() {
   if (state.ui.sel) out.push(state.ui.sel);
   for (const id of state.ui.multi || []) if (!out.includes(id)) out.push(id);
   return out.filter(id => locate(id));            // undo can retire a member
+}
+/* Where an inspector edit lands: the device, the state, the class target and the
+   selection that were showing. A control that waits on a dialog snapshots this when
+   it is clicked and writes through it afterwards, so a click elsewhere while the
+   dialog was still closing (Hover, Tablet, another element) does not move the edit.
+   The current view is put back once the write is done. */
+type EditContext = Pick<Ui, 'dev' | 'st' | 'target' | 'sel' | 'multi'>;
+const editContext = (): EditContext => ({
+  dev: state.ui.dev, st: state.ui.st, target: state.ui.target, sel: state.ui.sel, multi: [...(state.ui.multi || [])]
+});
+function atEditContext<T>(ctx: EditContext, fn: () => T): T {
+  const now = editContext();
+  Object.assign(state.ui, ctx, { multi: [...ctx.multi] });
+  try { return fn(); } finally { Object.assign(state.ui, now); }
 }
 /* selSet drops ids with no node, so every id here resolves; filter anyway rather
    than assert, since a stale id would otherwise throw inside a render */
@@ -1812,21 +1960,63 @@ function fanTargets(c: Pick<Control, 'k' | 'c'>, ids: string[]) {
 const HOOKS: { change(): void; save(): void; note(m?: string): void } =
   { change() { }, save() { }, note() { } };
 const hist: { u: Doc[]; r: Doc[]; max: number } = { u: [], r: [], max: 80 };
-function edit(fn: () => void) {
-  hist.u.push(clone(doc())); if (hist.u.length > hist.max) hist.u.shift();
+const historyLabels = new WeakMap<Doc, string>();
+function rememberHistory(snapshot: Doc, label?: string) {
+  const clean = conciseHistoryLabel(label);
+  if (clean) historyLabels.set(snapshot, clean);
+}
+function checkpoint(label?: string) {
+  const snapshot = clone(doc());
+  rememberHistory(snapshot, label);
+  hist.u.push(snapshot); if (hist.u.length > hist.max) hist.u.shift();
   hist.r.length = 0;
+}
+function edit(fn: () => void, label?: string) {
+  checkpoint(label);
   fn();
   HOOKS.change();
   HOOKS.save();
 }
-function restore(snap: Doc) {
+function restore(snap: Doc, preserveMobileMenuOwner = false) {
+  const owner = preserveMobileMenuOwner ? state.ui.mobileMenuOwner : null;
   state.meta = snap.meta; state.header = snap.header; state.footer = snap.footer; state.pages = snap.pages;
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = owner;
+  if (owner) mobileMenuOwner(owner.menuComponentId); // validate the exact owner and menu ref in this snapshot
   if (state.cur >= state.pages.length) state.cur = 0;
+  if ((state.ui.mode === 'header' || state.ui.mode === 'footer') && pageRegionMode(page(), state.ui.mode) === 'hidden') state.ui.mode = 'page';
   selSet(selIds());                        // drop members this snapshot has no node for
   HOOKS.change(); HOOKS.save();
 }
-function undo() { if (!hist.u.length) return; hist.r.push(clone(doc())); restore(hist.u.pop()!); HOOKS.note('Undo'); }
-function redo() { if (!hist.r.length) return; hist.u.push(clone(doc())); restore(hist.r.pop()!); HOOKS.note('Redo'); }
+function historyLabel(direction: 'undo' | 'redo'): string {
+  const stack = direction === 'undo' ? hist.u : hist.r;
+  const target = stack[stack.length - 1];
+  if (!target) return direction === 'undo' ? 'Undo' : 'Redo';
+  return historyLabels.get(target)
+    || (direction === 'undo' ? inferHistoryAction(target, doc()) : inferHistoryAction(doc(), target));
+}
+function undo() {
+  if (!hist.u.length) return;
+  const target = hist.u[hist.u.length - 1];
+  const label = historyLabel('undo');
+  const current = clone(doc());
+  rememberHistory(current, label);
+  hist.r.push(current);
+  hist.u.pop();
+  restore(target, true);
+  HOOKS.note('Undo: ' + label);
+}
+function redo() {
+  if (!hist.r.length) return;
+  const target = hist.r[hist.r.length - 1];
+  const label = historyLabel('redo');
+  const current = clone(doc());
+  rememberHistory(current, label);
+  hist.u.push(current);
+  hist.r.pop();
+  restore(target, true);
+  HOOKS.note('Redo: ' + label);
+}
 
 /* ---- insertion rules ------------------------------------------------- */
 const lvl = (t: string) => DEF[BASE[t] || t].level;
@@ -1863,8 +2053,16 @@ function wrap(type: string, t: number, node: any): any {
    it, so a heading dropped on a section still lands, wrapped in the chain it needs. */
 const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
+  if (pt === 'tabs') return b === 'box';
   return (lvl(b) > lvl(pt)) || (DEF[pt] || {}).alsoHolds?.includes(b as WidgetType) === true;
 };
+/* A component instance can have the same root type as a normal container, but its children
+   only render through declared slots. Keep that distinction at the destination boundary so
+   every insertion surface agrees about whether an instance is a real container. */
+const slotlessInstance = (n: PcNode | null | undefined) =>
+  !!n?.use && slotsOf(findComponent(n.use)).length === 0;
+const receivesInside = (n: PcNode | null | undefined, t: string) =>
+  !!n && n.type !== 'tabs' && !slotlessInstance(n) && holds(n.type, t);
 /* Can `t` be *placed* inside `pt` — wrappers allowed? `null` is the document root, which takes
    anything: a heading dropped there becomes Section > Row > Column > Heading, and `wrap` builds
    that chain.
@@ -1879,20 +2077,46 @@ const holds = (pt: any, t: string) => {
    A place that re-derives an answer somebody already declared is the shape of bug this file
    keeps finding. */
 const fitsIn = (pt: string | null, t: string) => pt === null || holds(pt, t);
+/* Editing a component, the root `tree()` returns is a throwaway list around the definition's
+   one root: a node put there is put nowhere, and a node moved there is lost. Every verb that
+   places a node with no parent asks this first and refuses. */
+const nowhere = (parentNode: unknown) => !parentNode && state.ui.mode === 'component';
 
-function insert(type: string, parentNode: any, index: number) {
+function insert(type: string, parentNode: any, index: number): PcNode | null {
+  if (nowhere(parentNode)) return null;
+  if (parentNode?.type === 'tabs') {
+    const panel = tabPanelNodes(parentNode)[0];
+    return panel ? insert(type, panel, panel.children.length) : null;
+  }
   const leaf = makeFor(type);
+  /* The palette creates a usable Collection List: its one Column is the repeatable card.
+     Keep this out of N('list') so imported data, templates and programmatic fixtures retain
+     their exact shape. The no-source editor prompt still renders until a collection is chosen. */
+  if (type === 'list' && !leaf.children.length) {
+    /* A fresh grid needs a usable card basis. Without one, repeated Columns inherit
+       flex-basis:0% and shrink to one tiny equal-width card per item on desktop. Keep
+       this seed on palette-created Lists only: imported/authored Lists retain their CSS. */
+    leaf.children.push(N('column', {}, { d: { 'flex-basis': '280px' }, m: { 'flex-basis': '100%' } }));
+  }
   /* `takes`, not the parent's own level: a Box takes children at level 4, so a heading dropped
      into a Grid goes in as it is rather than arriving inside a Column nothing asked for. The
      row-in-a-column case needs no exception any more — a column takes 4, so `wrap` returns the
      row untouched. */
+  if (slotlessInstance(parentNode)) return dropTree(leaf, parentNode.id);
   const packed = wrap(type, takes(parentNode ? parentNode.type : null), leaf);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, packed);
   return leaf;
 }
 function moveNode(id: string, parentNode: any, index: number) {
-  const h = locate(id); if (!h) return;
+  const h = locate(id); if (!h || nowhere(parentNode)) return;
+  if (h.parent?.type === 'tabs') {
+    if (parentNode !== h.parent) return;
+    const from = tabRows(h.parent).findIndex(row => row.panelId === id);
+    if (from >= 0) tabMove(h.parent, from, Math.max(0, Math.min(index, h.list.length - 1)) - from);
+    return;
+  }
+  if (parentNode?.type === 'tabs') return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return; // no self-nesting
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -1961,6 +2185,7 @@ function menuFor(ids: string[] | null) {
    that was already ahead of the target in the same list leaves a hole behind it when
    it goes — assuming the index is stable puts the set in the wrong order. */
 function moveMany(ids: string[], parentNode: PcNode | null, index: number) {
+  if (nowhere(parentNode)) return 0;
   const order = topMost(selOrder(ids));
   let at = Math.max(0, index), moved = 0;
   order.forEach(id => {
@@ -2006,10 +2231,12 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
   const canHold = (pt: string | null, t: string) =>
     (pt === null ? lvl(BASE[t] || t) === 1 : holds(pt, t));
   if (zone === 'inside') {
-    if (!canHold(h.node.type, type)) return null;
+    if (!canHold(h.node.type, type) || slotlessInstance(h.node)) return null;
     return { container: h.node, index: 0 };
   }
   const parent = h.parent || null;
+  if (parent?.type === 'tabs' && (!movingIds.length
+    || movingIds.some(id => locate(id)?.parent !== parent))) return null;
   if (!canHold(parent ? parent.type : null, type)) return null;
   const list = parent ? parent.children : tree();
   const i = list.findIndex(c => c.id === rowId);
@@ -2023,10 +2250,95 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
    source carried an anchor. Auto ids are derived per node so they stay unique on
    their own; only `adv.htmlId` has to be surrendered. Originals never pass here. */
 function reid(n: PcNode) {
-  n.id = uid();
-  if (n.adv) n.adv.htmlId = '';
-  (n.children || []).forEach(reid);
+  const ids = new Map<string, string>();
+  eachNode([n], node => {
+    const id = uid(); ids.set(node.id, id); node.id = id;
+    if (node.adv) node.adv.htmlId = '';
+  });
+  eachNode([n], node => {
+    if (node.type === 'tabs') tabRows(node).forEach(row => {
+      if (row.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+    });
+  });
   return n;
+}
+
+function tabRows(n: PcNode): TabPanel[] {
+  return Array.isArray(n.props.items) ? n.props.items as TabPanel[] : [];
+}
+function hasRichTabPanels(n: PcNode) {
+  return n.type === 'tabs' && (!!n.children.length || tabRows(n).some(row => row?.panelId !== undefined));
+}
+/** Panel content stays in the normal tree, including assets, styles and editing history. */
+function tabPanelProblem(n: PcNode): string | null {
+  if (n.type !== 'tabs' || !hasRichTabPanels(n)) return null;
+  const rows = tabRows(n), used = new Set<string>();
+  if (!rows.length || rows.length !== n.children.length) return 'Tab panels must match their labels.';
+  for (const row of rows) {
+    if (!row || typeof row.panelId !== 'string' || !row.panelId || used.has(row.panelId)
+      || row.panel !== undefined) return 'Each tab must reference one unique editable panel.';
+    if (!n.children.some(child => child.type === 'box' && child.id === row.panelId))
+      return 'A tab references a missing panel Box.';
+    used.add(row.panelId);
+  }
+  return null;
+}
+function tabPanelNodes(n: PcNode): PcNode[] {
+  return tabRows(n).map(row => n.children.find(child => child.id === row.panelId)).filter((node): node is PcNode => !!node);
+}
+function tabOrderChildren(n: PcNode) { n.children = tabPanelNodes(n); }
+function enableTabPanels(n: PcNode): boolean {
+  if (n.type !== 'tabs' || hasRichTabPanels(n)) return false;
+  const rows = tabRows(n);
+  for (const row of rows) {
+    const body = String(row.panel || '');
+    const panel = N('box', {}, {}, body ? [N('heading', { text: body, level: 'p', ts: 'body' })] : []);
+    n.children.push(panel); row.panelId = panel.id; delete row.panel;
+  }
+  return true;
+}
+function tabAdd(n: PcNode): string {
+  if (n.type !== 'tabs') return '';
+  if (!hasRichTabPanels(n)) enableTabPanels(n);
+  if (tabPanelProblem(n)) return '';
+  const panel = N('box');
+  n.props.items = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  n.children.push(panel);
+  return panel.id;
+}
+function tabSelect(n: PcNode, index: number): boolean {
+  const panel = tabPanelNodes(n)[index];
+  if (!panel) return false;
+  selSet([panel.id]); return true;
+}
+function tabSelectionPath(id: string | null): string {
+  const panels: string[] = [];
+  for (let hit = id ? locate(id) : null; hit?.parent; hit = locate(hit.parent.id)) {
+    if (hit.parent.type === 'tabs') panels.push(hit.node.id);
+  }
+  return panels.join('/');
+}
+function tabRemove(n: PcNode, index: number): boolean {
+  const rows = tabRows(n), row = rows[index];
+  if (!row || !hasRichTabPanels(n) || rows.length < 2) return false;
+  const panel = n.children.find(child => child.id === row.panelId);
+  rows.splice(index, 1); n.children = n.children.filter(child => child.id !== row.panelId);
+  if (panel && state.ui.sel && locate(state.ui.sel, [panel])) selSet([n.id]);
+  return true;
+}
+function tabMove(n: PcNode, index: number, delta: number): boolean {
+  const rows = tabRows(n), to = index + delta;
+  if (!hasRichTabPanels(n) || !rows[index] || to < 0 || to >= rows.length || to === index) return false;
+  const [row] = rows.splice(index, 1); rows.splice(to, 0, row); tabOrderChildren(n);
+  return true;
+}
+function tabDuplicate(n: PcNode, index: number): string {
+  const row = tabRows(n)[index], source = n.children.find(child => child.id === row?.panelId);
+  if (!row || !source || tabPanelProblem(n)) return '';
+  const panel = reid(clone(source));
+  tabRows(n).splice(index + 1, 0, { label: `${row.label || 'Tab'} copy`, panelId: panel.id });
+  n.children.push(panel); tabOrderChildren(n);
+  return panel.id;
 }
 /* page order drives the sitemap and the nav a user authors by hand */
 function pageMove(i: number, dir: number) {
@@ -2045,9 +2357,11 @@ function pageDup(i: number) {
   if (!src) return null;
   const c = clone(src);
   c.id = uid();
-  c.tree.forEach(reid);
+  pageTrees(c).forEach(list => list.forEach(reid));
   c.name += ' copy';
-  c.slug = slugify(c.slug + '-copy');
+  /* unique among every page, or copying "about" twice makes two `about-copy` pages and one
+     overwrites the other on publish */
+  c.slug = uniqueId(c.slug + '-copy', state.pages.map(p => p.slug));
   state.pages.splice(i + 1, 0, c);
   state.cur = i + 1;
   selSet([]);
@@ -2060,6 +2374,18 @@ function pageDup(i: number) {
     both used to be the same off-by-one waiting to happen. */
 function pageDelete(i: number) {
   if (state.pages.length < 2 || !state.pages[i]) return false;
+  const removed = state.pages[i];
+  /* Old navigation rows only stored the exported path. While the target still exists that
+     path is unambiguously a project page, so retain its identity before removing it. A
+     WordPress-native row owns separate object metadata and must not be reclassified here. */
+  allTrees().forEach(list => eachNode(list, node => {
+    if (node.type !== 'nav' || !Array.isArray(node.props.items)) return;
+    (node.props.items as NavItem[]).forEach(item => {
+      if (item.pageId || item.objectType || item.objectId || item.anchor) return;
+      const match = String(item.href || '').match(/^([\w-]+)\.html(?:#[\w-]+)?$/);
+      if (match?.[1] === removed.slug) item.pageId = removed.id;
+    });
+  }));
   state.pages.splice(i, 1);
   state.cur = Math.max(0, Math.min(state.cur, state.pages.length - 1));
   selSet([]);
@@ -2068,12 +2394,21 @@ function pageDelete(i: number) {
 
 function dupNode(id: string) {
   const h = locate(id); if (!h) return;
+  if (h.parent?.type === 'tabs') {
+    const copy = tabDuplicate(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id));
+    if (copy) selSet([copy]);
+    return;
+  }
   const c = reid(clone(h.node));
   h.list.splice(h.i + 1, 0, c);
   selSet([c.id]);
 }
 function delNode(id: string) {
   const h = locate(id); if (!h) return;
+  if (h.parent?.type === 'tabs') {
+    if (tabRemove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id))) selSet([h.parent.id]);
+    return;
+  }
   h.list.splice(h.i, 1);
   selSet(h.parent ? [h.parent.id] : []);
 }
@@ -2084,6 +2419,11 @@ function dupMany(ids: string[]) {
   const made: any[] = [];
   for (const id of selOrder(topMost(ids))) {
     const h = locate(id); if (!h) continue;
+    if (h.parent?.type === 'tabs') {
+      const id = tabDuplicate(h.parent, tabRows(h.parent).findIndex(row => row.panelId === h.node.id));
+      if (id) made.push(id);
+      continue;
+    }
     const c = reid(clone(h.node));
     h.list.splice(h.i + 1, 0, c);
     made.push(c.id);
@@ -2094,13 +2434,21 @@ function dupMany(ids: string[]) {
 function delMany(ids: string[]) {
   const top = selOrder(topMost(ids));
   let fallback = null;
+  let removed = 0;
   for (const id of top.slice().reverse()) {
     const h = locate(id); if (!h) continue;
+    if (h.parent?.type === 'tabs') {
+      if (tabRemove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id))) {
+        fallback = h.parent.id as any; removed++;
+      }
+      continue;
+    }
     h.list.splice(h.i, 1);
+    removed++;
     fallback = (h.parent ? h.parent.id : null) as any;      // the shallowest survivor wins
   }
   selSet(fallback ? [fallback] : []);
-  return top.length;
+  return removed;
 }
 
 function applyCols(row: PcNode, ws: number[]) {
@@ -2110,14 +2458,14 @@ function applyCols(row: PcNode, ws: number[]) {
     const dropped = kids.splice(ws.length);
     dropped.forEach(d => { kids[kids.length - 1].children.push(...d.children); });
   }
-  kids.forEach((k, i) => { k.css.d = k.css.d || {}; k.css.d['flex-grow'] = String(+ws[i].toFixed(4)); });
+  kids.forEach((k, i) => { k.css.d = k.css.d || {}; k.css.d['flex-grow'] = String(+ws[i].toFixed(COLUMN_SHARE_DIGITS)); });
 }
 
 /* ---- column proportions -------------------------------------------------
    Dragging a gutter moves width between two neighbours and leaves every other
-   column alone, so the row's total never drifts. A column stops at MIN_COL
-   percent of the row — below that its gutter is too small to grab back. */
-const MIN_COL = 4;
+   column alone, so the row's total never drifts beyond stored precision. A column
+   stops at both the inspector's raw minimum and MIN_COL percent of the row,
+   because below that its gutter is too small to grab back. */
 /* The proportions in force at a breakpoint, following the same fall-through the
    stylesheet does (mobile → tablet → desktop). `rowRatios` stays the desktop-only
    reader its existing callers expect. */
@@ -2151,26 +2499,27 @@ function rowVerticalLabel(n: PcNode) {
   return v === 'center' ? 'Center' : v === 'flex-end' ? 'Bottom' : 'Top';
 }
 function rowRatiosAt(row: PcNode, b: Bp) {
-  return (row.children || []).map(c => {
-    for (const k of (BP_CHAIN[b] || ['d'])) {
-      const v = ((c.css as any)[k] || {})['flex-grow'];
-      if (v !== undefined && v !== '') return parseFloat(v) || 0;
-    }
-    return 0;
-  });
+  return (row.children || []).map(c => parseFloat(cssAt(c, b, 'flex-grow')) || 0);
 }
-/* `pct` is a share of the whole row, signed: positive grows column `i`. */
-function resizeCols(row: PcNode, i: number, pct: number, b: Bp = 'd') {
-  const ws = rowRatiosAt(row, b);
+/* `pct` is a share of the whole row, signed: positive grows column `i`.
+   A pointer gesture supplies its starting shares because its displacement is total,
+   not an increment to add again to the previous pointermove's result. */
+function resizeCols(row: PcNode, i: number, pct: number, b: Bp = 'd', start = rowRatiosAt(row, b)) {
+  const ws = start;
   if (i < 0 || i + 1 >= ws.length) return null;
   const total = ws.reduce((a, x) => a + x, 0);
   if (!total) return null;
-  const min = total * (MIN_COL / 100), pair = ws[i] + ws[i + 1];
-  if (pair < min * 2) return null;                  // no room to move either way
-  let a = ws[i] + (pct / 100) * total;
-  a = Math.max(min, Math.min(pair - min, a));
+  const min = Math.max(MIN_COL, total * (MIN_COL / 100));
+  const scale = 1 / COLUMN_SHARE_STEP;
+  const pair = Math.round((ws[i] + ws[i + 1]) * scale);
+  /* Work in stored precision so clamping cannot create an invalid native step.
+     A non-100 total still respects both the raw inspector bounds and grab minimum. */
+  const minimum = Math.ceil(min * scale - 1e-7), maximum = MAX_COL * scale;
+  const lo = Math.max(minimum, pair - maximum), hi = Math.min(maximum, pair - minimum);
+  if (lo >= hi) return null;                       // no valid move for this pair
+  const a = Math.max(lo, Math.min(hi, Math.round((ws[i] + (pct / 100) * total) * scale)));
   const out = ws.slice();
-  out[i] = a; out[i + 1] = pair - a;
+  out[i] = a / scale; out[i + 1] = (pair - a) / scale;
   return out;
 }
 /* Writes proportions at one breakpoint without touching the column count —
@@ -2179,7 +2528,7 @@ function applyColsAt(row: PcNode, ws: number[], b: Bp = 'd') {
   (row.children || []).forEach((k, i) => {
     if (ws[i] === undefined) return;
     k.css[b] = k.css[b] || {};
-    k.css[b]['flex-grow'] = String(+ws[i].toFixed(4));
+    k.css[b]['flex-grow'] = String(+ws[i].toFixed(COLUMN_SHARE_DIGITS));
   });
 }
 
@@ -2235,9 +2584,17 @@ const nodeClasses = (n: PcNode) => {
 const resolveColor = (v: unknown) => {
   const id = refId(v);
   if (!id) return String(v || '');
-  const t = findColor(id);
+  /* Premade and imported palettes may call their primary action colour `accent`. Keep the
+     stored palette intact while making the editor's reserved `brand` semantic resolve the
+     same way the exported CSS does. A real brand token always remains authoritative. */
+  const t = findColor(id) || (id === 'brand' ? findColor('accent') : null);
   return t ? t.value : '';
 };
+
+/** Compatibility for palettes authored before `brand` became the editor's reserved action
+ * colour. This is deliberately an alias rather than a migration: opening a released template
+ * must not rewrite its design-token list. */
+const usesAccentBrandFallback = () => !findColor('brand') && !!findColor('accent');
 
 function defaultTokens(meta: any = {}): Tokens {
   return {
@@ -2268,8 +2625,206 @@ function defaultTokens(meta: any = {}): Tokens {
 
 /* ---- token CSS: emitted ahead of element rules so elements still win ---- */
 function tokenVars() {
-  const body = colors().map(c => `--c-${c.id}:${c.value}`).join(';');
+  const vars = colors().map(c => `--c-${c.id}:${c.value}`);
+  if (usesAccentBrandFallback()) vars.push(`--c-brand:${cvar('accent')}`);
+  const body = vars.join(';');
   return body ? `:root{${body}}` : '';
+}
+/* Button variants intentionally own their untouched defaults, but an authored Button value
+   must outrank those two-class selectors. Keep the bridge narrow: ordinary declarations still
+   use the normal text style < class < element cascade. */
+const buttonVariantProperty = (property: string) => property === 'background'
+  || property === 'background-color' || property === 'background-image'
+  || /^border(?:-|$)/.test(property) || /^padding(?:-|$)/.test(property);
+const BUTTON_AUTHORED = '--pc-authored-button-';
+const BUTTON_VARIANT_OWNS = '--pc-button-variant-owns-';
+const BUTTON_SIDES = ['top', 'right', 'bottom', 'left'];
+const BUTTON_CORNERS = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+/* Reduce shorthands and longhands to the surface component each declaration supplies.
+   Variant intent, clipboard materialization and responsive inheritance must agree here or a
+   later longhand can be mistaken for the hidden declaration it deliberately replaced. */
+const buttonSurfaceAtoms = (property: string) => {
+  if (property === 'background') return ['background-color', 'background-image'];
+  if (property === 'background-color' || property === 'background-image') return [property];
+  if (property === 'padding') return BUTTON_SIDES.map(side => `padding-${side}`);
+  if (/^padding-(?:top|right|bottom|left)$/.test(property)) return [property];
+  if (property === 'border-radius') return BUTTON_CORNERS.map(corner => `border-${corner}-radius`);
+  if (/^border-(?:top-left|top-right|bottom-right|bottom-left)-radius$/.test(property)) return [property];
+  if (property === 'border') return BUTTON_SIDES.flatMap(side =>
+    ['width', 'style', 'color'].map(component => `border-${side}-${component}`));
+  const all = property.match(/^border-(width|style|color)$/);
+  if (all) return BUTTON_SIDES.map(side => `border-${side}-${all[1]}`);
+  const side = property.match(/^border-(top|right|bottom|left)$/);
+  if (side) return ['width', 'style', 'color'].map(component => `border-${side[1]}-${component}`);
+  if (/^border-(?:top|right|bottom|left)-(?:width|style|color)$/.test(property)) return [property];
+  return [];
+};
+const cssWords = (value: string) => {
+  const out: string[] = [];
+  let part = '', depth = 0, quote = '', escaped = false;
+  for (const ch of value.trim()) {
+    if (escaped) { part += ch; escaped = false; continue; }
+    if (ch === '\\') { part += ch; escaped = true; continue; }
+    if (quote) { part += ch; if (ch === quote) quote = ''; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; part += ch; continue; }
+    if (ch === '(') depth++;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    if (/\s/.test(ch) && !depth) { if (part) { out.push(part); part = ''; } }
+    else part += ch;
+  }
+  if (part) out.push(part);
+  return out;
+};
+const quadValues = (value: string) => {
+  const parts = cssWords(value);
+  /* Elliptical border-radius uses a slash and needs two independent quads. Keep its original
+     shorthand when encountered rather than inventing a lossy longhand. */
+  if (!parts.length || parts.length > 4 || value.includes('/')) return null;
+  if (parts.length === 1) return [parts[0], parts[0], parts[0], parts[0]];
+  if (parts.length === 2) return [parts[0], parts[1], parts[0], parts[1]];
+  if (parts.length === 3) return [parts[0], parts[1], parts[2], parts[1]];
+  return [parts[0], parts[1], parts[2], parts[3]];
+};
+const buttonSurfaceAtomicDeclarations = (declarations: Decls) => {
+  const out: Decls = {};
+  for (const [property, value] of Object.entries(declarations)) {
+    const atoms = buttonSurfaceAtoms(property);
+    if (atoms.length === 1) out[atoms[0]] = value;
+    else if (property === 'padding' || property === 'border-width' || property === 'border-style'
+      || property === 'border-color' || property === 'border-radius') {
+      const values = quadValues(value);
+      if (values) atoms.forEach((atom, index) => { out[atom] = values[index]; });
+    }
+  }
+  return out;
+};
+const buttonBorderDeclarationRank = (property: string) => {
+  if (property === 'border') return 0;
+  if (/^border-(width|style|color)$/.test(property)) return 1;
+  if (/^border-(top|right|bottom|left)$/.test(property)) return 2;
+  if (/^border-(top|right|bottom|left)-(width|style|color)$/.test(property)) return 3;
+  return 4;
+};
+const buttonDeclarationSupplier = (map: Decls, atom: string) => {
+  let supplier: { property: string; value: string; rank: number } | null = null;
+  for (const [property, value] of Object.entries(map)) {
+    if (property.startsWith(BUTTON_AUTHORED) || property.startsWith(BUTTON_VARIANT_OWNS)
+      || value === '') continue;
+    const atoms = buttonSurfaceAtoms(property);
+    if (!atoms.includes(atom)) continue;
+    /* `decl()` emits broad border shorthands before their edge longhands. Prefer its later
+       rank, and use insertion order for declarations with equal rank. */
+    const rank = buttonBorderDeclarationRank(property);
+    if (!supplier || rank >= supplier.rank) supplier = { property, value, rank };
+  }
+  return supplier;
+};
+const buttonAtomicDeclaration = (supplier: { property: string; value: string }, atom: string) => {
+  const atoms = buttonSurfaceAtoms(supplier.property);
+  if (atoms.length === 1) return { property: atom, value: supplier.value };
+  if (supplier.property === 'padding' || supplier.property === 'border-width'
+    || supplier.property === 'border-style' || supplier.property === 'border-color'
+    || supplier.property === 'border-radius') {
+    const values = quadValues(supplier.value);
+    if (values) return { property: atom, value: values[atoms.indexOf(atom)] };
+  }
+  /* Background and side/all-border shorthands can contain functions and reordered tokens.
+     Re-emit the authoritative shorthand rather than guessing at a lossy parsed longhand. */
+  return { property: supplier.property, value: supplier.value };
+};
+const buttonClassSurfaceAtoms = (n: PcNode, breakpoint: Bp) => {
+  const atoms = new Set<string>();
+  for (const bp of BP_CHAIN[breakpoint] as Bp[]) for (const c of nodeClasses(n)) {
+    Object.keys(c.css[bp]).forEach(property => buttonSurfaceAtoms(property).forEach(atom => atoms.add(atom)));
+  }
+  return atoms;
+};
+const buttonVariantOwns = (variant: unknown, property: string) => {
+  const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(variant)] || {});
+  return buttonSurfaceAtoms(property).some(atom => base[atom] !== undefined);
+};
+const buttonVariantMarkers = (map: Decls) => new Set(Object.keys(map)
+  .filter(property => property.startsWith(BUTTON_VARIANT_OWNS) && map[property] === '1')
+  .map(property => property.slice(BUTTON_VARIANT_OWNS.length)));
+const markButtonVariantIntent = (n: PcNode, variant: unknown) => {
+  for (const breakpoint of ['d', 't', 'm'] as Bp[]) {
+    const map = n.css[breakpoint];
+    Object.keys(map).forEach(property => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete map[property];
+    });
+    Object.keys(map).forEach(property => {
+      if (buttonVariantOwns(variant, property)) map[BUTTON_VARIANT_OWNS + property] = '1';
+    });
+  }
+};
+/* A Gallery's focusable surface is each lightbox frame, not the grid container. Keep the
+   authored state on the container so background, border and layout effects still dress the
+   whole Gallery, but let keyboard focus on a frame activate it. `:where` keeps the Gallery
+   and frame guards at zero specificity: the base class plus :focus-visible remain the same
+   0,2 as every reusable state, so a later per-node state still wins the established cascade. */
+const galleryFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-gallery):has(:where(.pagecraft-gallery-frame):focus-visible)`;
+/* A Nav's keyboard surface can be its toggle, an ordinary or managed link, or any custom
+   interactive widget inside its mobile layout. Keep the Nav guard at zero specificity and
+   let :focus-visible contribute the same single state class as the generic selector. */
+const navFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-nav-menu):has(:focus-visible)`;
+/* Rich Text keeps its authored state on the wrapper while keyboard focus lands on a link
+   inside it. Limit the bridge to links and :focus-visible: pointer focus must not activate
+   the wrapper state, and a focusable Link Block ancestor is outside this descendant guard. */
+const richTextFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-wysiwyg):has(:where(a):focus-visible)`;
+/* Video styling belongs to its wrapper, while keyboard focus belongs to the facade button,
+   native file player or embedded frame. Bridge only :focus-visible so pointer focus keeps the
+   authored resting/hover state. */
+const videoFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-video):has(:where(.pagecraft-video-play,video,iframe):focus-visible,` +
+  `:where(iframe[data-pagecraft-keyboard-focus]):focus-within)`;
+/* Tabs and Accordion keep state styling on their widget roots while keyboard focus belongs to
+   a tab button or summary. Guard the exact child surface so focus in nested panel content does
+   not style the wrapper, and pointer focus does not impersonate keyboard focus. */
+const tabsFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-tabs):has(>:where(.pagecraft-tablist)>:where(.pagecraft-tab):focus-visible)`;
+const accordionFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-accordion):has(>:where(.pagecraft-accordion-item)>:where(.pagecraft-accordion-q):focus-visible)`;
+/* Form and Code also keep authored state on their wrappers. Follow only controls owned by
+   each widget: nested content and the Form date popover (which lives under body) must not
+   activate the wrapper. Enhanced Form controls are included beside their native fallbacks. */
+const formFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-form):has(>:where(.pagecraft-field)>:where(input,textarea,select):focus-visible,` +
+  `>:where(.pagecraft-field)>:where(.pc-select)>:where(.pc-select-button):focus-visible,` +
+  `>:where(.pagecraft-field)>:where(.pc-date)>:where(.pc-date-control)>:where(.pc-date-input,.pc-date-trigger):focus-visible,` +
+  `>:where(.pagecraft-form-button):focus-visible)`;
+const codeFocusSelector = (selector: string) =>
+  `${selector}:where(.pagecraft-code):has(>:where(.pagecraft-code-head)>:where(.pagecraft-code-copy):focus-visible)`;
+/* Anchors carry their own UA colour, so the Rich Text --link value cannot reach them through
+   inheritance. Emit the matching descendant rule while keeping the wrapper property for the
+   existing document contract and custom CSS. */
+const richTextLinkSelector = (selector: string, state = '') =>
+  `${selector}:where(.pagecraft-wysiwyg)${state} a`;
+const richTextLinkStateSelector = (selector: string, state: StateKey, suffix: string) =>
+  state === 'focus' ? `${richTextFocusSelector(selector)} a` : richTextLinkSelector(selector, suffix);
+const buttonVariantDeclarations = (map: Decls, defaults: Decls | null = null,
+  forced = new Set<string>(), variantOwned = new Set<string>()) => {
+  const out: Decls = {};
+  for (const [property, value] of Object.entries(map)) {
+    if (!buttonVariantProperty(property) || variantOwned.has(property)) continue;
+    if (defaults && Object.prototype.hasOwnProperty.call(defaults, property) && defaults[property] === value
+      && !forced.has(property)) continue;
+    out[property] = value;
+  }
+  return out;
+};
+/* Keep scrolling a fallback rather than an authored overflow declaration. The variables
+   follow the same selectors and breakpoint cascade as Wrap; direct overflow/sizing wins. */
+function listWrapFallback(wrap: string) {
+  const nowrap = wrap === 'nowrap';
+  return `--pc-list-item-shrink:${nowrap ? '0' : '1'};--pc-list-overflow-x:${nowrap ? 'auto' : 'visible'};--pc-list-min-width:${nowrap ? '0' : 'auto'};--pc-list-max-width:${nowrap ? '100%' : 'none'};--pc-list-padding:${nowrap ? '8px' : '0'}`;
+}
+function listMayScroll(n: PcNode) {
+  return [n, ...nodeClasses(n)].some(source =>
+    [source.css, ...Object.values(source.st || {})].some(css =>
+      (['d', 't', 'm'] as Bp[]).some(b => css?.[b]?.['flex-wrap'] === 'nowrap')));
 }
 function tokenCss() {
   const acc = { d: '', t: '', m: '' };
@@ -2280,13 +2835,40 @@ function tokenCss() {
   /* classes come after text styles and before element rules, so the order of
      precedence reads: text style < class < this element */
   classes().forEach(c => (['d', 't', 'm'] as Bp[]).forEach(b => {
-    const decls = decl((c.css && c.css[b]) || {});
+    const map = (c.css && c.css[b]) || {};
+    const decls = decl(map);
     if (decls) acc[b] += `.c-${c.id}{${decls}}`;
+    if (map['flex-wrap']) acc[b] += `.c-${c.id}:where(.pagecraft-list){${listWrapFallback(map['flex-wrap'])}}`;
+    const linkDecls = decl({ color: map['--link'] });
+    if (linkDecls) acc[b] += `${richTextLinkSelector(`.c-${c.id}`)}{${linkDecls}}`;
+    const buttonDecls = decl(buttonVariantDeclarations(map));
+    if (buttonDecls) acc[b] += `.c-${c.id}.pagecraft-button{${buttonDecls}}`;
     /* a class hover is the one people actually want — restyle every card's hover once. It
        still loses to an element's own hover, which has the same specificity and comes later. */
     STATES.forEach(([k, , sel]) => {
-      const d = decl((c.st && c.st[k] && c.st[k]![b]) || {});
-      if (d) acc[b] += `.c-${c.id}${sel}{${d}}`;
+      const stateMap = (c.st && c.st[k] && c.st[k]![b]) || {};
+      const d = decl(stateMap);
+      if (d) {
+        acc[b] += `.c-${c.id}${sel}{${d}}`;
+        if (stateMap['flex-wrap']) acc[b] += `.c-${c.id}${sel}:where(.pagecraft-list){${listWrapFallback(stateMap['flex-wrap'])}}`;
+        /* Keep the ordinary class selector for generic focusables and add the guarded
+           descendant paths beside the class rule whose cascade order they share. */
+        if (k === 'focus') {
+          acc[b] += `${galleryFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${navFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${richTextFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${videoFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${tabsFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${accordionFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${formFocusSelector(`.c-${c.id}`)}{${d}}`;
+          acc[b] += `${codeFocusSelector(`.c-${c.id}`)}{${d}}`;
+        }
+        const linkState = decl({ color: stateMap['--link'] });
+        if (linkState) {
+          const linkSelector = richTextLinkStateSelector(`.c-${c.id}`, k, sel);
+          acc[b] += `${linkSelector}{${linkState}}`;
+        }
+      }
     });
   }));
   return acc;
@@ -2302,6 +2884,38 @@ const grabTypo = (n: PcNode) => {
   }));
   return out;
 };
+/* Element typography bridges its last owned breakpoint over later text-style rules. When
+   moving those values into or out of a style, clear the same property's later style values
+   or an old mobile declaration can unexpectedly replace an owned tablet value. */
+const mergeResponsiveTypo = (base: Css, own: Css) => {
+  const bps = ['d', 't', 'm'] as Bp[];
+  const out: Css = {
+    d: { ...(base.d || {}) }, t: { ...(base.t || {}) }, m: { ...(base.m || {}) }
+  };
+  TYPO_KEYS.forEach(k => {
+    const first = bps.findIndex(b => {
+      const v = own[b] && own[b][k];
+      return v !== undefined && v !== '';
+    });
+    if (first < 0) return;
+    bps.slice(first).forEach(b => { delete out[b][k]; });
+    bps.forEach(b => {
+      const v = own[b] && own[b][k];
+      if (v !== undefined && v !== '') out[b][k] = v;
+    });
+  });
+  return out;
+};
+/* Updating is meaningful only when a linked element owns typography to move. Checking
+   presence rather than difference keeps an explicit value equal to the style eligible: the
+   update still clears that local override, so the element follows future style changes. */
+function tsCanUpdateFrom(n: PcNode) {
+  if (!findStyle(n.props.ts)) return false;
+  return (['d', 't', 'm'] as Bp[]).some(b => TYPO_KEYS.some(k => {
+    const v = n.css[b] && n.css[b][k];
+    return v !== undefined && v !== '';
+  }));
+}
 /* use a style: the element's own typography steps aside so the style shows */
 function tsApply(n: PcNode, id: string) {
   const t = findStyle(id);
@@ -2316,18 +2930,24 @@ function tsApply(n: PcNode, id: string) {
 /* detach: bake the style's values in so nothing moves visually */
 function tsUnlink(n: PcNode) {
   const t = findStyle(n.props.ts);
-  if (t) (['d', 't', 'm'] as Bp[]).forEach(b => {
-    n.css[b] = { ...((t.css && t.css[b]) || {}), ...(n.css[b] || {}) };
-  });
+  if (t) {
+    const baked = mergeResponsiveTypo(t.css, n.css);
+    stripTypo(n);
+    (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => {
+      const v = baked[b] && baked[b][k];
+      if (v !== undefined && v !== '') n.css[b][k] = v;
+    }));
+  }
   n.props.ts = '';
   return !!t;
 }
 /* push this element's typography up into the style it is using */
 function tsUpdateFrom(n: PcNode) {
+  if (!tsCanUpdateFrom(n)) return false;
   const t = findStyle(n.props.ts);
-  if (!t) return false;
+  if (!t) return false; // narrowed by tsCanUpdateFrom; keep the mutator safe in isolation
   const got = grabTypo(n);
-  (['d', 't', 'm'] as Bp[]).forEach(b => { t.css[b] = { ...(t.css[b] || {}), ...got[b] }; });
+  t.css = mergeResponsiveTypo(t.css, got);
   stripTypo(n);
   return true;
 }
@@ -2374,7 +2994,7 @@ function tsCreateFrom(n: PcNode, name: string) {
    page — a walk that missed it would delete the token or ship no font. */
 function renderedTrees(): PcNode[][] {
   return [
-    state.header, state.footer, ...state.pages.map(p => p.tree),
+    state.header, state.footer, ...state.pages.flatMap(pageTrees),
     ...components().map(c => [c.node])
   ];
 }
@@ -2408,7 +3028,7 @@ const LANGS = [
 function anchorsOf(slug: string) {
   const pg = state.pages.find(p => p.slug === slug) || page();
   const out: any[] = [];
-  [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => {
+  [pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')].forEach(l => eachNode(l, n => {
     if (n.adv && n.adv.htmlId) out.push(n.adv.htmlId);
   }));
   return [...new Set(out)];
@@ -2438,6 +3058,20 @@ function buildLink(o: any) {
   return o.value || '';
 }
 
+/** The submission key used everywhere a form field is interpreted. Whitespace-only
+    authored keys are absent, so label and positional fallbacks remain stable. */
+function formFieldName(field: any, index: number) {
+  return String(field && field.name || '').trim() || slugify(field && field.label) || 'field-' + (index + 1);
+}
+
+/** A GET submit replaces the action's query. Keep configured pairs as hidden fields unless
+    an authored input already submits under that name. */
+function formFixedQuery(handling: FormHandling, fields: readonly FormField[]): [string, string][] {
+  if (handling.kind !== 'external' || handling.method !== 'get') return [];
+  const authoredNames = new Set(fields.map(formFieldName));
+  return Array.from(new URL(handling.action).searchParams).filter(([name]) => !authoredNames.has(name));
+}
+
 /* ---- reusable style classes -------------------------------------------
    A class is any set of CSS declarations, per breakpoint, shared by any number
    of elements. Text styles are the typography-only special case of the same
@@ -2464,7 +3098,31 @@ function classRemove(n: PcNode, id: string) {
 /* take this element's own styling and turn it into a class others can share */
 function classFrom(n: PcNode, name: string) {
   const id = classAdd(name, n.css);
-  n.css = { d: {}, t: {}, m: {} };
+  const c = findClass(id);
+  const retained: Css = { d: {}, t: {}, m: {} };
+  /* Hover and focus are styling too. Leaving them on the source made a class created from a
+     finished element share only its resting look; every other user lost the interactive look.
+     Motion is stored separately on `anim` and deliberately stays with the element. */
+  if (c) {
+    (['d', 't', 'm'] as Bp[]).forEach(b => {
+      const variantOwned = buttonVariantMarkers(c.css[b]);
+      variantOwned.forEach(property => {
+        /* The hidden declaration is still needed when this Button returns to Solid. Keep it
+           local with its intent marker; moving it into a shared class would make the class's
+           reinforced selector override the currently chosen transparent variant. */
+        if (c.css[b][property] !== undefined) {
+          retained[b][property] = c.css[b][property];
+          retained[b][BUTTON_VARIANT_OWNS + property] = '1';
+          delete c.css[b][property];
+        }
+      });
+      Object.keys(c.css[b]).forEach(prop => {
+        if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS)) delete c.css[b][prop];
+      });
+    });
+    if (n.st) { c.st = clone(n.st); delete n.st; }
+  }
+  n.css = retained;
   classApply(n, id);
   return id;
 }
@@ -2473,15 +3131,169 @@ const classUsage = (id: string) => {
   allTrees().forEach(l => eachNode(l, x => { if ((x.cls || []).includes(id)) k++; }));
   return k;
 };
-/* deleting a class bakes its declarations into every user, so nothing moves */
-function classDelete(id: string) {
-  const c = findClass(id);
-  if (!c) return false;
-  allTrees().forEach(l => eachNode(l, x => {
-    if (!(x.cls || []).includes(id)) return;
-    (['d', 't', 'm'] as Bp[]).forEach(b => { x.css[b] = { ...((c.css && c.css[b]) || {}), ...(x.css[b] || {}) }; });
-    classRemove(x, id);
+type ClassDeleteCheck = { ok: true } | { ok: false; reason: string };
+type ClassDeletePlan = { ok: true; nodes: Array<{ node: PcNode; next: PcNode }> }
+  | { ok: false; reason: string };
+const CLASS_DELETE_COMPOUND_REASON = 'This class combines Hover and Focus styles in a way Pagecraft cannot preserve yet. Remove it from those elements first.';
+
+/* Plan the whole deletion before touching the document. Most class values can be baked into
+   their users without changing the cascade. One combination cannot: reusable state rules are
+   class-major (`low:hover`, `low:focus`, `high:hover`, `high:focus`), while a retained local
+   state comes after every reusable class. When hover and focus-visible are active together,
+   that move can change the winner. Pagecraft has no compound-state storage, so reject that
+   deletion instead of silently changing the page. */
+function classRemovalPlan(id: string, ordered: StyleClass[], trees: PcNode[][]): ClassDeletePlan {
+  const c = ordered.find(c => c.id === id);
+  if (!c) return { ok: false, reason: 'This class no longer exists.' };
+  const at = (o: { css?: Css; st?: States }, stateKey?: StateKey) =>
+    stateKey ? o.st && o.st[stateKey] : o.css;
+  const quad: Record<string, string[]> = {
+    padding: ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
+    margin: ['margin-top', 'margin-right', 'margin-bottom', 'margin-left'],
+    'border-width': ['border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'],
+    'border-style': ['border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style'],
+    'border-color': ['border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color']
+  };
+  /* Compare box shorthands as the longhands the browser computes. Otherwise deleting
+     `padding:20px` and baking that shorthand locally would overwrite a later surviving
+     class's `padding-left:40px`, even though that class won before deletion. */
+  const cascade = (out: Decls, map: Decls, keep: (prop: string, value: string) => boolean) => {
+    for (const [prop, value] of Object.entries(map)) {
+      if (prop.startsWith(BUTTON_AUTHORED) || prop.startsWith(BUTTON_VARIANT_OWNS)
+        || value === '' || !keep(prop, value)) continue;
+      const sides = quad[prop];
+      if (!sides) { out[prop] = value; continue; }
+      const v = cssWords(value);
+      if (!v.length || v.length > 4) { out[prop] = value; continue; }
+      const expanded = v.length === 1 ? [v[0], v[0], v[0], v[0]]
+        : v.length === 2 ? [v[0], v[1], v[0], v[1]]
+          : v.length === 3 ? [v[0], v[1], v[2], v[1]] : v;
+      sides.forEach((side, i) => { out[side] = expanded[i]; });
+    }
+  };
+  /* The stylesheet is desktop first, followed by tablet and mobile overrides. Within each
+     bucket reusable classes follow list order and the element follows every class. Replaying
+     that exact cascade lets deletion localise only declarations whose visible value would
+     otherwise change. In particular, a lower class must not be baked over a higher class. */
+  const shown = (x: PcNode, b: Bp, stateKey?: StateKey, without = '') => {
+    const out: Decls = {};
+    if (x.type === 'button' && !stateKey) cascade(out, BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, () => true);
+    const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (cls.id === without || !(x.cls || []).includes(cls.id)) continue;
+        cascade(out, (at(cls, stateKey) && at(cls, stateKey)![bp]) || {}, () => true);
+      }
+      const own = (at(x, stateKey) && at(x, stateKey)![bp]) || {};
+      const variantOwned = stateKey ? new Set<string>() : buttonVariantMarkers(own);
+      cascade(out, own, (prop, value) =>
+        /* Untouched Button defaults are present in the document but deliberately omitted from
+           the high-specificity element bridge. A class bridge beats them. Treating them as an
+           element winner here made deletion reveal the factory value instead of keeping the
+           class value that had actually rendered. Responsive and state rules are all emitted. */
+        !(x.type === 'button' && !stateKey && buttonVariantProperty(prop)
+          && (variantOwned.has(prop) || (bp === 'd' && BUTTON_VARIANT_DEFAULTS[prop] === value))));
+    }
+    return out;
+  };
+  const preserve = (x: PcNode, stateKey?: StateKey) => {
+    for (const b of ['d', 't', 'm'] as Bp[]) {
+      const before = shown(x, b, stateKey);
+      const after = shown(x, b, stateKey, id);
+      const changed = Object.keys(before).filter(prop => before[prop] !== after[prop]);
+      if (!changed.length) continue;
+      let own: Css;
+      if (stateKey) {
+        x.st = x.st || {};
+        x.st[stateKey] = x.st[stateKey] || { d: {}, t: {}, m: {} };
+        own = x.st[stateKey]!;
+      } else own = x.css;
+      for (const prop of changed) {
+        own[b][prop] = before[prop];
+        delete own[b][BUTTON_VARIANT_OWNS + prop];
+        /* A fresh Button stores its factory values, but the renderer normally omits them from
+           the high-specificity bridge so Outline/Link variants work. A deleted class may have
+           been the authored winner with that exact value; remember that distinction or the
+           retained value is mistaken for untouched factory state and loses to a lower class. */
+        if (!stateKey && x.type === 'button' && b === 'd' && BUTTON_VARIANT_DEFAULTS[prop] === before[prop]) {
+          own[b][BUTTON_AUTHORED + prop] = '1';
+        }
+      }
+    }
+  };
+  /* Resolve the winner when both editable states apply. This follows emitted stylesheet order
+     across desktop, tablet and mobile. Specificity matters: state selectors and the authored
+     Button bridge have two classes; ordinary base declarations have one. */
+  const compound = (x: PcNode, b: Bp) => {
+    const winners = new Map<string, { value: string; specificity: number }>();
+    const put = (map: Decls, specificity: number) => {
+      const expanded: Decls = {};
+      cascade(expanded, map, () => true);
+      for (const [property, value] of Object.entries(expanded)) {
+        const prev = winners.get(property);
+        if (!prev || specificity >= prev.specificity) winners.set(property, { value, specificity });
+      }
+    };
+    if (x.type === 'button') put(BUTTON_VARIANT_BASES[String(x.props.variant)] || {}, 2);
+    const chain = [...(BP_CHAIN[b] || ['d'])].reverse() as Bp[];
+    for (const bp of chain) {
+      for (const cls of ordered) {
+        if (!(x.cls || []).includes(cls.id)) continue;
+        const base = (cls.css && cls.css[bp]) || {};
+        put(base, 1);
+        if (x.type === 'button') put(buttonVariantDeclarations(base), 2);
+        STATES.forEach(([key]) => put((cls.st && cls.st[key] && cls.st[key]![bp]) || {}, 2));
+      }
+      const base = (x.css && x.css[bp]) || {};
+      put(base, 1);
+      if (x.type === 'button') {
+        const forced = new Set(Object.keys(base)
+          .filter(property => property.startsWith(BUTTON_AUTHORED) && base[property] === '1')
+          .map(property => property.slice(BUTTON_AUTHORED.length)));
+        put(buttonVariantDeclarations(base, bp === 'd' ? BUTTON_VARIANT_DEFAULTS : null,
+          forced, buttonVariantMarkers(base)), 2);
+      }
+      STATES.forEach(([key]) => put((x.st && x.st[key] && x.st[key]![bp]) || {}, 2));
+    }
+    return new Map([...winners].map(([property, winner]) => [property, winner.value]));
+  };
+  const sameCompound = (before: PcNode, after: PcNode) => (['d', 't', 'm'] as Bp[]).every(b => {
+    const a = compound(before, b), z = compound(after, b);
+    return [...new Set([...a.keys(), ...z.keys()])].every(property => a.get(property) === z.get(property));
+  });
+  const plans: Array<{ node: PcNode; next: PcNode }> = [];
+  const seen = new Set<PcNode>();
+  trees.forEach(l => eachNode(l, node => {
+    if (seen.has(node) || !(node.cls || []).includes(id)) return;
+    seen.add(node);
+    const next = clone(node);
+    preserve(next);
+    STATES.forEach(([k]) => preserve(next, k));
+    classRemove(next, id);
+    plans.push({ node, next });
   }));
+  if (plans.some(({ node, next }) => !sameCompound(node, next))) {
+    return { ok: false, reason: CLASS_DELETE_COMPOUND_REASON };
+  }
+  return { ok: true, nodes: plans };
+}
+function classDeletePlan(id: string): ClassDeletePlan {
+  return classRemovalPlan(id, classes(), allTrees());
+}
+function classDeleteCheck(id: string): ClassDeleteCheck {
+  const plan = classDeletePlan(id);
+  return plan.ok ? { ok: true } : plan;
+}
+/* deleting a class bakes its declarations into every user, so nothing moves — its hover and
+   focus rules included, or every card that lifted on hover would go flat */
+function classDelete(id: string) {
+  const plan = classDeletePlan(id);
+  if (!plan.ok) return false;
+  for (const { node, next } of plan.nodes) {
+    node.css = next.css;
+    if (next.st) node.st = next.st; else delete node.st;
+    node.cls = next.cls;
+  }
   ensureTokens().classes = classes().filter(x => x.id !== id);
   return true;
 }
@@ -2503,8 +3315,14 @@ function classMove(id: string, dir: number) {
     strings rather than NaN, because the inspector shows this straight to the user. */
 function parseU(v: unknown): { n: string; u: string } {
   const s = String(v == null ? '' : v).trim();
-  const m = s.match(/^(-?[\d.]+)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/);
-  return m ? { n: m[1], u: m[2] || '' } : { n: '', u: '' };
+  const m = s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(px|rem|em|%|vw|vh|ch|s|ms)?$/i);
+  return m ? { n: m[1].replace(/^\+/, ''), u: (m[2] || '').toLowerCase() } : { n: '', u: '' };
+}
+
+/** CSS integer grammars do not accept exponent notation. Callers validate finiteness first;
+    BigInt expands large rounded Numbers instead of String(number) turning them back into e+. */
+function cssInteger(value: number): string {
+  return BigInt(Math.round(value)).toString();
 }
 
 /**
@@ -2556,7 +3374,12 @@ function cssVal(n: { css: Css; st?: States }, c: string, resp?: boolean): { v: s
   if (own !== undefined && own !== '') return { v: own, own: true };
   if (b === 'm' && src.t && src.t[c]) return { v: src.t[c], own: false };
   const d = src.d ? src.d[c] : '';
-  return { v: d == null ? '' : d, own: false };
+  if (d !== undefined && d !== '') return { v: d, own: false };
+  /* A fresh Row relies on the renderer's built-in wrap rule, but Wrap is a two-choice enum:
+     showing “Choose an option” describes no real third state. Keep the readback truthful
+     without serialising a redundant declaration into existing rows, patterns or templates. */
+  if ((n as PcNode).type === 'row' && c === 'flex-wrap') return { v: 'wrap', own: false };
+  return { v: '', own: false };
 }
 
 /** Write one CSS property at the breakpoint being edited. An empty value deletes the
@@ -2566,6 +3389,19 @@ function setCss(n: { css: Css; st?: States }, c: string, val: string | null | un
   const dest = stWrite(n);
   const b: Bp = resp ? dk() : 'd';
   dest[b] = dest[b] || {};
+  /* A deliberate Style edit after choosing a Button variant owns this property again.
+     Clear only this breakpoint's renderer hint. Hover, Focus and shared classes never carry
+     the hint, so their established cascade remains unchanged. */
+  if ((n as PcNode).type === 'button' && !state.ui.st && buttonVariantProperty(c)) {
+    delete dest[b][BUTTON_VARIANT_OWNS + c];
+    const authored = BUTTON_AUTHORED + c;
+    /* Desktop factory values are normally omitted from the reinforced bridge. Record the one
+       indistinguishable case where a person deliberately writes that same value after choosing
+       a Variant; otherwise `var(--c-brand)` still loses to Outline transparency. */
+    if (b === 'd' && val !== '' && val != null && BUTTON_VARIANT_DEFAULTS[c] === val) {
+      dest[b][authored] = '1';
+    } else delete dest[b][authored];
+  }
   if (val === '' || val == null) delete dest[b][c]; else dest[b][c] = val;
 }
 
@@ -2584,13 +3420,34 @@ const tgtIsClass = (n: PcNode) => tgtObj(n) !== n;
    writes — this one and `applyOne` — and both understand the prefix, which is the whole of what
    makes a property editable by controls that were written years before components existed. */
 const VAL = 'val:';
+const LIST_PROP_DEFAULTS: Record<string, string> = {
+  collectionLayout: 'grid', sort: '', dir: 'asc', where: '', op: 'is'
+};
 const propVal = (n: PcNode, k?: string) => {
   if (k == null) return undefined;
   if (k.startsWith(VAL)) {
     const scope = bindScope(n.id);
     return instValue(n, findComponent(n.use), k.slice(VAL.length), scope?.col, previewItem(scope?.col || null));
   }
-  return (n.props as PropBag)[k];
+  /* Legacy Navs stored a numeric pixel threshold. Rendering already treats every value except
+     Tablet and Never as Mobile; show that real fallback in the enum without rewriting signed
+     templates, portable packages or saved documents. */
+  if (n.type === 'nav' && k === 'collapse') {
+    const collapse = n.props.collapse;
+    return collapse === 'tablet' || collapse === 'never' ? collapse : 'mobile';
+  }
+  if (n.type === 'nav' && k === 'mobileMenu') return n.props.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown';
+  const value = (n.props as PropBag)[k];
+  /* Sliders made before Controls position existed render their arrows beside the slides.
+     Read that same default in the inspector without adding a property to saved documents. */
+  if (value == null && n.type === 'slider' && k === 'controlsPosition') return 'sides';
+  /* Older Collection nodes can predate one or more explicit enum defaults. Their renderer
+     already treats those absences as Grid, CMS order, ascending order, no filter and `is`;
+     read the same values in the controls without rewriting saved or released documents. */
+  if (value == null && n.type === 'list' && Object.prototype.hasOwnProperty.call(LIST_PROP_DEFAULTS, k)) {
+    return LIST_PROP_DEFAULTS[k];
+  }
+  return value;
 };
 
 /** A link's mode is derived from the href it holds, so a mode picked but not yet
@@ -2613,13 +3470,153 @@ function styleDelete(id: string) {
   allTrees().forEach(l => eachNode(l, x => { if (x.props.ts === id) tsUnlink(x); }));
   ensureTokens().text = styles().filter(t => t.id !== id);
 }
-/* deleting a colour inlines its literal everywhere, so nothing silently breaks */
+/* Every declaration block a colour can be written into: each element's breakpoints and its
+   hover and focus states, then the same on every text style and class. One walk, so deleting a
+   colour and counting its uses cannot disagree about where to look. */
+function eachDecls(fn: (o: Decls) => void) {
+  const visit = (o: { css?: Css; st?: States }) =>
+    [o.css, ...STATES.map(([k]) => o.st && o.st[k])].forEach(c => {
+      if (c) (['d', 't', 'm'] as Bp[]).forEach(b => { if (c[b]) fn(c[b]); });
+    });
+  allTrees().forEach(l => eachNode(l, visit));
+  styles().forEach(visit);
+  classes().forEach(visit);
+}
+type ColorRefRewrite = { value: string; count: number; safe: boolean };
+
+/** Rewrite one colour custom-property read without touching strings, comments, similarly
+ * named properties, or the fallback of a different `var()`. The recursive fallback walk is
+ * what makes `var(--other, var(--c-accent))` safe. */
+function rewriteColorRefs(source: string, id: string, literal?: string, depth = 0): ColorRefRewrite {
+  const property = '--c-' + id;
+  if (!source.includes('v') && !source.includes('V')) return { value: source, count: 0, safe: true };
+  const exactPropertyIn = (value: string) => {
+    let at = value.indexOf(property);
+    while (at >= 0) {
+      const after = value[at + property.length] || '';
+      if (!after || !/[A-Za-z0-9_-]/.test(after)) return true;
+      at = value.indexOf(property, at + property.length);
+    }
+    return false;
+  };
+  if (depth > 32) return { value: source, count: 0, safe: !exactPropertyIn(source) };
+  const matchingClose = (value: string, open: number) => {
+    let depth = 1, quote = '';
+    for (let i = open + 1; i < value.length; i++) {
+      const ch = value[i], next = value[i + 1] || '';
+      if (quote) {
+        if (ch === '\\') i++;
+        else if (ch === quote) quote = '';
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if (ch === '/' && next === '*') {
+        const end = value.indexOf('*/', i + 2);
+        if (end < 0) return -1;
+        i = end + 1;
+        continue;
+      }
+      if (ch === '(') depth++;
+      else if (ch === ')' && --depth === 0) return i;
+    }
+    return -1;
+  };
+  const firstArgument = (body: string) => {
+    let depth = 0, quote = '';
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i], next = body[i + 1] || '';
+      if (quote) {
+        if (ch === '\\') i++;
+        else if (ch === quote) quote = '';
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if (ch === '/' && next === '*') {
+        const end = body.indexOf('*/', i + 2);
+        if (end < 0) return body;
+        i = end + 1;
+        continue;
+      }
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      else if (ch === ',' && depth === 0) return body.slice(0, i);
+    }
+    return body;
+  };
+  let value = '', count = 0, safe = true;
+  for (let i = 0; i < source.length;) {
+    const ch = source[i], next = source[i + 1] || '';
+    if (ch === '"' || ch === "'") {
+      const quote = ch, start = i++;
+      while (i < source.length) {
+        if (source[i] === '\\') i += 2;
+        else if (source[i++] === quote) break;
+      }
+      value += source.slice(start, i);
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end < 0) { value += source.slice(i); break; }
+      value += source.slice(i, end + 2); i = end + 2;
+      continue;
+    }
+    const match = source.slice(i).match(/^var(?:\s|\/\*[\s\S]*?\*\/)*\(/i);
+    const before = source[i - 1] || '';
+    if (match && !/[A-Za-z0-9_-]/.test(before)) {
+      const open = i + match[0].lastIndexOf('('), close = matchingClose(source, open);
+      if (close < 0) {
+        const tail = source.slice(i);
+        if (exactPropertyIn(tail)) safe = false;
+        value += tail;
+        break;
+      }
+      const body = source.slice(open + 1, close);
+      const arg = firstArgument(body).replace(/\/\*[\s\S]*?\*\//g, '').trim();
+      if (arg === property) {
+        count++;
+        value += literal === undefined ? source.slice(i, close + 1) : literal;
+      } else {
+        const nested = rewriteColorRefs(body, id, literal, depth + 1);
+        count += nested.count; safe = safe && nested.safe;
+        value += source.slice(i, open + 1) + nested.value + ')';
+      }
+      i = close + 1;
+      continue;
+    }
+    value += ch;
+    i++;
+  }
+  return { value, count, safe };
+}
+
+function colorRefTargets() {
+  const targets: { value: string; set: (value: string) => void }[] = [];
+  eachDecls(o => { for (const key in o) targets.push({ value: String(o[key]), set: value => { o[key] = value; } }); });
+  allTrees().forEach(list => eachNode(list, n => {
+    if (n.adv && typeof n.adv.css === 'string') targets.push({ value: n.adv.css, set: value => { n.adv.css = value; } });
+  }));
+  if (typeof state.meta.css === 'string') targets.push({ value: state.meta.css, set: value => { state.meta.css = value; } });
+  return targets;
+}
+
+function colorDeleteCheck(id: string) {
+  if (RESERVED.includes(id)) return { ok: false, reason: 'Built-in colour tokens cannot be deleted.' };
+  const safe = colorRefTargets().every(target => rewriteColorRefs(target.value, id).safe);
+  return safe
+    ? { ok: true, reason: '' }
+    : { ok: false, reason: 'This colour is referenced by CSS that Pagecraft cannot safely rewrite. Fix that CSS and try again.' };
+}
+
+/* deleting a colour inlines its literal everywhere, so nothing silently breaks — including
+   declarations, node custom CSS and project CSS. Malformed matching var() syntax aborts the
+   whole deletion before mutation rather than risking a partial or corrupt rewrite. */
 function colorDelete(id: string) {
-  if (RESERVED.includes(id)) return false;
+  if (!colorDeleteCheck(id).ok) return false;
   const lit = resolveColor(cvar(id)) || 'transparent';
-  const swap = (o: Decls) => { for (const k in o) if (refId(o[k]) === id) o[k] = lit; };
-  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => swap(x.css[b] || {}))));
-  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => swap((t.css && t.css[b]) || {})));
+  const changes = colorRefTargets().map(target => ({ target, result: rewriteColorRefs(target.value, id, lit) }));
+  if (changes.some(change => !change.result.safe)) return false;
+  changes.forEach(({ target, result }) => { if (result.count) target.set(result.value); });
   ensureTokens().colors = colors().filter(c => c.id !== id);
   return true;
 }
@@ -2631,11 +3628,10 @@ function colorAdd(name: string, value: string) {
   return id;
 }
 const colorUsage = (id: string) => {
-  let k = 0;
-  const hits = (o: Decls) => { for (const p in o) if (refId(o[p]) === id) k++; };
-  allTrees().forEach(l => eachNode(l, x => (['d', 't', 'm'] as Bp[]).forEach(b => hits(x.css[b] || {}))));
-  styles().forEach(t => (['d', 't', 'm'] as Bp[]).forEach(b => hits((t.css && t.css[b]) || {})));
-  return k;
+  return colorRefTargets().reduce((count, target) => {
+    const result = rewriteColorRefs(target.value, id);
+    return count + (result.count > 0 || !result.safe ? 1 : 0);
+  }, 0);
 };
 
 /* ================================================== export review (lint)
@@ -2863,6 +3859,11 @@ function effective(node: PcNode, prop: string, chain: PcNode[]) {
   }
   const t = findStyle(node.props.ts);
   if (t && (t.css.d || {})[prop]) return t.css.d[prop];
+  /* The compatibility foreground is consumed only by the zero-specificity solid-button
+     rule. Local, class and text-style colours above still win, while transparent variants
+     inherit from their surroundings exactly as the exported CSS does. */
+  if (prop === 'color' && node.type === 'button' && node.props.variant === 'solid'
+    && (node.css.d || {})['--pc-solid-fg']) return node.css.d['--pc-solid-fg'];
   for (let i = chain.length - 1; i >= 0; i--) {
     const v = (chain[i].css.d || {})[prop];
     if (v) return v;
@@ -2895,19 +3896,20 @@ function crc32(u8: Uint8Array): number {
 
 function lint() {
   const out: Finding[] = [];
-  const add = (level: 'error' | 'warn', code: string, msg: string, where: any, nodeId?: string) => out.push({ level, code, msg, where, nodeId });
+  const add = (level: 'error' | 'warn', code: string, msg: string, where: any,
+    nodeId?: string, target?: FindingTarget) => out.push({ level, code, msg, where, nodeId, target });
 
   /* ids available on each page, so links can be resolved across the site */
   const idsBySlug: Record<string, Set<string>> = {};
-  state.pages.forEach(pg => {
+  linkablePages().forEach(pg => {
     const ids = new Set<string>();
-    [state.header, pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
+    [pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[pg.slug + '.html'] = ids;
   });
   // Generated detail and pagination URLs are real publication targets too.
   for (const target of exportTargets()) {
     const ids = new Set<string>();
-    [state.header, target.pg.tree, state.footer].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
+    [pageRegion(target.pg, 'header'), target.pg.tree, pageRegion(target.pg, 'footer')].forEach(l => eachNode(l, n => ids.add(domIdOf(n))));
     idsBySlug[target.path] = ids;
   }
   const pageOf = (slug: string) => idsBySlug[slug];
@@ -2918,10 +3920,48 @@ function lint() {
     const scope = { page: pg.name, slug: pg.slug };
     if (!pg.title) add('warn', 'no-title', `“${pg.name}” has no browser title, so the tab falls back to the page name.`, scope);
     if (!pg.desc) add('warn', 'no-desc', `“${pg.name}” has no meta description, so search results pick their own snippet.`, scope);
+    const publisher = pg.collection ? templateFor(pg.collection) : null;
+    /* A detail template's title and description come from fields the CMS can delete. The
+       pages fall back quietly, which is fine to publish and easy never to notice. */
+    const seoCol = pg.collection ? findCollection(pg.collection) : null;
+    if (seoCol && templateFor(seoCol.id) === pg) {
+      for (const [key, what, fallback] of [['bindTitle', 'title', 'page title'], ['bindDesc', 'description', 'page description']] as const) {
+        if (pg[key] && !fieldAt(seoCol, pg[key]!)) add('warn', 'seo-missing-field',
+          `“${pg.name}” takes its ${what} from a field “${seoCol.name}” no longer has, so every item page uses the ${fallback}. Choose another field in Settings & SEO.`, scope);
+      }
+    }
+    if (publisher && publisher !== pg) add('error', 'duplicate-template',
+      `“${pg.name}” is also the detail template for “${findCollection(pg.collection!)!.name}”, so it publishes nothing: “${publisher.name}” publishes those pages. Make one of them an ordinary page.`, scope);
+
+    /* Where a project path goes wrong: a page that does not exist, a detail template, an anchor
+       the page lacks, or a fragment in a global region. Shared by the authored-link pass and the
+       per-item pass that reviews links a component property or a CMS field supplies. */
+    const linkProblem = (h: string, region: string): { level: 'error' | 'warn'; code: string; msg: string } | null => {
+      if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return null;
+      const destination = projectLinkTarget(h, here);
+      // Unsupported custom schemes still fail review instead of becoming project paths.
+      const { path, frag, target } = destination || { path: h, frag: '', target: h };
+      /* A bare `#anchor` in a global region resolves only on the page that has it — unless
+         there is one page, where "every page" and "this page" are the same thing and the
+         warning is noise. A one-pager with an anchor nav is a normal site, and this fired
+         three times on one built with this very builder.
+
+         Not just quieter: the early return meant a single-page project never had the anchor
+         checked at all. Falling through sends it to the same `dead-anchor` check a page-local
+         link gets, so `#nope` in a one-pager is now an error rather than a shrug. */
+      if (path === '' && region !== 'page' && state.pages.length > 1) {
+        return { level: 'warn' as const, code: 'global-fragment', msg: `The ${region} links to “${h}”. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor — name the page instead.` };
+      }
+      const template: Page | undefined = pageOf(target) ? undefined
+        : state.pages.find(p => p.slug + '.html' === target && isDetailTemplate(p));
+      if (template) return { level: 'error' as const, code: 'dead-link', msg: `“${h}” in the ${region} points at “${template.name}”, a detail template. It is published as one page per item, never at ${target}. Choose another page, or link to an item’s own page.` };
+      if (!pageOf(target)) return { level: 'error' as const, code: 'dead-link', msg: `“${h}” in the ${region} points at ${target}, which is not a page in this project.` };
+      if (frag && !pageOf(target).has(frag)) return { level: 'error' as const, code: 'dead-anchor', msg: `“${h}” in the ${region} has no matching element id on ${target}.` };
+      return null;
+    };
 
     const seenIds = new Set(), dupIds = new Set();
     let headings: any[] = [];
-    let heroImageReviewed = false;
     /* the components being walked into, so one that contains itself is a finding-free stop
        rather than a stack overflow in the review */
     const stack: string[] = [];
@@ -2979,18 +4019,24 @@ function lint() {
         if (isFront(pg)) labels.add('home');
         ((n.props.items as NavItem[]) || []).forEach(it => {
           const h = String(it && it.href || '').trim();
-          const [path, frag = ''] = h.split('#');
-          const target = path === '' ? here : path;
+          const destination = projectLinkTarget(h, here);
           /* A menu label promises a destination. “Work” pointing to the top of Home is a
              working URL and still a broken journey, so the ordinary dead-link check cannot
              catch it. A genuine Home item is intentionally allowed. */
-          if (h && target === here && !frag && !labels.has(slugify(it && it.label || ''))) {
+          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ''))) {
             add('warn', 'nav-page-top', `“${String(it && it.label || 'A menu item')}” in the ${region} links to the top of “${pg.name}”. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
       }
       const links: any[] = [];
-      if (hasItemHrefs(n)) ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
+      if (n.type === 'nav') ((n.props.items as any[]) || []).forEach((it: any) => links.push(it.href));
+      if (n.type === 'crumbs' && n.props.mode === 'manual') {
+        /* Rendering makes the last written crumb the current page and suppresses its href.
+           Review only the preceding anchors that are actually emitted. From-page mode
+           derives its trail from project pages and ignores any stale stored item rows. */
+        const items = (n.props.items as any[]) || [];
+        items.slice(0, -1).forEach((it: any) => links.push(it.href));
+      }
       if (n.props.link !== undefined) links.push(n.props.link);
       if (n.type === 'text') [...String(n.props.html || '').matchAll(/href="([^"]*)"/g)].forEach(m => links.push(m[1]));
       links.filter(h => h !== undefined && h !== null).forEach(href => {
@@ -3002,7 +4048,7 @@ function lint() {
           add('error', 'wordpress-link-invalid', `A WordPress content link in the ${region} has an invalid target-neutral reference. Choose the WordPress destination again.`, w, n.id);
           return;
         }
-        if (/^(https?:|mailto:|tel:|data:)/i.test(h)) return;
+        if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(h)) return;
         /* `cms:item` resolves per item at export, so it cannot be checked as a path.
            What can go wrong is that nothing templates the collection — then it
            resolves to nothing at all. */
@@ -3010,53 +4056,19 @@ function lint() {
           const isc = n.src ? findCollection(n.src) : null;
           const owner = isc || (() => {
             let f: Collection | null = null;
-            eachNode(pg.tree, x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
+            eachNode([...(pageRegion(pg, 'header')), ...pg.tree, ...(pageRegion(pg, 'footer'))], x => { if (!f && x.src && findCollection(x.src)) { let d = false; eachNode([x], y => { if (y.id === n.id) d = true; }); if (d) f = findCollection(x.src); } });
             return (f || (pg.collection ? findCollection(pg.collection) : null)) as any;
           })();
           if (!owner) add('error', 'item-link-no-scope', `A link in the ${region} points at “this item’s page”, but nothing around it says which collection.`, w, n.id);
           else if (!state.pages.some(x => x.collection === owner.id)) add('error', 'item-link-no-template', `A link in the ${region} points at an item’s own page, but no page is a detail template for “${owner.name}”.`, w, n.id);
           return;
         }
-        const [path, frag] = h.split('#');
-        const target = path === '' ? here : path;
-        /* A bare `#anchor` in a global region resolves only on the page that has it — unless
-           there is one page, where "every page" and "this page" are the same thing and the
-           warning is noise. A one-pager with an anchor nav is a normal site, and this fired
-           three times on one built with this very builder.
-
-           Not just quieter: the early return meant a single-page project never had the anchor
-           checked at all. Falling through sends it to the same `dead-anchor` check a page-local
-           link gets, so `#nope` in a one-pager is now an error rather than a shrug. */
-        if (path === '' && region !== 'page' && state.pages.length > 1) {
-          add('warn', 'global-fragment', `The ${region} links to “${h}”. Because the ${region} is on every page, that only resolves on pages that happen to have this anchor — name the page instead.`, w, n.id);
-          return;
-        }
-        if (!pageOf(target)) { add('error', 'dead-link', `“${h}” in the ${region} points at ${target}, which is not a page in this project.`, w, n.id); return; }
-        if (frag && !pageOf(target).has(frag)) add('error', 'dead-anchor', `“${h}” in the ${region} has no matching element id on ${target}.`, w, n.id);
+        const problem = linkProblem(h, region);
+        if (problem) add(problem.level, problem.code, problem.msg, w, n.id);
       });
 
-      /* images */
-      if (n.type === 'image') {
-        if (!n.props.src) add('warn', 'no-image', `An image in the ${region} has no source and will export a placeholder.`, w, n.id);
-        /* Demand alt text once there is an image to describe. Until a source is
-           set the element is a placeholder — `no-image` already reports that,
-           and raising an error too made every template with a photo slot open
-           on a wall of problems the user cannot yet act on. */
-        if (n.props.src && !n.props.decorative && !String(n.props.alt || '').trim())
-          add('error', 'no-alt', `An image in the ${region} has no alt text. Describe it, or mark it decorative.`, w, n.id);
-        if (n.props.src && !(n.props.w && n.props.h))
-          add('warn', 'no-dimensions', `An image in the ${region} has no width/height, so the page will shift as it loads.`, w, n.id);
-        /* The first image in the first body section is the only position the review can call
-           above-the-fold without guessing at authored heights. Later images should stay lazy. */
-        const inFirstSection = region === 'page' && (n === pg.tree[0] || chain[0] === pg.tree[0]);
-        if (!heroImageReviewed && inFirstSection && n.props.src) {
-          heroImageReviewed = true;
-          if (n.props.lazy) add('warn', 'hero-image-lazy', `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`, w, n.id);
-        }
-      }
-      /* video */
-      if (n.type === 'video' && !canFacade(n.props) && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) && !n.props.autoplay)
-        add('warn', 'eager-video', `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`, w, n.id);
+      /* Images and videos are reviewed below with the same collection/component context the
+         renderer uses. Reading `n.props` here makes an authored fallback win over a binding. */
 
       if (n.type === 'slider' && (n.children || []).length < 2)
         add('warn', 'slider-thin', `A slider in the ${region} holds ${(n.children || []).length} slide${(n.children || []).length === 1 ? '' : 's'}, so there is nothing to scroll to.`, w, n.id);
@@ -3087,7 +4099,11 @@ function lint() {
         const rows = (Array.isArray(n.props.items) ? n.props.items : []) as TabPanel[];
         if (!rows.length) add('warn', 'tabs-empty', `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
         const noL = rows.filter(r => !String(r && r.label || '').trim()).length;
-        const noP = rows.filter(r => String(r && r.label || '').trim() && !String(r && r.panel || '').trim()).length;
+        const problem = tabPanelProblem(n);
+        if (problem) add('error', 'tabs-invalid-panels', problem, w, n.id);
+        const noP = rows.filter(r => String(r && r.label || '').trim() && (hasRichTabPanels(n)
+          ? !n.children.find(child => child.id === r.panelId)?.children.length
+          : !String(r && r.panel || '').trim())).length;
         if (noL) add('error', 'tabs-no-label', `${noL} tab${noL === 1 ? '' : 's'} in the ${region} have no label, so there is nothing to click.`, w, n.id);
         if (noP) add('warn', 'tabs-no-panel', `${noP} tab${noP === 1 ? '' : 's'} in the ${region} open onto an empty panel.`, w, n.id);
       }
@@ -3132,18 +4148,17 @@ function lint() {
         if (noDim) add('warn', 'gallery-no-dimensions', `${noDim} image${noDim === 1 ? '' : 's'} in a gallery in the ${region} have no width/height, so the grid will shift as it loads.`, w, n.id);
       }
 
-      /* headings, in document order */
-      if (n.type === 'heading' && HEADING_TAGS.test(String(n.props.level || '')))
+      /* Instances render their definition below, not their placeholder heading. */
+      if (n.type === 'heading' && !n.use && HEADING_TAGS.test(String(n.props.level || '')))
         headings.push({ level: +String(n.props.level)[1], node: n, region });
 
       /* forms */
       if (n.type === 'form') {
         const fields = Array.isArray(n.props.fields) ? n.props.fields : [];
-        const rawAction = String(n.props.action || '').trim();
-        const wordpressManaged = !!cloudFormEndpoint || n.props.mode === 'wordpress';
-        if (!wordpressManaged && !rawAction)
-          add('error', 'form-no-action', `A form in the ${region} has nowhere to send submissions. Pagecraft does not receive form posts, so its fields and button stay disabled when published until you paste a complete https:// endpoint.`, w, n.id);
-        else if (!wordpressManaged && !safeFormAction(rawAction))
+        const handling = resolveFormHandling(n.props, n.id);
+        if (handling.reason === 'missing')
+          add(handling.method === 'get' ? 'warn' : 'error', 'form-no-action', `A form in the ${region} has nowhere to send submissions, so its fields and button stay disabled when published. Paste a complete https:// destination.`, w, n.id);
+        else if (handling.reason === 'unsafe')
           add('error', 'unsafe-form-action', `A form in the ${region} does not use an explicit, secure endpoint, so submission is disabled when published. Paste a complete https:// URL for the form service that will receive it.`, w, n.id);
         if (!fields.length)
           add('warn', 'form-no-fields', `A form in the ${region} has no fields.`, w, n.id);
@@ -3151,24 +4166,39 @@ function lint() {
           if (!String(fl.label || '').trim())
             add('error', 'field-no-label', `Field ${fi + 1} of a form in the ${region} has no label, so nobody using a screen reader can tell what it wants.`, w, n.id);
         });
-        /* a form dropped onto a dark section keeps light-section defaults, so
-           its own colours need the same contrast check as any other text */
-        let behind = '';
-        for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = (chain[i].css.d || {})['background-color'] || '';
-        if (!behind) behind = (findColor('bg') || {}).value || '';
-        const pairs = [
-          ['--f-label', behind, 'Field labels'],
-          ['--f-text', (n.css.d || {})['--f-bg'] || behind, 'Text typed into the fields'],
-          ['--f-btn-fg', (n.css.d || {})['--f-btn-bg'] || behind, 'The submit button label']
+        /* Check the declarations the responsive stylesheet will actually use, including
+           reusable classes and colour tokens. One finding per pair keeps the review useful
+           when the same problem inherits through several breakpoints. */
+        const bpLabels: Record<Bp, string> = { d: 'Desktop', t: 'Tablet', m: 'Mobile' };
+        const contrastPairs = [
+          ['--f-label', '', 'Field labels'],
+          ['--f-text', '--f-bg', 'Text typed into the fields'],
+          ['--f-btn-fg', '--f-btn-bg', 'The submit button label']
         ];
-        pairs.forEach(([prop, bg, what]) => {
-          const fg = (n.css.d || {})[prop];
-          const r = fg && bg ? contrast(fg, bg) : null;
-          if (r && r < 4.5) add('warn', 'form-contrast',
-            `${what} in a form in the ${region} sit at ${r.toFixed(2)}:1 against their background — WCAG AA wants 4.5:1.`, w, n.id);
+        contrastPairs.forEach(([fgProp, bgProp, what]) => {
+          const misses: { bp: Bp; ratio: number }[] = [];
+          (['d', 't', 'm'] as Bp[]).forEach(bp => {
+            let behind = '';
+            for (let i = chain.length - 1; i >= 0 && !behind; i--) behind = cssAt(chain[i], bp, 'background-color');
+            if (!behind) behind = (findColor('bg') || {}).value || '';
+            const fg = cssAt(n, bp, fgProp);
+            const bg = bgProp ? cssAt(n, bp, bgProp) || behind : behind;
+            const ratio = fg && bg ? contrast(fg, bg) : null;
+            if (ratio && ratio < 4.5) misses.push({ bp, ratio });
+          });
+          if (misses.length) {
+            const grouped = new Map<string, string[]>();
+            misses.forEach(({ bp, ratio }) => {
+              const key = ratio.toFixed(2);
+              grouped.set(key, [...(grouped.get(key) || []), bpLabels[bp]]);
+            });
+            const where = Array.from(grouped, ([ratio, labels]) => `${labels.join(', ')} (${ratio}:1)`).join('; ');
+            add('warn', 'form-contrast',
+              `${what} in a form in the ${region} miss WCAG AA contrast on ${where}; minimum is 4.5:1.`, w, n.id);
+          }
         });
 
-        const names = fields.map((fl, fi) => String(fl.name || '').trim() || slugify(fl.label) || 'field-' + (fi + 1));
+        const names = fields.map(formFieldName);
         names.forEach((nm, fi) => {
           if (names.indexOf(nm) !== fi)
             add('warn', 'field-dup-name', `Two fields in a form in the ${region} both submit as “${nm}”, so one value will overwrite the other.`, w, n.id);
@@ -3218,9 +4248,244 @@ function lint() {
       visit(n.children || [], chain.concat(n), region);
     });
 
-    visit(state.header, [], 'global header');
+    visit(pageRegion(pg, 'header'), [], pg.header === undefined ? 'global header' : 'page header');
     visit(pg.tree, [], 'page');
-    visit(state.footer, [], 'global footer');
+    visit(pageRegion(pg, 'footer'), [], pg.footer === undefined ? 'global footer' : 'page footer');
+
+    /* Media review is the one lint pass that needs rendered content rather than the authored
+       fallback. Keep it separate from the static review above so collection repetition does
+       not duplicate link, heading or contrast findings. This follows the renderer's scopes:
+       lists use their filtered/sorted published rows, detail templates use every published
+       item, and component properties/slots resolve exactly where the instance renders them. */
+    type ContextReview = {
+      level: 'error' | 'warn'; code: string; msg: string; where: any; nodeId: string;
+      items: Map<string, string>; target: FindingTarget;
+    };
+    const contextReviews = new Map<string, ContextReview>();
+    const missingFieldSeen = new Set<string>();
+    const queueContext = (level: 'error' | 'warn', code: string, msg: string, region: string,
+      node: PcNode, context: RenderContext) => {
+      const nodeId = context.inst ? context.inst.id : node.id;
+      const key = [code, region, nodeId, node.id].join('|');
+      let review = contextReviews.get(key);
+      if (!review) {
+        const target: FindingTarget = {
+          pageId: pg.id, scope: context.scope, nodeId,
+          ...(context.previewItems.length ? { previewItems: context.previewItems.map(item => ({ ...item })) } : {}),
+          ...(context.repeatPath.length ? { repeatPath: context.repeatPath.map(item => ({ ...item })) } : {}),
+          ...(context.pagination ? { pagination: { ...context.pagination } } : {})
+        };
+        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: new Map(), target };
+        contextReviews.set(key, review);
+      }
+      if (context.col && context.item) {
+        review.items.set(`${context.col.id}|${context.item.id}`, `“${itemTitle(context.col, context.item)}”`);
+      }
+    };
+    type RenderContext = {
+      col: Collection | null; item: Item | null; repeat: boolean;
+      inst: PcNode | null; cdef: ComponentDef | null; stack: string[];
+      hero: { reviewed: boolean };
+      scope: FindingTarget['scope'];
+      previewItems: FindingItemTarget[];
+      repeatPath: FindingItemTarget[];
+      pagination: FindingTarget['pagination'] | null;
+    };
+    const withPreviewItem = (context: RenderContext, col: Collection, item: Item | null): RenderContext => {
+      if (!item) return context;
+      const previewItems = context.previewItems.filter(target => target.collectionId !== col.id);
+      const target = { collectionId: col.id, itemId: item.id };
+      previewItems.push(target);
+      /* A static source inside a repeated branch still emits an editor CMS hook for its own
+         preview item. Carry that extra DOM level as well as the preview choice, or exact
+         navigation would reject a target the renderer can address. */
+      return {
+        ...context, previewItems,
+        repeatPath: context.repeat ? [...context.repeatPath, target] : context.repeatPath
+      };
+    };
+    const walkContext = (list: PcNode[], chain: PcNode[], region: string, context: RenderContext): void => {
+      list.forEach(n => {
+        if (n.use) {
+          const cd = findComponent(n.use);
+          if (cd && !context.stack.includes(n.use)) {
+            walkContext([cd.node], chain.concat(n), `${region}, in “${cd.name}”`, {
+              ...context, inst: n, cdef: cd, stack: context.stack.concat(n.use)
+            });
+          }
+          return;
+        }
+
+        const host = context.inst && context.cdef && n === context.cdef.node ? context.inst : null;
+        const self = host || n;
+        const source = self.src || n.src;
+        const sc = source ? findCollection(source) : null;
+        const sourceUsesRepeat = !!sc && context.repeat && context.col === sc;
+        const sourceItemValue = sc ? sourceItem(sc, context.col, context.item, context.repeat) : null;
+        const scopedBase = sc ? { ...context, col: sc, item: sourceItemValue } : context;
+        const scoped = sc && !sourceUsesRepeat ? withPreviewItem(scopedBase, sc, sourceItemValue) : scopedBase;
+        /* A binding or condition left on a field the collection no longer has. The CMS asks for
+           these to be reviewed before it deletes a field; this keeps them in view afterwards.
+           Once per element rather than once per item, because no item can fix it. */
+        if (scoped.col) {
+          const col = scoped.col;
+          const gone = (b?: Binding | null) => !!b && b.src === 'field' && !!b.path && !fieldAt(col, b.path);
+          const what = `A ${(DEF[n.type]?.label || 'element').toLowerCase()} in the ${region}`;
+          const report = (level: 'error' | 'warn', code: string, msg: string) => {
+            const key = code + '|' + n.id;
+            if (missingFieldSeen.has(key)) return;
+            missingFieldSeen.add(key);
+            add(level, code, msg, { ...scope, region, node: kindOf(n) }, context.inst ? context.inst.id : n.id);
+          };
+          if (Object.values(n.bind || {}).some(gone)) report('error', 'binding-missing-field',
+            `${what} is bound to a field “${col.name}” no longer has, so that part publishes empty. Unbind it in the inspector, or bind it to another field.`);
+          const c = n.showIf;
+          if (c && gone(c.bind)) {
+            const want = String(c.value == null ? '' : c.value).trim();
+            const test = c.op === 'set' ? 'is filled in' : c.op === 'empty' ? 'is empty'
+              : c.op === 'eq' ? `matches “${want}”` : `differs from “${want}”`;
+            /* the missing field reads as empty, which decides the outcome for good */
+            const shown = c.op === 'empty' || (c.op === 'eq' && want === '') || (c.op === 'ne' && want !== '');
+            report('error', 'condition-missing-field',
+              `${what} is shown only when a field “${col.name}” no longer has ${test}, so it is always ${shown ? 'shown' : 'hidden'}. Choose another field for its condition, or remove the condition.`);
+          }
+        }
+
+        if (n.showIf && !showsNode(n, scoped.col, scoped.item, context.inst, context.cdef)) return;
+
+        /* A bound icon name the builder does not have publishes no icon. Empty is a fair way to
+           say "no icon", so only a name that is not an icon, usually a typo, is reported. */
+        if (n.type === 'icon' && bindGet(n, 'name')) {
+          const nm = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).name ?? '').trim();
+          if (nm && !ICON_PATHS[nm]) queueContext('warn', 'icon-unknown-name',
+            `An icon in the ${region} takes its name from a value that is not an icon name, such as “${nm.slice(0, 40)}”, so it publishes no icon. Use a name from the icon picker, for example “check” or “arrow-right”.`,
+            region, n, scoped);
+        }
+
+        if (n.type === 'image') {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!p.src) queueContext('warn', 'no-image',
+            `An image in the ${region} has no source and will export a placeholder.`,
+            region, n, scoped);
+          /* Demand alt text once there is an image to describe. Until a source is set the
+             placeholder finding is the only action the author can take. */
+          if (p.src && !p.decorative && !String(p.alt || '').trim()) queueContext('error', 'no-alt',
+            `An image in the ${region} has no alt text. Describe it, or mark it decorative.`,
+            region, n, scoped);
+          if (p.src && p.decorative && String(p.link || '').trim()
+            && !String(p.label || '').trim() && !String(p.caption || '').trim())
+            queueContext('error', 'image-link-no-label',
+              `A linked decorative image in the ${region} has no accessible link label. Add a Link label so screen readers can name its destination.`,
+              region, n, scoped);
+          if (p.src && !(p.w && p.h)) queueContext('warn', 'no-dimensions',
+            `An image in the ${region} has no width/height, so the page will shift as it loads.`,
+            region, n, scoped);
+          /* As before, only the first sourced image in the opening body section is known to be
+             above the fold. The flag belongs to one exported page context, not the project. */
+          const inFirstSection = region.startsWith('page') && (n === pg.tree[0] || chain[0] === pg.tree[0]);
+          if (!scoped.hero.reviewed && inFirstSection && p.src) {
+            scoped.hero.reviewed = true;
+            if (p.lazy) queueContext('warn', 'hero-image-lazy',
+              `The first image in “${pg.name}” is lazy-loaded even though it appears in the opening section. Turn off Lazy load so the hero can start sooner.`,
+              region, n, scoped);
+          }
+        }
+
+        /* The static pass already flags an authored empty label. This catches the label a
+           binding empties: a CMS item with no value, or an instance property left blank,
+           renders a button with nothing for a screen reader to announce. */
+        if (n.type === 'button' && String(n.props.text || '').trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || '').trim()) queueContext('error', 'empty-button-bound',
+            `A button in the ${region} gets its label from content that is empty, so it has no label.`,
+            region, n, scoped);
+        }
+
+        /* The same gap for a heading: an entry with no value, or a reference whose target was
+           deleted or is still a draft, publishes an empty heading tag. A screen reader still
+           announces a heading there, so it is worth a look even though nothing is broken. */
+        if (n.type === 'heading' && String(n.props.text || '').trim()) {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          if (!String(p.text || '').trim()) queueContext('warn', 'empty-heading-bound',
+            `A heading in the ${region} gets its text from content that is empty, so it publishes as an empty heading.`,
+            region, n, scoped);
+        }
+
+        /* The static pass reviews the authored link, which a binding replaces. A component
+           property or a CMS Link field supplies the href that is published, so review that
+           one, once per item. */
+        if (bindGet(n, 'link')) {
+          const h = String(boundProps(n, scoped.col, scoped.item, context.inst, context.cdef).link || '').trim();
+          const problem = h && h !== '#' && h !== 'cms:item' && !h.startsWith(WORDPRESS_CONTENT_REFERENCE_PREFIX)
+            ? linkProblem(h, region) : null;
+          if (problem) queueContext(problem.level, problem.code, problem.msg, region, n, scoped);
+        }
+
+        if (n.type === 'video') {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          const source = vidSrc(p);
+          if (source.kind === 'none') queueContext('warn', 'video-no-source',
+            `A video in the ${region} has no source and will export a placeholder. Add a YouTube, Vimeo, video file or embed URL.`,
+            region, n, scoped);
+          else if (source.kind === 'invalid') queueContext('error', 'video-invalid-source',
+            `A video in the ${region} has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.`,
+            region, n, scoped);
+          else if (!canFacade(p) && ['youtube', 'vimeo'].includes(source.kind) && !p.autoplay)
+            queueContext('warn', 'eager-video',
+              `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`,
+              region, n, scoped);
+        }
+
+        /* A Collection List renders its children once for every row. `listItems` is the same
+           filter/sort/limit decision used by export; with pagination active it deliberately
+           returns every row, including those that only appear in later generated files. */
+        if (n.type === 'list') {
+          const lc = n.src ? findCollection(n.src) : null;
+          const rows = lc ? listItems(n, lc) : [];
+          const drives = parseInt(String(n.props.per || ''), 10) > 0
+            && paginatorOf(pg)?.node.id === n.id;
+          if (lc) for (const item of rows) {
+            walkContext(n.children || [], chain.concat(n), region, {
+              ...context, col: lc, item, repeat: true,
+              repeatPath: [...context.repeatPath, { collectionId: lc.id, itemId: item.id }],
+              pagination: drives ? { listNodeId: n.id, itemId: item.id } : context.pagination
+            });
+          }
+          return;
+        }
+
+        const filled = n.slot && context.inst ? slotKids(context.inst, context.cdef, n.slot) : null;
+        const kids = filled && filled.length ? filled : (n.children || []);
+        const childContext = filled && filled.length
+          ? { ...scoped, inst: null, cdef: null, stack: slotCallerStack(context.stack, context.cdef) }
+          : scoped;
+        walkContext(kids, chain.concat(n), region, childContext);
+      });
+    };
+    const contexts: { col: Collection | null; item: Item | null }[] = [];
+    const detailCollection = pg.collection ? findCollection(pg.collection) : null;
+    if (detailCollection) published(detailCollection).forEach(item => contexts.push({ col: detailCollection, item }));
+    else contexts.push({ col: null, item: null });
+    for (const context of contexts) {
+      const renderContext: RenderContext = {
+        ...context, repeat: false, inst: null, cdef: null, stack: [], hero: { reviewed: false },
+        scope: 'page',
+        previewItems: context.col && context.item
+          ? [{ collectionId: context.col.id, itemId: context.item.id }] : [],
+        repeatPath: [], pagination: null
+      };
+      walkContext(pageRegion(pg, 'header'), [], pg.header === undefined ? 'global header' : 'page header', { ...renderContext, scope: 'header' });
+      walkContext(pg.tree, [], 'page', renderContext);
+      walkContext(pageRegion(pg, 'footer'), [], pg.footer === undefined ? 'global footer' : 'page footer', { ...renderContext, scope: 'footer' });
+    }
+    for (const review of contextReviews.values()) {
+      const labels = [...review.items.values()];
+      const shown = labels.slice(0, 3).join(', ');
+      const affected = labels.length
+        ? ` Affected item${labels.length === 1 ? '' : 's'}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}.`
+        : '';
+      add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
+    }
 
     dupIds.forEach(id => add('error', 'duplicate-id', `The anchor id “${id}” is used more than once on “${pg.name}”.`, scope));
 
@@ -3260,12 +4525,127 @@ const lintCounts = (findings: Finding[]) => ({
    to make one element look like another was to rebuild it control by control. */
 const styleClip: { css: Css | null; st: States | null; cls: string[] | null; ts: string; adv: string; from: string } =
   { css: null, st: null, cls: null, ts: '', adv: '', from: '' };
+let styleClipSource: PcNode | null = null;
+let styleClipClasses: StyleClass[] = [];
+/* Copy-time snapshots of the text style and colour tokens the look reads. Deleting either
+   bakes its values into the elements using it ("elements keep the look"); the clipboard is
+   not an element, so Paste applies the same promise from these. */
+let styleClipTextStyle: { id: string; css: Css } | null = null;
+let styleClipColors: { id: string; literal: string }[] = [];
+
+/* The clipboard outlives the page. Switching projects reloads the editor, and a look copied
+   in one project used to arrive in the next as "No styles copied yet". It is kept in this
+   browser's storage with the project it came from, so Paste knows whether the token, text
+   style and class ids it holds mean anything here. Storage is a convenience: when it is
+   missing, full or unreadable the clipboard keeps working in memory for this page. */
+const STYLE_CLIP_KEY = 'pagecraft.styleClip';
+const STYLE_CLIP_VERSION = 1;
+/** The project the open editor is editing. Set by the host before anything is copied. */
+let styleClipHere = '';
+/** The project the held look was copied in. */
+let styleClipProject = '';
+function setStyleClipProject(id: string) { styleClipHere = String(id || ''); }
+const styleClipStorage = (): Storage | null => {
+  try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; }
+};
+function styleClipSave() {
+  const store = styleClipStorage();
+  if (!store) return;
+  try {
+    if (!styleClip.css) { store.removeItem(STYLE_CLIP_KEY); return; }
+    store.setItem(STYLE_CLIP_KEY, JSON.stringify({
+      v: STYLE_CLIP_VERSION, project: styleClipProject, clip: styleClip, source: styleClipSource,
+      classes: styleClipClasses, textStyle: styleClipTextStyle, colors: styleClipColors
+    }));
+  } catch { /* quota or privacy mode: memory still holds it */ }
+}
+const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
+const isDecls = (x: unknown) => isObj(x) && Object.values(x).every(v => typeof v === 'string');
+const isCssShape = (x: unknown): x is Css => isObj(x) && (['d', 't', 'm'] as const).every(b => isDecls(x[b]));
+const isStatesShape = (x: unknown) => x === null || (isObj(x) && Object.values(x).every(v => v === undefined || isCssShape(v)));
+const isStrings = (x: unknown): x is string[] => Array.isArray(x) && x.every(v => typeof v === 'string');
+/** Read the stored clipboard. Anything malformed or from another version is dropped, never
+    half-applied: a wrong look pasted with confidence is worse than an empty clipboard. */
+function styleClipLoad() {
+  const store = styleClipStorage();
+  if (!store) return false;
+  let raw: string | null = null;
+  try { raw = store.getItem(STYLE_CLIP_KEY); } catch { return false; }
+  if (!raw) return false;
+  let data: any;
+  try { data = JSON.parse(raw); } catch { data = null; }
+  const c = data && data.clip, s = data && data.source;
+  const ok = isObj(data) && data.v === STYLE_CLIP_VERSION && typeof data.project === 'string'
+    && isObj(c) && isCssShape(c.css) && isStatesShape(c.st ?? null) && isStrings(c.cls)
+    && typeof c.ts === 'string' && typeof c.adv === 'string' && typeof c.from === 'string'
+    && isObj(s) && typeof s.id === 'string' && typeof s.type === 'string'
+    && Array.isArray(data.classes) && data.classes.every((x: any) => isObj(x) && typeof x.id === 'string'
+      && isCssShape(x.css) && isStatesShape(x.st ?? null))
+    && (data.textStyle === null || (isObj(data.textStyle) && typeof data.textStyle.id === 'string' && isCssShape(data.textStyle.css)))
+    && Array.isArray(data.colors) && data.colors.every((x: any) => isObj(x) && typeof x.id === 'string' && typeof x.literal === 'string');
+  if (!ok) {
+    try { store.removeItem(STYLE_CLIP_KEY); } catch { /* read-only storage */ }
+    return false;
+  }
+  const clip = data.clip as typeof styleClip, src = data.source as { id: string; type: string };
+  styleClip.css = clip.css; styleClip.st = clip.st ?? null; styleClip.cls = clip.cls;
+  styleClip.ts = clip.ts; styleClip.adv = clip.adv; styleClip.from = clip.from;
+  styleClipSource = { id: src.id, type: src.type, props: {}, css: clip.css!, st: clip.st ?? undefined, cls: clip.cls!,
+    hide: {}, adv: { htmlId: '', cls: '', css: '' }, children: [] } as unknown as PcNode;
+  styleClipClasses = data.classes;
+  styleClipTextStyle = data.textStyle;
+  styleClipColors = data.colors;
+  styleClipProject = data.project;
+  return true;
+}
+/** "Forget it": empties memory and storage, so a reload does not bring it back. */
+function styleClipClear() {
+  styleClip.css = null; styleClip.st = null; styleClip.cls = null;
+  styleClip.ts = ''; styleClip.adv = ''; styleClip.from = '';
+  styleClipSource = null; styleClipClasses = []; styleClipTextStyle = null; styleClipColors = [];
+  styleClipProject = '';
+  styleClipSave();
+}
+styleClipLoad();
+/* A copy in another tab of this editor reaches this one too. */
+try {
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('storage', e => {
+      if (e.key !== STYLE_CLIP_KEY) return;
+      if (!styleClipLoad() && e.newValue === null) styleClipClear();
+    });
+  }
+} catch { /* no window */ }
 
 function copyStyles(id: string) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
   styleClip.css = clone(n.css);
+  /* Variant intent belongs to the source Button's Content choice, not to its reusable look.
+     Paste styles does not copy that choice, so the stored declarations become ordinary
+     authored styles on the target rather than silently changing its cascade. */
+  (['d', 't', 'm'] as Bp[]).forEach(b => {
+    const variantOwned = buttonVariantMarkers(styleClip.css![b]);
+    const ownedAtoms = new Set<string>();
+    variantOwned.forEach(property => buttonSurfaceAtoms(property).forEach(atom => ownedAtoms.add(atom)));
+    variantOwned.forEach(property => delete styleClip.css![b][property]);
+    Object.keys(styleClip.css![b]).forEach(property => {
+      if (property.startsWith(BUTTON_VARIANT_OWNS)) delete styleClip.css![b][property];
+    });
+    /* The clipboard does not carry Content props. Materialize only atoms still owned by the
+       chosen Variant. A later Style declaration or reusable class keeps the atom it visibly
+       owns; an unrelated border marker must never turn an explicit background transparent. */
+    const explicitAtoms = new Set<string>();
+    Object.keys(styleClip.css![b]).forEach(property =>
+      buttonSurfaceAtoms(property).forEach(atom => explicitAtoms.add(atom)));
+    const classAtoms = buttonClassSurfaceAtoms(n, b);
+    const base = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_BASES[String(n.props.variant)] || {});
+    for (const [atom, value] of Object.entries(base)) {
+      if (!ownedAtoms.has(atom) || explicitAtoms.has(atom) || classAtoms.has(atom)) continue;
+      styleClip.css![b][atom] = value;
+    }
+  });
   /* the states travel with the styling. "Make this look like that" that drops the hover is
      not what anyone means, and the omission would only show up on the live site. */
   styleClip.st = n.st ? clone(n.st) : null;
@@ -3273,6 +4653,16 @@ function copyStyles(id: string) {
   styleClip.ts = String((n.props && n.props.ts) || '');
   styleClip.adv = (n.adv && n.adv.css) || '';
   styleClip.from = String(nameOf(n));
+  styleClipSource = clone({
+    id: n.id, type: n.type, props: {}, css: n.css, st: n.st, cls: n.cls,
+    hide: {}, adv: { htmlId: '', cls: '', css: '' }, children: []
+  });
+  styleClipClasses = clone(classes().filter(c => (n.cls || []).includes(c.id)));
+  const ts = findStyle(styleClip.ts);
+  styleClipTextStyle = ts ? { id: ts.id, css: clone(ts.css) } : null;
+  styleClipColors = colors().map(c => ({ id: c.id, literal: resolveColor(cvar(c.id)) || 'transparent' }));
+  styleClipProject = styleClipHere;
+  styleClipSave();
   return true;
 }
 
@@ -3286,23 +4676,151 @@ function copyStyles(id: string) {
    multi-select — a CSS property goes everywhere, a content prop only where the
    target declares that control. So `ts` reaches a Heading from a WYSIWYG and stops
    at an Image, which has no text style to set. */
-function pasteStyles(id: string) {
-  if (!styleClip.css) return false;
+const STYLE_PASTE_DELETED_CLASS_REASON = 'Copied styles use a deleted class. Copy the source styles again.';
+
+/* Resolve only missing references. Existing classes stay live, including edits and precedence
+   changes made since Copy. The source envelope and missing definitions are copy-time snapshots;
+   deleting or editing the live source cannot change what the clipboard holds. */
+type PreparedStylePaste = { css: Css; st: States | null; cls: string[]; ts: string; tsBake: Css | null; adv: string };
+/* Copied in another project: none of the clip's token, text style or class ids belong here,
+   and an id that happens to exist here names something else. Every reference is resolved
+   from the copy-time definitions instead — classes baked in through the same cascade replay
+   class deletion uses (states and devices included), the text style's typography baked in,
+   and every colour token replaced by its literal — so the result looks like the source and
+   links to nothing in this project. */
+const styleClipForeign = () => styleClipProject !== styleClipHere;
+function preparedForeignClassPaste(): { css: Css; st: States | null; cls: string[] } | null {
+  if (!styleClip.css || !styleClipSource) return null;
+  const ids = styleClip.cls || [];
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st); else delete source.st;
+  let ordered = clone(styleClipClasses);
+  source.cls = ids.filter(id => ordered.some(c => c.id === id));
+  for (const id of [...source.cls]) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length > 1) return null;
+    if (plan.nodes.length) source = plan.nodes[0].next;
+    else source.cls = (source.cls || []).filter(x => x !== id);
+    ordered = ordered.filter(c => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: [] };
+}
+function preparedStylePaste(): PreparedStylePaste | null {
+  const foreign = styleClipForeign();
+  const base = foreign ? preparedForeignClassPaste() : preparedClassPaste();
+  if (!base) return null;
+  const css = clone(base.css), st = base.st ? clone(base.st) : null;
+  let ts = styleClip.ts, tsBake: Css | null = null, adv = styleClip.adv;
+  /* A text style deleted since Copy: paste its copy-time typography as the element's own,
+     which is what deleting it did to the source. A reference to a style that is gone would
+     render as plain text and come back to life if a style with that name is made later. */
+  if (ts && (foreign || !findStyle(ts))) {
+    tsBake = styleClipTextStyle && styleClipTextStyle.id === ts ? clone(styleClipTextStyle.css) : null;
+    ts = '';
+  }
+  /* A colour token deleted since Copy becomes its copy-time literal, as it did everywhere else. */
+  const gone = foreign ? styleClipColors : styleClipColors.filter(c => !findColor(c.id));
+  if (gone.length) {
+    const fix = (value: string) => gone.reduce((v, c) => {
+      const r = rewriteColorRefs(v, c.id, c.literal);
+      return r.safe && r.count ? r.value : v;
+    }, value);
+    const visit = (c: Css | null | undefined) => {
+      if (c) (['d', 't', 'm'] as Bp[]).forEach(b => { const o = c[b]; if (o) for (const k in o) o[k] = fix(String(o[k])); });
+    };
+    visit(css); visit(tsBake);
+    if (st) STATES.forEach(([k]) => visit(st[k]));
+    adv = fix(adv);
+  }
+  return { css, st, cls: base.cls, ts, tsBake, adv };
+}
+function preparedClassPaste(): { css: Css; st: States | null; cls: string[] } | null {
+  if (!styleClip.css) return null;
+  const ids = styleClip.cls || [];
+  const missing = ids.filter(id => !findClass(id));
+  if (!missing.length) return { css: styleClip.css, st: styleClip.st, cls: ids.filter(findClass) };
+  if (!styleClipSource) return null;
+  let source = clone(styleClipSource);
+  source.css = clone(styleClip.css);
+  if (styleClip.st) source.st = clone(styleClip.st); else delete source.st;
+  source.cls = [...ids];
+  let ordered = clone(classes().filter(c => ids.includes(c.id)));
+  const copied = styleClipClasses.filter(c => ids.includes(c.id));
+  for (let i = 0; i < copied.length; i++) {
+    const c = copied[i];
+    if (!missing.includes(c.id)) continue;
+    const positions = (items: StyleClass[]) => items.map(c => ordered.findIndex(x => x.id === c.id)).filter(i => i >= 0);
+    const left = positions(copied.slice(0, i)), right = positions(copied.slice(i + 1));
+    const li = left.length ? Math.max(...left) : -1;
+    const ri = right.length ? Math.min(...right) : -1;
+    // Reordered surviving anchors can make the deleted class's old position ambiguous.
+    if (li >= 0 && ri >= 0 && li > ri) return null;
+    ordered.splice(ri >= 0 ? ri : li >= 0 ? li + 1 : ordered.length, 0, clone(c));
+  }
+  for (const id of missing) {
+    const plan = classRemovalPlan(id, ordered, [[source]]);
+    if (!plan.ok || plan.nodes.length !== 1) return null;
+    source = plan.nodes[0].next;
+    ordered = ordered.filter(c => c.id !== id);
+  }
+  return { css: source.css, st: source.st || null, cls: source.cls || [] };
+}
+
+/* Call before edit(): rejection must not create a checkpoint or clear Redo. The same check
+   guards pasteStylesMany itself, so direct callers cannot partially change a target set. */
+function stylePasteCheck(): ClassDeleteCheck {
+  return preparedStylePaste() ? { ok: true } : { ok: false, reason: STYLE_PASTE_DELETED_CLASS_REASON };
+}
+function applyPastedStyle(id: string, prepared: PreparedStylePaste) {
   const h = locate(id);
   if (!h) return false;
   const n = h.node;
-  n.css = clone(styleClip.css) as Css;
-  /* replaced, not merged, like `css` — and deleted outright when the source had none, so a
-     paste cannot leave a hover behind that the thing being copied did not have */
-  if (styleClip.st) n.st = clone(styleClip.st) as States; else delete n.st;
-  /* a class deleted between the copy and the paste is dropped rather than carried
-     as a dangling id */
-  n.cls = (styleClip.cls || []).filter(findClass);
-  if (n.adv) n.adv.css = styleClip.adv;
-  if (ctlKeys(n.type).has('ts')) n.props.ts = styleClip.ts;
+  /* Between two elements of one kind a paste is a copy: the target ends up styled exactly like
+     the source. Onto a different kind it is laid over what is there, so the target keeps every
+     setting the copy does not carry. A Button has no image fit, form columns or icon size, and
+     replacing outright dropped them: a hero photo lost its position and the hero collapsed. */
+  const sourceType = styleClipSource ? styleClipSource.type : '';
+  if (sourceType && sourceType !== n.type) {
+    const over = (own: Css | undefined, pasted: Css): Css => {
+      const out = clone(own || { d: {}, t: {}, m: {} }) as Css;
+      (['d', 't', 'm'] as Bp[]).forEach(b => { out[b] = { ...(out[b] || {}), ...clone(pasted[b] || {}) }; });
+      return out;
+    };
+    n.css = over(n.css, prepared.css);
+    if (prepared.st) {
+      const st = (n.st ? clone(n.st) : {}) as States;
+      STATES.forEach(([k]) => { const pasted = prepared.st![k]; if (pasted) st[k] = over(st[k], pasted); });
+      n.st = st;
+    }
+  } else {
+    n.css = clone(prepared.css);
+    if (prepared.st) n.st = clone(prepared.st); else delete n.st;
+  }
+  n.cls = [...prepared.cls];
+  if (n.adv) n.adv.css = prepared.adv;
+  if (ctlKeys(n.type).has('ts')) {
+    n.props.ts = prepared.ts;
+    /* the same bake tsUnlink does: the copied element's own typography still wins */
+    if (prepared.tsBake) {
+      const baked = mergeResponsiveTypo(prepared.tsBake, n.css);
+      stripTypo(n);
+      (['d', 't', 'm'] as Bp[]).forEach(b => TYPO_KEYS.forEach(k => {
+        const v = baked[b] && baked[b][k];
+        if (v !== undefined && v !== '') (n.css[b] = n.css[b] || {})[k] = v;
+      }));
+    }
+  }
   return true;
 }
-const pasteStylesMany = (ids: string[]) => ids.filter(pasteStyles).length;
+function pasteStyles(id: string) {
+  const prepared = preparedStylePaste();
+  return prepared ? applyPastedStyle(id, prepared) : false;
+}
+function pasteStylesMany(ids: string[]) {
+  const prepared = preparedStylePaste();
+  return prepared ? ids.filter(id => applyPastedStyle(id, prepared)).length : 0;
+}
 
 /* ---- finding things -------------------------------------------------
    Nothing could find a word across a project. With twelve pages, two global regions
@@ -3321,7 +4839,7 @@ const TEXT_SLOTS = {
   crumbs: ['home', ['items', 'label']],
   table: ['body', 'caption'],
   tabs: [['items', 'label', 'panel']],
-  image: ['alt', 'caption'],
+  image: ['alt', 'caption', 'label'],
   accordion: [['items', 'q', 'a']],
   gallery: [['items', 'alt', 'caption']],
   nav: [['items', 'label']],
@@ -3470,6 +4988,8 @@ function searchAll(q: string | null, o: { caseSensitive?: boolean; cms?: boolean
       });
     });
     scan(p.tree, 'page', i, p.name);
+    if (p.header) scan(p.header, 'header', i, p.name + ' header');
+    if (p.footer) scan(p.footer, 'footer', i, p.name + ' footer');
   });
   scan(state.footer, 'footer', -1, 'Global footer');
   {
@@ -3520,7 +5040,7 @@ function replaceAll(q: string | null, to: string | null, o: { caseSensitive?: bo
     /* a page's slug is deliberately left alone: it is a published URL, and moving one
        silently because a word changed is how links break */
     PAGE_TEXT.forEach(([k]) => { const q = p as any; if (typeof q[k] === 'string') q[k] = swap(q[k]); });
-    scan(p.tree);
+    pageTrees(p).forEach(scan);
   });
   scan(state.footer);
   if (typeof state.meta.name === 'string') state.meta.name = swap(state.meta.name);
@@ -3558,19 +5078,24 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      returns `fresh` rather than anything place() hands back. Annotated as boolean
      because that is what it means — the first pass typed it `PcNode | null` and then
      changed the code to suit the annotation, which is backwards. */
-  const place = (list: PcNode[], index: number, parentType: string | null): boolean => {
-    if (!fitsIn(parentType, fresh.type)) return false;
+  const place = (list: PcNode[], index: number, parentType: string | null, parentNode: PcNode | null): boolean => {
+    if (parentType === 'tabs') return false;
+    if (!fitsIn(parentType, fresh.type) || (parentNode && slotlessInstance(parentNode)) || nowhere(parentNode)) return false;
     list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
-  if (!h) return place(tree(), tree().length, null) ? fresh : null;
-  if (place(h.node.children, h.node.children.length, h.node.type)) return fresh;
-  if (place(h.list, h.i + 1, h.parent ? h.parent.type : null)) return fresh;
+  if (h?.node.type === 'tabs') {
+    const panel = tabPanelNodes(h.node)[0];
+    if (panel) return dropTree(fresh, panel.id);
+  }
+  if (!h) return place(tree(), tree().length, null, null) ? fresh : null;
+  if (place(h.node.children, h.node.children.length, h.node.type, h.node)) return fresh;
+  if (place(h.list, h.i + 1, h.parent ? h.parent.type : null, h.parent)) return fresh;
   let up = h.parent, top: PcNode = h.node;
   while (up) {
     const uh = locate(up.id);
-    if (place(up.children, up.children.length, up.type)) return fresh;
+    if (place(up.children, up.children.length, up.type, up)) return fresh;
     top = up;
     up = uh ? uh.parent : null;
   }
@@ -3581,7 +5106,7 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      inside, which is where smartTarget puts one too. */
   const list = tree();
   const at = list.indexOf(top);
-  return place(list, at < 0 ? list.length : at + 1, null) ? fresh : null;
+  return place(list, at < 0 ? list.length : at + 1, null, null) ? fresh : null;
 }
 
 /* Where a new `key` should land given the current selection: inside it when it can
@@ -3592,11 +5117,28 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
 function smartTarget(key: WidgetType): [PcNode | null, number] {
   let container: PcNode | null = null, index: number | null = null;
   const s = state.ui.sel ? locate(state.ui.sel) : null;
+  /* A component editor has one fixed root and deliberately refuses insertions at its
+     throwaway array root. With no selection, use that editable root when it can contain the
+     requested element; this makes Add work on first open without weakening the root guard. */
+  if (!s && state.ui.mode === 'component') {
+    const root = tree()[0] || null;
+    if (root && holds(root.type, key)) return [root, root.children.length];
+    return [null, 0];
+  }
   if (s) {
     let node = s.node, parent = s.parent;
-    if (holds(node.type, key)) { container = node; index = node.children.length; }
+    if (node.type === 'tabs') {
+      const panel = tabPanelNodes(node)[0];
+      if (panel && receivesInside(panel, key)) return [panel, panel.children.length];
+    }
+    /* A Collection List repeats its first Column as the card. Adding content while the list
+       itself is selected belongs inside that card, not in a second implicit card beside it. */
+    const card = !slotlessInstance(node) && node.type === 'list' && node.children[0]?.type === 'column'
+      && holds('column', key) ? node.children[0] : null;
+    if (card) { container = card; index = card.children.length; }
+    else if (receivesInside(node, key)) { container = node; index = node.children.length; }
     else {
-      while (parent && !holds(parent.type, key)) {
+      while (parent && !receivesInside(parent, key)) {
         node = parent;
         const up = locate(parent.id);
         parent = up ? up.parent : null;
@@ -3614,6 +5156,42 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
    only because that is where the fields are; it touches no DOM, and every rule below
    was previously untested. */
 
+/* These inputs can change which rows occupy every generated page. Preview must start from
+   page one instead of clamping a stale later page into the changed result set. */
+const LIST_PAGE_INPUTS = new Set(['sort', 'dir', 'where', 'op', 'val', 'per', 'limit']);
+const toggleOn = (value: unknown) => !['', '0', 'false'].includes(String(value ?? ''));
+
+/** Keep the Accordion's two opening promises compatible at the same ownership layer.
+    A direct widget changes its own props. A component instance changes only its own values,
+    and only when both controls were exposed as properties; it must never repair one placement
+    by rewriting the shared definition or another placement. Legacy invalid documents remain
+    untouched until a person changes one of these controls, while rendering stays defensive. */
+function reconcileAccordionOpenMode(n: PcNode, key: string, value: unknown) {
+  if (n.use && key.startsWith(VAL)) {
+    const def = findComponent(n.use);
+    if (!def) return;
+    const property = key.slice(VAL.length);
+    const peers = new Map<string, string>();
+    eachNode([def.node], node => {
+      if (node.type !== 'accordion') return;
+      const open = bindGet(node, 'open'), single = bindGet(node, 'single');
+      if (open?.src !== 'prop' || single?.src !== 'prop') return;
+      if (property === open.path && value === 'all'
+        && toggleOn(instValue(n, def, single.path))) peers.set(single.path, '0');
+      if (property === single.path && toggleOn(value)
+        && instValue(n, def, open.path) === 'all') peers.set(open.path, 'first');
+    });
+    peers.forEach((next, peer) => {
+      if (!boundField(n, VAL + peer)) instSet(n, peer, next);
+    });
+    return;
+  }
+  if (n.type !== 'accordion') return;
+  const props = n.props as PropBag;
+  if (key === 'open' && value === 'all' && toggleOn(props.single)) props.single = 0;
+  if (key === 'single' && toggleOn(value) && props.open === 'all') props.open = 'first';
+}
+
 /** Write one control's value onto one node. `_id`, `_cls` and `_css` are the Advanced
     escape hatches and land on `adv` rather than on props; everything else is either a
     CSS declaration or a prop. */
@@ -3624,9 +5202,23 @@ function applyOne(n: PcNode, c: Pick<Control, 'k' | 'c' | 'r'>, v: any) {
   if (c.k === '_id') { n.adv.htmlId = String(v == null ? '' : v).replace(/[^\w-]/g, ''); return; }
   if (c.k === '_cls') { n.adv.cls = v; return; }
   if (c.k === '_css') { n.adv.css = v; return; }
+  if (c.k) reconcileAccordionOpenMode(n, c.k, v);
   if (c.c) setCss(tgtObj(n), c.c, v, !!c.r);
-  else if (c.k && c.k.startsWith(VAL)) instSet(n, c.k.slice(VAL.length), v == null ? '' : String(v));
-  else if (c.k) (n.props as PropBag)[c.k] = v;
+  else if (c.k && c.k.startsWith(VAL)) {
+    const key = c.k.slice(VAL.length);
+    if (key.startsWith(LINK_TARGET)) instLinkTargetSet(n, key.slice(LINK_TARGET.length), v);
+    else instSet(n, key, v == null ? '' : String(v));
+  }
+  else if (c.k) {
+    const props = n.props as PropBag;
+    if (n.type === 'list' && LIST_PAGE_INPUTS.has(c.k) && props[c.k] !== v) state.ui.pno = 1;
+    /* A Button's Variant control promises a visible semantic change. Preserve every authored
+       declaration, but let the newly chosen variant own only the surface properties its base
+       rule actually defines. Constructed or imported Buttons are unchanged until this control
+       makes a real transition. */
+    if (n.type === 'button' && c.k === 'variant' && props.variant !== v) markButtonVariantIntent(n, v);
+    props[c.k] = v;
+  }
 }
 
 /** One edit reaches every selected element. The exception is a class target: its
@@ -3680,7 +5272,9 @@ function collectionAdd(name: string): any {
   collections().push(col);
   return col;
 }
-const collectionDelete = (id: string) => { state.meta.collections = collections().filter(c => c.id !== id); };
+function collectionDelete(id: string) {
+  collectionsReplace(doc(), collections().filter(c => c.id !== id));
+}
 function collectionRename(id: string, name: string) {
   const col = findCollection(id); if (!col) return;
   col.name = String(name || col.name).slice(0, 40);
@@ -3697,14 +5291,117 @@ function fieldAdd(colId: string, name: string, type: string): any {
   col.fields.push(f as Field);
   return f;
 }
+type RemovedCollectionFields = Map<string, Set<string>>;
+
+/** Every stored tree in a document, including definitions and blocks which are not currently
+    rendered. A CMS schema save uses this on a clone before persistence, then on the live document
+    inside edit(), so the durable document and its undo record cannot disagree. */
+function documentTrees(d: Doc): PcNode[][] {
+  return [
+    d.header, d.footer, ...d.pages.flatMap(pageTrees),
+    ...(d.meta.components || []).map(c => [c.node]),
+    ...(d.meta.blocks || []).map(b => [b.node])
+  ];
+}
+function removedCollectionFields(before: Collection[], after: Collection[]): RemovedCollectionFields {
+  const next = new Map(after.map(col => [col.id, new Set((col.fields || []).map(field => field.id))]));
+  const removed: RemovedCollectionFields = new Map();
+  for (const col of before) {
+    const remaining = next.get(col.id);
+    if (!remaining) continue;
+    const ids = new Set((col.fields || []).map(field => field.id).filter(id => !remaining.has(id)));
+    if (ids.size) removed.set(col.id, ids);
+  }
+  return removed;
+}
+function clearListFieldReferences(trees: PcNode[][], removed: RemovedCollectionFields) {
+  let cleared = 0;
+  for (const list of trees) eachNode(list, n => {
+    if (n.type !== 'list' || !n.src) return;
+    const fields = removed.get(n.src);
+    if (!fields) return;
+    if (fields.has(String(n.props.sort || ''))) { n.props.sort = ''; cleared++; }
+    if (fields.has(String(n.props.where || ''))) {
+      n.props.where = '';
+      n.props.op = 'is';
+      delete n.props.val;
+      cleared++;
+    }
+  });
+  return cleared;
+}
+
+/** Disconnect every persisted use of a collection that no longer exists. Keeping its id on a
+    list, detail template or reference field makes the editor offer settings it cannot resolve,
+    and can silently reconnect old item ids if a later collection reuses that id. */
+function clearRemovedCollectionReferences(d: Doc, removed: Set<string>) {
+  if (!removed.size) return;
+  for (const tree of documentTrees(d)) eachNode(tree, n => {
+    if (!n.src || !removed.has(n.src)) return;
+    delete n.src;
+    if (n.type === 'list') {
+      n.props.sort = '';
+      n.props.where = '';
+      n.props.op = 'is';
+      delete n.props.val;
+    }
+  });
+  for (const pg of d.pages) {
+    if (!pg.collection || !removed.has(pg.collection)) continue;
+    delete pg.collection;
+    delete pg.bindTitle;
+    delete pg.bindDesc;
+  }
+  for (const col of d.meta.collections || []) for (const field of col.fields || []) {
+    if (!field.ref || !removed.has(field.ref)) continue;
+    delete field.ref;
+    for (const item of col.items || []) delete item.values[field.id];
+  }
+}
+
+/** Replace collection schemas and recover Collection Lists whose sort/filter field disappeared.
+    Pass a cloned doc before saving, and the live doc inside edit(), to keep persistence and history
+    atomic. Field bindings stay visible as missing bindings so an editor can reconnect them. */
+function collectionsReplace(d: Doc, next: Collection[]) {
+  const before = d.meta.collections || [];
+  const removed = removedCollectionFields(before, next);
+  const removedCollections = new Set(before.map(col => col.id));
+  next.forEach(col => removedCollections.delete(col.id));
+  /* A persisted clone is prepared before the live edit. Only the live document owns Preview
+     state, and only cleanup of its active paginator changes which rows occupy each page. */
+  const active = d.meta === state.meta && d.pages === state.pages ? paginatorOf(page()) : null;
+  const activeFields = active ? removed.get(active.col.id) : null;
+  const resetPage = !!active && (
+    removedCollections.has(active.col.id) ||
+    !!activeFields?.has(String(active.node.props.sort || '')) ||
+    !!activeFields?.has(String(active.node.props.where || ''))
+  );
+  d.meta.collections = next;
+  clearRemovedCollectionReferences(d, removedCollections);
+  const cleared = clearListFieldReferences(documentTrees(d), removed);
+  if (resetPage) state.ui.pno = 1;
+  return cleared;
+}
+
+function collectionFieldSettingUsage(colId: string, fid: string) {
+  let sort = 0, filter = 0;
+  for (const list of allTrees()) eachNode(list, n => {
+    if (n.type !== 'list' || n.src !== colId) return;
+    if (n.props.sort === fid) sort++;
+    if (n.props.where === fid) filter++;
+  });
+  return { sort, filter };
+}
 /* Deleting a field drops its values too — an item cannot carry a value for a
    field the schema no longer has, or the next export would emit orphans. */
 function fieldDelete(colId: string, fid: string) {
   const col = findCollection(colId); if (!col) return 0;
   if (col.fields.length <= 1) return 0;              // a collection needs one field
+  const hadField = col.fields.some(f => f.id === fid);
   col.fields = col.fields.filter(f => f.id !== fid);
   let cleared = 0;
   col.items.forEach(it => { if (fid in it.values) { delete it.values[fid]; cleared++; } });
+  if (hadField) clearListFieldReferences(allTrees(), new Map([[colId, new Set([fid])]]));
   return cleared;
 }
 const swap = (list: any[], i: number, dir: number) => {
@@ -3752,7 +5449,12 @@ function itemMove(colId: string, iid: string, dir: number) {
 function itemSet(colId: string, iid: string, fid: string, value: string) {
   const col = findCollection(colId); if (!col) return;
   const it = findItem(col, iid); if (!it) return;
-  it.values[fid] = value;
+  /* Imported/legacy field ids are not guaranteed to be token ids. Assignment to `__proto__`
+     on an ordinary object invokes its legacy prototype setter instead of creating a value,
+     so define an enumerable own data property for every id. Normal ids serialize identically. */
+  Object.defineProperty(it.values, fid, {
+    value, enumerable: true, configurable: true, writable: true
+  });
   const tf = titleField(col);
   if (tf && fid === tf.id && !it.slugLocked) it.slug = itemSlug(col, it);
 }
@@ -3780,10 +5482,25 @@ function matches(col: Collection, item: Item, where?: string, op?: string, val?:
      being typed, so it passes until there is something to compare */
   if (want === '') return true;
   if (op === 'has') return raw.toLowerCase().includes(want.toLowerCase());
+  const boolValue = (value: string): boolean | null => {
+    const normalized = value.toLowerCase();
+    if (['1', 'true', 'yes'].includes(normalized)) return true;
+    if (['0', 'false', 'no'].includes(normalized)) return false;
+    return null;
+  };
   /* numbers numerically, so 9 does not sort or compare above 10 */
   const same = f.type === 'number'
     ? parseFloat(raw) === parseFloat(want)
-    : raw.toLowerCase() === want.toLowerCase();
+    : f.type === 'bool'
+      ? (() => {
+        const actual = boolValue(raw), expected = boolValue(want);
+        /* Only the six accepted aliases are booleans. Empty and malformed legacy values
+           stay distinct from No instead of inheriting JavaScript's falsy coercion. */
+        return actual !== null && expected !== null
+          ? actual === expected
+          : raw.toLowerCase() === want.toLowerCase();
+      })()
+      : raw.toLowerCase() === want.toLowerCase();
   return op === 'not' ? !same : same;
 }
 
@@ -3798,8 +5515,12 @@ function listItems(n: PcNode, col: Collection) {
       : String(av).localeCompare(String(bv));
   });
   if (n.props.dir === 'desc') out.reverse();
+  const per = parseInt(String(n.props.per || ''), 10);
   const lim = parseInt(n.props.limit || '', 10);
-  return lim > 0 ? out.slice(0, lim) : out;
+  /* Pagination exposes every matching item across generated pages. Keep a stored limit so
+     returning to an unpaginated list restores the author's earlier choice, but do not apply
+     that hidden value while Items per page is active. */
+  return lim > 0 && !(per > 0) ? out.slice(0, lim) : out;
 }
 
 /* Every link a page emits goes through here. Two jobs: `cms:item` becomes the
@@ -3819,6 +5540,14 @@ function pageHref(link: unknown, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
   v = safeUrl(v);
   if (!v || !o || !o.rel || /^([a-z][\w+.-]*:|\/\/|\/|#)/i.test(v)) return v;
   return o.rel + v;
+}
+
+/** A decorative image contributes no name of its own. Its visible caption can name the
+    wrapping link only while no explicit link label overrides it. Keep ID reservation and
+    emitted markup on this one predicate so an unused caption ID never displaces a widget. */
+function captionNamesImageLink(p: PropBag, o: Pick<RenderOpts, 'col' | 'item' | 'rel'>) {
+  return !!p.decorative && !!pageHref(p.link, o)
+    && !String(p.label || '').trim() && !!String(p.caption || '').trim();
 }
 
 /* ---- scroll-triggered motion ------------------------------------------
@@ -3852,13 +5581,22 @@ function animAttrs(n: PcNode) {
 }
 const animUsed = (lists: PcNode[][]) => {
   let hit = false;
-  lists.forEach(l => eachNode(l, n => { if (!hit && animOf(n)) hit = true; }));
+  [...lists, ...usedComponents(lists).map(c => [c.node])].forEach(l => eachNode(l, n => { if (!hit && animOf(n)) hit = true; }));
   return hit;
 };
 /* `bp-animate` starts its elements hidden, so a visitor who has asked for less motion would be
    left with a blank page if the library were simply neutralised. Shown outright, unanimated. */
+/* An element waiting to animate is already where its animation starts from: slide-right sits
+   50px to the right, zoom-out is half as big again. On anything as wide as the page that is
+   past the right edge, so the whole page scrolled sideways until the element had come into
+   view and settled, and again each time a repeating one left. The page is clipped only while
+   something is still waiting or playing, so a page whose motion has finished behaves exactly
+   as one without any, and real overflow is not hidden for good. It rides with ANIM_CALM
+   because the two always ship together, on a page that moves and nowhere else. */
+const ANIM_EDGE = `html:has(.bp-animate:not(.bp-is-done-animating)){overflow-x:clip}`;
 const ANIM_CALM = `@media (prefers-reduced-motion:reduce){`
-  + `.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`;
+  + `.bp-animate,.bp-animate.bp-is-hidden{opacity:1 !important;transform:none !important;animation:none !important}}`
+  + ANIM_EDGE;
 
 /* ---- renaming a page, and choosing the front one --------------------
    A host serves `index.html` at the root, so the front page is not a flag — it is whichever
@@ -3875,13 +5613,24 @@ function relink(from: string, to: string) {
   let n = 0;
   const swap = (h: unknown) => {
     const v = String(h == null ? '' : h);
-    const m = v.match(/^([\w-]+)\.html(#.*)?$/);
+    /* a query rides along like a fragment: it does not change which page is meant */
+    const m = v.match(/^([\w-]+)\.html([?#].*)?$/);
     if (!m || m[1] !== from) return v;
     n++;
     return `${to}.html${m[2] || ''}`;
   };
+  /* A component's link property is a fourth place: its default, each variant's value and
+     each instance's own value are what the button inside actually renders. Only `link`
+     properties — a text property holding the same characters is words. */
+  const linkKeys = (c: ComponentDef | null) => (c?.props || []).filter(p => p.t === 'link').map(p => p.k);
+  components().forEach(c => {
+    (c.props || []).forEach(p => { if (p.t === 'link' && p.def) p.def = swap(p.def); });
+    (c.variants || []).forEach(v => linkKeys(c).forEach(k => { if (v.values[k]) v.values[k] = swap(v.values[k]); }));
+  });
   allTrees().forEach(list => eachNode(list, node => {
     const p = node.props as PropBag;
+    const vals = node.use ? node.vals : undefined;
+    if (vals) linkKeys(findComponent(node.use)).forEach(k => { if (vals[k]) vals[k] = swap(vals[k]); });
     if (p.link !== undefined) p.link = swap(p.link);
     if (hasItemHrefs(node) && Array.isArray(p.items)) {
       (p.items as NavItem[]).forEach(it => { it.href = swap(it.href); });
@@ -3966,7 +5715,10 @@ interface ImportReport {
   items: { added: number; updated: number };
   notes: string[];
 }
-function contentImport(raw: unknown): ImportReport | null {
+interface ContentImportOptions {
+  resolveImage?: (value: string) => string;
+}
+function contentImport(raw: unknown, options: ContentImportOptions = {}): ImportReport | null {
   const d = raw as any;
   if (!d || typeof d !== 'object' || !Array.isArray(d.collections)) return null;
   const rep: ImportReport = {
@@ -3974,51 +5726,150 @@ function contentImport(raw: unknown): ImportReport | null {
     items: { added: 0, updated: 0 }, notes: []
   };
 
+  type ImportContext = {
+    fc: any; col: Collection; fields: Map<string, string>;
+    items: Map<string, Item>; rows: { fi: any; item: Item }[]; unknown: Set<string>;
+    unresolved: Map<string, { name: string; count: number }>;
+  };
+  const contexts: ImportContext[] = [];
+  const collectionMap = new Map<string, Collection>();
+  const owns = (value: object, key: string) => Object.prototype.hasOwnProperty.call(value, key);
+
+  /* Resolve every collection before importing fields. A reference field may point to a
+     collection later in the file, and its local id may differ when the destination already
+     uses the source id. One pass cannot answer that without leaving a broken reference. */
   for (const fc of d.collections) {
     if (!fc || typeof fc !== 'object') continue;
     const fid = String(fc.id || ''), fslug = String(fc.slug || '');
-    let col = (fid && collections().find(c => c.id === fid))
-      || (fslug && collections().find(c => c.slug === fslug)) || null;
+    const idHit = fid ? collections().find(c => c.id === fid) : undefined;
+    const slugHit = fslug ? collections().find(c => c.slug === fslug) : undefined;
+    /* IDs are only unique inside their source project. If an unrelated local collection owns
+       that id while the source slug identifies another collection, the slug is the useful
+       identity and the collision must be visible rather than silently updating the wrong CMS. */
+    let col = (idHit && slugHit && idHit !== slugHit) ? slugHit : idHit || slugHit || null;
+    if (idHit && slugHit && idHit !== slugHit) {
+      rep.notes.push(`Collection id “${fid}” is ambiguous here; “${fc.name || fslug}” was matched by slug.`);
+    }
     if (col) rep.collections.matched++;
     else { col = collectionAdd(String(fc.name || fslug || fid || 'Collection')); rep.collections.added++; }
     if (!col) continue;                 // collectionAdd does not fail; this is what says so
 
+    if (fid && collectionMap.has(fid)) {
+      rep.notes.push(`Duplicate collection id “${fid}” is ambiguous; references keep the first imported match.`);
+    } else if (fid) collectionMap.set(fid, col);
+    contexts.push({
+      fc, col, fields: new Map(), items: new Map(), rows: [], unknown: new Set(),
+      unresolved: new Map()
+    });
+  }
+
+  for (const context of contexts) {
+    const { fc, col, fields: map } = context;
     /* field id in the file → field id here. They differ the moment a collection is created
        locally, since ids are made unique against what is already there. */
-    const map: Record<string, string> = {};
     for (const ff of (Array.isArray(fc.fields) ? fc.fields : [])) {
       if (!ff) continue;
       const key = String(ff.id || ff.name || '');
       if (!key) continue;
-      const hit = col.fields.find((x: Field) => x.id === key)
-        || col.fields.find((x: Field) => x.name === String(ff.name || ''));
-      if (hit) { map[key] = hit.id; continue; }
-      const made = fieldAdd(col.id, String(ff.name || key), String(ff.type || 'text'));
+      if (map.has(key)) {
+        rep.notes.push(`${col.name}: duplicate field id “${key}” is ambiguous; values keep the first imported match.`);
+        continue;
+      }
+      const fieldName = String(ff.name || '');
+      const idHit = col.fields.find((x: Field) => x.id === key);
+      const nameHit = fieldName ? col.fields.find((x: Field) => x.name === fieldName) : undefined;
+      /* A field id is project-local just like collection and item ids. If the source id is
+         already owned by another local field while the name identifies the intended field,
+         importing metadata or values into the id hit would corrupt the wrong schema column. */
+      const idNameConflict = !!(idHit && fieldName && idHit.name !== fieldName);
+      const hit = idNameConflict ? nameHit : idHit || nameHit;
+      if (idNameConflict) {
+        rep.notes.push(nameHit
+          ? `${col.name}: field id “${key}” is ambiguous here; “${fieldName}” was matched by name.`
+          : `${col.name}: field id “${key}” already belongs to “${idHit!.name}”; “${fieldName}” was imported as a distinct field.`);
+      }
+      const made = hit || fieldAdd(col.id, String(ff.name || key), String(ff.type || 'text'));
       if (!made) continue;
-      map[key] = made.id;
-      rep.fields.added++;
+      map.set(key, made.id);
+      if (!hit) rep.fields.added++;
       /* `fieldAdd` falls back to text for a type it does not know, which is right — but
          silently would leave someone wondering why their dates are strings */
       if (ff.type && made.type !== ff.type) {
         rep.notes.push(`“${made.name}” came in as text: this build has no “${ff.type}” field type.`);
       }
+      /* Exported false/empty metadata is an instruction to clear the local setting. Older
+         content files omitted these keys, so absence must continue to mean preserve. */
+      if (owns(ff, 'required')) made.required = ff.required ? 1 : 0;
+      if (made.type === 'option' && owns(ff, 'opts')) made.opts = typeof ff.opts === 'string' ? ff.opts : '';
+      if (made.type === 'ref' && owns(ff, 'ref')) {
+        const sourceRef = String(ff.ref || '');
+        if (!sourceRef) delete made.ref;
+        else {
+          const target = collectionMap.get(sourceRef);
+          if (target) made.ref = target.id;
+          else if (!made.ref || !findCollection(made.ref)) {
+            rep.notes.push(`“${made.name}” could not restore its referenced collection.`);
+          }
+        }
+      }
     }
 
-    const unknown = new Set<string>();
+    /* Resolve every entry before copying values. Reference values store item ids, so all
+       source-to-local item identities must exist before either collection writes its rows. */
     for (const fi of (Array.isArray(fc.items) ? fc.items : [])) {
       if (!fi || typeof fi !== 'object') continue;
       const iid = String(fi.id || ''), islug = String(fi.slug || '');
-      let it = (iid && findItem(col, iid))
-        || (islug && col.items.find((x: Item) => x.slug === islug)) || null;
+      const idHit = iid ? findItem(col, iid) : undefined;
+      const slugHit = islug ? col.items.find((x: Item) => x.slug === islug) : undefined;
+      let it = (idHit && slugHit && idHit !== slugHit) ? slugHit : idHit || slugHit || null;
+      if (idHit && slugHit && idHit !== slugHit) {
+        rep.notes.push(`${col.name}: item id “${iid}” is ambiguous here; “${islug}” was matched by slug.`);
+      }
       if (it) rep.items.updated++;
       else { it = itemAdd(col.id); if (!it) continue; rep.items.added++; }
 
+      if (iid && context.items.has(iid)) {
+        rep.notes.push(`${col.name}: duplicate item id “${iid}” is ambiguous; references keep the first imported match.`);
+      } else if (iid) context.items.set(iid, it);
+      context.rows.push({ fi, item: it });
+    }
+  }
+
+  for (const context of contexts) {
+    const { col, fields: map, unknown, unresolved } = context;
+    for (const { fi, item: it } of context.rows) {
+      const islug = String(fi.slug || '');
       const vals = (fi.values && typeof fi.values === 'object') ? fi.values : {};
       for (const k of Object.keys(vals)) {
-        const to = map[k] || (findField(col, k) ? k : '');
+        const to = map.get(k) || (findField(col, k) ? k : '');
         if (!to) { unknown.add(k); continue; }
-        const v = (vals as any)[k];
-        itemSet(col.id, it.id, to, v == null ? '' : String(v));
+        let v = (vals as any)[k];
+        const field = findField(col, to);
+        if (field?.type === 'ref' && v != null && String(v)) {
+          const sourceItemId = String(v);
+          const target = field.ref
+            ? contexts.find(candidate => candidate.col.id === field.ref)
+            : undefined;
+          const mapped = target?.items.get(sourceItemId);
+          const exact = field.ref ? findItem(findCollection(field.ref), sourceItemId) : null;
+          if (mapped) v = mapped.id;
+          else if (exact) v = exact.id;
+          else {
+            const skipped = unresolved.get(field.id) || { name: field.name, count: 0 };
+            skipped.count++;
+            unresolved.set(field.id, skipped);
+            continue;
+          }
+        }
+        let value = v == null ? '' : String(v);
+        /* A portable content export names an image by its generated assets/ path. The editor
+           owns the media library, so it may translate that exact path back to the existing
+           site asset token. Core otherwise preserves the file value verbatim: URLs, tokens,
+           and unknown paths stay portable and standalone imports keep their old behaviour. */
+        if (field?.type === 'image' && options.resolveImage) {
+          value = options.resolveImage(value);
+        }
+        itemSet(col.id, it.id, to, value);
       }
       /* after the values, because setting the title field re-slugs an unlocked item and
          would otherwise overwrite the slug the file asked for */
@@ -4026,6 +5877,9 @@ function contentImport(raw: unknown): ImportReport | null {
     }
     if (unknown.size) {
       rep.notes.push(`${col.name}: ${[...unknown].join(', ')} ${unknown.size === 1 ? 'is not a field' : 'are not fields'} in this collection, so ${unknown.size === 1 ? 'it was' : 'they were'} skipped.`);
+    }
+    for (const { name, count } of unresolved.values()) {
+      rep.notes.push(`${col.name}: “${name}” skipped ${count} unresolved reference ${count === 1 ? 'value' : 'values'}; destination values were left unchanged.`);
     }
   }
   return rep;
@@ -4075,6 +5929,21 @@ function paginatorOf(pg: Page): { node: PcNode; col: Collection; extra: number }
   return hit;
 }
 
+/** The hosted router's clean paths and exported filenames identify the same target. Query
+    parameters do not change the page, and a rooted slash names the real front-page file. */
+function projectLinkTarget(href: string, here: string): { path: string; target: string; frag: string } | null {
+  const value = href.trim();
+  if (!value || /^([a-z][\w+.-]*:|\/\/)/i.test(value)) return null;
+  const hash = value.indexOf('#');
+  const frag = hash >= 0 ? value.slice(hash + 1) : '';
+  const path = (hash >= 0 ? value.slice(0, hash) : value).split('?')[0];
+  if (!path) return { path, target: here, frag };
+  let target = path.replace(/^(\.\.?\/)+/, '').replace(/^\/+/, '');
+  if (!target || target.endsWith('/')) target += 'index.html';
+  else if (!/\.[a-z0-9]+$/i.test(target)) target += '.html';
+  return { path, target, frag };
+}
+
 /* ---- where a link points, inside this project -------------------------
    `parseLink` answers "what kind of link is this" for the inspector, in slugs. This answers
    a different question — "which page of this project does it land on" — and it has to cope
@@ -4085,42 +5954,39 @@ function paginatorOf(pg: Page): { node: PcNode; col: Collection; extra: number }
    identity of a page; the slug is. So this is the one place that knows the extension is a
    file-naming detail, which is what lets Preview follow a link the way a browser would. */
 function pageAt(href: unknown): { at: number; col: Collection | null; item: Item | null; frag: string; pageNo: number } | null {
-  let v = String(href == null ? '' : href).trim();
-  if (!v || /^([a-z][\w+.-]*:|\/\/)/i.test(v)) return null;     // a scheme, or protocol-relative
-  const hash = v.indexOf('#');
-  const frag = hash >= 0 ? v.slice(hash + 1) : '';
-  v = (hash >= 0 ? v.slice(0, hash) : v).replace(/^(\.\.?\/)+/, '').replace(/^\//, '');
-  if (!v) return frag ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;   // a bare fragment
-
-  const bits = v.replace(/\.html?$/i, '').split('/');
-  if (bits.length === 1) {
-    const at = state.pages.findIndex(p => p.slug === bits[0]);
-    return at < 0 ? null : { at, col: null, item: null, frag, pageNo: 1 };
-  }
-  if (bits.length !== 2) return null;
-
-  /* `<slug>/page-2` before the collection reading, and deliberately: a page slugged
-     `journal` and a collection slugged `journal` are both plausible at the same time, so
-     without this a pager link went looking for an item called `page-2`. Anchoring on a real
-     page slug makes it unambiguous. */
-  const pn = bits[1].match(/^page-(\d+)$/);
-  if (pn) {
-    const at = state.pages.findIndex(p => p.slug === bits[0]);
-    if (at >= 0) return { at, col: null, item: null, frag, pageNo: Math.max(1, +pn[1]) };
-  }
-
-  const col = collections().find(c => c.slug === bits[0]) || null;
-  if (!col) return null;
-  const item = published(col).find(i => i.slug === bits[1]) || null;
-  const at = state.pages.findIndex(p => p.collection === col.id);
-  return (item && at >= 0) ? { at, col, item, frag, pageNo: 1 } : null;
+  const value = String(href == null ? '' : href).trim();
+  const destination = projectLinkTarget(value, page().slug + '.html');
+  if (!destination) return null;
+  const { path, target, frag } = destination;
+  if (!path) return frag || value.startsWith('?')
+    ? { at: state.cur, col: null, item: null, frag, pageNo: 1 } : null;
+  // Match real generated files, including nested page slugs, details and pagination.
+  const exported = exportTargets().find(candidate => candidate.path === target);
+  if (!exported) return null;
+  const at = state.pages.findIndex(pg => pg.id === exported.pg.id);
+  return at < 0 ? null : { at, col: exported.col, item: exported.item, frag, pageNo: exported.pageNo };
 }
+
+/** A page marked as a collection's detail template exports one file per item and nothing at
+    its own slug, so it is not somewhere a link can go. */
+const isDetailTemplate = (pg: Page) => !!(pg.collection && findCollection(pg.collection));
+/** The pages a link can name: every page except detail templates. */
+const linkablePages = () => state.pages.filter(pg => !isDetailTemplate(pg));
+/** The page that publishes a collection's entries. Two templates for one collection would
+    write the same files, so the first in page order publishes and any other exports nothing
+    until it becomes an ordinary page or the first one does. */
+const templateFor = (colId: string) =>
+  findCollection(colId) ? state.pages.find(pg => pg.collection === colId) || null : null;
 
 /* Every file the project exports: one per ordinary page, and one per item for a
    page marked as a collection's detail template. `rel` is how far that file sits
    from the root, which is what every internal link and asset path needs. */
-function exportTargets() {
+function exportTargets(maxTargets = Infinity) {
   const out: any[] = [];
+  const append = (target: typeof out[number]) => {
+    if (out.length >= maxTargets) throw new Error('Form routing inspection exceeded its page budget');
+    out.push(target);
+  };
   for (const pg of state.pages) {
     const col = pg.collection ? findCollection(pg.collection) : null;
     if (!col) {
@@ -4129,7 +5995,7 @@ function exportTargets() {
       const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
       for (let i = 1; i <= n; i++) {
         const path = pagedPath(pg.slug, i);
-        out.push({
+        append({
           pg: i > 1 ? { ...pg, title: `${pg.title || pg.name} — page ${i}` } : pg,
           path, rel: pathRel(path),
           col: null, item: null, pageNo: i, pages: n
@@ -4137,14 +6003,23 @@ function exportTargets() {
       }
       continue;
     }
+    if (templateFor(col.id) !== pg) continue;
+    /* A paginated list on a detail template paginates each item's page the same way, so its
+       pager's `page-2` links name files that exist. */
+    const pgn = paginatorOf(pg);
+    const n = pgn ? listPageCount(pgn.node, pgn.col) : 1;
     for (const it of published(col)) {
       const t = pg.bindTitle ? String(fieldValue(col, it, pg.bindTitle) || '').trim() : '';
       const d = pg.bindDesc ? String(fieldValue(col, it, pg.bindDesc) || '').trim() : '';
-      const path = col.slug + '/' + it.slug + '.html';
-      out.push({
-        pg: { ...pg, slug: col.slug + '/' + it.slug, title: t || pg.title, desc: d || pg.desc },
-        path, rel: pathRel(path), col, item: it
-      });
+      const slug = col.slug + '/' + it.slug;
+      for (let i = 1; i <= n; i++) {
+        const path = pagedPath(slug, i);
+        const title = t || pg.title;
+        append({
+          pg: { ...pg, slug, title: i > 1 ? `${title || pg.name} — page ${i}` : title, desc: d || pg.desc },
+          path, rel: pathRel(path), col, item: it, pageNo: i, pages: n
+        });
+      }
     }
   }
   return out;
@@ -4161,11 +6036,17 @@ function contentJson(imgPath: (v: unknown) => string = v => (v == null ? '' : St
     site: { name: state.meta.name, lang: state.meta.lang || 'en', baseUrl: state.meta.baseUrl || '' },
     collections: collections().map(c => ({
       id: c.id, name: c.name, slug: c.slug,
-      fields: c.fields.map(f => ({ id: f.id, name: f.name, type: f.type, required: !!f.required })),
+      fields: c.fields.map(f => ({
+        id: f.id, name: f.name, type: f.type, required: !!f.required,
+        ...(f.type === 'option' ? { opts: f.opts || '' } : {}),
+        ...(f.type === 'ref' ? { ref: f.ref || '' } : {})
+      })),
       items: published(c).map(it => {
-        const values: Record<string, string> = {};
+        /* A null-prototype record keeps imported legacy ids such as `__proto__`, `constructor`
+           and `prototype` as plain JSON keys rather than object internals. */
+        const values = Object.create(null) as Record<string, string>;
         for (const f of c.fields) {
-          const v = it.values[f.id];
+          const v = Object.prototype.hasOwnProperty.call(it.values, f.id) ? it.values[f.id] : undefined;
           values[f.id] = f.type === 'image' ? imgPath(v) : (v == null ? '' : v);
         }
         const url = urlOf[c.id + '|' + it.id];
@@ -4263,9 +6144,13 @@ function guessBindings(slots: any[], col: Collection | null) {
   /* an existing binding is a decision already made, and is never guessed over */
   slots.forEach(s => { if (s.current) out[key(s)] = s.current; });
 
+  /* A rich slot takes a text field when somebody chooses one — it renders as escaped words —
+     but a guess only offers it rich text, so the body of a card never quietly becomes a
+     field's raw characters. */
+  const fits = (s: any, f: Field) => (s.ctl === 'rich' ? f.type === 'rich' : (!s.fieldTypes || s.fieldTypes.includes(f.type)));
   /* 1. a control whose label or key reads like a field's name */
   slots.filter(free).forEach(s => {
-    const f = left.find(x => (!s.fieldTypes || s.fieldTypes.includes(x.type))
+    const f = left.find(x => fits(s, x)
       && (slugify(x.name) === slugify(s.label) || slugify(x.name) === slugify(s.key)));
     if (f) take(s, f);
   });
@@ -4274,7 +6159,7 @@ function guessBindings(slots: any[], col: Collection | null) {
   const rules: [(s: any) => boolean, () => Field | undefined | null][] = [
     [s => s.key === 'src', () => byType('image')],
     [s => s.key === 'text' && s.type === 'heading', () => (title && left.includes(title) ? title : null)],
-    [s => s.key === 'html', () => byType('rich') || left.find(f => f.type === 'text' && f !== title)],
+    [s => s.key === 'html', () => byType('rich')],
     [s => s.key === 'link' && s.type === 'button', () => byType('link')],
     [s => s.key === 'text' && s.type === 'button', () => left.find(f => f.type === 'text' && f !== title)]
   ];
@@ -4326,7 +6211,10 @@ const boundField = (n: PcNode, key: string): string => {
   return b && b.src === 'field' ? b.path : '';
 };
 function srcSet(n: PcNode, colId: string) {
-  if (colId && findCollection(colId)) n.src = colId; else delete n.src;
+  const next = colId && findCollection(colId) ? colId : '';
+  const current = n.src && findCollection(n.src) ? n.src : '';
+  if (n.type === 'list' && current !== next) state.ui.pno = 1;
+  if (next) n.src = next; else delete n.src;
 }
 /* the nearest source above this node, itself included */
 function bindScope(id: string): { node: PcNode | null; col: Collection } | null {
@@ -4343,13 +6231,18 @@ function bindScope(id: string): { node: PcNode | null; col: Collection } | null 
 }
 /* which item the canvas is previewing, per collection */
 const previewIndex = (colId: string) => ((state.ui.item || (state.ui.item = {}))[colId] || 0);
-/* The canvas stands in for the published page, so it previews a published item. A project
-   whose every item is a draft falls back to the first one rather than rendering an empty
-   template — there is nothing else to show, and showing nothing looks like a bug. */
+/* An explicit preview is an authoring choice and may be a draft. Collection Lists and detail
+   templates apply their public-item policy separately; a static source container renders the
+   exact selected row in both canvas and export. */
 function previewItem(col: Collection | null) {
   if (!col || !col.items.length) return null;
   return col.items[Math.min(previewIndex(col.id), col.items.length - 1)];
 }
+/** The item a source-bearing node renders. A repeated child keeps the row its Collection List
+    supplied; every other source scope uses the explicit preview selection. Shared by render
+    and binding-aware review so neither quietly substitutes a different row. */
+const sourceItem = (col: Collection, currentCol: Collection | null, currentItem: Item | null,
+  repeat: boolean) => repeat && currentCol === col ? currentItem : previewItem(col);
 /* ---- reading a field, and following a reference ----------------------
    A reference field holds an item id in another collection, so displaying anything from it
    takes two hops: the reference, then a field of what it points at. Every binding before this
@@ -4373,7 +6266,19 @@ const fieldValue = (col: Collection | null, item: Item | null, path: string, dep
   if (f.type !== 'ref' || !f.ref || depth >= REF_DEPTH) return '';
   const to = findCollection(f.ref);
   const hit = to ? findItem(to, v) : null;
-  return hit ? fieldValue(to, hit, bits.slice(1).join('.'), depth + 1) : '';
+  /* A draft entry is hidden from the public site, so it is no more reachable through a
+     reference than it is as a list item: it reads as no value, in the editor and the export. */
+  return hit && !hit.draft ? fieldValue(to, hit, bits.slice(1).join('.'), depth + 1) : '';
+};
+/** The field a path ends on, followed the way `fieldValue` follows it — what a value *is*, which
+    decides how it may be rendered. */
+const fieldAt = (col: Collection | null, path: string, depth = 0): Field | null => {
+  if (!col) return null;
+  const bits = String(path || '').split('.');
+  const f = findField(col, bits[0]);
+  if (!f || bits.length === 1) return f || null;
+  if (f.type !== 'ref' || !f.ref || depth >= REF_DEPTH) return null;
+  return fieldAt(findCollection(f.ref), bits.slice(1).join('.'), depth + 1);
 };
 
 /** Every path a binding can offer for this collection: its own fields, and one hop through
@@ -4394,6 +6299,16 @@ function fieldPaths(col: Collection | null): { path: string; label: string; type
   }
   return out;
 }
+/** Does this prop hold markup rather than words? Read from the controls, so a second rich
+    control is covered the day it is declared. */
+const richProp = (type: string, k: string) =>
+  (((DEF[type] || {}).controls || {}).content || []).some((c: Control) => c.t === 'rich' && c.k === k);
+/* A CMS value in a rich slot. An entry is written by whoever may edit the CMS — a content
+   account, a CSV import — so only a rich field is markup, and that through the allowlist; any
+   other field is words, escaped into paragraphs, so `<img onerror>` in a text field reads as
+   exactly that. */
+const cmsRich = (v: unknown, f: Field | null) => (f && f.type === 'rich' ? cleanRich(v) : para(v));
+
 /* Props with bindings resolved. A bound value always wins, even when it is
    empty — the canvas should show what the export will, not a placeholder that
    quietly disappears at build time. Returns the identity object when nothing is
@@ -4402,17 +6317,40 @@ function boundProps(n: PcNode, col: Collection | null, item: Item | null,
   inst?: PcNode | null, def?: ComponentDef | null) {
   if (!n.bind) return n.props;
   const out = { ...n.props };
+  /* Component and CMS values are strings; a toggle's "0" must not become a truthy
+     widget flag. Resolve by destination control, leaving text/select values untouched. */
+  const boundValue = (key: string, value: unknown) =>
+    (DEF[n.type]?.controls.content || []).some(c => c.k === key && c.t === 'toggle')
+      ? Number(!['', '0', 'false'].includes(String(value ?? ''))) : value;
   for (const [k, b] of Object.entries(n.bind)) {
+    const rich = richProp(n.type, k);
     /* A property, when this node is being rendered inside an instance. Outside one there is no
        instance to ask, and the value authored in the definition is exactly what belongs on
        screen — not an empty string, and not a field lookup that would find nothing. */
     if (b.src === 'prop') {
-      if (inst) (out as PropBag)[k] = instValue(inst, def || null, b.path, col, item);
+      if (!inst) continue;
+      const v = instValue(inst, def || null, b.path, col, item);
+      /* In a rich slot: a CMS field the placement binds is treated as above; a value the
+         instance holds is markup only when the property is rich text. */
+      const field = col ? boundField(inst, VAL + b.path) : '';
+      (out as PropBag)[k] = !rich ? boundValue(k, v)
+        : field ? cmsRich(v, fieldAt(col, field))
+          : (findProp(def || null, b.path) || { t: '' }).t === 'rich' ? v : para(v);
+      if (n.type === 'image' && k === 'src') resolveImageSize(out, n.props, inst, def || null, b.path, !!field);
+      const linked = linkControl(n, k);
+      if (linked) (out as PropBag)[linked.tk || 'target'] = instLinkTarget(inst, def || null, b.path, n);
       continue;
     }
     if (b.src !== 'field' || !col || !item) continue;
-    (out as PropBag)[k] = fieldValue(col, item, b.path);
+    const v = fieldValue(col, item, b.path);
+    (out as PropBag)[k] = rich ? cmsRich(v, fieldAt(col, b.path)) : boundValue(k, v);
   }
+  /* When Open on load is the only setting exposed by an Accordion component, that property
+     owns its visible promise for this placement. A fixed raw `single` default must not turn
+     the instance's “All open” into one open panel. Any binding on `single` remains authoritative:
+     it has its own owner, whether that is another component property or a CMS field. */
+  if (n.type === 'accordion' && inst && out.open === 'all'
+    && bindGet(n, 'open')?.src === 'prop' && !bindGet(n, 'single')) out.single = 0;
   return out;
 }
 
@@ -4434,18 +6372,42 @@ function condValue(c: Condition, col: Collection | null, item: Item | null,
   const v = fieldValue(col, item, c.bind.path);
   return v == null ? '' : String(v);
 }
+/* A property can take a CMS field of a different kind. Its binding's terminal type takes
+   precedence over the property kind, just as it does when `boundProps` renders that value. */
+function condKind(c: Condition, col: Collection | null,
+  inst?: PcNode | null, def?: ComponentDef | null): FieldType | PropKind | undefined {
+  if (c.bind.src === 'field') return fieldAt(col, c.bind.path)?.type;
+  if (!inst) return undefined;
+  const field = boundField(inst, VAL + c.bind.path);
+  return field && col ? fieldAt(col, field)?.type
+    : findProp(def || null, c.bind.path)?.t;
+}
 /** Does this element show? Absent condition means yes, which is every element until somebody
     decides otherwise. */
 function showsNode(n: PcNode, col: Collection | null, item: Item | null,
   inst?: PcNode | null, def?: ComponentDef | null): boolean {
   const c = n.showIf;
   if (!c || !c.bind || !c.bind.path) return true;
-  const v = condValue(c, col, item, inst, def).trim();
+  const raw = condValue(c, col, item, inst, def).trim();
+  const kind = condKind(c, col, inst, def);
+  const rich = kind === 'rich';
+  const v = rich ? richTextContent(raw) : raw;
   const want = String(c.value == null ? '' : c.value).trim();
   if (c.op === 'set') return v !== '';
   if (c.op === 'empty') return v === '';
-  if (c.op === 'eq') return v === want;
-  if (c.op === 'ne') return v !== want;
+  /* Keep existing exact-HTML comparisons working while accepting the words an author sees.
+     Plain Text values and the comparison input are never interpreted as markup. */
+  let equal = raw === want || v === (rich ? want.replace(/\s+/g, ' ') : want);
+  if (kind === 'bool') {
+    const booleanValue = (value: string): boolean | null =>
+      /^(1|true|yes)$/i.test(value) ? true : /^(0|false|no)$/i.test(value) ? false : null;
+    const actual = booleanValue(raw), expected = booleanValue(want);
+    /* Empty and malformed values stay literal, distinct from No. Presence checks above
+       deliberately count every nonempty alias, including zero and false, as a value. */
+    if (actual !== null && expected !== null) equal = actual === expected;
+  }
+  if (c.op === 'eq') return equal;
+  if (c.op === 'ne') return !equal;
   return true;
 }
 /** Set or clear a condition. Clearing removes the key, so a document carries none until one is
@@ -4493,6 +6455,8 @@ function blockInsert(id: string, parentNode?: PcNode | null, index = 0) {
   if (!b) return null;
   const fresh = reid(clone(b.node));
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(fresh, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -4526,6 +6490,163 @@ function findComponent(id?: string | null): ComponentDef | null {
   return id ? components().find(c => c.id === id) || null : null;
 }
 
+/** Menu layouts use the same persisted definitions and canvas as global components. */
+const mobileMenuComponents = () => components().filter(c => c.mobileMenu);
+const mobileMenuMode = (n: PcNode): 'follow' | 'custom' =>
+  n.props.mobileMenuMode === 'follow' || n.props.mobileMenuMode === 'custom'
+    ? n.props.mobileMenuMode
+    : n.props.mobileMenuComponent ? 'custom' : 'follow';
+const mobileMenuRef = (n: PcNode, mode = mobileMenuMode(n)) =>
+  mode === 'follow' ? n.props.mobileMenuFollowComponent : n.props.mobileMenuComponent;
+const mobileMenuDefinition = (n: PcNode) => findComponent(mobileMenuRef(n));
+const mobileMenuLinksNode = (definition: ComponentDef | null): PcNode | null => {
+  let found: PcNode | null = null;
+  if (definition) eachNode([definition.node], node => {
+    if (!found && node.type === 'nav' && node.props.managedMobileLinks) found = node;
+  });
+  return found;
+};
+type MobileMenuOwnerContext = NonNullable<Ui['mobileMenuOwner']>;
+type MobileMenuOwner = { node: PcNode; mode: MobileMenuOwnerContext['mode']; page?: number; componentId?: string };
+const ownsMobileMenu = (node: PcNode, componentId: string) => node.type === 'nav'
+  && (node.props.mobileMenuFollowComponent === componentId || node.props.mobileMenuComponent === componentId);
+function mobileMenuOwnerContext(n: PcNode, componentId: string): MobileMenuOwnerContext | null {
+  if (!ownsMobileMenu(n, componentId)) return null;
+  for (const [mode, list] of [['header', state.header], ['footer', state.footer]] as const) {
+    const hit = locate(n.id, list);
+    if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode };
+  }
+  for (let page = 0; page < state.pages.length; page++) {
+    const pg = state.pages[page];
+    for (const [mode, list] of [['page', pg.tree], ['header', pg.header], ['footer', pg.footer]] as const) {
+      const hit = list && locate(n.id, list);
+      if (hit?.node === n) return { menuComponentId: componentId, nodeId: n.id, mode, page };
+    }
+  }
+  for (const definition of components()) {
+    if (definition.id === componentId) continue;
+    const hit = locate(n.id, [definition.node]);
+    if (hit?.node === n) return {
+      menuComponentId: componentId, nodeId: n.id, mode: 'component', ownerComponentId: definition.id
+    };
+  }
+  return null;
+}
+/* A layout opened from the Components list has no Nav handing it over. When exactly one Nav uses
+   it, that Nav is the owner, so its links preview as they do when opened from the Nav; a layout
+   shared by several stays without one rather than guessing which links to show. */
+function soleMobileMenuOwner(componentId: string): MobileMenuOwnerContext | null {
+  const owners: PcNode[] = [];
+  const visit = (list: PcNode[]) => eachNode(list, node => { if (ownsMobileMenu(node, componentId)) owners.push(node); });
+  visit(state.header || []);
+  visit(state.footer || []);
+  state.pages.forEach(pg => pageTrees(pg).forEach(visit));
+  components().forEach(definition => { if (definition.id !== componentId) visit([definition.node]); });
+  return owners.length === 1 ? mobileMenuOwnerContext(owners[0], componentId) : null;
+}
+function prepareMobileMenuEdit(n: PcNode, componentId: string) {
+  state.ui.mobileMenuOwnerPending = mobileMenuOwnerContext(n, componentId);
+  return !!state.ui.mobileMenuOwnerPending;
+}
+function mobileMenuOwner(componentId: string): MobileMenuOwner | null {
+  const context = state.ui.mobileMenuOwner;
+  if (!context || context.menuComponentId !== componentId || !findComponent(componentId)) {
+    if (context?.menuComponentId === componentId) state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  let hit: Handle | null = null;
+  if (context.mode === 'header' || context.mode === 'footer') {
+    const list = context.page === undefined ? state[context.mode] : pageRegion(state.pages[context.page], context.mode);
+    hit = locate(context.nodeId, list);
+  }
+  else if (context.mode === 'page' && context.page !== undefined) hit = locate(context.nodeId, state.pages[context.page]?.tree || []);
+  else if (context.mode === 'component' && context.ownerComponentId) {
+    const owner = findComponent(context.ownerComponentId);
+    if (owner) hit = locate(context.nodeId, [owner.node]);
+  }
+  if (!hit || !ownsMobileMenu(hit.node, componentId)) {
+    state.ui.mobileMenuOwner = null;
+    return null;
+  }
+  return {
+    node: hit.node, mode: context.mode, page: context.page,
+    componentId: context.ownerComponentId
+  };
+}
+/** Programmatic callers still get the historical Custom snapshot. The real Build-menu UI
+    passes its resolved mode explicitly, and a new Nav resolves that mode to Follow. */
+function ensureMobileMenuComponent(n: PcNode, requested: 'follow' | 'custom' = 'custom'): ComponentDef {
+  const mode: 'follow' | 'custom' = requested === 'custom' ? 'custom' : 'follow';
+  const current = findComponent(mobileMenuRef(n, mode));
+  if (current) return current;
+  const name = (n.props.aria || 'Main') + ' mobile menu';
+  const base = tokenId(name) || 'mobile-menu';
+  let id = base, suffix = 2;
+  while (findComponent(id)) id = base + '-' + suffix++;
+  const items = (n.props.items || []) as NavItem[];
+  const keyed = new Map(items.filter(item => item.id).map(item => [String(item.id), item]));
+  const linkNode = (item: NavItem) => {
+    const button = N('button', {
+      text: item.label || 'Link', link: item.href || HOME,
+      target: item.target === '_blank' ? '_blank' : '', rel: item.rel || '',
+      objectType: item.objectType || '', objectId: item.objectId || '', anchor: item.anchor || ''
+    });
+    /* Replace the Button defaults rather than mixing their longhands with overriding
+       shorthands. JSON object storage may canonicalise key order, and CSS changes meaning
+       when `background` moves before `background-color` or `padding` before its longhands.
+       A generated menu link therefore stores one canonical longhand per visual property. */
+    button.css = { d: {
+      'padding-top': '12px', 'padding-right': '0', 'padding-bottom': '12px', 'padding-left': '0',
+      'border-width': '0', 'border-radius': '0', 'background-color': 'transparent',
+      color: cvar('text'), 'font-size': '22px', 'justify-content': 'flex-start',
+      'align-self': 'flex-start'
+    }, t: {}, m: {} };
+    button.adv.cls = String(item.cls || '').trim();
+    return button;
+  };
+  const branches = (parentId: string, ancestry: Set<string>): PcNode[] => items.filter(item => {
+    const parent = String(item.parentId || '');
+    if (!parentId) return !parent || !keyed.has(parent);
+    return parent === parentId;
+  }).map(item => {
+    const itemId = String(item.id || '');
+    if (itemId && ancestry.has(itemId)) return null;
+    const next = new Set(ancestry);
+    if (itemId) next.add(itemId);
+    const descendants = itemId ? branches(itemId, next) : [];
+    if (!descendants.length) return linkNode(item);
+    return N('box', { layout: 'flex', tag: 'div' }, {
+      d: { 'flex-direction': 'column', 'align-items': 'stretch', 'flex-wrap': 'nowrap' }, t: {}, m: {}
+    }, [linkNode(item), N('box', { layout: 'flex', tag: 'div' }, {
+      d: { 'flex-direction': 'column', 'align-items': 'stretch', 'flex-wrap': 'nowrap', 'padding-left': '20px' }, t: {}, m: {}
+    }, descendants)]);
+  }).filter((node): node is PcNode => !!node);
+  const links = branches('', new Set());
+  const managed = N('nav', { managedMobileLinks: 1, collapse: 'never', aria: '' }, {
+    d: {
+      width: '100%', 'align-self': 'stretch', 'justify-content': 'flex-start',
+      'font-size': '22px', 'font-weight': '500', color: cvar('text'),
+      '--nav-hover': cvar('ink'), '--nav-gap': '4px', '--nav-panel': cvar('bg')
+    }, t: {}, m: {}
+  });
+  const node = N('section', { tag: 'div', width: 'full' },
+    { d: { padding: '16px 0', background: 'transparent' }, t: {}, m: {} },
+    [N('row', {}, {}, [N('column', {}, {}, mode === 'follow' ? [managed] : links)])]);
+  const definition: ComponentDef = { id, name, mobileMenu: true, mobileMenuSource: mode, node, props: [] };
+  components().push(definition);
+  if (mode === 'follow') n.props.mobileMenuFollowComponent = id;
+  else n.props.mobileMenuComponent = id;
+  return definition;
+}
+function setMobileMenuMode(n: PcNode, mode: 'follow' | 'custom') {
+  let definition: ComponentDef | null = null;
+  edit(() => {
+    definition = ensureMobileMenuComponent(n, mode);
+    n.props.mobileMenuMode = mode;
+  }, mode === 'follow' ? 'Follow navigation links' : 'Use custom mobile menu content');
+  return definition;
+}
+
 /** The declared property, or null. */
 const findProp = (def: ComponentDef | null, k: string) =>
   (def && (def.props || []).find((x: ComponentProp) => x.k === k)) || null;
@@ -4535,12 +6656,111 @@ const variantsOf = (def: ComponentDef | null) => (def && def.variants) || [];
 const findVariant = (def: ComponentDef | null, id?: string | null) =>
   (id ? variantsOf(def).find(v => v.id === id) || null : null);
 
+/* A link property's target is one value, but it is not part of the href. Keep it in the same
+   string maps as the href under a key a declared property can never receive: tokenId strips
+   both `@` and `:`. Old href strings therefore stay byte-for-byte compatible. */
+/** Image metadata travels with the exact exposed source, never with the shared definition. */
+const imageSizeKey = (k: string) => '@image-size:' + k;
+function imageSizeValue(raw: unknown, source: unknown): { w: number; h: number } | null {
+  if (typeof raw !== 'string') return null;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== 'object' || Array.isArray(value)
+      || Object.keys(value).sort().join(',') !== 'h,src,w'
+      || value.src !== source || !/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value.src)
+      || !Number.isSafeInteger(value.w) || value.w <= 0
+      || !Number.isSafeInteger(value.h) || value.h <= 0) return null;
+    return { w: value.w, h: value.h };
+  } catch { return null; }
+}
+function instImageSizeSet(inst: PcNode, k: string, size: { w?: number; h?: number }) {
+  const def = findComponent(inst.use);
+  if (!def || findProp(def, k)?.t !== 'img') return;
+  let used = false;
+  const scan = (node: PcNode) => {
+    if (node !== def.node && node.use) return;
+    const binding = bindGet(node, 'src');
+    if (node.type === 'image' && binding?.src === 'prop' && binding.path === k) used = true;
+    (node.children || []).forEach(scan);
+  };
+  scan(def.node);
+  if (!used) return;
+  const source = instValue(inst, def, k);
+  const raw = JSON.stringify({ src: source, w: size.w, h: size.h });
+  const key = imageSizeKey(k);
+  if (imageSizeValue(raw, source)) {
+    inst.vals = inst.vals || {};
+    inst.vals[key] = raw;
+  } else if (inst.vals) delete inst.vals[key];
+}
+function resolveImageSize(out: PropBag, original: PropBag, inst: PcNode, def: ComponentDef | null,
+  k: string, cms: boolean) {
+  const variant = findVariant(def, inst.variant);
+  const raw = ownsKey(inst.vals, k) ? inst.vals?.[imageSizeKey(k)] : variant?.values[imageSizeKey(k)];
+  const size = cms ? null : imageSizeValue(raw, out.src);
+  if (size) { out.w = String(size.w); out.h = String(size.h); }
+  else if (out.src !== original.src) { delete out.w; delete out.h; }
+}
+
+const LINK_TARGET = '@link-target:';
+const linkTargetKey = (k: string) => LINK_TARGET + k;
+const ownsKey = (value: object | null | undefined, key: string) =>
+  !!value && Object.prototype.hasOwnProperty.call(value, key);
+const linkControl = (n: PcNode, key: string) =>
+  (DEF[n.type]?.controls.content || []).find(c => c.k === key && c.t === 'link') || null;
+const propertyLinkDestinations = (def: ComponentDef | null, k: string) => {
+  const out: { node: PcNode; target: string }[] = [];
+  if (!def) return out;
+  eachNode([def.node], node => Object.entries(node.bind || {}).forEach(([key, binding]) => {
+    const ctl = linkControl(node, key);
+    if (ctl && binding.src === 'prop' && binding.path === k) {
+      out.push({ node, target: ctl.tk || 'target' });
+    }
+  }));
+  return out;
+};
+const unambiguousLegacyLinkTarget = (inst: PcNode, def: ComponentDef | null, k: string) => {
+  if (!def || (def.props || []).filter(prop => prop.t === 'link').length !== 1) return '';
+  if (!propertyLinkDestinations(def, k).length) return '';
+  const rootLinks = (DEF[def.node.type]?.controls.content || []).filter(c => c.t === 'link' && c.k);
+  const independentRootLink = rootLinks.some(control => {
+    const binding = bindGet(def.node, control.k!);
+    if (binding) return binding.src !== 'prop' || binding.path !== k;
+    return !!String((def.node.props as PropBag)[control.k!] || '').trim()
+      || !!String((inst.props as PropBag)[control.k!] || '').trim();
+  });
+  if (independentRootLink) return '';
+  const definitionTarget = String((def.node.props as PropBag).target || '');
+  return inst.props.target === '_blank' && definitionTarget !== '_blank' ? '_blank' : '';
+};
+function instLinkTarget(inst: PcNode, def: ComponentDef | null, k: string, destination?: PcNode | null) {
+  const sidecar = linkTargetKey(k);
+  const ownValue = inst.vals && ownsKey(inst.vals, sidecar) ? inst.vals[sidecar] : undefined;
+  if (ownValue !== undefined) return ownValue === '_blank' ? '_blank' : '';
+  const variant = findVariant(def, inst.variant);
+  const variantValue = variant && ownsKey(variant.values, sidecar) ? variant.values[sidecar] : undefined;
+  if (variantValue !== undefined) return variantValue === '_blank' ? '_blank' : '';
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  if (legacy) return legacy;
+  const destinationEntry = propertyLinkDestinations(def, k).find(entry => !destination || entry.node === destination)
+    || propertyLinkDestinations(def, k)[0];
+  return destinationEntry && (destinationEntry.node.props as PropBag)[destinationEntry.target] === '_blank'
+    ? '_blank' : '';
+}
+function instLinkTargetSet(inst: PcNode, k: string, value: unknown) {
+  const def = findComponent(inst.use);
+  const legacy = unambiguousLegacyLinkTarget(inst, def, k);
+  instSet(inst, linkTargetKey(k), value === '_blank' ? '_blank' : '');
+  if (legacy) delete inst.props.target;
+}
+
 /** What an instance shows for one property, and the only place that question is answered.
     Its own value, then its variant's, then the definition's default — so changing a default
     moves every instance that never set its own, and an empty string is a value somebody chose
     rather than an absence. */
 function instValue(inst: PcNode, def: ComponentDef | null, k: string,
   col?: Collection | null, item?: Item | null): string {
+  if (k.startsWith(LINK_TARGET)) return instLinkTarget(inst, def, k.slice(LINK_TARGET.length));
   // Bindings belong to this placement, never to the shared definition or variant.
   // Empty CMS values remain empty; only the absence of a source uses saved values.
   const field = boundField(inst, VAL + k);
@@ -4554,7 +6774,13 @@ function instValue(inst: PcNode, def: ComponentDef | null, k: string,
 }
 /** Which values this instance decides for itself, rather than taking from its variant or the
     definition. What the panel's "back to the variant" affordance needs to know. */
-const instOwn = (inst: PcNode) => Object.keys(inst.vals || {});
+const instOwn = (inst: PcNode) => {
+  const def = findComponent(inst.use);
+  if (!def) return Object.keys(inst.vals || {});
+  return (def.props || []).filter(prop => ownsKey(inst.vals, prop.k)
+    || (prop.t === 'link' && (ownsKey(inst.vals, linkTargetKey(prop.k))
+      || !!unambiguousLegacyLinkTarget(inst, def, prop.k)))).map(prop => prop.k);
+};
 
 /** Put an instance on a variant, or take it off one. */
 function variantSet(inst: PcNode, vid: string | null) {
@@ -4581,11 +6807,21 @@ function variantFromInstance(inst: PcNode, name: string) {
   const from = findVariant(def, inst.variant);
   if (from) Object.assign(values, from.values);
   Object.assign(values, inst.vals || {});
+  const recovered: string[] = [];
+  (def.props || []).forEach(prop => {
+    if (prop.t !== 'link') return;
+    const legacy = unambiguousLegacyLinkTarget(inst, def, prop.k);
+    if (legacy && !ownsKey(values, linkTargetKey(prop.k))) {
+      values[linkTargetKey(prop.k)] = legacy;
+      recovered.push(prop.k);
+    }
+  });
   def.variants = def.variants || [];
   def.variants.push({ id, name: String(name || 'Variant').slice(0, 40), values });
   /* and this instance becomes an instance *of* it: its own values are the variant's now, so
      keeping both would mean an override of itself that nothing could clear */
   delete inst.vals;
+  if (recovered.length) delete inst.props.target;
   inst.variant = id;
   return id;
 }
@@ -4616,8 +6852,15 @@ const variantRename = (cid: string, vid: string, name: string) => {
 /** Set one property on an instance. `undefined` clears it back to the definition's default,
     which is a different state from an empty string and reads differently on the panel. */
 function instSet(inst: PcNode, k: string, v: string | undefined) {
+  if (findProp(findComponent(inst.use), k)?.t === 'img' && inst.vals) delete inst.vals[imageSizeKey(k)];
   if (v === undefined) {
-    if (inst.vals) { delete inst.vals[k]; if (!Object.keys(inst.vals).length) delete inst.vals; }
+    const def = findComponent(inst.use);
+    if (inst.vals) {
+      delete inst.vals[k];
+      if (findProp(def, k)?.t === 'link') delete inst.vals[linkTargetKey(k)];
+      if (!Object.keys(inst.vals).length) delete inst.vals;
+    }
+    if (findProp(def, k)?.t === 'link' && unambiguousLegacyLinkTarget(inst, def, k)) delete inst.props.target;
     return;
   }
   inst.vals = inst.vals || {};
@@ -4669,13 +6912,15 @@ function instControls(n: PcNode): Control[] {
   if (!def) return [];
   return (def.props || []).map(pr => ({
     t: PROP_CTL[pr.t] as Control['t'], k: VAL + pr.k, label: pr.label,
+    tk: pr.t === 'link' ? VAL + linkTargetKey(pr.k) : undefined,
     opts: pr.t === 'select' ? (pr.opts || []) : undefined
   })) as Control[];
 }
 /** The content controls for a node: an instance's properties, or the widget's own. One reader
     so the panel, the content role and the search cannot disagree about what a node holds. */
 const contentControls = (n: PcNode): Control[] =>
-  (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
+  n.type === 'nav' && n.props.managedMobileLinks ? []
+    : (n.use ? instControls(n) : (DEF[n.type].controls.content || []));
 
 /** Which of a control's keys hold words rather than settings, for this node. The per-type
     answer for an ordinary widget; for an instance, the properties whose kind is content. A
@@ -4751,37 +6996,50 @@ function componentFromNode(nodeId: string, name: string) {
   /* The node stays where it is and becomes an instance of what it just defined. Its styling
      goes with the tree: the definition carries it now, it reaches the page through the
      definition's class, and leaving a copy on the instance would freeze today's definition into
-     this one element — the same reason `instanceInsert` starts an instance unstyled. */
+     this one element — the same reason `instanceInsert` starts an instance unstyled. Its anchor,
+     its extra classes and its motion stay: the render reads those from the instance, never the
+     definition, so moving them would break every `#anchor` link and still the animation. */
   h.node.use = id;
   h.node.children = [];
+  // A rich Tabs instance renders its definition's panels, not detached references.
+  if (hasRichTabPanels(node)) h.node.props.items = [];
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
-  h.node.adv = { htmlId: '', cls: '', css: '' };
-  delete h.node.st; delete h.node.anim; delete h.node.bind; delete h.node.src;
+  h.node.adv = { htmlId: h.node.adv?.htmlId || '', cls: h.node.adv?.cls || '', css: '' };
+  delete h.node.st; delete h.node.bind; delete h.node.src;
   return id;
 }
-/** Place an instance. Levels come from the definition's root, the way a block's do. */
-function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
-  const def = findComponent(cid);
-  if (!def) return null;
-  const root = def.node;
+function makeInstance(def: ComponentDef): PcNode {
   const fresh: PcNode = {
-    ...clone(root), id: uid(), use: cid, children: [],
+    ...clone(def.node), id: uid(), use: def.id, children: [],
     /* an instance starts unstyled: the definition's own css is already on the element through
        the definition's class, and copying it here would freeze today's definition into every
        instance placed today */
     css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
   };
+  if (hasRichTabPanels(def.node)) fresh.props.items = [];
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
+  return fresh;
+}
+/** Place an instance. Levels come from the definition's root, the way a block's do. */
+function instanceInsert(cid: string, parentNode?: PcNode | null, index = 0) {
+  const def = findComponent(cid);
+  if (!def) return null;
+  const fresh = makeInstance(def);
   if (parentNode === undefined) return dropTree(fresh, state.ui.sel);
+  if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(fresh, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, fresh.type)) return dropTree(fresh, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
   list.splice(Math.max(0, Math.min(index, list.length)), 0, wrap(fresh.type, takes(pt), fresh));
   return fresh;
 }
-/** Every instance of a definition, across every page and both global regions. */
+/** Every instance of a definition, across every page, both global regions, the other
+    definitions and the saved blocks. A definition that places this one is a place it is used —
+    missing it is how deleting the inner one left the outer pointing at nothing. Its own tree is
+    not scanned: a definition that contains itself is refused at render, not a place it is used. */
 function instances(cid: string) {
   const out: { node: PcNode; where: string }[] = [];
   const scan = (list: PcNode[], where: string) => eachNode(list, n => {
@@ -4789,10 +7047,22 @@ function instances(cid: string) {
   });
   scan(state.header, 'header');
   scan(state.footer, 'footer');
-  state.pages.forEach((p, i) => scan(p.tree, 'page:' + i));
+  state.pages.forEach((p, i) => {
+    scan(p.tree, 'page:' + i);
+    if (p.header) scan(p.header, 'page:' + i + ':header');
+    if (p.footer) scan(p.footer, 'page:' + i + ':footer');
+  });
+  components().forEach(c => { if (c.id !== cid) scan([c.node], 'component:' + c.id); });
+  blocks().forEach(b => scan([b.node], 'block:' + b.id));
   return out;
 }
-const componentUsage = (cid: string) => instances(cid).length;
+const componentUsage = (cid: string) => {
+  let count = instances(cid).length;
+  allTrees().forEach(list => eachNode(list, n => {
+    if (n.type === 'nav' && (n.props.mobileMenuComponent === cid || n.props.mobileMenuFollowComponent === cid)) count++;
+  }));
+  return count;
+};
 
 /** Declare a property. The key is derived from the label and made unique, so nobody types an
     identifier — the binding picker offers labels and stores keys. */
@@ -4833,6 +7103,10 @@ function propMove(cid: string, k: string, dir: number) {
 function propDelete(cid: string, k: string) {
   const c = findComponent(cid);
   if (!c) return 0;
+  const target = linkTargetKey(k);
+  const uses = instances(cid);
+  const legacyOwners = new Set(uses.filter(({ node }) => !!unambiguousLegacyLinkTarget(node, c, k))
+    .map(({ node }) => node));
   c.props = (c.props || []).filter(x => x.k !== k);
   let n = 0;
   eachNode([c.node], x => {
@@ -4840,7 +7114,15 @@ function propDelete(cid: string, k: string) {
       if (b.src === 'prop' && b.path === k) { bindSet(x, key, null); n++; }
     });
   });
-  instances(cid).forEach(({ node }) => { instSet(node, k, undefined); bindSet(node, VAL + k, null); });
+  uses.forEach(({ node }) => {
+    if (node.vals) {
+      delete node.vals[k]; delete node.vals[target]; delete node.vals[imageSizeKey(k)];
+      if (!Object.keys(node.vals).length) delete node.vals;
+    }
+    if (legacyOwners.has(node)) delete node.props.target;
+    bindSet(node, VAL + k, null);
+  });
+  variantsOf(c).forEach(variant => { delete variant.values[k]; delete variant.values[target]; delete variant.values[imageSizeKey(k)]; });
   return n;
 }
 /** Delete a definition, and put every instance back to being an ordinary node — its own tree,
@@ -4853,16 +7135,85 @@ function componentDelete(cid: string) {
   for (const { node } of instances(cid)) {
     const copy = reid(clone(def.node));
     const kept = node.children || [];                 // slot content stays with the page
+    const placed = new Set<PcNode>();
+    /* What this instance showed, written down before its values go: a property binding becomes
+       the instance's value (or the CMS field the instance bound it to), a condition on a property
+       is answered now, and a slot holds what the page put in it. A nested instance is left
+       alone — its insides answer to its own definition, not to this one. */
+    const settle = (x: PcNode, source: PcNode) => {
+      if (x !== copy && x.use) return;
+      Object.entries(x.bind || {}).forEach(([key, b]) => {
+        if (b.src !== 'prop') return;
+        const field = boundField(node, VAL + b.path);
+        (x.props as PropBag)[key] = instValue(node, def, b.path);
+        if (x.type === 'image' && key === 'src') resolveImageSize(x.props, source.props, node, def, b.path, !!field);
+        const linked = linkControl(x, key);
+        if (linked) (x.props as PropBag)[linked.tk || 'target'] = instLinkTarget(node, def, b.path, source);
+        bindSet(x, key, field ? bindField(field) : null);
+      });
+      const c = x.showIf;
+      if (c && c.bind && c.bind.src === 'prop') {
+        const field = boundField(node, VAL + c.bind.path);
+        if (field) condSet(x, { ...c, bind: { src: 'field', path: field } });
+        else {
+          /* no condition says "never", so an element that was not showing stays hidden at every
+             width — still on the canvas to find, still absent from the page */
+          if (!showsNode(x, null, null, node, def)) x.hide = { d: true, t: true, m: true };
+          delete x.showIf;
+        }
+      }
+      const filled = x.slot && DEF[x.type].level < 4 ? slotKids(node, def, x.slot) : [];
+      delete x.slot;                                  // not a definition any more
+      if (filled.length) { filled.forEach(k => placed.add(k)); x.children = filled; return; }
+      (x.children || []).forEach((child, i) => settle(child, (source.children || [])[i] || child));
+    };
+    settle(copy, def.node);
+    /* The root's styling reached the page through the definition's class, written before the
+       instance's own rules — so the instance's win, declaration by declaration, and the element
+       keeps both. Its id, its extra classes and its motion were always the instance's own. */
+    const over = (a?: Partial<Css>, b?: Partial<Css>): Css =>
+      ({ d: { ...a?.d, ...b?.d }, t: { ...a?.t, ...b?.t }, m: { ...a?.m, ...b?.m } });
+    const st: States = {};
+    STATES.forEach(([k]) => { if (copy.st?.[k] || node.st?.[k]) st[k] = over(copy.st?.[k], node.st?.[k]); });
+    const ts = node.props.ts && findStyle(node.props.ts) ? node.props.ts : '';
+    const hide = node.hide || {};
     node.type = copy.type;
     node.props = copy.props;
+    if (ts) node.props.ts = ts;
     node.children = copy.children;
     node.bind = copy.bind;
+    node.css = over(copy.css, node.css);
+    if (Object.keys(st).length) node.st = st; else delete node.st;
+    node.cls = [...new Set([...(node.cls || []), ...(copy.cls || [])])];
+    node.hide = { ...copy.hide };
+    (['d', 't', 'm'] as Bp[]).forEach(b => { if (hide[b]) node.hide[b] = true; });
+    node.adv = { htmlId: node.adv?.htmlId || '', cls: node.adv?.cls || '',
+      css: [copy.adv?.css, node.adv?.css].filter(Boolean).join('\n') };
+    const src = node.src || copy.src;
+    if (src) node.src = src; else delete node.src;
+    if (copy.showIf) node.showIf = copy.showIf;
     delete node.use; delete node.vals; delete node.variant;
     /* the slot's own content, appended where it can be: an instance's children were the page's
        nodes and dropping them is the one thing worse than a flattened component */
-    if (kept.length) (node.children = node.children || []).push(...kept.map(c => { delete c.slot; return c; }));
+    const left = kept.filter(c => !placed.has(c));
+    if (left.length) (node.children = node.children || []).push(...left);
+    kept.forEach(c => { delete c.slot; });
     n++;
   }
+  /* A Nav points at its mobile layout without placing an ordinary `use` instance. There is no
+     Nav field that can own an arbitrary section/row/column tree after its definition is gone,
+     so deleting the active Custom layout returns that Nav to Follow rather than leaving a stale
+     id that only happens to render the fallback links. Dormant and unrelated layouts stay put. */
+  allTrees().forEach(list => eachNode(list, node => {
+    if (node.type !== 'nav') return;
+    const custom = node.props.mobileMenuComponent === cid;
+    const follow = node.props.mobileMenuFollowComponent === cid;
+    if (!custom && !follow) return;
+    const mode = mobileMenuMode(node);
+    if (custom) delete node.props.mobileMenuComponent;
+    if (follow) delete node.props.mobileMenuFollowComponent;
+    if (custom && mode === 'custom') node.props.mobileMenuMode = 'follow';
+  }));
   state.meta.components = components().filter(c => c.id !== cid);
   return n;
 }
@@ -4870,7 +7221,10 @@ function componentDelete(cid: string) {
     Returns false for a component that is not there, so a stale id leaves the editor where it
     is rather than showing an empty canvas with no way back. */
 function componentOpen(cid: string) {
-  if (!findComponent(cid)) return false;
+  const pending = state.ui.mobileMenuOwnerPending;
+  state.ui.mobileMenuOwnerPending = null;
+  if (!findComponent(cid)) { state.ui.mobileMenuOwner = null; return false; }
+  state.ui.mobileMenuOwner = pending?.menuComponentId === cid ? pending : soleMobileMenuOwner(cid);
   state.ui.mode = 'component';
   state.ui.cedit = cid;
   state.ui.sel = null;
@@ -4879,6 +7233,8 @@ function componentOpen(cid: string) {
 }
 /** Back to the page. */
 function componentClose() {
+  state.ui.mobileMenuOwnerPending = null;
+  state.ui.mobileMenuOwner = null;
   state.ui.mode = 'page';
   state.ui.cedit = null;
   state.ui.sel = null;
@@ -4892,7 +7248,12 @@ const componentRename = (cid: string, name: string) => {
 /* Arrow-key traversal of the tree as it reads on screen */
 const flatten = (list: any[], out: any[] = []): any[] => { list.forEach(n => { out.push(n); flatten(n.children || [], out); }); return out; };
 function step(id: string | null, dir: number) {
-  const flat = flatten(tree());
+  const flat: PcNode[] = [];
+  const walk = (list: PcNode[]): void => list.forEach(n => {
+    flat.push(n);
+    if (!state.ui.collapsed[n.id]) walk(n.children || []);
+  });
+  walk(tree());
   if (!flat.length) return null;
   if (!id) return flat[0].id;
   const i = flat.findIndex(n => n.id === id);
@@ -4906,6 +7267,7 @@ const firstChildOf = (id: string) => { const h = locate(id); return h && h.node.
 function nudge(id: string, dir: number) {
   const h = locate(id);
   if (!h) return false;
+  if (h.parent?.type === 'tabs') return tabMove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id), dir);
   const j = h.i + dir;
   if (j < 0 || j >= h.list.length) return false;
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
@@ -4966,6 +7328,7 @@ function nudgeMany(ids: string[], dir: number) {
     const j = h.i + dir;
     if (j < 0 || j >= h.list.length) continue;
     if (set.has(h.list[j].id)) continue;
+    if (h.parent?.type === 'tabs') { if (nudge(id, dir)) moved++; continue; }
     [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
     moved++;
   }
@@ -4975,7 +7338,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 13;                       // bump when the stored shape changes
+const SCHEMA = 16;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   /* `v` was the editor-backup marker before the document schema became an explicit part of
@@ -4994,6 +7357,12 @@ function migrate(d: any) {
   }
   const v = schemaVersion ?? legacyVersion ?? 1;
   if (v > SCHEMA) return null;          // written by a newer build — refuse rather than corrupt
+  for (const pg of d.pages) for (const kind of ['header', 'footer']) {
+    if (pg[kind] !== undefined && v < 16) throw new Error('Page ' + kind + ' overrides require document schema 16.');
+    if (pg[kind] !== undefined && pg[kind] !== null && !Array.isArray(pg[kind])) {
+      throw new Error('invalid page ' + kind + ' override');
+    }
+  }
   /* Every node the document owns, for the steps that rewrite nodes rather than meta. Saved
      blocks are in here on purpose: a block is a detached tree, and a step that skips them
      leaves a node that renders one way on the page and another way out of the Blocks list. */
@@ -5001,10 +7370,16 @@ function migrate(d: any) {
     const walk = (n: any) => { fn(n); (n.children || []).forEach(walk); };
     (d.header || []).forEach(walk);
     (d.footer || []).forEach(walk);
-    (d.pages || []).forEach((pg: any) => (pg.tree || []).forEach(walk));
+    (d.pages || []).forEach((pg: Page) => pageTrees(pg).forEach(list => (list || []).forEach(walk)));
     (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) walk(bl.node); });
     (((d.meta || {}).components) || []).forEach((cd: any) => { if (cd.node) walk(cd.node); });
   };
+  everyNode(n => {
+    if (n?.type !== 'tabs' || !hasRichTabPanels(n)) return;
+    if (v < 15) throw new Error('Editable tab panels require document schema 15.');
+    const problem = tabPanelProblem(n);
+    if (problem) throw new Error(problem);
+  });
   /* v1 → v2: images were inline data URIs. They still render as-is, so that
      step is a stamp only; new uploads go to the asset store as asset:<id>. */
   /* v2 → v3: design tokens arrive. The three colours that used to live loose on
@@ -5189,7 +7564,21 @@ function migrate(d: any) {
     n.props = n.props || {};
     if (n.props.mode !== 'wordpress') n.props.mode = 'external';
   });
-  d.v = SCHEMA;
+  /* v13 -> v14: a component link property may carry its own target beside its href. Existing
+     documents have no companion values, so their authored behaviour is already the correct
+     default. The migration is markers-only; new edits add the reserved string-map key. */
+  /* v14 -> v15: native tab panels may reference editable child Boxes. Existing plain-text
+     tabs remain unchanged until the author explicitly enables native panels. */
+  /* v15 -> v16: page-owned header/footer arrays and explicit hidden regions. Missing fields
+     keep inheritance unchanged. The version gate prevents older renderers silently dropping
+     visible page-owned content. Every owned tree participates in migrations above. */
+  /* `v` is an input compatibility marker, not part of `Doc`. Adding it to an already-current
+     document makes the public save/load contract oscillate: `migrate()` adds `v`, then
+     `restore()` + `doc()` drops it because state stores only the typed document fields. Keep
+     stamping legacy inputs that arrived through `v` (or with no marker), but leave a current
+     schemaVersion-only document byte-stable across adoption. */
+  if (legacyVersion !== undefined || schemaVersion === undefined) d.v = SCHEMA;
+  else delete d.v;
   d.schemaVersion = SCHEMA;
   return d;
 }
@@ -5218,6 +7607,33 @@ interface Pattern {
   preview: () => string;
   build: () => PcNode;
 }
+/* Pick a named foreground that clears WCAG AA against the resolved action fill. This covers
+   both current palettes with `brand` and older palettes where `brand` aliases `accent`, without
+   rewriting either token list. Black/white remains a deterministic fallback for a smaller
+   custom palette. */
+const brandActionForeground = () => {
+  const background = cvar('brand');
+  for (const id of ['ink', 'paper', 'bg', 'surface']) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = '#000000', light = '#ffffff';
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar('ink');
+  return darkRatio >= lightRatio ? dark : light;
+};
+/* Starter actions are authored pattern content rather than fresh widgets. Preserve their
+   established palette order and stored `color` declaration; this hardening targets factory
+   defaults and must not rewrite template-authored colours. */
+const starterActionForeground = () => {
+  const background = cvar('brand');
+  for (const id of ['ink', 'surface', 'bg']) {
+    if (findColor(id) && (contrast(cvar(id), background) || 0) >= 4.5) return cvar(id);
+  }
+  const dark = '#000000', light = '#ffffff';
+  const darkRatio = contrast(dark, background), lightRatio = contrast(light, background);
+  if (darkRatio == null || lightRatio == null) return cvar('ink');
+  return darkRatio >= lightRatio ? dark : light;
+};
 const PATTERNS: Pattern[] = [
   {
     id: 'hero-split', cat: 'Hero', preview: () => PV(ph(8,12,34)+ph(8,20,26)+pl(8,30,32)+pl(8,36,24)+pg(8,44)+pb(54,10,34,38,2)),
@@ -5552,7 +7968,7 @@ const PATTERNS: Pattern[] = [
       'background-color': cvar('bg'), ...HAIRLINE('bottom'), ...STICKY
     }, [
       cols(2, [[T_MARK('Your name')], [T_NAV()]],
-        { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
+        { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '20px', ...BURGER } })
     ])
   },
   {
@@ -5576,12 +7992,12 @@ const PATTERNS: Pattern[] = [
            414px, which broke “Get started” across two lines and made the bar 79px tall. */
         [N('button', { text: 'Get started', ts: 'btn' }, {
           d: {
-            'background-color': cvar('brand'), color: cvar('ink'), 'align-self': 'flex-end',
+            'background-color': cvar('brand'), color: starterActionForeground(), 'align-self': 'flex-end',
             'white-space': 'nowrap', 'border-radius': '8px', ...BOX('9px', '16px', '9px', '16px')
           },
           m: { ...BOX('8px', '12px', '8px', '12px'), 'font-size': '14px' }
         })]
-      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '14px', ...BURGER } }))
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '14px', ...BURGER } }))
     ])
   },
   {
@@ -5605,7 +8021,7 @@ const PATTERNS: Pattern[] = [
       cols(2, [
         [T_MARK('Your name', cvar('surface'))],
         [T_NAV({ d: { color: cvar('muted-i'), '--nav-hover': cvar('surface'), '--nav-panel': cvar('ink') } })]
-      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, m: { gap: '20px', ...BURGER } })
+      ], { d: { gap: '16px', 'flex-wrap': 'nowrap', ...BASELINE }, t: { ...BURGER }, m: { gap: '20px', ...BURGER } })
     ])
   },
 
@@ -5699,6 +8115,8 @@ function patternInsert(pid: string, parentNode?: PcNode | null, index = 0) {
   if (!p) return null;
   const node = p.build();
   if (parentNode === undefined) return dropTree(node, state.ui.sel);
+  if (nowhere(parentNode)) return null;
+  if (slotlessInstance(parentNode)) return dropTree(node, parentNode!.id);
   const pt = parentNode ? parentNode.type : null;
   if (!fitsIn(pt, node.type)) return dropTree(node, parentNode ? parentNode.id : null);
   const list = parentNode ? parentNode.children : tree();
@@ -5754,11 +8172,11 @@ const STICKY = { position: 'sticky', top: '0px', 'z-index': '50' };
    A box among the text still wants its box centred — see the button in header-cta, which
    overrides this on its own column.
 
-   And it only holds while the menu *is* text. Once it collapses to a burger there is no
-   baseline worth sharing and an icon reads as centred or not: baseline alignment left the
-   burger 4.3px low at 414px. `BURGER` goes on `m`, which is the same `max-width:767px` the
-   default `collapse:'mobile'` emits into — so the switch happens exactly where the menu
-   stops being words. A nav set to collapse at tablet would want this on `t` as well. */
+   And it only holds while the wide header is text. At narrower widths there is no stable
+   baseline to share: in tablet proof, its Nav column sat 9px below the wordmark column and
+   the burger centre was about 6px low. Baseline alignment also left the default mobile
+   burger 4.3px low. `BURGER` therefore centres the row
+   at both responsive breakpoints, whether the Nav collapses at Tablet or Mobile. */
 const BASELINE = { 'align-items': 'baseline' };
 const BURGER = { 'align-items': 'center' };
 /* Opt one column back out of the row's baseline alignment. `cols()` only gives each
@@ -6311,12 +8729,35 @@ const PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`);
 
 const MQ = { t: '@media (max-width:1024px)', m: '@media (max-width:767px)' };
-
+/* Style overrides inherit into narrower breakpoints; visibility flags are independent. Exact
+   bands avoid inventing a display reset that would break Block, Flex, Grid or widget defaults. */
+const VISIBILITY_MQ = {
+  d: '@media (min-width:1025px)',
+  t: '@media (min-width:768px) and (max-width:1024px)'
+};
+type RuleBuckets = { d: string; t: string; m: string; vd?: string; vt?: string; vm?: string };
+const ruleBuckets = (): RuleBuckets => ({ d: '', t: '', m: '', vd: '', vt: '', vm: '' });
 function decl(map: Decls) {
   let out = '';
-  for (const k in map) {
-    const v = map[k];
+  /* CSS preserves declaration order. Broad border declarations must precede their
+     edge-specific counterparts regardless of when the inspector first created each key;
+     otherwise a later `border-width` silently resets an earlier `border-left-width`. */
+  const keys = Object.keys(map).map((k, i) => ({ k, i, rank: buttonBorderDeclarationRank(k) }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i);
+  for (const { k } of keys) {
+    let v = map[k];
     if (v === '' || v == null) continue;
+    /* These two authored values feed CSS grammars whose numeric part is an integer.
+       Normalize old/imported fractional values at compile time as a narrow defense;
+       ordinary lengths and spacing remain untouched and retain decimal precision. */
+    if (k === '--g-cols' || k === 'z-index') {
+      const raw = String(v).trim();
+      /* `px` is tolerated here for old generic-unit fixtures/imports; the authored
+         grammar itself still receives the integer with no unit. */
+      const numeric = raw.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(?:px)?$/i);
+      const number = numeric ? Number(numeric[1]) : NaN;
+      if (Number.isFinite(number)) v = cssInteger(k === '--g-cols' ? Math.max(1, Math.round(number)) : number);
+    }
     out += `${k}:${v};`;
   }
   return out;
@@ -6324,16 +8765,27 @@ function decl(map: Decls) {
 /* Everything Pagecraft emits is namespaced. The per-element class is what the
    generated stylesheet targets; the id is for anchors and can be overridden. */
 const PFX = 'pagecraft-';
-const widgetSlug = (type: string) => slugify((DEF[type] && DEF[type].label) || type);
+// UI labels can change; existing CSS selectors and automatic anchor IDs must remain stable.
+const widgetSlug = (type: string) => type === 'text' ? 'wysiwyg' : slugify((DEF[type] && DEF[type].label) || type);
 const nodeClass = (n: PcNode) => PFX + String(n.id).replace(/^n/, '');
 const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, '')}`;
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
 const selOf = (n: PcNode) => '.' + nodeClass(n);
 
+const IMAGE_CONTENT_STYLE = new Set(['height', 'object-fit', 'border-radius', 'opacity', 'filter']);
+
 /* per-node CSS for one breakpoint bucket */
-function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null,
+function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = null,
   detachedComponentRoot = false) {
   const map = { ...(n.css[b] || {}) };
+  const authoredButton = new Set<string>();
+  const variantOwned = buttonVariantMarkers(map);
+  Object.keys(map).forEach(prop => {
+    if (prop.startsWith(BUTTON_AUTHORED)) {
+      if (map[prop] === '1') authoredButton.add(prop.slice(BUTTON_AUTHORED.length));
+      delete map[prop];
+    } else if (prop.startsWith(BUTTON_VARIANT_OWNS)) delete map[prop];
+  });
   if (n.type === 'column') {
     /* The marker is editor state, not page CSS. Resolve it at every breakpoint so a
        tablet row override reaches following columns even when the columns themselves
@@ -6354,36 +8806,233 @@ function bucket(n: PcNode, b: Bp, editing: boolean, parent: PcNode | null = null
       map['justify-content'] = mode === 'follow' ? rowVerticalValue(parent, b) : mode;
     }
   }
-  let extra = '';
-  if (n.hide && n.hide[b]) extra = editing ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;' : 'display:none !important;';
-  const body = decl(map) + extra;
+  /* A caption or link adds semantic wrappers. Layout and spacing stay on that wrapper while
+     the pixels-only image controls land on the image itself. This keeps captions in flow and
+     prevents an authored image height from clipping or stretching the figure. */
+  const imageNode = n.type === 'image';
+  const wrappedImage = imageNode && !!(n.props.caption || n.props.link);
+  const imageMap: Decls = {};
+  if (imageNode) {
+    for (const k of IMAGE_CONTENT_STYLE) {
+      if (map[k] === undefined) continue;
+      imageMap[k] = map[k];
+      if (wrappedImage) delete map[k];
+    }
+    if (map.width) imageMap.width = '100%';
+  }
+  const body = decl(map);
   const rules: string[] = [];
   if (body) rules.push(`${selOf(n)}{${body}}`);
+  if (n.type === 'button') {
+    /* A background shorthand expands after the shared variant rule in the generated sheet.
+       Browsers normally resolve that conflict by specificity, but emitting the intended
+       longhands after the hidden local shorthand also keeps embedded and legacy CSS engines
+       correct. Class-owned components are excluded below, while the following authored bridge
+       still lets a later Style edit win. */
+    if (variantOwned.has('background')) {
+      const base = BUTTON_VARIANT_BASES[String(n.props.variant)] || {};
+      const classAtoms = buttonClassSurfaceAtoms(n, b);
+      const reset: Decls = {};
+      if (base['background-color'] !== undefined && !classAtoms.has('background-color')) {
+        reset['background-color'] = base['background-color'];
+      }
+      if (base['background-image'] !== undefined && !classAtoms.has('background-image')) {
+        reset['background-image'] = base['background-image'];
+      }
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-button{${resetBody}}`);
+    }
+    /* Desktop Button documents include factory styling even when nobody touched the Style
+       panel. Repeating those values here would erase Outline/Text link defaults, so only a
+       value that differs from today's factory default is treated as authored. Responsive
+       buckets contain overrides only and can all be bridged. The document model cannot tell
+       an explicit desktop value equal to the factory default from the untouched default. */
+    const defaults = b === 'd' ? BUTTON_VARIANT_DEFAULTS : null;
+    const variantBody = decl(buttonVariantDeclarations(map, defaults, authoredButton, variantOwned));
+    if (variantBody) rules.push(`${selOf(n)}.pagecraft-button{${variantBody}}`);
+  }
+  if (imageNode && decl(imageMap)) {
+    const reset: Decls = {};
+    if (imageMap.height !== undefined) reset.height = 'auto';
+    if (imageMap['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+    if (imageMap['border-radius'] !== undefined) reset['border-radius'] = '0';
+    if (imageMap.opacity !== undefined) reset.opacity = '1';
+    if (imageMap.filter !== undefined) reset.filter = 'none';
+    const resetBody = decl(reset);
+    if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure{${resetBody}}`);
+    rules.push(`${selOf(n)} .pagecraft-image{${decl(imageMap)}}`);
+  }
+  /* Include the rendered container class so its selected per-node wrap value wins over the
+     built-in Box and Collection layout rules at every breakpoint. */
+  if ((n.type === 'box' || n.type === 'list') && map['flex-wrap']) {
+    rules.push(`${selOf(n)}.${n.type === 'box' ? 'pagecraft-box' : 'pagecraft-list'}{flex-wrap:${map['flex-wrap']}}`);
+    if (n.type === 'list') rules.push(`${selOf(n)}.pagecraft-list{${listWrapFallback(map['flex-wrap'])}}`);
+  }
   /* after the base rule, and `:hover` outranks the bare class anyway, so a state wins on
      specificity as well as on order */
   STATES.forEach(([k, , sel]) => {
-    const d = decl((n.st && n.st[k] && n.st[k]![b]) || {});
-    if (d) rules.push(`${selOf(n)}${sel}{${d}}`);
+    const stateMap = { ...((n.st && n.st[k] && n.st[k]![b]) || {}) };
+    if (n.type === 'list' && stateMap['flex-wrap']) rules.push(`${selOf(n)}${sel}{${listWrapFallback(stateMap['flex-wrap'])}}`);
+    const imageState: Decls = {};
+    if (imageNode) for (const prop of IMAGE_CONTENT_STYLE) {
+      if (stateMap[prop] === undefined) continue;
+      imageState[prop] = stateMap[prop];
+      if (wrappedImage) delete stateMap[prop];
+    }
+    const d = decl(stateMap);
+    const stateSelector = k === 'focus' && n.type === 'gallery'
+      ? galleryFocusSelector(selOf(n))
+      : k === 'focus' && n.type === 'nav'
+        ? navFocusSelector(selOf(n))
+        : k === 'focus' && n.type === 'text'
+          ? richTextFocusSelector(selOf(n))
+          : k === 'focus' && n.type === 'video'
+            ? videoFocusSelector(selOf(n))
+            : k === 'focus' && n.type === 'tabs'
+              ? tabsFocusSelector(selOf(n))
+              : k === 'focus' && n.type === 'accordion'
+                ? accordionFocusSelector(selOf(n))
+                : k === 'focus' && n.type === 'form'
+                  ? formFocusSelector(selOf(n))
+                  : k === 'focus' && n.type === 'code'
+                    ? codeFocusSelector(selOf(n)) : `${selOf(n)}${sel}`;
+    if (d) rules.push(`${stateSelector}{${d}}`);
+    if (n.type === 'text') {
+      const linkState = decl({ color: stateMap['--link'] });
+      if (linkState) {
+        const linkSelector = richTextLinkStateSelector(selOf(n), k, sel);
+        rules.push(`${linkSelector}{${linkState}}`);
+      }
+    }
+    const imageD = decl(imageState);
+    if (imageD) {
+      const reset: Decls = {};
+      if (imageState.height !== undefined) reset.height = 'auto';
+      if (imageState['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+      if (imageState['border-radius'] !== undefined) reset['border-radius'] = '0';
+      if (imageState.opacity !== undefined) reset.opacity = '1';
+      if (imageState.filter !== undefined) reset.filter = 'none';
+      const resetBody = decl(reset);
+      if (resetBody) rules.push(`${selOf(n)}.pagecraft-figure${sel}{${resetBody}}`);
+      rules.push(`${selOf(n)}${sel} .pagecraft-image{${imageD}}`);
+    }
   });
-  if (n.type === 'text' && map['--link']) rules.push(`${selOf(n)} a{color:${map['--link']}}`);
+  if (n.type === 'text') {
+    const link = decl({ color: map['--link'] });
+    if (link) rules.push(`${richTextLinkSelector(selOf(n))}{${link}}`);
+  }
   return rules.join('');
 }
 
-/* a burger menu is just "the inline list stops being inline below X" */
-const navCollapse = (n: PcNode) => `${selOf(n)} .pagecraft-nav-toggle{display:flex}`
-  + `${selOf(n)} .pagecraft-nav-list{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:60;`
-  + `flex-direction:column;align-items:stretch;gap:2px;min-width:210px;padding:10px;`
-  + `background:var(--nav-panel,#fff);border-radius:12px;box-shadow:0 20px 44px -14px rgba(15,23,42,.32)}`
-  + `${selOf(n)}.is-open .pagecraft-nav-list{display:flex}`
-  + `${selOf(n)} .pagecraft-nav-list a{padding:10px 12px;border-radius:7px}`
-  + `${selOf(n)} .pagecraft-nav-list .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 16px;box-shadow:none;background:transparent}`;
+/** A narrower reusable-style rule appears in a later media block and can otherwise outrank
+ * an element value inherited from a wider breakpoint. Re-assert only colliding inherited
+ * element properties after reusable rules, at their normal specificity. Equal specificity is
+ * deliberate: an explicit element value in the still-narrower media block must remain able to
+ * override this bridge by source order. Button surface classes use the reinforced
+ * `.class.pagecraft-button` selector that protects authored variants, so their inherited
+ * element surfaces need the matching per-node selector. Wrapped images keep pixel styling on
+ * their inner img. */
+function inheritedElementPriority(n: PcNode, b: Exclude<Bp, 'd'>) {
+  const own = (n.css && n.css[b]) || {};
+  const inherited = b === 't'
+    ? { ...((n.css && n.css.d) || {}) }
+    : { ...((n.css && n.css.d) || {}), ...((n.css && n.css.t) || {}) };
+  const reusable = [findStyle(n.props.ts), ...nodeClasses(n)].filter(Boolean) as Array<{ css?: Css }>;
+  const collisions = new Set<string>();
+  reusable.forEach(source => Object.keys((source.css && source.css[b]) || {}).forEach(k => collisions.add(k)));
+  const bridge: Decls = {};
+  collisions.forEach(k => {
+    if ((own[k] === undefined || own[k] === '') && inherited[k] !== undefined && inherited[k] !== '') {
+      bridge[k] = inherited[k];
+    }
+  });
+  const buttonBridge: Decls = {};
+  if (n.type === 'button') {
+    const defaultAtoms = buttonSurfaceAtomicDeclarations(BUTTON_VARIANT_DEFAULTS);
+    const inheritedMaps = b === 'm'
+      ? [{ bp: 't' as Bp, map: n.css.t }, { bp: 'd' as Bp, map: n.css.d }]
+      : [{ bp: 'd' as Bp, map: n.css.d }];
+    for (const collision of collisions) {
+      const atoms = buttonSurfaceAtoms(collision);
+      if (!atoms.length) continue;
+      delete bridge[collision];
+      for (const atom of atoms) {
+        /* Any same-breakpoint local shorthand or longhand already follows the reusable rule.
+           Only a value inherited from a wider breakpoint needs the late bridge. */
+        if (buttonDeclarationSupplier(own, atom)) continue;
+        let supplied: { bp: Bp; map: Decls; supplier: { property: string; value: string; rank: number } } | null = null;
+        for (const source of inheritedMaps) {
+          const supplier = buttonDeclarationSupplier(source.map, atom);
+          if (supplier) { supplied = { ...source, supplier }; break; }
+        }
+        if (!supplied || supplied.map[BUTTON_VARIANT_OWNS + supplied.supplier.property] === '1') continue;
+        const emitted = supplied.supplier.property === collision
+          ? { property: collision, value: supplied.supplier.value }
+          : buttonAtomicDeclaration(supplied.supplier, atom);
+        const suppliedAtom = buttonAtomicDeclaration(supplied.supplier, atom);
+        const authoredDefault = supplied.map[BUTTON_AUTHORED + supplied.supplier.property] === '1';
+        /* Fresh Buttons store their desktop factory surface, but the reinforced class bridge
+           must still beat that untouched default. Tablet suppliers are always authored. */
+        if (supplied.bp === 'd' && suppliedAtom.property === atom
+          && defaultAtoms[atom] === suppliedAtom.value && !authoredDefault) continue;
+        buttonBridge[emitted.property] = emitted.value;
+      }
+    }
+  }
+  const wrappedImage = n.type === 'image' && !!(n.props.caption || n.props.link);
+  const imageBridge: Decls = {};
+  if (wrappedImage) for (const k of IMAGE_CONTENT_STYLE) {
+    if (bridge[k] === undefined) continue;
+    imageBridge[k] = bridge[k];
+    delete bridge[k];
+  }
+  const body = decl(bridge);
+  const buttonBody = decl(buttonBridge);
+  const imageBody = decl(imageBridge);
+  const richLinkBody = n.type === 'text' ? decl({ color: bridge['--link'] }) : '';
+  return (body ? `${selOf(n)}{${body}}` : '')
+    + (buttonBody ? `${selOf(n)}.pagecraft-button{${buttonBody}}` : '')
+    + (imageBody ? `${selOf(n)} .pagecraft-image{${imageBody}}` : '')
+    + (richLinkBody ? `${richTextLinkSelector(selOf(n))}{${richLinkBody}}` : '');
+}
 
-function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: string },
+function inheritedRichTextLinkStatePriority(n: PcNode, b: Exclude<Bp, 'd'>) {
+  if (n.type !== 'text') return '';
+  return STATES.map(([state, , suffix]) => {
+    const own = (n.st && n.st[state] && n.st[state]![b]) || {};
+    const inherited = b === 't'
+      ? { ...((n.st && n.st[state] && n.st[state]!.d) || {}) }
+      : { ...((n.st && n.st[state] && n.st[state]!.d) || {}), ...((n.st && n.st[state] && n.st[state]!.t) || {}) };
+    const classCollision = nodeClasses(n).some(source => {
+      const responsive = source.st && source.st[state] && source.st[state]![b];
+      return responsive && responsive['--link'] !== undefined && responsive['--link'] !== '';
+    });
+    const value = inherited['--link'];
+    if (!classCollision || (own['--link'] !== undefined && own['--link'] !== '')
+      || value === undefined || value === '') return '';
+    const link = decl({ color: value });
+    return link ? `${richTextLinkStateSelector(selOf(n), state, suffix)}{${link}}` : '';
+  }).join('');
+}
+
+/* Mobile lists move into a native top-layer dialog when opened. This keeps full-width
+   menus clear of clipped or transformed header containers. */
+const navCollapse = (n: PcNode) => `${selOf(n)}.pagecraft-nav-enhanced>.pagecraft-nav-toggle{display:flex}`
+  + `${selOf(n)}.pagecraft-nav-enhanced>.pagecraft-nav-list{display:none}`
+  + `${selOf(n)}:not(.pagecraft-nav-enhanced)>.pagecraft-nav-list{flex-wrap:wrap;min-width:0}`
+  + `${selOf(n)}:not(.pagecraft-nav-enhanced) .sub-menu{display:block;position:static;min-width:0;box-shadow:none}`;
+
+function nodeCss(n: PcNode, editing: boolean, acc: RuleBuckets,
   parent: PcNode | null = null, detachedComponentRoot = false) {
   acc.d += bucket(n, 'd', editing, parent, detachedComponentRoot);
+  /* Restore default deletes the stored height. A zero-specificity per-node fallback restores
+     the factory mobile size without outranking an authored desktop/tablet value that should
+     inherit, a reusable class, or an explicit mobile zero. It lives in the existing mobile
+     bucket so standalone, WordPress and hosted styles keep one breakpoint cascade. */
+  if (n.type === 'spacer') acc.m += `:where(${selOf(n)}){height:32px}`;
   if (n.type === 'form' && n.props.fields?.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)))) {
     const selector = selOf(n);
-    acc.d += `${selector}.pagecraft-form-percent{display:flex}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
+    acc.d += `${selector}.pagecraft-form-percent{display:var(--f-layout,flex)}${selector}>.pagecraft-field{flex:0 0 100%;min-width:0}`;
     for (const [width, columns] of [[50, 2], [33, 3], [25, 4], [20, 5]]) {
       acc.d += `${selector}>.field-width-${width}{flex-basis:calc((100% - var(--f-gap,16px) * ${columns - 1}) / ${columns})}`;
     }
@@ -6393,16 +9042,42 @@ function nodeCss(n: PcNode, editing: boolean, acc: { d: string; t: string; m: st
     acc.d += `${selector}{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scroll-snap-type:x mandatory}${selector}>*{flex:0 0 calc(50% - 12px);scroll-snap-align:start}`;
     acc.m += `${selector}>*{flex-basis:80%}`;
   }
-  if (n.type === 'nav') {
+  if (n.type === 'nav' && n.props.managedMobileLinks) {
+    const selector = selOf(n);
+    acc.d += `${selector}.pagecraft-mobile-nav-links{display:block}`
+      + `${selector}>.pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:var(--nav-gap,4px);min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}`
+      + `${selector}>.pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}`
+      + `${selector} .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}`;
+  } else if (n.type === 'nav') {
     const c = n.props.collapse;
     if (c === 'tablet') acc.t += navCollapse(n);      // ≤1024 already covers mobile
     else if (c !== 'never') acc.m += navCollapse(n);
+    else {
+      const selector = selOf(n);
+      acc.m += `${selector}.pagecraft-nav-menu{min-width:0;max-width:100%}`
+        + `${selector}>.pagecraft-nav-list{min-width:0;max-width:100%;flex-wrap:wrap;justify-content:inherit}`;
+    }
   }
   acc.t += bucket(n, 't', editing, parent, detachedComponentRoot);
+  acc.t += inheritedElementPriority(n, 't');
+  acc.t += inheritedRichTextLinkStatePriority(n, 't');
   acc.m += bucket(n, 'm', editing, parent, detachedComponentRoot);
+  acc.m += inheritedElementPriority(n, 'm');
+  acc.m += inheritedRichTextLinkStatePriority(n, 'm');
   if (n.adv && n.adv.css) acc.d += n.adv.css.replace(/&/g, selOf(n));
+  const visibility = editing
+    ? 'opacity:.32;outline:1px dashed #f0a132;outline-offset:2px;'
+    : 'display:none !important;';
+  if (n.hide?.d) acc.vd = (acc.vd || '') + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.t) acc.vt = (acc.vt || '') + `${selOf(n)}{${visibility}}`;
+  if (n.hide?.m) acc.vm = (acc.vm || '') + `${selOf(n)}{${visibility}}`;
   (n.children || []).forEach(c => nodeCss(c, editing, acc, n));
   return acc;
+}
+
+function exactVisibilityCss(acc: RuleBuckets) {
+  return (acc.vd ? `${VISIBILITY_MQ.d}{${acc.vd}}` : '')
+    + (acc.vt ? `${VISIBILITY_MQ.t}{${acc.vt}}` : '');
 }
 /* Which definitions these trees actually render, following instances inside definitions. A
    page ships the rules for the components it uses and not for the ones it does not — the same
@@ -6411,12 +9086,14 @@ function usedComponents(lists: PcNode[][]): ComponentDef[] {
   const seen = new Set<string>();
   const out: ComponentDef[] = [];
   const visit = (list: PcNode[]) => eachNode(list, n => {
-    if (!n.use || seen.has(n.use)) return;
-    const cd = findComponent(n.use);
-    if (!cd) return;
-    seen.add(n.use);
-    out.push(cd);
-    visit([cd.node]);                              // a component may place another
+    for (const id of [n.use, n.type === 'nav' && n.props.mobileMenu !== 'fullscreen' ? mobileMenuRef(n) : null]) {
+      if (!id || seen.has(id)) continue;
+      const cd = findComponent(id);
+      if (!cd) continue;
+      seen.add(id);
+      out.push(cd);
+      visit([cd.node]);
+    }
   });
   lists.forEach(visit);
   return out;
@@ -6425,7 +9102,7 @@ function usedComponents(lists: PcNode[][]): ComponentDef[] {
    boundary explicit lets the WordPress package put the stable foundation/global regions in
    one content-addressed file and the current page in another without parsing generated CSS. */
 function treeRuleCss(lists: PcNode[][], editing: boolean) {
-  const acc = { d: '', t: '', m: '' };
+  const acc = ruleBuckets();
   /* Definitions first, and only once each however many instances there are: an instance reads
      its definition rather than copying it, so one set of rules dresses all of them. First
      because an instance's own rules have to win, and two single-class selectors are decided by
@@ -6434,7 +9111,8 @@ function treeRuleCss(lists: PcNode[][], editing: boolean) {
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   return acc.d
     + (acc.t ? `${MQ.t}{${acc.t}}` : '')
-    + (acc.m ? `${MQ.m}{${acc.m}}` : '');
+    + (acc.m || acc.vm ? `${MQ.m}{${acc.m}${acc.vm}}` : '')
+    + exactVisibilityCss(acc);
 }
 
 function foundationCss(editing: boolean) {
@@ -6444,27 +9122,70 @@ function foundationCss(editing: boolean) {
     + (tk.m ? `${MQ.m}{${tk.m}}` : '');
 }
 
-/* one stylesheet for a set of trees: base + all desktop rules + two media blocks */
+/* Failure controls must travel with the lightbox runtime as well as fresh compiled CSS.
+   WordPress can load a newer runtime beside a page stylesheet saved by an older compiler. */
+const LIGHTBOX_FAILURE_CSS = `.pagecraft-lightbox .pagecraft-lightbox-error{
+  max-width:64ch;margin:0;color:#f2f2ee;font:400 16px/1.5 system-ui,sans-serif;
+  text-align:center;overflow-wrap:anywhere;
+}
+.pagecraft-lightbox .pagecraft-lightbox-error strong,.pagecraft-lightbox .pagecraft-lightbox-error span{display:block}
+.pagecraft-lightbox .pagecraft-lightbox-error strong{font-weight:600}
+.pagecraft-lightbox .pagecraft-lightbox-retry{
+  min-height:44px;margin-top:12px;padding:8px 16px;border:1px solid currentColor;border-radius:6px;
+  background:transparent;color:inherit;font:600 16px/1.25 system-ui,sans-serif;cursor:pointer;
+}
+.pagecraft-lightbox .pagecraft-lightbox-retry[aria-disabled=true]{cursor:wait;opacity:.72}
+.pagecraft-lightbox .pagecraft-lightbox-retry:focus-visible{outline:2px solid #fff;outline-offset:3px}`;
+
+/* One stylesheet for a set of trees: cascading style buckets plus exact visibility bands. */
 function treeCss(lists: PcNode[][], editing: boolean) {
-  const acc = { d: '', t: '', m: '' };
+  const acc = ruleBuckets();
   usedComponents(lists).forEach(cd => nodeCss(cd.node, editing, acc, null, true));
   lists.forEach(l => l.forEach(n => nodeCss(n, editing, acc)));
   const tk = tokenCss();
   return baseCss(editing) + tk.d + acc.d
     + (tk.t || acc.t ? `${MQ.t}{${tk.t}${acc.t}}` : '')
-    + (tk.m || acc.m ? `${MQ.m}{${tk.m}${acc.m}}` : '');
+    + (tk.m || acc.m || acc.vm ? `${MQ.m}{${tk.m}${acc.m}${acc.vm}}` : '')
+    + exactVisibilityCss(acc);
 }
 
 /** WordPress stores project/global and page rules independently. The shared file always owns
     the foundation and design tokens, even when the project has no visible header or footer. */
+function publicFormControlsUsed(lists: PcNode[][]) {
+  let select = false, date = false;
+  const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
+  rendered.forEach(list => eachNode(list, node => {
+    if (node.type !== 'form') return;
+    const fields = Array.isArray(node.props.fields) ? node.props.fields : [];
+    if (fields.some(field => field.type === 'select')) select = true;
+    if (fields.some(field => field.type === 'date')) date = true;
+  }));
+  return { select, date };
+}
+
+function publicFormControlCss(used: { select: boolean; date: boolean }) {
+  return (used.select ? `\n${PUBLIC_SELECT_CSS}` : '') + (used.date ? `\n${PUBLIC_DATE_CSS}` : '');
+}
+
+function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
+  return editing ? '' : publicFormControlCss(publicFormControlsUsed(lists));
+}
+
 function wordpressStyles(pg: Page) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
-  const pageMoves = animUsed([pg.tree]);
+  const pageMoves = animUsed(pageTrees(pg));
+  const globalControls = publicFormControlsUsed(globalTrees);
+  const pageControls = publicFormControlsUsed(pageTrees(pg));
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false)
+      + publicFormControlCss(globalControls)
       + (globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : '')),
-    page: tidy(treeRuleCss([pg.tree], false)
+    page: tidy(treeRuleCss(pageTrees(pg), false)
+      + publicFormControlCss({
+        select: pageControls.select && !globalControls.select,
+        date: pageControls.date && !globalControls.date,
+      })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
   };
 }
@@ -6505,25 +9226,36 @@ img,video,svg{max-width:100%}
 .pagecraft-container.full{max-width:none}
 .pagecraft-row,.pagecraft-list{display:flex;flex-wrap:wrap;width:100%}
 .pagecraft-column{display:flex;flex-direction:column;min-width:0;flex-shrink:1;flex-basis:0%}
+.pagecraft-list{--pc-list-item-shrink:1;--pc-list-overflow-x:visible;--pc-list-min-width:auto;--pc-list-max-width:none;--pc-list-padding:0}
+:where(.pagecraft-list:not(.pagecraft-slider)){overflow-x:var(--pc-list-overflow-x,visible);min-width:var(--pc-list-min-width,auto);max-width:var(--pc-list-max-width,none);padding:var(--pc-list-padding,0)}
+.pagecraft-list:where(:not(.pagecraft-slider))>:where(*){flex-shrink:var(--pc-list-item-shrink,1)}
 .pagecraft-box{display:block;width:100%;min-width:0;position:relative}
 .pagecraft-box.l-flex{display:flex;flex-wrap:wrap}
 .pagecraft-box.l-grid{display:grid}
 .pagecraft-box>*{min-width:0}
 a.pagecraft-box{color:inherit;text-decoration:none}
-.pagecraft-heading{margin:0;font-family:${m.headFont || 'inherit'}}
+.pagecraft-heading{margin:0;font-family:${m.headFont || 'inherit'};overflow-wrap:break-word}
 .pagecraft-heading a{color:inherit;text-decoration:none}
 .pagecraft-wysiwyg>:first-child{margin-top:0}
 .pagecraft-wysiwyg>:last-child{margin-bottom:0}
+.pagecraft-wysiwyg,.pagecraft-quote{overflow-wrap:break-word}
 .pagecraft-wysiwyg a{text-decoration:underline;text-underline-offset:2px}
 .pagecraft-wysiwyg ul,.pagecraft-wysiwyg ol{padding-left:1.3em;margin:.7em 0}
 .pagecraft-wysiwyg h1,.pagecraft-wysiwyg h2,.pagecraft-wysiwyg h3,.pagecraft-wysiwyg h4{margin:.3em 0 .5em;line-height:1.25;font-family:${m.headFont || 'inherit'}}
 .pagecraft-wysiwyg blockquote{margin:1em 0;padding-left:1em;border-left:3px solid currentColor;opacity:.85}
-.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;max-width:100%}
+.pagecraft-button{display:inline-flex;align-items:center;justify-content:center;gap:.5em;text-decoration:none;border:0 solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+:where(.pagecraft-button){max-width:100%;color:inherit}
+:where(.pagecraft-button[data-variant=solid]){color:var(--pc-solid-fg,inherit)}
+.pagecraft-button[data-variant=outline]{background-color:transparent;border-width:1px;border-style:solid;border-color:currentColor}
+.pagecraft-button[data-variant=ghost]{background-color:transparent;border-color:transparent}
+.pagecraft-button[data-variant=link]{background-color:transparent;border-width:0;border-color:transparent;border-radius:0;padding:0}
+.pagecraft-button[data-variant=outline],.pagecraft-button[data-variant=ghost],.pagecraft-button[data-variant=link]{background-image:none}
 .pagecraft-button svg{width:1em;height:1em;flex:0 0 auto}
 .pagecraft-figure{margin:0;display:flex;flex-direction:column}
+.pagecraft-figure>a{display:block;width:100%;max-width:100%}
 .pagecraft-image{display:block;width:100%;height:auto}
 .pagecraft-caption{font-size:.82em;opacity:.7;margin-top:.55em}
-.pagecraft-slider-box{position:relative;width:100%}
+.pagecraft-slider-box{position:relative;width:100%;min-width:0;max-width:100%}
 .pagecraft-slider{
   display:flex;gap:var(--sl-gap,24px);width:100%;
   overflow-x:auto;overscroll-behavior-x:contain;
@@ -6551,7 +9283,7 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .controls-bottom>.pagecraft-slide-btn{position:static;translate:none;width:44px;height:44px;grid-row:2}
 .controls-bottom>.pagecraft-slide-btn.p{grid-column:1;justify-self:end}
 .controls-bottom>.pagecraft-slide-btn.n{grid-column:3;justify-self:start}
-.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0}
+.controls-bottom>.pagecraft-slider-dots{grid-column:2;grid-row:2;margin-top:0;min-width:0;flex-wrap:wrap}
 .pagecraft-slider-dot{appearance:none;width:36px;height:36px;padding:0;display:grid;place-items:center;border:0;border-radius:99px;background:transparent;color:var(--c-text,#111311);cursor:pointer}
 .pagecraft-slider-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3;transition:transform .2s ease,opacity .2s ease,background-color .2s ease}
 .pagecraft-slider-dot:hover::before{opacity:.68}
@@ -6617,14 +9349,14 @@ a.pagecraft-box{color:inherit;text-decoration:none}
   background:var(--tbl-head-bg,transparent);color:var(--tbl-head-text,#111311);
   font-weight:var(--tbl-head-weight,600);border-bottom:2px solid var(--tbl-line,#e5e1d6);
 }
-.pagecraft-table tbody th{font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
+.pagecraft-table tbody th{background:var(--tbl-head-bg,transparent);font-weight:var(--tbl-head-weight,600);color:var(--tbl-head-text,#111311)}
 .pagecraft-table[data-rules=rows] tbody tr+tr>*{border-top:1px solid var(--tbl-line,#e5e1d6)}
 .pagecraft-table[data-rules=all] th,.pagecraft-table[data-rules=all] td{border:1px solid var(--tbl-line,#e5e1d6)}
-.pagecraft-table[data-zebra] tbody tr:nth-child(even)>*{background:var(--tbl-zebra,#f8f6ef)}
-.pagecraft-tabs{width:100%}
+.pagecraft-table[data-zebra] tbody tr:nth-child(even)>td{background:var(--tbl-zebra,#f8f6ef)}
+.pagecraft-tabs{width:100%;overflow-wrap:anywhere}
 .pagecraft-tablist{display:flex;flex-wrap:wrap;gap:var(--tb-gap,22px);justify-content:var(--tb-align,flex-start);border-bottom:1px solid var(--tb-line,#e5e1d6)}
 .pagecraft-tab{
-  background:none;border:0;cursor:pointer;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
+  background:none;border:0;cursor:pointer;min-width:0;max-width:100%;padding:var(--tb-pad,10px 2px);margin-bottom:-1px;
   font:inherit;font-size:var(--tb-size,15px);font-weight:var(--tb-weight,500);
   color:var(--tb-off,#5f6660);border-bottom:2px solid transparent;transition:color .16s,border-color .16s;
 }
@@ -6670,9 +9402,21 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list .sub-menu{display:none;position:absolute;z-index:65;top:100%;left:0;min-width:190px;margin:0;padding:8px;list-style:none;background:var(--nav-panel,#fff);box-shadow:0 18px 38px -18px rgba(15,23,42,.36)}
 .pagecraft-nav-list li:hover>.sub-menu,.pagecraft-nav-list li:focus-within>.sub-menu{display:block}
 .pagecraft-nav-list .sub-menu .sub-menu{top:0;left:100%}
+.pagecraft-nav-list .sub-menu.is-flipped{left:auto;right:0}
+.pagecraft-nav-list .sub-menu .sub-menu.is-flipped{left:auto;right:100%}
 .pagecraft-nav-list a{display:block;text-decoration:none;color:inherit;transition:color .15s ease,background-color .15s ease}
 .pagecraft-nav-list a:hover{color:var(--nav-hover,inherit)}
 .pagecraft-nav-toggle{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;cursor:pointer}
+.pagecraft-mobile-menu{position:fixed;inset:var(--nav-top,0px) 0 auto;width:100%;max-width:none;max-height:var(--nav-height,calc(100dvh - var(--nav-top,0px)));margin:0;padding:20px clamp(20px,5vw,48px);border:0;border-radius:0;background:var(--nav-panel,#fff);color:inherit;font:inherit;overflow:auto;box-sizing:border-box;overscroll-behavior:contain}
+.pagecraft-mobile-menu::backdrop{background:rgba(0,0,0,.18)}
+.pagecraft-mobile-menu[data-layout=dropdown]::backdrop{background:transparent;pointer-events:none}
+.pagecraft-mobile-menu[data-layout=fullscreen]{inset:0;height:100dvh;max-height:none;display:flex;flex-direction:column;gap:24px}
+.pagecraft-mobile-menu-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.pagecraft-mobile-menu-close{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid currentColor;border-radius:50%;color:inherit;background:transparent;cursor:pointer}
+.pagecraft-nav-menu .pagecraft-mobile-menu .pagecraft-nav-list{display:flex;position:static;flex-direction:column;align-items:stretch;gap:4px;min-width:0;width:100%;padding:0;margin:0;box-shadow:none;background:transparent}
+.pagecraft-mobile-menu .pagecraft-nav-list a{padding:12px 0;min-height:44px;box-sizing:border-box}
+.pagecraft-mobile-menu[data-layout=fullscreen]>.pagecraft-nav-list{margin-block:auto;font-size:clamp(24px,6vw,44px);gap:12px}
+.pagecraft-nav-menu .pagecraft-mobile-menu .sub-menu{display:flex;position:static;flex-direction:column;min-width:0;padding:0 0 0 20px;box-shadow:none;background:transparent;font-size:.85em}
 .pagecraft-nav-icon{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;transition:background-color .2s ease}
 .pagecraft-nav-icon::before,.pagecraft-nav-icon::after{content:"";position:absolute;left:0;width:20px;height:2px;background:currentColor;border-radius:2px;transition:transform .2s ease}
 .pagecraft-nav-icon::before{transform:translateY(-6px)}
@@ -6695,14 +9439,17 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-field-check input{width:auto;padding:0}
 .pagecraft-field-check label{font-size:1em}
 .pagecraft-form-button{
+  grid-column:1 / -1;
   font:inherit;font-weight:600;cursor:pointer;border:0;align-self:var(--f-button-align,flex-start);flex:0 0 auto;
   background:var(--f-btn-bg,#111);color:var(--f-btn-fg,#fff);
   border-radius:var(--f-radius,8px);padding:var(--f-pad,11px 13px);padding-left:26px;padding-right:26px;
+  max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;
 }
 .pagecraft-form-button:disabled{cursor:not-allowed;opacity:.55}
 .pagecraft-form-status{grid-column:1 / -1;flex:1 1 100%;margin:0;font-size:.82em;color:var(--f-label,inherit)}
-.pagecraft-divider{width:100%;border:0 solid transparent;align-self:stretch}
+:where(.pagecraft-divider){width:100%;border:0 solid transparent;border-top:1px solid var(--c-line);margin:20px 0;align-self:stretch}
 .pagecraft-spacer{width:100%;flex:0 0 auto}
+:where(.pagecraft-spacer){height:48px}
 
 .pagecraft-accordion{display:flex;flex-direction:column;gap:var(--ac-gap,0px);width:100%}
 .pagecraft-accordion-item{border-top:1px solid var(--ac-line,currentColor);border-radius:var(--ac-radius,0px)}
@@ -6774,12 +9521,14 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 }
 .pagecraft-lightbox-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
 .pagecraft-lightbox-cap{margin:0;color:#f2f2ee;font-size:14px;line-height:1.5;text-align:center;max-width:64ch}
+${LIGHTBOX_FAILURE_CSS}
 .pagecraft-lightbox-btn{
   position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;
   display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;font:400 22px/1 system-ui,sans-serif;
+  font:400 22px/1 system-ui,sans-serif;
 }
-.pagecraft-lightbox-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.pagecraft-lightbox .pagecraft-lightbox-btn{background:rgba(10,12,10,.72);color:#fff}
+.pagecraft-lightbox .pagecraft-lightbox-btn:hover{background:rgba(10,12,10,.88);color:#fff}
 .pagecraft-lightbox-prev{left:14px}
 .pagecraft-lightbox-next{right:14px}
 .pagecraft-lightbox-close{position:absolute;top:14px;right:14px;transform:none}
@@ -6789,8 +9538,10 @@ a.pagecraft-box{color:inherit;text-decoration:none}
 .pagecraft-nav-list a:focus-visible,.pagecraft-nav-toggle:focus-visible,
 .pagecraft-heading a:focus-visible,.pagecraft-wysiwyg a:focus-visible,
 .pagecraft-figure:focus-visible,.pagecraft-icon:focus-visible,
-.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible,
-.pagecraft-lightbox-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-gallery-frame:focus-visible,.pagecraft-accordion-q:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.pagecraft-lightbox .pagecraft-lightbox-btn:focus-visible{
+  outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px rgba(10,12,10,.92);
+}
 ${m.css || ''}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -6802,12 +9553,12 @@ ${m.css || ''}
 :where([data-id]){position:relative}
 [data-id]:hover{outline:1px solid #b7f34a;outline-offset:0}
 .s-cond-off{opacity:.42;outline:1px dashed #7aa2f7;outline-offset:2px}
+/* Empty rich content needs a canvas target; a pseudo-element cannot leak into inline edits. */
+.s-rich-empty::after{content:"";display:block;height:24px;pointer-events:none}
 [data-t=section]:hover,[data-t=row]:hover,[data-t=column]:hover{outline:1px dashed #6f7771;outline-offset:-1px}
-[data-t=column]{min-height:40px}
-[data-t=nav][data-sel] .pagecraft-nav-list{display:flex !important}
-[data-t=nav][data-sel] .pagecraft-nav-icon{background-color:transparent}
-[data-t=nav][data-sel] .pagecraft-nav-icon::before{transform:rotate(45deg)}
-[data-t=nav][data-sel] .pagecraft-nav-icon::after{transform:rotate(-45deg)}
+/* Keep an empty Column available as a drop target without giving real content an editor-only
+   containing-block height. Percentage children must see the same layout context as Preview. */
+.s-column-empty{min-height:40px}
 [data-t=tabs] [data-tab-idle]{display:none}
 .pagecraft-video>iframe,.pagecraft-video>video{pointer-events:none}
 .pagecraft-button,.pagecraft-heading a,.pagecraft-wysiwyg a{cursor:default}
@@ -6815,6 +9566,12 @@ ${m.css || ''}
   display:flex;align-items:center;justify-content:center;gap:7px;min-height:76px;width:100%;
   border:1px dashed #cbd2d8;border-radius:8px;color:#6f7771;
   font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;background:#f5f7f880;
+}
+.s-icon-missing{
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  width:var(--icon-size,30px);height:var(--icon-size,30px);min-width:18px;min-height:18px;
+  border:1px dashed #cbd2d8;border-radius:6px;color:#6f7771;background:#f5f7f880;
+  font:600 12px "DM Sans",system-ui,sans-serif;
 }
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
@@ -6841,6 +9598,8 @@ ${m.css || ''}
 }
 /* wayfinding, not furniture — revealed on hover so it stays out of the way */
 .s-region:hover>.s-lockbar{opacity:1;pointer-events:auto}
+/* the active badge names the component but has no action; let canvas clicks reach its root */
+.s-region[data-state=edit]:hover>.s-lockbar{pointer-events:none}
 /* nothing stays pinned over the canvas — the way out lives in the chrome */
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
@@ -6900,7 +9659,8 @@ ${m.css || ''}
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar{
-  position:absolute;display:flex;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
+  position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
+  box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
   transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
   font:500 12px "DM Sans",system-ui,sans-serif;
@@ -6913,6 +9673,7 @@ ${m.css || ''}
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
 #s-hud .bar button.g{cursor:grab}
 #s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 calc(1px / var(--z,1)) #11131126}
+#s-drop-label{position:absolute;z-index:10000;pointer-events:none;box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);padding:5px 8px;border-radius:4px;background:#111311;color:#f5f7f8;font:500 12px "DM Sans",system-ui,sans-serif;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;white-space:normal}
 #s-drop.box{background:#b7f34a24;border:1.5px solid #b7f34a;border-radius:8px;box-shadow:none}
 ` : '');
 }
@@ -6921,12 +9682,43 @@ ${m.css || ''}
 /* One place that understands a video URL, used by both the embed and the facade */
 function vidSrc(p: any) {
   const src = String(p.src || '').trim();
-  let m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{6,})/);
-  if (m) return { kind: 'youtube', id: m[1] };
-  m = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (m) return { kind: 'vimeo', id: m[1] };
-  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith('data:video')) return { kind: 'file', id: src };
-  return { kind: src ? 'other' : 'none', id: src };
+  if (!src) return { kind: 'none', id: '' };
+  if (/^[\\/]{2}/.test(src) || /[\u0000-\u001f\u007f]/.test(src)
+    || /^(?:%(?:0[0-9a-f]|1[0-9a-f]|7f))/i.test(src)) return { kind: 'invalid', id: '' };
+  const videoId = (value: string | null) => value && /^[\w-]{6,}$/.test(value) ? value : '';
+  const filePath = (value: string) => /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(value);
+  if (/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(src)
+    || /^data:video\/[a-z0-9.+-]+(?:;[^,]*)?,/i.test(src)) return { kind: 'file', id: src };
+  if (src.startsWith('//')) return { kind: 'invalid', id: '' };
+  const scheme = /^([A-Za-z][A-Za-z0-9+.-]*):/.exec(src);
+  if (scheme && !/^https?$/i.test(scheme[1])) return { kind: 'invalid', id: '' };
+  if (scheme) {
+    if (!/^https?:\/\//i.test(src)) return { kind: 'invalid', id: '' };
+    try {
+      const url = new URL(src);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
+        return { kind: 'invalid', id: '' };
+      const host = url.hostname.toLowerCase();
+      const parts = url.pathname.split('/').filter(Boolean);
+      const youtubeHosts = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com']);
+      let id = '';
+      if (youtubeHosts.has(host)) {
+        if (url.pathname === '/watch') id = videoId(url.searchParams.get('v'));
+        else if (['embed', 'shorts', 'live'].includes(parts[0])) id = videoId(parts[1] || '');
+      } else if (host === 'youtu.be' || host === 'www.youtu.be') {
+        id = videoId(parts[0] || '');
+      }
+      if (id) return { kind: 'youtube', id };
+
+      const vimeoHosts = new Set(['vimeo.com', 'www.vimeo.com']);
+      if (vimeoHosts.has(host) || host === 'player.vimeo.com') {
+        const candidate = parts[0] === 'video' ? parts[1] : (host === 'player.vimeo.com' ? '' : parts[0]);
+        if (candidate && /^\d+$/.test(candidate)) return { kind: 'vimeo', id: candidate };
+      }
+      return { kind: filePath(src) ? 'file' : 'other', id: src };
+    } catch { return { kind: 'invalid', id: '' }; }
+  }
+  return filePath(src) ? { kind: 'file', id: src } : { kind: 'invalid', id: '' };
 }
 /* A facade poster is release content, so only an author-owned/frozen asset is eligible.
    Provider thumbnails are mutable remote bytes and cannot be part of an immutable release. */
@@ -6948,20 +9740,14 @@ const embedUrl = (p: any) => {
 const canFacade = (p: any) => p.facade && !p.autoplay && ['youtube', 'vimeo'].includes(vidSrc(p).kind);
 
 function vid(p: any) {
-  const src = String(p.src || '').trim();
-  const q: string[] = [];
-  if (p.autoplay) q.push('autoplay=1');
-  if (p.muted || p.autoplay) q.push('mute=1', 'muted=1');
-  if (p.loop) q.push('loop=1');
-  if (!p.controls) q.push('controls=0');
-  let mt = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{6,})/);
-  if (mt) return `<iframe src="https://www.youtube.com/embed/${mt[1]}?${q.join('&amp;')}${p.loop ? '&amp;playlist=' + mt[1] : ''}" title="Video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
-  mt = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (mt) return `<iframe src="https://player.vimeo.com/video/${mt[1]}?${q.join('&amp;')}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
-  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(src) || src.startsWith('data:video'))
-    return `<video src="${esc(src)}"${p.controls ? ' controls' : ''}${p.autoplay ? ' autoplay' : ''}${p.muted || p.autoplay ? ' muted playsinline' : ''}${p.loop ? ' loop' : ''}${p.poster ? ` poster="${esc(p.poster)}"` : ''}></video>`;
-  if (!src) return `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
-  return `<iframe src="${esc(src)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
+  const source = vidSrc(p);
+  if (source.kind === 'youtube') return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  if (source.kind === 'vimeo') return `<iframe src="${esc(embedUrl(p))}" title="Video" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+  if (source.kind === 'file')
+    return `<video src="${esc(source.id)}"${p.controls ? ' controls' : ''}${p.autoplay ? ' autoplay' : ''}${p.muted || p.autoplay ? ' muted playsinline' : ''}${p.loop ? ' loop' : ''}${p.poster ? ` poster="${esc(p.poster)}"` : ''}></video>`;
+  if (source.kind === 'none') return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Add a video URL</div>`;
+  if (source.kind === 'invalid') return `<div style="position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#94a3b8;font:500 13px sans-serif">Unsupported video URL</div>`;
+  return `<iframe src="${esc(source.id)}" title="Video" allowfullscreen loading="lazy"></iframe>`;
 }
 
 /* Plain multi-line text to paragraphs: a blank line starts one, a single
@@ -6971,21 +9757,6 @@ function para(str: unknown) {
   const t = String(str == null ? '' : str).replace(/\r\n?/g, '\n').trim();
   if (!t) return '';
   return t.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g, '<br>')}</p>`).join('');
-}
-
-/* What the canvas is allowed to run from an Embed: nothing. The export ships the
-   markup verbatim — that is the whole point of the widget — but the editor renders
-   inside a live iframe on the same origin, so a pasted analytics tag or a widget
-   loader would execute on every repaint, once per keystroke. Both forms go: the
-   `<script>` element and the inline `on*` handler. Returns how many it held back,
-   because an embed that renders as nothing needs to say why. */
-function stripScripts(html: unknown) {
-  let stripped = 0;
-  const out = String(html == null ? '' : html)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, () => { stripped++; return ''; })
-    .replace(/<script\b[^>]*\/?>/gi, () => { stripped++; return ''; })
-    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, () => { stripped++; return ''; });
-  return { html: out, stripped };
 }
 
 /* Pagecraft owns the document's one page-level `<main>`. Authors can still choose `main` in
@@ -7056,7 +9827,11 @@ const BICON: Record<string, string> = { arrow: IC.arrow, check: IC.check, plus: 
    left to infer it from the styling. The current page is not a link — linking to where you
    already are is a dead control that looks live. */
 function pager(pg: Page, at: number, total: number, o: RenderOpts) {
-  const to = (i: number) => esc((o.rel || '') + pagedPath(pg.slug, i));
+  /* A detail template's files are named for the item it is showing, not for its own slug,
+     which the canvas still renders it under. */
+  const slug = o.col && o.item && o.col.id === pg.collection && isDetailTemplate(pg)
+    ? o.col.slug + '/' + o.item.slug : pg.slug;
+  const to = (i: number) => esc((o.rel || '') + pagedPath(slug, i));
   const cell = (i: number) => i === at
     ? `<span class="pagecraft-page on" aria-current="page">${i}</span>`
     : `<a class="pagecraft-page" href="${to(i)}">${i}</a>`;
@@ -7074,7 +9849,39 @@ const SEC_TAGS = ['section', 'div', 'header', 'footer', 'main', 'article', 'asid
    than emitted as typed, for the reason every other tag prop is: a prop is author input. */
 const BOX_TAGS = ['div', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'section', 'ul', 'ol', 'li'];
 
-function renderNode(n: PcNode, o: RenderOpts): string {
+/* `ratio` lands inside a style attribute. The Inspector offers only ratios, but a CMS field, an
+   instance value or an imported project can carry any string, and escaping keeps out markup,
+   not a second declaration. Anything that is not a plain ratio is treated as no ratio. */
+const cssRatio = (v: unknown) => {
+  const s = String(v ?? '').trim();
+  return /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/.test(s) ? s : '';
+};
+
+type ObservedFormHandling = FormHandling & { fixedQuery: [string, string][] };
+export type FormRoutingObservation = {
+  placement: string;
+  context: string;
+  cloud: ObservedFormHandling;
+  portable: ObservedFormHandling;
+};
+
+type FormRoutingInspection = {
+  region: string;
+  items: readonly (readonly [string, string])[];
+  count: (size?: number) => void;
+  visit: (form: FormRoutingObservation) => void;
+};
+
+/** Supplied slot children belong to the instance's caller, not the definition being
+    expanded. Drop only that definition's frame: a surrounding definition still owns its
+    supplied content and must retain its recursion guard. Never clear the whole stack. */
+function slotCallerStack(stack: string[], definition: ComponentDef | null | undefined): string[] {
+  return definition && stack.at(-1) === definition.id ? stack.slice(0, -1) : stack;
+}
+
+function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspection }): string {
+  if (!o.edit && !o.publicIds) return renderPublicLists([[n]], o)[0];
+  o.formRouting?.count();
   const d = DEF[n.type];
   if (!d) return '';
   /* An instance renders its definition's tree. `o.inst` carries the instance down that render
@@ -7084,12 +9891,15 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      set of rules in the stylesheet serve every instance. */
   if (n.use && !(o.inst && o.inst === n)) {
     const cd = findComponent(n.use);
+    const placementPath = [...(o.placementPath || []), n.id];
+    const fallbackId = esc(n.id + (o.edit ? (o.placementPath || []).map(id => '-' + id.replace(/^n/, '')).join('') : ''));
+    const fallbackHooks = (placementPath?.length || 0) > 1 ? '' : ` data-id="${esc(n.id)}" data-t="${esc(n.type)}"`;
     if (cd && (o.stack || []).includes(n.use)) {
       /* A component that contains itself. Refused at the second turn rather than the
          thousandth, because the alternative is a page builder that can hang the tab it renders
          in — and the author needs to be told, not left with a blank space. */
       return o.edit
-        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">${esc(cd.name)} contains itself</div>`
+        ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">${esc(cd.name)} contains itself</div>`
         : '';
     }
     if (!cd) {
@@ -7097,10 +9907,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
          a broken one — and named in the editor, because a component nobody can find is a thing
          somebody has to fix. */
       return o.edit
-        ? `<div id="${n.id}" data-id="${n.id}" data-t="${n.type}" class="s-missing">Missing component: ${esc(n.use)}</div>`
+        ? `<div id="${fallbackId}"${fallbackHooks} class="s-missing">Missing component: ${esc(n.use)}</div>`
         : '';
     }
-    return renderNode(cd.node, { ...o, inst: n, cdef: cd, stack: [...(o.stack || []), n.use] });
+    return renderNode(cd.node, { ...o, inst: n, cdef: cd, placementPath, stack: [...(o.stack || []), n.use] });
   }
   /* This node is the definition's root, rendering inside an instance: the element on the page
      is the instance's, so its id, its styling hook, its classes and its motion are the ones
@@ -7123,7 +9933,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      stylesheet writer cannot answer it at all, which is why the marker is a class the render
      adds rather than a declaration `bucket` emits. */
   let condCls = '';
-  const cx = (c: string) => `class="${c} ${nodeClass(n)}${host ? ' ' + nodeClass(host) : ''}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
+  const cx = (c: string) => `class="${c} ${esc(nodeClass(n))}${host ? ' ' + esc(nodeClass(host)) : ''}${ts}${managed}${anim.cls}${condCls}${self.adv && self.adv.cls ? ' ' + esc(self.adv.cls) : ''}"`;
   /* The editor addresses elements by node id; the export uses the readable one.
      A repeat is the same node rendered many times, so both need a per-item suffix
      or every card in a Collection List ships the same id — invalid markup, and it
@@ -7137,19 +9947,76 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      page ship three elements with the same id, which is invalid markup and breaks every anchor
      pointing at one. */
   const ins = inner && o.inst ? '-' + String(o.inst.id).replace(/^n/, '') : '';
-  const domId = o.edit
-    ? (o.repIndex ? self.id + rep + ins : self.id + ins)
-    : esc(domIdOf(self) + rep + ins);
-  /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
-     on the nearest ancestor that has one — the instance — which is the element whose panel can
-     actually change anything. Its internals belong to the definition. */
-  const hooks = inner ? '' : ` data-id="${self.id}" data-t="${self.type}"${state.ui.sel === self.id ? ' data-sel' : ''}`;
-  const at = `id="${domId}"${o.edit ? hooks : ''}${anim.at}`;
   /* a node that declares a source opens a scope for itself and everything under
      it; `o.item` is set by a repeater, otherwise the canvas previews one */
   const source = self.src || n.src;
   const sc = source ? findCollection(source) : null;
-  const o2 = sc ? { ...o, col: sc, item: o.repeat && o.col === sc ? o.item : previewItem(sc) } : o;
+  const o2 = sc ? {
+    ...o, col: sc,
+    item: sourceItem(sc, o.col || null, o.item || null, !!o.repeat)
+  } : o;
+  // Omitted public branches must not reserve or allocate IDs for themselves or descendants.
+  if (!o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) return '';
+  /* The first generated nested ID remains a canonical anchor. Later copies gain their
+     placement path; an authored ID always keeps ownership of its explicitly chosen name. */
+  const placementSuffix = (o.inst ? (o.placementPath || []).slice(0, -1) : o.placementPath || [])
+    .map(id => '-' + id.replace(/^n/, '')).join('');
+  const legacyId = domIdOf(self) + rep + ins;
+  const nestedGenerated = !self.adv?.htmlId && (o.placementPath?.length || 0) > 1;
+  // Allocate the emitted widget family together so its labels and controls cannot collide
+  // with an authored anchor, even when the root ID itself is still available.
+  const publicIdFamily = (root: string): string[] => {
+    const family = [root];
+    if (n.type === 'nav' && !p.managedMobileLinks) {
+      family.push(root + '-menu');
+      if (p.mobileMenu !== 'fullscreen' && mobileMenuDefinition({ ...n, props: p } as PcNode)) family.push(root + '-menu-content');
+    } else if (n.type === 'tabs' && Array.isArray(p.items)) {
+      p.items.forEach((_, i) => family.push(root + '-t' + i, root + '-p' + i));
+    } else if (n.type === 'form') {
+      if (Array.isArray(p.fields)) p.fields.forEach((_, i) => family.push(root + '-f' + i));
+      if (!resolveFormHandling(p, String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '')).action) family.push(root + '-status');
+    } else if (n.type === 'image' && captionNamesImageLink(p, o)) {
+      family.push(root + '-caption');
+    }
+    return family;
+  };
+  let resolvedDomId: string | undefined;
+  const domId = () => {
+    if (resolvedDomId !== undefined) return resolvedDomId;
+    let publicId = legacyId;
+    if (!o.edit && o.publicIds) {
+      const ids = o.publicIds;
+      if (ids.reserving) {
+        if (!nestedGenerated) publicIdFamily(legacyId).forEach(id => ids.reserved.add(id));
+      } else {
+        const occupied = (root: string) => publicIdFamily(root).some(id => ids.used.has(id) || ids.reserved.has(id));
+        if (nestedGenerated && occupied(publicId)) {
+          const base = legacyId + placementSuffix;
+          publicId = base; let suffix = 2;
+          while (occupied(publicId)) publicId = base + '-' + suffix++;
+        }
+        publicIdFamily(publicId).forEach(id => ids.used.add(id));
+      }
+    }
+    return resolvedDomId = esc(o.edit
+      ? (o.repIndex ? self.id + rep + ins : self.id + ins) + placementSuffix
+      : publicId);
+  };
+  /* Only the instance is addressable. An inner element carries no `data-id`, so a click lands
+     on the nearest ancestor that has one — the instance — which is the element whose panel can
+     actually change anything. Its internals belong to the definition.
+
+     Editor repeats also expose the item that produced this exact copy. The stored node id must
+     stay shared because edits apply to the card template; these two editor-only hooks preserve
+     the row context long enough for selection and the read-only bound controls to agree with
+     the words that were clicked. Resolve them from `o2`, after a nested source has chosen its
+     own item, and validate membership so stale objects never become authoring context. */
+  const repeatContext = o.edit && !inner && o.repeat && o2.col && o2.item
+    && findItem(o2.col, o2.item.id)
+    ? ` data-cms-col="${esc(o2.col.id)}" data-cms-item="${esc(o2.item.id)}"`
+    : '';
+  const hooks = inner || (o.placementPath?.length || 0) > 1 ? '' : ` data-id="${esc(self.id)}" data-t="${esc(self.type)}"${repeatContext}${state.ui.sel === self.id ? ' data-sel' : ''}`;
+  const at = () => `id="${domId()}"${o.edit ? hooks : ''}${anim.at}`;
   /* A slot renders the instance's children in place of its own, and its own when the instance
      put nothing there — a default, the way a slot has always worked. Those children are the
      page's nodes, so they render outside the instance's scope: their bindings are the page's
@@ -7157,17 +10024,24 @@ function renderNode(n: PcNode, o: RenderOpts): string {
      sitting in. */
   const filled = n.slot && o.inst ? slotKids(o.inst, o.cdef || null, n.slot) : null;
   const kidList = filled && filled.length ? filled : (n.children || []);
-  const kidOpts = filled && filled.length ? { ...o2, inst: null, cdef: null } : o2;
+  const kidOpts = filled && filled.length ? {
+    ...o2, inst: null, cdef: null, stack: slotCallerStack(o.stack || [], o.cdef),
+    /* Direct placement slots are page-owned; slots inside nested definitions are not. */
+    placementPath: (o.placementPath?.length || 0) > 1 ? o.placementPath : undefined
+  } : o2;
   const kids = n.type === 'list' ? '' : kidList.map(c => renderNode(c, kidOpts)).join('');
+  if (o.formRouting && n.type !== 'list' && n.type !== 'nav' && n.type !== 'form') return '';
   const p = boundProps(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null);
+  /* A link opens in a new tab or it does not. `target` is a prop a binding can write anything
+     into, so nothing but `_blank` becomes an attribute. */
+  const blank = p.target === '_blank' ? ' target="_blank" rel="noopener"' : '';
 
   /* A condition decides whether this element is on the page. Not in the editor, where it stays
      visible and selectable and wears a marker instead — an element you cannot see is an element
      you cannot fix, and a condition that hid its own element would be a control you could
      switch on and never switch off. The same reasoning `hide` uses for a breakpoint, and the
      same treatment. */
-  if (n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
-    if (!o.edit) return '';
+  if (o.edit && n.showIf && !showsNode(n, o2.col || null, o2.item || null, o.inst || null, o.cdef || null)) {
     /* `.s-cond-off` in the editing half of `baseCss`: dimmed and dashed in blue, where `hide`
        is amber. Two different statements — "not at this width" and "not for this item" — and an
        author who cannot tell them apart cannot debug either. */
@@ -7178,10 +10052,10 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'section': {
       const tag = p.tag && SEC_TAGS.includes(p.tag) ? p.tag : 'section';
       const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Row or component here</div>` : '');
-      return `<${tag} ${at} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-section')}><div class="pagecraft-container${p.width === 'full' ? ' full' : ''}">${inner}</div></${tag}>`;
     }
     case 'row':
-      return `<div ${at} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-row')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column</div>` : '')}</div>`;
     case 'box': {
       /* The layout is a class, not a declaration, so it cannot be half-overwritten by an
          author editing CSS — the same reason `.pagecraft-row` carries `display:flex` rather
@@ -7195,16 +10069,16 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       if (href) {
         /* An anchor, and never a nested one: an `<a>` inside an `<a>` is invalid markup that
            browsers silently unnest, so the review flags it rather than this render guessing. */
-        return `<a ${at} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${inner}</a>`;
+        return `<a ${at()} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}>${inner}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : 'div';
-      return `<${tag} ${at} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
     }
     case 'slider': {
       /* `tabindex` on the track, because a scrollable region a keyboard cannot reach is a
          region a keyboard user cannot read. It costs one tab stop, which is the trade the
          guidance asks for. */
-      const track = `<div ${at} ${cx('pagecraft-slider')} data-slides role="group"`
+      const track = `<div ${at()} ${cx('pagecraft-slider')} data-slides role="group"`
         + ` aria-label="${esc(String(p.aria || 'Slides'))}" tabindex="0">`
         + (kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes a slide</div>` : ''))
         + '</div>';
@@ -7220,14 +10094,24 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const lc = n.src ? findCollection(n.src) : null;
       const kidz = n.children || [];
       if (!lc) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Pick a collection for this list</div></div>` : '';
       if (!kidz.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${svg('plus', 12)} Drop a Column — it becomes the card</div></div>` : '';
+      o.formRouting?.count(lc.items.length);
       const all = listItems(n, lc);
-      /* An empty collection exports nothing rather than an empty shell; the editor
-         still says so, or the list would look broken. */
-      if (!all.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-list')}><div class="s-empty">${esc(lc.name)} has no items yet</div></div>` : '';
+      /* Keep true empty collections distinct from filters that exclude existing content. */
+      if (!all.length) {
+        const activeFilter = !!findField(lc, p.where as string)
+          && FILTER_OPS.some(([op]) => op === p.op)
+          && (p.op === 'set' || p.op === 'unset' || String(p.val ?? '').trim() !== '');
+        const message = !lc.items.length
+          ? `${esc(lc.name)} has no items yet`
+          : activeFilter && published(lc).length
+            ? 'No items match these filters.'
+            : 'No items to display.';
+        return o.edit
+          ? `<div ${at()} ${cx('pagecraft-list')}><div class="s-empty">${message}</div></div>` : '';
+      }
 
       /* Only the paginator on this page slices. A second paginated list would otherwise
          show its own page 3 next to the first list's page 3, which means nothing. */
@@ -7238,24 +10122,29 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const at1 = mine ? Math.min(Math.max(1, o.pageNo || 1), total) : 1;
       const rows = mine ? all.slice((at1 - 1) * per, at1 * per) : all;
 
-      const reps = rows.map((it, k) =>
-        kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k })).join('')).join('');
+      const reps = rows.map((it, k) => {
+        const formRouting = o.formRouting && { ...o.formRouting, items: [...o.formRouting.items, [lc.id, it.id] as const] };
+        return kidz.map(c => renderNode(c, { ...o, col: lc, item: it, repeat: true, repIndex: k, formRouting })).join('');
+      }).join('');
+      if (o.formRouting) return '';
+      const scrollRegion = listMayScroll(n) || (host && listMayScroll(host))
+        ? ` role="group" aria-label="${esc(lc.name)}" tabindex="0"` : '';
       const body = p.collectionLayout === 'slider'
-        ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at} ${cx('pagecraft-list pagecraft-slider')} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg('caret',15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg('caret',15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>`
-        : `<div ${at} ${cx('pagecraft-list')}>${reps}</div>`;
+        ? `<div class="pagecraft-slider-box controls-bottom" data-slider><div ${at()} ${cx('pagecraft-list pagecraft-slider')} data-slides role="group" aria-label="${esc(lc.name)}" tabindex="0">${reps}</div><button type="button" class="pagecraft-slide-btn p" data-slide-p aria-label="Previous slides" hidden>${svg('caret',15)}</button><button type="button" class="pagecraft-slide-btn n" data-slide-n aria-label="Next slides" hidden>${svg('caret',15)}</button><div class="pagecraft-slider-dots" data-slide-dots role="group" aria-label="Choose a slide" hidden></div></div>`
+        : `<div ${at()} ${cx('pagecraft-list')}${scrollRegion}>${reps}</div>`;
       return mine && total > 1 ? body + pager(o.pg!, at1, total, o) : body;
     }
     case 'column':
-      return `<div ${at} ${cx('pagecraft-column')}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-column' + (o.edit && !kids ? ' s-column-empty' : ''))}>${kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop a component</div>` : '')}</div>`;
     case 'heading': {
       const tg = p.level && /^(h[1-6]|p|div)$/.test(p.level) ? p.level : 'h2';
       const body = esc(p.text).replace(/\n/g, '<br>');
       const href = pageHref(p.link, o);
-      const inner = href ? `<a href="${esc(href)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${body}</a>` : body;
-      return `<${tg} ${at} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
+      const inner = href ? `<a href="${esc(href)}"${blank}>${body}</a>` : body;
+      return `<${tg} ${at()} ${cx('pagecraft-heading')}>${inner}</${tg}>`;
     }
     case 'text':
-      return `<div ${at} ${cx('pagecraft-wysiwyg')}>${p.html || (o.edit ? '<p></p>' : '')}</div>`;
+      return `<div ${at()} ${cx('pagecraft-wysiwyg' + (o.edit && !richTextContent(p.html) ? ' s-rich-empty' : ''))}>${cleanRich(p.html) || (o.edit ? '<p></p>' : '')}</div>`;
     case 'quote': {
       /* the attribution decides the shape: a caption makes it a figure, its absence
          leaves a blockquote that needs no wrapper — the image widget's rule exactly */
@@ -7263,9 +10152,9 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const url = safeUrl(p.source);
       const from = url ? ` cite="${esc(url)}"` : '';
       const who = String(p.by || '').trim();
-      if (!who) return `<blockquote ${at}${from} ${cx('pagecraft-quote')}>${said}</blockquote>`;
+      if (!who) return `<blockquote ${at()}${from} ${cx('pagecraft-quote')}>${said}</blockquote>`;
       const named = url ? `<a href="${esc(url)}">${esc(who)}</a>` : esc(who);
-      return `<figure ${at} ${cx('pagecraft-quote')}>`
+      return `<figure ${at()} ${cx('pagecraft-quote')}>`
         + `<blockquote${from}>${said}</blockquote>`
         + `<figcaption class="pagecraft-attrib">${named}</figcaption></figure>`;
     }
@@ -7277,6 +10166,12 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : (!p.src ? ' width="800" height="500"' : '');
       const alt = ` alt="${p.decorative ? '' : esc(p.alt)}"`;
       const ihref = pageHref(p.link, o);
+      const authoredLinkLabel = String(p.label || '').trim();
+      const captionNamesLink = captionNamesImageLink(p, o);
+      const captionId = captionNamesLink ? domId() + '-caption' : '';
+      const linkLabel = p.decorative && authoredLinkLabel
+        ? ` aria-label="${esc(authoredLinkLabel)}"`
+        : (captionId ? ` aria-labelledby="${captionId}"` : '');
       /* `asset:<id>@<w>` is a variant of the same asset. The export rewrites every asset
          token to a path once the whole page is rendered, so a width marker rides along in
          the token rather than needing the renderer to know where files land. Only for a
@@ -7287,13 +10182,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         ? ` srcset="${esc(set.join(', '))}" sizes="${esc(sizesFor(n.id))}"` : '';
       if (p.caption) {
         const img = `<img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image">`;
-        return `<figure ${at} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}>${img}</a>` : img}<figcaption class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
+        return `<figure ${at()} ${cx('pagecraft-figure')}>${ihref ? `<a href="${esc(ihref)}"${blank}${linkLabel}>${img}</a>` : img}<figcaption${captionId ? ` id="${captionId}"` : ''} class="pagecraft-caption">${esc(p.caption)}</figcaption></figure>`;
       }
-      if (ihref) return `<a ${at} ${cx('pagecraft-figure')} href="${esc(ihref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
-      return `<img ${at} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
+      if (ihref) return `<a ${at()} ${cx('pagecraft-figure')} href="${esc(ihref)}"${blank}${linkLabel}><img src="${src}"${ss}${alt}${dim}${lz} class="pagecraft-image"></a>`;
+      return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
-      const box = `${at} ${cx('pagecraft-video')} style="aspect-ratio:${esc(p.ratio || '16 / 9')}"`;
+      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(cssRatio(p.ratio) || '16 / 9')}"`;
       if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
       return `<div ${box} data-facade>`
@@ -7305,13 +10200,22 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const ico = p.icon && p.icon !== 'none' ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${BICON[p.icon] || ''}</svg>` : '';
       const bhref = pageHref(p.link, o);
       const tag = bhref ? 'a' : 'button';
-      const attrs = bhref ? `href="${esc(bhref)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}` : 'type="button"';
-      return `<${tag} ${at} ${cx('pagecraft-button')} ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
+      const rel = String((p as PropBag).rel || '').trim().split(/\s+/).filter(Boolean);
+      if (p.target === '_blank' && !rel.includes('noopener')) rel.push('noopener');
+      const attrs = bhref
+        ? `href="${esc(bhref)}"${p.target === '_blank' ? ' target="_blank"' : ''}${rel.length ? ` rel="${esc(rel.join(' '))}"` : ''}`
+        : 'type="button"';
+      const variant = ['outline', 'ghost', 'link'].includes(String(p.variant)) ? String(p.variant) : 'solid';
+      return `<${tag} ${at()} ${cx('pagecraft-button')} data-variant="${variant}" ${attrs}><span>${esc(p.text)}</span>${ico}</${tag}>`;
     }
     case 'nav': {
-      const items = Array.isArray(p.items) ? p.items as NavItem[] : [];
+      const previewOwner = p.managedMobileLinks && o.edit && state.ui.mode === 'component' && state.ui.cedit
+        ? mobileMenuOwner(state.ui.cedit) : null;
+      const items = p.managedMobileLinks
+        ? (o.mobileMenuItems || (Array.isArray(previewOwner?.node.props.items) ? previewOwner!.node.props.items as NavItem[] : []))
+        : (Array.isArray(p.items) ? p.items as NavItem[] : []);
       const name = esc(p.aria || 'Main');
-      const mid = domId + '-menu';
+      const mid = domId() + '-menu';
       const location = /^[a-z0-9_-]+$/.test(String(p.menuLocation || ''))
         ? ` data-pagecraft-menu-location="${esc(String(p.menuLocation))}"` : '';
       const keyed = new Map(items.filter(it => it.id).map(it => [String(it.id), it]));
@@ -7335,22 +10239,54 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         return `<li${liClass}><a href="${esc(pageHref(it.href, o) || '#')}"${target}${relationship}>${esc(it.label || '')}</a>`
           + (nested ? `<ul class="sub-menu">${nested}</ul>` : '') + `</li>`;
       }).join('');
-      return `<nav ${at} ${cx('pagecraft-nav-menu')} data-nav${location} aria-label="${name}">`
-        + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
+      if (p.managedMobileLinks) {
+        return `<div ${at()} ${cx('pagecraft-nav-menu pagecraft-mobile-nav-links')}>`
+          + `<ul class="pagecraft-nav-list pagecraft-managed-mobile-links">${childrenOf('', new Set())}</ul></div>`;
+      }
+      /* A component-root Nav reads its definition props through `p`; the instance shell may
+         predate a mobile layout added while editing that definition. */
+      const mobileDefinition = p.mobileMenu !== 'fullscreen'
+        ? mobileMenuDefinition({ ...n, props: p } as PcNode) : null;
+      const mobileInstance: PcNode | null = mobileDefinition ? {
+        ...mobileDefinition.node, id: self.id + '-mobile', use: mobileDefinition.id,
+        children: [], css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
+      } : null;
+      const mobileContent = mobileInstance ? `<div id="${mid}-content" data-nav-content hidden>${renderNode(mobileInstance, { ...o, inst: undefined, cdef: undefined, mobileMenuItems: items })}</div>` : '';
+      if (o.formRouting) return '';
+      return `<nav ${at()} ${cx('pagecraft-nav-menu')} data-nav data-mobile-menu="${p.mobileMenu === 'fullscreen' ? 'fullscreen' : 'dropdown'}"${location} aria-label="${name}">`
+        + `<button class="pagecraft-nav-toggle" data-nav-t type="button" aria-expanded="false" aria-controls="${mobileInstance ? mid + '-content' : mid}" aria-label="${name} menu"><span class="pagecraft-nav-icon"></span></button>`
         + `<ul class="pagecraft-nav-list" id="${mid}" data-nav-l>`
         + childrenOf('', new Set())
-        + `</ul></nav>`;
+        + `</ul>${mobileContent}</nav>`;
     }
     case 'form': {
       const fields = Array.isArray(p.fields) ? p.fields : [];
-      const fid = (i: number) => domId + '-f' + i;
-      const wordpressManaged = !cloudFormEndpoint && p.mode === 'wordpress';
+      const enhancedControls = fields.some(f => f.type === 'date' || f.type === 'select');
+      const controlsAttr = enhancedControls ? ' data-pagecraft-controls' : '';
+      const fid = (i: number) => domId() + '-f' + i;
       const formId = String(self.id || n.id).replace(/[^A-Za-z0-9_-]/g, '');
-      const act = cloudFormEndpoint ? cloudFormEndpoint + '/' + encodeURIComponent(formId) : wordpressManaged ? `%%PAGECRAFT_FORM_ENDPOINT:${formId}%%` : safeFormAction(p.action);
+      if (o.formRouting) {
+        const observe = (endpoint: string): ObservedFormHandling => {
+          const handling = resolveFormHandling(p, formId, endpoint);
+          return { ...handling, fixedQuery: formFixedQuery(handling, fields) };
+        };
+        o.formRouting.visit({
+          placement: JSON.stringify([o.formRouting.region, ...(o.placementPath || []), n.id]),
+          context: JSON.stringify(o.formRouting.items),
+          cloud: observe('pagecraft:cloud-form'),
+          portable: observe(''),
+        });
+        return '';
+      }
+      const handling = resolveFormHandling(p, formId);
+      const act = handling.action;
       const disabled = act ? '' : ' disabled';
+      const getQueryFields = formFixedQuery(handling, fields)
+        .map(([name, value]) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`)
+        .join('');
       const percentWidths = fields.some(f => [100, 50, 33, 25, 20].includes(Number(f.width)));
       const body = fields.map((f, i) => {
-        const name = esc(f.name || slugify(f.label) || 'field-' + (i + 1));
+        const name = esc(formFieldName(f, i));
         const req = f.required ? ' required' : '';
         const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
         /* Half-width fields share a row. A class rather than a declaration, so the mobile rule
@@ -7365,58 +10301,66 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         if (f.type === 'textarea') return `<div class="pagecraft-field${half}">${lab}`
           + `<textarea id="${fid(i)}" name="${name}" rows="4"${req}${ph}${disabled}></textarea></div>`;
         if (f.type === 'select') return `<div class="pagecraft-field${half}">${lab}`
-          + `<select id="${fid(i)}" name="${name}"${req}${disabled}>`
+          + `<select id="${fid(i)}" name="${name}" data-pagecraft-select${req}${disabled}>`
           + String(f.opts || '').split(',').map(o => o.trim()).filter(Boolean)
             .map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
           + `</select></div>`;
+        const dateAttr = f.type === 'date' ? ' data-pagecraft-date' : '';
+        const dateEdit = f.type === 'date' && o.edit ? ' readonly' : '';
         return `<div class="pagecraft-field${half}">${lab}`
-          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${req}${ph}${disabled}></div>`;
+          + `<input id="${fid(i)}" name="${name}" type="${esc(f.type || 'text')}"${dateAttr}${dateEdit}${req}${ph}${disabled}></div>`;
       }).join('');
       if (!act) {
-        const status = domId + '-status';
-        return `<div ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled>`
+        const status = domId() + '-status';
+        return `<div ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} role="group" aria-label="${esc(p.aria || 'Form')}" aria-describedby="${status}" data-disabled${controlsAttr}>`
           + body
           + `<button type="button" class="pagecraft-form-button" disabled>${esc(p.submit || 'Send')}</button>`
           + `<p class="pagecraft-form-status" id="${status}">This form is not configured to receive submissions.</p>`
           + `</div>`;
       }
-      const managed = wordpressManaged
+      const managed = handling.kind === 'wordpress'
         ? ` data-pagecraft-form-mode="wordpress" data-pagecraft-form-id="${esc(formId)}"` : '';
-      return `<form ${at} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${cloudFormEndpoint || wordpressManaged ? 'post' : p.method === 'get' ? 'get' : 'post'}"${managed}>`
-        + body
-        + (cloudFormEndpoint ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '')
+      return `<form ${at()} ${cx('pagecraft-form' + (percentWidths ? ' pagecraft-form-percent' : ''))} aria-label="${esc(p.aria || 'Form')}" action="${esc(act)}" method="${handling.method}"${managed}${controlsAttr}>`
+        + getQueryFields + body
+        + (handling.kind === 'cloud' ? '<div hidden aria-hidden="true"><label>Leave empty<input name="_pc_trap" tabindex="-1" autocomplete="off"></label></div>' : '')
         + `<button type="submit" class="pagecraft-form-button">${esc(p.submit || 'Send')}</button>`
         + `</form>`
-        + (cloudFormEndpoint && !o.edit ? `<script>(function(f){var i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=crypto.randomUUID();f.appendChild(i);f.addEventListener('input',function(){i.value=crypto.randomUUID()});window.addEventListener('pageshow',function(){f.querySelector('button[type=submit]').disabled=false});f.addEventListener('submit',function(){setTimeout(function(){f.querySelector('button[type=submit]').disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : '');
+        + (handling.kind === 'cloud' && !o.edit ? `<script>(function(f){var ns='__pagecraftFormRequests',a=f.getAttribute('action')||'',n=0,forms=document.forms,x;for(x=0;x<forms.length;x++){if(forms[x]===f)break;if((forms[x].getAttribute('action')||'')===a)n++}var k=a+'#'+n,valid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;function uuid(){var c=window.crypto,b=new Uint8Array(16),j;if(c&&typeof c.randomUUID==='function')try{return c.randomUUID()}catch(e){}if(c&&typeof c.getRandomValues==='function')try{c.getRandomValues(b)}catch(e){for(j=0;j<16;j++)b[j]=Math.random()*256}else for(j=0;j<16;j++)b[j]=Math.random()*256;b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.from(b,function(v){return v.toString(16).padStart(2,'0')}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}function objectState(){var s=history.state;return s&&typeof s==='object'&&!Array.isArray(s)?s:null}function remember(v){var current=history.state;if(current!==null&&(!current||typeof current!=='object'||Array.isArray(current)))return;var next=Object.assign({},current||{}),prior=next[ns],requests=prior&&typeof prior==='object'&&!Array.isArray(prior)?Object.assign({},prior):{};requests[k]=v;next[ns]=requests;try{history.replaceState(next,'')}catch(e){}}var state=objectState(),requests=state&&state[ns]&&typeof state[ns]==='object'&&!Array.isArray(state[ns])?state[ns]:null,stored=requests&&requests[k],token=typeof stored==='string'&&valid.test(stored)?stored:uuid(),i=document.createElement('input');i.type='hidden';i.name='_pc_request';i.value=token;f.appendChild(i);if(stored!==token)remember(token);f.addEventListener('input',function(){i.value=uuid();remember(i.value)});window.addEventListener('pageshow',function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)</script>` : '');
     }
     case 'crumbs': {
       const manual = p.mode === 'manual';
       const trail = manual
         ? (Array.isArray(p.items) ? p.items as NavItem[] : []).map((it, i, all) =>
-            ({ label: String(it.label || ''), href: i === all.length - 1 ? '' : String(it.href || '') }))
+            ({ ...it, label: String(it.label || ''), href: i === all.length - 1 ? '' : String(it.href || '') }))
         : crumbTrail(o.pg, o, String(p.home == null ? 'Home' : p.home));
       /* Nothing on the front page. A breadcrumb there points at the page it is on, which
          is what "you are here" already says — and search engines ask for it to be left off. */
       if (!trail.length || (!manual && o.pg && isFront(o.pg) && trail.length < 2)) return o.edit
-        ? `<nav ${at} ${cx('pagecraft-crumbs')}><div class="s-empty">${svg('crumbs', 12)}`
+        ? `<nav ${at()} ${cx('pagecraft-crumbs')}><div class="s-empty">${svg('crumbs', 12)}`
           + (manual ? ' Add a crumb in the panel' : ' The front page shows no trail') + '</div></nav>' : '';
       const li = trail.map((c, i) => {
         const last = i === trail.length - 1;
         const label = esc(c.label);
         const href = last ? '' : pageHref(c.href, o);
-        return '<li>' + (last || !href
+        const itemClass = manual ? String((c as NavItem).cls || '').trim() : '';
+        const cls = itemClass ? ` class="${esc(itemClass)}"` : '';
+        const rel = manual ? String((c as NavItem).rel || '').trim().split(/\s+/).filter(Boolean) : [];
+        const target = manual && (c as NavItem).target === '_blank' ? ' target="_blank"' : '';
+        if (target && !rel.includes('noopener')) rel.push('noopener');
+        const relationship = rel.length ? ` rel="${esc(rel.join(' '))}"` : '';
+        return `<li${cls}>` + (last || !href
           ? `<span aria-current="page">${label}</span>`
-          : `<a href="${href}">${label}</a>`) + '</li>';
+          : `<a href="${esc(href)}"${target}${relationship}>${label}</a>`) + '</li>';
       }).join('');
       /* The separator is a `data-sep` for CSS to draw, never a character in the markup: a
          screen reader should read the trail, not the punctuation between it. */
-      return `<nav ${at} ${cx('pagecraft-crumbs')} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || 'chevron'))}">`
+      return `<nav ${at()} ${cx('pagecraft-crumbs')} aria-label="Breadcrumb" data-sep="${esc(String(p.sep || 'chevron'))}">`
         + `<ol>${li}</ol></nav>`;
     }
     case 'code': {
       const src = String(p.body == null ? '' : p.body);
       if (!src.trim()) return o.edit
-        ? `<div ${at} ${cx('pagecraft-code')}><div class="s-empty">${svg('codeblock', 12)} Paste the code in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-code')}><div class="s-empty">${svg('codeblock', 12)} Paste the code in the panel</div></div>` : '';
       const lang = String(p.lang || 'text');
       let inner = codeSpans(src, lang);
       /* No token straddles a newline, so numbering is a safe split — and it is only paid
@@ -7430,13 +10374,13 @@ function renderNode(n: PcNode, o: RenderOpts): string {
         : '';
       /* `language-x` is the class every other tool in this world reads, so a page whose
          code came from here still looks like code to whatever reads it next. */
-      return `<figure ${at} ${cx('pagecraft-code')}${p.softwrap ? ' data-wrap' : ''}${p.numbers ? ' data-numbers' : ''}>`
+      return `<figure ${at()} ${cx('pagecraft-code')}${p.softwrap ? ' data-wrap' : ''}${p.numbers ? ' data-numbers' : ''}>`
         + head + `<pre><code class="language-${esc(lang)}">${inner}</code></pre></figure>`;
     }
     case 'table': {
       const grid = tableGrid(p.body);
       if (!grid.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-table-wrap')}><div class="s-empty">${svg('plus', 12)} Paste or type the rows in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-table-wrap')}><div class="s-empty">${svg('plus', 12)} Paste or type the rows in the panel</div></div>` : '';
       const cap = String(p.caption == null ? '' : p.caption).trim();
       const head = p.head && grid.length > 1 ? grid[0] : null;
       const rows = head ? grid.slice(1) : grid;
@@ -7449,7 +10393,7 @@ function renderNode(n: PcNode, o: RenderOpts): string {
       const tbody = `<tbody>${rows.map(r => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody>`;
       /* A table cannot scroll — its wrapper does. Wide content that pushes the whole page
          sideways is the one layout failure a reader cannot work around. */
-      return `<div ${at} ${cx('pagecraft-table-wrap')}>`
+      return `<div ${at()} ${cx('pagecraft-table-wrap')}>`
         + `<table class="pagecraft-table" data-rules="${esc(String(p.rules || 'rows'))}"${p.zebra ? ' data-zebra' : ''}>`
         + (cap ? `<caption>${esc(cap)}</caption>` : '')
         + thead + tbody + '</table></div>';
@@ -7457,34 +10401,38 @@ function renderNode(n: PcNode, o: RenderOpts): string {
     case 'tabs': {
       const rows = Array.isArray(p.items) ? p.items as TabPanel[] : [];
       if (!rows.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
       /* While the widget is selected every panel shows, so all of them can be read and
          restyled — the same reason the accordion opens and the burger unfolds. */
-      const all = o.edit && state.ui.sel === n.id;
-      const tid = (k: number) => `${domId}-t${k}`;
-      const pid = (k: number) => `${domId}-p${k}`;
+      const rich = hasRichTabPanels(n);
+      const all = !rich && o.edit && state.ui.sel === n.id;
+      const active = rich && o.edit ? Math.max(0, tabPanelNodes(n).findIndex(panel =>
+        !!state.ui.sel && !!locate(state.ui.sel, [panel]))) : 0;
+      const tid = (k: number) => `${domId()}-t${k}`;
+      const pid = (k: number) => `${domId()}-p${k}`;
       /* `role=tab` with aria-selected and aria-controls, and the panels labelled back: a tab
          strip a screen reader cannot follow is a row of unexplained links. */
       const strip = rows.map((it, k) =>
         `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}"`
-        + ` aria-selected="${k === 0 ? 'true' : 'false'}" tabindex="${k === 0 ? '0' : '-1'}"`
-        + ` class="pagecraft-tab${k === 0 ? ' on' : ''}">${esc(it.label || 'Tab ' + (k + 1))}</button>`
+        + ` aria-selected="${k === active ? 'true' : 'false'}" tabindex="${k === active ? '0' : '-1'}"`
+        + ` class="pagecraft-tab${k === active ? ' on' : ''}">${esc(it.label || 'Tab ' + (k + 1))}</button>`
       ).join('');
       const panels = rows.map((it, k) =>
         `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"`
-        + `${(k === 0 || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+        + `${(k === active || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${rich
+          ? renderList(n.children.filter(child => child.id === it.panelId), o) : para(it.panel)}</div>`
       ).join('');
-      return `<div ${at} ${cx('pagecraft-tabs')} data-tabs>`
+      return `<div ${at()} ${cx('pagecraft-tabs')} data-tabs>`
         + `<div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
     }
     case 'accordion': {
       const items = Array.isArray(p.items) ? p.items : [];
       if (!items.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-accordion')}><div class="s-empty">${svg('plus', 12)} Add a question in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-accordion')}><div class="s-empty">${svg('plus', 12)} Add a question in the panel</div></div>` : '';
       /* One shared name is what makes exclusive opening native. It also means only
          one panel may carry `open`, so "all open" and "one at a time" cannot both
          be honoured — the toggle wins, and the first panel is the one left open. */
-      const grp = p.single ? ` name="${domId}-ac"` : '';
+      const grp = p.single ? ` name="${domId()}-ac"` : '';
       const mark = p.marker === 'none' ? '' : '<span class="pagecraft-accordion-mark" aria-hidden="true"></span>';
       /* While the accordion is selected every panel is opened, so the answers can
          be read and restyled. The same reason the burger menu unfolds when selected. */
@@ -7496,63 +10444,142 @@ function renderNode(n: PcNode, o: RenderOpts): string {
           + `<summary class="pagecraft-accordion-q"><span>${esc(String(it.q == null ? '' : it.q)).replace(/\n/g, ' ')}</span>${mark}</summary>`
           + `<div class="pagecraft-accordion-a">${para(it.a)}</div></details>`;
       }).join('');
-      return `<div ${at} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
+      return `<div ${at()} ${cx('pagecraft-accordion')} data-marker="${esc(p.marker || 'plus')}">${body}</div>`;
     }
     case 'embed': {
       /* Static markup is an owner's explicit integration. A CMS/component binding is editable
          content, so it is rendered as text instead of becoming an indirect script channel. */
       const supplied = String(p.html == null ? '' : p.html);
       const raw = n.bind && n.bind.html ? esc(supplied) : supplied;
-      const ar = p.ratio ? ` style="aspect-ratio:${esc(p.ratio)}"` : '';
-      const ecls = 'pagecraft-embed' + (p.ratio ? ' pagecraft-embed-ratio' : '');
+      const ratio = cssRatio(p.ratio);
+      const ar = ratio ? ` style="aspect-ratio:${esc(ratio)}"` : '';
+      const ecls = 'pagecraft-embed' + (ratio ? ' pagecraft-embed-ratio' : '');
       if (!raw.trim()) return o.edit
-        ? `<div ${at} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
-      if (!o.edit) return `<div ${at} ${cx(ecls)}${ar}>${raw}</div>`;
+        ? `<div ${at()} ${cx('pagecraft-embed')}><div class="s-empty">${svg('code', 12)} Paste embed HTML in the panel</div></div>` : '';
+      if (!o.edit && !o.canvas) return `<div ${at()} ${cx(ecls)}${ar}>${raw}</div>`;
+      /* Preview draws on the canvas, which is the editor's origin. The embed gets a frame of its
+         own there, sandboxed without allow-same-origin, so nothing in it can reach the editor,
+         its session or its API. The canvas policy still holds inside the frame, so the embed's
+         scripts wait for the exported page as they always have; the frame's one script reports
+         its height, because an opaque frame cannot be measured from outside. */
+      if (!o.edit) {
+        // The isolated preview needs the same direct-child sizing as the exported embed.
+        const frameCss = 'html,body{margin:0}body{display:flow-root}body>*{box-sizing:border-box;max-width:100%}'
+          + (ratio ? 'html,body{height:100%}body{position:relative}body>iframe,body>video,body>embed,body>object{position:absolute;inset:0;width:100%;height:100%;border:0}' : '');
+        const frame = '<!doctype html><meta charset="utf-8"><style>' + frameCss + '</style>'
+          + raw + (ratio ? '' : `<script>${EMBED_FRAME_JS}</script>`);
+        return `<div ${at()} ${cx(ecls)}${ar}><iframe sandbox="allow-scripts" srcdoc="${esc(frame)}" title="Embed preview" data-embed-frame`
+          + `${ratio ? '' : ' style="display:block;width:100%;height:150px;border:0"'}></iframe></div>`;
+      }
       const { html, stripped } = stripScripts(raw);
       const note = stripped
         ? `<div class="s-held">${stripped} script${stripped === 1 ? '' : 's'} held back here — ${stripped === 1 ? 'it runs' : 'they run'} on the exported page</div>` : '';
-      return `<div ${at} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
+      return `<div ${at()} ${cx(ecls)}${ar}>${html}${note}${html.trim() ? '' : '<div class="s-empty">Nothing to draw without its script</div>'}</div>`;
     }
     case 'icon': {
-      const nm = p.name && ICON_PATHS[p.name] ? p.name : 'check';
+      const known = !!(p.name && ICON_PATHS[p.name]);
+      /* A bound name comes from a CMS item or a component property, and either can be empty or
+         say something that is not an icon. Drawing the check mark there tells visitors "yes" or
+         "done" for an item that said nothing of the kind, so the page shows no icon and the
+         editor shows the gap with the reason. An authored name always comes from the picker, so
+         the check fallback stays for documents that predate the default. */
+      if (!known && bindGet(n, 'name')) {
+        if (!o.edit) return '';
+        const raw = String(p.name == null ? '' : p.name).trim();
+        const why = raw ? `“${raw}” is not an icon name` : 'No icon for this item';
+        return `<span ${at()} ${cx('pagecraft-icon s-icon-missing')} role="img" aria-label="${esc(why)}" title="${esc(why)}">?</span>`;
+      }
+      const nm = known ? String(p.name) : 'check';
       const lab = String(p.label == null ? '' : p.label).trim();
       const ihref2 = pageHref(p.link, o);
       /* A link with an icon inside and no text has no accessible name at all, so
          the label becomes the link's name and the glyph goes hidden. Unlinked, the
          glyph carries the label itself — or is hidden when there is none, which is
          the right answer for an icon sitting beside text that already says it. */
-      if (ihref2) return `<a ${at} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${p.target ? ` target="${p.target}" rel="noopener"` : ''}`
+      if (ihref2) return `<a ${at()} ${cx('pagecraft-icon')} href="${esc(ihref2)}"${blank}`
         + `${lab ? ` aria-label="${esc(lab)}"` : ''}>${iconSvg(nm, 'class="pagecraft-icon-glyph" aria-hidden="true"')}</a>`;
-      return iconSvg(nm, `${at} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
+      return iconSvg(nm, `${at()} ${cx('pagecraft-icon pagecraft-icon-glyph')} ${lab ? `role="img" aria-label="${esc(lab)}"` : 'aria-hidden="true"'}`);
     }
     case 'gallery': {
       const shown = (Array.isArray(p.items) ? p.items as GalleryTile[] : []).filter(Boolean);
       if (!shown.length) return o.edit
-        ? `<div ${at} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
+        ? `<div ${at()} ${cx('pagecraft-gallery')}><div class="s-empty">${svg('image', 12)} Add images in the panel</div></div>` : '';
       const lz = !o.edit && p.lazy ? ' loading="lazy" decoding="async"' : '';
       const tiles = shown.map((it, k) => {
         const dim = (it.w && it.h) ? ` width="${parseInt(it.w, 10)}" height="${parseInt(it.h, 10)}"` : '';
         const tsrc = esc(it.src || PH);
-        const img = `<img src="${tsrc}" alt="${esc(it.alt || '')}"${dim}${lz} class="pagecraft-gallery-img">`;
+        const authoredAlt = String(it.alt == null ? '' : it.alt);
+        const img = `<img src="${tsrc}" alt="${esc(authoredAlt)}"${dim}${lz} class="pagecraft-gallery-img">`;
         /* With the lightbox on the tile is a real link to the full image, so the
            gallery still works with scripting off; the script only intercepts a
            click that was already going somewhere useful. */
+        const actionLabel = authoredAlt.trim()
+          ? authoredAlt : String(it.caption == null ? '' : it.caption).trim() || `Open image ${k + 1}`;
         const frame = p.lightbox
-          ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}"${it.alt ? ` aria-label="${esc(it.alt)}"` : ''}>${img}</a>`
+          ? `<a class="pagecraft-gallery-frame" href="${tsrc}" data-lb="${k}" aria-label="${esc(actionLabel)}">${img}</a>`
           : `<span class="pagecraft-gallery-frame">${img}</span>`;
         return `<figure class="pagecraft-gallery-item">${frame}`
           + `${p.captions && it.caption ? `<figcaption class="pagecraft-gallery-caption">${esc(it.caption)}</figcaption>` : ''}</figure>`;
       }).join('');
-      return `<div ${at} ${cx('pagecraft-gallery' + (p.ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
-        + `${p.ratio ? ` style="--g-ratio:${esc(p.ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
+      const ratio = cssRatio(p.ratio);
+      return `<div ${at()} ${cx('pagecraft-gallery' + (ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
+        + `${ratio ? ` style="--g-ratio:${esc(ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
     }
-    case 'spacer': return `<div ${at} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
-    case 'divider': return `<hr ${at} ${cx('pagecraft-divider')}>`;
+    case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
+    case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
   }
   return '';
 }
 
-const renderList = (list: PcNode[], o: RenderOpts) => list.map(n => renderNode(n, o)).join('');
+const renderList = (list: PcNode[], o: RenderOpts): string => !o.edit && !o.publicIds
+  ? renderPublicLists([list], o)[0] : list.map(n => renderNode(n, o)).join('');
+/** Render separate public regions as one page. Reservation uses the same renderer so omitted
+    branches, slots and CMS items cannot claim an anchor they never actually emit. */
+function renderPublicLists(lists: PcNode[][], o: RenderOpts): string[] {
+  const publicIds = { reserving: true, reserved: new Set<string>(), used: new Set<string>() };
+  const options = { ...o, edit: false, publicIds };
+  for (const list of lists) renderList(list, options);
+  publicIds.reserving = false;
+  return lists.map(list => renderList(list, options));
+}
+
+/** Inspect native form routing through the same component, slot and CMS expansion as export. */
+export function inspectFormRouting(source: Doc, visit: (form: FormRoutingObservation) => void): void {
+  let remaining = 100_000;
+  const count = (size = 1) => {
+    remaining -= size;
+    if (remaining < 0) throw new Error('Form routing inspection exceeded its element budget');
+  };
+  const pending = [source.header, source.footer, ...source.pages.flatMap(pageTrees),
+    ...(source.meta.components || []).map(component => [component.node])];
+  let hasForms = false;
+  while (pending.length && !hasForms) {
+    for (const node of pending.pop()!) {
+      count();
+      if (node.type === 'form') { hasForms = true; break; }
+      if (node.children?.length) pending.push(node.children);
+    }
+  }
+  if (!hasForms) return;
+
+  // Use the server compiler's default item selection and keep its singleton state private to
+  // this synchronous inspection. The shallow meta copy absorbs lazy collection initialization.
+  const { meta, pages, header, footer, cur, ui } = state;
+  Object.assign(state, { meta: { ...source.meta }, pages: source.pages, header: source.header, footer: source.footer, cur: 0, ui: initUi() });
+  try {
+    for (const target of exportTargets(10_000)) {
+      const { pg, col, item, pageNo } = target;
+      const items = col && item ? [[col.id, item.id] as const] : [];
+      const publicIds = { reserving: true, reserved: new Set<string>(), used: new Set<string>() };
+      const regions = [['header', pageRegion(pg, 'header')], ['page:' + pg.id, pg.tree], ['footer', pageRegion(pg, 'footer')]] as const;
+      for (const [region, nodes] of regions) for (const node of nodes) {
+        renderNode(node, { edit: false, publicIds, pg, col, item, pageNo, formRouting: { region, items, count, visit } });
+      }
+    }
+  } finally {
+    Object.assign(state, { meta, pages, header, footer, cur, ui });
+  }
+}
 
 
 /* ============================================================== presets */
@@ -7660,7 +10687,8 @@ function robotsTxt() {
 /* Emitted only when a page has a tab strip. It sets `data-tabs-ready`, which is what turns the
    `display:none` on: the panels are only hidden once something exists to show them again, so a
    page served without JS reads as the whole content stacked rather than one tab's worth. */
-const TABS_JS = `<script>
+// Renderer 2 archives retain their exact text-tab runtime.
+const LEGACY_TABS_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
 var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
 if(!t.length)return;w.setAttribute('data-tabs-ready','');
@@ -7677,26 +10705,141 @@ var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus()
 <\/script>
 `;
 
-const NAV_JS = `<script>
-(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
-var b=w.querySelector('[data-nav-t]');if(!b)return;
-function set(o){w.classList.toggle('is-open',o);b.setAttribute('aria-expanded',o?'true':'false');}
-b.addEventListener('click',function(e){e.stopPropagation();set(!w.classList.contains('is-open'));});
-Array.prototype.forEach.call(w.querySelectorAll('[data-nav-l] a'),function(a){a.addEventListener('click',function(){set(false);});});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
-document.addEventListener('click',function(e){if(!w.contains(e.target))set(false);});
+
+const TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var strip=[].slice.call(w.children).find(function(e){return e.getAttribute('role')==='tablist';});
+var t=strip?[].slice.call(strip.children).filter(function(e){return e.getAttribute('role')==='tab';}):[],p=[].slice.call(w.children).filter(function(e){return e.getAttribute('role')==='tabpanel';});
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(Math.max(0,t.findIndex(function(b){return b.getAttribute('aria-selected')==='true';})));
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
 });})();
 <\/script>
 `;
+
+const NAV_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'),function(w){
+var b=w.querySelector('[data-nav-t]'),list=w.querySelector('[data-nav-l]');if(!b||!list)return;
+// A flyout opens to the right; near the right edge of the window it opens the other way instead,
+// outermost first, so a deeper level is measured from where its parent actually landed.
+// Once a flyout has turned back, the levels under it keep going that way while there is room:
+// opening right again would land on top of the level the pointer came from.
+function edge(e){
+ var chain=[],back=false,li=e.target&&e.target.closest?e.target.closest('li'):null;
+ while(li&&list.contains(li)){chain.unshift(li);li=li.parentElement&&li.parentElement.closest('li');}
+ chain.forEach(function(item){
+  var sub=null;for(var i=0;i<item.children.length;i++)if(item.children[i].classList.contains('sub-menu'))sub=item.children[i];
+  if(!sub)return;sub.classList.remove('is-flipped');
+  var r=sub.getBoundingClientRect(),nested=!!(item.parentElement&&item.parentElement.classList.contains('sub-menu'));
+  if(r.width&&r.right>document.documentElement.clientWidth)sub.classList.add('is-flipped');
+  else if(r.width&&back&&nested){sub.classList.add('is-flipped');if(sub.getBoundingClientRect().left<0)sub.classList.remove('is-flipped');}
+  back=nested&&sub.classList.contains('is-flipped');
+ });
+}
+list.addEventListener('mouseover',edge);list.addEventListener('focusin',edge);
+var content=w.querySelector('[data-nav-content]')||list;
+var dialog=null,overflow='',anchor=document.createComment('mobile menu');content.before(anchor);
+function position(){
+ if(!dialog)return;
+ var host=w.closest('header,[data-kind="header"]');
+ if(dialog.dataset.layout==='fullscreen'){
+  host=host||w;
+  if(host===w)while(host.parentElement&&host.parentElement!==document.body&&host.parentElement.id!=='s-root'&&!host.parentElement.matches('.s-rbody,main'))host=host.parentElement;
+  dialog.style.setProperty('--nav-top',Math.max(0,Math.min(window.innerHeight-80,host.getBoundingClientRect().bottom))+'px');
+  return;
+ }
+ var rect=(host||b).getBoundingClientRect(),height=window.innerHeight;
+ var above=Math.max(0,Math.min(height,rect.top)),below=height-Math.max(0,Math.min(height,rect.bottom));
+ var needed=dialog.scrollHeight,up=needed>below&&above>below,available=up?above:below;
+ dialog.style.setProperty('--nav-top',(up?above-Math.min(needed,available):height-below)+'px');
+ dialog.style.setProperty('--nav-height',available+'px');
+}
+function set(o,restore){
+ if(o===!!dialog)return;
+ if(o){
+  if(getComputedStyle(b).display==='none')return;
+  var fullscreen=w.dataset.mobileMenu==='fullscreen';
+  dialog=document.createElement(fullscreen?'dialog':'div');dialog.className='pagecraft-mobile-menu';
+  dialog.dataset.layout=fullscreen?'fullscreen':'dropdown';
+  if(fullscreen){dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');}
+  else{dialog.setAttribute('popover','manual');dialog.setAttribute('role','navigation');}
+  dialog.setAttribute('aria-label',(w.getAttribute('aria-label')||'Navigation')+' menu');
+  var head=document.createElement('div');head.className='pagecraft-mobile-menu-head';
+  var label=document.createElement('span');label.textContent=(w.getAttribute('aria-label')||'Navigation')+' menu';
+  var close=document.createElement('button');close.type='button';close.className='pagecraft-mobile-menu-close';close.setAttribute('aria-label','Close menu');
+  close.innerHTML='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>';
+  head.append(label,close);content.hidden=false;if(fullscreen)dialog.append(head);dialog.append(content);w.append(dialog);
+  overflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';
+  w.classList.add('is-open');b.setAttribute('aria-expanded','true');
+  close.addEventListener('click',function(){set(false,true);});
+  dialog.addEventListener('cancel',function(e){e.preventDefault();set(false,true);});
+  dialog.addEventListener('click',function(e){if(!dialog||e.target!==dialog)return;var r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)set(false,true);});
+  var opened=dialog;
+  dialog.addEventListener('close',function(){if(dialog===opened)set(false,true);});
+  if(fullscreen){position();dialog.showModal();close.focus();}
+  else{
+   // Closed popovers have no layout; measure after opening without flashing at the wrong edge.
+   dialog.style.visibility='hidden';
+   if(dialog.showPopover)dialog.showPopover();
+   else{dialog.removeAttribute('popover');dialog.style.zIndex='2147483647';}
+   position();dialog.scrollTop=0;dialog.style.removeProperty('visibility');
+  }
+ }else{
+  var old=dialog;dialog=null;anchor.after(content);if(content!==list)content.hidden=true;if(old.dataset.layout==='fullscreen')old.close();else if(old.hidePopover)old.hidePopover();old.remove();
+  document.documentElement.style.overflow=overflow;w.classList.remove('is-open');b.setAttribute('aria-expanded','false');
+  if(restore)b.focus();
+ }
+}
+b.addEventListener('click',function(e){e.stopPropagation();set(!dialog,true);});
+document.addEventListener('keydown',function(e){
+ if(!dialog)return;
+ if(e.key==='Escape'){e.preventDefault();set(false,true);return;}
+ if(dialog.dataset.layout!=='fullscreen'||e.key!=='Tab')return;
+ var focusable=[].slice.call(dialog.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+ if(!focusable.length){e.preventDefault();dialog.focus();return;}
+ var first=focusable[0],last=focusable[focusable.length-1];
+ if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus();}
+});
+document.addEventListener('click',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
+document.addEventListener('focusin',function(e){if(dialog&&dialog.dataset.layout==='dropdown'&&!w.contains(e.target))set(false,false);});
+Array.prototype.forEach.call(content.querySelectorAll('a'),function(a){a.addEventListener('click',function(){set(false,false);});});
+window.addEventListener('resize',function(){if(dialog){if(getComputedStyle(b).display==='none')set(false,false);else position();}});
+window.addEventListener('scroll',function(){if(dialog&&dialog.dataset.layout==='dropdown')position();},{passive:true});
+w.classList.add('pagecraft-nav-enhanced');
+});})();
+<\/script>
+`;
+
+/* The one script an Embed's Preview frame runs: it reports the frame's content height to the
+   canvas, which sizes the frame. Allowed by hash rather than by the canvas nonce, so the nonce
+   never appears in markup; `EMBED_FRAME_HASH` is checked against this text by the suite. */
+const EMBED_FRAME_JS = "(function(){var b=document.body,h=-1;function s(){var n=Math.ceil(b.getBoundingClientRect().height);if(n!==h){h=n;parent.postMessage({pagecraftEmbedHeight:n},'*');}}if(window.ResizeObserver)new ResizeObserver(s).observe(b);addEventListener('load',s);s();})();";
+const EMBED_FRAME_HASH = 'sha256-fKWA8D62TWnX/ElarnS4cjNHmTS5nuDLPuJmhSPuQyY=';
+/* The canvas is an srcdoc frame on the editor's origin, beside the session cookie and the API, so
+   nothing a document carries may run in it. Scripts run only with the nonce the editor sets on
+   its own preview payloads, which rules out inline handlers and `javascript:` URLs; plugins and
+   `<base>` are off. Styles are not restricted — the canvas is styled inline throughout. */
+const canvasCsp = (nonce: string) =>
+  `script-src 'nonce-${nonce}' '${EMBED_FRAME_HASH}'; object-src 'none'; base-uri 'none'`;
 
 /* Swaps a facade for the real player on click. Emitted only when a page has one. */
 const FACADE_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-facade] .pagecraft-video-play'),function(b){
 b.addEventListener('click',function(){
-var f=document.createElement('iframe');
+var k=b.matches(':focus-visible'),f=document.createElement('iframe');
 f.src=b.getAttribute('data-embed')+(b.getAttribute('data-embed').indexOf('?')<0?'?':'&')+'autoplay=1';
 f.title='Video';f.allow='accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture';
-f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
+f.setAttribute('allowfullscreen','');if(k)f.setAttribute('data-pagecraft-keyboard-focus','');
+function c(){f.removeAttribute('data-pagecraft-keyboard-focus')}f.addEventListener('blur',c);f.addEventListener('pointerdown',c);
+b.parentNode.replaceChild(f,b);if(k)f.focus();
 });});})();
 <\/script>
 `;
@@ -7705,31 +10848,67 @@ f.setAttribute('allowfullscreen','');b.parentNode.replaceChild(f,b);
    already a working link to the full image, so this script never adds a
    capability — it upgrades a navigation into an overlay, and steps aside for a
    modified click or a browser with no <dialog>. */
-const LB_JS = `<script>
+function lightboxRuntime() { return `<script>
 (function(){
 var gs=document.querySelectorAll('[data-lightbox]');if(!gs.length)return;
 if(typeof HTMLDialogElement!=='function')return;
-var dlg=null,imgEl,capEl,prevB,nextB,list=[],at=0;
+var ownScript=document.currentScript,styleNonce=ownScript&&(ownScript.nonce||ownScript.getAttribute('nonce'))||'';
+var failureCss=${JSON.stringify(LIGHTBOX_FAILURE_CSS)};
+var dlg=null,imgEl,capEl,errorEl,errorTitle,errorDetail,retryB,prevB,nextB,closeB,list=[],at=0,request=0;
+function ensureFailureCss(){
+var style=document.querySelector('style[data-pagecraft-lightbox-failure]');if(style)return;
+style=document.createElement('style');style.setAttribute('data-pagecraft-lightbox-failure','');
+if(styleNonce)style.setAttribute('nonce',styleNonce);style.textContent=failureCss;
+(document.head||document.documentElement).appendChild(style);
+}
 function build(){
-dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';
-dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><p class="pagecraft-lightbox-cap"></p></figure>'
+ensureFailureCss();
+dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox';dlg.setAttribute('aria-label','Image gallery');
+dlg.innerHTML='<figure class="pagecraft-lightbox-fig"><img class="pagecraft-lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" hidden><div class="pagecraft-lightbox-error" hidden><div role="status" aria-live="polite"><strong></strong><span></span></div><button class="pagecraft-lightbox-retry" type="button" hidden>Try again</button></div><p class="pagecraft-lightbox-cap"></p></figure>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-prev" type="button" aria-label="Previous image">\u2039</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-next" type="button" aria-label="Next image">\u203a</button>'
 +'<button class="pagecraft-lightbox-btn pagecraft-lightbox-close" type="button" aria-label="Close">\u00d7</button>';
 document.body.appendChild(dlg);
 imgEl=dlg.querySelector('.pagecraft-lightbox-img');capEl=dlg.querySelector('.pagecraft-lightbox-cap');
+errorEl=dlg.querySelector('.pagecraft-lightbox-error');errorTitle=errorEl.querySelector('strong');
+errorDetail=errorEl.querySelector('span');retryB=dlg.querySelector('.pagecraft-lightbox-retry');
 prevB=dlg.querySelector('.pagecraft-lightbox-prev');nextB=dlg.querySelector('.pagecraft-lightbox-next');
+closeB=dlg.querySelector('.pagecraft-lightbox-close');
 prevB.addEventListener('click',function(){go(-1);});
 nextB.addEventListener('click',function(){go(1);});
-dlg.querySelector('.pagecraft-lightbox-close').addEventListener('click',function(){dlg.close();});
+closeB.addEventListener('click',function(){dlg.close();});
+retryB.addEventListener('click',function(){if(retryB.getAttribute('aria-disabled')!=='true')load(list[at],true);});
 dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close();});
 dlg.addEventListener('keydown',function(e){
 if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
 if(e.key==='ArrowRight'){e.preventDefault();go(1);}
+if(e.key==='Tab'){
+var bs=dlg.querySelectorAll('.pagecraft-lightbox-btn:not([hidden]):not(:disabled),.pagecraft-lightbox-retry:not([hidden]):not(:disabled)'),first=bs[0],last=bs[bs.length-1];
+if(first&&((e.shiftKey&&document.activeElement===first)||(!e.shiftKey&&document.activeElement===last))){e.preventDefault();(e.shiftKey?last:first).focus();}
+}
 });
 }
-function show(){var it=list[at];imgEl.src=it.href;imgEl.alt=it.alt;imgEl.hidden=false;
+function hideError(focus){
+if(focus&&errorEl.contains(document.activeElement))closeB.focus();
+errorEl.hidden=true;errorTitle.textContent='';errorDetail.textContent='';retryB.hidden=true;
+retryB.textContent='Try again';retryB.removeAttribute('aria-busy');retryB.removeAttribute('aria-disabled');
+}
+function load(it,retry){
+var id=++request,fresh=document.createElement('img');
+fresh.className='pagecraft-lightbox-img';fresh.alt=it.alt;fresh.hidden=true;
+imgEl.parentNode.replaceChild(fresh,imgEl);imgEl=fresh;
+if(retry){errorEl.hidden=false;errorTitle.textContent='Loading image';errorDetail.textContent=it.alt||'';retryB.hidden=false;
+retryB.textContent='Trying again\u2026';retryB.setAttribute('aria-busy','true');retryB.setAttribute('aria-disabled','true');}
+else hideError(true);
+fresh.addEventListener('load',function(){if(id!==request)return;fresh.hidden=false;hideError(true);});
+fresh.addEventListener('error',function(){if(id!==request)return;fresh.hidden=true;
+errorTitle.textContent='Image unavailable';errorDetail.textContent=it.alt||'This image could not be loaded.';
+retryB.hidden=false;retryB.textContent='Try again';retryB.removeAttribute('aria-busy');retryB.removeAttribute('aria-disabled');errorEl.hidden=false;});
+fresh.src=it.href;
+}
+function show(){var it=list[at];
 capEl.textContent=it.cap;capEl.hidden=!it.cap;
+load(it,false);
 prevB.hidden=nextB.hidden=list.length<2;}
 function go(d){at=(at+d+list.length)%list.length;show();}
 Array.prototype.forEach.call(gs,function(g){
@@ -7749,7 +10928,10 @@ at=i;show();dlg.showModal();
 });
 })();
 <\/script>
-`;
+`; }
+/* Script assembly is deterministic. The pure marker lets the sealed UI build remove
+   this export when it imports an unrelated Core subset through the host adapter. */
+const LB_JS = /* @__PURE__ */ lightboxRuntime();
 
 const tidy = (css: string) => css.replace(/\}/g, '}\n').replace(/\n{2,}/g, '\n').replace(/^\s+|\s+$/g, '');
 
@@ -7792,7 +10974,7 @@ function jsonLdGraph(pg: Page, ctx: { col?: Collection | null; item?: Item | nul
      that happens to be about something. */
   /* A BreadcrumbList only when the page shows one, and built from the same trail the
      widget renders — a claimed trail that is not on the page is worth less than none. */
-  if (crumbsShown([state.header, pg.tree, state.footer])) {
+  if (crumbsShown([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')])) {
     const trail = crumbTrail(pg, ctx);
     if (trail.length > 1) graph.push({
       '@type': 'BreadcrumbList',
@@ -7844,6 +11026,8 @@ const SHARED_FOOTER_END = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_FOOTER_END' + HT
 function buildPage(pg: Page, ctx: {
   col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean;
   pageNo?: number; pages?: number;
+  /** Explicit legacy portable exports retain their renderer-2 text-tab runtime. */
+  schemaVersion?: number;
   /** `@font-face` rules to ship instead of the Google stylesheet link. Empty means link it,
       which is what a single self-contained file has to do — it has nowhere to put the files. */
   fontCss?: string;
@@ -7858,27 +11042,30 @@ function buildPage(pg: Page, ctx: {
     edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '',
     variants: !!ctx.variants, pageNo: ctx.pageNo || 1, pages: ctx.pages || 1, pg
   };
-  const css = treeCss([state.header, pg.tree, state.footer], false);
+  const css = treeCss([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], false);
   /* per page, not per project: two pages of a site can differ, and 34 KB is most of the weight
      of a page that has nothing moving on it */
-  const moves = animUsed([state.header, pg.tree, state.footer]);
+  const moves = animUsed([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')]);
   /* The node tree, not a regex over rendered bytes, defines the document landmarks. Every
      page tree is wrapped in one Pagecraft-owned main; global regions stay outside. Any main
      authored inside those fragments is demoted by a raw-text-aware scanner before nesting,
      which prevents sibling content and multiple landmarks without treating script/embed text
      as structure. */
-  const allNodes = [...state.header, ...pg.tree, ...state.footer];
+  const allNodes = [...pageRegion(pg, 'header'), ...pg.tree, ...pageRegion(pg, 'footer')];
   const occupied = new Set<string>();
   eachNode(allNodes, n => occupied.add(domIdOf(n)));
   let mainId = 'pagecraft-main';
   while (occupied.has(mainId)) mainId += '-content';
-  const header = demoteMainTags(renderList(state.header, o));
-  const pageBody = demoteMainTags(renderList(pg.tree, o));
-  const footer = demoteMainTags(renderList(state.footer, o));
+  const [headerHtml, pageHtml, footerHtml] = renderPublicLists([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], o);
+  const header = demoteMainTags(headerHtml);
+  const pageBody = demoteMainTags(pageHtml);
+  const footer = demoteMainTags(footerHtml);
   const main = `<main id="${mainId}" class="pagecraft-main">${pageBody}</main>`;
   const body = SHARED_HEADER_START + header + SHARED_HEADER_END
     + main
     + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
+  const hasPublicSelect = /data-pagecraft-select/.test(body);
+  const hasPublicDate = /data-pagecraft-date/.test(body);
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
@@ -7894,21 +11081,529 @@ function buildPage(pg: Page, ctx: {
 ${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
-${tidy(css)}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
+${tidy(css)}${hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : ''}${hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : ''}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
 </style>
 ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainTags(m.headHtml || '')}${demoteMainTags(pg.headHtml || '')}
 </head>
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
 
 
-export {
-  esc, safeUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, findProp, instValue, instSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, edit, restore, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, wordpressStyles, baseCss, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, tidy, NAV_JS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage
+/* ---- assistant proposals (Phase 7) ----------------------------------------------------
+   An assistant connected over MCP proposes; the site's owner reviews and applies in the editor.
+   The server checks a proposal against the draft with `proposalPrepare`, on a restored copy:
+   every change gets a concrete target, the exact value it will write and what it replaces. The
+   editor applies with `proposalApply` inside one edit(), after `proposalCheck` confirms that
+   everything it replaces is still there, so a proposal whose targets moved is refused whole
+   rather than half-applied. Only words, the site's own images, a component's exposed
+   properties, and new instances of existing components: no layout, styles, code or settings.
+   See docs/phase7-assistant-proposals-design.md. */
+
+/** What an assistant asks for, before anything has checked it. */
+type ProposalInput =
+  | { type: 'text'; nodeId: string; slot?: string; value: string }
+  | { type: 'image'; nodeId: string; slot?: string; assetId: string }
+  | { type: 'property'; nodeId: string; property: string; value: string }
+  | { type: 'insert'; componentId: string; region: string; parentId?: string | null; index?: number; values?: Record<string, string> };
+
+/** A checked change: where, the value to write, and what it replaces. */
+interface ProposalChange {
+  type: 'text' | 'image' | 'property' | 'insert';
+  /** Shared region, page id, or `page-header:<id>` / `page-footer:<id>` for an owned region. */
+  region: string;
+  nodeId?: string;
+  slot?: string;
+  property?: string;
+  componentId?: string;
+  parentId?: string | null;
+  index?: number;
+  values?: Record<string, string>;
+  /** Pins the exact insert destination or content owner when the proposal was filed. */
+  placement?: string;
+  target?: string;
+  value: string;
+  before: string;
+  /** what the owner reads in the review: "Heading “Welcome” · Text" */
+  label: string;
+}
+type ProposalAssets = { assets: ReadonlySet<string> };
+
+const PROPOSAL_LIMITS = { changes: 50, text: 10000, title: 120, summary: 2000 };
+
+const proposalRegions = (): [string, PcNode[]][] => [
+  ['header', state.header], ['footer', state.footer],
+  ...state.pages.flatMap(pg => [[pg.id, pg.tree] as [string, PcNode[]],
+    ...(Array.isArray(pg.header) ? [['page-header:' + pg.id, pg.header] as [string, PcNode[]]] : []),
+    ...(Array.isArray(pg.footer) ? [['page-footer:' + pg.id, pg.footer] as [string, PcNode[]]] : [])])
+];
+const proposalTree = (region: string) => proposalRegions().find(([key]) => key === region)?.[1];
+type ProposalPath = { node: PcNode; index: number }[];
+type ProposalTarget = { node: PcNode; region: string; path: ProposalPath };
+
+/** These slots belong to this definition's instance, not to any nested instance. A filled
+    slot replaces the definition's own children, so a slot in that fallback no longer renders. */
+function proposalInstanceSlots(inst: PcNode, def: ComponentDef) {
+  const first = slotsOf(def)[0]?.k;
+  const slots = new Map<string, { node: PcNode; path: ProposalPath }>();
+  const visit = (node: PcNode, path: ProposalPath) => {
+    if (node.use) return;
+    if (node.slot && DEF[node.type].level < 4 && node.type !== 'list') {
+      slots.set(node.slot, { node, path });
+      if (inst.children.some(child => (child.slot || first) === node.slot)) return;
+    }
+    (node.children || []).forEach((child, index) => visit(child, [...path, { node: child, index }]));
+  };
+  visit(def.node, [{ node: def.node, index: 0 }]);
+  return { first, slots };
+}
+
+/** Walk page-owned targets. An instance's stored fallback props and children without a
+    rendered slot have no editable surface on the page. */
+function* proposalTargets(region: string, list: PcNode[], path: ProposalPath = []): Generator<ProposalTarget> {
+  const parent = path.at(-1)?.node;
+  const def = parent?.use ? findComponent(parent.use) : null;
+  const placement = parent && def ? proposalInstanceSlots(parent, def) : null;
+  for (const [index, node] of list.entries()) {
+    if (parent?.use && !placement?.slots.has(node.slot || placement.first || '')) continue;
+    const next = [...path, { node, index }];
+    yield { node, region, path: next };
+    yield* proposalTargets(region, node.children || [], next);
+  }
+}
+function proposalFind(nodeId: string): ProposalTarget | null {
+  for (const [region, list] of proposalRegions()) {
+    for (const target of proposalTargets(region, list)) {
+      if (target.node.id === nodeId) return target;
+    }
+  }
+  return null;
+}
+
+function proposalContainer(list: PcNode[], parent: PcNode | null) {
+  if (!parent) return { list, type: null, slot: null };
+  if (!parent.use) return { list: parent.children, type: parent.type, slot: null };
+  const def = findComponent(parent.use);
+  if (!def) return null;
+  const { first, slots } = proposalInstanceSlots(parent, def);
+  const slot = first ? slots.get(first) : undefined;
+  if (!slot) return null;
+  // Filling a default would replace its definition children and orphan a nested slot's content.
+  const hidesPlacement = parent.children.some(child => child.slot && child.slot !== first
+    && slots.get(child.slot)?.path.some(part => part.node === slot.node));
+  return hidesPlacement ? null : { list: parent.children, type: slot.node.type, slot };
+}
+const proposalFits = (container: ReturnType<typeof proposalContainer>, def: ComponentDef) =>
+  !!container && !!DEF[def.node.type] && fitsIn(container.type, def.node.type);
+function proposalPlacement(region: string, parent: ProposalTarget | null, def: ComponentDef, index: number) {
+  const tree = proposalTree(region);
+  if (!tree || (parent && parent.region !== region)) return null;
+  const container = proposalContainer(tree, parent?.node || null);
+  if (!container || !proposalFits(container, def)) return null;
+  const { list, type, slot } = container;
+  const siblings = slot ? list.filter(node => !node.slot || node.slot === slot.node.slot) : list;
+  const next = siblings[index];
+  const receipt = sha256(JSON.stringify({
+    path: parent?.path.map(({ node, index: i }) => [node.id, node.type, node.use, node.slot, i]),
+    component: [def.node.id, def.node.type],
+    slot: slot && [slot.node.slot, slot.path.map(({ node, index }) => [node.id, node.type, index])], type, index,
+    children: list.map(node => [node.id, node.slot])
+  }));
+  return { list, type, slot: slot?.node.slot, next, receipt };
+}
+
+function proposalContentTarget(target: ProposalTarget, slot?: Slot, owner?: unknown) {
+  const { node, path } = target;
+  const row = slot && slot.i >= 0 ? ((node.props as PropBag)[slot.prop] as any[])[slot.i] : null;
+  return sha256(JSON.stringify([path.map(({ node: n }) => [n.id, n.type, n.use, n.slot]), row?.id, owner]));
+}
+const proposalSlotKey = (sl: Slot) => (sl.i < 0 ? sl.prop : `${sl.prop}.${sl.i}.${sl.sub}`);
+/** The image slots a node has, the way textSlots lists its words. */
+function proposalImageSlots(n: PcNode): Slot[] {
+  const out: Slot[] = [];
+  for (const spec of ASSET_SLOTS[n.type] || []) {
+    if (typeof spec === 'string') { if (typeof (n.props as PropBag)[spec] === 'string') out.push({ prop: spec, i: -1, sub: '' }); continue; }
+    const [arr, ...subs] = spec;
+    const rows = Array.isArray((n.props as PropBag)[arr]) ? (n.props as PropBag)[arr] as any[] : [];
+    rows.forEach((row: any, i: number) => subs.forEach(sub => { if (row && typeof row[sub] === 'string') out.push({ prop: arr, i, sub }); }));
+  }
+  return out;
+}
+const proposalWords = (v: string, max = 48) => {
+  const t = String(v || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return t.length > max ? t.slice(0, max - 1) + '…' : t;
+};
+const proposalContentSlots = (n: PcNode, image = false) =>
+  n.use || OWNER_ONLY_CONTENT.has(n.type) || (n.type === 'nav' && n.props.managedMobileLinks)
+    ? [] : (image ? proposalImageSlots(n) : textSlots(n)) as Slot[];
+const proposalSlotBinding = (n: PcNode, slot: Slot) => bindGet(n, slot.prop) || bindGet(n, proposalSlotKey(slot));
+const proposalEditableSlots = (n: PcNode, image = false) =>
+  proposalContentSlots(n, image).filter(slot => !proposalSlotBinding(n, slot));
+const proposalPropertySource = (n: PcNode, def: ComponentDef, k: string) => {
+  const binding = bindGet(n, VAL + k);
+  if (binding) return { source: 'binding', ...binding } as const;
+  if (ownsKey(n.vals, k)) return { source: 'override' } as const;
+  const variant = findVariant(def, n.variant);
+  return variant && ownsKey(variant.values, k) ? { source: 'variant', variantId: variant.id } as const
+    : { source: 'default' } as const;
+};
+const proposalNodeLabel = (n: PcNode) => {
+  const words = proposalWords(proposalEditableSlots(n).map(sl => String(slotGet(n, sl) || '')).find(Boolean) || '', 32);
+  const kind = n.use ? findComponent(n.use)?.name || 'Component' : labelOf(n.type);
+  return `${kind}${words ? ` “${words}”` : ''}`;
 };
 
+/** An internal page, a web, email or phone address, or an anchor; stored the way links are. */
+function proposalLink(raw: string): { value?: string; problem?: string } {
+  const v = raw.trim();
+  if (!v) return { value: '' };
+  if (/^#[\w-]*$/.test(v)) return { value: v };
+  const page = /^\/?([\w-]+)(?:\.html)?(#[\w-]+)?$/.exec(v);
+  if (page && state.pages.some(pg => pg.slug === page[1])) return { value: `${page[1]}.html${page[2] || ''}` };
+  if (/^(https?:|mailto:|tel:)/i.test(v) && safeUrl(v)) return { value: v };
+  return { problem: 'must be a page of this site (like /contact), a web address, an email or a phone link' };
+}
+
+/** Rich text from a proposal: a small markdown subset, escaped first and then given back only
+    the formatting it asks for — **bold**, *italic*, [text](link) and "- " list lines. Links pass
+    the same check as a link property, so nothing can arrive that the editor could not make. */
+function proposalRich(raw: string): { value?: string; problem?: string } {
+  const text = raw.replace(/\r\n?/g, '\n').trim();
+  if (!text) return { value: '' };
+  let problem = '';
+  const inline = (line: string) => esc(line)
+    .replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => {
+      const link = proposalLink(href.replace(/&amp;/g, '&'));
+      if (link.problem || !link.value) { problem = problem || `the link “${href}” ${link.problem || 'is empty'}`; return label; }
+      return `<a href="${esc(link.value)}">${label}</a>`;
+    })
+    // As in markdown, a marker hugs its words: "2 * 3 * 4" is arithmetic, not emphasis.
+    .replace(/\*\*(?!\s)([^*\n]*?[^*\s])\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*\w])\*(?!\s)([^*\n]*?[^*\s])\*(?![*\w])/g, '$1<em>$2</em>');
+  const html = text.split(/\n{2,}/).map(block => {
+    const lines = block.split('\n');
+    if (lines.every(l => /^\s*[-*]\s+/.test(l))) return `<ul>${lines.map(l => `<li>${inline(l.replace(/^\s*[-*]\s+/, ''))}</li>`).join('')}</ul>`;
+    return `<p>${lines.map(inline).join('<br>')}</p>`;
+  }).join('');
+  return problem ? { problem } : { value: html };
+}
+
+/** The other way, for reading: rich HTML as the same markdown subset, so an assistant sees the
+    formatting it would otherwise drop. Anything else becomes plain text. */
+function proposalMarkdown(html: string): string {
+  return String(html || '')
+    .replace(/<\/(p|div|h[1-6]|blockquote)>\s*/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ').replace(/<\/li>\s*/gi, '\n')
+    .replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, '**$2**').replace(/<(em|i)\b[^>]*>([\s\S]*?)<\/\1>/gi, '*$2*')
+    .replace(/<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href: string, label: string) => `[${label}](${href})`)
+    .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function proposalPropValue(pr: ComponentProp, raw: unknown, assets: ReadonlySet<string>): { value?: string; problem?: string } {
+  const v = typeof raw === 'string' ? raw : raw == null ? '' : String(raw);
+  if (v.length > PROPOSAL_LIMITS.text) return { problem: 'is too long' };
+  switch (pr.t) {
+    case 'text': return { value: v };
+    case 'rich': return proposalRich(v);
+    case 'img': {
+      const id = v.replace(/^asset:/, '').split('@')[0];
+      return assets.has(id) ? { value: 'asset:' + id } : { problem: `names an image this site doesn't have (${id || 'none'})` };
+    }
+    case 'link': return proposalLink(v);
+    case 'select': return (pr.opts || []).some(([val]) => val === v) ? { value: v }
+      : { problem: `must be one of: ${(pr.opts || []).map(([val]) => val).join(', ')}` };
+    case 'bool': return /^(1|0|true|false|)$/i.test(v) ? { value: /^(1|true)$/i.test(v) ? '1' : '' } : { problem: 'must be true or false' };
+    case 'color': return /^#[0-9a-f]{3,8}$/i.test(v) || colors().some(c => cvar(c.id) === v) ? { value: v }
+      : { problem: 'must be a hex colour or one of the site’s colours' };
+    case 'icon': return ICON_NAMES.includes(v) ? { value: v } : { problem: 'must be one of the icon names' };
+    default: return { problem: 'cannot be set by a proposal' };
+  }
+}
+
+/** Check a proposal against the current document and resolve it into changes. Reads `state`;
+    the server restores the draft first. Never writes. */
+function proposalPrepare(inputs: unknown, options: ProposalAssets): { changes: ProposalChange[]; problems: string[] } {
+  const problems: string[] = [];
+  const changes: ProposalChange[] = [];
+  const list = Array.isArray(inputs) ? inputs as ProposalInput[] : [];
+  if (!list.length) return { changes, problems: ['Propose at least one change.'] };
+  if (list.length > PROPOSAL_LIMITS.changes) return { changes, problems: [`A proposal can hold at most ${PROPOSAL_LIMITS.changes} changes.`] };
+  const seen = new Set<string>();
+  list.forEach((input, i) => {
+    const at = `Change ${i + 1}`;
+    const fail = (why: string) => { problems.push(`${at}: ${why}`); };
+    if (!input || typeof input !== 'object') return fail('is not a change.');
+    if (input.type === 'insert') {
+      const def = findComponent(String(input.componentId || ''));
+      if (!def) return fail(`there is no component "${input.componentId}". List components to see what can be placed.`);
+      const region = String(input.region || '');
+      if (!proposalTree(region)) return fail(`"${region}" is not a page id, header or footer.`);
+      const parent = input.parentId ? proposalFind(String(input.parentId)) : null;
+      if (input.parentId && parent?.region !== region) return fail(`there is no element "${input.parentId}" in that region.`);
+      const index = Number.isInteger(input.index) ? Math.max(0, input.index as number) : 1e6;
+      const placement = proposalPlacement(region, parent, def, index);
+      if (!placement) return fail(`a ${def.name} cannot go inside ${parent ? nameOf(parent.node) : 'this region'}.`);
+      const values: Record<string, string> = {};
+      for (const [k, raw] of Object.entries(input.values || {})) {
+        const pr = findProp(def, k);
+        if (!pr) return fail(`${def.name} has no property "${k}".`);
+        if (bindGet(def.node, VAL + k)) return fail(`${def.name} · ${pr.label} is bound and cannot be changed by a proposal.`);
+        const checked = proposalPropValue(pr, raw, options.assets);
+        if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
+        values[k] = checked.value!;
+      }
+      const owner = state.pages.find(pg => pg.id === region || 'page-header:' + pg.id === region || 'page-footer:' + pg.id === region);
+      const where = region === 'header' ? 'the header' : region === 'footer' ? 'the footer'
+        : `${region.startsWith('page-header:') ? 'header of ' : region.startsWith('page-footer:') ? 'footer of ' : ''}page “${owner!.name}”`;
+      const into = parent ? ` · ${proposalNodeLabel(parent.node)}${placement.slot ? ` · ${placement.slot}` : ''}` : '';
+      changes.push({ type: 'insert', region, componentId: def.id, parentId: parent?.node.id ?? null, index, values,
+        placement: placement.receipt, value: '', before: '', label: `Add ${def.name} to ${where}${into}` });
+      return;
+    }
+    if (input.type !== 'text' && input.type !== 'image' && input.type !== 'property') {
+      return fail(`"${(input as { type?: string }).type}" is not a change a proposal can make (text, image, property or insert).`);
+    }
+    const found = proposalFind(String(input.nodeId || ''));
+    if (!found) return fail(`there is no element "${input.nodeId}" on a page, in the header or in the footer.`);
+    const { node, region } = found;
+    if (input.type === 'text') {
+      if (OWNER_ONLY_CONTENT.has(node.type)) return fail('embedded code cannot be changed by a proposal.');
+      if (node.use) return fail('component content is owned by its definition. Use a declared component property.');
+      const slots = proposalContentSlots(node);
+      const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no text "${input.slot || ''}". Its editable text slots: ${proposalEditableSlots(node).map(proposalSlotKey).join(', ') || 'none'}.`);
+      if (proposalSlotBinding(node, slot)) return fail(`text "${proposalSlotKey(slot)}" is bound and cannot be changed by a proposal.`);
+      const raw = String(input.value ?? '');
+      if (raw.length > PROPOSAL_LIMITS.text) return fail('the text is too long.');
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail('changes the same text twice.');
+      seen.add(key);
+      let value = raw;
+      if (node.type === 'text' && slot.prop === 'html') {
+        const rich = proposalRich(raw);
+        if (rich.problem) return fail(rich.problem + '.');
+        value = rich.value!;
+      }
+      changes.push({ type: 'text', region, nodeId: node.id, slot: proposalSlotKey(slot), value, target: proposalContentTarget(found, slot),
+        before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
+      return;
+    }
+    if (input.type === 'image') {
+      if (node.use) return fail('component content is owned by its definition. Use a declared component property.');
+      const slots = proposalContentSlots(node, true);
+      const slot = input.slot ? slots.find(sl => proposalSlotKey(sl) === input.slot) : slots[0];
+      if (!slot) return fail(`${nameOf(node)} has no image "${input.slot || ''}".`);
+      if (proposalSlotBinding(node, slot)) return fail(`image "${proposalSlotKey(slot)}" is bound and cannot be changed by a proposal.`);
+      const id = String(input.assetId || '').replace(/^asset:/, '').split('@')[0];
+      if (!options.assets.has(id)) return fail(`names an image this site doesn't have (${id || 'none'}). List images to see what is uploaded.`);
+      const key = `${node.id}|${proposalSlotKey(slot)}`;
+      if (seen.has(key)) return fail('changes the same image twice.');
+      seen.add(key);
+      changes.push({ type: 'image', region, nodeId: node.id, slot: proposalSlotKey(slot), value: 'asset:' + id, target: proposalContentTarget(found, slot),
+        before: String(slotGet(node, slot) ?? ''), label: `${proposalNodeLabel(node)} · ${slotName(slot)}` });
+      return;
+    }
+    if (input.type === 'property') {
+      const def = node.use ? findComponent(node.use) : null;
+      if (!def) return fail(`${nameOf(node)} is not a component instance, so it has no properties.`);
+      const pr = findProp(def, String(input.property || ''));
+      if (!pr) return fail(`${def.name} has no property "${input.property}". Its properties: ${(def.props || []).map(x => x.k).join(', ') || 'none'}.`);
+      const owner = proposalPropertySource(node, def, pr.k);
+      if (owner.source === 'binding') return fail(`${def.name} · ${pr.label} is bound and cannot be changed by a proposal.`);
+      const checked = proposalPropValue(pr, input.value, options.assets);
+      if (checked.problem) return fail(`${def.name} · ${pr.label} ${checked.problem}.`);
+      const key = `${node.id}|${VAL}${pr.k}`;
+      if (seen.has(key)) return fail('changes the same property twice.');
+      seen.add(key);
+      changes.push({ type: 'property', region, nodeId: node.id, property: pr.k, value: checked.value!,
+        target: proposalContentTarget(found, undefined, [pr.t, owner]), before: instValue(node, def, pr.k), label: `${def.name} · ${pr.label}` });
+    }
+  });
+  return { changes: problems.length ? [] : changes, problems };
+}
+
+/** The id an inserted instance takes: the proposal's and the change's place in it, so the same
+    insert applied a second time would be the same node. Wrapper ids use the same stable prefix
+    so a server preview and the saved draft can render exactly the same authored document. */
+const proposalNodeId = (proposalId: string, index: number) =>
+  'np' + String(proposalId).replace(/[^a-z0-9]/gi, '').slice(0, 32) + 'x' + index.toString(36);
+
+const proposalAssetId = (value: string) => typeof value === 'string' && value.startsWith('asset:') ? value.slice(6) : '';
+
+/** Read explicit managed image writes against the proposal's loaded base document. */
+export function proposalAssetIds(changes: ProposalChange[]): string[] {
+  const ids = new Set<string>();
+  const add = (value: string) => {
+    const id = proposalAssetId(value);
+    if (id) ids.add(id);
+  };
+  for (const change of changes) {
+    if (change.type === 'image') add(change.value);
+    if (change.type === 'property') {
+      const node = proposalFind(change.nodeId || '')?.node;
+      if (findProp(findComponent(node?.use), change.property || '')?.t === 'img') add(change.value);
+    }
+    if (change.type === 'insert') {
+      const def = findComponent(change.componentId);
+      for (const [key, value] of Object.entries(change.values || {})) {
+        if (findProp(def, key)?.t === 'img') add(value);
+      }
+    }
+  }
+  return [...ids];
+}
+
+type ProposalStep = { status: 'stale' | 'missing' | 'applied' } | { status: 'ok'; apply(): string | void };
+function proposalPlan(changes: ProposalChange[], proposalId: string, options?: ProposalAssets): ProposalStep[] {
+  const seen = new Set<string>();
+  const assetAllowed = (value: string) => !options || options.assets.has(proposalAssetId(value));
+  return changes.map((ch, i) => {
+    if (ch.type === 'insert') {
+      const def = findComponent(ch.componentId || '');
+      const parent = ch.parentId ? proposalFind(ch.parentId) : null;
+      if (!def || !proposalTree(ch.region) || (ch.parentId && !parent)) return { status: 'missing' };
+      const placement = proposalPlacement(ch.region, parent, def, ch.index ?? 1e6);
+      // A legacy insert has no evidence that this is the destination the owner reviewed.
+      if (!placement || !ch.placement) return { status: 'stale' };
+      const id = proposalId ? proposalNodeId(proposalId, i) : '';
+      const wrapperIds: string[] = [];
+      for (let level = takes(placement.type); level < lvl(def.node.type); level++) wrapperIds.push(id + 'w' + level);
+      if (id && locateAny(id)) {
+        const applied = proposalFind(id);
+        const path = applied?.path.map(part => part.node.id);
+        const expected = [...(parent?.path.map(part => part.node.id) || []), ...wrapperIds, id];
+        const inSlot = !placement.slot || applied?.path.at(-wrapperIds.length - 1)?.node.slot === placement.slot;
+        return { status: applied?.region === ch.region && applied.node.use === def.id
+          && inSlot && JSON.stringify(path) === JSON.stringify(expected) ? 'applied' : 'stale' };
+      }
+      if (placement.receipt !== ch.placement || (id && wrapperIds.some(w => locateAny(w)))) return { status: 'stale' };
+      if (Object.entries(ch.values || {}).some(([k, value]) => {
+        const prop = findProp(def, k);
+        return !prop || bindGet(def.node, VAL + k) || (prop.t === 'img' && !assetAllowed(value));
+      })) return { status: 'stale' };
+      return { status: 'ok', apply() {
+        const fresh = makeInstance(def);
+        if (id) fresh.id = id;
+        for (const [k, v] of Object.entries(ch.values || {})) instSet(fresh, k, v);
+        const packed = wrap(fresh.type, takes(placement.type), fresh);
+        if (placement.slot) packed.slot = placement.slot;
+        if (id) {
+          let wrapper = packed;
+          for (const wrapperId of wrapperIds) { wrapper.id = wrapperId; wrapper = wrapper.children[0]; }
+        }
+        const at = placement.next ? placement.list.indexOf(placement.next) : placement.list.length;
+        placement.list.splice(at, 0, packed);
+        return fresh.id;
+      } };
+    }
+    const found = proposalFind(ch.nodeId || '');
+    if (!found) return { status: 'missing' };
+    if (found.region !== ch.region) return { status: 'stale' };
+    const { node } = found;
+    const key = `${node.id}|${ch.type === 'property' ? VAL + ch.property : ch.slot}`;
+    if (seen.has(key)) return { status: 'stale' };
+    seen.add(key);
+    if (ch.type === 'property') {
+      const def = node.use ? findComponent(node.use) : null;
+      const prop = findProp(def, ch.property || '');
+      if (!def || !prop) return { status: 'missing' };
+      const owner = proposalPropertySource(node, def, prop.k);
+      if (owner.source === 'binding' || instValue(node, def, prop.k) !== ch.before
+        || (prop.t === 'img' && !assetAllowed(ch.value))
+        || (ch.target && ch.target !== proposalContentTarget(found, undefined, [prop.t, owner]))) return { status: 'stale' };
+      return { status: 'ok', apply() { instSet(node, prop.k, ch.value); } };
+    }
+    const slot = proposalContentSlots(node, ch.type === 'image').find(sl => proposalSlotKey(sl) === ch.slot);
+    if (!slot) return { status: 'missing' };
+    if (proposalSlotBinding(node, slot) || String(slotGet(node, slot) ?? '') !== ch.before
+      || (ch.type === 'image' && !assetAllowed(ch.value))
+      || (ch.target && ch.target !== proposalContentTarget(found, slot))) return { status: 'stale' };
+    return { status: 'ok', apply() { slotSet(node, slot, ch.value); } };
+  });
+}
+
+/** Check all destinations and values before an editor review or apply. */
+function proposalCheck(changes: ProposalChange[], proposalId = '', options?: ProposalAssets) {
+  return proposalPlan(changes, proposalId, options).map(step => step.status);
+}
+
+/** A region as an assistant reads it: the slots and declared properties it can propose changes
+    to, with ownership for read-only bindings. Rich values use the proposal's Markdown subset. */
+function proposalOutline(region: string) {
+  const list = proposalTree(region);
+  if (!list) return null;
+  const comps = components();
+  const out: Record<string, unknown>[] = [];
+  for (const { node: n, path } of proposalTargets(region, list)) {
+    const text: Record<string, string> = {}, images: Record<string, string> = {};
+    const boundSlots: Record<string, Binding> = {};
+    for (const sl of proposalContentSlots(n)) {
+      const key = proposalSlotKey(sl), binding = proposalSlotBinding(n, sl);
+      if (binding) { boundSlots[key] = binding; continue; }
+      text[key] = n.type === 'text' && sl.prop === 'html'
+        ? proposalMarkdown(String(slotGet(n, sl) || '')).slice(0, 4000) : String(slotGet(n, sl) ?? '');
+    }
+    for (const sl of proposalContentSlots(n, true)) {
+      const key = proposalSlotKey(sl), binding = proposalSlotBinding(n, sl);
+      if (binding) { boundSlots[key] = binding; continue; }
+      images[key] = String(slotGet(n, sl) ?? '');
+    }
+    const def = n.use ? findComponent(n.use) : null;
+    const values: [string, string][] = [];
+    const propertySources = def?.props?.map(pr => {
+      const owner = proposalPropertySource(n, def, pr.k);
+      if (owner.source !== 'binding') {
+        const value = instValue(n, def, pr.k);
+        values.push([pr.k, pr.t === 'rich' ? proposalMarkdown(value) : value]);
+      }
+      return [pr.k, owner] as const;
+    }) || [];
+    const container = proposalContainer(list, n);
+    const fits = comps.filter(cd => proposalFits(container, cd)).map(cd => cd.id);
+    out.push({
+      id: n.id, type: n.type, kind: def ? def.name : labelOf(n.type), depth: path.length - 1, parentId: path.at(-2)?.node.id ?? null,
+      ...(Object.keys(text).length ? { text } : {}),
+      ...(n.type === 'text' && ownsKey(text, 'html') ? { formatting: 'html is rich text: **bold**, *italic*, [text](link) and "- " lists' } : {}),
+      ...(Object.keys(images).length ? { images } : {}),
+      ...(Object.keys(boundSlots).length ? { boundSlots } : {}),
+      ...(def ? { component: { id: def.id, name: def.name, values: Object.fromEntries(values), propertySources: Object.fromEntries(propertySources) } } : {}),
+      ...(fits.length ? { canHold: fits, ...(container?.slot ? { placementSlot: container.slot.node.slot } : {}) } : {}),
+    });
+  }
+  return out;
+}
+
+/** Plan against one snapshot before touching it. Preview and apply both refuse a conflicting batch. */
+function proposalApply(changes: ProposalChange[], proposalId = '', options?: ProposalAssets) {
+  const plan = proposalPlan(changes, proposalId, options);
+  if (plan.some(step => step.status !== 'ok')) return [];
+  const placed: string[] = [];
+  for (const step of plan) {
+    if (step.status !== 'ok') continue;
+    const id = step.apply();
+    if (id) placed.push(id);
+  }
+  return placed;
+}
+
+export { editContext, atEditContext };
+export { hasRichTabPanels, tabPanelProblem, tabPanelNodes, enableTabPanels, tabAdd, tabRemove, tabMove, tabSelect, tabDuplicate, tabSelectionPath };
+export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad, styleClipClear };
+export type { EditContext };
+export {
+  PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+};
+
+export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };
+export { LINK_TARGET, linkTargetKey, instLinkTarget, instLinkTargetSet };
+
 export { mediaReferences, replaceMediaReferences } from "./media-references.ts";
+export type { ProposalChange, ProposalInput };
+
+export { pageTrees, pageRegion, pageRegionMode, pageRegionSet };

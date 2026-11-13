@@ -1,0 +1,16 @@
+{
+  "status": "root-reviewed Add source fingerprint only",
+  "source": "app/src/ui/Add.tsx",
+  "previousFingerprint": "ffb58ee5faa41da7356f51714f28527e9b4ddc36810a32c3ccbefd02f4015c50",
+  "reviewedFingerprint": "44a521f1f751ee6807a38dab21f0976b833fbc4145beada4d4bcfc2bc73c3529",
+  "previousManifestSHA256": "468f76c41af0eeb71d8dfed171462cd647bec4de43e2557835462b87dac8bd4e",
+  "reviewedManifestSHA256": "69ca45d2a835068c8905171e7f3af888833dba27b2be62e7ec5b249e441fc94c",
+  "freshNativeCaptures": 24,
+  "comparisonZeroChangedPixels": 24,
+  "actualGalleryHTML12Exact": true,
+  "rationale": "Add Components rename uses actual modal + official Iconify SVG; managed deletion counts/copy distinguish ordinary instances and mobile references. Gallery consumes unchanged compiled style blocks rather than Add UI code. Core deletion cleanup changes are separate from this Add fingerprint and covered by focused/source review.",
+  "behaviorEvidence": "Root initial30 checks29pass; builder disclosure120ms exit observation saw completed hidden state. Initial receipts preserved; isolatedbuilder15recheck allpassed and freshcombined30 accepted. Timing transient recorded, no product regression inferred.",
+  "nativeEvidence": "qa-evidence/component-rename-2026-10-24/gallery-native-final",
+  "baselinePNGsFullProvenanceAndAllOtherManifestFields": "unchanged",
+  "nativeDeploymentAndCanvasAcceptance": "root-owned, pending"
+}

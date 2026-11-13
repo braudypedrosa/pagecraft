@@ -1,0 +1,53 @@
+[
+  {
+    "device": "Desktop",
+    "card": 280,
+    "client": 1200,
+    "count": 5,
+    "first": "Courtyard",
+    "height": 54,
+    "last": "Shared Kitchen",
+    "name": "QA Shared Spaces",
+    "padding": "8px",
+    "pageOverflow": false,
+    "role": "group",
+    "scroll": 1512,
+    "scrollHeight": 54,
+    "tabindex": "0",
+    "wrap": "nowrap"
+  },
+  {
+    "device": "Tablet",
+    "card": 375.5,
+    "client": 775,
+    "count": 5,
+    "first": "Courtyard",
+    "height": 162,
+    "last": "Shared Kitchen",
+    "name": "QA Shared Spaces",
+    "padding": "0px",
+    "pageOverflow": false,
+    "role": "group",
+    "scroll": 775,
+    "scrollHeight": 162,
+    "tabindex": "0",
+    "wrap": "wrap"
+  },
+  {
+    "device": "Mobile",
+    "card": 347,
+    "client": 363,
+    "count": 5,
+    "first": "Courtyard",
+    "height": 47,
+    "last": "Shared Kitchen",
+    "name": "QA Shared Spaces",
+    "padding": "8px",
+    "pageOverflow": false,
+    "role": "group",
+    "scroll": 1831,
+    "scrollHeight": 47,
+    "tabindex": "0",
+    "wrap": "nowrap"
+  }
+]

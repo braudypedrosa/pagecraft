@@ -1,0 +1,17 @@
+{
+  "editor": {
+    "bodyClient": 1320,
+    "bodyScroll": 1320,
+    "height": "10px",
+    "parentHeight": "40px",
+    "parentTag": "DIV",
+    "parentType": "column",
+    "rectHeight": 10
+  },
+  "preview": {
+    "height": "0px",
+    "parentHeight": 0,
+    "rectHeight": 0
+  },
+  "limits": "Percentage height depends on parent definite height. Editor has empty-column minimum40; preview needs authored definite parent context. This is not full host acceptance."
+}

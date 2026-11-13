@@ -1,0 +1,113 @@
+{
+  "base": "3bf5b4b277795c3a6b55332803688cbcc60d1f87",
+  "protected11Exact": true,
+  "source3": {
+    "app/src/core/index.ts": "44d41827c2f8a0eb0a43ddc829d2f92b66520abc13f7c1f05d62ee1f07b97d8e",
+    "tests/gallery-lightbox-contrast.test.ts": "34ff24f3e9788433a4476817fde89798b2b8c92660ee44725cf7c3368ba40585",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "867ae4c14feb556aa378119b38bd37060ebeb9bf0222228b8d9840b13c9f055c"
+  },
+  "generated8StagedIndexOnly": true,
+  "ordered10BuildPairsExact": true,
+  "rootFullSuite": {
+    "passed": 2726,
+    "skipped": 5,
+    "testFiles": 261,
+    "skippedFiles": 2,
+    "exit": 0
+  },
+  "reviewCaughtAndFixed": "Whole structural selector scope moved Close to top50%; corrected scoped paint only, actual DOM regression Close14px/right14px/transformnone/hiddennone. No rejected candidate deployed.",
+  "normalizedEvidence": [
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/source.patch",
+      "before": "4f43ba1d5da9efa5cb7ee465da17c60819dd079b808d4a5ef58293bb2f302eb7",
+      "after": "1c8ff3b62d4702df76c874e125643c45940d1a3ee5289343469dd6b5a2920748"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/generated-build-parity.diff",
+      "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/golden-update.log",
+      "before": "4db2ddb91d071fba51cf8f4947bae0ac3d20b43caa0561d186d628d43c8485ae",
+      "after": "4d157f505f68e0085ba97e4e566cc50cbe802e3b864ede6b6160a59d59f00147"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-typecheck.log",
+      "before": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+      "after": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/full.log",
+      "before": "a8626f2c1c3ddd8684281fe9a537fb23be3750d4247daea5ebc8379d743e83d7",
+      "after": "2253ea29ffeedbbf3eeee2f5229dd1142b557053df6fe27b940a2d0aabeb78f4"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-position-green.log",
+      "before": "c5ec4a39c407eadfcd0cd6ba2cef7a8a4b7106b3d1e22b33dba71c1621932176",
+      "after": "92f634a79b44e6ee522fa5a37a1be98f8d8f15cc2f853fb06d35187a8c97e440"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-full.log",
+      "before": "29f7ccbf4aff600b274fca834b8e4a24b772cdd490312baf0da4339f87a0e5e4",
+      "after": "f9533ff9e46f6c0aeaf113518d9c228b31017b4d02ee26d08500210d5abb06a6"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/submissions-timeout-rerun.log",
+      "before": "33812df26f1930828c34e9b4cd3f079b0d16d710cdd1488e56e1bbce89d88a94",
+      "after": "56da9a58fb19ea0040bf7d8bdbd0fa031d144e3294bd21d22321d4281fa9aeef"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-final-focused-golden.log",
+      "before": "c55fa12f1b690457561c076ab2cfe5ed04dcfb8b5ce650a43cb89e3beea3c420",
+      "after": "8089e9e523c771f81ab0c96bb9ac2ccc13c65fa345114c92966fe56eba294bc4"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/related-golden-check.log",
+      "before": "1e4d34bb0c8e4218a226bf8d124900fbadd193541cb6d66202f7d972dea628c1",
+      "after": "d31a78c5ffab5feee599c4e6b359f70b5ec673670aaf6a2014a7a3ab1b2d5d50"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/root-full-green.log",
+      "before": "0ecdde7df62f646327aa4433c4ac6565fd5a2533e50e364edcef53a9c056fbff",
+      "after": "06c41c75e43451ab3532e094c0d3bfaf0fe5018716f2143f727453737d3ff764"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-position-red.log",
+      "before": "1114095f3ff26255b941688b5948698981f885db25b66ddb32ccccda3eb1824c",
+      "after": "5d4a14ced4557422833d1147098d9a6bab84d6b70ea82640ef24a4d3f9cbe644"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/focused-green.log",
+      "before": "a2cff1c9301b0022f1eedd2140cec6859c4267d1de39ae0ce9d933eae939acd1",
+      "after": "44451cbef9b2ec483b0e55c4a43a2c14fad4ceba7fafbb29b9a88b34467ec8bc"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/final-focused-golden.log",
+      "before": "6ebec6fd36185894a8f34e24524c35b9599514446e218296d26c2d2bee8ab5ef",
+      "after": "c5dc8027471542c25610bc8cd003746c5b50f9d6bccce0680a677c26ba40f352"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/root-focused.log",
+      "before": "ab6505920e3c78c42361cc922b27abd10d5c97a36983fb0b484a4bc1621bc007",
+      "after": "834594f6ef03f9cd1e75e0b27c37a7ee8b210bb853b308ca1c3e37b0e033d63c"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-golden-update.log",
+      "before": "6023e5317e7e71484efbcf12784858a277595699930de4f3517b98569d35cda4",
+      "after": "c38efdb51c949b015261e56226cf6315cf00dc5e37be61d814c8bce566eca23e"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/close-related-golden-check.log",
+      "before": "fdc03cf8c29b8f91102f4e8272ae8b6c177351c7a3e145bfb05dc7e098f8559b",
+      "after": "22fa0840f9c27dffbfdb360bf35beba11a1a9c761d7031b6714de890f6ab82bc"
+    },
+    {
+      "path": "qa-evidence/gallery-lightbox-stale-cascade-2026-10-23/logs/focused-red.log",
+      "before": "745cf0caef7e14d0793f6f482e77b8855a7b5eb474a70bafa4097b8cb4c44fce",
+      "after": "c86697eafe967806908fea6160ee4072357ab110a10af25c8dc831c637dd186b"
+    }
+  ],
+  "nativeAcceptance": "Pending deployed and WordPress pin98 acceptance",
+  "genericFoundationArchitecture": "Open; no Theme reorder integrated"
+}

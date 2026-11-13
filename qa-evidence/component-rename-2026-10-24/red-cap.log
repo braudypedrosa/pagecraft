@@ -1,0 +1,33 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-rename-6a42078
+
+ ❯ tests/component-rename.test.tsx (4 tests | 1 failed) 242ms
+   × a suffix beyond the existing forty-character name makes no checkpoint or save request 55ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-rename.test.tsx > a suffix beyond the existing forty-character name makes no checkpoint or save request
+AssertionError: expected [ { schemaVersion: 13, …(4) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/component-rename.test.tsx:133:22
+    131|     expect(C.findComponent(cid)!.name).toBe(current);
+    132|     expect(C.doc()).toEqual(before);
+    133|     expect(C.hist.u).toHaveLength(0);
+       |                      ^
+    134|     expect(C.hist.r).toHaveLength(0);
+    135|     expect(save).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  05:57:19
+   Duration  1.10s (transform 271ms, setup 0ms, import 327ms, tests 242ms, environment 418ms)
+

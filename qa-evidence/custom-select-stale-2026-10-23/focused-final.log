@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/custom-select-stale-7a996d8
+
+
+ Test Files  6 passed (6)
+      Tests  36 passed (36)
+   Start at  03:30:20
+   Duration  1.11s (transform 989ms, setup 0ms, import 1.33s, tests 1.55s, environment 2.03s)

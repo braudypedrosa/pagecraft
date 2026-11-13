@@ -1,0 +1,16 @@
+{
+  "duplicate": [
+    {
+      "height": "20px",
+      "id": "n1yr342o8"
+    },
+    {
+      "height": "20px",
+      "id": "n22a3u367"
+    }
+  ],
+  "undo": 1,
+  "redo": 2,
+  "delete": 1,
+  "note": "Redo clears selection. Clone reselected by native canvas click before Delete."
+}

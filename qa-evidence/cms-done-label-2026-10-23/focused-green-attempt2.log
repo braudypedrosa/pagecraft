@@ -1,0 +1,38 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-done-label-0a873d2
+
+ ❯ tests/cms-workspace.test.tsx (12 tests | 1 failed) 560ms
+   × entry form uses Done when pristine and keeps dirty cancellation guarded 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cms-workspace.test.tsx > entry form uses Done when pristine and keeps dirty cancellation guarded
+AssertionError: expected <input id="cms-value-title" …(4)></input> to be null
+
+- Expected:
+null
+
++ Received:
+<input
+  aria-invalid="false"
+  aria-labelledby="cms-label-title"
+  class="ctl"
+  id="cms-value-title"
+  type="text"
+/>
+
+ ❯ tests/cms-workspace.test.tsx:176:35
+    174|   confirm.mockResolvedValueOnce(true);
+    175|   await click('Cancel');
+    176|   expect(r.$('#cms-value-title')).toBeNull();
+       |                                   ^
+    177|   expect(col.items[0].values.title).toBe('Forest cabin');
+    178| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  05:00:01
+   Duration  1.15s (transform 217ms, setup 0ms, import 259ms, tests 560ms, environment 243ms)

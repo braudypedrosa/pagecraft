@@ -1,0 +1,178 @@
+[
+  {
+    "name": "one-row",
+    "overflow": false,
+    "tables": [
+      {
+        "caption": "Workshop schedule",
+        "rows": [
+          [
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Session"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Time"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Room"
+            }
+          ],
+          [
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Morning"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "09:00"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Garden"
+            }
+          ]
+        ]
+      }
+    ],
+    "text": "b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)Workshop scheduleSessionTimeRoomMorning09:00Garden"
+  },
+  {
+    "name": "blank-cell",
+    "overflow": false,
+    "tables": [
+      {
+        "caption": "Workshop schedule",
+        "rows": [
+          [
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Session"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Time"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Room"
+            }
+          ],
+          [
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Morning"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": ""
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Garden"
+            }
+          ]
+        ]
+      }
+    ],
+    "text": "if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)Workshop scheduleSessionTimeRoomMorningGarden"
+  },
+  {
+    "name": "uneven",
+    "overflow": false,
+    "tables": [
+      {
+        "caption": "Workshop schedule",
+        "rows": [
+          [
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Session"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Time"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": "Room"
+            },
+            {
+              "scope": "col",
+              "tag": "TH",
+              "text": ""
+            }
+          ],
+          [
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Morning"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "09:00"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": ""
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": ""
+            }
+          ],
+          [
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Afternoon"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "14:00"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Studio"
+            },
+            {
+              "scope": null,
+              "tag": "TD",
+              "text": "Extra"
+            }
+          ]
+        ]
+      }
+    ],
+    "text": "f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)Workshop scheduleSessionTimeRoomMorning09:00Afternoon14:00StudioExtra"
+  },
+  {
+    "name": "empty",
+    "overflow": false,
+    "tables": [],
+    "text": "var b=f.querySelector('button[type=submit]');if(b)b.disabled=false});f.addEventListener('submit',function(){setTimeout(function(){var b=f.querySelector('button[type=submit]');if(b)b.disabled=true},0)})})(document.currentScript.previousElementSibling)"
+  }
+]

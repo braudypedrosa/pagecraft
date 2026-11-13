@@ -1,0 +1,17 @@
+[
+  {
+    "file": "qa-evidence/mobile-menu-placement-2026-10-21/logs/red.log",
+    "originalSHA256": "8e339ac880b455527e0bfcadd1013849dfac16537619cc78469afafc4fe61ecc",
+    "normalizedSHA256": "53a9f025951fd12cc9fdbf8c53c746a20ef35b1b2d482d74a8af98584d541c69"
+  },
+  {
+    "file": "qa-evidence/mobile-menu-placement-2026-10-21/logs/typecheck.log",
+    "originalSHA256": "d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68",
+    "normalizedSHA256": "8de4806bde5137511c9cbd1264cdea5944e440cd1c06d7b84fc6ee5178d28eef"
+  },
+  {
+    "file": "qa-evidence/mobile-menu-placement-2026-10-21/logs/focused.log",
+    "originalSHA256": "a9be33b7cba96149bfe44691d4ee91c476b82e2f82055ba1572d0b76c5ab92da",
+    "normalizedSHA256": "de0aff46f3c40ca5a9d784be5ba0ba80c29b953cebe4d82b3476831d6e579a01"
+  }
+]

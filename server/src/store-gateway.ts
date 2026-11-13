@@ -21,6 +21,7 @@ import {
   type InvitationProvisionResult,
   type InviteDeliveryResult,
   type ManualImportCredential,
+  type ManualImportRefreshResult,
   type MemberChangeResult,
   type MemberRemovalResult,
   type Membership,
@@ -28,6 +29,7 @@ import {
   type Role,
   type Session,
   type User,
+  type AccountPlan,
 } from "./auth.ts";
 import {
   type CmsWriteHead,
@@ -36,6 +38,7 @@ import {
   type ScheduledPublishResult,
   type Site,
   type SiteRevision,
+  type SiteRevisionMeta,
   slugFrom,
   type Store,
   validSlug,
@@ -95,12 +98,51 @@ interface GatewayFailure {
 
 export class GatewayError extends Error {
   code?: string;
-  constructor(message: string, code?: string) {
+  /** The gateway's HTTP status, when it answered at all. */
+  status?: number;
+  constructor(message: string, code?: string, status?: number) {
     super(message);
     this.name = "GatewayError";
     this.code = code;
+    this.status = status;
   }
 }
+
+/* 502, 503 and 546 mean the Edge function itself did not run to completion, not that the
+   database refused the write. A version-guarded save is safe to send once more: if the first
+   attempt did commit, the second is a stale conflict, and the editor's readback recognizes its
+   own document. Reads in GATEWAY_RETRIED_READS are selects (two also clear expired sessions,
+   which is safe to repeat), so they get the same single retry inside `call`. Every other
+   operation keeps failing on the first error. */
+const TRANSIENT_GATEWAY_STATUS = new Set([502, 503, 546]);
+export const GATEWAY_SAVE_RETRY_MS = 300;
+export const GATEWAY_RETRIED_READS: ReadonlySet<string> = new Set([
+  "site.list", "site.listMeta", "site.byHost", "site.bySlug", "site.byId",
+  "site.history", "site.revision",
+  "auth.userByEmail", "auth.userById", "auth.userByAuthId", "auth.usersByIds",
+  "auth.sessionByDigest", "auth.userForSession", "auth.accessForSession",
+  "auth.membership", "auth.membershipsForUser", "auth.members",
+  "asset.list", "asset.get", "asset.byPath", "asset.usage",
+  "release.byId", "release.forSite", "target.byRelease", "deployment.forRelease",
+  "connection.byId", "connection.forSite", "connection.historyForSite",
+  "connection.canonicalProduction", "contentIndex.forSite", "editorCredential.get",
+  "library.listForOwner", "library.get", "library.members", "library.versions",
+  "library.version",
+]);
+async function retryTransient<T>(what: string, send: () => Promise<T>): Promise<T> {
+  try {
+    return await send();
+  } catch (error) {
+    if (
+      !(error instanceof GatewayError) ||
+      !TRANSIENT_GATEWAY_STATUS.has(error.status ?? 0)
+    ) throw error;
+    console.warn(`gateway ${what} failed transiently; retrying once:`, error.message);
+    await new Promise((done) => setTimeout(done, GATEWAY_SAVE_RETRY_MS));
+    return send();
+  }
+}
+const retryTransientSave = <T>(send: () => Promise<T>) => retryTransient("save", send);
 
 export class PagecraftGateway {
   private url: string;
@@ -116,6 +158,12 @@ export class PagecraftGateway {
   }
 
   async call<T>(op: string, args: Record<string, unknown> = {}): Promise<T> {
+    return GATEWAY_RETRIED_READS.has(op)
+      ? retryTransient(op, () => this.send<T>(op, args))
+      : this.send<T>(op, args);
+  }
+
+  private async send<T>(op: string, args: Record<string, unknown>): Promise<T> {
     const serialized = JSON.stringify({ op, args });
     if (Buffer.byteLength(serialized, "utf8") > GATEWAY_CONTROL_BODY_MAX) {
       throw new GatewayError(
@@ -141,6 +189,7 @@ export class PagecraftGateway {
       throw new GatewayError(
         body.error || `gateway answered ${response.status}`,
         body.code,
+        response.status,
       );
     }
     if (!Object.prototype.hasOwnProperty.call(body, "data")) {
@@ -238,6 +287,7 @@ interface RevisionRow {
   context: Record<string, unknown> | null;
   created_at: string;
 }
+type RevisionMetaRow = Omit<RevisionRow, "doc" | "context">;
 const toRevision = (row: RevisionRow): SiteRevision => ({
   siteId: row.site_id,
   version: row.version,
@@ -246,34 +296,47 @@ const toRevision = (row: RevisionRow): SiteRevision => ({
   context: row.context,
   createdAt: new Date(row.created_at).toISOString(),
 });
+const toRevisionMeta = (row: RevisionMetaRow): SiteRevisionMeta => ({
+  siteId: row.site_id,
+  version: row.version,
+  savedBy: row.saved_by,
+  createdAt: new Date(row.created_at).toISOString(),
+});
 
-/* Editor source data is version-checked again by every atomic write. Keep it for the working
- * session so the first save after a quiet period does not fall back to several HTTPS hops. */
-const EDITOR_SOURCE_CACHE_MS = 4 * 60 * 60 * 1000;
+/* Site rows are cached per process, but LiteSpeed may run several processes and a deploy runs a
+ * candidate beside them, and none hears about another's saves, publishes or address changes. So
+ * a cached row answers ordinary reads only briefly. Reads that must not act on a stale slug, host
+ * or version pass `{ fresh: true }`. The gateway has no per-site freshness check (listMeta
+ * returns every site and costs the same round trip as a read), so expiry is by age alone. */
+export const SITE_CACHE_MS = 30_000;
+/* Editor source data: asset lists and bodies, publish owners, and the save fast path's row.
+ * Every atomic write checks version and membership again, so a few minutes only bounds how long
+ * an upload, removal or role change made through another process goes unnoticed here. The save
+ * fast path reuses a site row only at the exact version the editor loaded, whose document never
+ * changes, so it may last as long as the asset list it is paired with. */
+export const EDITOR_SOURCE_CACHE_MS = 5 * 60_000;
 
 export class GatewayStore implements Store {
   private gateway: PagecraftGateway;
-  private cached = new Map<string, { until: number; site: Site | null }>();
-  private cacheMs = EDITOR_SOURCE_CACHE_MS;
+  private cached = new Map<string, { at: number; site: Site | null }>();
   constructor(gateway: PagecraftGateway) {
     this.gateway = gateway;
   }
 
-  private readCache(key: string): Site | null | undefined {
+  private readCache(key: string, maxAge = SITE_CACHE_MS): Site | null | undefined {
     const hit = this.cached.get(key);
-    if (!hit || hit.until <= Date.now()) {
-      this.cached.delete(key);
-      return undefined;
-    }
+    const age = hit ? Date.now() - hit.at : Infinity;
+    if (age >= EDITOR_SOURCE_CACHE_MS) this.cached.delete(key);
+    if (!hit || age >= maxAge) return undefined;
     return hit.site ? structuredClone(hit.site) : null;
   }
   private remember(site: Site | null) {
-    const until = Date.now() + this.cacheMs;
+    const at = Date.now();
     if (!site) return;
     const copy = structuredClone(site);
-    this.cached.set(`id:${site.id}`, { until, site: copy });
-    this.cached.set(`host:${site.host}`, { until, site: copy });
-    this.cached.set(`slug:${site.slug}`, { until, site: copy });
+    this.cached.set(`id:${site.id}`, { at, site: copy });
+    this.cached.set(`host:${site.host}`, { at, site: copy });
+    this.cached.set(`slug:${site.slug}`, { at, site: copy });
   }
   private clearCache() {
     this.cached.clear();
@@ -299,16 +362,16 @@ export class GatewayStore implements Store {
     this.remember(site);
     return site;
   }
-  async byId(id: string) {
-    const hit = this.readCache(`id:${id}`);
+  async byId(id: string, options: { fresh?: boolean } = {}) {
+    const hit = options.fresh ? undefined : this.readCache(`id:${id}`);
     if (hit !== undefined) return hit;
     const row = await this.gateway.call<SiteRow | null>("site.byId", { id });
     const site = row ? toSite(row) : null;
     this.remember(site);
     return site;
   }
-  cachedById(id: string, version?: number) {
-    const site = this.readCache(`id:${id}`);
+  cachedById(id: string, version?: number, maxAge = SITE_CACHE_MS) {
+    const site = this.readCache(`id:${id}`, maxAge);
     if (!site || (version != null && site.version !== version)) return null;
     return site;
   }
@@ -438,13 +501,15 @@ export class GatewayStore implements Store {
     savedBy?: string,
     context?: Record<string, unknown>,
   ): Promise<SaveResult> {
-    const row = await this.gateway.call<SiteRow | null>("site.save", {
-      id,
-      doc,
-      version,
-      savedBy,
-      context,
-    });
+    const row = await retryTransientSave(() =>
+      this.gateway.call<SiteRow | null>("site.save", {
+        id,
+        doc,
+        version,
+        savedBy,
+        context,
+      })
+    );
     if (row) {
       const site = toSite(row);
       this.clearCache();
@@ -493,8 +558,8 @@ export class GatewayStore implements Store {
     return { ok: false, guarded: true };
   }
   async history(id: string) {
-    return (await this.gateway.call<RevisionRow[]>("site.history", { id })).map(
-      toRevision,
+    return (await this.gateway.call<RevisionMetaRow[]>("site.history", { id })).map(
+      toRevisionMeta,
     );
   }
   async revision(id: string, version: number) {
@@ -1368,14 +1433,15 @@ export class GatewayAssetStore implements AssetStore {
     this.gateway = gateway;
   }
 
-  async list(siteId: string) {
-    const hit = this.cachedList(siteId);
+  async list(siteId: string, options: { fresh?: boolean } = {}) {
+    const hit = options.fresh ? null : this.cachedList(siteId);
     if (hit) return hit;
     const assets =
       (await this.gateway.call<AssetMetaWire[]>("asset.list", { siteId })).map(
         toAssetRecord,
       );
     this.acceptList(siteId, assets);
+    if (options.fresh) return assets;
     /* Current gateways may not yet return signed Storage URLs. Warm a small, bounded set
        without delaying the editor document so opening Media does not start an N-request
        waterfall. Once signed URLs are available this fallback naturally does no work. */
@@ -1605,7 +1671,7 @@ interface UserWire {
   email: string;
   name: string;
   auth_user_id?: string | null;
-  plan?: "free";
+  plan?: AccountPlan;
   created_at?: string;
 }
 interface SessionWire {
@@ -1628,6 +1694,7 @@ interface ManualImportWire {
   id: string;
   owner_id: string;
   installation_id: string;
+  site_url?: string | null;
   access_token_digest: string;
   access_expires_at: string;
   refresh_token_digest: string;
@@ -1640,6 +1707,7 @@ const toManualImport = (row: ManualImportWire): ManualImportCredential => ({
   id: row.id,
   ownerId: row.owner_id,
   installationId: row.installation_id,
+  siteUrl: row.site_url ?? null,
   accessTokenDigest: row.access_token_digest,
   accessExpiresAt: new Date(row.access_expires_at).getTime(),
   refreshTokenDigest: row.refresh_token_digest,
@@ -1679,6 +1747,7 @@ type HostedPublishPreparationWire =
 export class GatewayHostedPublishPreparer
   implements HostedPublishPreparer, CloudMutationFastPath {
   private gateway: PagecraftGateway;
+  private proposalGateway?: PagecraftGateway;
   private store?: GatewayStore;
   private assets?: GatewayAssetStore;
   private owners = new Map<string, { until: number; user: User }>();
@@ -1686,8 +1755,10 @@ export class GatewayHostedPublishPreparer
     gateway: PagecraftGateway,
     store?: GatewayStore,
     assets?: GatewayAssetStore,
+    proposalGateway?: PagecraftGateway,
   ) {
     this.gateway = gateway;
+    this.proposalGateway = proposalGateway;
     this.store = store;
     this.assets = assets;
   }
@@ -1744,7 +1815,7 @@ export class GatewayHostedPublishPreparer
   }
 
   cachedSaveSource(siteId: string, sourceVersion: number) {
-    const site = this.store?.cachedById(siteId, sourceVersion);
+    const site = this.store?.cachedById(siteId, sourceVersion, EDITOR_SOURCE_CACHE_MS);
     const assets = this.assets?.cachedList(siteId);
     return site && assets ? { site, assets } : null;
   }
@@ -1752,21 +1823,28 @@ export class GatewayHostedPublishPreparer
   async saveAuthorized(
     input: Parameters<CloudMutationFastPath["saveAuthorized"]>[0],
   ): Promise<CloudSaveResult> {
-    const result = await this.gateway.call<
-      | { status: "saved"; user: UserWire; role: Role; site: SiteRow }
-      | { status: "missing" }
-      | { status: "forbidden" }
-      | { status: "conflict"; currentVersion: number }
-    >("site.saveAuthorized", {
+    // One argument object for both attempts, so a retry cannot propose a second new user id.
+    const args = {
       id: input.siteId,
       version: input.sourceVersion,
       doc: input.doc,
       requiredRole: input.requiredRole,
+      ...(input.proposal ? { proposal: input.proposal } : {}),
       newUserId: crypto.randomUUID(),
       authUserId: input.identity.authUserId,
       email: normalEmail(input.identity.email),
       name: input.identity.name.trim(),
-    });
+    };
+    const gateway = input.proposal ? (this.proposalGateway ?? this.gateway) : this.gateway;
+    const operation = input.proposal ? "site.saveAssistantProposal" : "site.saveAuthorized";
+    const result = await retryTransientSave(() =>
+      gateway.call<
+        | { status: "saved"; user: UserWire; role: Role; site: SiteRow }
+        | { status: "missing" }
+        | { status: "forbidden" }
+        | { status: "conflict"; currentVersion: number }
+      >(operation, args)
+    );
     if (result.status !== "saved") return result;
     const user = toUser(result.user);
     const site = this.store?.accept(result.site) || toSite(result.site);
@@ -2081,6 +2159,7 @@ export class GatewayAuthStore implements AuthStore {
     id: string,
     digest: string,
     expiresAt: number,
+    refresh?: { digest: string; previous: string },
   ) {
     const row = await this.gateway.call<ManualImportWire | null>(
       "auth.manualImport.rotate",
@@ -2088,14 +2167,51 @@ export class GatewayAuthStore implements AuthStore {
         id,
         digest,
         expiresAt: new Date(expiresAt).toISOString(),
+        ...(refresh
+          ? {
+            refreshDigest: refresh.digest,
+            previousRefreshDigest: refresh.previous,
+          }
+          : {}),
       },
     );
     return row ? toManualImport(row) : null;
+  }
+  async exchangeManualImportRefresh(
+    presentedDigest: string,
+    nextAccessDigest: string,
+    nextAccessExpiresAt: number,
+    nextRefreshDigest: string,
+  ): Promise<ManualImportRefreshResult> {
+    const result = await this.gateway.call<
+      | { status: "rotated"; credential: ManualImportWire }
+      | { status: "reused" | "invalid" }
+    >("auth.manualImport.exchangeRefresh", {
+      presentedDigest,
+      nextAccessDigest,
+      nextAccessExpiresAt: new Date(nextAccessExpiresAt).toISOString(),
+      nextRefreshDigest,
+    });
+    return result.status === "rotated"
+      ? { status: "rotated", credential: toManualImport(result.credential) }
+      : result;
   }
   revokeManualImportCredential(id: string, refreshDigest: string) {
     return this.gateway.call<boolean>("auth.manualImport.revoke", {
       id,
       refreshDigest,
+    });
+  }
+  async manualImportsForOwner(ownerId: string) {
+    return (await this.gateway.call<ManualImportWire[]>(
+      "auth.manualImport.forOwner",
+      { ownerId },
+    )).map(toManualImport);
+  }
+  revokeManualImportForOwner(id: string, ownerId: string) {
+    return this.gateway.call<boolean>("auth.manualImport.revokeForOwner", {
+      id,
+      ownerId,
     });
   }
 }

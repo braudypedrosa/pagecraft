@@ -1,0 +1,57 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Independent landscape designers and garden studios explaining their approach to homeowners and small property teams",
+    "primaryAction": "Understand the design service and send a clearly scoped quote inquiry after replacing and configuring the demonstration details",
+    "pages": ["index", "services", "gardens", "contact"],
+    "content": "Fictional Mossline Gardens studio. Service scopes, process notes and garden studies are illustrative examples. No completed client work, awards, endorsements, certifications, statistics or real contact details are claimed. The quote form has no configured delivery target.",
+    "imagery": "Original AI-generated editorial garden and studio imagery with distinct meadow, courtyard, process, woodland and roof-terrace roles; original vector logo.",
+    "provenance": [
+      {"asset":"logo","source":"Original SVG authored for Mossline Gardens in this template directory, 2026-10-13","license":"Original template artwork; fictional mark with no third-party trademark claim."},
+      {"asset":"meadow-garden","source":"OpenAI image generation, 2026-10-13, exec-804335b8-32f5-4d21-a766-6c66fb48077e.png","license":"AI-generated illustrative garden scene; not a completed client project or real property claim."},
+      {"asset":"courtyard-garden","source":"OpenAI image generation, 2026-10-13, exec-783773c3-0b35-47fe-bd5e-243c2d926e13.png","license":"AI-generated illustrative garden scene; not a completed client project or real property claim."},
+      {"asset":"studio-plan","source":"OpenAI image generation, 2026-10-13, exec-72c1bf3a-1252-4d08-a4da-88504071c9b0.png","license":"AI-generated process scene with anonymous hands; no real client materials."},
+      {"asset":"woodland-path","source":"OpenAI image generation, 2026-10-13, exec-6afb871f-d10a-4536-8a08-424e15e21387.png","license":"AI-generated illustrative garden scene; not a completed client project or real property claim."},
+      {"asset":"roof-terrace","source":"OpenAI image generation, 2026-10-13, exec-dedb9d19-7870-44bf-bad7-d514b67714d7.png","license":"AI-generated illustrative terrace scene; not a completed client project or real property claim."}
+    ]
+  },
+  "directions": [
+    {
+      "id": "field-notes",
+      "thesis": "A tactile landscape journal pairs broad garden photographs with practical service information and grounded planting language.",
+      "fingerprint": {"header":"limestone bar with contour-leaf logo","hero":"meadow photograph beside deep-green statement panel","textAnchor":"left-aligned field-note stack","inventory":"open service bands and study captions","cta":"woodland photograph with compact overlay","footer":"compact deep-green logo and link wrap"},
+      "comparison": "Authored draft. It puts living material and the design process ahead of unsupported proof claims. Awaiting user review and selection.",
+      "sections": [
+        {"purpose":"Establish a calm, design-led garden identity","archetype":"split-photo-field-note","composition":"broad landscape image beside a solid botanical panel","typography":"geometric display with practical sans copy","imagery":"layered meadow garden at dawn","action":"Explore services"},
+        {"purpose":"Show range without presenting demo images as completed work","archetype":"illustrative-study-pair","composition":"two equal photographic studies with explicit illustrative labels","typography":"plain captions and short project questions","imagery":"courtyard and roof terrace","action":"Browse all studies"},
+        {"purpose":"Make the working process legible","archetype":"studio-plan-and-phases","composition":"process photograph beside three named working phases","typography":"action-led labels without decorative counters","imagery":"planting plan and material samples","action":"Start a quote inquiry"}
+      ]
+    },
+    {
+      "id": "garden-atlas",
+      "thesis": "A specimen-led atlas treats planting, materials and garden conditions as a visual reference collection.",
+      "fingerprint": {"header":"narrow centered mark","hero":"full-bleed macro planting image","textAnchor":"caption rail below image","inventory":"taxonomy-style material groups","cta":"compact inquiry strip","footer":"pale paper colophon"},
+      "comparison": "More catalog-like and plant-focused than Field Notes; recorded as an unselected direction only.",
+      "sections": [
+        {"purpose":"Introduce the studio through planting character","archetype":"botanical-specimen-hero","composition":"close garden image with a narrow caption rail","typography":"small caps and editorial display","imagery":"foliage and seed-head detail","action":"See planting approach"},
+        {"purpose":"Organize decisions by garden condition","archetype":"site-condition-atlas","composition":"grouped sun, shade, water and material notes","typography":"reference-style labels","imagery":"material samples","action":"Read service scope"}
+      ]
+    },
+    {
+      "id": "thresholds",
+      "thesis": "A spatial direction follows the thresholds between house, path, planting and outdoor room.",
+      "fingerprint": {"header":"dark reverse masthead","hero":"courtyard doorway view","textAnchor":"lower-right solid panel","inventory":"path-to-place narrative","cta":"roof terrace evening panel","footer":"dark compact navigation"},
+      "comparison": "More architectural and enclosure-led than Field Notes; recorded as an unselected direction only.",
+      "sections": [
+        {"purpose":"Frame garden design as spatial sequence","archetype":"doorway-courtyard-opening","composition":"threshold photograph followed by compact thesis","typography":"large close-set display","imagery":"rain-wet brick courtyard","action":"View garden studies"},
+        {"purpose":"Explain movement and use","archetype":"path-place-sequence","composition":"paired path and seating views with narrative captions","typography":"short spatial observations","imagery":"woodland path and terrace","action":"Discuss a place"}
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

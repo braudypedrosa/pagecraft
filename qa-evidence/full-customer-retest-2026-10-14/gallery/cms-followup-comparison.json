@@ -1,0 +1,48 @@
+{
+  "format":"pagecraft.cms-followup-gallery-comparison.v1",
+  "status":"complete-for-sdr-a-b-and-candidate-pairs",
+  "comparisonTool":"temporary /tmp/compare-followup.mjs using sharp ensureAlpha raw RGBA; threshold max-channel delta >20 and ratio <=0.001",
+  "sdrReviewedA": {
+    "path":"qa-evidence/full-customer-retest-2026-10-14/gallery/cms-followup-sdr-reviewed-a",
+    "captures":24,"sources":28,"behaviorChecks":30,
+    "pngSignature":"6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795",
+    "runtime":{"screen":[2560,1440],"colorDepth":24,"pixelDepth":24,"dynamicRange":{"standard":true,"high":false},"colorGamut":{"srgb":true,"p3":false,"rec2020":false}}
+  },
+  "candidate": {
+    "path":"qa-evidence/full-customer-retest-2026-10-14/gallery/cms-followup-final",
+    "captures":24,"sources":28,"behaviorChecks":30,
+    "pngSignature":"6edf04226a259eb72c509e7601deadab6939b6e3ccf48f13cc5fbf137b5bb795",
+    "runtime":{"screen":[2560,1440],"colorDepth":24,"pixelDepth":24,"dynamicRange":{"standard":true,"high":false},"colorGamut":{"srgb":true,"p3":false,"rec2020":false}}
+  },
+  "sdrA_vs_candidate": {
+    "byteExact":23,"decodedRgbaExact":23,"dimensionsEqual":24,"thresholdPass":24,
+    "nonExactCapture":"cloud-fields-768.png",
+    "nonExactDetail":"dimensions equal; tiny raw capture delta; threshold passes",
+    "sourceIdentitiesEqual":false,
+    "sourceIdentityDifferences": {
+      "builder.html": {"sdrReviewedA":"0337aa73e00290f36be0ee1258e7394e74df3b4f06dff1ddea1abe18293ff885","candidate":"da0cd7719d80a634e8ddc8536e6be7afdf20115f2a85051b7dc2fb34ca52861f"},
+      "app/src/ui/inspector/Inspector.tsx": {"sdrReviewedA":"ec50412dca9e4fd791a5f26f5fbe9e8110b501ac029c2e0e4ca62191df793675","candidate":"32c31ea886d9c4c18c47ae969449b6044d3a27dcde43981a8bf0076c3fd5528e"}
+    }
+  },
+  "priorHdrContext": {
+    "preservedSeparately":true,
+    "note":"The earlier candidate-versus-c411 HDR baseline compare is retained as a distinct phase: physical display/runtime changed from 1512x982, 30-bit, HDR/P3 to this SDR run's 2560x1440, 24-bit, SDR/no-P3. It is not merged with the SDR result."
+  },
+  "sdrReviewedB": {
+    "path":"qa-evidence/full-customer-retest-2026-10-14/gallery/cms-followup-sdr-reviewed-b",
+    "capture":"capture.json",
+    "captures":24,"sources":28,"behaviorChecks":30,
+    "sourceIdentitiesEqualRunA":true,
+    "runtimeMatchesRunA":true
+  },
+  "sdrA_vs_sdrB": {
+    "byteExact":24,"decodedRgbaExact":24,"dimensionsEqual":24,"thresholdPass":24,
+    "sourceMapsEqual":true,
+    "runtimeMetadataEqual":true
+  },
+  "candidateVsSdrReviewedB": {
+    "byteExact":23,"decodedRgbaExact":23,"dimensionsEqual":24,"thresholdPass":24,
+    "nonExactCapture":"cloud-fields-768.png",
+    "sourceIdentityDifferences":"same as sdrA_vs_candidate: builder.html and app/src/ui/inspector/Inspector.tsx"
+  }
+}

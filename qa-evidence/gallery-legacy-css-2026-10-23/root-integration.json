@@ -1,0 +1,33 @@
+{
+  "base": "0328cd0976f9bb90c7eb95a4882c6898b9f9df09",
+  "source4": {
+    "app/src/core/index.ts": "a04f85eedf885a0c7c661ec8b7756f5538819f0b43c3b07845058d490c8e6369",
+    "tests/gallery-lightbox-legacy-css.test.ts": "a313bb942b70d4553e3f9cc2be1c417ebd7f842cdd1e31fb2b73bd1a7cd53dfc",
+    "tests/spacer-editor-parity.test.ts": "c0df5ef3c2b96425be8c42cc9527f23a233023c019a89e69a9f81469eed6a829",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "0b678e6b51ff18274da8f234e1b36862654aa7db42e6b8aa28f3389fa969b8c7"
+  },
+  "candidateTrackedInputsChecked": 253,
+  "contextExactExceptOwned": true,
+  "protected11Exact": true,
+  "generated8StagedIndexOnly": [
+    "index.html",
+    "dist/core.cjs",
+    "packages/editor/dist/contract.json",
+    "packages/editor/dist/editor.html",
+    "packages/editor/dist/runtime.js",
+    "packages/editor/dist/templates.json",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip"
+  ],
+  "build10PairsExact": true,
+  "rootCombinedSuite": {
+    "passed": 2734,
+    "skipped": 5,
+    "testFiles": 264,
+    "skippedFiles": 2,
+    "exit": 0
+  },
+  "nativeSpacerPrototype": "Auto0 and definite200 parent50 editor/PreviewD/T/M; zero-heightNavigator/HUD and emptyColumn200/0/default floor native verified; isolated document38 restored exact.",
+  "nativeLegacyCSS": "Cloud and WPpreview100 pending. OriginalWPv34compiled98 must be tested withoutSave.",
+  "fullQAComplete": false
+}

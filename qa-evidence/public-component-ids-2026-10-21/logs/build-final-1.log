@@ -1,0 +1,13 @@
+
+> pagecraft@0.2.0 build
+> node build.mjs
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (679 KB bundled) · founder CRM assets built
+
+> pagecraft@0.2.0 build:editor-package
+> node packages/editor/build.mjs
+
+Public form control runtimes written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430/app/src/core/public-form-controls.generated.ts
+index.html written (fonts 438 KB) · core compiled from TypeScript (679 KB bundled) · founder CRM assets built
+@pagecraft/editor 0.2.17 bundle files written to /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430/packages/editor/dist

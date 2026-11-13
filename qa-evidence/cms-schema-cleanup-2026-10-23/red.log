@@ -1,0 +1,50 @@
+
+ RUN  v4.1.12 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/cms-schema-cleanup-9595855
+
+ ❯ tests/list-pagination-reset.test.ts (3 tests | 1 failed) 75ms
+   × schema cleanup resets only when it changes the active paginator query or source 9ms
+ ❯ tests/cms-field-reference-cleanup.test.tsx (3 tests | 1 failed) 202ms
+   × field deletion warning ignores a same-id binding owned by another collection 33ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cms-field-reference-cleanup.test.tsx > field deletion warning ignores a same-id binding owned by another collection
+AssertionError: expected 'Delete <b>Category</b> and its stored…' not to contain 'Module image'
+
+Expected: "Module image"
+Received: "Delete <b>Category</b> and its stored values? Review these bindings: Home / Journal category, Home / Image · Module image."
+
+ ❯ tests/cms-field-reference-cleanup.test.tsx:95:23
+     93|   const warning = String(confirm.mock.calls[0]?.[1]);
+     94|   expect(warning).toContain('Journal category');
+     95|   expect(warning).not.toContain('Module image');
+       |                       ^
+     96| });
+     97|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/list-pagination-reset.test.ts > schema cleanup resets only when it changes the active paginator query or source
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ tests/list-pagination-reset.test.ts:127:26
+    125|   C.collectionsReplace(C.doc(), withoutFilterField);
+    126|   expect(list.props.where).toBe('');
+    127|   expect(C.state.ui.pno).toBe(1);
+       |                          ^
+    128|
+    129|   C.state.ui.pno = 3;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 4 passed (6)
+   Start at  06:59:23
+   Duration  2.69s (transform 1.28s, setup 0ms, import 1.61s, tests 277ms, environment 2.59s)

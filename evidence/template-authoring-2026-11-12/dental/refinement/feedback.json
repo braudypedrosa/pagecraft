@@ -1,0 +1,35 @@
+{
+  "source": "User browser comments on private Dental revision 24",
+  "startingRevision": 24,
+  "comments": [
+    {
+      "id": 1,
+      "quote": "two sections with same color are next to each other"
+    },
+    {
+      "id": 2,
+      "quote": "consistency to image border radius"
+    },
+    {
+      "id": 3,
+      "quote": "too muuch empty space around here"
+    },
+    {
+      "id": 4,
+      "quote": "utilize icons"
+    },
+    {
+      "id": 5,
+      "quote": "use a different bg"
+    },
+    {
+      "id": 6,
+      "quote": "add bg image"
+    },
+    {
+      "id": 7,
+      "quote": "please remove any \"placeholder\"text like this"
+    }
+  ],
+  "catalogApproval": false
+}

@@ -1,0 +1,29 @@
+{
+  "commit": "9595855d62bc83302c19d608a16b402c450a0117",
+  "before": {
+    "titles": [
+      "Epsilon"
+    ],
+    "current": "3"
+  },
+  "after": {
+    "titles": [
+      "Beta",
+      "Delta"
+    ],
+    "current": "1"
+  },
+  "clearBefore": {
+    "titles": [
+      "Epsilon"
+    ],
+    "current": "2"
+  },
+  "clearAfter": {
+    "titles": [
+      "Alpha",
+      "Beta"
+    ],
+    "current": "1"
+  }
+}

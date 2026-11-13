@@ -1,0 +1,19 @@
+{
+  "tableStageDefault83": {
+    "value": "10px 12px",
+    "width": 279
+  },
+  "tableStageMobileDefault83": "8px 10px",
+  "stageTableRoundtrip83": [
+    {
+      "device": "Desktop",
+      "input": "10px 14px",
+      "computed": "10px 14px"
+    },
+    {
+      "device": "Mobile",
+      "input": "8px 10px 12px 14px",
+      "computed": "8px 10px 12px 14px"
+    }
+  ]
+}

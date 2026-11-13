@@ -1,0 +1,41 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/public-component-ids-c084430
+
+ ❯ tests/public-component-ids.test.ts (17 tests | 5 failed) 123ms
+   × nested nav relationships avoid a later authored -menu anchor 5ms
+   × nested form relationships avoid a later authored -f0 anchor 2ms
+   × nested form relationships avoid a later authored -status anchor 2ms
+   × nested tabs relationships avoid a later authored -p0 anchor 2ms
+   × nested tabs relationships avoid a later authored -t0 anchor 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/public-component-ids.test.ts > nested nav relationships avoid a later authored -menu anchor
+ FAIL  tests/public-component-ids.test.ts > nested form relationships avoid a later authored -f0 anchor
+ FAIL  tests/public-component-ids.test.ts > nested form relationships avoid a later authored -status anchor
+ FAIL  tests/public-component-ids.test.ts > nested tabs relationships avoid a later authored -p0 anchor
+ FAIL  tests/public-component-ids.test.ts > nested tabs relationships avoid a later authored -t0 anchor
+AssertionError: expected 22 to be 23 // Object.is equality
+
+- Expected
++ Received
+
+- 23
++ 22
+
+ ❯ unique tests/public-component-ids.test.ts:9:76
+      7| beforeEach(()=>{f=nestedOwnerFixture();document.body.replaceChildren()…
+      8| const ids=(html:string)=>{document.body.innerHTML=html;return [...docu…
+      9| const unique=(html:string)=>{const all=ids(html);expect(new Set(all).s…
+       |                                                                            ^
+     10|
+     11| test('generated nested collisions gain stable placement paths while th…
+ ❯ tests/public-component-ids.test.ts:102:2
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 12 passed (17)
+   Start at  18:05:13
+   Duration  1.01s (transform 228ms, setup 0ms, import 267ms, tests 123ms, environment 516ms)

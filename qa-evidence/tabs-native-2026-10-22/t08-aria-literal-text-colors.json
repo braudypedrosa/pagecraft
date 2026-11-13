@@ -1,0 +1,46 @@
+{
+  "controls": [
+    {
+      "color": "rgb(119, 136, 153)",
+      "controls": "pagecraft-tabs-zjqnm1n5-p0",
+      "id": "pagecraft-tabs-zjqnm1n5-t0",
+      "label": "Access & booking <draft>",
+      "labelledBack": true,
+      "selected": "true",
+      "tabindex": 0,
+      "targetExists": true
+    },
+    {
+      "color": "rgb(85, 102, 119)",
+      "controls": "pagecraft-tabs-zjqnm1n5-p1",
+      "id": "pagecraft-tabs-zjqnm1n5-t1",
+      "label": "Quiet room",
+      "labelledBack": true,
+      "selected": "false",
+      "tabindex": -1,
+      "targetExists": true
+    },
+    {
+      "color": "rgb(85, 102, 119)",
+      "controls": "pagecraft-tabs-zjqnm1n5-p2",
+      "id": "pagecraft-tabs-zjqnm1n5-t2",
+      "label": "Pricing",
+      "labelledBack": true,
+      "selected": "false",
+      "tabindex": -1,
+      "targetExists": true
+    },
+    {
+      "color": "rgb(85, 102, 119)",
+      "controls": "pagecraft-tabs-zjqnm1n5-p3",
+      "id": "pagecraft-tabs-zjqnm1n5-t3",
+      "label": "Details",
+      "labelledBack": true,
+      "selected": "false",
+      "tabindex": -1,
+      "targetExists": true
+    }
+  ],
+  "literalMarkupNotElements": true,
+  "ready": true
+}

@@ -1,0 +1,48 @@
+{
+  "changedFields": [],
+  "routes": [
+    {
+      "index": 0,
+      "cssBytesUnchanged": true,
+      "replacementCount": 0,
+      "otherRouteFieldsUnchanged": true
+    },
+    {
+      "index": 1,
+      "cssBytesUnchanged": true,
+      "replacementCount": 0,
+      "otherRouteFieldsUnchanged": true
+    },
+    {
+      "index": 2,
+      "cssBytesUnchanged": true,
+      "replacementCount": 0,
+      "otherRouteFieldsUnchanged": true
+    },
+    {
+      "index": 3,
+      "cssBytesUnchanged": true,
+      "replacementCount": 0,
+      "otherRouteFieldsUnchanged": true
+    }
+  ],
+  "decodedEnvelopeChanges": {
+    "release": [],
+    "deployment": []
+  },
+  "unchangedArtifactSections": [
+    "format",
+    "releaseId",
+    "siteId",
+    "sourceVersion",
+    "schemaVersion",
+    "rendererVersion",
+    "shared",
+    "redirects",
+    "entities",
+    "forms",
+    "cms",
+    "assets"
+  ],
+  "result": "Official golden regeneration produced no changes. The fixture contains wrapping Lists only, so changing the active No-wrap padding4px to8px does not alter its output. All artifact, release and deployment fields are byte-identical."
+}

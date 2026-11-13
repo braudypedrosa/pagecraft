@@ -1,0 +1,8 @@
+{
+  "pid": 86794,
+  "execSessionId": 48459,
+  "url": "http://127.0.0.1:4946/index.html",
+  "root": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/animation-state-release-fbb5f50",
+  "command": "python3 -m http.server 4946 --bind 127.0.0.1",
+  "ownership": "agent-owned foreground exec session"
+}

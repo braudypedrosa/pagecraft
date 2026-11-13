@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-navigation-component-compiler-red-75ed
+
+ ❯ tests/editor-compiler.test.ts (10 tests | 1 failed | 9 skipped) 10ms
+     × binds current WordPress menus through reachable component definitions and slots once 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/editor-compiler.test.ts > sealed editor compiler > binds current WordPress menus through reachable component definitions and slots once
+AssertionError: Target cannot be null or undefined.
+ ❯ tests/editor-compiler.test.ts:242:74
+    240|     }, dependencies());
+    241|
+    242|     expect(result.html.match(/data-pagecraft-menu-location="primary"/g…
+       |                                                                          ^
+    243|     expect(result.html.match(/data-pagecraft-menu-location="utility"/g…
+    244|     expect(result.html.match(/data-pagecraft-menu-location="footer"/g)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  16:18:05
+   Duration  305ms (transform 175ms, setup 0ms, import 207ms, tests 10ms, environment 0ms)
+

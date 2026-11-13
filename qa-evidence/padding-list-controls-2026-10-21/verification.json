@@ -1,0 +1,240 @@
+{
+  "date": "2026-10-21",
+  "baseCommit": "89969665dd1ffff974820ec493dddcf30d33e3b6",
+  "status": "candidate83 accepted by root final native and reviewed29-source gallery; final full suite passes; root integration pending",
+  "source": [
+    "app/src/core/index.ts",
+    "app/src/core/types.ts",
+    "app/src/ui/inspector/Controls.tsx",
+    "tools/ui-gallery-contract.mjs"
+  ],
+  "tests": [
+    "tests/inspector-length-list.test.tsx",
+    "tests/ui-baselines.test.mjs"
+  ],
+  "changes": [
+    "Code/Table padding use lengthList control to display/preserve complete one-to-four CSS length shorthands. Valid values write unchanged; malformed/negative/overlong values do not write. Unitless zero allowed.",
+    "Invalid partial typing remains quiet. Blur/Enter shows error linked by aria-describedby; valid correction clears it. Blur passes the event to writer.done to preserve pointer recovery.",
+    "Internal key lengthList matches existing build scanner; build parser is unchanged.",
+    "Root added Controls.tsx only to gallery source contract plus a bounded regression requiring that coverage. Fresh gallery now has29 sources."
+  ],
+  "historicalFailure": {
+    "message": "control kind(s) declared but with no component: length-list",
+    "location": "build.mjs:214",
+    "cause": "KINDS registration exists as quoted hyphenated key, but build.mjs parser matches only unquoted word keys via /(\\w+):/g.",
+    "logs": [
+      "logs/build-initial.log",
+      "logs/full-pre-gallery.log"
+    ],
+    "action": "Reported to root; no source edit, gate bypass, golden update or harness start.",
+    "classification": "historical build failure; root-reviewed internal key rename resolves parser mismatch without altering build gate",
+    "resolution": "lengthList key used consistently in DEF, ControlKind and unquoted KINDS registry"
+  },
+  "historicalChecks": {
+    "fullBeforeContractAddition": {
+      "result": "pass; not native/gallery acceptance",
+      "filesPassed": 242,
+      "filesSkipped": 2,
+      "testsPassed": 2584,
+      "testsSkipped": 5,
+      "durationSeconds": 101.01,
+      "log": "logs/full-renamed-pre-gallery.log"
+    },
+    "focused": {
+      "files": 2,
+      "tests": 21,
+      "result": "pass",
+      "log": "logs/focused.log"
+    },
+    "reviewGateAfterContractAddition": {
+      "result": "expected Controls.tsx fingerprint failure; other2 tests pass",
+      "log": "logs/gate-pre-gallery.log"
+    },
+    "determinism": "11 artifacts identical twice; current assets are pre-UX-fix historical",
+    "audit": "zero vulnerabilities",
+    "demo": "zero findings",
+    "diff": "pass"
+  },
+  "historicalManifest": "source-tests-assets.pre-validation.sha256",
+  "rejectedNativeAttempt": {
+    "evidence": "native/rejected-premature-validation.json",
+    "screenshot": "native/rejected-premature-validation.png",
+    "status": "rejected; ordinary partial numeric input showed premature error/jitter",
+    "finalResolution": "Historical premature-validation attempt remains rejected. Final control timing/linked-error and final layout passed root native acceptance."
+  },
+  "checks": {
+    "focused": {
+      "result": "pass",
+      "files": 2,
+      "tests": 22,
+      "scope": [
+        "length-list display/validation/error timing/reset behavior",
+        "existing UnitCtl validation behavior"
+      ],
+      "log": "logs/focused-final-ux.log"
+    },
+    "determinism": {
+      "result": "11/11 artifacts byte-identical twice",
+      "hashes": [
+        "generated-build-1.sha256",
+        "generated-build-2.sha256"
+      ],
+      "logs": [
+        "logs/build-final-layout-1.log",
+        "logs/build-final-layout-2.log"
+      ]
+    },
+    "audit": {
+      "result": "all severity counts zero",
+      "log": "logs/audit.json"
+    },
+    "demo": {
+      "result": "1 component,6 instances,4 items,0 findings",
+      "log": "logs/demo.log"
+    },
+    "diff": {
+      "result": "pass",
+      "log": "logs/diff-check.log"
+    },
+    "outputContract": {
+      "result": "golden fixture, historical public snapshot and packaged runtime byte-identical to base; no update",
+      "evidence": "output-contract-review.json"
+    },
+    "historicalFullBeforeLayout": {
+      "result": "sole expected Controls.tsx gallery fingerprint gate",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 241,
+      "filesFailed": 1,
+      "filesSkipped": 2,
+      "testsPassed": 2585,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "durationSeconds": 99.27,
+      "maxWorkers": 2,
+      "log": "logs/full-final-ux-pre-gallery.log"
+    },
+    "focusedFinalLayout": {
+      "result": "pass",
+      "files": 1,
+      "tests": 7,
+      "log": "logs/focused-final-layout.log"
+    },
+    "typecheckFinalLayout": {
+      "result": "pass",
+      "log": "logs/typecheck-final-layout.log"
+    },
+    "diffFinalLayout": {
+      "result": "pass",
+      "log": "logs/diff-final-layout.log"
+    },
+    "fullFinal": {
+      "result": "pass",
+      "buildOrder": "pass",
+      "typecheck": "pass",
+      "filesPassed": 242,
+      "filesSkipped": 2,
+      "testsPassed": 2586,
+      "testsSkipped": 5,
+      "maxWorkers": 2,
+      "durationSeconds": 100.47,
+      "log": "logs/full-final.log"
+    },
+    "baselineFinal": {
+      "result": "pass",
+      "images": 24,
+      "sourceFiles": 29,
+      "log": "logs/baseline-final.log"
+    },
+    "auditFinal": {
+      "result": "all severity counts zero",
+      "log": "logs/audit-final.json"
+    },
+    "diffFinal": {
+      "result": "pass",
+      "log": "logs/diff-final.log"
+    },
+    "nativeFinal": {
+      "result": "root accepted final full-row Desktop/Mobile layouts and critical controls roundtrip",
+      "scope": [
+        "Final Code defaults: Desktop16px18px and Mobile12px13px match actual field/computed padding. Quiet invalid typing gives no alert; Enter gives linked unique error; saved12px20px matches after reload.",
+        "Final Table full-row Field class f, width261 at Desktop/Mobile: default10px12px and8px10px match input/computed padding; four-value8px10px12px14px survives roundtrip.",
+        "Final explicit Table10px12px field and computed padding match; ordinary Text size remains numeric.",
+        "Earlier accepted functional Controls proof remains valid because Controls.tsx is byte-identical across the layout-only metadata change: all-three-breakpoint defaults, mixed units/zero, invalid unsaved drafts, blur picker recovery, responsive edits/resets/reload."
+      ],
+      "evidence": [
+        "native/final-layout-code-acceptance.json",
+        "native/final-layout-table-acceptance.json",
+        "native/final-table-padding-desktop.json"
+      ],
+      "screenshots": [
+        "native/final-table-padding-desktop.png",
+        "native/final-table-padding-mobile.png"
+      ],
+      "limits": [
+        "No claim that clearing authored CSS imputes a fallback into the visible field. Final default was explicitly authored and reloaded.",
+        "No form submission; broader customer QA continues."
+      ]
+    },
+    "galleryFinal": {
+      "result": "root refreshed after final layout, compared and recorded --reviewed baseline",
+      "behaviorsPassed": 30,
+      "capturesPassed": 24,
+      "changedPixels": 0,
+      "sourceFiles": 29,
+      "capture": "gallery-final/capture.json",
+      "behaviors": "gallery-final/behavior-checks.json",
+      "comparison": "gallery-final/diffs/results.json",
+      "cleanup": "gallery-final/cleanup.json",
+      "cleanupTab": "36",
+      "cleanupResult": "root CPU1,viewport/media reset responses recorded"
+    }
+  },
+  "frozenManifest": "source-tests-assets.sha256",
+  "manifestEntries": 21,
+  "harness": {
+    "url": "http://localhost:4976/edit/s1",
+    "pid": 26265,
+    "sessionId": 4856,
+    "status": "HTTP200 after final full-row assets; preserve for root",
+    "provenance": "Trusted4974 harness copied with only4974\u21924976 port substitution; fresh default fictional in-memory fixture, no hidden payload. Only4976 restarted;4972/4974 preserved.",
+    "sha256": "84d6f810053e21813c5ac10f70addcc1a91d0844a960d8d1d03c38815f2a14ab"
+  },
+  "remaining": [
+    "Root integration/release decision.",
+    "Broader customer QA remains open; no overall production-readiness claim."
+  ],
+  "limits": [
+    "No native or rendered validation acceptance claimed by this build owner.",
+    "Historical pre-contract full-suite green did not establish visual coverage.",
+    "Broader QA remains open; no production-readiness claim."
+  ],
+  "boundaries": "No source edits by build owner, Main/browser/WordPress/commit/push/baseline recording; existing4972/4974 native fixtures preserved.",
+  "integrationExclusions": [
+    "dist/demo/index.html",
+    "tools/.qa-ui-4976.mjs",
+    "packages/editor/dist/compiler.js",
+    "packages/editor/dist/compiler-worker.js"
+  ],
+  "finalLayoutChange": {
+    "scope": "Only remove layout:inline from Table Cell padding metadata; Code and Table lengthList fields now use existing full-row Field layout. No CSS or public render change.",
+    "functionalManifest": "source-tests-assets.functional-before-layout.sha256",
+    "functionalControlUnchanged": true,
+    "nativeScopePending": "Root final Desktop/Mobile full-row screenshots and critical roundtrip accepted; source/assets remain frozen."
+  },
+  "functionalNative": {
+    "result": "root accepted pre-layout functional controls; Controls.tsx unchanged",
+    "scope": [
+      "Code/Table full authored Desktop/Tablet/Mobile defaults match input and computed values.",
+      "Code four-side keyboard edit/reload; invalid typing stays quiet, Enter links a unique error; blur to adjacent Text size unit picker works.",
+      "Invalid drafts remain unsaved and reload restores last valid source; valid correction/zero and Code/Table responsive edits/reset/reload accepted.",
+      "Table mixed rem/%/px and zero preserved; five-token/negative drafts do not change saved padding; ordinary numeric Text size remains numeric."
+    ],
+    "limits": [
+      "No claim that clearing authored CSS imputes the fallback into the visible field. Root explicitly authored10px12, reloaded and recaptured actual final Table value.",
+      "Final Table full-row visual acceptance must use rebuilt assets and fresh screenshot."
+    ]
+  },
+  "finalReceipt": "final-receipt.json",
+  "reviewedBaselineManifest": "reviewed-baseline.sha256"
+}

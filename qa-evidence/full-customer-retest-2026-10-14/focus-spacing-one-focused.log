@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/pagecraft-focus-spacing-one-c336
+
+
+ Test Files  4 passed (4)
+      Tests  13 passed (13)
+   Start at  15:09:03
+   Duration  1.00s (transform 834ms, setup 0ms, import 1.05s, tests 207ms, environment 1.51s)
+

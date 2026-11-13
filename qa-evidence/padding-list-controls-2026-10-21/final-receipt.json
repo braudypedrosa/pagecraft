@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-21T15:53:09.537338+00:00",
+  "baseCommit": "89969665dd1ffff974820ec493dddcf30d33e3b6",
+  "sourceTestsAssets": "all21 current frozen entries unchanged after final suite",
+  "determinism": "11/11 artifacts byte-identical across final two layout builds",
+  "finalSuite": "242 files /2586 tests pass; 2 files /5 tests skipped",
+  "baseline": "root recorded reviewed;24images/29sources check passes; baseline frozen separately",
+  "sha256": {
+    "public/internal-ui-baselines/manifest.json": "ce85da255e95a041d7d62b7a5d1142bf72a743e551eabffaa71e24be674cac88",
+    "qa-evidence/padding-list-controls-2026-10-21/source-tests-assets.sha256": "78f156278dc046c6a8a389c0042834f21f27ae811f82c76c75bf2552c0af0371",
+    "qa-evidence/padding-list-controls-2026-10-21/generated-build-1.sha256": "7e838ab7c8fb410897367ed693f94e163ef85fe10c42fbbd25c8ab779f45df67",
+    "qa-evidence/padding-list-controls-2026-10-21/generated-build-2.sha256": "7e838ab7c8fb410897367ed693f94e163ef85fe10c42fbbd25c8ab779f45df67",
+    "qa-evidence/padding-list-controls-2026-10-21/logs/full-final.log": "760ac4f350974ddfbcccc213192b6819d711512ff0563b484951757f83f079b4",
+    "qa-evidence/padding-list-controls-2026-10-21/logs/baseline-final.log": "dba08600d7660bb21fb7b8fdef6a0c740124e8b47ef9ef7f2f3440fc5dda916f",
+    "qa-evidence/padding-list-controls-2026-10-21/logs/audit-final.json": "5429d34f4dd7979fd30f4c17f4ac2b5ccb229f442ffb16d090098493092b4241",
+    "qa-evidence/padding-list-controls-2026-10-21/gallery-final/capture.json": "8378f7a3ebe57bc2b9eab640f9c9c92d77257467e277516095450043cd9eb63b",
+    "qa-evidence/padding-list-controls-2026-10-21/gallery-final/diffs/results.json": "807d4c7cf77f4ebe4e1379d46419f8912524798abf569c281da2c6fcb65c435d",
+    "qa-evidence/padding-list-controls-2026-10-21/native/final-layout-code-acceptance.json": "65bc9cbba432898d123ddc49c1031c24be6bd6f31b8b78c05a7b85f24a374231",
+    "qa-evidence/padding-list-controls-2026-10-21/native/final-layout-table-acceptance.json": "933cd2546a65d3da7fab93589530caf4f4d7fed80fe5a3d7fed9edec62c21b6d",
+    "qa-evidence/padding-list-controls-2026-10-21/native/final-table-padding-desktop.json": "364985cbe125f1cc32e9750bae62add01345707ac0cbbf32e872b340a18bad67"
+  }
+}

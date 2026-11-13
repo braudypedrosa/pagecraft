@@ -1,0 +1,17 @@
+4aab0b0ea5364b8bd1449d1f39cdd332577f79cb9bd5bed71aad6f3788433c08  qa-evidence/cms-schema-cleanup-2026-10-23/build-1-builder.log
+33a62688e99627535ad8e581c74997f1c7bebfdc32ff4d0953abb4d76419d790  qa-evidence/cms-schema-cleanup-2026-10-23/build-1-editor.log
+4aab0b0ea5364b8bd1449d1f39cdd332577f79cb9bd5bed71aad6f3788433c08  qa-evidence/cms-schema-cleanup-2026-10-23/build-2-builder.log
+33a62688e99627535ad8e581c74997f1c7bebfdc32ff4d0953abb4d76419d790  qa-evidence/cms-schema-cleanup-2026-10-23/build-2-editor.log
+01e3b90997f0832ea57d0a47877683f98b7ae7b1c6ef832ac9da6c9b189580c3  qa-evidence/cms-schema-cleanup-2026-10-23/gallery-4945.log
+3bec7a4191d167dfdb62921c9b25f38ac0be9adfe8e72762e8689c973fa91a0d  qa-evidence/cms-schema-cleanup-2026-10-23/green.log
+713ca203a9df2105d870989c19ad6240dbbeecd4fed85e665cd4fc09063dc903  qa-evidence/cms-schema-cleanup-2026-10-23/red.log
+334a19cf4431683a6363f8cf9e3e8cab635bf624cf4bcd203af142e831e2bf93  qa-evidence/cms-schema-cleanup-2026-10-23/related.log
+af7a46025b75d1ce4c019bf8aa5c4969c83d9891d59fcf381173f49b175a9575  qa-evidence/cms-schema-cleanup-2026-10-23/static-4944.log
+d733a5d401c6a0f50433f75288d90bde75e6fa0cccb9ac4539d381dd8d6cfd68  qa-evidence/cms-schema-cleanup-2026-10-23/typecheck.log
+c6e5fe59cc88da99a0889fe4a134ba81598e3529a78afa8eddf5511c8afb8c0d  qa-evidence/cms-schema-cleanup-2026-10-23/build-1-exits.txt
+c6e5fe59cc88da99a0889fe4a134ba81598e3529a78afa8eddf5511c8afb8c0d  qa-evidence/cms-schema-cleanup-2026-10-23/build-2-exits.txt
+16cee413519462c89b726399a028d2a4de604eea6684de6b236475c2e75b7503  qa-evidence/cms-schema-cleanup-2026-10-23/build-determinism.txt
+0c96ea689927178ee9b10fca8144df3f8a96792b0dedfd56e7cc30f005d3e3fc  qa-evidence/cms-schema-cleanup-2026-10-23/sha256.txt
+d1fb135b9fde82421314df49e7363e55c3043178fca0df5edcda33d9a19d9f97  qa-evidence/cms-schema-cleanup-2026-10-23/gallery-server-health.json
+b2641fce3cc6ce6163c4d446e41f474793a77ad6dce6229012d2537d5a304181  qa-evidence/cms-schema-cleanup-2026-10-23/gallery-server.mjs
+a0ec1dbc5f42ea128c2646d82027d753dfb3a584f4228ff9f5e79c4828b0f0e2  qa-evidence/cms-schema-cleanup-2026-10-23/task-close.md

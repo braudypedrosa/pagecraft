@@ -1,0 +1,180 @@
+{
+  "passed": true,
+  "images": 24,
+  "matchingAvailableProvenance": true,
+  "allPixelIdentical": true,
+  "browserVersionProbe": {
+    "supported": false
+  },
+  "limitations": "Unavailable exact browser version probes limit repeatability to this observed session.",
+  "results": {
+    "cloud-fields-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 1098
+    },
+    "cloud-fields-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1587
+    },
+    "cloud-actions-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 959
+    },
+    "cloud-actions-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1015
+    },
+    "cloud-tables-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 1106
+    },
+    "cloud-tables-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1172
+    },
+    "cloud-menus-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "cloud-menus-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1008
+    },
+    "cloud-dialogs-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "cloud-dialogs-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 900
+    },
+    "cloud-feedback-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "cloud-feedback-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 900
+    },
+    "builder-fields-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 1166
+    },
+    "builder-fields-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1883
+    },
+    "builder-actions-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 1224
+    },
+    "builder-actions-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1279
+    },
+    "builder-tables-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 1228
+    },
+    "builder-tables-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 1284
+    },
+    "builder-menus-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "builder-menus-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 959
+    },
+    "builder-dialogs-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "builder-dialogs-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 900
+    },
+    "builder-feedback-1440.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 1440,
+      "height": 900
+    },
+    "builder-feedback-768.png": {
+      "passed": true,
+      "changedPixels": 0,
+      "ratio": 0,
+      "width": 768,
+      "height": 900
+    }
+  }
+}

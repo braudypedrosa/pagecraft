@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="132" viewBox="0 0 620 132" role="img" aria-labelledby="title desc">
+  <title id="title">Commonwell Homekeeping</title>
+  <desc id="desc">An arched doorway with a small sparkle beside the Commonwell wordmark.</desc>
+  <g fill="none" stroke="#16372c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 105V57c0-22 18-40 40-40s40 18 40 40v48"/>
+    <path d="M43 105V61c0-11 8-20 19-20s19 9 19 20v44"/>
+    <path d="M23 105h79"/>
+  </g>
+  <path fill="#e3ad43" d="M105 17l5 13 13 5-13 5-5 13-5-13-13-5 13-5z"/>
+  <text x="144" y="70" fill="#16372c" font-family="Arial, Helvetica, sans-serif" font-size="55" font-weight="700" letter-spacing="-2">COMMONWELL</text>
+  <text x="147" y="104" fill="#52675d" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="6">HOMEKEEPING</text>
+</svg>

@@ -1,0 +1,493 @@
+{
+  "method": "Composite captured screenshot tiles in scrollY order; each tile contributes only previously uncovered rows. Crop 15px scrollbar only. Marked crops add red rectangular outlines at section boundaries; no pixels are repainted within the outlines.",
+  "sourceChecks": [
+    "Before/checks.json",
+    "After/checks.json"
+  ],
+  "sourceGeometry": [
+    "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/evidence/template-authoring-2026-11-12/dental/refinement/comparison-geometry.json",
+    "../After/checks.json audit.sections"
+  ],
+  "geometryNote": "Mobile r30 section boundaries derived from captured background transitions; r32 and desktop r30 from recorded geometry.",
+  "inputs": [
+    {
+      "phase": "Before",
+      "revision": 30,
+      "width": 1440,
+      "documentHeight": 4835,
+      "scrollbarCropPixels": 15,
+      "tiles": [
+        {
+          "path": "Before/index-1440-00.png",
+          "scrollY": 0,
+          "sha256": "7c2f0b7dc2a98c7bb0b982367961626837450d42cdfcdc1c439caaddbfa3e601"
+        },
+        {
+          "path": "Before/index-1440-01.png",
+          "scrollY": 612,
+          "sha256": "150bd677b73803dff1612dab98a5289680ab54de1b45c13caf15ace435fe3735"
+        },
+        {
+          "path": "Before/index-1440-02.png",
+          "scrollY": 1224,
+          "sha256": "3d6ab5417efd1d1e194359081e4ca4484dbe567def55e6757c971f2bff412256"
+        },
+        {
+          "path": "Before/index-1440-03.png",
+          "scrollY": 1836,
+          "sha256": "b80402d0fd794184f27ff024d704fe26ae6dfb088a289162cc8628feb06eaaae"
+        },
+        {
+          "path": "Before/index-1440-04.png",
+          "scrollY": 2448,
+          "sha256": "01082b34180f7f9be64f640086a541c219eb960d59a7261e24660550f1d1f68e"
+        },
+        {
+          "path": "Before/index-1440-05.png",
+          "scrollY": 3060,
+          "sha256": "8046eb964371ecc3625fc54015d8104f04ba3b4535f82354606f5e99c6157582"
+        },
+        {
+          "path": "Before/index-1440-06.png",
+          "scrollY": 3672,
+          "sha256": "542cec46c26ec7bc605b286cca02dba76e1e612924f204f1415180c24c4770d8"
+        },
+        {
+          "path": "Before/index-1440-07.png",
+          "scrollY": 4115,
+          "sha256": "d1bdcd9ee1bb145dc90ea702f42f9b0725d51b4a3acea5262f89af1055f3eeff"
+        }
+      ]
+    },
+    {
+      "phase": "Before",
+      "revision": 30,
+      "width": 390,
+      "documentHeight": 5643,
+      "scrollbarCropPixels": 15,
+      "tiles": [
+        {
+          "path": "Before/index-390-00.png",
+          "scrollY": 0,
+          "sha256": "0186b15a122e3302d5f5eab5d9a7b86d3b974a9d4f2a88ece5179296a29a8699"
+        },
+        {
+          "path": "Before/index-390-01.png",
+          "scrollY": 612,
+          "sha256": "76ba12c8cfda1688884a06ec512b77b7ff86d1082e07ffd3d226db9afd0ba0f6"
+        },
+        {
+          "path": "Before/index-390-02.png",
+          "scrollY": 1224,
+          "sha256": "c2a783ea0423a08c7c421635ab5056d3d6e3b703ca1dd672b65f5dd08db7f956"
+        },
+        {
+          "path": "Before/index-390-03.png",
+          "scrollY": 1836,
+          "sha256": "ff65339ab9ab7564ce0d551c0986e391e62b989238f4da0f6d2537908d8cb346"
+        },
+        {
+          "path": "Before/index-390-04.png",
+          "scrollY": 2448,
+          "sha256": "426366c84e26c4634dd986878a7dcddf3b6de16eed709a9f03a0b87f5770edac"
+        },
+        {
+          "path": "Before/index-390-05.png",
+          "scrollY": 3060,
+          "sha256": "8ce5a89ffb01c8ac7350f38dfa479da52b61875ba454652eff8f18e838e4128a"
+        },
+        {
+          "path": "Before/index-390-06.png",
+          "scrollY": 3672,
+          "sha256": "7ff9c9534589e45674dd4c6061323e01ebb96074eecfcc42940a56ae36f5f6b6"
+        },
+        {
+          "path": "Before/index-390-07.png",
+          "scrollY": 4284,
+          "sha256": "d0020ba9f89eebbe12a61cb93fd119346f6fffb37961eea33b3e2db4e92bfdec"
+        },
+        {
+          "path": "Before/index-390-08.png",
+          "scrollY": 4896,
+          "sha256": "0ff58491530bfa0ea4e03c7e3a89e99493c08be3f60fa87611b0929ec8b8e80e"
+        },
+        {
+          "path": "Before/index-390-09.png",
+          "scrollY": 4923,
+          "sha256": "b85de061d8c1a7bab92580fdd74af44f6843a7c820cb030e984cf7e8e6a8cff9"
+        }
+      ]
+    },
+    {
+      "phase": "After",
+      "revision": 32,
+      "width": 1440,
+      "documentHeight": 5003,
+      "scrollbarCropPixels": 15,
+      "tiles": [
+        {
+          "path": "After/index-1440-00.png",
+          "scrollY": 0,
+          "sha256": "f3fbffa71565ea4c9e24d6cd72b93c4f08d807ffa87d6f0ddf6f514c767f51e4"
+        },
+        {
+          "path": "After/index-1440-01.png",
+          "scrollY": 612,
+          "sha256": "c883bfe5062ee8c3f7d2145570852f54d637b026b51744474acb3bdb3b16f900"
+        },
+        {
+          "path": "After/index-1440-02.png",
+          "scrollY": 1224,
+          "sha256": "cb0756ec62dbebaa3087d076d5d9872b32a289b86052446ec06531f60fe4f7db"
+        },
+        {
+          "path": "After/index-1440-03.png",
+          "scrollY": 1836,
+          "sha256": "4c450abe09a3a48a75372d22340c5e2b183540fc2e6e5c3fa224f4664befbb16"
+        },
+        {
+          "path": "After/index-1440-04.png",
+          "scrollY": 2448,
+          "sha256": "96b6738e221c9fca4eda30343d6bbf1f7c0368ce8d5cd5dc921bcde549e7a703"
+        },
+        {
+          "path": "After/index-1440-05.png",
+          "scrollY": 3060,
+          "sha256": "11ef17b3effadfad35592c041268d81a905407561a77fe01cb2271adc547f70a"
+        },
+        {
+          "path": "After/index-1440-06.png",
+          "scrollY": 3672,
+          "sha256": "51bffe854c332da731259bc9ca64dfa5d422506024ab9b67ff77beb422503451"
+        },
+        {
+          "path": "After/index-1440-07.png",
+          "scrollY": 4283,
+          "sha256": "e9fde3be5e3c1f45df3139cbd2ecd87747c440d7ffa7f62797a3296361a6b676"
+        }
+      ]
+    },
+    {
+      "phase": "After",
+      "revision": 32,
+      "width": 390,
+      "documentHeight": 5809,
+      "scrollbarCropPixels": 15,
+      "tiles": [
+        {
+          "path": "After/index-390-00.png",
+          "scrollY": 0,
+          "sha256": "189c38df58658d4425e94ed8a6678f7005dd6f454a65455e0bf6f4e4a9a62681"
+        },
+        {
+          "path": "After/index-390-01.png",
+          "scrollY": 612,
+          "sha256": "be2b47aa33086206d217997c30a1a4c492900f6764992d4f51265e259580aac4"
+        },
+        {
+          "path": "After/index-390-02.png",
+          "scrollY": 1224,
+          "sha256": "4e4d481dcb6d33ef8d0a6aa9965445aaa3259b9fc697b3d7bee104475c48810a"
+        },
+        {
+          "path": "After/index-390-03.png",
+          "scrollY": 1836,
+          "sha256": "2da7793313f48f17b5c33113602a2da4d909d34e2c9e0b98ca68e6e281573183"
+        },
+        {
+          "path": "After/index-390-04.png",
+          "scrollY": 2448,
+          "sha256": "f8f2bd7f5c0f61be35b1bb76d002d98ba9c179537bde6ea11be2ddaa3817d653"
+        },
+        {
+          "path": "After/index-390-05.png",
+          "scrollY": 3060,
+          "sha256": "cadc1037e3c85c8c617df55848ccccb286dbf0d6a235813e28fc1e9c9ef68361"
+        },
+        {
+          "path": "After/index-390-06.png",
+          "scrollY": 3672,
+          "sha256": "baf938852a2dbfabc46d07a6d225460cf171bd4f3248ecc62beb25a871646616"
+        },
+        {
+          "path": "After/index-390-07.png",
+          "scrollY": 4284,
+          "sha256": "c89a35e1f254c0bcae9ffbc9f0660a1b16fe27df8310be8a922023e6da02c561"
+        },
+        {
+          "path": "After/index-390-08.png",
+          "scrollY": 4896,
+          "sha256": "1940d4f58c2a2e21aae01570360cebe7b1a0d21f98bbba9217c133770d611f8f"
+        },
+        {
+          "path": "After/index-390-09.png",
+          "scrollY": 5089,
+          "sha256": "d75da9c6810b8f1142a33c278f88628a2d9146062e738a06d14b1c89d4a986cd"
+        }
+      ]
+    }
+  ],
+  "fullImages": [
+    {
+      "file": "before-1440-full.png",
+      "sha256": "575861f9a3b746493905912a0d7376689edf0058832a40b8c1a3b7188b62fe99"
+    },
+    {
+      "file": "before-390-full.png",
+      "sha256": "cea3130703118e7a1384e2bb5faf5fda966bdb63d3cc77f2ff664c006515961f"
+    },
+    {
+      "file": "after-1440-full.png",
+      "sha256": "ce466cba31333f79401255f12c759320f79328673d00a5ba5775d9896b02b6fc"
+    },
+    {
+      "file": "after-390-full.png",
+      "sha256": "588e34b4a5f2b797700f57aa7c8ec7cd17485baf4c3b7a0807d769353f05407d"
+    }
+  ],
+  "markedCrops": [
+    {
+      "file": "before-1440-hero-marked.png",
+      "source": "before-1440-full.png",
+      "crop": [
+        0,
+        66,
+        1425,
+        598
+      ],
+      "markedSectionYRanges": [
+        [
+          82,
+          582
+        ]
+      ]
+    },
+    {
+      "file": "before-1440-approach-marked.png",
+      "source": "before-1440-full.png",
+      "crop": [
+        0,
+        1169,
+        1425,
+        1701
+      ],
+      "markedSectionYRanges": [
+        [
+          1185,
+          1685
+        ]
+      ]
+    },
+    {
+      "file": "before-1440-visit-team-marked.png",
+      "source": "before-1440-full.png",
+      "crop": [
+        0,
+        2286,
+        1425,
+        3709
+      ],
+      "markedSectionYRanges": [
+        [
+          2302,
+          2802
+        ],
+        [
+          2802,
+          3693
+        ]
+      ]
+    },
+    {
+      "file": "after-1440-hero-marked.png",
+      "source": "after-1440-full.png",
+      "crop": [
+        0,
+        66,
+        1425,
+        738
+      ],
+      "markedSectionYRanges": [
+        [
+          82,
+          722
+        ]
+      ]
+    },
+    {
+      "file": "after-1440-approach-marked.png",
+      "source": "after-1440-full.png",
+      "crop": [
+        0,
+        1309,
+        1425,
+        1841
+      ],
+      "markedSectionYRanges": [
+        [
+          1325,
+          1825
+        ]
+      ]
+    },
+    {
+      "file": "after-1440-visit-team-marked.png",
+      "source": "after-1440-full.png",
+      "crop": [
+        0,
+        2426,
+        1425,
+        3877
+      ],
+      "markedSectionYRanges": [
+        [
+          2442,
+          2942
+        ],
+        [
+          2942,
+          3861
+        ]
+      ]
+    },
+    {
+      "file": "before-390-hero-marked.png",
+      "source": "before-390-full.png",
+      "crop": [
+        0,
+        50,
+        375,
+        639
+      ],
+      "markedSectionYRanges": [
+        [
+          66,
+          623
+        ]
+      ]
+    },
+    {
+      "file": "before-390-approach-marked.png",
+      "source": "before-390-full.png",
+      "crop": [
+        0,
+        1433,
+        375,
+        2105
+      ],
+      "markedSectionYRanges": [
+        [
+          1449,
+          2089
+        ]
+      ]
+    },
+    {
+      "file": "before-390-visit-team-marked.png",
+      "source": "before-390-full.png",
+      "crop": [
+        0,
+        3149,
+        375,
+        4369
+      ],
+      "markedSectionYRanges": [
+        [
+          3165,
+          3931
+        ],
+        [
+          3931,
+          4353
+        ]
+      ]
+    },
+    {
+      "file": "after-390-hero-marked.png",
+      "source": "after-390-full.png",
+      "crop": [
+        0,
+        50,
+        375,
+        704
+      ],
+      "markedSectionYRanges": [
+        [
+          66,
+          688
+        ]
+      ]
+    },
+    {
+      "file": "after-390-approach-marked.png",
+      "source": "after-390-full.png",
+      "crop": [
+        0,
+        1497,
+        375,
+        2255
+      ],
+      "markedSectionYRanges": [
+        [
+          1513,
+          2239
+        ]
+      ]
+    },
+    {
+      "file": "after-390-visit-team-marked.png",
+      "source": "after-390-full.png",
+      "crop": [
+        0,
+        3299,
+        375,
+        4535
+      ],
+      "markedSectionYRanges": [
+        [
+          3315,
+          4081
+        ],
+        [
+          4081,
+          4519
+        ]
+      ]
+    },
+    {
+      "file": "before-1440-hero-with-header-marked.png",
+      "source": "before-1440-full.png",
+      "crop": [
+        0,
+        0,
+        1425,
+        602
+      ],
+      "markedSectionYRanges": [
+        [
+          82,
+          582
+        ]
+      ],
+      "sha256": "ad10bd5e5133f117bf065d8da1eb1df27618df2444645ed4b7255cc423264b08"
+    },
+    {
+      "file": "after-1440-hero-with-header-marked.png",
+      "source": "after-1440-full.png",
+      "crop": [
+        0,
+        0,
+        1425,
+        742
+      ],
+      "markedSectionYRanges": [
+        [
+          82,
+          722
+        ]
+      ],
+      "sha256": "c281a522807ee67aeeb9dcfb069c05ae1c6352675315fb6b984d8b0b578f67f3"
+    }
+  ],
+  "overlapVerification": "Pixel differences across all overlapping tile regions were zero after the 15px scrollbar crop."
+}

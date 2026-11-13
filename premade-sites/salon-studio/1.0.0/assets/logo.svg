@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" role="img" aria-labelledby="title desc">
+  <title id="title">Morrow &amp; Muse hair studio</title>
+  <desc id="desc">A plum circular mark with two interlacing hair-like curves beside the Morrow and Muse wordmark.</desc>
+  <rect width="720" height="180" fill="#fffaf7"/>
+  <circle cx="88" cy="90" r="66" fill="#51213f"/>
+  <path d="M48 126c28-9 36-29 39-67 4 38 13 58 41 67" fill="none" stroke="#ead0d8" stroke-width="11" stroke-linecap="round"/>
+  <path d="M48 54c27 10 36 30 39 68 4-38 14-58 41-68" fill="none" stroke="#fffaf7" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="88" cy="90" r="11" fill="#75375c" stroke="#fffaf7" stroke-width="5"/>
+  <text x="181" y="92" fill="#21181e" font-family="Georgia,serif" font-size="57" font-weight="500">Morrow &amp; Muse</text>
+  <text x="185" y="132" fill="#75375c" font-family="Arial,sans-serif" font-size="18" letter-spacing="5">HAIR STUDIO</text>
+</svg>

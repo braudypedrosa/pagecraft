@@ -1,0 +1,75 @@
+{
+  "base": "cfa3ca348ea7a0b15e2327cdefa7a348a4c7d2ad",
+  "source2": {
+    "builder.html": "e0d67828adcd55a32ccac48bcfa94f3672e3ec76096ce181b5919d76e0de607d",
+    "tests/canvas-context-selection.test.mjs": "1025763d4af2ee5d51c4d66a85dcf1740c601ff6dd2fd817c750e79c117e74e6"
+  },
+  "generated10": {
+    "index.html": "dcbfadaa751909f7004b4276da3236c43d1394057ecc46923468d77cbf510514",
+    "dist/core.cjs": "71e1f328ba4b4845fcbf3129e8f126a3cd9cf78013bfa82e0baf5cd02876cccb",
+    "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+    "packages/editor/dist/editor.html": "c221552f1d45943b914c5f2f50a2e2de5346a9d59ba4417e75bfb4f3a1b4735c",
+    "packages/editor/dist/runtime.js": "76a0a68d4d9cf825661eb3fcef708107e916a039541eec1bbd067edc6424fdf8",
+    "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": "900fb67a0b7dba24e341824924a7a8fa292d43fc041023e42960d65c445e89d2",
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": "57eb7b28409e88884784487af1b51beac7bdfe33e31f27ff34fec94f2fd5b010",
+    "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+    "packages/editor/dist/compiler-worker.js": "c0d23a56c1b5242d6007adfac4066477d7ca1b6048b7f44b7c0d92b43a925d79"
+  },
+  "changedGeneratedOnly": [
+    "index.html",
+    "packages/editor/dist/editor.html"
+  ],
+  "unchangedGenerated": 8,
+  "compiler2ExactPreviousSeal": true,
+  "immutable": {
+    "app/src/core/index.ts": "7b68e0eb09f0fad11f1bcd43c945f6b32ee1b50f7d2946cd6111a9dd2896d4cf",
+    "app/src/core/anim.ts": "86463d8b68956807eb52dafd831483005c94af2205b956cda45d82943ba8036f",
+    "app/src/core/types.ts": "ce02cdbb65aa41f614fe253192a2edd3e2e04e94874e6492d11334965e5fca19",
+    "server/tests/fixtures/wordpress-artifact-v1.json": "53724e47e568cb42aa037997362607a8af18bec7f8bfa5bfb81297bc26336430",
+    "public/internal-ui-baselines/manifest.json": "f392a0852ce820c98df726456d93c00719ebda79f8f65900ba91c26ff457c268",
+    "app/src/ui/inspector/Controls.tsx": "f0a57512c9b5fee7179bb2a64efe83bce36336c5eff360929e67851211feb8ea",
+    "public/internal-ui-baselines/builder-actions-1440.png": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+    "public/internal-ui-baselines/builder-actions-768.png": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+    "public/internal-ui-baselines/builder-dialogs-1440.png": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+    "public/internal-ui-baselines/builder-dialogs-768.png": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+    "public/internal-ui-baselines/builder-feedback-1440.png": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+    "public/internal-ui-baselines/builder-feedback-768.png": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+    "public/internal-ui-baselines/builder-fields-1440.png": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+    "public/internal-ui-baselines/builder-fields-768.png": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+    "public/internal-ui-baselines/builder-menus-1440.png": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+    "public/internal-ui-baselines/builder-menus-768.png": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+    "public/internal-ui-baselines/builder-tables-1440.png": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+    "public/internal-ui-baselines/builder-tables-768.png": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+    "public/internal-ui-baselines/cloud-actions-1440.png": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+    "public/internal-ui-baselines/cloud-actions-768.png": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+    "public/internal-ui-baselines/cloud-dialogs-1440.png": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+    "public/internal-ui-baselines/cloud-dialogs-768.png": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+    "public/internal-ui-baselines/cloud-feedback-1440.png": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+    "public/internal-ui-baselines/cloud-feedback-768.png": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+    "public/internal-ui-baselines/cloud-fields-1440.png": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+    "public/internal-ui-baselines/cloud-fields-768.png": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+    "public/internal-ui-baselines/cloud-menus-1440.png": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+    "public/internal-ui-baselines/cloud-menus-768.png": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+    "public/internal-ui-baselines/cloud-tables-1440.png": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+    "public/internal-ui-baselines/cloud-tables-768.png": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20"
+  },
+  "MainProtected11AndIndexExact": true,
+  "full": {
+    "passed": 2813,
+    "failed": 1,
+    "skipped": 5,
+    "filesPassed": 274,
+    "filesFailed": 1,
+    "filesSkipped": 2,
+    "exit": 1,
+    "soleFailure": "tests/ui-baselines.test.mjs reviewed gallery source fingerprint for builder.html"
+  },
+  "focused": {
+    "passed": 18,
+    "files": 4,
+    "exit": 0
+  },
+  "typecheckExit": 0,
+  "nativeAcceptance": "Pending root"
+}

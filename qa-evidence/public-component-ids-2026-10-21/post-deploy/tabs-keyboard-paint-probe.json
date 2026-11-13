@@ -1,0 +1,58 @@
+{
+  "tabs": [
+    {
+      "border": "rgba(0, 0, 0, 0)",
+      "borderWidth": "2px",
+      "classes": "pagecraft-tab",
+      "outline": "none",
+      "rect": {
+        "bottom": 355.78125,
+        "height": 44.390625,
+        "left": 20,
+        "right": 84.5,
+        "top": 311.390625,
+        "width": 64.5,
+        "x": 20,
+        "y": 311.390625
+      },
+      "selected": "false",
+      "text": "Overview"
+    },
+    {
+      "border": "rgba(17, 19, 17, 0.925)",
+      "borderWidth": "2px",
+      "classes": "pagecraft-tab",
+      "outline": "none",
+      "rect": {
+        "bottom": 355.78125,
+        "height": 44.390625,
+        "left": 100.5,
+        "right": 150.34375,
+        "top": 311.390625,
+        "width": 49.84375,
+        "x": 100.5,
+        "y": 311.390625
+      },
+      "selected": "false",
+      "text": "Details"
+    },
+    {
+      "border": "rgba(17, 19, 17, 0.075)",
+      "borderWidth": "2px",
+      "classes": "pagecraft-tab on",
+      "outline": "solid",
+      "rect": {
+        "bottom": 355.78125,
+        "height": 44.390625,
+        "left": 166.34375,
+        "right": 215.671875,
+        "top": 311.390625,
+        "width": 49.328125,
+        "x": 166.34375,
+        "y": 311.390625
+      },
+      "selected": "true",
+      "text": "Pricing"
+    }
+  ]
+}

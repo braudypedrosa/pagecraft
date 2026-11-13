@@ -1,0 +1,52 @@
+{
+  "unchanged": [
+    {
+      "path": "app/src/core/index.ts",
+      "unchanged": true,
+      "sha256": "eb2465500ea48ed4bcd0970e4cdc6518045f1efdddff1934e41eeb037e483472"
+    },
+    {
+      "path": "app/src/ui/inspector/Controls.tsx",
+      "unchanged": true,
+      "sha256": "bc6efd609f2610d7c6cf0000e8bbd15e37d895befcc7b6cb3f4bf4975cb1a1a5"
+    },
+    {
+      "path": "app/src/ui/index.tsx",
+      "unchanged": true,
+      "sha256": "a44a95bebb09c322c9c141d8a3d5e0a8eb78338ffd6e7a66f54494d5375eed7a"
+    },
+    {
+      "path": "builder.html",
+      "unchanged": true,
+      "sha256": "dc0336895294cc7825b45eead8c3dd43590dbe53aeed5103852375047bba4b99"
+    },
+    {
+      "path": "server/tests/fixtures/wordpress-artifact-v1.json",
+      "unchanged": true,
+      "sha256": "b10a6eed8a43a08e6b61c232a35ad3493e70ac046587ce4e79529b75b95d9a3b"
+    },
+    {
+      "path": "tests/fixtures/nested-component-public.json",
+      "unchanged": true,
+      "sha256": "0d5c6d6519d99d181a748e23d295248c3c2da1b1f33c6a0c8c362f04141ae9d7"
+    },
+    {
+      "path": "packages/editor/dist/runtime.js",
+      "unchanged": true,
+      "sha256": "b8f757870a765614ca2676c09165374c034783d6d1acc43dd276bb71fea3f4aa"
+    }
+  ],
+  "coreBundleDelta": {
+    "commentLines": [
+      "-// node_modules/entities/lib/esm/generated/decode-data-html.js",
+      "+// ../integer-typing-218f115/node_modules/entities/lib/esm/generated/decode-data-html.js",
+      "-// node_modules/entities/lib/esm/generated/decode-data-xml.js",
+      "+// ../integer-typing-218f115/node_modules/entities/lib/esm/generated/decode-data-xml.js",
+      "-// node_modules/entities/lib/esm/decode_codepoint.js",
+      "+// ../integer-typing-218f115/node_modules/entities/lib/esm/decode_codepoint.js",
+      "-// node_modules/entities/lib/esm/decode.js",
+      "+// ../integer-typing-218f115/node_modules/entities/lib/esm/decode.js"
+    ],
+    "allOtherLinesIdentical": true
+  }
+}

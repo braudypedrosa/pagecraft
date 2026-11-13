@@ -1,0 +1,23 @@
+[
+  {
+    "border": "rgba(0, 0, 0, 0)",
+    "classes": "pagecraft-tab",
+    "selected": "false",
+    "text": "Overview",
+    "transition": "color 0.16s, border-color 0.16s"
+  },
+  {
+    "border": "rgba(0, 0, 0, 0)",
+    "classes": "pagecraft-tab",
+    "selected": "false",
+    "text": "Details",
+    "transition": "color 0.16s, border-color 0.16s"
+  },
+  {
+    "border": "rgb(17, 19, 17)",
+    "classes": "pagecraft-tab on",
+    "selected": "true",
+    "text": "Pricing",
+    "transition": "color 0.16s, border-color 0.16s"
+  }
+]

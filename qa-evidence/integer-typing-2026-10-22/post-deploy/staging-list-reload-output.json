@@ -1,0 +1,21 @@
+[
+  {
+    "device": "Desktop",
+    "limit": "3",
+    "count": 3,
+    "headings": 3,
+    "overflow": false
+  },
+  {
+    "device": "Tablet",
+    "limit": "3",
+    "headings": 3,
+    "overflow": false
+  },
+  {
+    "device": "Mobile",
+    "limit": "3",
+    "headings": 3,
+    "overflow": false
+  }
+]

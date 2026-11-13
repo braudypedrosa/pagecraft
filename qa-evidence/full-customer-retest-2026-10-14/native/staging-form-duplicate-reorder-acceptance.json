@@ -1,0 +1,62 @@
+{
+  "baselineVersion": 866,
+  "tests": [
+    {
+      "case": "duplicate then reorder preserves unique field name",
+      "actual": [
+        {
+          "name": "name-2",
+          "placeholder": "QA duplicate field",
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "placeholder": null,
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "placeholder": null,
+          "type": "email"
+        },
+        {
+          "name": "message",
+          "placeholder": null,
+          "type": "textarea"
+        },
+        {
+          "name": "project-type",
+          "placeholder": null,
+          "type": "select-one"
+        }
+      ]
+    },
+    {
+      "case": "remove only copied field",
+      "actual": [
+        {
+          "name": "name",
+          "placeholder": null,
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "placeholder": null,
+          "type": "email"
+        },
+        {
+          "name": "message",
+          "placeholder": null,
+          "type": "textarea"
+        },
+        {
+          "name": "project-type",
+          "placeholder": null,
+          "type": "select-one"
+        }
+      ]
+    }
+  ],
+  "fullCustomerRetestComplete": false,
+  "restored": true
+}

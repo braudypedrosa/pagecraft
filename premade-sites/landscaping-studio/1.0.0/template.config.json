@@ -1,0 +1,25 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "id": "landscaping-studio",
+  "version": "1.0.0",
+  "name": "Landscaping Studio",
+  "sampleName": "Mossline Gardens",
+  "description": "A premium four-page landscape design studio template with service guidance, illustrative garden studies and an honest quote inquiry.",
+  "categories": [
+    "Landscaping",
+    "Home services",
+    "Design studio"
+  ],
+  "source": "source.ts",
+  "sourceExport": "buildTemplateDocument",
+  "previewPage": "index.html",
+  "assets": [
+    { "id": "logo", "file": "assets/logo.svg" },
+    { "id": "meadow-garden", "file": "assets/meadow-garden.webp" },
+    { "id": "courtyard-garden", "file": "assets/courtyard-garden.webp" },
+    { "id": "studio-plan", "file": "assets/studio-plan.webp" },
+    { "id": "woodland-path", "file": "assets/woodland-path.webp" },
+    { "id": "roof-terrace", "file": "assets/roof-terrace.webp" }
+  ],
+  "customCssPolicy": "native-only"
+}

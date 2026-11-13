@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/component-condition-owner-1827aaf
+
+ ❯ tests/component-condition-owner.test.tsx (3 tests | 1 failed) 55ms
+   × an instance routes its source-owned condition action to the definition root without changing document data 31ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component-condition-owner.test.tsx > an instance routes its source-owned condition action to the definition root without changing document data
+AssertionError: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- 'Edit component condition'
+
+
+simple
+
+ ❯ tests/component-condition-owner.test.tsx:32:10
+     30|
+     31|   r.draw(<Inspector />, 'right');
+     32|   assert.equal(r.$('.component-condition-owner')?.textContent?.trim(),…
+       |          ^
+     33|   assert.equal(r.$('.component-condition-owner')?.getAttribute('title'…
+     34|     'This condition belongs to the component definition');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  10:11:22
+   Duration  1.24s (transform 333ms, setup 0ms, import 392ms, tests 55ms, environment 674ms)

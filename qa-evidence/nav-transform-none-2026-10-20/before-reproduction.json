@@ -1,0 +1,18 @@
+{
+  "base": "d443c83e69a4d0c3a837eaeb502fb87527e82300",
+  "scenario": "Nav Desktop UPPERCASE, then choose None at Tablet",
+  "expected": "Tablet stores and renders text-transform:none",
+  "actualBeforeFix": {
+    "storedTabletValue": null,
+    "renderedTabletValue": "uppercase",
+    "reason": "The empty None option was passed to setCss, whose empty-value contract deletes the responsive declaration."
+  },
+  "minimalRedProbe": {
+    "expected": "none",
+    "received": "undefined"
+  },
+  "nativeEvidenceOwnedByRoot": [
+    "staging-d443-nav-combinations-in-progress.json",
+    "transform-none-failure.jpg"
+  ]
+}

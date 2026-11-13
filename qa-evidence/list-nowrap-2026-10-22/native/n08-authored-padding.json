@@ -1,0 +1,13 @@
+{
+  "editor": {
+    "padding": "12px 4px 4px",
+    "scroll": 6666,
+    "width": 359,
+    "wrap": "nowrap"
+  },
+  "preview": {
+    "padding": "12px 4px 4px",
+    "pageOverflow": false,
+    "wrap": "nowrap"
+  }
+}

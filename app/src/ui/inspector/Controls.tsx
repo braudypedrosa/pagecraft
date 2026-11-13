@@ -13,9 +13,13 @@ import { useImageUpload } from '../useImageUpload';
 import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
+import { HelpTip } from '../HelpTip';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
-import type { Control, Node as PcNode, PropBag } from '../../core/types';
+import { NativePagePicker, nativePageForValue, useNativePages } from '../NativePagePicker';
+import type { Control, Node as PcNode } from '../../core/types';
+import { changeContentSource, sourceChangeBlocked, sourceChangeSuffix } from './cms-source-change';
+import { cmsChoices } from '../../core/cms-validation';
 
 type P = { n: PcNode; c: Control };
 
@@ -39,6 +43,82 @@ function TextCtl({ n, c }: P) {
   </Field>;
 }
 
+const booleanFilterValue = (value: string): string => {
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes'].includes(normalized)) return '1';
+  if (['0', 'false', 'no'].includes(normalized)) return '0';
+  return value === '' ? '' : value;
+};
+
+/** A Collection List filter compares one CMS field. Use that field's real input shape so
+    No stores `0`, references store item ids, and an option cannot drift into free text. */
+function CollectionListValueCtl({ n, c }: P) {
+  const w = writer(n, c);
+  const value = String(shown(n, c));
+  const op = String(C.propVal(n, 'op') || 'is');
+  const scope = C.bindScope(n.id);
+  const field = scope ? C.findField(scope.col, String(C.propVal(n, 'where') || '')) : null;
+  const disabled = inert(n, c);
+  const unavailable = (options: string[][]) => value && !options.some(([candidate]) => candidate === value)
+    ? <option value={value}>Unavailable: {value}</option>
+    : null;
+
+  /* Contains is deliberately textual for every field type. Existing filters may search a
+     date year, a numeric fragment, an option substring, or a legacy Boolean spelling. */
+  if (op === 'has') return <TextCtl n={n} c={{ ...c, ph: 'Text to find' }} />;
+
+  if (field?.type === 'bool') {
+    const shownValue = booleanFilterValue(value);
+    const known = ['', '1', '0'].includes(shownValue);
+    return <Field n={n} c={c}>
+      <select class="ctl" value={shownValue} disabled={disabled}
+        onChange={e => w.hard((e.currentTarget as HTMLSelectElement).value)}>
+        <option value="">Choose</option>
+        {!known ? <option value={shownValue}>Saved value: {value}</option> : null}
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+    </Field>;
+  }
+
+  if (field?.type === 'option' || field?.type === 'ref') {
+    const reference = field.type === 'ref' ? C.findCollection(field.ref || '') : null;
+    const options: string[][] = field.type === 'option'
+      ? [...new Set(cmsChoices(field.opts))].map(choice => [choice, choice])
+      : (reference?.items || []).map(item => [
+        item.id,
+        C.itemTitle(reference!, item) + (item.draft ? ' (draft)' : '')
+      ]);
+    return <Field n={n} c={c}>
+      <select class="ctl" value={value} disabled={disabled}
+        onChange={e => w.hard((e.currentTarget as HTMLSelectElement).value)}>
+        <option value="">Choose</option>
+        {unavailable(options)}
+        {options.map(([optionValue, label]) => <option key={optionValue} value={optionValue}>{label}</option>)}
+      </select>
+    </Field>;
+  }
+
+  if (field?.type === 'number' || field?.type === 'date') {
+    const probe = document.createElement('input');
+    probe.type = field.type;
+    probe.value = value;
+    /* Native Number and Date inputs erase malformed assigned values. Keep a legacy value
+       visible in a text input until the author replaces it, then return to the native shape
+       after the existing blur transaction repaints the inspector. */
+    if (value && probe.value !== value) {
+      return <TextCtl n={n} c={{ ...c, ph: field.type === 'number' ? 'Enter a number' : 'YYYY-MM-DD' }} />;
+    }
+    return <Field n={n} c={c}>
+      <input class="ctl" type={field.type} step={field.type === 'number' ? 'any' : undefined}
+        value={value} disabled={disabled}
+        onInput={e => w.live((e.currentTarget as HTMLInputElement).value)} onBlur={w.done} />
+    </Field>;
+  }
+
+  return <TextCtl n={n} c={c} />;
+}
+
 function AreaCtl({ n, c }: P) {
   const w = writer(n, c);
   return <Field n={n} c={c}>
@@ -55,64 +135,231 @@ function AreaCtl({ n, c }: P) {
 function SelectCtl({ n, c }: P) {
   const w = writer(n, c);
   const opts = typeof c.opts === 'function' ? c.opts(n) : (c.opts || []);
+  const value = String(shown(n, c));
   return <Field n={n} c={c}>
-    <select class="ctl" value={String(shown(n, c))} disabled={inert(n, c)}
+    {/* Native selects may keep their last user-selected option across a re-entrant panel
+        repaint. Keying the controlled leaf to its resolved value makes reset/inheritance
+        readback match the document immediately. */}
+    <select key={value} class="ctl" value={value} disabled={inert(n, c)}
       onChange={e => w.hard((e.target as HTMLSelectElement).value)}>
       {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
     </select>
   </Field>;
 }
 
+/* CSS integer grammars do not accept exponent notation. UnitCtl validates finiteness first;
+   BigInt expands large rounded Numbers instead of String(number) turning them back into e+. */
+const cssInteger = (value: number) => BigInt(Math.round(value)).toString();
+
 function UnitCtl({ n, c }: P) {
   const w = writer(n, c);
-  const { n: num, u: parsed } = C.parseU(valueOf(n, c));
+  const rawValue = String(valueOf(n, c) ?? '');
+  const { n: num, u: parsed } = C.parseU(rawValue);
   const units = c.units || ['px'];
+  /* A few numeric CSS properties also have one meaningful keyword. Keep those choices on
+     their own control definitions: every other UnitCtl remains numeric-only, and this never
+     opens a free-form route around its min, integer or unit validation. */
+  const keywords = Array.isArray(c.opts) ? c.opts : [];
+  const keyword = keywords.find(([value]) => value === rawValue)?.[0] || '';
+  const min = c.min ?? (c.neg ? undefined : 0);
+  const max = c.max;
   /* An empty value parses to an empty unit, which is not one of the offered ones. The
      string version relied on the browser picking the first option when none matched;
      setting `value` explicitly instead leaves selectedIndex at -1 and reads back '',
      so a typed number was stored as `max-width: 900` — a declaration the browser
      throws away. Falling back to the first unit is what the old markup did by
      accident, and what it has to do on purpose. */
-  const u = units.includes(parsed) ? parsed : units[0];
+  const resolvedUnit = units.includes(parsed) ? parsed : units[0];
+  const choiceKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const defaultChoice = keyword || resolvedUnit;
+  const [choice, setChoice] = useState({ key: choiceKey, source: rawValue, unit: defaultChoice });
+  /* A unit chosen before a number exists is UI state, not an empty CSS declaration. Keep it
+     until the number makes the pair persist. The source value joins the key so a draft cannot
+     survive a reset, inherited-value change or repaint into a different stored declaration. */
+  const u = num !== '' ? resolvedUnit
+    : choice.key === choiceKey && choice.source === rawValue ? choice.unit : defaultChoice;
+  const keywordSelected = keywords.some(([value]) => value === u);
   /* the unit is read off the select rather than closed over, so changing either half
      sends the pair — a number with the old unit is a different value */
   const push = (root: HTMLElement) => {
     const numEl = root.querySelector('input') as HTMLInputElement;
     const unitEl = root.querySelector('select') as HTMLSelectElement;
-    const v = String(numEl.value).trim();
+    const raw = String(numEl.value).trim();
+    let v = raw;
+    if (raw !== '') {
+      const parsed = Number(raw);
+      if (!Number.isFinite(parsed)) return;
+      let clamped = c.integer ? Math.round(parsed) : parsed;
+      if (min !== undefined) clamped = Math.max(min, clamped);
+      if (max !== undefined) clamped = Math.min(max, clamped);
+      if (c.integer) {
+        v = cssInteger(clamped);
+        if (numEl.value !== v) numEl.value = v;
+      } else if (clamped !== parsed) {
+        v = String(clamped);
+        numEl.value = v;
+      }
+    }
     w.live(v === '' ? '' : v + (unitEl.value || ''));
   };
   return <Field n={n} c={c}>
     <div class="unit">
-      <input data-field-part="value" class="ctl" type="number" step={c.step || 1} value={num} placeholder="auto"
+      <input data-field-part="value" class="ctl" type="number" min={min} max={max}
+        step={c.step ?? (c.integer ? 1 : 'any')} value={num}
+        placeholder={keywords.length ? 'number' : 'auto'} disabled={keywordSelected}
         onInput={e => push((e.target as HTMLElement).parentElement!)} onBlur={w.done} />
-      <select data-field-part="unit" class="ctl" value={u}
-        onChange={e => { push((e.target as HTMLElement).parentElement!); w.done(); }}>
-        {units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
+      {/* Replacing the controlled leaf when its resolved scope/value changes lets the shared
+          enhancer retire its visible label too. Setting select.value alone does not emit a
+          DOM mutation, so an inherited unit could be correct natively while its trigger kept
+          describing the cleared override. */}
+      <select key={`${choiceKey}|${rawValue}|${u}`} data-field-part="unit" class="ctl" value={u}
+        aria-label={keywords.length ? `${c.label} unit or keyword` : undefined}
+        onChange={e => {
+          const select = e.target as HTMLSelectElement;
+          if (keywords.some(([value]) => value === select.value)) {
+            setChoice({ key: choiceKey, source: select.value, unit: select.value });
+            w.hard(select.value);
+            return;
+          }
+          setChoice({ key: choiceKey, source: rawValue, unit: select.value });
+          const root = select.parentElement!;
+          if ((root.querySelector('input') as HTMLInputElement).value.trim()) push(root);
+          w.done();
+        }}>
+        {keywords.length
+          ? <>
+            <optgroup label="Units">{units.map(x => <option key={x} value={x}>{x || '—'}</option>)}</optgroup>
+            <optgroup label="Keywords">{keywords.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</optgroup>
+          </>
+          : units.map(x => <option key={x} value={x}>{x || '—'}</option>)}
       </select>
     </div>
+  </Field>;
+}
+
+/* A CSS length list is one to four numeric lengths, such as the shorthand padding
+   values used by Code and Table. It deliberately keeps the raw list intact: reducing
+   `16px 18px` to one number would change the published spacing. */
+const lengthToken = (value: string, units: string[]) => {
+  const m = value.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)?$/i);
+  const number = m ? Number(m[1]) : NaN;
+  if (!m || !Number.isFinite(number) || number < 0) return false;
+  if (!m[2]) return number === 0 && !m[1].startsWith('-');
+  return units.includes(m[2].toLowerCase());
+};
+
+const validLengthList = (value: string, units: string[]) => {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  const parts = trimmed.split(/\s+/);
+  return parts.length <= 4 && parts.every(part => lengthToken(part, units));
+};
+
+function LengthListCtl({ n, c }: P) {
+  const w = writer(n, c);
+  const raw = String(valueOf(n, c) ?? '');
+  const scoped = c.c ? (C.stRead(C.tgtObj(n))[C.dk()] || {})[c.c] : undefined;
+  const key = [n.id, c.c || '', C.dk(), C.state.ui.st || '', C.state.ui.target || '', raw, String(scoped ?? '')].join('|');
+  const [draft, setDraft] = useState({ key, value: raw });
+  const [errorKey, setErrorKey] = useState('');
+  const errorId = useId();
+  const value = draft.key === key ? draft.value : raw;
+  const valid = validLengthList(value, c.units || ['px']);
+  const showError = errorKey === key && !valid;
+  return <Field n={n} c={c}>
+    <input class="ctl" type="text" value={value} placeholder="auto"
+      aria-invalid={showError ? 'true' : undefined}
+      aria-describedby={showError ? errorId : undefined}
+      onInput={e => {
+        const next = (e.target as HTMLInputElement).value;
+        setDraft({ key, value: next });
+        if (validLengthList(next, c.units || ['px'])) {
+          setErrorKey('');
+          w.live(next);
+        }
+      }}
+      onKeyDown={e => {
+        if ((e as KeyboardEvent).key !== 'Enter') return;
+        if (!valid) setErrorKey(key);
+        w.done();
+      }}
+      onBlur={e => {
+        if (!valid) setErrorKey(key);
+        w.done(e);
+      }} />
+    {showError ? <div id={errorId} class="note" role="alert">Enter up to four sizes, such as 8px 12px.</div> : null}
   </Field>;
 }
 
 function SliderCtl({ n, c }: P) {
   const w = writer(n, c);
   const raw = valueOf(n, c);
+  // A removed share is unset, not the range's minimum. Keep reset and inherited readback distinct.
+  const unset = c.c === 'flex-grow' && (raw === '' || raw == null);
   const v = raw === '' || raw == null ? (c.max === 1 ? 1 : c.min) : parseFloat(String(raw));
-  const push = (x: string) => w.live(c.raw ? String(x) : x + 'px');
+  const push = (root: HTMLElement, x: string) => {
+    if (x === '') {
+      w.live('');
+      if (c.c === 'flex-grow') {
+        const effective = valueOf(n, c);
+        const missing = effective === '' || effective == null;
+        const range = root.querySelector<HTMLInputElement>('input[type="range"]')!;
+        if (missing) range.setAttribute('aria-valuetext', 'Not set');
+        else { range.removeAttribute('aria-valuetext'); range.value = String(effective); }
+        root.querySelector<HTMLInputElement>('input[type="number"]')!.placeholder = missing ? 'Not set' : String(effective);
+      }
+      return;
+    }
+    const parsed = Number(x);
+    if (!Number.isFinite(parsed)) return;
+    const clamped = Math.min(c.max ?? parsed, Math.max(c.min ?? parsed, parsed));
+    const value = String(clamped);
+    root.querySelectorAll<HTMLInputElement>('input').forEach(input => {
+      input.value = value;
+      if (c.c === 'flex-grow') {
+        input.removeAttribute('aria-valuetext');
+        if (input.type === 'number') input.placeholder = '';
+      }
+    });
+    w.live(c.raw ? value : value + 'px');
+  };
   return <Field n={n} c={c}>
     <div class="sld">
       <input data-field-part="slider" type="range" min={c.min} max={c.max} step={c.step} value={v}
-        onInput={e => push((e.target as HTMLInputElement).value)} onChange={w.done} />
-      <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step} value={v}
-        onInput={e => push((e.target as HTMLInputElement).value)} onBlur={w.done} />
+        aria-valuetext={unset ? 'Not set' : undefined}
+        onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onChange={w.done} />
+      <input data-field-part="value" class="ctl num" type="number" min={c.min} max={c.max} step={c.step}
+        value={unset ? '' : v} placeholder={unset ? 'Not set' : undefined}
+        onInput={e => push((e.target as HTMLElement).parentElement!, (e.target as HTMLInputElement).value)} onBlur={w.done} />
     </div>
   </Field>;
 }
 
+const validCssColor = (value: string) => {
+  const input = value.trim();
+  if (!input || C.parseColor(input) || C.isRef(input)) return true;
+  if (/^(?:currentcolor|inherit|initial|unset|revert|revert-layer)$/i.test(input)) return true;
+  const cssApi = window.CSS as { supports?: (property: string, value: string) => boolean } | undefined;
+  if (cssApi?.supports) return cssApi.supports('color', input);
+  const probe = document.createElement('span').style;
+  probe.color = '';
+  probe.color = input;
+  return probe.color !== '';
+};
+
+/* Older palettes use `accent` for the editor's reserved `brand` semantic. Core resolves
+   that alias for rendering; present the same link here so the inspector does not expose
+   the CSS variable as a raw value. Keep an actual brand token authoritative. */
+const linkedColorToken = (value: string) => {
+  const id = C.refId(value);
+  if (!id) return null;
+  return C.findColor(id) || (id === 'brand' ? C.findColor('accent') : null);
+};
+
 function ColorCtl({ n, c }: P) {
   const w = writer(n, c);
   const v = String(valueOf(n, c) || '');
-  const tok = C.refId(v) ? C.findColor(C.refId(v)!) : null;
+  const tok = linkedColorToken(v);
   const lit = tok ? tok.value : v;
   const cur = () => (c.c ? C.cssVal(C.tgtObj(n), c.c, !!c.r).v : C.propVal(n, c.k));
   const imagePaint = c.paint ? String(C.cssVal(C.tgtObj(n), 'background-image', !!c.r).v || '') : '';
@@ -123,19 +370,40 @@ function ColorCtl({ n, c }: P) {
      in place; new gradients use background-image, which does not wipe size or position. */
   const gradientControl: Control = { ...c, c: /^linear-gradient\(/i.test(shorthandPaint) ? 'background' : 'background-image', label: 'Gradient' };
   const gradientWriter = writer(n, gradientControl);
+  /* the swatch is drawn in the editor's chrome, where the project's colour variables do not exist */
+  const gradientShown = gradientValue.replace(/var\(\s*--c-[^)]+\)/g, ref => C.resolveColor(ref) || ref);
   /* The anchor rather than a boolean: the popover is positioned from the swatch's own
      rect, and holding the element is what lets it also tell an outside pointerdown from
      the click that opened it. */
   const [pop, setPop] = useState<HTMLElement | null>(null);
+  const [, setGradientRevision] = useState(0);
+  const editKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const [draft, setDraft] = useState({ key: editKey, value: v, active: false });
+  const inputValue = draft.key === editKey && draft.active ? draft.value : v;
+  const inputValid = validCssColor(inputValue);
+  const errorId = useId();
+  const liveColour = (value: string) => {
+    setDraft({ key: editKey, value, active: false });
+    w.live(value);
+  };
+  const hardColour = (value: string) => {
+    setDraft({ key: editKey, value, active: false });
+    w.hard(value);
+  };
 
   const addToken = async () => {
+    /* The colour and where it goes are taken at the click. The dialog resolves only
+       after its exit animation, and reading them then picked up whatever was clicked in
+       the meantime: a Hover click saved the hover colour and linked Hover instead. */
+    const ctx = C.editContext();
+    const value = C.resolveColor(cur()) || '#000000';
     const name = await L.askText('New colour token', 'Colour name', 'Accent',
       { ok: 'Create token', note: 'Every element using it changes with it.' });
-    if (name === null) return;
+    if (name === null || !C.locate(n.id)) return;
     /* `hexish` stood here, which only ever evaluated to #000000 on this path: it fell
        back to black unless `lit` was a plain hex, and `lit` is empty whenever
        resolveColor finds nothing to resolve. */
-    C.edit(() => { const id = C.colorAdd(name, C.resolveColor(cur()) || '#000000'); C.applyC(n, c, C.cvar(id)); });
+    C.edit(() => C.atEditContext(ctx, () => { const id = C.colorAdd(name, value); C.applyC(n, c, C.cvar(id)); }));
     L.toast('Colour token created');
   };
 
@@ -145,7 +413,7 @@ function ColorCtl({ n, c }: P) {
           system's dialog: no alpha, and a panel that looks like nothing else here. */}
       <button class="sw" title="Pick a colour" aria-haspopup="dialog" aria-expanded={pop ? 'true' : 'false'}
         onClick={e => pop ? document.dispatchEvent(new Event('pagecraft:outside-pointer')) : setPop(e.currentTarget as HTMLElement)}>
-        <i style={{ background: gradientValue || lit || 'transparent' }} />
+        <i style={{ background: gradientShown || lit || 'transparent' }} />
       </button>
       {pop ? (
         /* picking a literal breaks any token link, which is why this writes through the
@@ -159,10 +427,14 @@ function ColorCtl({ n, c }: P) {
            Through `resolveColor`, because what it inherits is usually a token reference and
            `var(--c-muted)` is not a colour any parser can read — without it the fallback
            landed back on black, which is the thing it was meant to fix. */
-        <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} anchor={pop}
-          gradient={c.paint ? { start: gradientValue, onLive: gradientWriter.live, onDone: gradientWriter.hard } : undefined}
-          onLive={w.live}
-          onDone={val => { w.hard(val); }}
+        <ColorPop start={lit || (c.c ? C.resolveColor(C.effectiveAt(n.id, c.c)) : '')} startRef={tok ? v : ''} anchor={pop}
+          gradient={c.paint ? { start: gradientValue, onLive: value => {
+            gradientWriter.live(value);
+            // Live writes repaint the canvas. Refresh this field without remounting the picker.
+            setGradientRevision(revision => revision + 1);
+          }, onDone: gradientWriter.hard } : undefined}
+          onLive={liveColour}
+          onDone={hardColour}
           onClose={() => { w.done(); if (c.paint) gradientWriter.done(); setPop(null); if (C.isRef(cur())) repaint('right'); }} />
       ) : null}
       {tok
@@ -171,18 +443,29 @@ function ColorCtl({ n, c }: P) {
             <Icon name="link" size={10} /> {tok.name}
           </span>
           <button class="x" title="Unlink — keep the colour, drop the link"
-            onClick={() => w.hard(C.resolveColor(cur()))}><Icon name="unlink" size={11} /></button>
+            onClick={() => hardColour(C.resolveColor(cur()))}><Icon name="unlink" size={11} /></button>
         </>
         : <>
-          <input class="ctl hex" value={v} placeholder="inherit"
-            onInput={e => w.live((e.target as HTMLInputElement).value.trim())} onBlur={w.done} />
-          <button class="x" title="Clear" onClick={() => w.hard('')}><Icon name="trash" size={11} /></button>
+          <input class="ctl hex" value={inputValue} placeholder="inherit" aria-invalid={!inputValid ? 'true' : undefined}
+            aria-describedby={!inputValid ? errorId : undefined}
+            onFocus={() => setDraft({ key: editKey, value: v, active: true })}
+            onInput={e => {
+              const next = (e.target as HTMLInputElement).value.trim();
+              setDraft({ key: editKey, value: next, active: true });
+              if (validCssColor(next)) w.live(next);
+            }}
+            onBlur={() => {
+              if (inputValid) setDraft({ key: editKey, value: inputValue, active: false });
+              w.done();
+            }} />
+          <button class="x" title="Clear" onClick={() => hardColour('')}><Icon name="trash" size={11} /></button>
         </>}
     </div>
+    {!inputValid ? <div class="note" id={errorId} role="alert">Enter a valid colour.</div> : null}
     <div class="toks">
       {C.colors().map(t => (
         <button key={t.id} class={'tok' + (tok && tok.id === t.id ? ' on' : '')} title={t.name}
-          style={{ background: t.value }} onClick={() => w.hard(C.cvar(t.id))} />
+          style={{ background: t.value }} onClick={() => hardColour(C.cvar(t.id))} />
       ))}
       <button class="tok add" title="Save this colour as a new token" onClick={addToken}>
         <Icon name="plus" size={10} />
@@ -200,6 +483,7 @@ function PickCtl({ n, c }: P) {
       {opts.map(([v, l]) => (
         <button type="button" key={v} class={val === String(v) ? 'on' : ''}
           aria-pressed={val === String(v) ? 'true' : 'false'}
+          disabled={inert(n, c)}
           title={C.IC[l] ? (PICK_TIP[l] || l) : l}
           onClick={() => w.hard(v)}>{C.IC[l] ? <Icon name={l} size={13} /> : l}</button>
       ))}
@@ -214,20 +498,21 @@ const PICK_TIP: Record<string, string> = {
   vTop: 'Top', vMid: 'Middle', vBot: 'Bottom',
 };
 
-/* A toggle carries its label inside the row, so it is the one control that does not
-   use Field — there is no separate <label> to hang the badges off. */
+/* Ordinary toggles carry their label inline. Definition and instance properties use Field
+   so boolean values have the same authoring badges and labels as other property kinds. */
 function ToggleCtl({ n, c }: P) {
   const w = writer(n, c);
   const on = !['', '0', 'false'].includes(String(valueOf(n, c) ?? ''));
   const helpId = useId();
+  const useField = !!c.k?.startsWith(C.VAL)
+    || (C.state.ui.mode === 'component' && !!C.state.ui.cedit && !!c.k);
   const toggle = <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label || 'Toggle'}
-    aria-describedby={c.note ? helpId : undefined}
-    class={'sw-tog' + (on ? ' on' : '')} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
-  return c.k?.startsWith(C.VAL)
+    aria-describedby={c.note && !useField ? helpId : undefined}
+    class={'sw-tog' + (on ? ' on' : '')} disabled={inert(n, c)} onClick={() => w.hard(on ? 0 : 1)}><i /></button>;
+  return useField
     ? <Field n={n} c={c}><div class="tog-row">{toggle}</div></Field>
     : <div class="f">
-        <div class="tog-row"><span>{c.label}</span>{toggle}</div>
-        {c.note ? <div id={helpId} class="note">{c.note}</div> : null}
+        <div class="tog-row"><span>{c.label}{c.note ? <HelpTip label={c.label || 'Field'} text={c.note} id={helpId} /> : null}</span>{toggle}</div>
       </div>;
 }
 
@@ -278,9 +563,16 @@ function boxValues(n: PcNode, base: string): string[] {
 
 function BoxCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
+  const w = writer(n, c);
   const vals = boxValues(n, c.c!).map(C.parseU);
   const withUnit = vals.find(x => x.u);
-  const u = withUnit ? withUnit.u : 'px';
+  const resolvedUnit = withUnit ? withUnit.u : 'px';
+  const choiceKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
+  const [choice, setChoice] = useState({ key: choiceKey, unit: resolvedUnit });
+  /* Empty box fields have no CSS unit to read. Keep a unit selected in this inspector
+     scope until author enters first value; changing breakpoint, state, or class target
+     starts from current resolved CSS again. */
+  const u = withUnit ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
 
   /* all four sides are written on every change, reading the unit off the select — one
      side holding an old unit is a value nobody asked for */
@@ -289,31 +581,43 @@ function BoxCtl({ n, c }: P) {
     const unit = (root.querySelector('select') as HTMLSelectElement).value;
     /* Once an author edits any side, materialize all four and remove the shorthand from this
        breakpoint. The inspector and the generated CSS now have one unambiguous source. */
-    delete C.stWrite(C.tgtObj(n))[C.dk()][c.c!];
+    C.applyC(n, c, '');
     root.querySelectorAll('input').forEach((inp, i) => {
-      const v = String((inp as HTMLInputElement).value).trim();
-      C.setCss(C.tgtObj(n), c.c + '-' + SIDES[i], v === '' ? '' : v + unit, !!c.r);
+      const input = inp as HTMLInputElement;
+      const raw = input.value.trim();
+      const parsed = Number(raw);
+      const v = !c.neg && raw !== '' && Number.isFinite(parsed) && parsed < 0 ? '0' : raw;
+      if (v !== raw) input.value = v;
+      C.applyC(n, { c: c.c + '-' + SIDES[i], r: c.r }, v === '' ? '' : v + unit);
     });
     L.repaintCss();
   };
 
   return <Field n={n} c={c}>
-    {/* The side names go above their own boxes. As one run of text underneath they named four
-        fields collectively and lined up with none of them, so which box was `right` was
-        something you worked out by counting. */}
-    <div class="row4lab" aria-hidden="true">
-      {SIDES.map(s => <span key={s}>{s}</span>)}
-      <span>unit</span>
-    </div>
-    <div class="row4">
-      {SIDES.map((s, k) => (
-        <input data-field-part={s} class="ctl" key={s} type="number" value={vals[k].n} placeholder="0" title={s}
-          onInput={e => push((e.target as HTMLElement).closest('.f')!)} onBlur={L.endTx} />
-      ))}
-      <select data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
-        onChange={e => { push((e.target as HTMLElement).closest('.f')!); L.endTx(); }}>
-        {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
-      </select>
+    <div class="boxctl">
+      <div class="boxctl-sides">
+        {SIDES.map((s, k) => (
+          <label class="boxctl-side" key={s}>
+            <span aria-hidden="true">{s}</span>
+            <input data-field-part={s} class="ctl" type="number" step="any" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
+              onInput={e => push((e.target as HTMLElement).closest('.boxctl')!)} onBlur={w.done} />
+          </label>
+        ))}
+      </div>
+      <div class="boxctl-unit">
+        <span aria-hidden="true">Unit</span>
+        <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
+          onChange={e => {
+            const select = e.target as HTMLSelectElement;
+            setChoice({ key: choiceKey, unit: select.value });
+            const root = select.closest<HTMLElement>('.boxctl')!;
+            const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
+              .some(input => input.value.trim() !== '');
+            if (hasValue) { push(root); w.done(); }
+          }}>
+          {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
+        </select>
+      </div>
     </div>
   </Field>;
 }
@@ -368,7 +672,7 @@ function BorderCtl({ n }: P) {
   return <div class="borderctl">
     <div class="f">
       <label>
-        <span>Border edge</span>
+        <span>Border edge</span><HelpTip label="Border edge" text="A dot marks an edge with a stored value." />
         {ownsSide(side) ? <button type="button" class="rst" title={'Restore default for ' + sideLabel + ' border'}
           aria-label={'Restore default for ' + sideLabel + ' border'} onClick={reset}>
           <Icon name="reset" size={9} />
@@ -381,7 +685,6 @@ function BorderCtl({ n }: P) {
             onClick={() => setChoice({ nodeId: n.id, side: value })}>{label}</button>
         ))}
       </div>
-      <div class="note">A dot marks an edge with a stored value.</div>
     </div>
     <SelectCtl n={n} c={{
       t: 'select', c: prefix + '-style', label: sideLabel + ' style', r: 1,
@@ -396,7 +699,9 @@ function ImgCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
   const rawv = c.bg ? val.replace(/^url\(["']?|["']?\)$/g, '') : val;
-  const ref = rawv.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
+  /* Gradients share background-image with uploaded paint, but they are not missing media. */
+  const assetValue = /^(?:(?:repeating-)?(?:linear|radial|conic)-gradient)\(/i.test(rawv) ? '' : rawv;
+  const ref = assetValue.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/);
   const a = ref ? L.asset(ref[1]) : null;
   const wrap = (v: string) => c.bg ? (v ? `url("${v}")` : '') : v;
 
@@ -405,12 +710,26 @@ function ImgCtl({ n, c }: P) {
     if (!got) return;
     C.edit(() => {
       C.applyC(n, c, wrap('asset:' + id));
+      if (!c.bg && c.k?.startsWith(C.VAL)) {
+        const ids = C.selIds();
+        const targets = ids.length > 1 && ids.includes(n.id) ? C.fanTargets(c, ids) : [n];
+        targets.forEach(target => C.instImageSizeSet(target, c.k!.slice(C.VAL.length), got));
+      }
       /* an image's intrinsic size comes along once, so the export can write
          width/height and the review stops asking for them */
-      if (!c.bg && got.w) { n.props.w = String(got.w); n.props.h = String(got.h); }
+      if (!c.bg && !c.k?.startsWith(C.VAL) && got.w) {
+        const ids = C.selIds();
+        const targets = n.type === 'image' && c.k === 'src' && ids.length > 1 && ids.includes(n.id)
+          ? C.fanTargets(c, ids).filter(target => target.type === 'image' && !target.use)
+          : [n];
+        targets.forEach(target => {
+          target.props.w = String(got.w); target.props.h = String(got.h);
+        });
+      }
     });
   };
-  const files = useImageUpload('image-' + n.id + '-' + (c.c || c.k), ids => use(ids[ids.length - 1]));
+  const pickerTitle = assetValue ? 'Replace image' : 'Choose image';
+  const files = useImageUpload('image-' + n.id + '-' + (c.c || c.k), ids => use(ids[ids.length - 1]), false, false, pickerTitle);
 
   return <Field n={n} c={c}>
     {a
@@ -420,9 +739,9 @@ function ImgCtl({ n, c }: P) {
         <button class="x" title="Remove image" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
           <Icon name="trash" size={12} /></button>
       </div>
-      : rawv
+      : assetValue
         ? <div class="imgset missing">
-          <span class="an"><b>Not in this project</b><small>{rawv.slice(0, 40)}</small></span>
+          <span class="an"><b>Not in this project</b><small>{assetValue.slice(0, 40)}</small></span>
           <button class="x" title="Clear" disabled={files.busy} onClick={() => w.hard(wrap(''))}>
             <Icon name="trash" size={12} /></button>
         </div>
@@ -433,12 +752,11 @@ function ImgCtl({ n, c }: P) {
       </button>
       {L.assetCount() ? (
         <button class="btn grow" disabled={files.busy} title="Pick from the Media library"
-          onClick={async () => { const id = await L.mediaPicker(); if (id) use(id); }}>
+          onClick={async () => { const id = await L.mediaPicker({title:pickerTitle}); if (id) use(id); }}>
           <Icon name="copy" size={13} /> Library
         </button>
       ) : null}
     </div>
-    <div class="note">Exported inline, or as a file beside the page.</div>
   </Field>;
 }
 
@@ -469,14 +787,19 @@ export function Dropzone({ onChoose, onFiles, disabled = false }: {
 }
 
 function SourceCtl({ n, c }: P) {
+  c = { ...c, note: 'Choose a collection, then bind its fields to elements inside this list.' };
   const cur = n.src && C.findCollection(n.src) ? n.src : '';
-  const set = (v: string) => {
-    C.edit(() => { C.srcSet(n, v); if (!v) n.props.sort = ''; });
+  const set = (select: HTMLSelectElement) => {
+    const v = select.value;
+    const changed = changeContentSource(n, v);
+    if (changed.blocked) { select.value = cur; L.toast(sourceChangeBlocked(changed)); return; }
+    if (!changed.changed) { select.value = cur; return; }
     const col = v ? C.findCollection(v) : null;
-    L.toast(col ? `${col.name} — ${col.items.length} items` : 'Collection cleared');
+    L.toast((col ? `${col.name} — ${col.items.length} items` : 'Collection cleared')
+      + sourceChangeSuffix(changed));
   };
   return <Field n={n} c={c}>
-    <select class="ctl" value={cur} onChange={e => set((e.target as HTMLSelectElement).value)}>
+    <select class="ctl" value={cur} onChange={e => set(e.currentTarget as HTMLSelectElement)}>
       <option value="">— Pick a collection —</option>
       {C.collections().map(x => (
         <option key={x.id} value={x.id}>{x.name} · {x.items.length} item{x.items.length === 1 ? '' : 's'}</option>
@@ -497,9 +820,8 @@ function RichCtl({ n, c }: P) {
     {fid
       ? <div class="note">Bound to <b>{(f || { name: 'a missing field' }).name}</b>. Unbind to edit here.</div>
       : <>
-        <button class="btn block"
-          onClick={() => L.enterEdit(n.id)}><Icon name="edit" size={13} /> Edit on canvas</button>
-        <div class="note">Or double-click on the canvas.</div>
+        <button class="btn block" title="Edit text here, or double-click it on the canvas"
+          onClick={() => L.enterEdit(n.id, c.k)}><Icon name="edit" size={13} /> Edit on canvas</button>
       </>}
   </Field>;
 }
@@ -507,15 +829,24 @@ function RichCtl({ n, c }: P) {
 function TstyleCtl({ n, c }: P) {
   const cur = C.findStyle(String(valueOf(n, c) || ''));
   const used = cur ? C.tsUsage(cur.id) : 0;
+  const sitewide = L.nativePageSource() !== null;
+  const canUpdate = C.tsCanUpdateFrom(n);
 
   const push = async () => {
+    if (!C.tsCanUpdateFrom(n)) return;
     const t = C.findStyle(n.props.ts);
     const k = t ? C.tsUsage(t.id) : 0;
-    if (k > 1 && !await L.askConfirm('Update the style everywhere?',
-      `<b>${esc(t!.name)}</b> is used ${k}×. Taking this element's typography into the `
-      + `style changes the other ${k - 1} too.`, { ok: 'Update style', danger: false })) return;
-    C.edit(() => C.tsUpdateFrom(n));
-    L.toast('Style updated everywhere');
+    if ((sitewide || k > 1) && !await L.askConfirm(
+      sitewide ? 'Update typography across this site?' : 'Update typography everywhere?',
+      (sitewide
+        ? `Update <b>${esc(t!.name)}</b> wherever it is used on this WordPress site? `
+        : `Share this element's typography through <b>${esc(t!.name)}</b> (${k} uses)? `)
+      + `Spacing, backgrounds and borders stay local; other elements keep their overrides.`,
+      { ok: 'Update typography', danger: false })) return;
+    if (!C.tsCanUpdateFrom(n)) return;
+    let updated = false;
+    C.edit(() => { updated = C.tsUpdateFrom(n); }, 'Update typography');
+    if (updated) L.toast('Typography updated');
   };
   const create = async () => {
     const name = await L.askText('New text style', 'Style name', C.DEF[n.type].label,
@@ -529,28 +860,28 @@ function TstyleCtl({ n, c }: P) {
     <select class="ctl" value={cur ? cur.id : ''}
       onChange={e => {
         const v = (e.target as HTMLSelectElement).value;
-        C.edit(() => { if (v) C.tsApply(n, v); else C.tsUnlink(n); });
+        C.edit(() => { if (v) C.tsApply(n, v); else C.tsUnlink(n); }, v ? 'Apply text style' : 'Detach text style');
       }}>
       <option value="">— None (styled directly) —</option>
       {C.styles().map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
     </select>
-    <div class="pc-field-actions">
+    <div class="pc-field-actions pc-text-style-actions">
       {cur
         ? <>
-          <button class="btn ghost grow" style={{ fontSize: 'var(--fs-2)' }}
-            title="Copy this element's typography into the style, everywhere it is used"
-            onClick={push}>Update style{used > 1 ? ` · ${used} uses` : ''}</button>
-          <button class="btn ghost" style={{ fontSize: 'var(--fs-2)' }}
+          <button class="btn"
+            disabled={!canUpdate}
+            title={canUpdate
+              ? "Share this element's typography. Spacing, backgrounds and borders stay local."
+              : "Change this element's typography to update the text style. Spacing, backgrounds and borders stay local."}
+            onClick={push}>Update typography{!sitewide && used > 1 ? ` · ${used} uses` : ''}</button>
+          <button class="btn"
             title="Keep the look, stop following the style"
-            onClick={() => { C.edit(() => C.tsUnlink(n)); L.toast('Detached — the look is now local'); }}>
+            onClick={() => { C.edit(() => C.tsUnlink(n), 'Detach text style'); L.toast('Detached — the look is now local'); }}>
             Detach</button>
         </>
-        : <button class="btn grow" style={{ fontSize: 'var(--fs-1)' }}
+        : <button class="btn"
           onClick={create}><Icon name="plus" size={12} /> Save as text style</button>}
     </div>
-    <div class="note">{cur
-        ? `${used} use${used === 1 ? '' : 's'}. Below overrides this element only.`
-        : 'Save it as a style to reuse it.'}</div>
   </Field>;
 }
 
@@ -564,11 +895,13 @@ function OptCtl({ n, c }: P) {
   /* an unrecognised stored value means somebody typed it, so the custom input opens
      itself rather than silently showing the first preset instead */
   const custom = !!C.state.ui.custom[ck] || (!known && cur !== '');
+  const selected = custom ? '__custom' : cur;
+  const selectKey = [ck, C.dk(), C.state.ui.st || '', C.state.ui.target || '', selected].join('|');
 
   const opt = ([v, l]: string[]) => <option key={v} value={v}>{l}</option>;
 
   return <Field n={n} c={c}>
-    <select class="ctl" value={custom ? '__custom' : cur}
+    <select key={selectKey} class="ctl" value={selected}
       onChange={e => {
         const v = (e.target as HTMLSelectElement).value;
         if (v === '__custom') { C.state.ui.custom[ck] = true; repaint('right'); return; }
@@ -588,24 +921,70 @@ function OptCtl({ n, c }: P) {
   </Field>;
 }
 
+function LinkTargetToggle({ n, c }: P) {
+  const tkey = c.tk || 'target';
+  const blank = C.propVal(n, tkey) === '_blank';
+  return <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
+    <span>Open in a new tab</span>
+    <button type="button" role="switch" aria-checked={blank ? 'true' : 'false'}
+      aria-label="Open in a new tab" class={'sw-tog' + (blank ? ' on' : '')}
+      onClick={() => {
+        L.tx(n.id + '|' + tkey);
+        C.applyC(n, { k: tkey }, blank ? '' : '_blank');
+        L.endTx(); L.paint(); L.save(); repaint('right');
+      }}><i /></button>
+  </div>;
+}
+
 function LinkCtl({ n, c }: P) {
   const here = C.page().slug;
-  const link = C.linkOf(n, c.k!, here) as any;
+  /* A detail template is published once per item and never at its own slug, so it is not a
+     page a link can choose. Editing on one, a new page link starts at the front page instead. */
+  const linkable = C.linkablePages();
+  const firstPage = linkable.some(p => p.slug === here) ? here
+    : (linkable.find(C.isFront) || linkable[0])?.slug || here;
+  const key = n.id + '|' + (c.c || c.k || c.t);
+  const rawLink = String(C.propVal(n, c.k) || '').trim();
+  const storedLink = C.parseLink(rawLink, here) as any;
+  const nativeSource = L.nativePageSource();
+  /* A bare fragment belongs to the current WordPress page. Keep it in the exact URL
+     editor instead of presenting it as a portable project page that needs replacement. */
+  const samePageAnchor = !!nativeSource && rawLink.startsWith('#');
+  const explicitMode = C.state.ui.lmode?.key === key ? C.state.ui.lmode.mode : null;
+  let link = C.linkOf(n, c.k!, here) as any;
+  if (samePageAnchor && (!explicitMode || explicitMode === 'url')) link = { mode: 'url', value: rawLink };
+  else if (samePageAnchor && explicitMode !== 'page') link = { mode: explicitMode, value: '' };
+  const nativePages = useNativePages(nativeSource);
+  const [nativePendingKey, setNativePendingKey] = useState<string | null>(null);
+  const nativeMatch = link.mode === 'url'
+    ? nativePageForValue(nativePages.pages, link.value, window.location.origin)
+    : null;
+  /* A project slug that no longer exists in the one-page WordPress document falls
+     through core parsing as a URL. Keep recognizing that legacy portable shape so
+     the UI describes it honestly instead of calling it an external address. */
+  const savedProjectMatch = nativeSource
+    ? rawLink.match(/^([\w-]+)\.html(?:#([\w-]+))?$/)
+    : null;
+  const savedProjectLink = !!nativeSource && !samePageAnchor
+    && (storedLink.mode === 'page' || !!savedProjectMatch);
+  const nativePageMode = !!nativeSource
+    && (nativePendingKey === key || savedProjectLink || !!nativeMatch);
+  const shownMode = nativePageMode ? 'page' : link.mode;
   const wordpress = link.mode === 'url' ? wordpressDestinationForValue(link.value) : null;
   const tkey = c.tk || 'target';
-  const anchors = link.mode === 'page' ? C.anchorsOf(link.page || here) : [];
+  const anchors = link.mode === 'page' && !nativeSource ? C.anchorsOf(link.page || here) : [];
   const scope = C.bindScope(n.id);
   /* "This item's own page" is only offered where there is an item to mean — inside a
      Collection list, or on a detail template — and only once some page templates the
      collection, or the link resolves to nothing. */
   const hasDetail = !!scope && C.state.pages.some(p => p.collection === scope.col.id);
-  const MODES: string[][] = [['none', 'No link'], ['page', 'A page in this project'],
+  const MODES: string[][] = [['none', 'No link'], ['page', nativeSource ? 'A WordPress page' : 'A page in this project'],
     ...(hasDetail ? [['item', 'This item’s own page']] : []),
     ['url', 'External URL'], ['email', 'Email address'], ['phone', 'Phone number']];
 
-  const key = n.id + '|' + (c.c || c.k || c.t);
-  const commit = (o: any) => {
+  const commit = (o: any, clearTarget = false) => {
     L.tx(key); C.applyC(n, c, C.buildLink(o));
+    if (clearTarget) C.applyC(n, { k: tkey }, '');
     L.endTx(); L.paint(); L.save(); repaint('right');
   };
   const chooseWordPress = (url: string) => {
@@ -614,25 +993,49 @@ function LinkCtl({ n, c }: P) {
     C.state.ui.lmode = url ? null : { key: n.id + '|' + c.k, mode: 'url' };
     commit({ mode: 'url', value: url });
   };
+  const chooseNativePage = (url: string) => {
+    setNativePendingKey(null);
+    C.state.ui.lmode = null;
+    commit({ mode: 'url', value: url });
+  };
+  const savedProjectPath = savedProjectLink
+    ? '/' + ((savedProjectMatch?.[1] || storedLink.page) === 'index' ? '' : savedProjectMatch?.[1] || storedLink.page || here)
+      + ((savedProjectMatch?.[2] || storedLink.frag) ? '#' + (savedProjectMatch?.[2] || storedLink.frag) : '')
+    : undefined;
 
   return <Field n={n} c={c}>
-    <select data-field-part="type" class="ctl" value={link.mode}
+    <select data-field-part="type" class="ctl" value={shownMode}
       onChange={e => {
         const mode = (e.target as HTMLSelectElement).value;
-        if (mode === 'none') (n.props as PropBag)[tkey] = '';
+        if (nativeSource && mode === 'page') {
+          /* Opening the catalogue is not a document edit. Keep the saved destination
+             intact through loading, failure and cancellation; only a page choice writes. */
+          setNativePendingKey(key);
+          C.state.ui.lmode = { key: n.id + '|' + c.k, mode };
+          repaint('right');
+          return;
+        }
+        setNativePendingKey(null);
         /* a mode with nothing stored yet cannot be derived from the href, so it is
            remembered here until a value makes it real */
         C.state.ui.lmode = mode === 'none' ? null : { key: n.id + '|' + c.k, mode };
-        commit(mode === 'page' ? { mode, page: here, frag: '' } : { mode });
+        commit(mode === 'page' ? { mode, page: firstPage, frag: '' }
+          : mode === 'url' && samePageAnchor ? { mode, value: rawLink }
+            : { mode }, mode === 'none');
         if (mode === 'item') C.state.ui.lmode = null;   // it stores a real value at once
       }}>
       {MODES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
     </select>
 
-    {link.mode === 'page' ? <>
-      <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || here}
+    {shownMode === 'page' && !nativeSource ? <>
+      <select data-field-part="page" class="ctl" style={{ marginTop: 'var(--gap-1)' }} value={link.page || firstPage}
         onChange={e => commit({ mode: 'page', page: (e.target as HTMLSelectElement).value, frag: '' })}>
-        {C.state.pages.map(p => (
+        {(() => {
+          const stored = C.state.pages.find(p => p.slug === (link.page || firstPage));
+          return stored && C.isDetailTemplate(stored)
+            ? <option value={stored.slug} disabled>{stored.name} · detail template, not a page</option> : null;
+        })()}
+        {linkable.map(p => (
           <option key={p.id} value={p.slug}>{p.name} · {p.slug === 'index' ? '/' : '/' + p.slug}</option>
         ))}
       </select>
@@ -648,7 +1051,14 @@ function LinkCtl({ n, c }: P) {
       )}
     </> : null}
 
-    {['url', 'email', 'phone'].includes(link.mode) ? <>
+    {shownMode === 'page' && nativeSource ? <NativePagePicker
+      state={nativePages}
+      value={C.propVal(n, c.k)}
+      savedProjectPath={savedProjectPath}
+      onChange={chooseNativePage}
+    /> : null}
+
+    {['url', 'email', 'phone'].includes(shownMode) ? <>
       {link.mode === 'url'
         ? <WordPressContentPicker value={link.value || ''} onChange={chooseWordPress} />
         : null}
@@ -661,32 +1071,26 @@ function LinkCtl({ n, c }: P) {
         onInput={e => {
           const value = (e.target as HTMLInputElement).value.trim();
           L.tx(key);
-          C.applyC(n, c, C.buildLink({ ...C.linkOf(n, c.k!, here), value }));
+          C.applyC(n, c, C.buildLink({ ...link, value }));
           L.repaint();
           if (link.mode === 'url') {
             C.state.ui.lmode = value ? null : { key: n.id + '|' + c.k, mode: 'url' };
-            repaint('right');
           }
-        }} onBlur={L.endTx} /> : null}
+        }} onBlur={event => {
+          /* Keep the URL editor stable while its value is being typed. A leading hash is
+             a valid page-anchor shape, but reclassifying on that first character would
+             unmount the focused URL input before the user can finish it. */
+          if (link.mode === 'url') writer(n, c).done(event);
+          else L.endTx();
+        }} /> : null}
     </> : null}
 
     {link.mode === 'item' && scope ? (
-      <div class="note">Each card links to its own page under <b>{scope.col.slug}/</b>.</div>
+      <div class="note">/{scope.col.slug}/&lt;slug&gt;</div>
     ) : null}
 
-    {link.mode !== 'none' ? (
-      <div class="tog-row" style={{ marginTop: 'var(--gap-1)' }}>
-        <span>Open in a new tab</span>
-        <button type="button" role="switch"
-          aria-checked={C.propVal(n, tkey) === '_blank' ? 'true' : 'false'}
-          aria-label="Open in a new tab"
-          class={'sw-tog' + (C.propVal(n, tkey) === '_blank' ? ' on' : '')}
-          onClick={() => {
-            L.tx(key);
-            (n.props as PropBag)[tkey] = C.propVal(n, tkey) === '_blank' ? '' : '_blank';
-            L.endTx(); L.paint(); L.save(); repaint('right');
-          }}><i /></button>
-      </div>
+    {shownMode !== 'none' ? (
+      <LinkTargetToggle n={n} c={c} />
     ) : null}
   </Field>;
 }
@@ -722,14 +1126,15 @@ function DimsCtl({ n, c }: P) {
 function IconCtl({ n, c }: P) {
   const w = writer(n, c);
   const val = String(valueOf(n, c) || '');
-  const cur = C.ICON_PATHS[val] ? val : 'check';
+  // A bound value that is not an icon draws nothing, so no tile claims it (see the renderer).
+  const cur = C.ICON_PATHS[val] ? val : inert(n, c) ? '' : 'check';
   return <Field n={n} c={c}>
     <div class="iconpick">
       {C.ICONS.map(([g, list]) => <>
         <div class="ipgroup" key={'g' + g}>{g}</div>
         <div class="ipgrid" key={'r' + g}>
           {(list as string[][]).map(([nm]) => (
-            <button key={nm} class={nm === cur ? 'on' : ''} title={nm} onClick={() => w.hard(nm)}
+            <button key={nm} class={nm === cur ? 'on' : ''} title={nm} disabled={inert(n, c)} onClick={() => w.hard(nm)}
               dangerouslySetInnerHTML={{ __html: C.iconSvg(nm) }} />
           ))}
         </div>
@@ -756,10 +1161,10 @@ function ColsCtl({ n, c }: P) {
   };
 
   return <div class="f">
-    <label>{c.label || ''}</label>
+    <label>{c.label || ''}<HelpTip label="Columns" text="Drag a gutter on the canvas to adjust column widths." /></label>
     <div class="pick">
       {C.COUNTS.map(k => (
-        <button key={k} class={k === count ? 'on' : ''} title={`${k} column${k === 1 ? '' : 's'}`}
+        <button key={k} class={k === count ? 'on' : ''} aria-pressed={k === count} title={`${k} column${k === 1 ? '' : 's'}`}
           onClick={() => setCount(k)}>{k}</button>
       ))}
     </div>
@@ -767,21 +1172,19 @@ function ColsCtl({ n, c }: P) {
       <label style={{ marginTop: 'var(--gap-2)' }}>Layout</label>
       <div class="lay">
         {list.map((l, k) => (
-          <button key={k} class={hit === k ? 'on' : ''} title={l.map(x => Math.round(x) + '%').join(' / ')}
+          <button key={k} class={hit === k ? 'on' : ''} aria-pressed={hit === k} title={l.map(x => Math.round(x) + '%').join(' / ')}
             onClick={() => C.edit(() => C.applyCols(n, C.LAYOUTS[n.children.length as keyof typeof C.LAYOUTS][k]))}>
             {l.map((x, j) => <i key={j} style={{ flexGrow: x }} />)}
           </button>
         ))}
       </div>
     </> : null}
-    <div class="note">{count > top
-        ? `${count} columns — set each width individually.`
-        : 'Drag a gutter on the canvas to change the split.'}</div>
+    {count > top ? <div class="note">{count} columns</div> : null}
   </div>;
 }
 
 const KINDS: Record<string, (p: P) => any> = {
-  text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, slider: SliderCtl,
+  text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, lengthList: LengthListCtl, slider: SliderCtl,
   color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
@@ -793,12 +1196,21 @@ const KINDS: Record<string, (p: P) => any> = {
 export const CONTROL_KINDS = Object.keys(KINDS);
 
 export function Ctl({ n, c }: P) {
+  if (n.type === 'list' && c.k === 'val') return <CollectionListValueCtl n={n} c={c} />;
   const Cmp = KINDS[c.t];
   if (!Cmp) return null;
-  if (c.k?.startsWith(C.VAL) && bound(n, c).fid) {
+  const link = c.k?.startsWith(C.VAL) ? bound(n, c) : null;
+  if (link?.fid) {
     const value = String(valueOf(n, c) ?? '');
+    /* Only a rich field is markup. A text field in a rich slot renders as the words it holds,
+       tags included, so the panel shows them the same way the canvas does. */
+    const markup = C.fieldAt(link.scope?.col ?? null, link.fid)?.type === 'rich';
+    if (c.t === 'link') return <Field n={n} c={c}>
+      <input class="ctl" value={value} disabled aria-label={c.label || 'CMS value'} />
+      <LinkTargetToggle n={n} c={c} />
+    </Field>;
     const shown = c.t === 'toggle' ? (['', '0', 'false'].includes(value) ? 'No' : 'Yes')
-      : c.t === 'rich' ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
+      : c.t === 'rich' && markup ? value.replace(/<[^>]*>/g, '').slice(0, 180) : value;
     return <Field n={n} c={c}>
       <input class="ctl" value={shown} disabled aria-label={c.label || 'CMS value'} />
     </Field>;

@@ -1,0 +1,30 @@
+{
+  "cloudCommit": "c084430dedeeda019f662afe13b640eea07963ac",
+  "desktop": {
+    "dom": {
+      "dataId": null,
+      "id": "nxrx2h2x8-p3jg42gy",
+      "owner": "np3jg42gy"
+    },
+    "path": "Section\n›\nRow · 1 col\n›\nQA Preview79 outer ownership"
+  },
+  "mobile": {
+    "dataId": null,
+    "id": "nxrx2h2x8-xsixd3c7",
+    "owner": "nxsixd3c7",
+    "selected": true,
+    "width": 414
+  },
+  "savedReloadEditorIds": {
+    "count": 17,
+    "unique": 17
+  },
+  "sourceChildControls": "Component variant\nDefault\nSave as variant\nBack to the defaults\nOne value is set on this instance.\nRich text\nRich text\nShared\nEdit on canvas",
+  "restoration": {
+    "history": 55,
+    "idsExact": true,
+    "stylesExact": true,
+    "saveDisabled": true
+  },
+  "publicDuplicateIDs": "Separate open80fix; no publicuniqueness claim."
+}

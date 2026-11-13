@@ -1,0 +1,37 @@
+{
+  "environment": "isolated localhost:4949 in-memory Pro account",
+  "cms": {
+    "schemaTypes": [
+      "text",
+      "rich",
+      "image",
+      "link",
+      "number",
+      "date",
+      "option",
+      "boolean",
+      "reference"
+    ],
+    "savedEntry": "QA complete entry",
+    "image": "Workshop.png",
+    "bulkPublishUndo": "returned to Draft",
+    "urlChange": "Cancel preserved unsaved edit; Change URL saved qa-renamed-entry",
+    "entryDeletion": "Cancel preserved entry; confirmed deletion removed it; Undo restored",
+    "schemaDeletion": "Featured removed and saved; Undo restored field",
+    "csvImport": "Two rows mapped automatically, imported, list count changed 1 to 3"
+  },
+  "publication": {
+    "reviewedVersion": 5,
+    "status": "Published on Pagecraft"
+  },
+  "submission": {
+    "confirmation": "Your submission has been received.",
+    "inboxCount": 1,
+    "status": "Success",
+    "valuesVerified": true
+  },
+  "limitations": [
+    "fixture has no SMTP delivery",
+    "copied URL omits fixture port; public page tested at localhost:4949"
+  ]
+}

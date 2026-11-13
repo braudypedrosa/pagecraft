@@ -1,0 +1,33 @@
+{
+  "accepted": true,
+  "tables": 133,
+  "exactTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_postmeta",
+    "wp_posts"
+  ],
+  "changedExistingPostIds": [
+    "487"
+  ],
+  "newRevisionIds": [
+    "598",
+    "599",
+    "600",
+    "601"
+  ],
+  "allNewRevisionParents487": true,
+  "priorRevisionsAndMetadataExact": 314,
+  "optionsTimestampOnly": [
+    "_elementor_design_system_sync_css_meta",
+    "_elementor_pro_free_trial_data"
+  ],
+  "documentedOptionRowIdentityChanges": {
+    "_elementor_design_system_sync_css_meta": [
+      "1948",
+      "1952"
+    ]
+  },
+  "finalSqlSHA256": "985609b76c3b593eb1107c13a20884e349e2fd0e1b8cbe51fa822d376b0dff54",
+  "native": "Root native WordPress Site checks repairs linked Icon from side panel; correct editable target and original URL preserved; named label Save/reload and actual frontend Desktop1280/Mobile414 accepted with hidden inner SVG and no overflow; History63 restored exact11 editable IDs and disabledSave. Readable raw414x720 screenshot accepted. Cloud Preview-only recovery and conditional names separately natively verified in Cloud."
+}

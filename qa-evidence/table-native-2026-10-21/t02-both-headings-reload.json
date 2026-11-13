@@ -1,0 +1,95 @@
+[
+  {
+    "device": "Desktop",
+    "data": [
+      "09:00",
+      "Garden",
+      "14:00",
+      "Studio"
+    ],
+    "headers": [
+      {
+        "scope": "col",
+        "text": "Session"
+      },
+      {
+        "scope": "col",
+        "text": "Time"
+      },
+      {
+        "scope": "col",
+        "text": "Room"
+      },
+      {
+        "scope": "row",
+        "text": "Morning"
+      },
+      {
+        "scope": "row",
+        "text": "Afternoon"
+      }
+    ]
+  },
+  {
+    "device": "Tablet",
+    "data": [
+      "09:00",
+      "Garden",
+      "14:00",
+      "Studio"
+    ],
+    "headers": [
+      {
+        "scope": "col",
+        "text": "Session"
+      },
+      {
+        "scope": "col",
+        "text": "Time"
+      },
+      {
+        "scope": "col",
+        "text": "Room"
+      },
+      {
+        "scope": "row",
+        "text": "Morning"
+      },
+      {
+        "scope": "row",
+        "text": "Afternoon"
+      }
+    ]
+  },
+  {
+    "device": "Mobile",
+    "data": [
+      "09:00",
+      "Garden",
+      "14:00",
+      "Studio"
+    ],
+    "headers": [
+      {
+        "scope": "col",
+        "text": "Session"
+      },
+      {
+        "scope": "col",
+        "text": "Time"
+      },
+      {
+        "scope": "col",
+        "text": "Room"
+      },
+      {
+        "scope": "row",
+        "text": "Morning"
+      },
+      {
+        "scope": "row",
+        "text": "Afternoon"
+      }
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "sourceBuilderSha256": "f9d9b32e66d288d486aea3a64926a08cd1f6c2188779ecd1edf7205b22a549a1",
+  "galleryNativeInteractionRuns": [
+    {
+      "passed": 30,
+      "total": 30
+    },
+    {
+      "passed": 30,
+      "total": 30
+    }
+  ],
+  "referenceImagesMatched": 24,
+  "repeatabilityImagesMatched": 24,
+  "baselinePngBytesChanged": 0,
+  "sourceCaptureProvenanceMatched": true,
+  "screenshotsVisuallyInspected": [
+    "native-gallery/review-1440.png",
+    "native-gallery/review-768.png"
+  ],
+  "browserVersionSupport": false,
+  "scope": "current built-in browser session repeatability; native gallery only, no claim of physical devices or pinned engine",
+  "fullSuite": {
+    "passed": 2724,
+    "skipped": 5,
+    "passedFiles": 261,
+    "skippedFiles": 2,
+    "exit": 0
+  },
+  "consumerSaveErrorNative": "pending exact WordPress package install",
+  "restoredCpuAndViewport": "both runs recorded cleanup responses for tab51; CPU never throttled",
+  "productionPromotion": false
+}

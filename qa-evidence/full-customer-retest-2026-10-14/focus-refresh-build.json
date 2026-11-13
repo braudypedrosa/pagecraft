@@ -1,0 +1,428 @@
+{
+  "at": "2026-10-17",
+  "purpose": "Independent enhanced-select keyboard-focus inspector refresh verification from committed parent 09b604b with exactly three root-reviewed source/test overlays.",
+  "parentCommit": "09b604bd9ada2d18728bc122ff1ee4bba3f79dd4",
+  "exports": [
+    "/tmp/pagecraft-focus-one-09",
+    "/tmp/pagecraft-focus-two-09"
+  ],
+  "sourceScope": {
+    "status": "frozen after root review",
+    "overlaidFiles": [
+      "shared/custom-select.js",
+      "app/src/ui/inspector/ctl.ts",
+      "tests/inspector-first-click-after-blur.test.tsx"
+    ],
+    "overlayCount": 3,
+    "mainBuildsOrTestsRun": false,
+    "mainGeneratedFilesWritten": false
+  },
+  "overlayCount": 3,
+  "overlays": {
+    "shared/custom-select.js": {
+      "sha256": "5d0e4022d8b3b6bf467305f08bd1c513e7cbb2cf3a1e1e42ff7eb28ad2ce0488",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "app/src/ui/inspector/ctl.ts": {
+      "sha256": "1e4c27afe0a54d8f6188681463b068ccb164a409953f2b3f6f29716bfc2b8165",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    },
+    "tests/inspector-first-click-after-blur.test.tsx": {
+      "sha256": "6075fd1a57b24b72dc99212a76fd2c88a7185575cbd38b2bdae49764b9a7eced",
+      "oneExact": true,
+      "twoExact": true,
+      "mainExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-focus-one-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-one-npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-focus-two-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-two-npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-focus-one-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-one-package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-focus-two-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-two-package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-focus-one-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-one-demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-focus-two-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-two-demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "focusedRegression": {
+      "command": "npx vitest run tests/inspector-first-click-after-blur.test.tsx tests/custom-select-blur-lifecycle.test.ts tests/inspector-custom-select-lifecycle.test.tsx",
+      "one": {
+        "cwd": "/tmp/pagecraft-focus-one-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-one-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 8,
+        "duration": "1.04s"
+      },
+      "two": {
+        "cwd": "/tmp/pagecraft-focus-two-09",
+        "log": "qa-evidence/full-customer-retest-2026-10-14/focus-two-focused.log",
+        "exitCode": 0,
+        "testFilesPassed": 3,
+        "testsPassed": 8,
+        "duration": "973ms"
+      }
+    },
+    "uiBaselineReview": {
+      "status": "reviewed and recorded",
+      "performed": true,
+      "owner": "root agent",
+      "rebaselinePerformed": true,
+      "thresholdChanged": false,
+      "galleryEvidence": "qa-evidence/full-customer-retest-2026-10-14/gallery/focus-refresh-final",
+      "behaviorChecks": {
+        "passed": 30,
+        "total": 30
+      },
+      "imageComparison": {
+        "passed": 24,
+        "total": 24,
+        "changedPixels": 0
+      },
+      "manualCaptureReview": [
+        "cloud-fields-1440.png",
+        "builder-menus-1440.png",
+        "cloud-dialogs-768.png",
+        "builder-fields-768.png"
+      ],
+      "canonicalDelta": {
+        "manifestChangedLines": 4,
+        "capturedAtUpdated": true,
+        "sharedCustomSelectSourceHashUpdated": true,
+        "pngsChangedVsParent": 0,
+        "pngsUnchangedVsParent": 24
+      }
+    },
+    "goldenReview": {
+      "status": "not required",
+      "reason": "The reviewed full suite passed with the existing golden fixture.",
+      "goldenFixtureChanged": false,
+      "rebaselinePerformed": false
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputs": {
+      "index.html": {
+        "one": "02df4990d83719c3ad18a84e971802ca71e88a14d7711e1a3de8685518c81665",
+        "two": "02df4990d83719c3ad18a84e971802ca71e88a14d7711e1a3de8685518c81665",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "0a45e72867909b6d7bee710beec4835a72990afa5d5d29ae4fab18a45d9359a3",
+        "equalsParentCommitted": false
+      },
+      "dist/core.cjs": {
+        "one": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "two": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "9a9f2bd1cf7b694a96907e89da770c95ef09249c096fddf802a1cea3253a00f1",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/contract.json": {
+        "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/editor.html": {
+        "one": "dc6d7d3fd6ea284d5ece9290c4bde5049281647abf002aba008a7dfe99b2984b",
+        "two": "dc6d7d3fd6ea284d5ece9290c4bde5049281647abf002aba008a7dfe99b2984b",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "c222d6999a0f0ec9b16263f22018f0deed07e9395fee6e885dec7d8e6ed0122c",
+        "equalsParentCommitted": false
+      },
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+        "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+        "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/runtime.js": {
+        "one": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "two": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "841aadbbf2a9a2209c2213013660a3c46b2316ca1c7cca1861746c2b17455c33",
+        "equalsParentCommitted": true
+      },
+      "dist/demo/index.html": {
+        "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/templates.json": {
+        "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+        "equalsParentCommitted": true
+      },
+      "packages/editor/dist/compiler.js": {
+        "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      },
+      "packages/editor/dist/compiler-worker.js": {
+        "one": "710ebe9033d4039af77ffe35dc89120efeb6f958b38504ac180d754aa07b0a04",
+        "two": "710ebe9033d4039af77ffe35dc89120efeb6f958b38504ac180d754aa07b0a04",
+        "oneEqualsTwo": true,
+        "parentCommittedSha256": null,
+        "equalsParentCommitted": null
+      }
+    },
+    "generatedOutputsMatchAcrossExports": true,
+    "parentCommittedComparableCount": 9,
+    "parentCommittedComparableExactCount": 7,
+    "parentCommittedChangedExpected": [
+      "index.html",
+      "packages/editor/dist/editor.html"
+    ],
+    "untrackedGeneratedCount": 2,
+    "protectedReference": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json#protectedBefore",
+    "protectedBefore": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "protectedCurrent": {
+      "index.html": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "dist/core.cjs": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "packages/editor/dist/contract.json": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "packages/editor/dist/editor.html": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "packages/editor/dist/fixtures/page.pagecraft-page.zip": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "packages/editor/dist/fixtures/site.pagecraft-site.zip": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "packages/editor/dist/runtime.js": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "dist/demo/index.html": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "packages/editor/dist/templates.json": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "packages/editor/dist/compiler.js": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "packages/editor/dist/compiler-worker.js": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155"
+    },
+    "allMainProtectedBytesPreserved": true,
+    "initialFullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-focus-one-09",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-focus-refresh-final-20261017.log",
+      "exitCode": 1,
+      "testFilesPassed": 207,
+      "testFilesFailed": 1,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 210,
+      "testsPassed": 2368,
+      "testsFailed": 1,
+      "testsSkipped": 5,
+      "testsTotal": 2374,
+      "duration": "45.91s",
+      "failure": "tests/ui-baselines.test.mjs requires built-in browser gallery review after shared/custom-select.js changed. No baseline was updated; verification is held for root review."
+    },
+    "fullSuiteOne": {
+      "command": "npm test -- --maxWorkers=4",
+      "cwd": "/tmp/pagecraft-focus-one-09",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/tests-focus-refresh-reviewed-20261017.log",
+      "exitCode": 0,
+      "testFilesPassed": 208,
+      "testFilesSkipped": 2,
+      "testFilesTotal": 210,
+      "testsPassed": 2369,
+      "testsSkipped": 5,
+      "testsTotal": 2374,
+      "duration": "45.86s"
+    },
+    "reviewedBaselineCopy": {
+      "source": "public/internal-ui-baselines",
+      "fileCount": 25,
+      "manifestCount": 1,
+      "pngCount": 24,
+      "oneExact": true,
+      "twoExact": true,
+      "files": {
+        "builder-actions-1440.png": {
+          "sha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-actions-768.png": {
+          "sha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-dialogs-1440.png": {
+          "sha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-dialogs-768.png": {
+          "sha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-feedback-1440.png": {
+          "sha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-feedback-768.png": {
+          "sha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-fields-1440.png": {
+          "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-fields-768.png": {
+          "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-menus-1440.png": {
+          "sha256": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-menus-768.png": {
+          "sha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-tables-1440.png": {
+          "sha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "builder-tables-768.png": {
+          "sha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-actions-1440.png": {
+          "sha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-actions-768.png": {
+          "sha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-dialogs-1440.png": {
+          "sha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-dialogs-768.png": {
+          "sha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-feedback-1440.png": {
+          "sha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-feedback-768.png": {
+          "sha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-fields-1440.png": {
+          "sha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-fields-768.png": {
+          "sha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-menus-1440.png": {
+          "sha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-menus-768.png": {
+          "sha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-tables-1440.png": {
+          "sha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "cloud-tables-768.png": {
+          "sha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+          "oneExact": true,
+          "twoExact": true
+        },
+        "manifest.json": {
+          "sha256": "91a9babfe1bfe1974c9ee50c39195f198cb0d9f79c9ba203f7806da0c27f74df",
+          "oneExact": true,
+          "twoExact": true
+        }
+      }
+    },
+    "canonicalBaselineCheck": {
+      "command": "node tools/ui-baselines.mjs check",
+      "cwd": "/tmp/pagecraft-focus-one-09",
+      "log": "qa-evidence/full-customer-retest-2026-10-14/focus-baseline-check.log",
+      "exitCode": 0,
+      "imagesVerified": 24,
+      "sourceFilesVerified": 28
+    }
+  }
+}

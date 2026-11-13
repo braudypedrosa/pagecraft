@@ -1,0 +1,60 @@
+{
+  "panels": [
+    {
+      "display": "block",
+      "hidden": false,
+      "id": "nzjqnm1n5-p0",
+      "text": "Step-free entry is available.Bring your booking reference and ask for the quiet room.<strong>Show this as literal text.</strong>"
+    },
+    {
+      "display": "block",
+      "hidden": false,
+      "id": "nzjqnm1n5-p1",
+      "text": "Step-free entry is available.Bring your booking reference and ask for the quiet room.<strong>Show this as literal text.</strong>"
+    },
+    {
+      "display": "block",
+      "hidden": false,
+      "id": "nzjqnm1n5-p2",
+      "text": "The part someone came looking for."
+    },
+    {
+      "display": "block",
+      "hidden": false,
+      "id": "nzjqnm1n5-p3",
+      "text": "The number, plainly."
+    }
+  ],
+  "rect": {
+    "bottom": 928.421875,
+    "height": 439.71875,
+    "left": 20,
+    "right": 379,
+    "top": 488.703125,
+    "width": 359,
+    "x": 20,
+    "y": 488.703125
+  },
+  "tabs": [
+    {
+      "controls": "nzjqnm1n5-p0",
+      "label": "Access & booking <draft>",
+      "selected": "true"
+    },
+    {
+      "controls": "nzjqnm1n5-p1",
+      "label": "Access & booking <draft>",
+      "selected": "false"
+    },
+    {
+      "controls": "nzjqnm1n5-p2",
+      "label": "Details",
+      "selected": "false"
+    },
+    {
+      "controls": "nzjqnm1n5-p3",
+      "label": "Pricing",
+      "selected": "false"
+    }
+  ]
+}

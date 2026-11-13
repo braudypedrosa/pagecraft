@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/braudypedorsa/Braudy/Projects/Pagecraft/.codex-worktrees/preview-date-cleanup
+
+
+ Test Files  2 passed (2)
+      Tests  19 passed (19)
+   Start at  18:46:04
+   Duration  3.50s (transform 229ms, setup 0ms, import 2.10s, tests 3.20s, environment 0ms)

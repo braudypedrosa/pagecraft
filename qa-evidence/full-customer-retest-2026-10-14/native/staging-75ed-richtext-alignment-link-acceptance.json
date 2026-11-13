@@ -1,0 +1,383 @@
+{
+  "environment": "staging",
+  "sourceCommit": "75ed8acb11bb3297d4889f3edade56d6af31807e",
+  "baseline": {
+    "align": "center",
+    "classes": "pagecraft-wysiwyg pagecraft-k8y2k11g ts-body",
+    "html": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>",
+    "link": null
+  },
+  "cases": [
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Desktop",
+      "label": "Left",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Desktop",
+      "label": "Centre",
+      "expected": "center",
+      "actual": "center",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Desktop",
+      "label": "Right",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Desktop",
+      "label": "Justified",
+      "expected": "justify",
+      "actual": "justify",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Tablet",
+      "label": "Left",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Tablet",
+      "label": "Centre",
+      "expected": "center",
+      "actual": "center",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Tablet",
+      "label": "Right",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Tablet",
+      "label": "Justified",
+      "expected": "justify",
+      "actual": "justify",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Mobile",
+      "label": "Left",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Mobile",
+      "label": "Centre",
+      "expected": "center",
+      "actual": "center",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Mobile",
+      "label": "Right",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "kind": "Alignment finite choice",
+      "bp": "Mobile",
+      "label": "Justified",
+      "expected": "justify",
+      "actual": "justify",
+      "passed": true
+    },
+    {
+      "kind": "Link colour override",
+      "bp": "Desktop",
+      "value": "#173c5e",
+      "expected": "rgb(23, 60, 94)",
+      "actual": "rgb(23, 60, 94)",
+      "passed": true
+    },
+    {
+      "kind": "Link colour override",
+      "bp": "Tablet",
+      "value": "#703347",
+      "expected": "rgb(112, 51, 71)",
+      "actual": "rgb(112, 51, 71)",
+      "passed": true
+    },
+    {
+      "kind": "Link colour override",
+      "bp": "Mobile",
+      "value": "#235a3e",
+      "expected": "rgb(35, 90, 62)",
+      "actual": "rgb(35, 90, 62)",
+      "passed": true
+    }
+  ],
+  "responsiveBefore": [
+    {
+      "bp": "Desktop",
+      "render": {
+        "align": "center",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "lineHeight": "39.6px",
+        "size": "22px"
+      },
+      "reset": [
+        ""
+      ]
+    },
+    {
+      "bp": "Tablet",
+      "render": {
+        "align": "center",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "lineHeight": "32.4px",
+        "size": "18px"
+      },
+      "reset": []
+    },
+    {
+      "bp": "Mobile",
+      "render": {
+        "align": "center",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "lineHeight": "28.8px",
+        "size": "16px"
+      },
+      "reset": []
+    }
+  ],
+  "alignmentPersisted": [
+    {
+      "bp": "Desktop",
+      "expected": "right",
+      "actual": "right",
+      "passed": true
+    },
+    {
+      "bp": "Tablet",
+      "expected": "left",
+      "actual": "left",
+      "passed": true
+    },
+    {
+      "bp": "Mobile",
+      "expected": "justify",
+      "actual": "justify",
+      "passed": true
+    }
+  ],
+  "linkBefore": [
+    {
+      "bp": "Desktop",
+      "computed": "rgb(108, 71, 47)",
+      "controls": {
+        "inputs": [],
+        "text": "Link colour Terracotta",
+        "titles": [
+          "Restore default for Link colour",
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      }
+    },
+    {
+      "bp": "Tablet",
+      "computed": "rgb(108, 71, 47)",
+      "controls": {
+        "inputs": [],
+        "text": "Link colourInherited Terracotta",
+        "titles": [
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      }
+    },
+    {
+      "bp": "Mobile",
+      "computed": "rgb(108, 71, 47)",
+      "controls": {
+        "inputs": [],
+        "text": "Link colourInherited Terracotta",
+        "titles": [
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      }
+    }
+  ],
+  "linkPersisted": [
+    {
+      "bp": "Desktop",
+      "expected": "rgb(23, 60, 94)",
+      "actual": {
+        "align": "center",
+        "colour": "rgb(23, 60, 94)",
+        "fontSize": "22px",
+        "href": "https://example.com/qa-richtext?view=link&source=builder",
+        "html": "<p><b><a href=\"https://example.com/qa-richtext?view=link&amp;source=builder\">Shared rooms &amp; gardens &lt;sample&gt;.</a></b></p>"
+      },
+      "passed": true
+    },
+    {
+      "bp": "Tablet",
+      "expected": "rgb(112, 51, 71)",
+      "actual": {
+        "align": "center",
+        "colour": "rgb(112, 51, 71)",
+        "fontSize": "18px",
+        "href": "https://example.com/qa-richtext?view=link&source=builder",
+        "html": "<p><b><a href=\"https://example.com/qa-richtext?view=link&amp;source=builder\">Shared rooms &amp; gardens &lt;sample&gt;.</a></b></p>"
+      },
+      "passed": true
+    },
+    {
+      "bp": "Mobile",
+      "expected": "rgb(35, 90, 62)",
+      "actual": {
+        "align": "center",
+        "colour": "rgb(35, 90, 62)",
+        "fontSize": "16px",
+        "href": "https://example.com/qa-richtext?view=link&source=builder",
+        "html": "<p><b><a href=\"https://example.com/qa-richtext?view=link&amp;source=builder\">Shared rooms &amp; gardens &lt;sample&gt;.</a></b></p>"
+      },
+      "passed": true
+    }
+  ],
+  "restoreBeforeReload": {
+    "html": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>",
+    "expectedHtml": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>"
+  },
+  "restoredFresh": [
+    {
+      "bp": "Desktop",
+      "render": {
+        "align": "center",
+        "classes": "pagecraft-wysiwyg pagecraft-k8y2k11g ts-body",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "html": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>",
+        "lineHeight": "39.6px",
+        "size": "22px"
+      },
+      "linkControl": {
+        "text": "Link colour Terracotta",
+        "titles": [
+          "Restore default for Link colour",
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "bp": "Tablet",
+      "render": {
+        "align": "center",
+        "classes": "pagecraft-wysiwyg pagecraft-k8y2k11g ts-body",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "html": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>",
+        "lineHeight": "32.4px",
+        "size": "18px"
+      },
+      "linkControl": {
+        "text": "Link colourInherited Terracotta",
+        "titles": [
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "bp": "Mobile",
+      "render": {
+        "align": "center",
+        "classes": "pagecraft-wysiwyg pagecraft-k8y2k11g ts-body",
+        "font": "Georgia, \"Times New Roman\", serif",
+        "html": "<p><b>Shared rooms &amp; gardens &lt;sample&gt;.</b></p>",
+        "lineHeight": "28.8px",
+        "size": "16px"
+      },
+      "linkControl": {
+        "text": "Link colourInherited Terracotta",
+        "titles": [
+          "Pick a colour",
+          "Unlink — keep the colour, drop the link",
+          "Page background",
+          "Ink",
+          "Body text",
+          "Paper",
+          "Terracotta",
+          "Secondary text",
+          "Divider",
+          "Project surface",
+          "Save this colour as a new token"
+        ]
+      },
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "coverage": "12 finite alignment choices across D/T/M; 3 saved/reloaded distinct alignments; toolbar add/remove link with entities and existing bold preserved; 3 custom responsive link colours saved/reloaded and previewed; original typography/alignment/token/HTML restored after fresh reload. Other module/shared/Advanced settings remain open."
+}

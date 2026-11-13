@@ -1,0 +1,9 @@
+{
+  "url": "http://localhost:4988/edit/s1",
+  "pid": 2770,
+  "preservedTab": 55,
+  "indexSha256": "3924b63311e73df9b3bc5c4f4c200408bfec27a4f37e4ce6d95cee413aa14228",
+  "servedSha256": "8177d43f9f75a582bfbfc576a455bc560c1378e88cfc05f1b4f7eb88229d8dda",
+  "matchesAcceptedAssetAfterFullSuite": true,
+  "noServerRestart": true
+}

@@ -60,6 +60,11 @@ export interface SiteRevision {
   createdAt: string;
 }
 
+/** The history index is intentionally metadata-only. Full immutable documents are loaded one
+    version at a time through `revision`, so a long-lived site does not multiply its document
+    size through the database gateway merely to paint a list. */
+export type SiteRevisionMeta = Pick<SiteRevision, 'siteId' | 'version' | 'savedBy' | 'createdAt'>;
+
 export interface CmsWriteHead {
   connectionId: string;
   collectionId: string;
@@ -88,7 +93,9 @@ export interface Store {
   byHost(host: string): Promise<Site | null>;
   /** the site answering under `/<slug>/…` on the editor's host */
   bySlug(slug: string): Promise<Site | null>;
-  byId(id: string): Promise<Site | null>;
+  /** `fresh` skips any per-process cache. Other processes change sites without telling this
+      one, so use it where acting on a stale slug, host or version would be wrong. */
+  byId(id: string, options?: { fresh?: boolean }): Promise<Site | null>;
   list(): Promise<Site[]>;
   listMeta(): Promise<SiteMeta[]>;
   create(input: { host: string; slug?: string; name: string; doc: Doc; savedBy?: string }): Promise<Site>;
@@ -101,7 +108,7 @@ export interface Store {
     id: string, doc: Doc, version: number, savedBy: string, connectionId: string,
     context: Record<string, unknown>, active?: () => Promise<boolean>
   ): Promise<SaveResult>;
-  history(id: string): Promise<SiteRevision[]>;
+  history(id: string): Promise<SiteRevisionMeta[]>;
   revision(id: string, version: number): Promise<SiteRevision | null>;
   /** Latest WordPress write sequence per requested item, read without returning revision docs. */
   cmsWriteHeads(id: string, connectionId: string, itemKeys: string[]): Promise<CmsWriteHead[]>;
@@ -137,8 +144,9 @@ export interface Store {
    `app.test.ts` asserts that by reading Hono's own route table. Adding a route without adding
    it here is caught rather than discovered the day a site called `api` stops loading. */
 export const RESERVED_PATHS = [
-  'forms', 'review', '_pc',
-  'account', 'notifications', 'mcp',
+  'invitations',
+  'forms', 'review', '_pc', 'oauth',
+  'account', 'notifications', 'mcp', 'owner',
   'api', 'auth', 'brand', 'internal', 'edit', 'sites', 'templates', 'v1', 'sign-up', 'sign-in', 'forgot-password',
   'reset-password', 'privacy', 'terms',
   /* not routes, but names a browser or a crawler asks for at the root */
@@ -324,7 +332,7 @@ export class MemoryStore implements Store {
   }
 
   async history(id: string) {
-    return (this.revisions.get(id) || []).slice().reverse().map(r => this.revisionCopy(r));
+    return (this.revisions.get(id) || []).slice().reverse().map(({ doc: _doc, context: _context, ...meta }) => meta);
   }
 
   async revision(id: string, version: number) {

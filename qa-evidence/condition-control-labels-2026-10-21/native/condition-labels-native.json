@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Position",
+    "text": "Default",
+    "value": ""
+  },
+  {
+    "name": "Top unit or keyword",
+    "text": "px",
+    "value": ""
+  },
+  {
+    "name": "Z-index unit or keyword",
+    "text": "—",
+    "value": ""
+  },
+  {
+    "name": "Overflow",
+    "text": "Default",
+    "value": ""
+  },
+  {
+    "name": "Max width unit or keyword",
+    "text": "px",
+    "value": ""
+  },
+  {
+    "name": "Show only if",
+    "text": "Workshop title shown in listings and the calendar · text",
+    "value": ""
+  },
+  {
+    "name": "Condition",
+    "text": "is",
+    "value": ""
+  },
+  {
+    "name": "Value to compare",
+    "text": "",
+    "value": "1. Community workshop and accessibility review for local teams"
+  }
+]

@@ -1,0 +1,173 @@
+{
+  "overlays": {
+    "vendor/bp-animate/bp-animate.js": {
+      "main": "99462947e45b97b30f9bbdb110eb333305ff5ff6aa91b63535e1a9a6093bb853",
+      "one": "99462947e45b97b30f9bbdb110eb333305ff5ff6aa91b63535e1a9a6093bb853",
+      "two": "99462947e45b97b30f9bbdb110eb333305ff5ff6aa91b63535e1a9a6093bb853",
+      "allExact": true
+    },
+    "app/src/core/anim.ts": {
+      "main": "57f40904d388274c35bf862a271af812329ffb4390f06117dd63e04d99866dc4",
+      "one": "57f40904d388274c35bf862a271af812329ffb4390f06117dd63e04d99866dc4",
+      "two": "57f40904d388274c35bf862a271af812329ffb4390f06117dd63e04d99866dc4",
+      "allExact": true
+    },
+    "app/src/ui/inspector/Inspector.tsx": {
+      "main": "8f8b39d1e28148d7c879aa87e1e222ae1e4c3be4f1b980ead4783973f3e517f0",
+      "one": "8f8b39d1e28148d7c879aa87e1e222ae1e4c3be4f1b980ead4783973f3e517f0",
+      "two": "8f8b39d1e28148d7c879aa87e1e222ae1e4c3be4f1b980ead4783973f3e517f0",
+      "allExact": true
+    },
+    "tests/animation-runtime.test.ts": {
+      "main": "7a975c99fd13ea60650773a2236a137c8c7dfd6d4d614605f73eaa9b0cb70afe",
+      "one": "7a975c99fd13ea60650773a2236a137c8c7dfd6d4d614605f73eaa9b0cb70afe",
+      "two": "7a975c99fd13ea60650773a2236a137c8c7dfd6d4d614605f73eaa9b0cb70afe",
+      "allExact": true
+    },
+    "tests/entrance-animation-options.test.tsx": {
+      "main": "059d338e1811f4e2ca9841674dc2e6e4a578beb90beeaaa6dbc6065647de81d4",
+      "one": "059d338e1811f4e2ca9841674dc2e6e4a578beb90beeaaa6dbc6065647de81d4",
+      "two": "059d338e1811f4e2ca9841674dc2e6e4a578beb90beeaaa6dbc6065647de81d4",
+      "allExact": true
+    },
+    "tests/inspector-motion-labels.test.tsx": {
+      "main": "a2e335465d8af4497bd2fd1a1f63a7d84e102da868abe44d99d84cfa5b4e3e95",
+      "one": "a2e335465d8af4497bd2fd1a1f63a7d84e102da868abe44d99d84cfa5b4e3e95",
+      "two": "a2e335465d8af4497bd2fd1a1f63a7d84e102da868abe44d99d84cfa5b4e3e95",
+      "allExact": true
+    }
+  },
+  "protectedMain": {
+    "index.html": {
+      "expected": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "current": "ff3d7dd47712049e264697bae628d7c76ca20ef16ba42cc16789a1ef146847b0",
+      "exact": true
+    },
+    "dist/core.cjs": {
+      "expected": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "current": "8f7858655bf3c3f011d196d77b8dece56d0cf4e884de2c293c96776c47d40071",
+      "exact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "expected": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "current": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "exact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "expected": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "current": "bd39897b750388eb4aedd39ca6fadbd5a3e9c52aa804c4ce17d91f3aa5e6854e",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "expected": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "current": "4c7fea7f6d8941b4fff5dd7bd8dd039fdd6bcc5689696ac6126c763433e68df9",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "expected": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "current": "b3133c2a2d2054ad45002ca1ab4f3036b8a4f4ca38806124af51768b3d2816e0",
+      "exact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "expected": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "current": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "exact": true
+    },
+    "dist/demo/index.html": {
+      "expected": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "current": "6aa053f39e113fc743386ef3219e126034639e4e35eb11b6c7c2e3e5bf99ddb6",
+      "exact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "expected": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "current": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "exact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "expected": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "current": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "expected": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "current": "33db2698f96a2cd8e9e0e58f3fb8704baa36eaa4d01b8b9923531c811516e155",
+      "exact": true
+    }
+  },
+  "generated": {
+    "index.html": {
+      "one": "e2f8c38e8c63c0df669e80c6ccfff52a699188e9b96e0ede6d981e312961d428",
+      "two": "e2f8c38e8c63c0df669e80c6ccfff52a699188e9b96e0ede6d981e312961d428",
+      "exact": true
+    },
+    "dist/core.cjs": {
+      "one": "601ea95a5116a89509917268599776027fcd16325a50cd7e0a59b0384fa66d0f",
+      "two": "601ea95a5116a89509917268599776027fcd16325a50cd7e0a59b0384fa66d0f",
+      "exact": true
+    },
+    "packages/editor/dist/contract.json": {
+      "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "exact": true
+    },
+    "packages/editor/dist/editor.html": {
+      "one": "6ba18c4709fa5facc65c11dd82bfeb3bbd33143f2ea433da6dd0b4948af97d1e",
+      "two": "6ba18c4709fa5facc65c11dd82bfeb3bbd33143f2ea433da6dd0b4948af97d1e",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "exact": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "exact": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "two": "11d5734736c9eaba06fbea7f5b974548c14c92a91c69981255740359c4e94200",
+      "exact": true
+    },
+    "dist/demo/index.html": {
+      "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "exact": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "exact": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "exact": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": "bdef0ddca7e33c2791c95496e259222080b25ae8fcbde44b880eb2eb112c66fe",
+      "two": "bdef0ddca7e33c2791c95496e259222080b25ae8fcbde44b880eb2eb112c66fe",
+      "exact": true
+    }
+  },
+  "golden": {
+    "main": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "one": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "two": "6188d0fd6628667b54b0e1495f55195e31e3c2cf405f0aadabace69f9353a8b4",
+    "allExact": true
+  },
+  "baselines": {
+    "mainCount": 25,
+    "oneCount": 25,
+    "twoCount": 25,
+    "allExact": true
+  },
+  "gallery": {
+    "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/pagecraft/qa-evidence/full-customer-retest-2026-10-14/gallery/animation-final",
+    "files": 27
+  },
+  "allOverlaysExact": true,
+  "protectedMain11Exact": true,
+  "generated11Deterministic": true
+}

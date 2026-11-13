@@ -1,0 +1,537 @@
+{
+  "at": "2026-10-17T23:59:00+08:00",
+  "purpose": "Isolated responsive visibility candidate verification; no full suite or main build/test.",
+  "parentCommit": "5da0daa1b76277c007e5ebfa67a759271f0870ba",
+  "exports": [
+    "/tmp/pagecraft-visibility-one-5da",
+    "/tmp/pagecraft-visibility-two-5da"
+  ],
+  "overlays": {
+    "app/src/core/index.ts": {
+      "sha256": "e0604bd3f1331d97091930fe3a1828b233ce549a64309b26085ebe4b1be903b9",
+      "expected": "e0604bd3f1331d97091930fe3a1828b233ce549a64309b26085ebe4b1be903b9",
+      "oneExact": true,
+      "twoExact": true
+    },
+    "tests/core.test.ts": {
+      "sha256": "60d13e99d72978c7fa16e1c5f041a4f08ab00cb199f1f95544a360bd54a418c4",
+      "expected": "60d13e99d72978c7fa16e1c5f041a4f08ab00cb199f1f95544a360bd54a418c4",
+      "oneExact": true,
+      "twoExact": true
+    },
+    "tests/responsive-visibility.test.ts": {
+      "sha256": "ae92a4ea42b5657124359807010eddee3887af4e13a01ea59ee4ad8ad2d4c5ff",
+      "expected": "ae92a4ea42b5657124359807010eddee3887af4e13a01ea59ee4ad8ad2d4c5ff",
+      "oneExact": true,
+      "twoExact": true
+    },
+    "server/tests/fixtures/wordpress-artifact-v1.json": {
+      "sha256": "721d9afca0757305af05fdb00e30a5a35e48c56ef2192b532d8a05acdfff14a2",
+      "expected": "721d9afca0757305af05fdb00e30a5a35e48c56ef2192b532d8a05acdfff14a2",
+      "oneExact": true,
+      "twoExact": true
+    }
+  },
+  "verification": {
+    "npmCi": {
+      "one": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-visibility-one-5da",
+        "log": "/tmp/pagecraft-visibility-one-5da/npm-ci.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm ci --ignore-scripts",
+        "cwd": "/tmp/pagecraft-visibility-two-5da",
+        "log": "/tmp/pagecraft-visibility-two-5da/npm-ci.log",
+        "exitCode": 0
+      }
+    },
+    "packageBuild": {
+      "one": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-visibility-one-5da",
+        "log": "/tmp/pagecraft-visibility-one-5da/package-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build:editor-package",
+        "cwd": "/tmp/pagecraft-visibility-two-5da",
+        "log": "/tmp/pagecraft-visibility-two-5da/package-build.log",
+        "exitCode": 0
+      }
+    },
+    "demoBuild": {
+      "one": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-visibility-one-5da",
+        "log": "/tmp/pagecraft-visibility-one-5da/demo-build.log",
+        "exitCode": 0
+      },
+      "two": {
+        "command": "npm run build",
+        "cwd": "/tmp/pagecraft-visibility-two-5da",
+        "log": "/tmp/pagecraft-visibility-two-5da/demo-build.log",
+        "exitCode": 0
+      }
+    },
+    "generatedOutputCount": 11,
+    "generatedOutputsMatchAcrossExports": true,
+    "mainProtected11MatchProtectedBefore": true,
+    "protectedBeforeEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json",
+    "fullSuiteRun": false
+  },
+  "generatedOutputs": {
+    "index.html": {
+      "one": "51855ec80ccc922180e87f5b882f7263faf6bf8313feed168e671969243014a3",
+      "two": "51855ec80ccc922180e87f5b882f7263faf6bf8313feed168e671969243014a3",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "dist/core.cjs": {
+      "one": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f",
+      "two": "88b199c1e7672c0a3a7e9c530d48eb04970b4e2eb4fdc4dbe5c9dcd13222479f",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/contract.json": {
+      "one": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "two": "99e40f58cfbc9a331a8d94534335e7ce76d9897f66057173d401b2551b385f29",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/editor.html": {
+      "one": "b363679b94fe11f91d7543de964268f7938496a7b1d83726ad7fbb1ddc6a307f",
+      "two": "b363679b94fe11f91d7543de964268f7938496a7b1d83726ad7fbb1ddc6a307f",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/fixtures/page.pagecraft-page.zip": {
+      "one": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "two": "4e21c3b3e224c176cfb673f63a34d0a81587c4cbf03f58c6e5bf35e59a51ecc6",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/fixtures/site.pagecraft-site.zip": {
+      "one": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "two": "f7fadb0c995a2d4ba000d7c60076eccb3a1d2d20c6e02cf27b3db5c3d201ebcc",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/runtime.js": {
+      "one": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "two": "7b5f500c0047fd1ba9575b05d3df62d80a6cded74d0bf497a9af4732a4a9d3de",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "dist/demo/index.html": {
+      "one": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "two": "e90089041a55da099975a678c858d926c274cd65537b1aae1a06af2e33a97495",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/templates.json": {
+      "one": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "two": "c98056927e56f03921fbe87407aa6acbe3f013e0c4122c79868fb2f05cad11db",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/compiler.js": {
+      "one": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "two": "71cee6214945e93afcbebbf7b329c3a820849eda78b505980dedac283e5baed0",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    },
+    "packages/editor/dist/compiler-worker.js": {
+      "one": "c1c4f232bf2f9ada2e21b9cbcde9b0a7d0521f7b4461e134587d8e3b631b9219",
+      "two": "c1c4f232bf2f9ada2e21b9cbcde9b0a7d0521f7b4461e134587d8e3b631b9219",
+      "oneEqualsTwo": true,
+      "mainProtectedBefore": true
+    }
+  },
+  "loopbackGalleryServer": {
+    "status": "running",
+    "pid": 6267,
+    "port": 4950,
+    "bind": "127.0.0.1:4950",
+    "url": "http://localhost:4950/internal/components?host=cloud",
+    "fixture": "/tmp/pagecraft-visibility-server.mts",
+    "editorHtml": "/tmp/pagecraft-visibility-one-5da/index.html",
+    "stores": "MemoryStore, MemoryAuthStore, MemoryAssetStore; fictional accountAuth; componentGallery enabled",
+    "healthCheck": {
+      "command": "curl -fsS -H 'Host: localhost' http://127.0.0.1:4950/internal/components?host=cloud",
+      "httpStatus": 200
+    },
+    "scope": "loopback-only disposable fixture; no hosted DB, credentials, provider environment, or API authoring."
+  },
+  "galleryVerification": {
+    "capture": "qa-evidence/full-customer-retest-2026-10-14/gallery/visibility-final/capture.json",
+    "captureCount": 24,
+    "behaviorChecks": 30,
+    "sourceCount": 28,
+    "captureEnvironment": {
+      "screen": {
+        "width": 2560,
+        "height": 1440,
+        "availWidth": 2560,
+        "availHeight": 1440,
+        "colorDepth": 24,
+        "pixelDepth": 24
+      },
+      "colorGamut": {
+        "srgb": true,
+        "p3": false,
+        "rec2020": false
+      },
+      "dynamicRange": {
+        "standard": true,
+        "high": false
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+    },
+    "baseline": "/tmp/pagecraft-visibility-one-5da/public/internal-ui-baselines (committed 5da baseline)",
+    "comparisonSummary": {
+      "shaExact": 24,
+      "rgbaExact": 24,
+      "dimensionsEqual": 24,
+      "changedCaptureCount": 0,
+      "maxChangedRatio": 0
+    },
+    "perImage": {
+      "cloud-fields-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+        "captureSha256": "6a8a2c8f83a96b729d913aba1ae8c60f9fdc9c747228248e6b32e84092fb5f44",
+        "width": 1440,
+        "height": 1098
+      },
+      "cloud-fields-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+        "captureSha256": "4630619ea6578e328c62626b9794e74c46847797ccda2e8954deb6e98b2a4ae0",
+        "width": 768,
+        "height": 1587
+      },
+      "cloud-actions-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+        "captureSha256": "606889f52f38e29db26487ac2337ea9b04603b08bdca1e00ced87f5dd5da0518",
+        "width": 1440,
+        "height": 959
+      },
+      "cloud-actions-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+        "captureSha256": "290746985ee0837cee6bb9dc68d516cbc6212a42e0cb904a6f4128190628eedf",
+        "width": 768,
+        "height": 1015
+      },
+      "cloud-tables-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+        "captureSha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+        "width": 1440,
+        "height": 1106
+      },
+      "cloud-tables-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+        "captureSha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+        "width": 768,
+        "height": 1172
+      },
+      "cloud-menus-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+        "captureSha256": "89864bbfbf01f3c771713325f39e76a3a85938eb592a212c3ae965a84d7da973",
+        "width": 1440,
+        "height": 900
+      },
+      "cloud-menus-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+        "captureSha256": "f7f92cca900abeb9abf26c716634032a4d82f837b62f8f30ccd0d2e50d7ca0c4",
+        "width": 768,
+        "height": 1008
+      },
+      "cloud-dialogs-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+        "captureSha256": "6baa1644b1246d2c75d4ff646ca491ce22653a472a2ad99cb80c8d65faac2df6",
+        "width": 1440,
+        "height": 900
+      },
+      "cloud-dialogs-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+        "captureSha256": "dc99d560bc6fdf21052097f363daeb2ebfd600c056bd6e8f3f1e25e2fc8188ea",
+        "width": 768,
+        "height": 900
+      },
+      "cloud-feedback-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+        "captureSha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+        "width": 1440,
+        "height": 900
+      },
+      "cloud-feedback-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+        "captureSha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+        "width": 768,
+        "height": 900
+      },
+      "builder-fields-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+        "captureSha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+        "width": 1440,
+        "height": 1166
+      },
+      "builder-fields-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+        "captureSha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+        "width": 768,
+        "height": 1883
+      },
+      "builder-actions-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+        "captureSha256": "f498a230ff23bf92d2b485479b376c052465f59157cefe3da867bfcd89ac8968",
+        "width": 1440,
+        "height": 1224
+      },
+      "builder-actions-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+        "captureSha256": "3105684b58945de7006f301f4250c29af6d89e0f1737c80e60e006e474508b0e",
+        "width": 768,
+        "height": 1279
+      },
+      "builder-tables-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+        "captureSha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+        "width": 1440,
+        "height": 1228
+      },
+      "builder-tables-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+        "captureSha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+        "width": 768,
+        "height": 1284
+      },
+      "builder-menus-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+        "captureSha256": "c92b54470285a806750985278a4c840d11329092fc71e54112853ef54bb6115f",
+        "width": 1440,
+        "height": 900
+      },
+      "builder-menus-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+        "captureSha256": "0e658aa11a98a9b5c8226847a1a57d334b8bb239940757bb6e57e3d7baa4db94",
+        "width": 768,
+        "height": 959
+      },
+      "builder-dialogs-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+        "captureSha256": "e41691da15fdb256294e0b1c798e7a5183c6186b39e345d4b9e6b39d4a241ec0",
+        "width": 1440,
+        "height": 900
+      },
+      "builder-dialogs-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+        "captureSha256": "eefef9967f35ccb9686d42a1aa3ce3a62db4c383275f2ea8ea88cf7b5b74e769",
+        "width": 768,
+        "height": 900
+      },
+      "builder-feedback-1440.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+        "captureSha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+        "width": 1440,
+        "height": 900
+      },
+      "builder-feedback-768.png": {
+        "shaExact": true,
+        "rgbaExact": true,
+        "dimensionsEqual": true,
+        "changedBytes": 0,
+        "changedRatio": 0,
+        "baselineSha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+        "captureSha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+        "width": 768,
+        "height": 900
+      }
+    },
+    "canonicalChecks": {
+      "one": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-visibility-one-5da",
+        "exitCode": 0,
+        "images": 24,
+        "sourceFiles": 28
+      },
+      "two": {
+        "command": "node tools/ui-baselines.mjs check",
+        "cwd": "/tmp/pagecraft-visibility-two-5da",
+        "exitCode": 0,
+        "images": 24,
+        "sourceFiles": 28
+      }
+    },
+    "contactSheets": [
+      "qa-evidence/full-customer-retest-2026-10-14/gallery/visibility-final/contact-cloud-1440.png",
+      "qa-evidence/full-customer-retest-2026-10-14/gallery/visibility-final/contact-cloud-768.png",
+      "qa-evidence/full-customer-retest-2026-10-14/gallery/visibility-final/contact-builder-1440.png",
+      "qa-evidence/full-customer-retest-2026-10-14/gallery/visibility-final/contact-builder-768.png"
+    ],
+    "baselineRecorded": false
+  },
+  "fullSuiteAfterGallery": {
+    "command": "npm test -- --maxWorkers=4",
+    "cwd": "/tmp/pagecraft-visibility-one-5da",
+    "log": "qa-evidence/full-customer-retest-2026-10-14/visibility-tests-final-20261017.log",
+    "exitCode": 1,
+    "testFilesPassed": 204,
+    "testFilesFailed": 1,
+    "testFilesSkipped": 2,
+    "testsPassed": 2329,
+    "testsFailed": 1,
+    "testsSkipped": 5,
+    "failure": "server/tests/releases.test.ts > the shared WordPress golden vector is deterministic and verifies end-to-end",
+    "failureType": "golden vector snapshot mismatch after the isolated generated package build; no gallery image mismatch",
+    "mainBuildOrTest": false
+  },
+  "fixtureOverlay": {
+    "source": "/tmp/pagecraft-visibility-one-5da/server/tests/fixtures/wordpress-artifact-v1.json",
+    "destinations": [
+      "/tmp/pagecraft-visibility-two-5da/server/tests/fixtures/wordpress-artifact-v1.json",
+      "server/tests/fixtures/wordpress-artifact-v1.json"
+    ],
+    "sha256": "721d9afca0757305af05fdb00e30a5a35e48c56ef2192b532d8a05acdfff14a2",
+    "allThreeExact": true
+  },
+  "fullSuiteAfterFixtureReview": {
+    "command": "npm test -- --maxWorkers=4",
+    "cwd": "/tmp/pagecraft-visibility-one-5da",
+    "log": "qa-evidence/full-customer-retest-2026-10-14/tests-visibility-final-reviewed-20261017.log",
+    "exitCode": 0,
+    "testFilesPassed": 205,
+    "testFilesSkipped": 2,
+    "testsPassed": 2330,
+    "testsSkipped": 5,
+    "fixture": "server/tests/fixtures/wordpress-artifact-v1.json",
+    "fixtureSha256": "721d9afca0757305af05fdb00e30a5a35e48c56ef2192b532d8a05acdfff14a2",
+    "mainBuildOrTest": false,
+    "supersedes": "fullSuiteAfterGallery (first attempt; preserved as the initial golden-vector failure record)"
+  },
+  "finalChecksAfterFixtureReview": {
+    "generatedOutputCount": 11,
+    "isolatedOneTwoGeneratedOutputsMatch": true,
+    "mainProtected11MatchProtectedBefore": true,
+    "protectedBeforeEvidence": "qa-evidence/full-customer-retest-2026-10-14/generated-working-preservation-2026-10-17.json",
+    "overlayCount": 4,
+    "allFourOverlayHashesExact": true,
+    "baselineRecorded": false
+  }
+}

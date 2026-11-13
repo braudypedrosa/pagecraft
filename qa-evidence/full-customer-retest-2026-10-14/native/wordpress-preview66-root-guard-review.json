@@ -1,0 +1,52 @@
+{
+  "source": "afebc30d73f851e0f4316c73e6136e7f22332958",
+  "package": "Preview66",
+  "independentRootReview": true,
+  "protectedExact": true,
+  "originalRevisionsRetained": 46,
+  "newRevisionIds": [
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544,
+    545
+  ],
+  "currentVersion": 33,
+  "fixtureRevisions": 54,
+  "totalRevisions": 262,
+  "sqlTables": 133,
+  "unchangedTables": 130,
+  "changedTables": [
+    "wp_options",
+    "wp_posts",
+    "wp_postmeta"
+  ],
+  "existingRowChanges": [
+    {
+      "group": "fixture487Posts",
+      "id": "487",
+      "fields": [
+        "post_date",
+        "post_modified",
+        "post_modified_gmt"
+      ]
+    },
+    {
+      "group": "fixture487Meta",
+      "id": "7656",
+      "fields": [
+        "meta_value"
+      ]
+    }
+  ],
+  "optionChanges": [
+    "_elementor_design_system_sync_css_meta",
+    "_site_transient_timeout_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa",
+    "_site_transient_update_plugins",
+    "_site_transient_wp_theme_files_patterns-55ffc824c11032768791699a10df58fa"
+  ],
+  "restoredDocumentCss": "a8ed037aa8851156d8aeacd9fc751778ef748c084b7085d2092410c761b11866"
+}

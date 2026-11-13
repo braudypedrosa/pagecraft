@@ -1,0 +1,26 @@
+[
+  {
+    "device": "Desktop",
+    "fields": {
+      "Duration": "1200ms",
+      "Delay": "-100ms",
+      "Easing": "steps(2, end)"
+    }
+  },
+  {
+    "device": "Tablet",
+    "fields": {
+      "Duration": "1200ms",
+      "Delay": "-100ms",
+      "Easing": "steps(2, end)"
+    }
+  },
+  {
+    "device": "Mobile",
+    "fields": {
+      "Duration": "1200ms",
+      "Delay": "-100ms",
+      "Easing": "steps(2, end)"
+    }
+  }
+]

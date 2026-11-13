@@ -1,0 +1,111 @@
+{
+  "environment": "Local WordPress builder, unsaved native test only",
+  "matrix": [
+    {
+      "device": "Mobile",
+      "geometry": {
+        "panels": [
+          {
+            "scroll": 359,
+            "width": 359
+          },
+          {
+            "scroll": 359,
+            "width": 359
+          },
+          {
+            "scroll": 359,
+            "width": 359
+          }
+        ],
+        "scroll": 399,
+        "tabs": [
+          {
+            "scroll": 359,
+            "width": 359
+          },
+          {
+            "scroll": 49,
+            "width": 49
+          },
+          {
+            "scroll": 49,
+            "width": 49
+          }
+        ],
+        "width": 399
+      }
+    },
+    {
+      "device": "Tablet",
+      "geometry": {
+        "panels": [
+          {
+            "scroll": 771,
+            "width": 771
+          },
+          {
+            "scroll": 771,
+            "width": 771
+          },
+          {
+            "scroll": 771,
+            "width": 771
+          }
+        ],
+        "scroll": 819,
+        "tabs": [
+          {
+            "scroll": 701,
+            "width": 701
+          },
+          {
+            "scroll": 52,
+            "width": 52
+          },
+          {
+            "scroll": 52,
+            "width": 52
+          }
+        ],
+        "width": 819
+      }
+    },
+    {
+      "device": "Desktop",
+      "geometry": {
+        "panels": [
+          {
+            "scroll": 1340,
+            "width": 1340
+          },
+          {
+            "scroll": 1340,
+            "width": 1340
+          },
+          {
+            "scroll": 1340,
+            "width": 1340
+          }
+        ],
+        "scroll": 1445,
+        "tabs": [
+          {
+            "scroll": 701,
+            "width": 701
+          },
+          {
+            "scroll": 52,
+            "width": 52
+          },
+          {
+            "scroll": 52,
+            "width": 52
+          }
+        ],
+        "width": 1445
+      }
+    }
+  ],
+  "note": "Selected widget intentionally shows all panels in editor. Public runtime unchanged from89; portable public compiler assertions run separately."
+}

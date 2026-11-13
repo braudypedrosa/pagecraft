@@ -40,7 +40,8 @@ export function documentAdapter(
           doc: document,
           version: input.version,
           ...(input.compiled ? { compiled: input.compiled } : {})
-        }
+        },
+        ...(input.keepalive ? { keepalive: true } : {})
       })).body;
     }
   };
