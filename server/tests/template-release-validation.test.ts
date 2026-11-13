@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import * as Core from '../../app/src/core/index.ts';
 import {
-  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema, supportsPortableRendererContract,
+  portableRendererRevisionForSchema, portableRendererVersionForSchema, supportsPortableRendererContract,
 } from '../../app/src/package/renderer-version.ts';
 import type { PortablePackageManifestV1 } from '../../app/src/package/types.ts';
 import { blankDoc } from '../src/render.ts';
@@ -23,10 +23,17 @@ const json = (value: unknown) => encoder.encode(canonicalJson(value));
 
 test('portable renderer revision is independent, legacy-compatible, and fails unknown revisions closed', () => {
   const rendererVersion = portableRendererVersionForSchema(Core.SCHEMA);
-  a.equal(supportsPortableRendererContract(rendererVersion, PORTABLE_RENDERER_REVISION, Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), true);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-3', Core.SCHEMA, Core.SCHEMA), false);
+  const currentRevision = portableRendererRevisionForSchema(Core.SCHEMA);
+  a.equal(supportsPortableRendererContract(rendererVersion, currentRevision, Core.SCHEMA, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-2', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-4', Core.SCHEMA, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-14', 'pagecraft-renderer-2', 14, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-14', undefined, 14, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-2', 15, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 15), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 14), false);
   a.equal(supportsPortableRendererContract('pagecraft-renderer-1', undefined, Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract(`pagecraft-core-${Core.SCHEMA - 1}`, undefined, Core.SCHEMA, Core.SCHEMA), false);
 
@@ -37,14 +44,14 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
     },
   });
   a.equal(built.manifest.rendererVersion, rendererVersion);
-  a.equal(built.manifest.rendererRevision, PORTABLE_RENDERER_REVISION);
+  a.equal(built.manifest.rendererRevision, portableRendererRevisionForSchema(Core.SCHEMA));
   const files = extractPortableZip(built.bytes);
   const manifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
-  manifest.rendererRevision = 'pagecraft-renderer-3';
+  manifest.rendererRevision = 'pagecraft-renderer-4';
   files.set('manifest.json', json(manifest));
   const unsupported = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
   a.throws(() => validatePortablePackage(unsupported),
-    new RegExp(`unsupported renderer pagecraft-core-${Core.SCHEMA} / pagecraft-renderer-3`));
+    new RegExp(`unsupported renderer pagecraft-core-${Core.SCHEMA} / pagecraft-renderer-4`));
 });
 
 test('released checks preserve immutable legacy archives while drafts stay reproducible', async () => {
@@ -89,8 +96,20 @@ test('released checks preserve immutable legacy archives while drafts stay repro
     const packagePath = resolve(draft, 'site.pagecraft-site.zip');
     const files = extractPortableZip(new Uint8Array(await readFile(packagePath)));
     const packageManifest = JSON.parse(decoder.decode(files.get('manifest.json')!)) as PortablePackageManifestV1;
-    packageManifest.rendererVersion = `pagecraft-core-${packageManifest.schemaVersion}`;
-    delete packageManifest.rendererRevision;
+    const sourcePath = packageManifest.documentPath;
+    const oldDocument = JSON.parse(decoder.decode(files.get(sourcePath)!));
+    oldDocument.schemaVersion = 14;
+    oldDocument.v = 14;
+    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(oldDocument)}; }`);
+    const oldDocumentBytes = json(oldDocument);
+    files.set(sourcePath, oldDocumentBytes);
+    const documentEntry = packageManifest.files.find(file => file.path === sourcePath)!;
+    documentEntry.bytes = oldDocumentBytes.byteLength;
+    documentEntry.sha256 = createHash('sha256').update(oldDocumentBytes).digest('hex');
+    packageManifest.schemaVersion = 14;
+    packageManifest.rendererVersion = 'pagecraft-core-14';
+    packageManifest.rendererRevision = 'pagecraft-renderer-2';
+    packageManifest.contentHash = createHash('sha256').update(json(packageManifest.files)).digest('hex');
     files.set('manifest.json', json(packageManifest));
     const legacyBytes = createPortableZip([...files].map(([path, bytes]) => ({ path, bytes })));
     const packageSha256 = createHash('sha256').update(legacyBytes).digest('hex');
@@ -107,8 +126,8 @@ test('released checks preserve immutable legacy archives while drafts stay repro
     a.match(run('check', 'fixture', '1.0.0'), /released archive integrity and source parity valid; current rebuild differs/);
     a.throws(() => run('check', 'fixture', '1.0.0', '--require-reproducible'), /archive is valid but current rebuild differs/);
 
-    document.meta.name = 'Changed after release';
-    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(document)}; }`);
+    oldDocument.meta.name = 'Changed after release';
+    await writeFile(resolve(directory, 'source.ts'), `export function buildTemplateDocument() { return ${JSON.stringify(oldDocument)}; }`);
     a.throws(() => run('check', 'fixture', '1.0.0'), /archived native document differs from source/);
   } finally {
     await rm(temp, { recursive: true, force: true });

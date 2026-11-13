@@ -4430,6 +4430,7 @@ function selectsCanvasAncestor(id) {
 }
 
 function select(id, opts = {}) {
+  const previousTabPanel = tabSelectionPath(state.ui.sel);
   if (editing.on) exitEdit();
   if (!opts.keepCanvasContext && !selectsCanvasAncestor(id)) canvasSelectionContext = null;
   if (opts.add) selToggle(id);
@@ -4438,6 +4439,7 @@ function select(id, opts = {}) {
     if (id !== state.ui.sel) { state.ui.target = ''; state.ui.lmode = null; }
     selSet(id ? [id] : []);
   }
+  if (previousTabPanel !== tabSelectionPath(state.ui.sel)) paint();
   /* reveal every member — a hit buried under a collapsed parent is no use if
      the Navigator will not show it */
   for (const sid of selIds()) {
@@ -4907,8 +4909,37 @@ function bindCanvas() {
   }, true);
   cdoc.addEventListener('keydown', escCtx, true);
 
+  const editableTab = target => {
+    const button = target.closest && target.closest('[role="tab"]');
+    const host = button && button.closest('[data-t="tabs"][data-id]');
+    const node = host && locate(host.dataset.id)?.node;
+    if (!node || !hasRichTabPanels(node)) return null;
+    const buttons = Array.from(button.parentElement.children);
+    return { button, node, index: buttons.indexOf(button), count: buttons.length };
+  };
+  const selectEditableTab = (tab, index, focus = false) => {
+    const panel = tabPanelNodes(tab.node)[index];
+    if (!panel) return;
+    select(panel.id);
+    if (focus) requestAnimationFrame(() => {
+      const host = Array.from(cdoc.querySelectorAll('[data-t="tabs"]')).find(el => el.dataset.id === tab.node.id);
+      host?.querySelectorAll(':scope > [role="tablist"] > [role="tab"]')[index]?.focus();
+    });
+  };
+  cdoc.addEventListener('keydown', e => {
+    if (document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (!tab) return;
+    const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    selectEditableTab(tab, e.key === 'Home' ? 0 : e.key === 'End' ? tab.count - 1 : (tab.index + delta + tab.count) % tab.count, true);
+  }, true);
+
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (tab && e.button === 0) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (hudBtn) {
@@ -4961,6 +4992,8 @@ function bindCanvas() {
      native click keeps one action per gesture. */
   cdoc.addEventListener('click', e => {
     if (e.detail !== 0 || document.body.classList.contains('preview')) return;
+    const tab = editableTab(e.target);
+    if (tab) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     const hudBtn = e.target.closest && e.target.closest('#s-hud button');
     if (!hudBtn) return;
     e.preventDefault();

@@ -1,5 +1,5 @@
 import {test,expect,vi} from 'vitest';
-import {mkdtemp,readFile,readdir,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {setImmediate as yieldToIo} from 'node:timers/promises';
@@ -51,7 +51,7 @@ const galleryHarness=async()=>{
  return {tab,screenshotCalls,waitOptions,cleanupCalls};
 };
 
-test('captureGallerySteps yields each saved PNG and writes the manifest only at completion',async()=>{
+test('captureGallerySteps checkpoints each saved PNG and completes the manifest',async()=>{
  vi.useFakeTimers({toFake:['setTimeout']});
  const directory=await mkdtemp(join(tmpdir(),'pagecraft-capture-steps-'));
  try{
@@ -61,7 +61,8 @@ test('captureGallerySteps yields each saved PNG and writes the manifest only at 
    expect(step.done).toBe(false);
    progress.push(step.value);
    expect(step.value).toMatchObject({index:index+1,total:names.length,screenshots:index+1,directory});
-   expect(await readdir(directory)).not.toContain('capture.json');
+   const checkpoint=JSON.parse(await readFile(join(directory,'capture.json'),'utf8'));
+   expect(Object.keys(checkpoint.captures)).toHaveLength(index+1);
   }
   const done=await driveNext(iterator);
   expect(done).toEqual({done:true,value:{screenshots:names.length,directory}});
@@ -75,7 +76,7 @@ test('captureGallerySteps yields each saved PNG and writes the manifest only at 
  }
 },30000);
 
-test('captureGallerySteps cancellation restores CDP state without writing a manifest',async()=>{
+test('captureGallerySteps cancellation restores CDP state and preserves a resumable checkpoint',async()=>{
  vi.useFakeTimers({toFake:['setTimeout']});
  const directory=await mkdtemp(join(tmpdir(),'pagecraft-capture-cancel-'));
  try{
@@ -84,9 +85,32 @@ test('captureGallerySteps cancellation restores CDP state without writing a mani
   expect(first.value.index).toBe(1);
   await iterator.return();
   expect(harness.cleanupCalls).toEqual(['Emulation.clearDeviceMetricsOverride','Emulation.setEmulatedMedia']);
-  expect(await readdir(directory)).not.toContain('capture.json');
+  expect(Object.keys(JSON.parse(await readFile(join(directory,'capture.json'),'utf8')).captures)).toHaveLength(1);
  }finally{
   vi.useRealTimers();
   await rm(directory,{recursive:true,force:true});
  }
+},30000);
+
+
+test('resume skips verified captures and rejects changed evidence or image bytes',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout']});
+ const directory=await mkdtemp(join(tmpdir(),'pagecraft-capture-resume-'));
+ try{
+  const first=await galleryHarness(),iterator=captureGallerySteps(first.tab,directory,behaviorChecks);
+  await driveNext(iterator);await driveNext(iterator);await iterator.return();
+  const checkpoint=JSON.parse(await readFile(join(directory,'capture.json'),'utf8'));
+  const original=await readFile(join(directory,'capture.json'));
+  const second=await galleryHarness(),resumed=captureGallerySteps(second.tab,directory,behaviorChecks,{resume:true});
+  const next=await driveNext(resumed);
+  expect(next.value.index).toBe(3);expect(second.screenshotCalls).toHaveLength(1);
+  await resumed.return();
+  await writeFile(join(directory,'capture.json'),original);
+  const changed=structuredClone(checkpoint);changed.sources[Object.keys(changed.sources)[0]]='0'.repeat(64);
+  await writeFile(join(directory,'capture.json'),JSON.stringify(changed));
+  await expect(driveNext(captureGallerySteps(second.tab,directory,behaviorChecks,{resume:true}))).rejects.toThrow('sources changed');
+  await writeFile(join(directory,'capture.json'),original);
+  await writeFile(join(directory,Object.keys(checkpoint.captures)[0]),'altered');
+  await expect(driveNext(captureGallerySteps(second.tab,directory,behaviorChecks,{resume:true}))).rejects.toThrow('capture changed');
+ }finally{vi.useRealTimers();await rm(directory,{recursive:true,force:true});}
 },30000);

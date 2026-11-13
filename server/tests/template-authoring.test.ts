@@ -51,6 +51,8 @@ test('operator-only MCP creates, edits, previews and exports an immutable native
     a.equal(tools.tools.length, 8);
     a.ok(!tools.tools.some(tool => /publish|promote|customer/.test(tool.name)));
     const schema = await r.tool('pagecraft_template_schema'); a.equal(schema.value.schemaVersion, Core.SCHEMA);
+    a.equal(schema.value.nativeRelations.tabs.editablePanels.schemaVersion, 15);
+    a.match(schema.value.nativeRelations.tabs.editablePanels.constraints[0], /direct box child/);
     a.ok(schema.value.widgets.heading.defaults.props); a.equal(schema.value.widgets.embed, undefined); a.equal(schema.value.widgets.code, undefined);
     const created = await r.tool('pagecraft_template_create', { id: 'linden-dental', version: '1.0.0', name: 'Linden Dental' });
     a.equal(created.error, false); a.equal(created.value.revision, 1);

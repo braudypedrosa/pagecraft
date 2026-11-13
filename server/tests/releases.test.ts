@@ -33,6 +33,9 @@ const MATRIX_WIDGETS = [
 const golden = () => {
   const signing = { keyId: 'pagecraft-release-test-v1', privateKey: releasePrivate() };
   const document = blankDoc('Golden');
+  // The signed cross-runtime vector is frozen to the schema it was authored against.
+  // New Core schemas must not silently re-sign this immutable compatibility fixture.
+  document.schemaVersion = 14;
   document.meta.baseUrl = 'https://pagecraft.example/source';
   document.meta.font = "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
   document.meta.headFont = '';

@@ -7,11 +7,61 @@ const nodeKeys = new Set(['id','type','props','css','st','anim','hide','cls','ad
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = (message: string): never => { throw new Error(`invalid template document: ${message}`); };
 
+/** Keep the tabs relation independent from editor/runtime migrations. Schema 15 adds editable
+ * panels as normal direct box children; the older text-only relation remains immutable. */
+export function validateNativeTabRelations(input: unknown): void {
+  if (!object(input)) return;
+  const raw = input as Record<string, any>;
+  const schema = raw.schemaVersion ?? raw.v ?? 1;
+  const roots: unknown[] = [raw.header, raw.footer];
+  if (Array.isArray(raw.pages)) for (const page of raw.pages) roots.push(object(page) ? page.tree : undefined);
+  if (object(raw.meta)) {
+    if (Array.isArray(raw.meta.blocks)) for (const block of raw.meta.blocks) roots.push(object(block) ? [block.node] : undefined);
+    if (Array.isArray(raw.meta.components)) for (const component of raw.meta.components) roots.push(object(component) ? [component.node] : undefined);
+  }
+  let visited = 0;
+  const visit = (value: unknown, depth = 0): void => {
+    if (!Array.isArray(value)) return;
+    if (depth > 20) fail('tab relation tree is too deep');
+    for (const candidate of value) {
+      if (!object(candidate)) continue;
+      if (++visited > 10000) fail('tab relation tree has too many nodes');
+      const children = candidate.children === undefined ? [] : candidate.children;
+      if (candidate.type === 'tabs') {
+        if (!Array.isArray(children)) fail('tabs children must be an array');
+        const items = candidate.props?.items;
+        if (!Array.isArray(items)) fail('tabs items must be an array');
+        const legacy = items.every((item: unknown) => object(item) && !('panelId' in item)
+          && (item.panel === undefined || typeof item.panel === 'string'));
+        const rich = items.every((item: unknown) => object(item) && typeof item.panelId === 'string' && !('panel' in item));
+        if (legacy) {
+          if (children.length) fail('text tabs cannot have child panels');
+        } else if (rich) {
+          if (!Number.isInteger(schema) || schema < 15) fail('editable tabs require schema 15 or newer');
+          const refs: string[] = items.map((item: Record<string, unknown>) => item.panelId as string);
+          if (refs.some((ref: string) => !ref) || new Set(refs).size !== refs.length) fail('editable tabs require unique panel references');
+          if (children.length !== refs.length || children.some((child: unknown) => !object(child) || child.type !== 'box')) {
+            fail('editable tabs require one direct box child per item');
+          }
+          const childIds: unknown[] = children.map((child: Record<string, unknown>) => child.id);
+          if (childIds.some((id: unknown) => typeof id !== 'string') || new Set(childIds).size !== childIds.length
+            || refs.some((ref: string) => !childIds.includes(ref))) fail('editable tabs panel references must match every direct child');
+        } else {
+          fail('tabs cannot mix text panels and editable panel references');
+        }
+      }
+      visit(children, depth + 1);
+    }
+  };
+  for (const root of roots) visit(root);
+}
+
 /** Validates a curated, portable native document. This is deliberately stricter than the editor. */
 export function validateTemplateDraftDocument(input: unknown, assetIds: readonly string[] = []): Doc {
   if (!object(input) || Object.keys(input).some(k => !['schemaVersion','meta','header','footer','pages'].includes(k))) fail('unknown document field');
   if (JSON.stringify(input).length > 4_000_000) fail('document too large');
   const raw = input as Record<string, any>;
+  validateNativeTabRelations(raw);
   if (!object(raw.meta) || Object.keys(raw.meta).some(k => !['name','maxWidth','font','headFont','size','css','headHtml','lang','baseUrl','ogImage','favicon','blocks','components','collections','selfHostFonts','tokens','libraryLinks'].includes(k))) fail('unknown meta field');
   let doc: Doc;
   try { doc = adoptHostDocument(input as Record<string, unknown>); }
@@ -76,7 +126,7 @@ export function validateTemplateDraftDocument(input: unknown, assetIds: readonly
         if (node.anim.once !== undefined && node.anim.once !== 0 && node.anim.once !== 1) fail('invalid animation');
       }
       if (node.bind) for (const binding of Object.values(node.bind)) { shape(binding,['src','path'],'binding'); if (!safeIdentifier(binding.path)) fail('invalid binding'); }
-      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],tabs:['label','panel'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
+      const nested: Record<string,string[]> = {gallery:['src','alt','caption','w','h'],tabs:['label','panel','panelId'],accordion:['q','a'],nav:['id','label','href','pageId','parentId','cls','target','rel','objectType','objectId','anchor'],form:['type','label','name','ph','opts','required','half','width']};
       const list = node.type === 'form' ? node.props.fields : node.props.items;
       if (list !== undefined && nested[node.type]) { if (!Array.isArray(list) || list.length > 500) fail('invalid items'); for (const item of list) { shape(item,nested[node.type],'item'); if (Object.values(item).some(v=>!['string','number','boolean'].includes(typeof v))) fail('invalid item value'); } }
       const allowedProps = new Set([...Object.keys(Core.DEF[node.type].make().props), ...Core.ctlKeys(node.type), 'link', 'target', 'ts']);

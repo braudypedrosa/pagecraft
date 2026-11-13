@@ -1,7 +1,7 @@
 /** Run inside the Codex built-in-browser JavaScript session with an already selected gallery
  * tab, or through capture-ui-gallery-chrome.mjs, which supplies an equivalent headless Chrome
  * tab. This helper creates no browser process; `browser` records honestly which one it was. */
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {root,sourceHashes,names} from './ui-gallery-contract.mjs';
@@ -104,9 +104,10 @@ async function runtimeCharacteristics(cdp){
  try{return JSON.parse(result.value);}catch{throw new Error('Capture environment returned invalid JSON.');}
 }
 
-export async function* captureGallerySteps(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion,captureBeyondViewport=false}={}){
+export async function* captureGallerySteps(tab,directory,behaviorChecks,{browser='Codex In-app Browser',browserVersion:declaredBrowserVersion,captureBeyondViewport=false,resume=false}={}){
  if(!behaviorChecks?.length||behaviorChecks.some(check=>check.passed!==true))throw new Error('Pass the completed behavior-check results before capturing.');
  if(typeof captureBeyondViewport!=='boolean')throw new TypeError('captureBeyondViewport must be a boolean.');
+ if(typeof resume!=='boolean')throw new TypeError('resume must be a boolean.');
  await mkdir(directory,{recursive:true});const cdp=await tab.capabilities.get('cdp');
  let failed=false;
  try{
@@ -128,8 +129,23 @@ export async function* captureGallerySteps(tab,directory,behaviorChecks,{browser
    provenanceViewport:{width:1440,height:900,deviceScaleFactor:1},
   };
   const captureCode=await captureCodeHashes();
-  const evidence={captureSchemaVersion:2,capturedAt:new Date().toISOString(),browser,browserVersion,...(declaredVersion?{declaredBrowserVersion:declaredVersion}:{}),captureEnvironment,captureRecipe,captureCode,deviceScaleFactor:1,viewportHeight:900,reducedMotion:true,sources:await sourceHashes(),behaviorChecks,captures:{}};
+  let evidence={captureSchemaVersion:2,capturedAt:new Date().toISOString(),browser,browserVersion,...(declaredVersion?{declaredBrowserVersion:declaredVersion}:{}),captureEnvironment,captureRecipe,captureCode,deviceScaleFactor:1,viewportHeight:900,reducedMotion:true,sources:await sourceHashes(),behaviorChecks,captures:{}};
+  const checkpoint=async()=>{const path=resolve(directory,'capture.json');await writeFile(path+'.tmp',JSON.stringify(evidence,null,2)+'\n');await rename(path+'.tmp',path);};
+  if(resume){
+   const previous=JSON.parse(await readFile(resolve(directory,'capture.json'),'utf8'));
+   for(const field of ['captureSchemaVersion','browser','browserVersion','declaredBrowserVersion','captureEnvironment','captureRecipe','captureCode','deviceScaleFactor','viewportHeight','reducedMotion','sources','behaviorChecks'])
+    if(JSON.stringify(previous[field])!==JSON.stringify(evidence[field]))throw new Error(`Cannot resume: ${field} changed.`);
+   if(!previous.captures||typeof previous.captures!=='object'||Array.isArray(previous.captures))throw new Error('Cannot resume: invalid captures.');
+   for(const [name,capture] of Object.entries(previous.captures)){
+    if(!names.includes(name)||!capture||!/^[a-f0-9]{64}$/.test(capture.sha256||''))throw new Error(`Cannot resume: invalid capture ${name}.`);
+    const bytes=await readFile(resolve(directory,name));
+    if(hash(bytes)!==capture.sha256||JSON.stringify(pngColorMetadata(bytes))!==JSON.stringify(capture.pngColorMetadata))throw new Error(`Cannot resume: capture changed: ${name}.`);
+   }
+   evidence=previous;
+  }
   for(const width of [1440,768])for(const host of ['cloud','builder'])for(const section of sections){
+   const name=`${host}-${section}-${width}.png`;
+   if(evidence.captures[name])continue;
    await cdp.send('Emulation.setDeviceMetricsOverride',metricsFor(width,900));
    if(await tab.playwright.evaluate(()=>document.body.dataset.galleryHost)!==host){
     await tab.playwright.getByRole('link',{name:host==='cloud'?'Cloud':'Builder',exact:true}).click();
@@ -152,15 +168,16 @@ export async function* captureGallerySteps(tab,directory,behaviorChecks,{browser
    if(measurement.overflow||measurement.fonts!=='loaded')throw new Error(`Gallery not ready: ${host}/${section}/${width}`);
    const metrics=metricsFor(width,measurement.height),screenshotParams=screenshotFor(width,measurement.height,captureBeyondViewport);
    const {result,provenance}=await captureScreenshotWithProvenance(tab,cdp,screenshotParams),bytes=Buffer.from(result.data,'base64');
-   const name=`${host}-${section}-${width}.png`;await writeFile(resolve(directory,name),bytes);
-   evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},screenshotProvenance:provenance,pngColorMetadata:pngColorMetadata(bytes)};
+   await writeFile(resolve(directory,name),bytes);
+   evidence.captures[name]={state:states[section],...measurement,captureParameters:{metricsOverride:metrics,screenshot:screenshotParams},screenshotProvenance:provenance,pngColorMetadata:pngColorMetadata(bytes),sha256:hash(bytes)};
+   await checkpoint();
    if(section==='menus'||section==='dialogs')await tab.pressKey('Escape');
    yield {name,index:Object.keys(evidence.captures).length,total:names.length,screenshots:Object.keys(evidence.captures).length,directory};
   }
   if(names.some(name=>!evidence.captures[name]))throw new Error('Incomplete capture inventory');
   const current=await sourceHashes();if(Object.keys(current).some(file=>current[file]!==evidence.sources[file]))throw new Error('UI sources changed during capture.');
   const currentCaptureCode=await captureCodeHashes();if(Object.keys(currentCaptureCode).some(file=>currentCaptureCode[file]!==evidence.captureCode[file]))throw new Error('Capture code changed during capture.');
-  await writeFile(resolve(directory,'capture.json'),JSON.stringify(evidence,null,2)+'\n');
+  await checkpoint();
   return {screenshots:names.length,directory};
  }catch(error){failed=true;throw error;}
  finally{

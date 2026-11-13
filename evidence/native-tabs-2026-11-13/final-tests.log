@@ -1,0 +1,10 @@
+Command: `npm test -- --maxWorkers=2`
+Exit code: 0
+
+Build-order check: passed, including editor package 0.2.18 build.
+TypeScript check: passed.
+Vitest: 327 passed, 2 skipped files; 3,182 passed, 5 skipped tests (329 files total). Duration: 269.89s.
+
+Demo build: `node tools/demo-site.mjs`, exit code 0. Generated `dist/demo/index.html` (66 KB), 1 component, 6 instances, 4 collection items, 0 findings.
+
+Raw test output: `final-tests-raw.log`. Demo output: `final-demo.log`.

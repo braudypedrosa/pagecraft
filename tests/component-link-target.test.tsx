@@ -310,14 +310,14 @@ test('component deletion preserves a root destination target after merging insta
     .toEqual([['_blank', 'noopener']]);
 });
 
-test('schema 13 adoption changes markers only and schema 14 rejects a future document', () => {
+test('schema 13 adoption changes markers only and the current schema rejects a future document', () => {
   const old = structuredClone(C.doc()) as any;
   old.schemaVersion = 13;
   delete old.v;
   const before = structuredClone(old);
   const migrated = C.migrate(old)!;
-  expect(migrated.schemaVersion).toBe(14);
+  expect(migrated.schemaVersion).toBe(C.SCHEMA);
   expect(migrated.v).toBeUndefined();
   expect({ ...migrated, schemaVersion: 13 }).toEqual(before);
-  expect(C.migrate({ ...structuredClone(C.doc()), schemaVersion: 15 })).toBeNull();
+  expect(C.migrate({ ...structuredClone(C.doc()), schemaVersion: C.SCHEMA + 1 })).toBeNull();
 });

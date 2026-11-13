@@ -6,7 +6,7 @@ import {
 declare const __PAGECRAFT_EDITOR_VERSION__: string;
 export const EDITOR_VERSION = typeof __PAGECRAFT_EDITOR_VERSION__ === 'string'
   ? __PAGECRAFT_EDITOR_VERSION__
-  : '0.2.17';
+  : '0.2.18';
 
 /** The identity embedded into every sealed editor and compiler asset. */
 export const COMPILER_DESCRIPTOR = Object.freeze({

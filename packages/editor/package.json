@@ -1,6 +1,6 @@
 {
   "name": "@pagecraft/editor",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "Versioned Pagecraft workbench and WordPress runtime contract",
   "license": "Apache-2.0",
   "private": false,

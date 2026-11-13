@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import * as C from '../app/src/core/index.ts';
 
 const builder = readFileSync('builder.html', 'utf8');
 const windows = [];
@@ -50,10 +51,14 @@ function harness() {
     heading: { node, parent: card },
     card: { node: card, parent: null },
   };
+  C.seed();
+  Object.assign(C.state, { ui: { item: {}, sel: 'heading' }, pages: [{ id: 'page-home', tree: [card] }], header: [], footer: [], cur: 0, meta: {} });
   Object.assign(w, {
+    tabSelectionPath: C.tabSelectionPath, hasRichTabPanels: C.hasRichTabPanels, tabPanelNodes: C.tabPanelNodes,
+    paint: vi.fn(),
     cdoc: cd,
     cwin: frame.contentWindow,
-    state: { ui: { item: {}, sel: 'heading' }, pages: [{ id: 'page-home', tree: [card] }], header: [], footer: [], cur: 0, meta: {} },
+    state: C.state,
     findCollection: id => id === collection.id ? collection : null,
     $: selector => d.querySelector(selector),
     $$: (selector, root = d) => Array.from(root.querySelectorAll(selector)),

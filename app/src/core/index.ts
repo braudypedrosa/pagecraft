@@ -1120,7 +1120,7 @@ const DEF: Record<string, WidgetDef> = {
     }
   },
   tabs: {
-    label: 'Tabs', icon: 'tabs', level: 4,
+    label: 'Tabs', icon: 'tabs', level: 4, takes: 4, alsoHolds: ['box'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({
       props: {
@@ -1675,7 +1675,7 @@ const N = (type: string, props: any = {}, css: any = {}, children: any[] = []): 
     props: { ...base.props, ...props },
     css: { d: { ...base.css.d, ...(css.d || {}) }, t: { ...base.css.t, ...(css.t || {}) }, m: { ...base.css.m, ...(css.m || {}) } },
     hide: {}, cls: [], adv: { htmlId: '', cls: '', css: '' },
-    children: DEF[type].level < 4 ? children : []
+    children: DEF[type].level < 4 || type === 'tabs' ? children : []
   };
 };
 const cols = (n: number, kids?: any, css?: any) => N('row', {}, css, Array.from({ length: n }, (_, i) =>
@@ -2019,6 +2019,7 @@ function wrap(type: string, t: number, node: any): any {
    it, so a heading dropped on a section still lands, wrapped in the chain it needs. */
 const holds = (pt: any, t: string) => {
   const b = BASE[t] || t;
+  if (pt === 'tabs') return b === 'box';
   return (lvl(b) > lvl(pt)) || (DEF[pt] || {}).alsoHolds?.includes(b as WidgetType) === true;
 };
 /* A component instance can have the same root type as a normal container, but its children
@@ -2027,7 +2028,7 @@ const holds = (pt: any, t: string) => {
 const slotlessInstance = (n: PcNode | null | undefined) =>
   !!n?.use && slotsOf(findComponent(n.use)).length === 0;
 const receivesInside = (n: PcNode | null | undefined, t: string) =>
-  !!n && !slotlessInstance(n) && holds(n.type, t);
+  !!n && n.type !== 'tabs' && !slotlessInstance(n) && holds(n.type, t);
 /* Can `t` be *placed* inside `pt` — wrappers allowed? `null` is the document root, which takes
    anything: a heading dropped there becomes Section > Row > Column > Heading, and `wrap` builds
    that chain.
@@ -2047,8 +2048,12 @@ const fitsIn = (pt: string | null, t: string) => pt === null || holds(pt, t);
    places a node with no parent asks this first and refuses. */
 const nowhere = (parentNode: unknown) => !parentNode && state.ui.mode === 'component';
 
-function insert(type: string, parentNode: any, index: number) {
+function insert(type: string, parentNode: any, index: number): PcNode | null {
   if (nowhere(parentNode)) return null;
+  if (parentNode?.type === 'tabs') {
+    const panel = tabPanelNodes(parentNode)[0];
+    return panel ? insert(type, panel, panel.children.length) : null;
+  }
   const leaf = makeFor(type);
   /* The palette creates a usable Collection List: its one Column is the repeatable card.
      Keep this out of N('list') so imported data, templates and programmatic fixtures retain
@@ -2071,6 +2076,13 @@ function insert(type: string, parentNode: any, index: number) {
 }
 function moveNode(id: string, parentNode: any, index: number) {
   const h = locate(id); if (!h || nowhere(parentNode)) return;
+  if (h.parent?.type === 'tabs') {
+    if (parentNode !== h.parent) return;
+    const from = tabRows(h.parent).findIndex(row => row.panelId === id);
+    if (from >= 0) tabMove(h.parent, from, Math.max(0, Math.min(index, h.list.length - 1)) - from);
+    return;
+  }
+  if (parentNode?.type === 'tabs') return;
   if (parentNode && (parentNode.id === id || locate(parentNode.id, [h.node]))) return; // no self-nesting
   h.list.splice(h.i, 1);
   const list = parentNode ? parentNode.children : tree();
@@ -2189,6 +2201,8 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
     return { container: h.node, index: 0 };
   }
   const parent = h.parent || null;
+  if (parent?.type === 'tabs' && (!movingIds.length
+    || movingIds.some(id => locate(id)?.parent !== parent))) return null;
   if (!canHold(parent ? parent.type : null, type)) return null;
   const list = parent ? parent.children : tree();
   const i = list.findIndex(c => c.id === rowId);
@@ -2202,10 +2216,95 @@ function layerTarget(rowId: string, zone: string, type: string, movingIds: strin
    source carried an anchor. Auto ids are derived per node so they stay unique on
    their own; only `adv.htmlId` has to be surrendered. Originals never pass here. */
 function reid(n: PcNode) {
-  n.id = uid();
-  if (n.adv) n.adv.htmlId = '';
-  (n.children || []).forEach(reid);
+  const ids = new Map<string, string>();
+  eachNode([n], node => {
+    const id = uid(); ids.set(node.id, id); node.id = id;
+    if (node.adv) node.adv.htmlId = '';
+  });
+  eachNode([n], node => {
+    if (node.type === 'tabs') tabRows(node).forEach(row => {
+      if (row.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+    });
+  });
   return n;
+}
+
+function tabRows(n: PcNode): TabPanel[] {
+  return Array.isArray(n.props.items) ? n.props.items as TabPanel[] : [];
+}
+function hasRichTabPanels(n: PcNode) {
+  return n.type === 'tabs' && (!!n.children.length || tabRows(n).some(row => row?.panelId !== undefined));
+}
+/** Panel content stays in the normal tree, including assets, styles and editing history. */
+function tabPanelProblem(n: PcNode): string | null {
+  if (n.type !== 'tabs' || !hasRichTabPanels(n)) return null;
+  const rows = tabRows(n), used = new Set<string>();
+  if (!rows.length || rows.length !== n.children.length) return 'Tab panels must match their labels.';
+  for (const row of rows) {
+    if (!row || typeof row.panelId !== 'string' || !row.panelId || used.has(row.panelId)
+      || row.panel !== undefined) return 'Each tab must reference one unique editable panel.';
+    if (!n.children.some(child => child.type === 'box' && child.id === row.panelId))
+      return 'A tab references a missing panel Box.';
+    used.add(row.panelId);
+  }
+  return null;
+}
+function tabPanelNodes(n: PcNode): PcNode[] {
+  return tabRows(n).map(row => n.children.find(child => child.id === row.panelId)).filter((node): node is PcNode => !!node);
+}
+function tabOrderChildren(n: PcNode) { n.children = tabPanelNodes(n); }
+function enableTabPanels(n: PcNode): boolean {
+  if (n.type !== 'tabs' || hasRichTabPanels(n)) return false;
+  const rows = tabRows(n);
+  for (const row of rows) {
+    const body = String(row.panel || '');
+    const panel = N('box', {}, {}, body ? [N('heading', { text: body, level: 'p', ts: 'body' })] : []);
+    n.children.push(panel); row.panelId = panel.id; delete row.panel;
+  }
+  return true;
+}
+function tabAdd(n: PcNode): string {
+  if (n.type !== 'tabs') return '';
+  if (!hasRichTabPanels(n)) enableTabPanels(n);
+  if (tabPanelProblem(n)) return '';
+  const panel = N('box');
+  n.props.items = [...tabRows(n), { label: 'New tab', panelId: panel.id }];
+  n.children.push(panel);
+  return panel.id;
+}
+function tabSelect(n: PcNode, index: number): boolean {
+  const panel = tabPanelNodes(n)[index];
+  if (!panel) return false;
+  selSet([panel.id]); return true;
+}
+function tabSelectionPath(id: string | null): string {
+  const panels: string[] = [];
+  for (let hit = id ? locate(id) : null; hit?.parent; hit = locate(hit.parent.id)) {
+    if (hit.parent.type === 'tabs') panels.push(hit.node.id);
+  }
+  return panels.join('/');
+}
+function tabRemove(n: PcNode, index: number): boolean {
+  const rows = tabRows(n), row = rows[index];
+  if (!row || !hasRichTabPanels(n) || rows.length < 2) return false;
+  const panel = n.children.find(child => child.id === row.panelId);
+  rows.splice(index, 1); n.children = n.children.filter(child => child.id !== row.panelId);
+  if (panel && state.ui.sel && locate(state.ui.sel, [panel])) selSet([n.id]);
+  return true;
+}
+function tabMove(n: PcNode, index: number, delta: number): boolean {
+  const rows = tabRows(n), to = index + delta;
+  if (!hasRichTabPanels(n) || !rows[index] || to < 0 || to >= rows.length || to === index) return false;
+  const [row] = rows.splice(index, 1); rows.splice(to, 0, row); tabOrderChildren(n);
+  return true;
+}
+function tabDuplicate(n: PcNode, index: number): string {
+  const row = tabRows(n)[index], source = n.children.find(child => child.id === row?.panelId);
+  if (!row || !source || tabPanelProblem(n)) return '';
+  const panel = reid(clone(source));
+  tabRows(n).splice(index + 1, 0, { label: `${row.label || 'Tab'} copy`, panelId: panel.id });
+  n.children.push(panel); tabOrderChildren(n);
+  return panel.id;
 }
 /* page order drives the sitemap and the nav a user authors by hand */
 function pageMove(i: number, dir: number) {
@@ -2261,12 +2360,21 @@ function pageDelete(i: number) {
 
 function dupNode(id: string) {
   const h = locate(id); if (!h) return;
+  if (h.parent?.type === 'tabs') {
+    const copy = tabDuplicate(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id));
+    if (copy) selSet([copy]);
+    return;
+  }
   const c = reid(clone(h.node));
   h.list.splice(h.i + 1, 0, c);
   selSet([c.id]);
 }
 function delNode(id: string) {
   const h = locate(id); if (!h) return;
+  if (h.parent?.type === 'tabs') {
+    if (tabRemove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id))) selSet([h.parent.id]);
+    return;
+  }
   h.list.splice(h.i, 1);
   selSet(h.parent ? [h.parent.id] : []);
 }
@@ -2277,6 +2385,11 @@ function dupMany(ids: string[]) {
   const made: any[] = [];
   for (const id of selOrder(topMost(ids))) {
     const h = locate(id); if (!h) continue;
+    if (h.parent?.type === 'tabs') {
+      const id = tabDuplicate(h.parent, tabRows(h.parent).findIndex(row => row.panelId === h.node.id));
+      if (id) made.push(id);
+      continue;
+    }
     const c = reid(clone(h.node));
     h.list.splice(h.i + 1, 0, c);
     made.push(c.id);
@@ -2287,13 +2400,21 @@ function dupMany(ids: string[]) {
 function delMany(ids: string[]) {
   const top = selOrder(topMost(ids));
   let fallback = null;
+  let removed = 0;
   for (const id of top.slice().reverse()) {
     const h = locate(id); if (!h) continue;
+    if (h.parent?.type === 'tabs') {
+      if (tabRemove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id))) {
+        fallback = h.parent.id as any; removed++;
+      }
+      continue;
+    }
     h.list.splice(h.i, 1);
+    removed++;
     fallback = (h.parent ? h.parent.id : null) as any;      // the shallowest survivor wins
   }
   selSet(fallback ? [fallback] : []);
-  return top.length;
+  return removed;
 }
 
 function applyCols(row: PcNode, ws: number[]) {
@@ -3944,7 +4065,11 @@ function lint() {
         const rows = (Array.isArray(n.props.items) ? n.props.items : []) as TabPanel[];
         if (!rows.length) add('warn', 'tabs-empty', `A tab strip in the ${region} has no tabs, so it exports nothing.`, w, n.id);
         const noL = rows.filter(r => !String(r && r.label || '').trim()).length;
-        const noP = rows.filter(r => String(r && r.label || '').trim() && !String(r && r.panel || '').trim()).length;
+        const problem = tabPanelProblem(n);
+        if (problem) add('error', 'tabs-invalid-panels', problem, w, n.id);
+        const noP = rows.filter(r => String(r && r.label || '').trim() && (hasRichTabPanels(n)
+          ? !n.children.find(child => child.id === r.panelId)?.children.length
+          : !String(r && r.panel || '').trim())).length;
         if (noL) add('error', 'tabs-no-label', `${noL} tab${noL === 1 ? '' : 's'} in the ${region} have no label, so there is nothing to click.`, w, n.id);
         if (noP) add('warn', 'tabs-no-panel', `${noP} tab${noP === 1 ? '' : 's'} in the ${region} open onto an empty panel.`, w, n.id);
       }
@@ -4918,11 +5043,16 @@ function dropTree(fresh: PcNode, intoId: string | null): PcNode | null {
      because that is what it means — the first pass typed it `PcNode | null` and then
      changed the code to suit the annotation, which is backwards. */
   const place = (list: PcNode[], index: number, parentType: string | null, parentNode: PcNode | null): boolean => {
+    if (parentType === 'tabs') return false;
     if (!fitsIn(parentType, fresh.type) || (parentNode && slotlessInstance(parentNode)) || nowhere(parentNode)) return false;
     list.splice(index, 0, wrap(fresh.type, takes(parentType), fresh));
     return true;
   };
   const h = intoId ? locate(intoId) : null;
+  if (h?.node.type === 'tabs') {
+    const panel = tabPanelNodes(h.node)[0];
+    if (panel) return dropTree(fresh, panel.id);
+  }
   if (!h) return place(tree(), tree().length, null, null) ? fresh : null;
   if (place(h.node.children, h.node.children.length, h.node.type, h.node)) return fresh;
   if (place(h.list, h.i + 1, h.parent ? h.parent.type : null, h.parent)) return fresh;
@@ -4961,6 +5091,10 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
   }
   if (s) {
     let node = s.node, parent = s.parent;
+    if (node.type === 'tabs') {
+      const panel = tabPanelNodes(node)[0];
+      if (panel && receivesInside(panel, key)) return [panel, panel.children.length];
+    }
     /* A Collection List repeats its first Column as the card. Adding content while the list
        itself is selected belongs inside that card, not in a second implicit card beside it. */
     const card = !slotlessInstance(node) && node.type === 'list' && node.children[0]?.type === 'column'
@@ -6826,6 +6960,8 @@ function componentFromNode(nodeId: string, name: string) {
      definition, so moving them would break every `#anchor` link and still the animation. */
   h.node.use = id;
   h.node.children = [];
+  // A rich Tabs instance renders its definition's panels, not detached references.
+  if (hasRichTabPanels(node)) h.node.props.items = [];
   h.node.css = { d: {}, t: {}, m: {} };
   h.node.cls = [];
   h.node.hide = {};
@@ -6841,6 +6977,7 @@ function makeInstance(def: ComponentDef): PcNode {
        instance placed today */
     css: { d: {}, t: {}, m: {} }, cls: [], adv: { htmlId: '', cls: '', css: '' }
   };
+  if (hasRichTabPanels(def.node)) fresh.props.items = [];
   delete fresh.vals; delete fresh.variant; delete fresh.slot; delete fresh.st; delete fresh.anim;
   return fresh;
 }
@@ -7085,6 +7222,7 @@ const firstChildOf = (id: string) => { const h = locate(id); return h && h.node.
 function nudge(id: string, dir: number) {
   const h = locate(id);
   if (!h) return false;
+  if (h.parent?.type === 'tabs') return tabMove(h.parent, tabRows(h.parent).findIndex(row => row.panelId === id), dir);
   const j = h.i + dir;
   if (j < 0 || j >= h.list.length) return false;
   [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
@@ -7145,6 +7283,7 @@ function nudgeMany(ids: string[], dir: number) {
     const j = h.i + dir;
     if (j < 0 || j >= h.list.length) continue;
     if (set.has(h.list[j].id)) continue;
+    if (h.parent?.type === 'tabs') { if (nudge(id, dir)) moved++; continue; }
     [h.list[h.i], h.list[j]] = [h.list[j], h.list[h.i]];
     moved++;
   }
@@ -7154,7 +7293,7 @@ function nudgeMany(ids: string[], dir: number) {
 
 
 /* ---- schema migration ------------------------------------------------ */
-const SCHEMA = 14;                       // bump when the stored shape changes
+const SCHEMA = 15;                       // bump when the stored shape changes
 function migrate(d: any) {
   if (!d || !d.pages || !d.pages.length) return null;
   /* `v` was the editor-backup marker before the document schema became an explicit part of
@@ -7184,6 +7323,12 @@ function migrate(d: any) {
     (((d.meta || {}).blocks) || []).forEach((bl: any) => { if (bl.node) walk(bl.node); });
     (((d.meta || {}).components) || []).forEach((cd: any) => { if (cd.node) walk(cd.node); });
   };
+  everyNode(n => {
+    if (n?.type !== 'tabs' || !hasRichTabPanels(n)) return;
+    if (v < 15) throw new Error('Editable tab panels require document schema 15.');
+    const problem = tabPanelProblem(n);
+    if (problem) throw new Error(problem);
+  });
   /* v1 → v2: images were inline data URIs. They still render as-is, so that
      step is a stamp only; new uploads go to the asset store as asset:<id>. */
   /* v2 → v3: design tokens arrive. The three colours that used to live loose on
@@ -10196,19 +10341,23 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
         ? `<div ${at()} ${cx('pagecraft-tabs')}><div class="s-empty">${svg('plus', 12)} Add a tab in the panel</div></div>` : '';
       /* While the widget is selected every panel shows, so all of them can be read and
          restyled — the same reason the accordion opens and the burger unfolds. */
-      const all = o.edit && state.ui.sel === n.id;
+      const rich = hasRichTabPanels(n);
+      const all = !rich && o.edit && state.ui.sel === n.id;
+      const active = rich && o.edit ? Math.max(0, tabPanelNodes(n).findIndex(panel =>
+        !!state.ui.sel && !!locate(state.ui.sel, [panel]))) : 0;
       const tid = (k: number) => `${domId()}-t${k}`;
       const pid = (k: number) => `${domId()}-p${k}`;
       /* `role=tab` with aria-selected and aria-controls, and the panels labelled back: a tab
          strip a screen reader cannot follow is a row of unexplained links. */
       const strip = rows.map((it, k) =>
         `<button type="button" role="tab" id="${tid(k)}" aria-controls="${pid(k)}"`
-        + ` aria-selected="${k === 0 ? 'true' : 'false'}" tabindex="${k === 0 ? '0' : '-1'}"`
-        + ` class="pagecraft-tab${k === 0 ? ' on' : ''}">${esc(it.label || 'Tab ' + (k + 1))}</button>`
+        + ` aria-selected="${k === active ? 'true' : 'false'}" tabindex="${k === active ? '0' : '-1'}"`
+        + ` class="pagecraft-tab${k === active ? ' on' : ''}">${esc(it.label || 'Tab ' + (k + 1))}</button>`
       ).join('');
       const panels = rows.map((it, k) =>
         `<div role="tabpanel" id="${pid(k)}" aria-labelledby="${tid(k)}"`
-        + `${(k === 0 || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${para(it.panel)}</div>`
+        + `${(k === active || all) ? '' : ' data-tab-idle'} class="pagecraft-tabpanel">${rich
+          ? renderList(n.children.filter(child => child.id === it.panelId), o) : para(it.panel)}</div>`
       ).join('');
       return `<div ${at()} ${cx('pagecraft-tabs')} data-tabs>`
         + `<div class="pagecraft-tablist" role="tablist">${strip}</div>${panels}</div>`;
@@ -10475,7 +10624,8 @@ function robotsTxt() {
 /* Emitted only when a page has a tab strip. It sets `data-tabs-ready`, which is what turns the
    `display:none` on: the panels are only hidden once something exists to show them again, so a
    page served without JS reads as the whole content stacked rather than one tab's worth. */
-const TABS_JS = `<script>
+// Renderer 2 archives retain their exact text-tab runtime.
+const LEGACY_TABS_JS = `<script>
 (function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
 var t=[].slice.call(w.querySelectorAll('[role=tab]')),p=[].slice.call(w.querySelectorAll('[role=tabpanel]'));
 if(!t.length)return;w.setAttribute('data-tabs-ready','');
@@ -10483,6 +10633,25 @@ function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on
 b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
 if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
 show(0);
+t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
+b.addEventListener('keydown',function(e){
+var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
+if(!d)return;e.preventDefault();
+var i=d===-999?0:d===999?t.length-1:(k+d+t.length)%t.length;show(i);t[i].focus();});});
+});})();
+<\/script>
+`;
+
+
+const TABS_JS = `<script>
+(function(){Array.prototype.forEach.call(document.querySelectorAll('[data-tabs]'),function(w){
+var strip=[].slice.call(w.children).find(function(e){return e.getAttribute('role')==='tablist';});
+var t=strip?[].slice.call(strip.children).filter(function(e){return e.getAttribute('role')==='tab';}):[],p=[].slice.call(w.children).filter(function(e){return e.getAttribute('role')==='tabpanel';});
+if(!t.length)return;w.setAttribute('data-tabs-ready','');
+function show(i){t.forEach(function(b,k){var on=k===i;b.classList.toggle('on',on);
+b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;
+if(p[k]){if(on)p[k].removeAttribute('data-tab-idle');else p[k].setAttribute('data-tab-idle','');}});}
+show(Math.max(0,t.findIndex(function(b){return b.getAttribute('aria-selected')==='true';})));
 t.forEach(function(b,k){b.addEventListener('click',function(){show(k);});
 b.addEventListener('keydown',function(e){
 var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-999:e.key==='End'?999:0;
@@ -10794,6 +10963,8 @@ const SHARED_FOOTER_END = HTML_COMMENT_OPEN + 'PAGECRAFT_SHARED_FOOTER_END' + HT
 function buildPage(pg: Page, ctx: {
   col?: Collection | null; item?: Item | null; rel?: string; variants?: boolean;
   pageNo?: number; pages?: number;
+  /** Explicit legacy portable exports retain their renderer-2 text-tab runtime. */
+  schemaVersion?: number;
   /** `@font-face` rules to ship instead of the Google stylesheet link. Empty means link it,
       which is what a single self-contained file has to do — it has nowhere to put the files. */
   fontCss?: string;
@@ -10854,7 +11025,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? TABS_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -11351,6 +11522,7 @@ function proposalApply(changes: ProposalChange[], proposalId = '', options?: Pro
 }
 
 export { editContext, atEditContext };
+export { hasRichTabPanels, tabPanelProblem, tabPanelNodes, enableTabPanels, tabAdd, tabRemove, tabMove, tabSelect, tabDuplicate, tabSelectionPath };
 export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad, styleClipClear };
 export type { EditContext };
 export {

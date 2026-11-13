@@ -12,7 +12,7 @@ import {
   type PortablePackageProvenanceV1
 } from '../../app/src/package/types.ts';
 import {
-  PORTABLE_RENDERER_REVISION, portableRendererVersionForSchema, supportsPortableRendererContract
+  portableRendererRevisionForSchema, portableRendererVersionForSchema, supportsPortableRendererContract
 } from '../../app/src/package/renderer-version.ts';
 import { ALLOWED as ALLOWED_ASSET_TYPES, type Asset } from './assets.ts';
 import {
@@ -20,6 +20,7 @@ import {
 } from './releases.ts';
 import { renderSite } from './render.ts';
 import { createPortableZip, extractPortableZip } from './portable-zip.ts';
+import { validateNativeTabRelations } from './template-draft-validation.ts';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -206,6 +207,7 @@ function validateProvenance(value: PortablePackageProvenanceV1) {
 
 function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly Asset[], provenance: PortablePackageProvenanceV1, pageId?: string): PortablePackageBuild {
   validateProvenance(provenance);
+  validateNativeTabRelations(rawDocument);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
   const dependencies = dependenciesOf(document);
@@ -263,7 +265,7 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     kind,
     schemaVersion: document.schemaVersion,
     rendererVersion: portableRendererVersionForSchema(document.schemaVersion),
-    rendererRevision: PORTABLE_RENDERER_REVISION,
+    rendererRevision: portableRendererRevisionForSchema(document.schemaVersion),
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
@@ -398,6 +400,7 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(supplied) || supplied !== manifest.schemaVersion) {
     throw new Error('portable package document schema does not match its manifest');
   }
+  validateNativeTabRelations(rawDocument);
   const document = adoptHostDocument(rawDocument);
   const provenance = canonicalObject<PortablePackageProvenanceV1>(files.get(PROVENANCE_PATH)!, 'portable package provenance');
   validateProvenance(provenance);
@@ -425,5 +428,5 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
 }
 
 export const portablePackageRendererVersion = portableRendererVersionForSchema(SCHEMA);
-export const portablePackageRendererRevision = PORTABLE_RENDERER_REVISION;
+export const portablePackageRendererRevision = portableRendererRevisionForSchema(SCHEMA);
 export const selectPortablePageDocument = (document: Doc, pageId: string) => packageDocumentForPage(document, pageId);
