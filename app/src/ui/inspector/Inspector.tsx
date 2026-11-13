@@ -258,15 +258,22 @@ function VariantPick({ n }: { n: PcNode }) {
   if (!def) return null;
   const list = C.variantsOf(def);
   const own = C.instOwn(n).length;
+  const resetKeys = () => {
+    const allowed = L.canStructure() ? null : C.contentKeysOf(n);
+    return C.instOwn(n).filter(k => !allowed || allowed.has(C.VAL + k));
+  };
+  const resettable = resetKeys().length;
 
   const set = (vid: string) => {
+    if (!L.canStructure()) return;
     C.edit(() => C.variantSet(n, vid || null));
     L.paint(); L.save();
     repaint('right');
   };
   const save = async () => {
+    if (!L.canStructure()) return;
     const name = await L.askText('Save as variant', 'Name', 'Variant ' + (list.length + 1));
-    if (!name) return;
+    if (!name || !L.canStructure()) return;
     let made: string | null = null;
     C.edit(() => { made = C.variantFromInstance(n, name); });
     L.paint(); L.save();
@@ -274,7 +281,9 @@ function VariantPick({ n }: { n: PcNode }) {
     repaint('right');
   };
   const reset = () => {
-    C.edit(() => C.instOwn(n).forEach(k => C.instSet(n, k, undefined)));
+    const keys = resetKeys();
+    if (!keys.length) return;
+    C.edit(() => keys.forEach(k => C.instSet(n, k, undefined)));
     L.paint(); L.save();
     repaint('right');
   };
@@ -298,18 +307,18 @@ function VariantPick({ n }: { n: PcNode }) {
   return (
     <div class="f">
       <label>Component variant</label>
-      <select ref={select} aria-label="Component variant" value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
+      <select ref={select} aria-label="Component variant" disabled={!L.canStructure()} value={n.variant || ''} onChange={e => set((e.target as HTMLSelectElement).value)}>
           <option value="">Default</option>
           {list.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
-      <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
-        <button class="btn tiny" onClick={save}>Save as variant</button>
-        {own
+      {L.canStructure() || resettable ? <div class="row" style={{ marginTop: 'var(--gap-1)' }}>
+        {L.canStructure() ? <button class="btn tiny" onClick={save}>Save as variant</button> : null}
+        {resettable
           ? <button class="btn tiny" onClick={reset}>
             {n.variant ? 'Back to the variant' : 'Back to the defaults'}
           </button>
           : null}
-      </div>
+      </div> : null}
       {n.variant && C.findVariant(def, n.variant) && L.canStructure()
         ? <button type="button" class="btn tiny block danger" style={{ marginTop: 'var(--gap-1)' }} onClick={remove}>Delete variant</button>
         : null}

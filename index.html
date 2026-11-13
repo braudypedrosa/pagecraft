@@ -26132,15 +26132,22 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     if (!def) return null;
     const list2 = C2.variantsOf(def);
     const own = C2.instOwn(n2).length;
+    const resetKeys = () => {
+      const allowed = L2.canStructure() ? null : C2.contentKeysOf(n2);
+      return C2.instOwn(n2).filter((k3) => !allowed || allowed.has(C2.VAL + k3));
+    };
+    const resettable = resetKeys().length;
     const set = (vid) => {
+      if (!L2.canStructure()) return;
       C2.edit(() => C2.variantSet(n2, vid || null));
       L2.paint();
       L2.save();
       repaint("right");
     };
     const save = async () => {
+      if (!L2.canStructure()) return;
       const name = await L2.askText("Save as variant", "Name", "Variant " + (list2.length + 1));
-      if (!name) return;
+      if (!name || !L2.canStructure()) return;
       let made = null;
       C2.edit(() => {
         made = C2.variantFromInstance(n2, name);
@@ -26151,7 +26158,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       repaint("right");
     };
     const reset = () => {
-      C2.edit(() => C2.instOwn(n2).forEach((k3) => C2.instSet(n2, k3, void 0)));
+      const keys2 = resetKeys();
+      if (!keys2.length) return;
+      C2.edit(() => keys2.forEach((k3) => C2.instSet(n2, k3, void 0)));
       L2.paint();
       L2.save();
       repaint("right");
@@ -26175,14 +26184,14 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     return /* @__PURE__ */ u2("div", { class: "f", children: [
       /* @__PURE__ */ u2("label", { children: "Component variant" }),
-      /* @__PURE__ */ u2("select", { ref: select, "aria-label": "Component variant", value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
+      /* @__PURE__ */ u2("select", { ref: select, "aria-label": "Component variant", disabled: !L2.canStructure(), value: n2.variant || "", onChange: (e3) => set(e3.target.value), children: [
         /* @__PURE__ */ u2("option", { value: "", children: "Default" }),
         list2.map((v3) => /* @__PURE__ */ u2("option", { value: v3.id, children: v3.name }, v3.id))
       ] }),
-      /* @__PURE__ */ u2("div", { class: "row", style: { marginTop: "var(--gap-1)" }, children: [
-        /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: save, children: "Save as variant" }),
-        own ? /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: reset, children: n2.variant ? "Back to the variant" : "Back to the defaults" }) : null
-      ] }),
+      L2.canStructure() || resettable ? /* @__PURE__ */ u2("div", { class: "row", style: { marginTop: "var(--gap-1)" }, children: [
+        L2.canStructure() ? /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: save, children: "Save as variant" }) : null,
+        resettable ? /* @__PURE__ */ u2("button", { class: "btn tiny", onClick: reset, children: n2.variant ? "Back to the variant" : "Back to the defaults" }) : null
+      ] }) : null,
       n2.variant && C2.findVariant(def, n2.variant) && L2.canStructure() ? /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny block danger", style: { marginTop: "var(--gap-1)" }, onClick: remove, children: "Delete variant" }) : null,
       own ? /* @__PURE__ */ u2("div", { class: "note", children: [
         own === 1 ? "One value is" : own + " values are",

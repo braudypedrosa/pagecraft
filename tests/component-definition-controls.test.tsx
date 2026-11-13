@@ -224,3 +224,88 @@ test.each([true, false])('inspector offers structural footer actions only with s
   expect(r!.calls.filter(([name]) => name === 'runAct'))
     .toEqual([['runAct', 'dup', [instances()[0].id]], ['runAct', 'del', [instances()[0].id]]]);
 });
+
+test('content-only variant context is disabled and even a programmatic selection cannot queue a structural save', async () => {
+  setup([{ k: 'title', label: 'Title', t: 'text', def: 'Workshop default' }], { canStructure: false });
+  definition().variants = [{ id: 'evening', name: 'Workshop Evening', values: { title: 'Evening title' } }];
+  instances()[0].variant = 'evening';
+  C.componentClose(); C.selSet([instances()[0].id]); draw();
+  const before = C.clone(C.doc());
+  const saveCalls = r!.names().filter(name => name === 'save').length;
+  const select = r!.$('select[aria-label="Component variant"]') as HTMLSelectElement;
+  expect(select.disabled).toBe(true);
+  expect(select.value).toBe('evening');
+  installCustomSelects(); await settle();
+  const trigger = select.nextElementSibling as HTMLButtonElement;
+  expect(trigger.disabled).toBe(true);
+  expect(trigger.textContent).toBe('Workshop Evening');
+  expect(button('Save as variant')).toBeUndefined();
+  expect(r!.$('.f > .row')).toBeNull();
+  await act(async () => { r!.pick(select, ''); await settle(); });
+  expect(C.doc()).toEqual(before);
+  expect(C.hist.u).toHaveLength(0);
+  expect(r!.names().filter(name => name === 'save')).toHaveLength(saveCalls);
+});
+
+test.each([false, true])('variant reset clears only permitted own values and their paired metadata (%s)', async canStructure => {
+  setup([
+    { k: 'title', label: 'Title', t: 'text', def: 'Workshop default' },
+    { k: 'photo', label: 'Photo', t: 'img', def: 'asset:forest' },
+    { k: 'destination', label: 'Destination', t: 'link', def: '/workshop' },
+    { k: 'shown', label: 'Shown', t: 'bool', def: '1' },
+    { k: 'layout', label: 'Layout', t: 'select', def: 'stack', opts: [['stack', 'Stacked'], ['row', 'Inline']] },
+  ], { canStructure });
+  const image = C.N('image', { src: 'asset:forest' });
+  image.bind = { src: { src: 'prop', path: 'photo' } };
+  definition().node.children.push(image);
+  definition().variants = [{ id: 'evening', name: 'Workshop Evening', values: { title: 'Evening title' } }];
+  const inst = instances()[0]; inst.variant = 'evening';
+  inst.vals = { title: 'Workshop own title', photo: 'asset:lake', destination: '/local', '@link-target:destination': '_blank', shown: '0', layout: 'row' };
+  C.instImageSizeSet(inst, 'photo', { w: 1200, h: 800 });
+  expect(inst.vals[C.imageSizeKey('photo')]).toBeDefined();
+  C.componentClose(); C.selSet([inst.id]); draw();
+  const before = C.clone(C.doc());
+  await click('Back to the variant');
+  expect(inst.vals).toEqual(canStructure ? undefined : { shown: '0', layout: 'row' });
+  expect(inst.variant).toBe('evening');
+  expect(C.instValue(inst, definition(), 'title')).toBe('Evening title');
+  if (!canStructure) {
+    expect(button('Back to the variant')).toBeUndefined();
+    expect(r!.$('.f > .row')).toBeNull();
+  }
+  expect(C.hist.u).toHaveLength(1);
+  const after = C.clone(C.doc());
+  C.undo(); expect(C.doc()).toEqual(before);
+  C.redo(); expect(C.doc()).toEqual(after);
+});
+
+test('variant authoring rechecks structure permission before opening and after resolving its name dialog', async () => {
+  setup([{ k: 'title', label: 'Title', t: 'text', def: 'Workshop default' }]);
+  C.componentClose(); C.selSet([instances()[1].id]); draw();
+  const before = C.clone(C.doc());
+  const permission = vi.spyOn(L, 'canStructure').mockReturnValue(false);
+  let resolveName!: (value: string) => void;
+  const ask = vi.spyOn(L, 'askText').mockImplementation(() => new Promise(resolve => { resolveName = resolve; }));
+  await click('Save as variant');
+  expect(ask).not.toHaveBeenCalled();
+  permission.mockReturnValue(true);
+  await click('Save as variant');
+  expect(ask).toHaveBeenCalledTimes(1);
+  await act(async () => { permission.mockReturnValue(false); resolveName('Workshop alternate'); await settle(); });
+  expect(C.doc()).toEqual(before);
+  expect(C.hist.u).toHaveLength(0);
+  expect(r!.names()).not.toContain('save');
+});
+
+test('an account with structure permission still creates a variant from the instance values', async () => {
+  setup([{ k: 'title', label: 'Title', t: 'text', def: 'Workshop default' }]);
+  C.componentClose(); C.selSet([instances()[1].id]); draw();
+  const ask = vi.spyOn(L, 'askText').mockResolvedValue('Workshop alternate');
+  await click('Save as variant');
+  expect(ask).toHaveBeenCalledTimes(1);
+  expect(definition().variants).toEqual([{ id: 'workshop-alternate', name: 'Workshop alternate', values: { title: 'Local title' } }]);
+  expect(instances()[1].variant).toBe('workshop-alternate');
+  expect(instances()[1].vals).toBeUndefined();
+  expect(r!.names()).toContain('save');
+  expect((r!.$('select[aria-label="Component variant"]') as HTMLSelectElement).disabled).toBe(false);
+});
