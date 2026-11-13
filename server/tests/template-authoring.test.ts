@@ -15,7 +15,11 @@ import { validatePortablePackage } from '../src/portable-packages.ts';
 import * as Core from '../../app/src/core/index.ts';
 
 const roots: string[] = [];
-afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
+const pendingRequestDrains: Array<() => Promise<void>> = [];
+afterEach(async () => {
+  await Promise.all(pendingRequestDrains.splice(0).map(drain => drain()));
+  await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })));
+});
 async function rig() {
   const root = await mkdtemp(join(tmpdir(), 'pagecraft-template-workshop-')); roots.push(root);
   const auth = new MemoryAuthStore(), store = new MemoryStore();
@@ -25,23 +29,42 @@ async function rig() {
   const grants = new TemplateAuthorGrants(join(root, 'grants'), 'test', 'http://admin.test/mcp/template-authoring', [owner.id]);
   const app = createApp({ store, auth, templateAuthoring: { store: drafts, grants }, editorHost: 'admin.test',
     editorOrigin: 'http://admin.test', editorHtml: '<title>Pagecraft builder</title><script>window.ready=true</script>' });
+  const pendingRequests = new Set<Promise<Response>>();
+  const trackedFetch = async (request: Request) => {
+    const pending = Promise.resolve(app.fetch(request));
+    pendingRequests.add(pending);
+    try { return await pending; }
+    finally { pendingRequests.delete(pending); }
+  };
+  const drainRequests = async () => {
+    while (pendingRequests.size) await Promise.allSettled([...pendingRequests]);
+  };
+  pendingRequestDrains.push(drainRequests);
   const cookie = async (id: string) => { const token = newToken(); await auth.putSession(hashToken(token), id, Date.now() + 60_000); return `pc_session=${token}`; };
   const ownerCookie = await cookie(owner.id), customerCookie = await cookie(customer.id);
-  const call = (path: string, init: RequestInit = {}) => app.fetch(new Request(`http://admin.test${path}`, {
+  const call = (path: string, init: RequestInit = {}) => trackedFetch(new Request(`http://admin.test${path}`, {
     ...init, headers: { host: 'admin.test', cookie: ownerCookie, origin: 'http://admin.test', ...Object.fromEntries(new Headers(init.headers)) },
   }));
   const { token, grant } = await grants.create(owner.id, 'Template workshop');
   const client = new Client({ name: 'template-workshop', version: '1.0.0' });
-  await client.connect(new StreamableHTTPClientTransport(new URL('http://admin.test/mcp/template-authoring'), {
+  const transport = new StreamableHTTPClientTransport(new URL('http://admin.test/mcp/template-authoring'), {
     authProvider: { token: async () => token },
-    fetch: async (input, init) => app.fetch(new Request(input, { ...init, headers: { ...Object.fromEntries(new Headers(init?.headers)), host: 'admin.test' } })),
-  }));
+    fetch: async (input, init) => trackedFetch(new Request(input, { ...init, headers: { ...Object.fromEntries(new Headers(init?.headers)), host: 'admin.test' } })),
+  });
+  await client.connect(transport);
   const tool = async (name: string, input: Record<string, unknown> = {}) => {
     const result = await client.callTool({ name, arguments: input });
     const content = result.content as { type: string; text: string }[];
     return { error: !!result.isError, value: JSON.parse(content[0].text) };
   };
-  return { root, owner, customerCookie, grants, drafts, app, client, call, token, grant, tool };
+  const close = async () => {
+    try { await transport.terminateSession(); }
+    finally {
+      try { await client.close(); }
+      finally { await drainRequests(); }
+    }
+  };
+  return { root, owner, customerCookie, grants, drafts, app, client, call, token, grant, tool, close };
 }
 
 test('operator-only MCP creates, edits, previews and exports an immutable native draft', async () => {
@@ -79,7 +102,7 @@ test('operator-only MCP creates, edits, previews and exports an immutable native
     const repeat = await r.tool('pagecraft_template_export', { id: 'linden-dental', version: '1.0.0', revision: 2 });
     a.equal(repeat.value.packageSha256, exported.value.packageSha256);
     a.equal((await r.drafts.read('linden-dental', '1.0.0')).revision, 2);
-  } finally { await r.client.close(); }
+  } finally { await r.close(); }
 });
 
 test('customer sessions, wrong resources, revoked grants and cross-origin saves cannot author templates', async () => {
@@ -95,7 +118,7 @@ test('customer sessions, wrong resources, revoked grants and cross-origin saves 
     a.ok(!stored.includes(r.token));
     await r.grants.revoke(r.grant.id, r.owner.id);
     a.equal((await r.call('/mcp/template-authoring', { method: 'POST', headers: { authorization: `Bearer ${r.token}` }, body: '{}' })).status, 401);
-  } finally { await r.client.close(); }
+  } finally { await r.close(); }
 });
 
 test('revocation waits for an in-flight authorised save and denies all later work', async () => {
@@ -109,7 +132,7 @@ test('revocation waits for an in-flight authorised save and denies all later wor
     finish();
     a.equal(await pending, 'saved'); a.equal(await revoked, true);
     a.equal(await r.grants.withGrant(r.token, async () => 'unexpected'), null);
-  } finally { await r.client.close(); }
+  } finally { await r.close(); }
 });
 
 
@@ -126,7 +149,7 @@ test('malformed documents and invalid image bytes return client errors without c
     const image = await r.call('/api/template-drafts/example/1.0.0/assets', {method:'POST',body:form});
     a.equal(image.status,422);
     a.equal((await r.drafts.read('example','1.0.0')).revision,1);
-  } finally { await r.client.close(); }
+  } finally { await r.close(); }
 });
 
 
@@ -154,5 +177,5 @@ test('immutable preview keeps its revision for relative pages and assets', async
     const assetPath=Core.assetFile(asset); a.ok(homeHtml.includes(assetPath));
     const assetUrl=new URL(assetPath,url);
     const assetResponse=await r.call(assetUrl.pathname); a.equal(assetResponse.status,200); a.equal(sha256(new Uint8Array(await assetResponse.arrayBuffer())),uploaded.assets[0].sha256);
-  } finally { await r.client.close(); }
+  } finally { await r.close(); }
 });
