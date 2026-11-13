@@ -160,8 +160,16 @@ function normalised(kind: LibraryItemKind, item: unknown) {
   const copy = clone(item) as Record<string, unknown>;
   delete copy.id;
   const root = (kind === 'component' || kind === 'block') ? copy.node as Node | undefined : undefined;
+  const ids = new Map<string, string>();
+  if (root) eachNode(root, n => { ids.set(n.id, `@local-node:${ids.size}`); });
   if (root) eachNode(root, n => {
     delete (n as Partial<Node>).id;
+    // Panel references are local identity too; preserve their association, not their IDs.
+    if (n.type === 'tabs' && Array.isArray(n.props.items)) {
+      for (const row of n.props.items as { panelId?: string }[]) {
+        if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+      }
+    }
     /* Node ids are storage identity. A nonblank htmlId is authored content: ignoring it made a
        local anchor invisible to conflict detection, then an upstream update silently erased it.
        Keep normalising blank ids away so hashes stored for existing imports remain compatible. */
@@ -420,10 +428,20 @@ function replaceItem(doc: Doc, kind: LibraryItemKind, id: string, item: { id: st
   if (at >= 0) list[at] = item;
 }
 
-const reidTree = (node: Node, newId: () => string) => eachNode(node, n => {
-  n.id = newId();
-  if (n.adv && n.adv.htmlId) n.adv.htmlId = '';
-});
+const reidTree = (node: Node, newId: () => string) => {
+  const ids = new Map<string, string>();
+  eachNode(node, n => {
+    const id = newId(); ids.set(n.id, id); n.id = id;
+    if (n.adv && n.adv.htmlId) n.adv.htmlId = '';
+  });
+  eachNode(node, n => {
+    if (n.type === 'tabs' && Array.isArray(n.props.items)) {
+      for (const row of n.props.items as { panelId?: string }[]) {
+        if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId)!;
+      }
+    }
+  });
+};
 
 /** The library images an import of `chosen` needs copied into the site first: everything the
     chosen items and their dependencies show. Copy these, then pass the id map to the plan. */

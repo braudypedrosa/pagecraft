@@ -107,6 +107,52 @@ test('import makes locally owned copies with fresh node ids, records links and r
   a.deepEqual(site.meta.libraryLinks, undefined, 'the input document is never mutated');
 });
 
+test('native tab panels keep their associations and content hashes through library import and update', () => {
+  const author = authorSite();
+  const tabs = C.N('tabs', { items: [
+    { label: 'Workshop one', panel: 'First workshop content' },
+    { label: 'Workshop two', panel: 'Second workshop content' },
+  ] });
+  C.enableTabPanels(tabs);
+  const card = author.meta.components!.find(def => def.id === 'card')!;
+  card.node.children.push(tabs);
+  author.meta.blocks.push({ id: 'topics', name: 'Workshop topics', node: C.clone(tabs) });
+  const chosen = [{ kind: 'component', id: 'card' }, { kind: 'block', id: 'topics' }] as const;
+  const v1 = extractLibraryBundle(author, [...chosen], C.SCHEMA);
+  const before = clone(author);
+  const imported = planLibraryImport(blankSite('Workshop receiver'), v1, source(1), [...chosen], { assets, newId }).doc;
+  a.deepEqual(author, before, 'import planning never mutates the source');
+  const importedCard = imported.meta.components!.find(def => def.id === 'card')!;
+  const importedTabs = importedCard.node.children.at(-1)!;
+  const importedBlock = imported.meta.blocks.find(block => block.id === 'topics')!;
+  for (const placed of [importedTabs, importedBlock.node]) {
+    a.equal(C.tabPanelProblem(placed), null);
+    a.deepEqual((placed.props.items as { panelId: string }[]).map(row => row.panelId), placed.children.map(panel => panel.id));
+    a.ok(placed.children.every(panel => panel.id.startsWith('fresh-')));
+  }
+  a.equal(itemHash('block', importedBlock), v1.hashes['block:topics'], 'local identities do not change a tab bundle content hash');
+  const renumbered = C.clone(tabs); C.reid(renumbered);
+  a.equal(itemHash('block', { id: 'topics', name: 'Workshop topics', node: renumbered }), v1.hashes['block:topics']);
+  const swapped = C.clone(importedBlock);
+  const rows = swapped.node.props.items as { panelId: string }[];
+  [rows[0].panelId, rows[1].panelId] = [rows[1].panelId, rows[0].panelId];
+  a.notEqual(itemHash('block', swapped), v1.hashes['block:topics'], 'changing which content a label opens remains an authored difference');
+
+  card.node.css.d!['padding-top'] = '28px';
+  author.meta.blocks.find(block => block.id === 'topics')!.name = 'Workshop topics updated';
+  const v2 = extractLibraryBundle(author, [...chosen], C.SCHEMA);
+  const beforeUpdate = clone(author);
+  const updated = planLibraryUpdate(imported, v2, source(2), {}, { assets, newId }).doc!;
+  for (const placed of [updated.meta.components!.find(def => def.id === 'card')!.node.children.at(-1)!, updated.meta.blocks.find(block => block.id === 'topics')!.node]) {
+    a.equal(C.tabPanelProblem(placed), null);
+    a.deepEqual((placed.props.items as { panelId: string }[]).map(row => row.panelId), placed.children.map(panel => panel.id));
+    a.equal(placed.children[0].children[0].props.text, 'First workshop content');
+  }
+  a.notDeepEqual(updated.meta.blocks.find(block => block.id === 'topics')!.node.children.map(panel => panel.id), importedBlock.node.children.map(panel => panel.id));
+  a.deepEqual(author, beforeUpdate, 'update planning never mutates the source');
+  a.ok(importedCard.node.children.some(child => child.slot === 'body'), 'existing slot declarations also survive the transfer');
+});
+
 test('an id already used for something else is renamed, and every reference follows it', () => {
   const site = blankSite('Recipient');
   site.meta.components = [{ id: 'badge', name: 'Their own badge', props: [], node: node('x1', 'text') }];

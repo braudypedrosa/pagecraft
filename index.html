@@ -19397,8 +19397,17 @@ var PC_UI = (() => {
     const copy2 = clone2(item);
     delete copy2.id;
     const root = kind === "component" || kind === "block" ? copy2.node : void 0;
+    const ids = /* @__PURE__ */ new Map();
+    if (root) eachNode(root, (n2) => {
+      ids.set(n2.id, `@local-node:${ids.size}`);
+    });
     if (root) eachNode(root, (n2) => {
       delete n2.id;
+      if (n2.type === "tabs" && Array.isArray(n2.props.items)) {
+        for (const row of n2.props.items) {
+          if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId);
+        }
+      }
       if (n2.adv && !n2.adv.htmlId && "htmlId" in n2.adv) delete n2.adv.htmlId;
     });
     return canonical({ kind, item: copy2 });
@@ -19562,10 +19571,22 @@ var PC_UI = (() => {
     const at = list2.findIndex((existing) => existing.id === id);
     if (at >= 0) list2[at] = item;
   }
-  var reidTree = (node, newId) => eachNode(node, (n2) => {
-    n2.id = newId();
-    if (n2.adv && n2.adv.htmlId) n2.adv.htmlId = "";
-  });
+  var reidTree = (node, newId) => {
+    const ids = /* @__PURE__ */ new Map();
+    eachNode(node, (n2) => {
+      const id = newId();
+      ids.set(n2.id, id);
+      n2.id = id;
+      if (n2.adv && n2.adv.htmlId) n2.adv.htmlId = "";
+    });
+    eachNode(node, (n2) => {
+      if (n2.type === "tabs" && Array.isArray(n2.props.items)) {
+        for (const row of n2.props.items) {
+          if (row?.panelId && ids.has(row.panelId)) row.panelId = ids.get(row.panelId);
+        }
+      }
+    });
+  };
   function importAssetsNeeded(bundle, chosen) {
     const lists = bundleLists(bundle);
     const needed = /* @__PURE__ */ new Set();
