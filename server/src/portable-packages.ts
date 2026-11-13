@@ -16,7 +16,7 @@ import {
 } from '../../app/src/package/renderer-version.ts';
 import { ALLOWED as ALLOWED_ASSET_TYPES, type Asset } from './assets.ts';
 import {
-  assertSafeStaticSvg, canonicalJson, sha256, utf8ByteCompare
+  assertSafeStaticSvg, canonicalJson, documentHasAccordion, sha256, utf8ByteCompare
 } from './releases.ts';
 import { renderSite } from './render.ts';
 import { createPortableZip, extractPortableZip } from './portable-zip.ts';
@@ -180,8 +180,8 @@ const mimeFor = (path: string) => {
 
 const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
   /* Review each future schema before converting it for an installed WordPress reader. */
-  if (![14, 15, 16].includes(doc.schemaVersion)) {
-    throw new Error('Portable page compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the page exporter before converting a newer project.');
+  if (![14, 15, 16, 17].includes(doc.schemaVersion)) {
+    throw new Error('Portable page compatibility requires a reviewed schema-14, schema-15, schema-16 or schema-17 document. Upgrade the page exporter before converting a newer project.');
   }
   const page = doc.pages.find(candidate => candidate.id === pageId);
   if (!page) throw new Error(`Pagecraft page ${pageId} does not exist`);
@@ -194,7 +194,7 @@ const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
   });
   delete selected.pages[0].header;
   delete selected.pages[0].footer;
-  const schema = documentHasRichTabs(selected) ? 15 : 14;
+  const schema = doc.schemaVersion >= 17 && documentHasAccordion(selected) ? 17 : documentHasRichTabs(selected) ? 15 : 14;
   selected.schemaVersion = schema;
   (selected as Doc & { v: number }).v = schema;
   return selected;
@@ -238,16 +238,15 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
   assertPortableRegions(document);
-  if (![14, 15, 16].includes(document.schemaVersion)) {
-    throw new Error('Portable compatibility requires a reviewed schema-14, schema-15 or schema-16 document. Upgrade the exporter before converting a newer project.');
+  if (![14, 15, 16, 17].includes(document.schemaVersion)) {
+    throw new Error('Portable compatibility requires a reviewed schema-14, schema-15, schema-16 or schema-17 document. Upgrade the exporter before converting a newer project.');
   }
   const raw = rawDocument && typeof rawDocument === 'object' && !Array.isArray(rawDocument)
     ? rawDocument as Record<string, unknown> : {};
   const rawSchema = raw.schemaVersion ?? raw.v;
   const richTabs = documentHasRichTabs(document);
-  // Preserve the source contract for read-only exports of documents already using
-  // renderer 2/3. Schema 16 is a newer editor schema and is still downgraded to the
-  // reviewed portable contract selected from its capabilities below.
+  // Schema 14/15 keep their authored contracts. Schema 16 keeps its existing
+  // minimum-compatible output; schema 17 selects renderer 4 only for accordions.
   const preserveSourceSchema = rawSchema === 15 || (rawSchema === 14 && !richTabs);
   const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
   const renderDocument = structuredClone(document);
@@ -255,7 +254,7 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   // capability may use the legacy receiver, after its page-owned regions were flattened.
   const packageSchemaVersion = preserveSourceSchema
     ? rawSchema as number
-    : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
+    : rawSchema === 17 && documentHasAccordion(document) ? 17 : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
   packageDocument.schemaVersion = packageSchemaVersion;
   packageDocument.v = packageSchemaVersion;
   renderDocument.schemaVersion = packageSchemaVersion;

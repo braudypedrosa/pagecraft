@@ -29,12 +29,17 @@ test('portable renderer revision is independent, legacy-compatible, and fails un
   a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-1', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
   a.equal(supportsPortableRendererContract(rendererVersion, undefined, Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
   a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-2', Core.SCHEMA, Core.SCHEMA), Core.SCHEMA < 15);
-  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-4', Core.SCHEMA, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract(rendererVersion, 'pagecraft-renderer-5', Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract('pagecraft-core-14', 'pagecraft-renderer-2', 14, Core.SCHEMA), true);
   a.equal(supportsPortableRendererContract('pagecraft-core-14', undefined, 14, Core.SCHEMA), true);
   a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-2', 15, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 15), true);
   a.equal(supportsPortableRendererContract('pagecraft-core-15', 'pagecraft-renderer-3', 15, 14), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-16', 'pagecraft-renderer-3', 16, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-16', 'pagecraft-renderer-4', 16, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-17', 'pagecraft-renderer-4', 17, Core.SCHEMA), true);
+  a.equal(supportsPortableRendererContract('pagecraft-core-17', 'pagecraft-renderer-3', 17, Core.SCHEMA), false);
+  a.equal(supportsPortableRendererContract('pagecraft-core-17', 'pagecraft-renderer-4', 17, 16), false);
   a.equal(supportsPortableRendererContract('pagecraft-renderer-1', undefined, Core.SCHEMA, Core.SCHEMA), false);
   a.equal(supportsPortableRendererContract(`pagecraft-core-${Core.SCHEMA - 1}`, undefined, Core.SCHEMA, Core.SCHEMA), false);
 

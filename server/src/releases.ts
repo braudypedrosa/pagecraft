@@ -2,7 +2,7 @@ import {
   createHash, createPrivateKey, createPublicKey, sign as edSign, verify as edVerify,
   type KeyLike
 } from 'node:crypto';
-import type { Doc } from '../../app/src/core/types.ts';
+import type { Doc, Node as PagecraftNode } from '../../app/src/core/types.ts';
 import type { Asset } from './assets.ts';
 import {
   assetFile, buildWordPressContentReference, eachNode, hasRichTabPanels, pageTrees, parseWordPressContentReference,
@@ -700,11 +700,28 @@ export function migrateIndexedWordPressLinks(
   };
 }
 
-const connectedV1Schema = (schema: number, richTabs = false) => {
-  if (!Number.isInteger(schema) || schema < 1 || schema > 16) {
-    throw new Error('Connected WordPress release v1 requires a reviewed schema-16 or earlier document. Upgrade the release compiler before converting a newer project.');
+// Follow only reachable component instances; dormant library definitions do not
+// force a newer portable contract on a page which never renders them.
+export const documentHasAccordion = (doc: Doc): boolean => {
+  const components = new Map((doc.meta.components || []).map(component => [component.id, component.node]));
+  const visited = new Set<string>();
+  const contains = (tree: PagecraftNode[]): boolean => tree.some(node => {
+    if (node.type === 'accordion') return true;
+    if (node.use && !visited.has(node.use)) {
+      visited.add(node.use);
+      const definition = components.get(node.use);
+      if (definition && contains([definition])) return true;
+    }
+    return contains(node.children || []);
+  });
+  return contains([...(doc.header || []), ...doc.pages.flatMap(page => pageTrees(page).flat()), ...(doc.footer || [])]);
+};
+
+const connectedV1Schema = (schema: number, richTabs = false, accordion = false) => {
+  if (!Number.isInteger(schema) || schema < 1 || schema > 17) {
+    throw new Error('Connected WordPress release v1 requires a reviewed schema-17 or earlier document. Upgrade the release compiler before converting a newer project.');
   }
-  return schema >= 15 ? richTabs ? 15 : 14 : schema;
+  return schema >= 17 && accordion ? 17 : schema >= 15 ? richTabs ? 15 : 14 : schema;
 };
 
 /** Freeze compiled routes and content-addressed assets; the raw editor Doc never crosses. */
@@ -730,7 +747,7 @@ export function buildReleaseArtifact(input: {
     ...(input.document.meta.blocks || []).map(block => [block.node])]) {
     eachNode(tree, node => { if (hasRichTabPanels(node)) richTabs = true; });
   }
-  const compatibilitySchema = connectedV1Schema(input.document.schemaVersion, richTabs);
+  const compatibilitySchema = connectedV1Schema(input.document.schemaVersion, richTabs, documentHasAccordion(input.document));
   const authoredDocument = canonicalJson(input.document);
   for (const marker of [
     SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END
@@ -2737,7 +2754,8 @@ export function manifestForRelease(input: {
   if (!Number.isInteger(input.sequence) || input.sequence < 1) throw new Error('release sequence must be positive');
   connectedV1Schema(input.schemaVersion); // reject unreviewed source schemas
   const compatibilitySchema = input.built.artifact.schemaVersion;
-  if (compatibilitySchema > 15 || input.built.artifact.rendererVersion !== `pagecraft-core-${compatibilitySchema}`) {
+  if (compatibilitySchema > 17 || compatibilitySchema === 16 || compatibilitySchema > input.schemaVersion
+    || input.built.artifact.rendererVersion !== `pagecraft-core-${compatibilitySchema}`) {
     throw new Error('Connected WordPress release v1 artifact has an unsupported renderer contract');
   }
   return {
@@ -2750,7 +2768,7 @@ export function manifestForRelease(input: {
     rendererVersion: `pagecraft-core-${compatibilitySchema}`,
     parentReleaseId: input.parentReleaseId,
     createdAt: new Date(input.createdAt).toISOString(),
-    requirements: { plugin: '>=0.1.0', wordpress: '>=6.6', php: '>=8.1' },
+    requirements: { plugin: compatibilitySchema >= 17 ? '>=0.2.2' : '>=0.1.0', wordpress: '>=6.6', php: '>=8.1' },
     capabilities: ['compiled-routes', 'native-entities', 'atomic-activate', 'rollback'],
     artifactHash: input.built.artifactHash,
     artifactBytes: input.built.artifactBytes.byteLength,

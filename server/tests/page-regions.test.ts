@@ -128,8 +128,8 @@ test('portable page packages materialize selected effective regions without sour
   const shared = validatePortablePackage(createPagePackage({ document: original, pageId: original.pages[0].id,
     assets: [asset('shared-photo')], provenance }).bytes);
   expect(shared.document.header).toEqual(original.header);
-  expect(() => selectPortablePageDocument({ ...doc, schemaVersion: 17 }, 'workshop-special'))
-    .toThrow(/requires a reviewed schema-14, schema-15 or schema-16/);
+  expect(() => selectPortablePageDocument({ ...doc, schemaVersion: 18 }, 'workshop-special'))
+    .toThrow(/requires a reviewed schema-14, schema-15, schema-16 or schema-17/);
   expect(() => createPagePackage({ document: { ...doc, schemaVersion: Core.SCHEMA + 1 }, pageId: 'workshop-special', provenance }))
     .toThrow(/Upgrade Pagecraft|newer/);
 });
@@ -189,11 +189,11 @@ test('inherited-only schema-16 sites retain the schema-14 portable and Connected
   expect(nativeManifest.schemaVersion).toBe(15);
   expect(nativeManifest.rendererVersion).toBe('pagecraft-core-15');
   expect(doc).toEqual(before);
-  const future = { ...doc, schemaVersion: 17 };
+  const future = { ...doc, schemaVersion: 18 };
   expect(() => createSitePackage({ document: future, provenance })).toThrow(/Upgrade Pagecraft|newer/);
   expect(() => buildReleaseArtifact({ releaseId: 'workshop-future', siteId: 'workshop-shared', sourceVersion: 1,
-    document: future, files })).toThrow(/requires a reviewed schema-16 or earlier/);
-  expect(() => manifestForRelease({ ...manifestInput, schemaVersion: 17 })).toThrow(/requires a reviewed schema-16 or earlier/);
+    document: future, files })).toThrow(/requires a reviewed schema-17 or earlier/);
+  expect(() => manifestForRelease({ ...manifestInput, schemaVersion: 18 })).toThrow(/requires a reviewed schema-17 or earlier/);
 });
 
 test('portable import refuses a correctly rehashed legacy document carrying newer page-region fields', () => {

@@ -51,6 +51,7 @@ const runtimeSource = [
   Core.SLIDE_JS,
   Core.CODE_JS,
   Core.TABS_JS,
+  Core.ACCORDION_JS,
   Core.NAV_JS,
   Core.FACADE_JS,
   Core.LB_JS,
