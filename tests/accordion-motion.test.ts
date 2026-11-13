@@ -62,15 +62,35 @@ test('default opening and closing animate intrinsic height and release temporary
   const f = fixture();
   f.click(1, 0);
   expect(f.rows[1][0].open).toBe(true);
+  expect(f.rows[1][0].querySelector('.pagecraft-accordion-a')!.hasAttribute('inert')).toBe(false);
   expect(f.animations[0]).toMatchObject({ from: 44, to: 144, options: { duration: 220 } });
   f.animations[0].finish();
   expect(f.rows[1][0].style.height).toBe('');
   f.click(1, 0);
   expect(f.rows[1][0].open).toBe(true);
   expect(f.animations[1]).toMatchObject({ from: 144, to: 44, options: { duration: 180 } });
+  expect(f.rows[1][0].querySelector('.pagecraft-accordion-a')!.hasAttribute('inert')).toBe(true);
   f.animations[1].finish();
   expect(f.rows[1][0].open).toBe(false);
   expect(f.rows[1][0].style.overflow).toBe('');
+  expect(f.rows[1][0].querySelector('.pagecraft-accordion-a')!.hasAttribute('inert')).toBe(false);
+  f.dom.window.close();
+});
+
+test('native open updates synchronize click state and preserve single-mode exclusivity', () => {
+  const f = fixture();
+  f.rows[0][1].open = true;
+  f.rows[0][1].dispatchEvent(new f.w.Event('toggle'));
+  f.animations.forEach(a => a.finish());
+  expect(f.rows[0].map(row => row.open)).toEqual([false, true, false]);
+  f.click(0, 1);
+  f.animations.forEach(a => a.finish());
+  expect(f.rows[0][1].open).toBe(false);
+  f.click(1, 0);
+  f.rows[1][0].open = false;
+  f.rows[1][0].dispatchEvent(new f.w.Event('toggle'));
+  expect(f.rows[1][0].style.height).toBe('');
+  expect(f.rows[1][0].open).toBe(false);
   f.dom.window.close();
 });
 

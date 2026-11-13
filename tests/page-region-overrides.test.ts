@@ -156,12 +156,17 @@ test('proposals can target page-owned regions without mutating shared content', 
 });
 
 
-test('schema 14 migrates without inventing overrides and schema 16 stays behind the host version gate', () => {
+test('schema 14 migrates without overrides, schema 16 retains them, and future schemas fail closed', () => {
   const legacy = C.clone(C.doc()); legacy.schemaVersion = 14;
   const reopened = adoptHostDocument(legacy);
-  expect(reopened.schemaVersion).toBe(16);
+  expect(reopened.schemaVersion).toBe(17);
   expect(reopened.pages.every(pg => !Object.hasOwn(pg, 'header') && !Object.hasOwn(pg, 'footer'))).toBe(true);
-  expect(C.migrate({ ...legacy, schemaVersion: C.SCHEMA + 1 })).toBeNull();
+  const native16 = C.clone(legacy); native16.schemaVersion = 16;
+  native16.pages[0].header = [heading('Workshop owned region')];
+  const reopened16 = adoptHostDocument(native16);
+  expect(reopened16.schemaVersion).toBe(17);
+  expect(reopened16.pages[0].header).toEqual(native16.pages[0].header);
+  expect(C.migrate({ ...legacy, schemaVersion: 18 })).toBeNull();
 });
 
 

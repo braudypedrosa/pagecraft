@@ -3154,6 +3154,7 @@ var ACCORDION_JS = `<script>
       if(!summary||!answer)return;
       var name=item.getAttribute('name');
       var originalHeight=item.style.height,originalOverflow=item.style.overflow;
+      var originalInert=answer.getAttribute('inert');
       var expanded=item.open,animation=null;
       // The native group would hide an outgoing answer before its closing transition.
       if(single)item.removeAttribute('name');
@@ -3164,6 +3165,7 @@ var ACCORDION_JS = `<script>
       function settle(){
         stop();item.open=expanded;
         item.style.height=originalHeight;item.style.overflow=originalOverflow;
+        if(originalInert===null)answer.removeAttribute('inert');else answer.setAttribute('inert',originalInert);
       }
       function set(open){
         if(open&&single)controls.forEach(function(other){if(other!==control&&other.expanded())other.set(false);});
@@ -3171,6 +3173,7 @@ var ACCORDION_JS = `<script>
         stop();expanded=open;
         if(!open&&answer.contains(document.activeElement))summary.focus({preventScroll:true});
         if(media&&media.matches){settle();return;}
+        if(!open)answer.setAttribute('inert','');else if(originalInert===null)answer.removeAttribute('inert');
         item.style.height=from+'px';item.style.overflow='hidden';item.open=true;
         var style=getComputedStyle(item);
         var border=(parseFloat(style.borderTopWidth)||0)+(parseFloat(style.borderBottomWidth)||0);
@@ -3187,13 +3190,21 @@ var ACCORDION_JS = `<script>
       }
       function click(event){
         if(event.defaultPrevented||event.button>0)return;
+        if(!animation)expanded=item.open;
         event.preventDefault();set(!expanded);
       }
+      function toggle(){
+        // Honor native changes, including browser find/reveal and external open updates.
+        if(animation){if(!item.open){expanded=false;settle();}return;}
+        if(item.open===expanded)return;
+        expanded=item.open;
+        if(expanded&&single)controls.forEach(function(other){if(other!==control&&other.expanded())other.set(false);});
+      }
       var control={set:set,expanded:function(){return expanded;},settle:settle,dispose:function(){
-        settle();summary.removeEventListener('click',click);
+        summary.removeEventListener('click',click);item.removeEventListener('toggle',toggle);settle();
         if(name!==null)item.setAttribute('name',name);
       }};
-      controls.push(control);summary.addEventListener('click',click);
+      controls.push(control);summary.addEventListener('click',click);item.addEventListener('toggle',toggle);
     });
     groups.push({controls:controls,dispose:function(){
       controls.forEach(function(control){control.dispose();});root.removeAttribute('data-pc-accordion-motion');

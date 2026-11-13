@@ -27,7 +27,7 @@ test('repainting Preview after a mobile menu opens restores canvas scrolling', (
   };
   Object.assign(w, {
     cwin: w, cdoc: d, canvasNonce: 'test', NAV_JS,
-    SLIDE_JS: '', CODE_JS: '', TABS_JS: '', FACADE_JS: '', LB_JS: '',
+    SLIDE_JS: '', CODE_JS: '', TABS_JS: '', ACCORDION_JS: '', FACADE_JS: '', LB_JS: '',
     PUBLIC_SELECT_JS: '', PUBLIC_DATE_JS: '', ANIM_JS: '', ANIM_CSS: '', ANIM_CALM: '',
     $$: (selector, root = d) => [...root.querySelectorAll(selector)]
   });
