@@ -203,3 +203,24 @@ test('new definition and variant controls do not appear for a content-only accou
   C.componentClose(); C.selSet([instances()[0].id]); draw();
   expect(button('Delete variant')).toBeUndefined();
 });
+
+test.each([true, false])('inspector offers structural footer actions only with structure permission (%s), while content remains editable', async canStructure => {
+  setup([{ k: 'title', label: 'Title', t: 'text', def: 'Workshop default' }], { canStructure });
+  C.componentClose(); C.selSet([instances()[0].id]); draw();
+  const field = r!.$$('.f').find(el => el.querySelector('label')?.textContent?.startsWith('Title'))!
+    .querySelector('input, textarea') as HTMLInputElement;
+  expect(field).not.toBeNull();
+  await act(async () => { r!.type(field, 'Workshop edited title'); await settle(); });
+  expect(C.instValue(instances()[0], definition(), 'title')).toBe('Workshop edited title');
+
+  if (!canStructure) {
+    expect(r!.$('.sFoot')).toBeNull();
+    expect(r!.calls.filter(([name]) => name === 'runAct')).toEqual([]);
+    return;
+  }
+  const actions = r!.$$('.sFoot button');
+  expect(actions.map(el => el.textContent!.trim())).toEqual(['Duplicate', 'Delete']);
+  await act(async () => { actions.forEach(action => r!.click(action)); await settle(); });
+  expect(r!.calls.filter(([name]) => name === 'runAct'))
+    .toEqual([['runAct', 'dup', [instances()[0].id]], ['runAct', 'del', [instances()[0].id]]]);
+});

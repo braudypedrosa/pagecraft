@@ -1040,12 +1040,12 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
           <Panel title="Mobile menu builder" n={n}><MobileMenuBuilder n={n} /></Panel>
         ) : null}
       </div>
-      <div class="sFoot">
+      {L.canStructure() ? <div class="sFoot">
         <button class="btn" onClick={() => L.runAct('dup', C.selIds())}>
           <Icon name="copy" size={13} /> Duplicate{many ? ' all' : ''}</button>
         <button class="btn danger" onClick={() => L.runAct('del', C.selIds())}>
           <Icon name="trash" size={13} /> Delete{many ? ' all' : ''}</button>
-      </div>
+      </div> : null}
     </>
   );
 }

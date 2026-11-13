@@ -27001,7 +27001,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           ]
         }
       ),
-      /* @__PURE__ */ u2("div", { class: "sFoot", children: [
+      L2.canStructure() ? /* @__PURE__ */ u2("div", { class: "sFoot", children: [
         /* @__PURE__ */ u2("button", { class: "btn", onClick: () => L2.runAct("dup", C2.selIds()), children: [
           /* @__PURE__ */ u2(Icon, { name: "copy", size: 13 }),
           " Duplicate",
@@ -27012,7 +27012,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           " Delete",
           many ? " all" : ""
         ] })
-      ] })
+      ] }) : null
     ] });
   }
 

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-13T03:23:03.325Z",
+  "capturedAt": "2026-11-13T04:12:58.139Z",
   "browser": "Built-in browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -104,7 +104,7 @@
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "c099e8988045ddf2ea09cb2e671a227ef27dae8f3935560dac99eaeef48f91d5",
     "app/src/ui/inspector/Controls.tsx": "9a451902cc857a9a693a962c83fe3eeda15db9300627c2038666c03b1093e4d3",
-    "app/src/ui/inspector/Inspector.tsx": "a5e7e0ff1df2cb26fb2b29c2276a0151ba4e578cdb32740a7cd5d9f223c9a064",
+    "app/src/ui/inspector/Inspector.tsx": "b78422509db102309480654ffe08fd15cf953433f5e6d6512adb01aa7dd26a25",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
