@@ -45,9 +45,8 @@ export function withPreviewReadiness(html: string, token: string | undefined, na
         finished=true;
         clearTimeout(deadline);
         cleanups.forEach(function(cleanup){cleanup();});
-        requestAnimationFrame(function(){requestAnimationFrame(function(){
-          parent.postMessage({type:'pagecraft-preview-ready',token:token,status:status},'*');
-        });});
+        // Offscreen frames can pause painting. Asset readiness must not wait for paint.
+        parent.postMessage({type:'pagecraft-preview-ready',token:token,status:status},'*');
       };
       const deadline=setTimeout(function(){finish('degraded');},10000);
       const images=Array.from(document.images).filter(function(img){
