@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import a from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as Core from '../../app/src/core/index.ts';
 import type { Doc } from '../../app/src/core/types.ts';
 import {
@@ -73,6 +74,45 @@ test('identical site inputs produce byte-identical deterministic packages and ha
   a.deepEqual(first.manifest, second.manifest);
   a.equal(first.filename, 'portable-studio.pagecraft-site.zip');
   a.equal(first.manifest.contentHash, sha256(json(first.manifest.files)));
+});
+
+test('schema 14 read-only export preserves the frozen dental r32 package bytes', () => {
+  const archive = new Uint8Array(readFileSync(new URL(
+    '../../evidence/template-authoring-2026-11-13/dental/package/dental-clinic-a2-0.1.0-r32.pagecraft-site.zip',
+    import.meta.url
+  )));
+  const imported = validatePortablePackage(archive);
+  const rawDocument = JSON.parse(decoder.decode(imported.files.get(imported.manifest.documentPath)!));
+  const assets: Asset[] = imported.manifest.files.filter(file => file.role === 'asset').map(file => ({
+    id: file.asset!.id,
+    siteId: imported.provenance.sourceId,
+    name: file.asset!.name,
+    type: file.mediaType,
+    w: file.asset!.width,
+    h: file.asset!.height,
+    bytes: new Uint8Array(imported.files.get(file.path)!)
+  }));
+  const rebuilt = createSitePackage({ document: rawDocument, assets, provenance: imported.provenance });
+  a.equal(imported.manifest.schemaVersion, 14);
+  a.equal(rebuilt.manifest.schemaVersion, 14);
+  a.equal(rebuilt.manifest.rendererRevision, 'pagecraft-renderer-2');
+  a.deepEqual(rebuilt.bytes, archive);
+  a.equal(rebuilt.sha256, imported.sha256);
+});
+
+test('schema 14 legacy v marker remains paired with the legacy tabs renderer', () => {
+  const doc = blankDoc('Legacy tabs');
+  delete (doc as Partial<Doc>).schemaVersion;
+  (doc as Doc & { v?: number }).v = 14;
+  doc.pages[0].tree = [Core.N('tabs', { items: [{ label: 'Overview', panel: 'Legacy details' }] })];
+  const built = createSitePackage({ document: doc, provenance });
+  const imported = validatePortablePackage(built.bytes);
+  const packagedDocument = JSON.parse(decoder.decode(imported.files.get(imported.manifest.documentPath)!));
+  const html = decoder.decode(imported.files.get('compiled/index.html')!);
+  a.equal(built.manifest.schemaVersion, 14);
+  a.equal(Object.hasOwn(packagedDocument, 'schemaVersion'), false);
+  a.equal(packagedDocument.v, 14);
+  a.match(html, /querySelectorAll\('\[role=tab\]'\)/);
 });
 
 test('site and page packages retain source, globals, menus, styles, previews, and assets', () => {

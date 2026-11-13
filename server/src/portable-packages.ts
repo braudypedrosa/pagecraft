@@ -28,6 +28,9 @@ const DOCUMENT_PATH = 'source/document.json' as const;
 const PROVENANCE_PATH = 'source/provenance.json' as const;
 const DEPENDENCIES_PATH = 'source/dependencies.json' as const;
 const HASH = /^[a-f0-9]{64}$/;
+// Schema 15 only adds editable tab panels. Its migration is markers-only for legacy tabs,
+// so packages exported from schema 14 must retain their source document and renderer tag.
+const LEGACY_TEXT_TABS_SCHEMA = 14;
 
 interface PackageContent {
   path: string;
@@ -210,16 +213,33 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   validateNativeTabRelations(rawDocument);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
+  const raw = rawDocument && typeof rawDocument === 'object' && !Array.isArray(rawDocument)
+    ? rawDocument as Record<string, unknown> : {};
+  const rawSchema = raw.schemaVersion ?? raw.v;
+  const preserveLegacySchema = rawSchema === LEGACY_TEXT_TABS_SCHEMA;
+  const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
+  const renderDocument = structuredClone(document);
+  let packageSchemaVersion = document.schemaVersion;
+  if (preserveLegacySchema) {
+    packageSchemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+    if (Object.hasOwn(raw, 'schemaVersion')) packageDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+    else delete packageDocument.schemaVersion;
+    if (Object.hasOwn(raw, 'v')) packageDocument.v = LEGACY_TEXT_TABS_SCHEMA;
+    else delete packageDocument.v;
+    renderDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+    if (Object.hasOwn(raw, 'v')) (renderDocument as Doc & { v?: number }).v = LEGACY_TEXT_TABS_SCHEMA;
+    else delete (renderDocument as Doc & { v?: number }).v;
+  }
   const dependencies = dependenciesOf(document);
   const selectedAssets = packageAssets(document, assets);
-  const rendered = renderSite(document, selectedAssets);
+  const rendered = renderSite(renderDocument, selectedAssets);
   const wordpressStyleFiles = new Map(exportTargets().map(target => [
     target.path,
     wordpressStyles(target.pg)
   ]));
   const firstStyles = wordpressStyleFiles.values().next().value as ReturnType<typeof wordpressStyles> | undefined;
   const content: PackageContent[] = [
-    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(document) },
+    { path: DOCUMENT_PATH, role: 'document', mediaType: 'application/json', bytes: jsonBytes(packageDocument) },
     { path: PROVENANCE_PATH, role: 'provenance', mediaType: 'application/json', bytes: jsonBytes(provenance) },
     { path: DEPENDENCIES_PATH, role: 'dependencies', mediaType: 'application/json', bytes: jsonBytes(dependencies) },
     {
@@ -263,9 +283,9 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     format: kind === 'site' ? SITE_PACKAGE_FORMAT_V1 : PAGE_PACKAGE_FORMAT_V1,
     packageVersion: 1,
     kind,
-    schemaVersion: document.schemaVersion,
-    rendererVersion: portableRendererVersionForSchema(document.schemaVersion),
-    rendererRevision: portableRendererRevisionForSchema(document.schemaVersion),
+    schemaVersion: packageSchemaVersion,
+    rendererVersion: portableRendererVersionForSchema(packageSchemaVersion),
+    rendererRevision: portableRendererRevisionForSchema(packageSchemaVersion),
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
