@@ -6,6 +6,7 @@ import { buildDocument } from '../premade-sites/review-library/dental-clinic-a2/
 const brand = '/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding';
 const assets: Record<string,string> = {
   'bp-mark': resolve('premade-sites/review-library/dental-clinic-a2/bp-mark-ink.svg'),
+  'visit-consultation-detail': resolve('premade-sites/review-library/dental-clinic-a2/approved-additions/visit-consultation-detail.webp'),
   'cta-clinic-entrance': resolve('premade-sites/review-library/dental-clinic-a2/approved-additions/cta-clinic-entrance.webp'),
   'icon-preventive': resolve('premade-sites/review-library/dental-clinic-a2/approved-additions/icon-preventive.svg'),
   'icon-restorative': resolve('premade-sites/review-library/dental-clinic-a2/approved-additions/icon-restorative.svg'),

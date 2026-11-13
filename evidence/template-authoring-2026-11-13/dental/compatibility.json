@@ -1,0 +1,39 @@
+{
+  "revision": 32,
+  "packageSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+  "privateReview": true,
+  "homeViewports": [
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "innerPages": "Exact native-tree parity with revision30, ignoring IDs; prior responsive evidence retained",
+  "nativeCloud": {
+    "import": true,
+    "mediaCount": 19,
+    "newUploads": 1,
+    "savedReopened": true,
+    "textEditSavedReopenedRestoredReopened": true,
+    "published": false
+  },
+  "wordpress": {
+    "nativeReimport": true,
+    "pages": 6,
+    "localAssets": 19,
+    "cssParity": true,
+    "runtimeRefresh": "Passed; current runtime output preserved local media and six draft pages",
+    "browserDesktopPhone": true,
+    "menuOpenEscapeClose": true
+  },
+  "formsSubmitted": 0,
+  "catalogChanged": false,
+  "productionDeployed": false,
+  "approval": null,
+  "releaseMatrixComplete": false,
+  "limitations": [
+    "Unconfigured form destination; disabled controls",
+    "Customer practice details require configuration",
+    "Full host release matrix and explicit package/catalog approval remain separate"
+  ]
+}

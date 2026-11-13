@@ -1,0 +1,5 @@
+
+> pagecraft@0.2.0 template
+> node tools/premade-sites.ts check dental-clinic-a2 0.1.0
+
+checked dental-clinic-a2@0.1.0 — draft reproducibility valid

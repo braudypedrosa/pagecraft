@@ -1,0 +1,34 @@
+{
+  "sourcePackage": "dental-clinic-a2-0.1.0-r32.pagecraft-site.zip",
+  "sourceBytes": 1980531,
+  "sourceSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+  "localRebuildSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+  "byteIdentical": true,
+  "documentParity": true,
+  "assetCount": 19,
+  "assetParity": true,
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 32
+  },
+  "provenanceParity": true,
+  "importedPackageSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+  "catalog": {
+    "entries": 20,
+    "hashesChecked": 20,
+    "failures": [],
+    "unchangedFromHead": true,
+    "sha256": "7e92b7b8b06b208f5dd1d7b52c3b4a6386c758686b3b085ac5610335d61517cd"
+  },
+  "workflow": {
+    "schemaValid": true,
+    "approval": null
+  },
+  "priorSnapshot": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/native-review/revision-30/source-snapshot",
+  "previousMismatchEvidence": "roundtrip-before-source-sync.json",
+  "localRendererCommit": "e8d9eaafbddccc027921de1a472f233626b7bf94",
+  "localBuildCheck": "Passed; exact archive bytes reproduced after renderer sync."
+}

@@ -1,0 +1,16 @@
+{
+  "startingRevision": 30,
+  "source": "Five user browser comments on 13 November 2026",
+  "comments": [
+    "top and bottom padding don't match",
+    "add bg image",
+    "more content",
+    "taller hero",
+    "wider and align with logo"
+  ],
+  "imageApproval": {
+    "quote": "Approve this image",
+    "scope": "Exact new First Visit background photograph shown in chat"
+  },
+  "catalogApproval": false
+}

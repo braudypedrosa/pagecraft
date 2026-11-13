@@ -30,6 +30,11 @@
         "license": "Exact generated image approved for the native closing CTA; complete-site and catalog approvals remain separate."
       },
       {
+        "asset": "First Visit consultation detail background image",
+        "source": "premade-sites/review-library/dental-clinic-a2/approved-additions/visit-image-provenance.json",
+        "license": "Exact generated image approved for the native First Visit section background; complete-site and catalog approvals remain separate."
+      },
+      {
         "asset": "Three Lucide service icons",
         "source": "premade-sites/review-library/dental-clinic-a2/approved-additions/icon-provenance.json",
         "license": "Iconify Lucide sources and ISC/MIT notices recorded in the provenance file."
@@ -45,8 +50,8 @@
       "page": "all",
       "node": "release-ledger",
       "viewport": "all",
-      "detail": "Frozen revision 30 private review candidate, package 92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29. Complete-site approval and exact-package host compatibility evidence are not yet a release ledger. The inquiry form remains unconfigured.",
-      "correction": "Complete Cloud and WordPress fresh-import, editing, responsive and interaction checks for revision 30, then obtain exact-package review and promotion approval.",
+      "detail": "Frozen revision 32 private review candidate, package 82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4. Complete-site approval and exact-package host compatibility evidence are not yet a release ledger. The inquiry form remains unconfigured.",
+      "correction": "Complete Cloud and WordPress fresh-import, editing, responsive and interaction checks for revision 32, then obtain exact-package review and promotion approval.",
       "resolved": false
     }
   ],

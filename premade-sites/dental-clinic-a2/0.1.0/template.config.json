@@ -134,6 +134,13 @@
       "height": 941
     },
     {
+      "id": "img-7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac",
+      "file": "assets/img-7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp",
+      "name": "visit-consultation-detail.webp",
+      "width": 1800,
+      "height": 600
+    },
+    {
       "id": "img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875",
       "file": "assets/img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875.webp",
       "name": "welcoming-reception.webp",
@@ -147,7 +154,7 @@
     "format": "pagecraft.provenance.v1",
     "origin": "pagecraft-cloud",
     "sourceId": "template:dental-clinic-a2:0.1.0",
-    "sourceVersion": 30
+    "sourceVersion": 32
   },
-  "importedPackageSha256": "92e1ad79db1cd80ac75cf7a242fb929b503ea2ebdd1b9ef0732e75a2ab944d29"
+  "importedPackageSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4"
 }

@@ -18,6 +18,7 @@ export function expandHome(h: DentalHelpers, original: Page): Page {
     box([
       ...[text('Care begins with a conversation.', 'title', 'h2', { 'max-width': '16ch' }),
         text('Space to ask questions. Time to understand your options.', 'lead', 'p', { 'margin-top': '18px', 'max-width': '46ch' })],
+      text('Tell the team what is concerning you. They can explain options and next steps, and you can ask questions as you go.', 'body', 'p', { 'margin-top': '14px', 'max-width': '46ch' }),
       box([button('Our approach', 'care-team.html')], { 'margin-top': '28px' })
     ])
   ], { display: 'grid', 'grid-template-columns': '1fr 1fr', gap: '64px', 'align-items': 'center' },
@@ -48,7 +49,7 @@ export function expandHome(h: DentalHelpers, original: Page): Page {
   ];
   const visitIntro = introStack('Your first visit, made clearer.', 'Know what to bring, share what matters to you, and talk through next steps with your care team.');
   visitIntro.children.forEach(child => { child.css.d.color = color.white; });
-  const visit = sec([contained([box([
+  const visitContent = box([contained([box([
     box([
       visitIntro,
       box([button('Plan your first visit', 'first-visit.html', true)], { 'margin-top': '28px' })
@@ -58,7 +59,16 @@ export function expandHome(h: DentalHelpers, original: Page): Page {
     ], { 'background-color': bg, 'padding-top': '22px', 'padding-right': '24px', 'padding-bottom': '22px', 'padding-left': '24px' })),
     { display: 'flex', 'flex-direction': 'column', gap: '14px' })
   ], { display: 'grid', 'grid-template-columns': '.85fr 1.15fr', gap: '64px', 'align-items': 'start' },
-     { 'grid-template-columns': '1fr', gap: '30px' }, { gap: '40px' })])], { 'background-color': color.primary });
+     { 'grid-template-columns': '1fr', gap: '30px' }, { gap: '40px' })])],
+  { position: 'relative', 'z-index': '1', 'padding-top': '76px', 'padding-right': '56px', 'padding-bottom': '76px', 'padding-left': '56px' },
+  { 'padding-top': '48px', 'padding-right': '22px', 'padding-bottom': '48px', 'padding-left': '22px' },
+  { 'padding-top': '60px', 'padding-right': '32px', 'padding-bottom': '60px', 'padding-left': '32px' });
+  const visit = sec([
+    box([], { position: 'absolute', inset: '0', 'background-color': color.ink, opacity: '.76', 'pointer-events': 'none' }),
+    visitContent
+  ], { position: 'relative', 'background-color': color.primary, 'background-image': 'url("asset:visit-consultation-detail")', 'background-size': 'cover', 'background-position': 'center center', 'background-repeat': 'no-repeat', 'padding-top': '0', 'padding-right': '0', 'padding-bottom': '0', 'padding-left': '0' },
+  { 'padding-top': '0', 'padding-right': '0', 'padding-bottom': '0', 'padding-left': '0' },
+  { 'padding-top': '0', 'padding-right': '0', 'padding-bottom': '0', 'padding-left': '0' });
 
   const teamImage = naturalImage('care-team-scene', 'Dental team members in conversation together', 1536, 647);
   teamImage.css.d['border-radius'] = '0';
@@ -66,9 +76,9 @@ export function expandHome(h: DentalHelpers, original: Page): Page {
     box([contained([
       introStack('People behind your care.', 'Meet a team ready to listen and explain.'),
       box([button('Meet the care team', 'care-team.html')], { 'margin-top': '26px' })
-    ])], { 'padding-top': '76px', 'padding-right': '56px', 'padding-bottom': '48px', 'padding-left': '56px' },
-    { 'padding-top': '48px', 'padding-right': '22px', 'padding-bottom': '32px', 'padding-left': '22px' },
-    { 'padding-top': '60px', 'padding-right': '32px', 'padding-bottom': '40px', 'padding-left': '32px' }),
+    ])], { 'padding-top': '76px', 'padding-right': '56px', 'padding-bottom': '76px', 'padding-left': '56px' },
+    { 'padding-top': '48px', 'padding-right': '22px', 'padding-bottom': '48px', 'padding-left': '22px' },
+    { 'padding-top': '60px', 'padding-right': '32px', 'padding-bottom': '60px', 'padding-left': '32px' }),
     teamImage
   ], { 'background-color': color.white, 'padding-top': '0', 'padding-right': '0', 'padding-bottom': '0', 'padding-left': '0' },
      { 'padding-top': '0', 'padding-right': '0', 'padding-bottom': '0', 'padding-left': '0' },

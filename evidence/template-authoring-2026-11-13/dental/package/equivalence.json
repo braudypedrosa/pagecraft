@@ -1,0 +1,16 @@
+{
+  "oldRevision": 30,
+  "newRevision": 32,
+  "comparison": "Native trees and shared regions; only node id fields ignored",
+  "pages": {
+    "treatments": true,
+    "care-team": true,
+    "first-visit": true,
+    "patient-information": true,
+    "contact": true
+  },
+  "header": true,
+  "footer": true,
+  "tokens": true,
+  "newAssetCount": 19
+}

@@ -1,0 +1,562 @@
+[
+  {
+    "page": "index.html",
+    "revision": 32,
+    "width": 1440,
+    "tiles": [
+      {
+        "file": "index-1440-00.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 0
+      },
+      {
+        "file": "index-1440-01.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 612
+      },
+      {
+        "file": "index-1440-02.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 1224
+      },
+      {
+        "file": "index-1440-03.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 1836
+      },
+      {
+        "file": "index-1440-04.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 2448
+      },
+      {
+        "file": "index-1440-05.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 3060
+      },
+      {
+        "file": "index-1440-06.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 3672
+      },
+      {
+        "file": "index-1440-07.png",
+        "docHeight": 5003,
+        "height": 720,
+        "scrollWidth": 1425,
+        "width": 1440,
+        "y": 4283
+      }
+    ],
+    "audit": {
+      "h1Count": 1,
+      "headingWidth": 600,
+      "headingX": 74,
+      "heroHeight": 640,
+      "imagesLoaded": true,
+      "logoVisibleX": 73.48799999999999,
+      "scrollWidth": 1425,
+      "sections": [
+        {
+          "heading": "Good care,for every smile.",
+          "height": 640,
+          "index": 0,
+          "y": 82
+        },
+        {
+          "heading": "Care for every stage of life",
+          "height": 603.1875,
+          "index": 1,
+          "y": 722
+        },
+        {
+          "heading": "Care begins with a conversation.",
+          "height": 500,
+          "index": 2,
+          "y": 1325.1875
+        },
+        {
+          "heading": "Explore your care options.",
+          "height": 616.34375,
+          "index": 3,
+          "y": 1825.1875
+        },
+        {
+          "heading": "Your first visit, made clearer.",
+          "height": 499.96875,
+          "index": 4,
+          "y": 2441.53125
+        },
+        {
+          "heading": "People behind your care.",
+          "height": 919.421875,
+          "index": 5,
+          "y": 2941.5
+        },
+        {
+          "heading": "A few questions, answered.",
+          "height": 727.15625,
+          "index": 6,
+          "y": 3860.921875
+        },
+        {
+          "heading": "Let\u2019s talk about your next visit.",
+          "height": 321.1875,
+          "index": 7,
+          "y": 4588.078125
+        }
+      ],
+      "teamPadding": {
+        "bottom": "76px",
+        "top": "76px"
+      },
+      "visitBackground": "url(\"https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/32/assets/visit-consultation-detail-img7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp\")",
+      "width": 1440
+    }
+  },
+  {
+    "page": "index.html",
+    "revision": 32,
+    "width": 390,
+    "tiles": [
+      {
+        "file": "index-390-00.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 0
+      },
+      {
+        "file": "index-390-01.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 612
+      },
+      {
+        "file": "index-390-02.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 1224
+      },
+      {
+        "file": "index-390-03.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 1836
+      },
+      {
+        "file": "index-390-04.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 2448
+      },
+      {
+        "file": "index-390-05.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 3060
+      },
+      {
+        "file": "index-390-06.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 3672
+      },
+      {
+        "file": "index-390-07.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 4284
+      },
+      {
+        "file": "index-390-08.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 4896
+      },
+      {
+        "file": "index-390-09.png",
+        "docHeight": 5809,
+        "height": 720,
+        "scrollWidth": 375,
+        "width": 390,
+        "y": 5089
+      }
+    ],
+    "audit": {
+      "h1Count": 1,
+      "headingWidth": 317,
+      "headingX": 36,
+      "heroHeight": 621.5625,
+      "imagesLoaded": true,
+      "logoVisibleX": 35.25599999999999,
+      "scrollWidth": 375,
+      "sections": [
+        {
+          "heading": "Good care,for every smile.",
+          "height": 621.5625,
+          "index": 0,
+          "y": 66
+        },
+        {
+          "heading": "Care for every stage of life",
+          "height": 825.78125,
+          "index": 1,
+          "y": 687.5625
+        },
+        {
+          "heading": "Care begins with a conversation.",
+          "height": 725.28125,
+          "index": 2,
+          "y": 1513.34375
+        },
+        {
+          "heading": "Explore your care options.",
+          "height": 1076.53125,
+          "index": 3,
+          "y": 2238.625
+        },
+        {
+          "heading": "Your first visit, made clearer.",
+          "height": 765.53125,
+          "index": 4,
+          "y": 3315.15625
+        },
+        {
+          "heading": "People behind your care.",
+          "height": 438.234375,
+          "index": 5,
+          "y": 4080.6875
+        },
+        {
+          "heading": "A few questions, answered.",
+          "height": 686.140625,
+          "index": 6,
+          "y": 4518.921875
+        },
+        {
+          "heading": "Let\u2019s talk about your next visit.",
+          "height": 309.28125,
+          "index": 7,
+          "y": 5205.0625
+        }
+      ],
+      "teamPadding": {
+        "bottom": "48px",
+        "top": "48px"
+      },
+      "visitBackground": "url(\"https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/32/assets/visit-consultation-detail-img7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp\")",
+      "width": 390
+    }
+  },
+  {
+    "page": "index.html",
+    "revision": 32,
+    "width": 768,
+    "tiles": [
+      {
+        "file": "index-768-00.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 0
+      },
+      {
+        "file": "index-768-01.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 612
+      },
+      {
+        "file": "index-768-02.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 1224
+      },
+      {
+        "file": "index-768-03.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 1836
+      },
+      {
+        "file": "index-768-04.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 2448
+      },
+      {
+        "file": "index-768-05.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 3060
+      },
+      {
+        "file": "index-768-06.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 3672
+      },
+      {
+        "file": "index-768-07.png",
+        "docHeight": 4701,
+        "height": 720,
+        "scrollWidth": 753,
+        "width": 768,
+        "y": 3981
+      }
+    ],
+    "audit": {
+      "h1Count": 1,
+      "headingWidth": 600,
+      "headingX": 50,
+      "heroHeight": 580,
+      "imagesLoaded": true,
+      "logoVisibleX": 49.487999999999985,
+      "scrollWidth": 753,
+      "sections": [
+        {
+          "heading": "Good care,for every smile.",
+          "height": 580,
+          "index": 0,
+          "y": 82
+        },
+        {
+          "heading": "Care for every stage of life",
+          "height": 561.71875,
+          "index": 1,
+          "y": 662
+        },
+        {
+          "heading": "Care begins with a conversation.",
+          "height": 460,
+          "index": 2,
+          "y": 1223.71875
+        },
+        {
+          "heading": "Explore your care options.",
+          "height": 624.53125,
+          "index": 3,
+          "y": 1683.71875
+        },
+        {
+          "heading": "Your first visit, made clearer.",
+          "height": 534.71875,
+          "index": 4,
+          "y": 2308.25
+        },
+        {
+          "heading": "People behind your care.",
+          "height": 596.390625,
+          "index": 5,
+          "y": 2842.96875
+        },
+        {
+          "heading": "A few questions, answered.",
+          "height": 687.1875,
+          "index": 6,
+          "y": 3439.359375
+        },
+        {
+          "heading": "Let\u2019s talk about your next visit.",
+          "height": 281.21875,
+          "index": 7,
+          "y": 4126.546875
+        }
+      ],
+      "teamPadding": {
+        "bottom": "60px",
+        "top": "60px"
+      },
+      "visitBackground": "url(\"https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/32/assets/visit-consultation-detail-img7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp\")",
+      "width": 768
+    }
+  },
+  {
+    "page": "index.html",
+    "revision": 32,
+    "width": 1024,
+    "tiles": [
+      {
+        "file": "index-1024-00.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 0
+      },
+      {
+        "file": "index-1024-01.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 612
+      },
+      {
+        "file": "index-1024-02.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 1224
+      },
+      {
+        "file": "index-1024-03.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 1836
+      },
+      {
+        "file": "index-1024-04.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 2448
+      },
+      {
+        "file": "index-1024-05.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 3060
+      },
+      {
+        "file": "index-1024-06.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 3672
+      },
+      {
+        "file": "index-1024-07.png",
+        "docHeight": 4706,
+        "height": 720,
+        "scrollWidth": 1009,
+        "width": 1024,
+        "y": 3986
+      }
+    ],
+    "audit": {
+      "h1Count": 1,
+      "headingWidth": 600,
+      "headingX": 50,
+      "heroHeight": 580,
+      "imagesLoaded": true,
+      "logoVisibleX": 49.487999999999985,
+      "scrollWidth": 1009,
+      "sections": [
+        {
+          "heading": "Good care,for every smile.",
+          "height": 580,
+          "index": 0,
+          "y": 82
+        },
+        {
+          "heading": "Care for every stage of life",
+          "height": 561.71875,
+          "index": 1,
+          "y": 662
+        },
+        {
+          "heading": "Care begins with a conversation.",
+          "height": 460,
+          "index": 2,
+          "y": 1223.71875
+        },
+        {
+          "heading": "Explore your care options.",
+          "height": 573.125,
+          "index": 3,
+          "y": 1683.71875
+        },
+        {
+          "heading": "Your first visit, made clearer.",
+          "height": 483.71875,
+          "index": 4,
+          "y": 2256.84375
+        },
+        {
+          "heading": "People behind your care.",
+          "height": 704.21875,
+          "index": 5,
+          "y": 2740.5625
+        },
+        {
+          "heading": "A few questions, answered.",
+          "height": 687.1875,
+          "index": 6,
+          "y": 3444.78125
+        },
+        {
+          "heading": "Let\u2019s talk about your next visit.",
+          "height": 281.21875,
+          "index": 7,
+          "y": 4131.96875
+        }
+      ],
+      "teamPadding": {
+        "bottom": "60px",
+        "top": "60px"
+      },
+      "visitBackground": "url(\"https://staging.itspagecraft.com/owner/template-drafts/dental-clinic-a2/0.1.0/preview/32/assets/visit-consultation-detail-img7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp\")",
+      "width": 1024
+    }
+  }
+]

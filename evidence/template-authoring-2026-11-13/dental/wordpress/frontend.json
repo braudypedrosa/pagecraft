@@ -1,0 +1,150 @@
+[
+  {
+    "revision": 32,
+    "width": 1440,
+    "tiles": [
+      {
+        "file": "wp-home-1440-00.png",
+        "height": 720,
+        "total": 5035,
+        "y": 0
+      },
+      {
+        "file": "wp-home-1440-01.png",
+        "height": 720,
+        "total": 5035,
+        "y": 611
+      },
+      {
+        "file": "wp-home-1440-02.png",
+        "height": 720,
+        "total": 5035,
+        "y": 1223
+      },
+      {
+        "file": "wp-home-1440-03.png",
+        "height": 720,
+        "total": 5035,
+        "y": 1835
+      },
+      {
+        "file": "wp-home-1440-04.png",
+        "height": 720,
+        "total": 5035,
+        "y": 2447
+      },
+      {
+        "file": "wp-home-1440-05.png",
+        "height": 720,
+        "total": 5035,
+        "y": 3059
+      },
+      {
+        "file": "wp-home-1440-06.png",
+        "height": 720,
+        "total": 5035,
+        "y": 3671
+      },
+      {
+        "file": "wp-home-1440-07.png",
+        "height": 720,
+        "total": 5035,
+        "y": 4283
+      },
+      {
+        "file": "wp-home-1440-08.png",
+        "height": 720,
+        "total": 5035,
+        "y": 4315
+      }
+    ],
+    "audit": {
+      "approach": true,
+      "background": true,
+      "h1": 1,
+      "heroHeight": 640,
+      "imagesLoaded": true,
+      "scrollWidth": 1425,
+      "sections": 8,
+      "width": 1440,
+      "teamPaddingNote": "Wrong ancestor selected during frontend metric capture. Responsive native CSS parity and private preview geometry establish matching padding; screenshots independently reviewed."
+    }
+  },
+  {
+    "revision": 32,
+    "width": 390,
+    "tiles": [
+      {
+        "file": "wp-home-390-00.png",
+        "height": 720,
+        "total": 5996,
+        "y": 0
+      },
+      {
+        "file": "wp-home-390-01.png",
+        "height": 720,
+        "total": 5996,
+        "y": 609
+      },
+      {
+        "file": "wp-home-390-02.png",
+        "height": 720,
+        "total": 5996,
+        "y": 1221
+      },
+      {
+        "file": "wp-home-390-03.png",
+        "height": 720,
+        "total": 5996,
+        "y": 1833
+      },
+      {
+        "file": "wp-home-390-04.png",
+        "height": 720,
+        "total": 5996,
+        "y": 2445
+      },
+      {
+        "file": "wp-home-390-05.png",
+        "height": 720,
+        "total": 5996,
+        "y": 3057
+      },
+      {
+        "file": "wp-home-390-06.png",
+        "height": 720,
+        "total": 5996,
+        "y": 3669
+      },
+      {
+        "file": "wp-home-390-07.png",
+        "height": 720,
+        "total": 5996,
+        "y": 4281
+      },
+      {
+        "file": "wp-home-390-08.png",
+        "height": 720,
+        "total": 5996,
+        "y": 4893
+      },
+      {
+        "file": "wp-home-390-09.png",
+        "height": 720,
+        "total": 5996,
+        "y": 5276
+      }
+    ],
+    "audit": {
+      "approach": true,
+      "background": true,
+      "h1": 1,
+      "heroHeight": 621.5625,
+      "imagesLoaded": true,
+      "scrollWidth": 375,
+      "sections": 8,
+      "width": 390,
+      "teamPaddingNote": "Wrong ancestor selected during frontend metric capture. Responsive native CSS parity and private preview geometry establish matching padding; screenshots independently reviewed."
+    }
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "sourcePackage": "dental-clinic-a2-0.1.0-r32.pagecraft-site.zip",
+  "sourceBytes": 1980531,
+  "sourceSha256": "82ec4fcf10d5aad377a9eaa62928018295af159d9ddf33a8ec7d1d95cca54ef4",
+  "localRebuildSha256": "4910edb031025a390f5ab90c5e19f7d2ca46ac2d17bfb5f06d3fabb3a2a45427",
+  "byteIdentical": false,
+  "documentParity": true,
+  "assetCount": 19,
+  "assetParity": true,
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 32
+  },
+  "provenanceParity": true,
+  "changedPackageFiles": [
+    "compiled/care-team.html",
+    "compiled/contact.html",
+    "compiled/first-visit.html",
+    "compiled/index.html",
+    "compiled/patient-information.html",
+    "compiled/treatments.html",
+    "manifest.json",
+    "previews/care-team.html",
+    "previews/contact.html",
+    "previews/first-visit.html",
+    "previews/index.html",
+    "previews/patient-information.html",
+    "previews/treatments.html",
+    "styles/global.css"
+  ],
+  "difference": "Compiled navigation CSS and JavaScript differ: r32 uses pagecraft-nav-enhanced and no-script fallbacks; local renderer does not.",
+  "catalog": {
+    "entries": 20,
+    "hashesChecked": 20,
+    "failures": [],
+    "unchangedFromHead": true,
+    "sha256": "7e92b7b8b06b208f5dd1d7b52c3b4a6386c758686b3b085ac5610335d61517cd"
+  },
+  "workflow": {
+    "schemaValid": true,
+    "approval": null
+  },
+  "priorSnapshot": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/native-review/revision-30/source-snapshot",
+  "cliImport": "Rejected because rebuilt package hash differed; no false parity claimed.",
+  "localBuildCheck": "Passed against the current local renderer, not the frozen r32 archive."
+}

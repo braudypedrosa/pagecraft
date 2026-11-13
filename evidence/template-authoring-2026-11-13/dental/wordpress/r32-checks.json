@@ -1,0 +1,121 @@
+{
+  "checks": {
+    "package_and_import": true,
+    "six_draft_pages": true,
+    "nineteen_unique_local_assets": true,
+    "baseline_globals_and_menus_stable": true,
+    "all_page_css_matches_package_with_local_asset_resolution": true,
+    "hero_responsive": true,
+    "new_background_local": true,
+    "contact_controls_disabled": true
+  },
+  "cssMismatches": [],
+  "newMedia": [
+    {
+      "id": 119,
+      "url": "http://127.0.0.1:4397/wp-content/uploads/2026/11/visit-consultation-detail.webp",
+      "sha256": "7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac"
+    }
+  ],
+  "heroCSS": {
+    "copy": {
+      "d": {
+        "display": "flex",
+        "flex-direction": "column",
+        "justify-content": "center",
+        "margin-bottom": "0",
+        "margin-left": "auto",
+        "margin-right": "auto",
+        "margin-top": "0",
+        "max-width": "1320px",
+        "min-height": "640px",
+        "padding-bottom": "64px",
+        "padding-left": "18px",
+        "padding-right": "0",
+        "padding-top": "64px",
+        "position": "relative",
+        "z-index": "1"
+      },
+      "m": {
+        "min-height": "0",
+        "padding-bottom": "36px",
+        "padding-left": "14px",
+        "padding-right": "0",
+        "padding-top": "30px"
+      },
+      "t": {
+        "min-height": "580px"
+      }
+    },
+    "image": {
+      "d": {
+        "align-self": "flex-start",
+        "border-radius": "0",
+        "display": "block",
+        "height": "100%",
+        "inset": "0",
+        "max-width": "100%",
+        "object-fit": "cover",
+        "object-position": "50% 25%",
+        "position": "absolute",
+        "width": "100%"
+      },
+      "m": {
+        "height": "300px",
+        "inset": "auto",
+        "object-position": "50% 50%",
+        "position": "relative"
+      },
+      "t": {}
+    }
+  },
+  "newBackgroundCSS": {
+    "d": {
+      "background-color": "var(--c-brand)",
+      "background-image": "url(\"http://127.0.0.1:4397/wp-content/uploads/2026/11/visit-consultation-detail.webp\")",
+      "background-position": "center center",
+      "background-repeat": "no-repeat",
+      "background-size": "cover",
+      "padding-bottom": "0",
+      "padding-left": "0",
+      "padding-right": "0",
+      "padding-top": "0",
+      "position": "relative"
+    },
+    "m": {
+      "padding-bottom": "0",
+      "padding-left": "0",
+      "padding-right": "0",
+      "padding-top": "0"
+    },
+    "t": {
+      "padding-bottom": "0",
+      "padding-left": "0",
+      "padding-right": "0",
+      "padding-top": "0"
+    }
+  },
+  "contactTags": [
+    "<input id=\"pagecraft-form-dental-a2-125-f0\" name=\"name\" type=\"text\" required disabled>",
+    "<input id=\"pagecraft-form-dental-a2-125-f1\" name=\"email\" type=\"email\" required disabled>",
+    "<textarea id=\"pagecraft-form-dental-a2-125-f2\" name=\"message\" rows=\"4\" required disabled>",
+    "<button type=\"button\" class=\"pagecraft-form-button\" disabled>"
+  ],
+  "previewUrls": [
+    "http://127.0.0.1:4397/?page_id=17&preview=true",
+    "http://127.0.0.1:4397/?page_id=18&preview=true",
+    "http://127.0.0.1:4397/?page_id=19&preview=true",
+    "http://127.0.0.1:4397/?page_id=20&preview=true",
+    "http://127.0.0.1:4397/?page_id=21&preview=true",
+    "http://127.0.0.1:4397/?page_id=22&preview=true"
+  ],
+  "editorUrls": [
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=17",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=18",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=19",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=20",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=21",
+    "http://127.0.0.1:4397/wp-admin/admin.php?page=pagecraft-editor&post=22"
+  ],
+  "visualReview": "Pending"
+}
