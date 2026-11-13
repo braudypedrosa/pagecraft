@@ -13,7 +13,7 @@ const token = 'a'.repeat(32);
 const prefix = '/api/sites/fixture/publication-snapshots/11111111-1111-4111-a111-111111111111/files/';
 const navigation = { prefix, pages: ['index.html', 'menu.html', 'stories/index.html', 'stories/room.html'] };
 function runtime(markup = '', options: {
-  complete?: boolean; broken?: boolean; lazy?: boolean; fonts?: Promise<unknown>;
+  complete?: boolean; broken?: boolean; lazy?: boolean; fonts?: Promise<unknown>; decode?: Promise<void>;
   navigation?: PreviewNavigation; url?: string;
 } = {}) {
   const dom = new JSDOM(`<html><body>${markup}</body></html>`, {
@@ -33,7 +33,7 @@ function runtime(markup = '', options: {
     Object.defineProperty(img, 'naturalWidth', { value: options.broken ? 0 : 100 });
     Object.defineProperty(img, 'loading', { value: options.lazy ? 'lazy' : 'eager' });
     img.getBoundingClientRect = () => ({ top: 9999, bottom: 10099, left: 0, right: 100 } as DOMRect);
-    img.decode = () => Promise.resolve();
+    img.decode = () => options.decode || Promise.resolve();
   }
   const output = withPreviewReadiness('', token, options.navigation);
   w.eval(output.slice(output.indexOf('>') + 1, output.lastIndexOf('</script>')));
@@ -55,46 +55,71 @@ function click(f: ReturnType<typeof runtime>, options: MouseEventInit = {}) {
   return intercepted;
 }
 
-test('valid empty and image previews report readiness only after dependencies and two painted frames', async () => {
-  for (const markup of ['', '<img src="asset.webp">']) {
-    let fontsReady!: () => void;
-    const f = runtime(markup, { fonts: new Promise<void>(resolve => { fontsReady = resolve; }) });
-    await f.flush();
-    expect(f.frames).toHaveLength(0);
-    expect(f.messages).toEqual([]);
-    fontsReady(); await f.flush();
-    f.paint(); expect(f.messages).toEqual([]);
-    f.paint();
-    expect(f.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
-    f.dom.window.close();
-  }
+test('readiness waits for fonts and image decoding without depending on painting callbacks', async () => {
+  let fontsReady!: () => void;
+  let decoded!: () => void;
+  const f = runtime('<img src="asset.webp">', {
+    fonts: new Promise<void>(resolve => { fontsReady = resolve; }),
+    decode: new Promise<void>(resolve => { decoded = resolve; }),
+  });
+  await f.flush();
+  expect(f.messages).toEqual([]);
+  fontsReady(); await f.flush();
+  expect(f.messages).toEqual([]);
+  decoded(); await f.flush();
+  expect(f.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  expect(f.frames).toHaveLength(0);
+  f.dom.window.close();
+
+  const empty = runtime();
+  await empty.flush();
+  expect(empty.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  expect(empty.frames).toHaveLength(0);
+  empty.dom.window.close();
 });
 
-test('image errors degrade, while offscreen lazy images do not hold initial preview readiness', async () => {
+test('image and font failures degrade, while offscreen lazy images do not delay readiness', async () => {
   const failed = runtime('<img src="missing.webp">', { complete: false });
   failed.w.document.images[0].dispatchEvent(new failed.w.Event('error'));
-  await failed.flush(); failed.paint(); failed.paint();
+  await failed.flush();
   expect(failed.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
   failed.dom.window.close();
+  const broken = runtime('<img src="missing.webp">', { broken: true });
+  await broken.flush();
+  expect(broken.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
+  broken.dom.window.close();
+  const fontFailure = runtime('', { fonts: Promise.reject(new Error('Font unavailable')) });
+  await fontFailure.flush();
+  expect(fontFailure.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
+  fontFailure.dom.window.close();
   const lazy = runtime('<img src="lazy.webp">', { complete: false, lazy: true });
-  await lazy.flush(); lazy.paint(); lazy.paint();
+  await lazy.flush();
   expect(lazy.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
   lazy.dom.window.close();
 });
 
-test('stalled image or fonts produce a single degraded result at the bounded deadline', async () => {
+test('a stalled image or font reports degraded once at the deadline, even after late completion', async () => {
   vi.useFakeTimers();
   try {
-    const f = runtime('<img src="slow.webp">', { complete: false, fonts: new Promise(() => {}) });
-    await vi.advanceTimersByTimeAsync(9999);
-    expect(f.messages).toEqual([]);
-    await vi.advanceTimersByTimeAsync(1);
-    f.paint(); f.paint();
-    expect(f.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
-    f.w.document.images[0].dispatchEvent(new f.w.Event('load'));
-    await f.flush(); f.paint(); f.paint();
-    expect(f.messages).toHaveLength(1);
-    f.dom.window.close();
+    for (const stalled of ['image', 'fonts', 'decode']) {
+      let resolveDependency!: () => void;
+      const pending = new Promise<void>(resolve => { resolveDependency = resolve; });
+      const f = runtime('<img src="asset.webp">', {
+        complete: stalled !== 'image',
+        fonts: stalled === 'fonts' ? pending : undefined,
+        decode: stalled === 'decode' ? pending : undefined,
+      });
+      await vi.advanceTimersByTimeAsync(9999);
+      expect(f.messages, stalled).toEqual([]);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(f.messages, stalled).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
+      if (stalled === 'image') f.w.document.images[0].dispatchEvent(new f.w.Event('load'));
+      else resolveDependency();
+      await f.flush();
+      expect(f.messages, stalled).toHaveLength(1);
+      expect(f.frames, stalled).toHaveLength(0);
+      f.dom.window.close();
+    }
   } finally { vi.useRealTimers(); }
 });
 
