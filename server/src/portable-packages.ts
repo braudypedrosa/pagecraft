@@ -245,23 +245,28 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     ? rawDocument as Record<string, unknown> : {};
   const rawSchema = raw.schemaVersion ?? raw.v;
   const richTabs = documentHasRichTabs(document);
-  const preserveLegacySchema = rawSchema === LEGACY_TEXT_TABS_SCHEMA && !richTabs;
+  // Preserve the source contract for read-only exports of documents already using
+  // renderer 2/3. Schema 16 is a newer editor schema and is still downgraded to the
+  // reviewed portable contract selected from its capabilities below.
+  const preserveSourceSchema = rawSchema === 15 || (rawSchema === 14 && !richTabs);
   const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
   const renderDocument = structuredClone(document);
   // Editable panel children need schema 15 / renderer 3. Only a document without that
   // capability may use the legacy receiver, after its page-owned regions were flattened.
-  const packageSchemaVersion = richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
+  const packageSchemaVersion = preserveSourceSchema
+    ? rawSchema as number
+    : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
   packageDocument.schemaVersion = packageSchemaVersion;
   packageDocument.v = packageSchemaVersion;
   renderDocument.schemaVersion = packageSchemaVersion;
   (renderDocument as Doc & { v?: number }).v = packageSchemaVersion;
-  if (preserveLegacySchema) {
-    if (Object.hasOwn(raw, 'schemaVersion')) packageDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
+  if (preserveSourceSchema) {
+    if (Object.hasOwn(raw, 'schemaVersion')) packageDocument.schemaVersion = raw.schemaVersion as number;
     else delete packageDocument.schemaVersion;
-    if (Object.hasOwn(raw, 'v')) packageDocument.v = LEGACY_TEXT_TABS_SCHEMA;
+    if (Object.hasOwn(raw, 'v')) packageDocument.v = raw.v as number;
     else delete packageDocument.v;
-    renderDocument.schemaVersion = LEGACY_TEXT_TABS_SCHEMA;
-    if (Object.hasOwn(raw, 'v')) (renderDocument as Doc & { v?: number }).v = LEGACY_TEXT_TABS_SCHEMA;
+    renderDocument.schemaVersion = rawSchema as number;
+    if (Object.hasOwn(raw, 'v')) (renderDocument as Doc & { v?: number }).v = raw.v as number;
     else delete (renderDocument as Doc & { v?: number }).v;
   }
   const dependencies = dependenciesOf(document);
