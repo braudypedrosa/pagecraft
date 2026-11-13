@@ -100,6 +100,33 @@ test('schema 14 read-only export preserves the frozen dental r32 package bytes',
   a.equal(rebuilt.sha256, imported.sha256);
 });
 
+test('schema 15 read-only export preserves the frozen dental r33 package bytes and marker shape', () => {
+  const archive = new Uint8Array(readFileSync(new URL(
+    '../../evidence/native-tabs-2026-11-13/package/dental-clinic-a2-0.1.0-r33.pagecraft-site.zip',
+    import.meta.url
+  )));
+  const imported = validatePortablePackage(archive);
+  const rawDocument = JSON.parse(decoder.decode(imported.files.get(imported.manifest.documentPath)!));
+  const assets: Asset[] = imported.manifest.files.filter(file => file.role === 'asset').map(file => ({
+    id: file.asset!.id,
+    siteId: imported.provenance.sourceId,
+    name: file.asset!.name,
+    type: file.mediaType,
+    w: file.asset!.width,
+    h: file.asset!.height,
+    bytes: new Uint8Array(imported.files.get(file.path)!)
+  }));
+  const rebuilt = createSitePackage({ document: rawDocument, assets, provenance: imported.provenance });
+  const packagedDocument = JSON.parse(decoder.decode(validatePortablePackage(rebuilt.bytes).files.get(imported.manifest.documentPath)!));
+  a.equal(imported.manifest.schemaVersion, 15);
+  a.equal(imported.manifest.rendererRevision, 'pagecraft-renderer-3');
+  a.equal(Object.hasOwn(rawDocument, 'v'), false);
+  a.equal(Object.hasOwn(packagedDocument, 'v'), false);
+  a.equal(packagedDocument.schemaVersion, 15);
+  a.deepEqual(rebuilt.bytes, archive);
+  a.equal(rebuilt.sha256, imported.sha256);
+});
+
 test('schema 14 legacy v marker remains paired with the legacy tabs renderer', () => {
   const doc = blankDoc('Legacy tabs');
   delete (doc as Partial<Doc>).schemaVersion;
