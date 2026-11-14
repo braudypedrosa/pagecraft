@@ -31403,6 +31403,10 @@ async function publishDraft(button, reviewed = null) {
       : undefined).catch(() => undefined);
     SRV.publishedPublicationId = payload.publicationId;
     SRV.publishedVersion = payload.sourceVersion ?? SRV.publishedVersion;
+    if (reviewed && payload.publicationId && ['published', 'unchanged'].includes(payload.status)
+      && payload.sourceVersion === reviewed.sourceVersion && SRV.version === reviewed.sourceVersion
+      && !saving && !saveAgain && saveState === 'ok' && reviewed.document === lastCloudDocument
+      && reviewed.document === JSON.stringify(doc())) stamp('Published', false);
     paintShareState();
     renderReleasePanel(payload);
     action.success(payload.status === 'unchanged' ? 'This version is already published' : 'Published to Pagecraft');
@@ -32161,6 +32165,7 @@ const save = () => {
   // A changed draft can fail for a different actionable reason. Explain that next rejection;
   // repeated attempts of the unchanged failed draft remain deduplicated.
   if (saveState === 'failed') saveWarned = false;
+  if (SRV && !IS_WORDPRESS && $('#savedTag')?.textContent === 'Published') stamp('Draft changed — not published', false);
   dirty = true; saveSoon();
 };
 
