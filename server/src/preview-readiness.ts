@@ -49,11 +49,8 @@ export function withPreviewReadiness(html: string, token: string | undefined, na
         parent.postMessage({type:'pagecraft-preview-ready',token:token,status:status},'*');
       };
       const deadline=setTimeout(function(){finish('degraded');},10000);
-      const images=Array.from(document.images).filter(function(img){
-        const r=img.getBoundingClientRect();
-        return img.loading!=='lazy'||(r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth);
-      });
-      const waits=images.map(function(img){return new Promise(function(resolve){
+      const waits=Array.from(document.images).map(function(img){return new Promise(function(resolve){
+        const waitForImage=function(){
         let settled=false;
         const done=function(ok){
           if(settled||finished)return;
@@ -68,6 +65,21 @@ export function withPreviewReadiness(html: string, token: string | undefined, na
         cleanups.push(function(){img.removeEventListener('load',loaded);img.removeEventListener('error',failed);});
         if(img.complete){done(img.naturalWidth>0);return;}
         img.addEventListener('load',loaded);img.addEventListener('error',failed);
+        };
+        if(img.loading!=='lazy'){waitForImage();return;}
+        if(typeof IntersectionObserver==='function'){
+          const observer=new IntersectionObserver(function(entries){
+            const entry=entries.find(function(item){return item.target===img;});
+            if(!entry||finished)return;
+            observer.disconnect();
+            if(entry.isIntersecting)waitForImage();else resolve();
+          });
+          cleanups.push(function(){observer.disconnect();});
+          observer.observe(img);
+          return;
+        }
+        const r=img.getBoundingClientRect();
+        if(r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth)waitForImage();else resolve();
       });});
       if(document.fonts&&document.fonts.ready)waits.push(Promise.resolve(document.fonts.ready).catch(function(){degraded=true;}));
       Promise.all(waits).then(function(){finish(degraded?'degraded':'ready');});
