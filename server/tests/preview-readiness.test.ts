@@ -14,7 +14,7 @@ const prefix = '/api/sites/fixture/publication-snapshots/11111111-1111-4111-a111
 const navigation = { prefix, pages: ['index.html', 'menu.html', 'stories/index.html', 'stories/room.html'] };
 function runtime(markup = '', options: {
   complete?: boolean; broken?: boolean; lazy?: boolean; fonts?: Promise<unknown>; decode?: Promise<void>;
-  navigation?: PreviewNavigation; url?: string;
+  navigation?: PreviewNavigation; url?: string; intersection?: boolean | 'pending'; visibleRect?: boolean; mixed?: boolean;
 } = {}) {
   const dom = new JSDOM(`<html><body>${markup}</body></html>`, {
     runScripts: 'outside-only', url: options.url || 'https://admin.test' + prefix + 'index.html',
@@ -22,6 +22,17 @@ function runtime(markup = '', options: {
   const w = dom.window as Window & typeof globalThis;
   const frames: (() => void)[] = [];
   const messages: unknown[] = [];
+  const observers: { callback: IntersectionObserverCallback; disconnected: boolean }[] = [];
+  if (options.intersection !== undefined) {
+    w.IntersectionObserver = class {
+      observer = { callback: null as unknown as IntersectionObserverCallback, disconnected: false };
+      constructor(callback: IntersectionObserverCallback) { this.observer.callback = callback; observers.push(this.observer); }
+      observe(target: Element) {
+        if (options.intersection !== 'pending') queueMicrotask(() => this.observer.callback([{ target, isIntersecting: options.intersection } as IntersectionObserverEntry], this as unknown as IntersectionObserver));
+      }
+      disconnect() { this.observer.disconnected = true; }
+    } as unknown as typeof IntersectionObserver;
+  }
   Object.defineProperty(w.document, 'readyState', { value: 'complete' });
   Object.defineProperty(w.document, 'fonts', { value: { ready: options.fonts || Promise.resolve() } });
   w.requestAnimationFrame = fn => { frames.push(() => fn(0)); return frames.length; };
@@ -31,15 +42,15 @@ function runtime(markup = '', options: {
   for (const img of Array.from(w.document.images)) {
     Object.defineProperty(img, 'complete', { value: options.complete ?? true });
     Object.defineProperty(img, 'naturalWidth', { value: options.broken ? 0 : 100 });
-    Object.defineProperty(img, 'loading', { value: options.lazy ? 'lazy' : 'eager' });
-    img.getBoundingClientRect = () => ({ top: 9999, bottom: 10099, left: 0, right: 100 } as DOMRect);
+    Object.defineProperty(img, 'loading', { value: options.lazy || (options.mixed && img.getAttribute('loading') === 'lazy') ? 'lazy' : 'eager' });
+    img.getBoundingClientRect = () => ({ top: options.visibleRect ? 16 : 9999, bottom: options.visibleRect ? 58 : 10099, left: 0, right: 100 } as DOMRect);
     img.decode = () => options.decode || Promise.resolve();
   }
   const output = withPreviewReadiness('', token, options.navigation);
   w.eval(output.slice(output.indexOf('>') + 1, output.lastIndexOf('</script>')));
   const flush = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); };
   const paint = () => { frames.splice(0).forEach(fn => fn()); };
-  return { dom, w, messages, flush, paint, frames };
+  return { dom, w, messages, flush, paint, frames, observers };
 }
 
 function click(f: ReturnType<typeof runtime>, options: MouseEventInit = {}) {
@@ -96,6 +107,47 @@ test('image and font failures degrade, while offscreen lazy images do not delay 
   await lazy.flush();
   expect(lazy.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
   lazy.dom.window.close();
+});
+
+test('lazy image clipped by an offscreen frame does not delay readiness', async () => {
+  const f = runtime('<img src="logo.webp">', { complete: false, lazy: true, visibleRect: true, intersection: false });
+  await f.flush();
+  expect(f.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  expect(f.observers).toHaveLength(1);
+  expect(f.observers[0].disconnected).toBe(true);
+  f.dom.window.close();
+});
+
+test('intersecting lazy image and non-lazy images both wait for loading', async () => {
+  const lazy = runtime('<img src="logo.webp">', { complete: false, lazy: true, visibleRect: true, intersection: true });
+  await lazy.flush();
+  expect(lazy.messages).toEqual([]);
+  lazy.w.document.images[0].dispatchEvent(new lazy.w.Event('load'));
+  await lazy.flush();
+  expect(lazy.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  expect(lazy.observers[0].disconnected).toBe(true);
+  lazy.dom.window.close();
+
+  const eager = runtime('<img src="logo.webp" loading="lazy"><img src="photo.webp">', { complete: false, visibleRect: true, intersection: false, mixed: true });
+  await eager.flush();
+  expect(eager.messages).toEqual([]);
+  eager.w.document.images[1].dispatchEvent(new eager.w.Event('load'));
+  await eager.flush();
+  expect(eager.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  expect(eager.observers).toHaveLength(1);
+  expect(eager.observers[0].disconnected).toBe(true);
+  eager.dom.window.close();
+});
+
+test('deadline disconnects a lazy visibility observer that has not reported', async () => {
+  vi.useFakeTimers();
+  try {
+    const f = runtime('<img src="logo.webp">', { complete: false, lazy: true, intersection: 'pending' });
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(f.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'degraded' }]);
+    expect(f.observers[0].disconnected).toBe(true);
+    f.dom.window.close();
+  } finally { vi.useRealTimers(); }
 });
 
 test('a stalled image or font reports degraded once at the deadline, even after late completion', async () => {
