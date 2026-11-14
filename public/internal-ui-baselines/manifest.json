@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-13T04:43:58.229Z",
+  "capturedAt": "2026-11-14T03:24:01.143Z",
   "browser": "Built-in browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "b292c9ae00a992476cd4e44cc08afbe16c3a2a3453af781faa2c3cef172263a4",
+    "builder.html": "a777fd4b0d1c5695b9a8cf41e5c9608607ae60b2dc1dbaf0a68fafc7310f4902",
     "app/src/ui/index.tsx": "7e1453567d0c535148a053e9a45603d407af2fbf2a4d49742848ab3cac207bee",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "326ae0593dc78b68cd857b48838b8ea181c70a59d6abe8685c3cd7290fafce9a",
@@ -187,6 +187,80 @@
     },
     {
       "host": "cloud",
+      "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
+      "passed": true,
+      "detail": {
+        "reopened": {
+          "expanded": "true",
+          "visible": true
+        },
+        "closed": {
+          "menus": 0,
+          "open": false,
+          "topLayer": 0
+        }
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Select Escape preserves Home, closes picker and returns focus",
+      "passed": true,
+      "detail": {
+        "before": "Home",
+        "opened": {
+          "expanded": "true",
+          "popovers": 1
+        },
+        "after": {
+          "expanded": "false",
+          "popovers": 0,
+          "role": "combobox",
+          "value": "Home"
+        }
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
+      "passed": true,
+      "detail": {
+        "before": {
+          "modal": true,
+          "receivesPointer": true,
+          "topLayer": true,
+          "withinViewport": true
+        },
+        "resized": {
+          "anchored": true,
+          "menuVisible": true,
+          "overflow": false,
+          "value": "public"
+        }
+      }
+    },
+    {
+      "host": "builder",
+      "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
+      "passed": true,
+      "detail": {
+        "escaped": {
+          "expanded": "false",
+          "focus": "Sample access",
+          "menus": 0,
+          "open": true,
+          "value": "private"
+        },
+        "tabbed": {
+          "focusInDialog": true,
+          "menus": 0,
+          "open": true
+        },
+        "backwards": "dialog-name",
+        "parentClosed": true
+      }
+    },
+    {
+      "host": "builder",
       "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
       "passed": true,
       "detail": {
@@ -298,172 +372,6 @@
       }
     },
     {
-      "host": "cloud",
-      "check": "Processing prevents duplicate activation",
-      "passed": true,
-      "detail": {
-        "busy": {
-          "busy": "true",
-          "disabled": true,
-          "label": "Processing preview…",
-          "x": 296.0546875,
-          "y": 433.03125
-        },
-        "still": {
-          "disabled": true,
-          "finishEnabled": true
-        }
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Success restores action",
-      "passed": true,
-      "detail": {
-        "busy": null,
-        "disabled": false,
-        "finishDisabled": true,
-        "label": "Start processing"
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Failure restores action with recoverable error",
-      "passed": true,
-      "detail": {
-        "alert": "Preview failed. Try Start processing again.",
-        "busy": null,
-        "disabled": false,
-        "label": "Start processing"
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Disclosure remains mounted during exit and survives rapid reopening",
-      "passed": true,
-      "detail": {
-        "open": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "exiting": {
-          "expanded": "false",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "reopened": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        }
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Reduced-motion disclosure exit completes",
-      "passed": true,
-      "detail": {
-        "expanded": "false",
-        "hidden": true
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Refresh failure retains previous result and offers retry",
-      "passed": true,
-      "detail": {
-        "errorShown": true,
-        "previous": "Sample inbox · 3 entries",
-        "retryEnabled": true,
-        "role": "alert"
-      }
-    },
-    {
-      "host": "cloud",
-      "check": "Refresh recovery clears error silently and retains result",
-      "passed": true,
-      "detail": {
-        "errorHidden": true,
-        "previous": "Sample inbox · 3 entries",
-        "noticesAdded": 0
-      }
-    },
-    {
-      "host": "builder",
-      "check": "Select Escape preserves Home, closes picker and returns focus",
-      "passed": true,
-      "detail": {
-        "before": "Home",
-        "opened": {
-          "expanded": "true",
-          "popovers": 1
-        },
-        "after": {
-          "expanded": "false",
-          "popovers": 0,
-          "role": "combobox",
-          "value": "Home"
-        }
-      }
-    },
-    {
-      "host": "builder",
-      "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
-      "passed": true,
-      "detail": {
-        "before": {
-          "modal": true,
-          "receivesPointer": true,
-          "topLayer": true,
-          "withinViewport": true
-        },
-        "resized": {
-          "anchored": true,
-          "menuVisible": true,
-          "overflow": false,
-          "value": "public"
-        }
-      }
-    },
-    {
-      "host": "builder",
-      "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
-      "passed": true,
-      "detail": {
-        "escaped": {
-          "expanded": "false",
-          "focus": "Sample access",
-          "menus": 0,
-          "open": true,
-          "value": "private"
-        },
-        "tabbed": {
-          "focusInDialog": true,
-          "menus": 0,
-          "open": true
-        },
-        "backwards": "dialog-name",
-        "parentClosed": true
-      }
-    },
-    {
-      "host": "builder",
-      "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
-      "passed": true,
-      "detail": {
-        "reopened": {
-          "expanded": "true",
-          "visible": true
-        },
-        "closed": {
-          "menus": 0,
-          "open": false,
-          "topLayer": 0
-        }
-      }
-    },
-    {
       "host": "builder",
       "check": "Unsaved dialog value survives resize from 1440px to 768px",
       "passed": true,
@@ -560,6 +468,68 @@
       }
     },
     {
+      "host": "cloud",
+      "check": "Processing prevents duplicate activation",
+      "passed": true,
+      "detail": {
+        "busy": {
+          "busy": "true",
+          "disabled": true,
+          "label": "Processing preview…",
+          "x": 296.0546875,
+          "y": 433.03125
+        },
+        "still": {
+          "disabled": true,
+          "finishEnabled": true
+        }
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Success restores action",
+      "passed": true,
+      "detail": {
+        "busy": null,
+        "disabled": false,
+        "finishDisabled": true,
+        "label": "Start processing"
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Failure restores action with recoverable error",
+      "passed": true,
+      "detail": {
+        "alert": "Preview failed. Try Start processing again.",
+        "busy": null,
+        "disabled": false,
+        "label": "Start processing"
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Disclosure remains mounted during exit and survives rapid reopening",
+      "passed": true,
+      "detail": {
+        "open": {
+          "expanded": "true",
+          "height": 45.59375,
+          "hidden": false
+        },
+        "exiting": {
+          "expanded": "false",
+          "height": 45.59375,
+          "hidden": false
+        },
+        "reopened": {
+          "expanded": "true",
+          "height": 45.59375,
+          "hidden": false
+        }
+      }
+    },
+    {
       "host": "builder",
       "check": "Processing prevents duplicate activation",
       "passed": true,
@@ -619,6 +589,36 @@
           "height": 45.59375,
           "hidden": false
         }
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Reduced-motion disclosure exit completes",
+      "passed": true,
+      "detail": {
+        "expanded": "false",
+        "hidden": true
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh failure retains previous result and offers retry",
+      "passed": true,
+      "detail": {
+        "errorShown": true,
+        "previous": "Sample inbox · 3 entries",
+        "retryEnabled": true,
+        "role": "alert"
+      }
+    },
+    {
+      "host": "cloud",
+      "check": "Refresh recovery clears error silently and retains result",
+      "passed": true,
+      "detail": {
+        "errorHidden": true,
+        "previous": "Sample inbox · 3 entries",
+        "noticesAdded": 0
       }
     },
     {

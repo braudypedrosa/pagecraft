@@ -465,3 +465,47 @@ test('a CMS review target uses the page-owned header and refuses hidden custom a
   expect(w.closeReviewSurface).not.toHaveBeenCalled();
   expect(w.toast).toHaveBeenLastCalledWith('That element is no longer in the project');
 });
+
+test('detail preview controls refresh canvas and selected bound inspector without changing document history', () => {
+  const { w, d, cd, collection } = harness();
+  collection.name = 'Places';
+  collection.items = [
+    { id: 'pine', values: { title: 'Pine cabin', photo: 'forest.webp' } },
+    { id: 'lake', values: { title: 'Lake cabin', photo: 'lake.webp' } },
+  ];
+  w.state.pages[0].collection = collection.id;
+  w.state.ui.item = { places: 0, otherRepeat: 2 };
+  d.body.insertAdjacentHTML('beforeend', '<div id="modebar"></div><div id="right"></div>');
+  const history = { undo: ['existing'], redo: [] };
+  const source = () => JSON.stringify({ pages: w.state.pages, meta: w.state.meta, collection, history });
+  const before = source();
+  const item = () => collection.items[w.state.ui.item.places];
+  Object.assign(w, {
+    rememberCurrentPage: () => {}, scopeOf: () => 'main', regions: () => [],
+    IS_WORDPRESS: false, page: () => w.state.pages[0], isFront: () => true,
+    DEV_LABEL: { d: 'Desktop' }, dk: () => 'd', previewIndex: id => w.state.ui.item[id] || 0,
+    itemTitle: (col, row) => row.values.title,
+    paint: () => { cd.querySelector('#heading').textContent = item().values.title; },
+    renderRight: () => { d.querySelector('#right').innerHTML = `<img src="${item().values.photo}"><input disabled value="${item().values.title}">`; },
+  });
+  w.eval(between('function renderModebar()', 'const PANEL_TITLE'));
+  w.paint(); w.renderRight(); w.renderModebar();
+  const verify = (title, photo, index) => {
+    expect(cd.querySelector('#heading').textContent).toBe(title);
+    expect(d.querySelector('.itemBar select').value).toBe(String(index));
+    expect(d.querySelector('#right img').getAttribute('src')).toBe(photo);
+    expect(d.querySelector('#right input').value).toBe(title);
+    expect(w.state.ui.sel).toBe('heading');
+    expect(w.state.ui.item.otherRepeat).toBe(2);
+    expect(source()).toBe(before);
+  };
+  verify('Pine cabin', 'forest.webp', 0);
+  d.querySelector('[aria-label="Next preview entry"]').click();
+  verify('Lake cabin', 'lake.webp', 1);
+  d.querySelector('[aria-label="Previous preview entry"]').click();
+  verify('Pine cabin', 'forest.webp', 0);
+  const selector = d.querySelector('.itemBar select');
+  selector.value = '1';
+  selector.dispatchEvent(new w.Event('change', { bubbles: true }));
+  verify('Lake cabin', 'lake.webp', 1);
+});
