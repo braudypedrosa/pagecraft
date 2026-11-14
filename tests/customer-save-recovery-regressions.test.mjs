@@ -25,6 +25,7 @@ function recoveryHarness({ failed = false } = {}) {
     let deliberateReload = false, saveTimer = null;
     let dirty = false, saveAgain = true, saving = false, loadBlocked = false;
     let saveState = ${JSON.stringify(failed ? 'failed' : 'ok')};
+    const IS_WORDPRESS = false, $ = () => null, stamp = () => {};
     ${recoverySource}
     ${unloadSource}
     return {
