@@ -5191,6 +5191,76 @@ function smartTarget(key: WidgetType): [PcNode | null, number] {
   return [container, index];
 }
 
+/* ---- quick add ----------------------------------------------------------
+   The + on each edge of the selected element. Above and below put the new element
+   before or after it in the same list. Beside it, the answer depends on the list:
+   in a horizontal one (a Row's columns, a Slider's slides, a flex row or a grid) the
+   new element goes in as a neighbour; in a vertical one the element and the new
+   element become a two-column Row, the new one on the side that was clicked. A
+   Section only takes above and below, and a new one is a new section. A Column in a
+   Row takes a new Column beside it and content at its top or bottom.
+
+   No + where nothing can be placed: the header and footer regions, a component's
+   fixed root, a tab panel, and a Collection List's repeating card. */
+type QuickSide = 'top' | 'right' | 'bottom' | 'left';
+const QUICK_SIDES: QuickSide[] = ['top', 'right', 'bottom', 'left'];
+function quickHorizontal(parent: PcNode | null) {
+  if (!parent) return false;
+  if (parent.type === 'row' || parent.type === 'slider') return true;
+  if (parent.type !== 'box') return false;
+  const layout = parent.props.layout;
+  if (layout === 'grid') return true;
+  return layout === 'flex' && !String(cssAt(parent, dk(), 'flex-direction') || 'row').startsWith('column');
+}
+function quickAddSides(id: string): QuickSide[] {
+  if (state.ui.mode === 'header' || state.ui.mode === 'footer') return [];
+  const h = locate(id);
+  if (!h) return [];
+  const { node, parent } = h;
+  if (!parent && state.ui.mode === 'component') return [];
+  if (parent && (parent.type === 'tabs' || parent.type === 'list' || slotlessInstance(parent))) return [];
+  if (node.type === 'section' && !parent) return ['top', 'bottom'];
+  if (node.type === 'column') {
+    if (parent && (parent.type === 'row' || parent.type === 'slider')) return [...QUICK_SIDES];
+    return [];
+  }
+  if (quickHorizontal(parent)) return ['left', 'right'];
+  /* Beside a vertical list means a new two-column Row in its place, so its list must hold one. */
+  return fitsIn(parent ? parent.type : null, 'row') ? [...QUICK_SIDES] : ['top', 'bottom'];
+}
+/** Place a new `key` on one side of element `id`. Call inside `edit()`. Returns the new
+    element, or null when that side takes nothing. */
+function quickAdd(id: string, side: QuickSide, key: string): PcNode | null {
+  if (!quickAddSides(id).includes(side)) return null;
+  const h = locate(id);
+  if (!h) return null;
+  const { node, parent, i } = h;
+  const after = side === 'bottom' || side === 'right';
+  if (node.type === 'column' && parent) {
+    if (side === 'top' || side === 'bottom') return insert(key, node, side === 'top' ? 0 : node.children.length);
+    /* A new slide or column, sized like its neighbours so the row keeps its balance. */
+    const col = parent.type === 'slider' ? makeFor('slider').children[0] : N('column');
+    if (parent.type === 'row') {
+      const shares = parent.children.map(c => parseFloat((c.css.d || {})['flex-grow']) || 0).filter(v => v > 0);
+      const share = shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : 100;
+      col.css.d = { ...(col.css.d || {}), 'flex-grow': String(+share.toFixed(COLUMN_SHARE_DIGITS)) };
+    }
+    parent.children.splice(after ? i + 1 : i, 0, col);
+    return insert(key, col, 0);
+  }
+  if (side === 'top' || side === 'bottom' || quickHorizontal(parent)) return insert(key, parent, after ? i + 1 : i);
+  /* Beside an element in a vertical list: a two-column Row takes its place. */
+  const row = makeFor('columns');
+  while (row.children.length > 2) row.children.pop();
+  while (row.children.length < 2) row.children.push(N('column'));
+  applyCols(row, [50, 50]);
+  const list = parent ? parent.children : tree();
+  list.splice(i, 1, row);
+  const [kept, fresh] = after ? row.children : [row.children[1], row.children[0]];
+  kept.children.push(node);
+  return insert(key, fresh, 0);
+}
+
 /* ---- a control's value becoming state ---------------------------------
    The single point where editing a field mutates the document. It was in the UI half
    only because that is where the fields are; it touches no DOM, and every rule below
@@ -9698,6 +9768,13 @@ ${m.css || ''}
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
+#s-hud .qa{position:absolute;pointer-events:auto;width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border:2px solid #111311;border-radius:50%;background:#b7f34a;color:#111311;display:grid;place-items:center;cursor:pointer;transform:scale(calc(1 / var(--z,1)));box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
+#s-hud .qa[data-side=top]{transform:scale(calc(1 / var(--z,1))) translateY(-15px)}
+#s-hud .qa[data-side=bottom]{transform:scale(calc(1 / var(--z,1))) translateY(15px)}
+#s-hud .qa[data-side=left]{transform:scale(calc(1 / var(--z,1))) translateX(-15px)}
+#s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
+#s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
+#s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
@@ -11637,7 +11714,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

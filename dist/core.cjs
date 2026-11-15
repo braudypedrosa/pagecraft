@@ -92,6 +92,7 @@ __export(index_exports, {
   PUBLIC_DATE_JS: () => PUBLIC_DATE_JS,
   PUBLIC_SELECT_CSS: () => PUBLIC_SELECT_CSS,
   PUBLIC_SELECT_JS: () => PUBLIC_SELECT_JS,
+  QUICK_SIDES: () => QUICK_SIDES,
   REF_DEPTH: () => REF_DEPTH,
   RESERVED: () => RESERVED,
   SCHEMA: () => SCHEMA,
@@ -383,6 +384,8 @@ __export(index_exports, {
   proposalPrepare: () => proposalPrepare,
   publicFormControlCssFor: () => publicFormControlCssFor,
   published: () => published,
+  quickAdd: () => quickAdd,
+  quickAddSides: () => quickAddSides,
   redo: () => redo,
   refId: () => refId,
   reid: () => reid,
@@ -7276,6 +7279,58 @@ function smartTarget(key) {
   if (index === null) index = tree().length;
   return [container, index];
 }
+var QUICK_SIDES = ["top", "right", "bottom", "left"];
+function quickHorizontal(parent) {
+  if (!parent) return false;
+  if (parent.type === "row" || parent.type === "slider") return true;
+  if (parent.type !== "box") return false;
+  const layout = parent.props.layout;
+  if (layout === "grid") return true;
+  return layout === "flex" && !String(cssAt(parent, dk(), "flex-direction") || "row").startsWith("column");
+}
+function quickAddSides(id) {
+  if (state.ui.mode === "header" || state.ui.mode === "footer") return [];
+  const h = locate(id);
+  if (!h) return [];
+  const { node, parent } = h;
+  if (!parent && state.ui.mode === "component") return [];
+  if (parent && (parent.type === "tabs" || parent.type === "list" || slotlessInstance(parent))) return [];
+  if (node.type === "section" && !parent) return ["top", "bottom"];
+  if (node.type === "column") {
+    if (parent && (parent.type === "row" || parent.type === "slider")) return [...QUICK_SIDES];
+    return [];
+  }
+  if (quickHorizontal(parent)) return ["left", "right"];
+  return fitsIn(parent ? parent.type : null, "row") ? [...QUICK_SIDES] : ["top", "bottom"];
+}
+function quickAdd(id, side, key) {
+  if (!quickAddSides(id).includes(side)) return null;
+  const h = locate(id);
+  if (!h) return null;
+  const { node, parent, i } = h;
+  const after = side === "bottom" || side === "right";
+  if (node.type === "column" && parent) {
+    if (side === "top" || side === "bottom") return insert(key, node, side === "top" ? 0 : node.children.length);
+    const col = parent.type === "slider" ? makeFor("slider").children[0] : N("column");
+    if (parent.type === "row") {
+      const shares = parent.children.map((c) => parseFloat((c.css.d || {})["flex-grow"]) || 0).filter((v) => v > 0);
+      const share = shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : 100;
+      col.css.d = { ...col.css.d || {}, "flex-grow": String(+share.toFixed(COLUMN_SHARE_DIGITS)) };
+    }
+    parent.children.splice(after ? i + 1 : i, 0, col);
+    return insert(key, col, 0);
+  }
+  if (side === "top" || side === "bottom" || quickHorizontal(parent)) return insert(key, parent, after ? i + 1 : i);
+  const row = makeFor("columns");
+  while (row.children.length > 2) row.children.pop();
+  while (row.children.length < 2) row.children.push(N("column"));
+  applyCols(row, [50, 50]);
+  const list = parent ? parent.children : tree();
+  list.splice(i, 1, row);
+  const [kept, fresh] = after ? row.children : [row.children[1], row.children[0]];
+  kept.children.push(node);
+  return insert(key, fresh, 0);
+}
 var LIST_PAGE_INPUTS = /* @__PURE__ */ new Set(["sort", "dir", "where", "op", "val", "per", "limit"]);
 var toggleOn = (value) => !["", "0", "false"].includes(String(value ?? ""));
 function reconcileAccordionOpenMode(n, key, value) {
@@ -11308,6 +11363,13 @@ ${m.css || ""}
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
+#s-hud .qa{position:absolute;pointer-events:auto;width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border:2px solid #111311;border-radius:50%;background:#b7f34a;color:#111311;display:grid;place-items:center;cursor:pointer;transform:scale(calc(1 / var(--z,1)));box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
+#s-hud .qa[data-side=top]{transform:scale(calc(1 / var(--z,1))) translateY(-15px)}
+#s-hud .qa[data-side=bottom]{transform:scale(calc(1 / var(--z,1))) translateY(15px)}
+#s-hud .qa[data-side=left]{transform:scale(calc(1 / var(--z,1))) translateX(-15px)}
+#s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
+#s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
+#s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
@@ -12875,6 +12937,7 @@ function proposalApply(changes, proposalId = "", options) {
   PUBLIC_DATE_JS,
   PUBLIC_SELECT_CSS,
   PUBLIC_SELECT_JS,
+  QUICK_SIDES,
   REF_DEPTH,
   RESERVED,
   SCHEMA,
@@ -13166,6 +13229,8 @@ function proposalApply(changes, proposalId = "", options) {
   proposalPrepare,
   publicFormControlCssFor,
   published,
+  quickAdd,
+  quickAddSides,
   redo,
   refId,
   reid,
