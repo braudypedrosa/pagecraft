@@ -1183,12 +1183,36 @@ function ColsCtl({ n, c }: P) {
   </div>;
 }
 
+/* A Row's column order at the breakpoint being edited. The core decides which property
+   that means (flex-direction side by side, flex-wrap when stacked); the badge follows it. */
+function OrderCtl({ n, c }: P) {
+  const on = C.rowReversed(n);
+  const field = { ...c, c: C.rowOrderProp(n), r: 1 as const };
+  const set = (rev: boolean) => {
+    if (rev === on) return;
+    L.tx(n.id + '|order');
+    C.setRowReversed(n, rev);
+    L.paintCss();
+    L.save();
+    L.endTx();
+    repaint('right');
+  };
+  return <Field n={n} c={field}>
+    <div class="pick">
+      {([[false, 'Normal'], [true, 'Reversed']] as const).map(([rev, label]) => (
+        <button type="button" key={label} class={on === rev ? 'on' : ''} aria-pressed={on === rev ? 'true' : 'false'}
+          title={label} onClick={() => set(rev)}>{label}</button>
+      ))}
+    </div>
+  </Field>;
+}
+
 const KINDS: Record<string, (p: P) => any> = {
   text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, lengthList: LengthListCtl, slider: SliderCtl,
   color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
-  icon: IconCtl, cols: ColsCtl
+  icon: IconCtl, cols: ColsCtl, order: OrderCtl
 };
 
 /** Every kind the inspector can draw. Exported so a test — and the build — can check
