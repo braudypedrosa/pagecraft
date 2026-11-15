@@ -641,8 +641,11 @@ function PropertyDefaultEditor({ cid, pr, close }: { cid: string; pr: ComponentP
   const options = pr.t === 'bool' ? [['0', 'No'], ['1', 'Yes']]
     : pr.t === 'icon' ? [['', 'No icon'], ...C.ICONS.flatMap(([, list]) => list.map(([name]) => [name, name]))]
       : pr.opts || [];
+  const [typingColour, setTypingColour] = useState(false);
   const validColour = pr.t !== 'color' || !value || !!C.parseColor(C.resolveColor(value) || value)
     || (typeof CSS !== 'undefined' && CSS.supports('color', value));
+  /* Not while a hex is half typed: once typing stops (blur). Saving still refuses an invalid one. */
+  const showColourError = !validColour && !typingColour;
   const save = () => {
     const current = C.findProp(C.findComponent(cid), pr.k);
     if (!current || current.t !== pr.t || !validColour || !L.canStructure()) return;
@@ -685,11 +688,13 @@ function PropertyDefaultEditor({ cid, pr, close }: { cid: string; pr: ComponentP
           {pr.t === 'color' ? <button type="button" class="sw" aria-label={'Pick default colour for ' + pr.label}
             onClick={e => setColourAnchor(e.currentTarget)}><i style={{ background: C.resolveColor(value) || value || 'transparent' }} /></button> : null}
           <input id={id + '-value'} class="ctl" aria-labelledby={id} value={value}
-            aria-invalid={!validColour ? 'true' : undefined} onInput={e => setValue(e.currentTarget.value)} />
+            aria-invalid={showColourError ? 'true' : undefined}
+            onInput={e => { setTypingColour(true); setValue(e.currentTarget.value); }}
+            onBlur={() => setTypingColour(false)} />
         </div>}
     {colourAnchor ? <ColorPop start={C.resolveColor(value) || value} startRef={C.isRef(value) ? value : ''}
       anchor={colourAnchor} onLive={setValue} onDone={setValue} onClose={() => setColourAnchor(null)} /> : null}
-    {!validColour ? <div class="note" role="alert">Enter a valid colour.</div> : null}
+    {showColourError ? <div class="note" role="alert">Enter a valid colour.</div> : null}
     <p class="note">Instances without an override follow this default. Their own values and variants stay as saved.</p>
     <div class="pc-field-actions">
       <button type="button" class="btn grow" onClick={close}>Cancel</button>
@@ -869,6 +874,24 @@ function ShowIf({ n }: { n: PcNode }) {
   );
 }
 
+/* On the tablet or phone canvas, the one visibility question that matters there sits on
+   the Content tab, so hiding something on a phone does not mean a trip to Advanced. */
+function DeviceVisibility({ n }: { n: PcNode }) {
+  const b = C.dk();
+  if (b === 'd') return null;
+  const shown = !(n.hide && n.hide[b]);
+  const label = `Show on ${C.DEV_LABEL[b]}`;
+  return <div class="f pc-device-visibility">
+    <div class="tog-row">
+      <span><Icon name={DEV_ICON[b]} size={12} /> {label}</span>
+      <button type="button" role="switch" aria-label={label} aria-checked={shown ? 'true' : 'false'}
+        title="Hidden elements remain selectable in the editor"
+        class={'sw-tog' + (shown ? ' on' : '')}
+        onClick={() => C.edit(() => { n.hide = n.hide || {}; n.hide[b] = shown; }, shown ? `Hide on ${C.DEV_LABEL[b]}` : `Show on ${C.DEV_LABEL[b]}`)}><i /></button>
+    </div>
+  </div>;
+}
+
 function Visibility({ n }: { n: PcNode }) {
   return (
     <Panel title="Visibility" n={n}>
@@ -1044,6 +1067,7 @@ export function Inspector({ initialModifiedOnly = false, onModifiedOnlyChange }:
             {modifiedOnly && !hasModifiedAdvanced ? <div class="empty inspector-modified-empty">No modified settings in this scope.</div> : null}
           </>
         )}
+        {tab === 'content' && !many && !modifiedOnly ? <DeviceVisibility n={n} /> : null}
         {tab === 'content' && n.type === 'nav' && !n.use && !many && L.canStructure()
           && n.props.collapse !== 'never' && n.props.mobileMenu !== 'fullscreen' ? (
           <Panel title="Mobile menu builder" n={n}><MobileMenuBuilder n={n} /></Panel>

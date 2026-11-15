@@ -56,6 +56,7 @@ const conditionalSetup: Record<string, {
   'list:Show at most': { off: n => { n.props.per = '10'; }, on: n => { n.props.per = ''; } },
   'list:Wrap': { off: n => { n.props.collectionLayout = 'slider'; }, on: n => { n.props.collectionLayout = 'grid'; } },
   'row:Order': { off: n => { C.applyCols(n, [100]); }, on: n => { C.applyCols(n, [50, 50]); } },
+  'row:Stack on tablet': { off: n => { C.applyCols(n, [100]); }, on: n => { C.applyCols(n, [50, 50]); } },
   'column:Width (share)': { off: () => {}, on: () => {}, offParent: 'slider', onParent: 'row' },
   'column:Min basis': { off: () => {}, on: () => {}, offParent: 'slider', onParent: 'row' },
   'box:Direction': { off: n => { n.props.layout = 'block'; }, on: n => { n.props.layout = 'flex'; } },
@@ -101,7 +102,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 36 conditional declarations render only in their applicable state', () => {
+test('all 37 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -110,7 +111,7 @@ test('all 36 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(36);
+  expect(declarations).toHaveLength(37);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );

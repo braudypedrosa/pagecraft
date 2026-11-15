@@ -235,6 +235,10 @@ test('invalid colours stay editable with feedback and do not replace the valid s
   const input = r.$('input.hex') as HTMLInputElement;
   act(() => r.type(input, 'not-a-colour'));
   assert.equal(input.value, 'not-a-colour');
+  // Feedback waits until typing stops, so a half-typed hex is not flagged on every key.
+  assert.doesNotMatch(r.host.textContent || '', /valid colour/i);
+  act(() => { input.dispatchEvent(new FocusEvent('blur')); });
+  assert.equal(input.value, 'not-a-colour');
   assert.equal(input.getAttribute('aria-invalid'), 'true');
   assert.match(r.host.textContent || '', /valid colour/i);
   assert.equal(n.css.d.color, '#112233');

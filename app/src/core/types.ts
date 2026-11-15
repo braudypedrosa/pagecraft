@@ -471,7 +471,7 @@ export interface Handle {
 export type ControlKind =
   | 'text' | 'area' | 'select' | 'unit' | 'lengthList' | 'slider' | 'color' | 'pick' | 'toggle'
   | 'box' | 'border' | 'img' | 'opt' | 'dims' | 'link' | 'rich' | 'tstyle' | 'source'
-  | 'items' | 'fields' | 'qa' | 'imgs' | 'icon' | 'cols' | 'order';
+  | 'items' | 'fields' | 'qa' | 'imgs' | 'icon' | 'cols' | 'order' | 'stack';
 
 export interface Control {
   t: ControlKind;
