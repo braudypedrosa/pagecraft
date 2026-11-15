@@ -309,6 +309,10 @@ input,select,textarea{font:inherit;color:inherit}
   box-shadow:var(--shadow-lg);color:var(--text);z-index:80;max-height:calc(100vh - 64px);overflow-y:auto
 }
 .moreToolsPop[hidden]{display:none}
+.pc-quick-add{width:240px;max-height:min(420px,calc(100vh - 16px));overflow:auto;padding:6px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-md);box-shadow:var(--shadow-lg)}
+.pc-quick-add-search{width:100%;box-sizing:border-box;margin:0 0 4px}
+.pc-quick-add .pc-menu-item.on{background:var(--pc-hover-bg)}
+.pc-quick-add-empty{padding:8px 10px;font-size:12px;opacity:.7}
 .moreToolsPop .pc-menu-item{
   width:100%;min-height:40px;padding:0 10px;display:flex;align-items:center;border-radius:var(--r-sm);
   color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-align:left
@@ -8910,6 +8914,58 @@ function smartTarget(key) {
   if (index === null) index = tree().length;
   return [container, index];
 }
+var QUICK_SIDES = ["top", "right", "bottom", "left"];
+function quickHorizontal(parent) {
+  if (!parent) return false;
+  if (parent.type === "row" || parent.type === "slider") return true;
+  if (parent.type !== "box") return false;
+  const layout = parent.props.layout;
+  if (layout === "grid") return true;
+  return layout === "flex" && !String(cssAt(parent, dk(), "flex-direction") || "row").startsWith("column");
+}
+function quickAddSides(id) {
+  if (state.ui.mode === "header" || state.ui.mode === "footer") return [];
+  const h = locate(id);
+  if (!h) return [];
+  const { node, parent } = h;
+  if (!parent && state.ui.mode === "component") return [];
+  if (parent && (parent.type === "tabs" || parent.type === "list" || slotlessInstance(parent))) return [];
+  if (node.type === "section" && !parent) return ["top", "bottom"];
+  if (node.type === "column") {
+    if (parent && (parent.type === "row" || parent.type === "slider")) return [...QUICK_SIDES];
+    return [];
+  }
+  if (quickHorizontal(parent)) return ["left", "right"];
+  return fitsIn(parent ? parent.type : null, "row") ? [...QUICK_SIDES] : ["top", "bottom"];
+}
+function quickAdd(id, side, key) {
+  if (!quickAddSides(id).includes(side)) return null;
+  const h = locate(id);
+  if (!h) return null;
+  const { node, parent, i } = h;
+  const after = side === "bottom" || side === "right";
+  if (node.type === "column" && parent) {
+    if (side === "top" || side === "bottom") return insert(key, node, side === "top" ? 0 : node.children.length);
+    const col = parent.type === "slider" ? makeFor("slider").children[0] : N("column");
+    if (parent.type === "row") {
+      const shares = parent.children.map((c) => parseFloat((c.css.d || {})["flex-grow"]) || 0).filter((v) => v > 0);
+      const share = shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : 100;
+      col.css.d = { ...col.css.d || {}, "flex-grow": String(+share.toFixed(COLUMN_SHARE_DIGITS)) };
+    }
+    parent.children.splice(after ? i + 1 : i, 0, col);
+    return insert(key, col, 0);
+  }
+  if (side === "top" || side === "bottom" || quickHorizontal(parent)) return insert(key, parent, after ? i + 1 : i);
+  const row = makeFor("columns");
+  while (row.children.length > 2) row.children.pop();
+  while (row.children.length < 2) row.children.push(N("column"));
+  applyCols(row, [50, 50]);
+  const list = parent ? parent.children : tree();
+  list.splice(i, 1, row);
+  const [kept, fresh] = after ? row.children : [row.children[1], row.children[0]];
+  kept.children.push(node);
+  return insert(key, fresh, 0);
+}
 var LIST_PAGE_INPUTS = /* @__PURE__ */ new Set(["sort", "dir", "where", "op", "val", "per", "limit"]);
 var toggleOn = (value) => !["", "0", "false"].includes(String(value ?? ""));
 function reconcileAccordionOpenMode(n, key, value) {
@@ -12942,6 +12998,13 @@ ${m.css || ""}
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
   font:500 11px "DM Sans",system-ui,sans-serif;
 }
+#s-hud .qa{position:absolute;pointer-events:auto;width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border:2px solid #111311;border-radius:50%;background:#b7f34a;color:#111311;display:grid;place-items:center;cursor:pointer;transform:scale(calc(1 / var(--z,1)));box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
+#s-hud .qa[data-side=top]{transform:scale(calc(1 / var(--z,1))) translateY(-15px)}
+#s-hud .qa[data-side=bottom]{transform:scale(calc(1 / var(--z,1))) translateY(15px)}
+#s-hud .qa[data-side=left]{transform:scale(calc(1 / var(--z,1))) translateX(-15px)}
+#s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
+#s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
+#s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
@@ -14508,6 +14571,7 @@ var __CORE = {
   PUBLIC_DATE_JS,
   PUBLIC_SELECT_CSS,
   PUBLIC_SELECT_JS,
+  QUICK_SIDES,
   REF_DEPTH,
   RESERVED,
   SCHEMA,
@@ -14799,6 +14863,8 @@ var __CORE = {
   proposalPrepare,
   publicFormControlCssFor,
   published,
+  quickAdd,
+  quickAddSides,
   redo,
   refId,
   reid,
@@ -14937,11 +15003,13 @@ var PC_UI = (() => {
   var index_exports = {};
   __export(index_exports, {
     adoptHostDocument: () => adoptHostDocument,
+    closeQuickAdd: () => closeQuickAdd,
     createWebHostAdapter: () => createWebHostAdapter,
     createWordPressHostAdapter: () => createWordPressHostAdapter,
     installActionFeedback: () => installActionFeedback,
     installUiMotion: () => installUiMotion,
     mount: () => mount,
+    openQuickAdd: () => openQuickAdd,
     projectIdentity: () => projectIdentity,
     recordElementUse: () => recordElementUse,
     renameHostedSite: () => renameHostedSite,
@@ -15575,7 +15643,7 @@ var PC_UI = (() => {
     style.id = "pc-action-feedback-styles";
     style.textContent = css;
     document.head.append(style);
-    let host;
+    let host2;
     const records = /* @__PURE__ */ new Map(), pending2 = /* @__PURE__ */ new WeakMap(), keys2 = /* @__PURE__ */ new WeakMap(), jobs = /* @__PURE__ */ new Set(), activeActions = /* @__PURE__ */ new Set();
     const problems = /* @__PURE__ */ new Map();
     const problemChanged = () => window.dispatchEvent(new CustomEvent("pc-feedback-problems"));
@@ -15607,17 +15675,17 @@ var PC_UI = (() => {
     const icon = (name) => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + paths[name] + "</svg>";
     const destination = () => [...document.querySelectorAll('dialog[open], [role="dialog"][aria-modal="true"]')].filter((node) => !node.closest("[hidden]") && (!node.matches("dialog") || node.open)).at(-1) || document.body;
     const place2 = () => {
-      if (!host) return;
+      if (!host2) return;
       const parent = destination();
-      if (host.parentElement !== parent) parent.append(host);
+      if (host2.parentElement !== parent) parent.append(host2);
       const inDialog = parent !== document.body;
-      host.toggleAttribute("data-dialog", inDialog);
+      host2.toggleAttribute("data-dialog", inDialog);
       if (inDialog) {
-        if (host.hasAttribute("popover")) {
-          if (host.matches(":popover-open")) host.hidePopover();
-          host.removeAttribute("popover");
+        if (host2.hasAttribute("popover")) {
+          if (host2.matches(":popover-open")) host2.hidePopover();
+          host2.removeAttribute("popover");
         }
-        for (const property of ["right", "bottom", "width", "max-height"]) host.style.removeProperty(property);
+        for (const property of ["right", "bottom", "width", "max-height"]) host2.style.removeProperty(property);
         return;
       }
       const stage = parent === document.body ? document.getElementById("stage") : null;
@@ -15625,28 +15693,28 @@ var PC_UI = (() => {
       if (bounds?.width > 160 && bounds.height > 0) {
         const dim = document.getElementById("dim")?.getBoundingClientRect();
         const bottom = dim?.height ? Math.max(20, window.innerHeight - dim.top + 12) : 20;
-        host.style.right = Math.max(16, window.innerWidth - bounds.right + 16) + "px";
-        host.style.bottom = bottom + "px";
-        host.style.width = Math.min(420, bounds.width - 32) + "px";
-        host.style.maxHeight = Math.max(80, window.innerHeight - Math.max(52, bounds.top) - 16 - bottom) + "px";
+        host2.style.right = Math.max(16, window.innerWidth - bounds.right + 16) + "px";
+        host2.style.bottom = bottom + "px";
+        host2.style.width = Math.min(420, bounds.width - 32) + "px";
+        host2.style.maxHeight = Math.max(80, window.innerHeight - Math.max(52, bounds.top) - 16 - bottom) + "px";
       } else {
-        for (const property of ["right", "bottom", "width", "max-height"]) host.style.removeProperty(property);
+        for (const property of ["right", "bottom", "width", "max-height"]) host2.style.removeProperty(property);
       }
-      if (typeof host.showPopover === "function" && host.childElementCount) {
-        host.setAttribute("popover", "manual");
-        if (host.matches(":popover-open")) host.hidePopover();
-        host.showPopover();
+      if (typeof host2.showPopover === "function" && host2.childElementCount) {
+        host2.setAttribute("popover", "manual");
+        if (host2.matches(":popover-open")) host2.hidePopover();
+        host2.showPopover();
       }
     };
     const container = () => {
-      if (!host?.isConnected) {
-        host = document.createElement("div");
-        host.className = "pc-notifications";
-        host.id = "pc-notifications";
-        host.setAttribute("aria-label", "Notifications");
-        document.body.append(host);
+      if (!host2?.isConnected) {
+        host2 = document.createElement("div");
+        host2.className = "pc-notifications";
+        host2.id = "pc-notifications";
+        host2.setAttribute("aria-label", "Notifications");
+        document.body.append(host2);
       }
-      return host;
+      return host2;
     };
     const notify = (message, options = {}) => {
       const id = options.id || "action-" + ++sequence;
@@ -15850,8 +15918,8 @@ var PC_UI = (() => {
     if (document.body) restoreFlash();
     else document.addEventListener("DOMContentLoaded", restoreFlash, { once: true });
     const observer = new MutationObserver((changes) => {
-      const parent = host?.parentElement;
-      if (host?.childElementCount && (parent !== destination() || changes.some((change) => change.target === document.body || ["right", "rightAux", "stage", "modal", "ask"].includes(change.target.id) || parent?.matches?.(".pc-dialog") && change.target instanceof Element && !host.contains(change.target) && change.target.closest(".pc-dialog") === parent))) place2();
+      const parent = host2?.parentElement;
+      if (host2?.childElementCount && (parent !== destination() || changes.some((change) => change.target === document.body || ["right", "rightAux", "stage", "modal", "ask"].includes(change.target.id) || parent?.matches?.(".pc-dialog") && change.target instanceof Element && !host2.contains(change.target) && change.target.closest(".pc-dialog") === parent))) place2();
     });
     observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "hidden", "class"] });
     window.addEventListener("resize", place2);
@@ -15862,7 +15930,7 @@ var PC_UI = (() => {
       records.clear();
       problems.clear();
       activeActions.clear();
-      host?.remove();
+      host2?.remove();
       style.remove();
       document.removeEventListener("DOMContentLoaded", restoreFlash);
       delete window.__pcFeedback;
@@ -16877,8 +16945,8 @@ var PC_UI = (() => {
       if (!record.select.isConnected || !record.trigger.isConnected || record.select.disabled) return;
       if (openRecord && openRecord !== record) close(openRecord);
       record.modal = modalFor(record);
-      const host = record.modal || document.body;
-      if (record.menu.parentElement !== host) host.append(record.menu);
+      const host2 = record.modal || document.body;
+      if (record.menu.parentElement !== host2) host2.append(record.menu);
       const usePopover = Boolean(record.modal && record.menu.showPopover && record.menu.hidePopover);
       if (usePopover) {
         record.menu.setAttribute("popover", "manual");
@@ -20847,6 +20915,16 @@ var PC_UI = (() => {
     },
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
   ];
+  var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
+  function quickAddChoices(query) {
+    const all = PAL.flatMap((group) => group.items.map(([key2, label]) => ({ group: group.g, key: key2, label }))).filter((item) => item.key !== "list" || L2.dynamicContentProvider() === "pagecraft");
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return QUICK_ADD_DEFAULTS.map((key2) => [key2, all.find((item) => item.key === key2)?.label || key2]);
+    return all.filter((item) => {
+      const haystack = `${item.group} ${item.label} ${item.key} ${ALIASES[item.key] || ""}`.toLowerCase();
+      return terms.every((term) => haystack.includes(term));
+    }).map((item) => [item.key, item.label]);
+  }
   var recentElements = createRecentElementsStore(PAL.flatMap((group) => group.items.map(([key2]) => key2)));
   var recordElementUse = recentElements.record;
   var ALIASES = {
@@ -21389,6 +21467,132 @@ var PC_UI = (() => {
     ] });
   }
   var esc4 = (s3) => String(s3 ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+
+  // app/src/ui/QuickAdd.tsx
+  var SIDE_LABEL = { top: "above", bottom: "below", left: "to the left", right: "to the right" };
+  var host = null;
+  var away = null;
+  function closeQuickAdd() {
+    if (away) {
+      document.removeEventListener("pointerdown", away, true);
+      away = null;
+    }
+    if (!host) return;
+    R(null, host);
+    host.remove();
+    host = null;
+  }
+  function Picker({ side, onPick, onMore }) {
+    const [query, setQuery] = d2("");
+    const [active, setActive] = d2(0);
+    const input = A2(null);
+    const choices = quickAddChoices(query);
+    h2(() => {
+      input.current?.focus();
+    }, []);
+    h2(() => {
+      setActive(0);
+    }, [query]);
+    const pick = (key2) => {
+      closeQuickAdd();
+      onPick(key2);
+    };
+    const more = () => {
+      closeQuickAdd();
+      onMore();
+    };
+    const rows2 = choices.length + 1;
+    const onKey = (e3) => {
+      if (e3.key === "Escape") {
+        e3.preventDefault();
+        closeQuickAdd();
+        return;
+      }
+      if (e3.key === "ArrowDown") {
+        e3.preventDefault();
+        setActive((a3) => (a3 + 1) % rows2);
+        return;
+      }
+      if (e3.key === "ArrowUp") {
+        e3.preventDefault();
+        setActive((a3) => (a3 - 1 + rows2) % rows2);
+        return;
+      }
+      if (e3.key === "Enter") {
+        e3.preventDefault();
+        if (active < choices.length) pick(choices[active][0]);
+        else more();
+      }
+    };
+    return /* @__PURE__ */ u2("div", { class: "pc-menu pc-quick-add", role: "dialog", "aria-label": `Add an element ${SIDE_LABEL[side]}`, onKeyDown: onKey, children: [
+      /* @__PURE__ */ u2(
+        "input",
+        {
+          ref: input,
+          class: "ctl pc-quick-add-search",
+          type: "search",
+          placeholder: "Search elements",
+          "aria-label": "Search elements",
+          value: query,
+          onInput: (e3) => setQuery(e3.target.value)
+        }
+      ),
+      /* @__PURE__ */ u2("div", { role: "listbox", "aria-label": "Elements", children: choices.length ? choices.map(([key2, label], index) => /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          role: "option",
+          "aria-selected": index === active ? "true" : "false",
+          class: "pc-menu-item" + (index === active ? " on" : ""),
+          "data-key": key2,
+          onMouseEnter: () => setActive(index),
+          onClick: () => pick(key2),
+          children: label
+        },
+        key2
+      )) : /* @__PURE__ */ u2("div", { class: "pc-quick-add-empty", children: "No elements match" }) }),
+      /* @__PURE__ */ u2("div", { class: "pc-menu-divider", role: "separator" }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "pc-menu-item" + (active === choices.length ? " on" : ""),
+          "data-more": true,
+          onMouseEnter: () => setActive(choices.length),
+          onClick: more,
+          children: "More\u2026"
+        }
+      )
+    ] });
+  }
+  function openQuickAdd({ x: x2, y: y3, side, onPick, onMore }) {
+    closeQuickAdd();
+    host = document.createElement("div");
+    host.className = "pc-quick-add-host";
+    host.style.position = "fixed";
+    host.style.zIndex = "10000";
+    document.body.appendChild(host);
+    R(/* @__PURE__ */ u2(Picker, { side, onPick, onMore }), host);
+    const box = host.firstElementChild;
+    const r3 = box.getBoundingClientRect();
+    let left = side === "left" ? x2 - r3.width - 12 : side === "right" ? x2 + 12 : x2 - r3.width / 2;
+    let top = side === "top" ? y3 - r3.height - 12 : side === "bottom" ? y3 + 12 : y3 - r3.height / 2;
+    if (side === "top" && top < 8) top = y3 + 12;
+    if (side === "bottom" && top + r3.height > window.innerHeight - 8) top = y3 - r3.height - 12;
+    if (side === "left" && left < 8) left = x2 + 12;
+    if (side === "right" && left + r3.width > window.innerWidth - 8) left = x2 - r3.width - 12;
+    host.style.left = Math.max(8, Math.min(left, window.innerWidth - r3.width - 8)) + "px";
+    host.style.top = Math.max(8, Math.min(top, window.innerHeight - r3.height - 8)) + "px";
+    const opened = host;
+    setTimeout(() => {
+      if (host !== opened) return;
+      away = (e3) => {
+        if (host && !host.contains(e3.target)) closeQuickAdd();
+      };
+      document.addEventListener("pointerdown", away, true);
+    });
+    return host;
+  }
 
   // app/src/ui/canvas-placement.ts
   function selectionToolbarTop(rect, height, viewport) {
@@ -22696,7 +22900,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const menuId = box.current?.querySelector(".pc-custom-select-trigger[aria-controls]")?.getAttribute("aria-controls");
         return !!menuId && target instanceof Node && document.getElementById(menuId)?.contains(target);
       };
-      const away = (e3) => {
+      const away2 = (e3) => {
         const t3 = e3.target;
         if (box.current?.contains(t3) || anchor.contains(t3) || inAngleMenu(t3)) return;
         requestClose();
@@ -22712,7 +22916,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           if (anchor.isConnected) anchor.focus({ preventScroll: true });
         }
       };
-      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("pointerdown", away2, true);
       document.addEventListener("pagecraft:outside-pointer", requestClose);
       window.addEventListener("blur", requestClose);
       document.addEventListener("keydown", key2, true);
@@ -22720,7 +22924,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       window.addEventListener("scroll", scroll, true);
       if (box.current) window.__pcMotion?.enter(box.current, { kind: "popover" });
       return () => {
-        document.removeEventListener("pointerdown", away, true);
+        document.removeEventListener("pointerdown", away2, true);
         document.removeEventListener("pagecraft:outside-pointer", requestClose);
         window.removeEventListener("blur", requestClose);
         document.removeEventListener("keydown", key2, true);
@@ -26899,11 +27103,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const h3 = C2.state.ui.sel ? C2.locate(C2.state.ui.sel) : null;
     h2(() => {
-      const host = document.getElementById("right");
-      if (!host) return;
+      const host2 = document.getElementById("right");
+      if (!host2) return;
       const want = !h3;
-      if (host.hidden === want) return;
-      host.hidden = want;
+      if (host2.hidden === want) return;
+      host2.hidden = want;
       requestAnimationFrame(() => {
         L2.layoutCanvas();
         L2.positionHud();
@@ -29934,20 +30138,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const url = new URL(src);
         if (!["http:", "https:"].includes(url.protocol) || url.username || url.password)
           return { kind: "invalid", id: "" };
-        const host = url.hostname.toLowerCase();
+        const host2 = url.hostname.toLowerCase();
         const parts = url.pathname.split("/").filter(Boolean);
         const youtubeHosts = /* @__PURE__ */ new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com"]);
         let id = "";
-        if (youtubeHosts.has(host)) {
+        if (youtubeHosts.has(host2)) {
           if (url.pathname === "/watch") id = videoId(url.searchParams.get("v"));
           else if (["embed", "shorts", "live"].includes(parts[0])) id = videoId(parts[1] || "");
-        } else if (host === "youtu.be" || host === "www.youtu.be") {
+        } else if (host2 === "youtu.be" || host2 === "www.youtu.be") {
           id = videoId(parts[0] || "");
         }
         if (id) return { kind: "youtube", id };
         const vimeoHosts = /* @__PURE__ */ new Set(["vimeo.com", "www.vimeo.com"]);
-        if (vimeoHosts.has(host) || host === "player.vimeo.com") {
-          const candidate = parts[0] === "video" ? parts[1] : host === "player.vimeo.com" ? "" : parts[0];
+        if (vimeoHosts.has(host2) || host2 === "player.vimeo.com") {
+          const candidate = parts[0] === "video" ? parts[1] : host2 === "player.vimeo.com" ? "" : parts[0];
           if (candidate && /^\d+$/.test(candidate)) return { kind: "vimeo", id: candidate };
         }
         return { kind: filePath(src) ? "file" : "other", id: src };
@@ -30527,10 +30731,10 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     installActionFeedback();
     if (legacy.dynamicContentProvider() === "pagecraft") installAccountActions();
     const panel = (id, node, skipHidden = false) => () => {
-      const host = document.getElementById(id);
-      if (!host) return;
-      if (skipHidden && host.hidden) return;
-      R(node(), host);
+      const host2 = document.getElementById(id);
+      if (!host2) return;
+      if (skipHidden && host2.hidden) return;
+      R(node(), host2);
     };
     let cmsWorkspace = null;
     const renderCmsPanel = panel("paneCms", () => /* @__PURE__ */ u2(Cms, {}), true);
@@ -30542,17 +30746,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (renderingInspector) return;
       renderingInspector = true;
       try {
-        const host = document.getElementById("right");
-        const old = host?.querySelector("#inspector-panel");
+        const host2 = document.getElementById("right");
+        const old = host2?.querySelector("#inspector-panel");
         if (old && inspectorScope) inspectorScroll.set(inspectorScope, old.scrollTop);
         const selected = core.state.ui.sel && core.locate(core.state.ui.sel)?.node;
         const nextScope = selected ? selected.type + ":" + core.state.ui.stab : "";
-        if (host && inspectorScope !== nextScope && host.childNodes.length) {
-          R(null, host);
-          host.replaceChildren();
+        if (host2 && inspectorScope !== nextScope && host2.childNodes.length) {
+          R(null, host2);
+          host2.replaceChildren();
         }
         inspectorScope = nextScope;
-        if (host) R(/* @__PURE__ */ u2(
+        if (host2) R(/* @__PURE__ */ u2(
           Inspector,
           {
             initialModifiedOnly: inspectorModifiedOnly,
@@ -30560,8 +30764,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               inspectorModifiedOnly = active;
             }
           }
-        ), host);
-        const next = host?.querySelector("#inspector-panel");
+        ), host2);
+        const next = host2?.querySelector("#inspector-panel");
         if (next) next.scrollTop = inspectorScroll.get(inspectorScope) || 0;
       } finally {
         renderingInspector = false;
@@ -30571,8 +30775,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       renderLayers: panel("paneLayers", () => /* @__PURE__ */ u2(Layers, {})),
       renderCms: () => {
         renderCmsPanel();
-        const host = document.getElementById("cms-workspace-host");
-        if (cmsWorkspace && host && document.body.classList.contains("cms-open")) R(cmsWorkspace(), host);
+        const host2 = document.getElementById("cms-workspace-host");
+        if (cmsWorkspace && host2 && document.body.classList.contains("cms-open")) R(cmsWorkspace(), host2);
       },
       renderAdd: panel("paneAdd", () => /* @__PURE__ */ u2(Add, {})),
       renderPages: () => {
@@ -30589,8 +30793,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     registerPainter("pages", painters2.renderPages);
     registerPainter("right", painters2.renderRight);
     const mountAssetField = (hostId, opts) => {
-      const host = document.getElementById(hostId);
-      if (!host) return;
+      const host2 = document.getElementById(hostId);
+      if (!host2) return;
       const draw = () => R(
         /* @__PURE__ */ u2(
           AssetField,
@@ -30603,13 +30807,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             }
           }
         ),
-        host
+        host2
       );
       draw();
     };
     const inBox = (id, node) => () => {
-      const host = document.getElementById(id);
-      if (host) R(node(), host);
+      const host2 = document.getElementById(id);
+      if (host2) R(node(), host2);
     };
     const mountColors = inBox("mColors", () => /* @__PURE__ */ u2(ColorTokens, {}));
     const mountClasses = inBox("mClasses", () => /* @__PURE__ */ u2(StyleClasses, {}));
@@ -30619,8 +30823,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     registerPainter("classes", mountClasses);
     registerPainter("styles", mountStyles);
     const mountFontSelect = (hostId, opts) => {
-      const host = document.getElementById(hostId);
-      if (!host) return;
+      const host2 = document.getElementById(hostId);
+      if (!host2) return;
       const draw = () => R(
         /* @__PURE__ */ u2(
           FontSelect,
@@ -30633,40 +30837,40 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             }
           }
         ),
-        host
+        host2
       );
       draw();
     };
     const closePages = () => {
-      const host = document.getElementById("pages-workspace-host");
-      if (host) R(null, host);
+      const host2 = document.getElementById("pages-workspace-host");
+      if (host2) R(null, host2);
       document.body.classList.remove("pages-open");
       legacy.restoreCanvasLayout();
     };
     const openPages = () => {
       closeProposals();
-      let host = document.getElementById("pages-workspace-host");
-      if (!host) {
-        host = document.createElement("div");
-        host.id = "pages-workspace-host";
-        document.querySelector("#app > .main").append(host);
+      let host2 = document.getElementById("pages-workspace-host");
+      if (!host2) {
+        host2 = document.createElement("div");
+        host2.id = "pages-workspace-host";
+        document.querySelector("#app > .main").append(host2);
       }
       document.body.classList.remove("cms-open");
       document.body.classList.add("pages-open");
       document.querySelectorAll("#leftRail button").forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-t") === "pages"));
       painters2.renderPages();
-      const surface = host.firstElementChild;
+      const surface = host2.firstElementChild;
       if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
-      host.querySelector("#pages-search")?.focus();
+      host2.querySelector("#pages-search")?.focus();
     };
     const openCms = (collectionId) => {
       closePages();
       closeProposals();
-      let host = document.getElementById("cms-workspace-host");
-      if (!host) {
-        host = document.createElement("div");
-        host.id = "cms-workspace-host";
-        document.querySelector("#app > .main").append(host);
+      let host2 = document.getElementById("cms-workspace-host");
+      if (!host2) {
+        host2 = document.createElement("div");
+        host2.id = "cms-workspace-host";
+        document.querySelector("#app > .main").append(host2);
       }
       const previous = document.activeElement;
       document.body.classList.add("cms-open");
@@ -30676,19 +30880,19 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       const closeWorkspace = () => {
         const finish = () => {
           cmsWorkspace = null;
-          R(null, host);
+          R(null, host2);
           document.body.classList.remove("cms-open");
           legacy.restoreCanvasLayout();
           railButtons.forEach((b2) => b2.classList.toggle("on", b2 === active));
           previous?.focus({ preventScroll: true });
         };
-        const surface2 = host.firstElementChild, motion = installUiMotion();
+        const surface2 = host2.firstElementChild, motion = installUiMotion();
         if (surface2 && motion && !motion.reduced()) motion.exit(surface2, { kind: "panel", hide: false }).then(finish);
         else finish();
       };
       cmsWorkspace = () => /* @__PURE__ */ u2(CmsWorkspace, { collectionId, close: closeWorkspace }, collectionId);
-      R(cmsWorkspace(), host);
-      const surface = host.firstElementChild;
+      R(cmsWorkspace(), host2);
+      const surface = host2.firstElementChild;
       if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
     };
     let closeProposalsNow = null;
@@ -30697,11 +30901,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const openProposals = (focus, onClose) => {
       closePages();
-      let host = document.getElementById("proposals-workspace-host");
-      if (!host) {
-        host = document.createElement("div");
-        host.id = "proposals-workspace-host";
-        document.querySelector("#app > .main").append(host);
+      let host2 = document.getElementById("proposals-workspace-host");
+      if (!host2) {
+        host2 = document.createElement("div");
+        host2.id = "proposals-workspace-host";
+        document.querySelector("#app > .main").append(host2);
       }
       const previous = document.activeElement;
       document.body.classList.remove("cms-open");
@@ -30711,15 +30915,15 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       railButtons.forEach((b2) => b2.classList.toggle("on", b2.getAttribute("data-act") === "proposals"));
       closeProposalsNow = () => {
         closeProposalsNow = null;
-        R(null, host);
+        R(null, host2);
         document.body.classList.remove("proposals-open");
         legacy.restoreCanvasLayout();
         railButtons.forEach((b2) => b2.classList.toggle("on", active.includes(b2)));
         previous?.focus({ preventScroll: true });
         onClose?.();
       };
-      R(/* @__PURE__ */ u2(ProposalsWorkspace, { focus, close: closeProposals, changed: onClose }, focus || "all"), host);
-      const surface = host.firstElementChild;
+      R(/* @__PURE__ */ u2(ProposalsWorkspace, { focus, close: closeProposals, changed: onClose }, focus || "all"), host2);
+      const surface = host2.firstElementChild;
       if (surface) installUiMotion()?.enter(surface, { kind: "panel" });
     };
     return { ...painters2, openPages, closePages, openCms, openProposals, closeProposals, mountAssetField, mountColors, mountClasses, mountStyles, mountReview, mountFontSelect };
@@ -33175,7 +33379,8 @@ function positionHud() {
       <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
-    + (many ? '' : gripsHtml(s));
+    + (many ? '' : gripsHtml(s))
+    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height));
 
   /* Above the element, unless there is not room — and the room is measured rather than
      guessed. The bar carries `scale(1 / --z)` so it stays the same size on screen at any
@@ -33225,6 +33430,14 @@ function positionHud() {
   const y = placed.top;
   bar.style.top = (y + cwin.scrollY) + 'px';
   if (y >= r.bottom) bar.style.borderRadius = '0 0 6px 6px';
+  /* The bar sits on the top or bottom edge, where an edge + is centred. When they meet,
+     the + moves along that edge to just past the bar's end so both stay clickable. */
+  const barBox = bar.getBoundingClientRect();
+  hud.querySelectorAll('.qa[data-side="top"], .qa[data-side="bottom"]').forEach(q => {
+    const b = q.getBoundingClientRect();
+    if (b.right < barBox.left || b.left > barBox.right || b.bottom < barBox.top || b.top > barBox.bottom) return;
+    q.style.left = (barBox.right + b.width / 2 + 6 + cwin.scrollX) + 'px';
+  });
 
 }
 
@@ -33731,7 +33944,8 @@ function activateHudButton(hudBtn, e, keyboard = false) {
     const x = r ? r.left + r.width / 2 : e.clientX;
     const y = r ? r.top + r.height / 2 : e.clientY;
     openCtx(toScreen(x, fr.left), toScreen(y, fr.top), ids);
-  } else runAct(act, ids);
+  } else if (act === 'qadd') openQuickAddAt(hudBtn.dataset.side, hudBtn);
+  else runAct(act, ids);
 }
 
 function bindCanvas() {
@@ -33776,6 +33990,7 @@ function bindCanvas() {
 
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    if (typeof PC_UI !== 'undefined' && PC_UI.closeQuickAdd && !(e.target.closest && e.target.closest('#s-hud .qa'))) PC_UI.closeQuickAdd();
     const tab = editableTab(e.target);
     if (tab && e.button === 0) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
@@ -34714,6 +34929,11 @@ function previewInsertion(key) {
 }
 function appendSmart(key) {
   showDrop(null);
+  if (typeof quickPending !== 'undefined' && quickPending) {
+    const aim = quickPending;
+    quickPending = null;
+    if (aim.id === state.ui.sel && quickAddSides(aim.id).includes(aim.side)) { quickAddAt(aim.id, aim.side, key); return; }
+  }
   const [container, index] = smartTarget(key);
   if (!container && state.ui.mode === 'component') { toast('Choose a container inside this component first.'); return; }
   let leaf = null;
@@ -34724,6 +34944,45 @@ function appendSmart(key) {
      replaces the Add panel immediately after an element is placed. A newly added
      module needs its editable fields visible even if the previous selection left
      the inspector on Style or Advanced. */
+  state.ui.stab = 'content';
+  select(leaf.id);
+  toast(labelOf(key) + ' added');
+  const el = cdoc && cdoc.getElementById(state.ui.sel);
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/* Quick add: a + on each edge of the selected element that can take something there.
+   Which sides, and what each one does, is the core's `quickAddSides` / `quickAdd`. */
+const QUICK_LABEL = { top: 'Add above', bottom: 'Add below', left: 'Add to the left', right: 'Add to the right' };
+function quickAddHtml(id, left, top, w, h) {
+  return quickAddSides(id).map(side => {
+    const x = side === 'left' ? left : side === 'right' ? left + w : left + w / 2;
+    const y = side === 'top' ? top : side === 'bottom' ? top + h : top + h / 2;
+    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}"
+      style="left:${x}px;top:${y}px">${svg('plus', 12)}</button>`;
+  }).join('');
+}
+let quickPending = null;
+function openQuickAddAt(side, btn) {
+  const id = state.ui.sel; if (!id) return;
+  const fr = frameRect(), r = btn.getBoundingClientRect();
+  PC_UI.openQuickAdd({
+    x: toScreen(r.left + r.width / 2, fr.left), y: toScreen(r.top + r.height / 2, fr.top), side,
+    onPick: key => quickAddAt(id, side, key),
+    /* The full Add panel, aimed at the same edge: its next add lands there. */
+    onMore: () => {
+      quickPending = { id, side };
+      if (window.showPanel) window.showPanel('add');
+      toast(`Choose an element to add ${QUICK_LABEL[side].replace('Add ', '')}`);
+    }
+  });
+}
+function quickAddAt(id, side, key) {
+  quickPending = null;
+  let leaf = null;
+  edit(() => { leaf = quickAdd(id, side, key); }, semanticAddHistoryLabel(key));
+  if (!leaf) { toast('That does not fit there'); return; }
+  PC_UI.recordElementUse(key);
   state.ui.stab = 'content';
   select(leaf.id);
   toast(labelOf(key) + ' added');

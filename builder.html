@@ -304,6 +304,10 @@ input,select,textarea{font:inherit;color:inherit}
   box-shadow:var(--shadow-lg);color:var(--text);z-index:80;max-height:calc(100vh - 64px);overflow-y:auto
 }
 .moreToolsPop[hidden]{display:none}
+.pc-quick-add{width:240px;max-height:min(420px,calc(100vh - 16px));overflow:auto;padding:6px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-md);box-shadow:var(--shadow-lg)}
+.pc-quick-add-search{width:100%;box-sizing:border-box;margin:0 0 4px}
+.pc-quick-add .pc-menu-item.on{background:var(--pc-hover-bg)}
+.pc-quick-add-empty{padding:8px 10px;font-size:12px;opacity:.7}
 .moreToolsPop .pc-menu-item{
   width:100%;min-height:40px;padding:0 10px;display:flex;align-items:center;border-radius:var(--r-sm);
   color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-align:left
@@ -4342,7 +4346,8 @@ function positionHud() {
       <button data-act="del" title="Delete ${many ? 'all ' : ''}(⌫)">${svg('trash', 12)}</button>
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
-    + (many ? '' : gripsHtml(s));
+    + (many ? '' : gripsHtml(s))
+    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height));
 
   /* Above the element, unless there is not room — and the room is measured rather than
      guessed. The bar carries `scale(1 / --z)` so it stays the same size on screen at any
@@ -4392,6 +4397,14 @@ function positionHud() {
   const y = placed.top;
   bar.style.top = (y + cwin.scrollY) + 'px';
   if (y >= r.bottom) bar.style.borderRadius = '0 0 6px 6px';
+  /* The bar sits on the top or bottom edge, where an edge + is centred. When they meet,
+     the + moves along that edge to just past the bar's end so both stay clickable. */
+  const barBox = bar.getBoundingClientRect();
+  hud.querySelectorAll('.qa[data-side="top"], .qa[data-side="bottom"]').forEach(q => {
+    const b = q.getBoundingClientRect();
+    if (b.right < barBox.left || b.left > barBox.right || b.bottom < barBox.top || b.top > barBox.bottom) return;
+    q.style.left = (barBox.right + b.width / 2 + 6 + cwin.scrollX) + 'px';
+  });
 
 }
 
@@ -4898,7 +4911,8 @@ function activateHudButton(hudBtn, e, keyboard = false) {
     const x = r ? r.left + r.width / 2 : e.clientX;
     const y = r ? r.top + r.height / 2 : e.clientY;
     openCtx(toScreen(x, fr.left), toScreen(y, fr.top), ids);
-  } else runAct(act, ids);
+  } else if (act === 'qadd') openQuickAddAt(hudBtn.dataset.side, hudBtn);
+  else runAct(act, ids);
 }
 
 function bindCanvas() {
@@ -4943,6 +4957,7 @@ function bindCanvas() {
 
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
+    if (typeof PC_UI !== 'undefined' && PC_UI.closeQuickAdd && !(e.target.closest && e.target.closest('#s-hud .qa'))) PC_UI.closeQuickAdd();
     const tab = editableTab(e.target);
     if (tab && e.button === 0) { e.preventDefault(); selectEditableTab(tab, tab.index); return; }
     if (e.target.closest('[data-slide-p], [data-slide-n], [data-slide-dots]')) return;
@@ -5881,6 +5896,11 @@ function previewInsertion(key) {
 }
 function appendSmart(key) {
   showDrop(null);
+  if (typeof quickPending !== 'undefined' && quickPending) {
+    const aim = quickPending;
+    quickPending = null;
+    if (aim.id === state.ui.sel && quickAddSides(aim.id).includes(aim.side)) { quickAddAt(aim.id, aim.side, key); return; }
+  }
   const [container, index] = smartTarget(key);
   if (!container && state.ui.mode === 'component') { toast('Choose a container inside this component first.'); return; }
   let leaf = null;
@@ -5891,6 +5911,45 @@ function appendSmart(key) {
      replaces the Add panel immediately after an element is placed. A newly added
      module needs its editable fields visible even if the previous selection left
      the inspector on Style or Advanced. */
+  state.ui.stab = 'content';
+  select(leaf.id);
+  toast(labelOf(key) + ' added');
+  const el = cdoc && cdoc.getElementById(state.ui.sel);
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/* Quick add: a + on each edge of the selected element that can take something there.
+   Which sides, and what each one does, is the core's `quickAddSides` / `quickAdd`. */
+const QUICK_LABEL = { top: 'Add above', bottom: 'Add below', left: 'Add to the left', right: 'Add to the right' };
+function quickAddHtml(id, left, top, w, h) {
+  return quickAddSides(id).map(side => {
+    const x = side === 'left' ? left : side === 'right' ? left + w : left + w / 2;
+    const y = side === 'top' ? top : side === 'bottom' ? top + h : top + h / 2;
+    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}"
+      style="left:${x}px;top:${y}px">${svg('plus', 12)}</button>`;
+  }).join('');
+}
+let quickPending = null;
+function openQuickAddAt(side, btn) {
+  const id = state.ui.sel; if (!id) return;
+  const fr = frameRect(), r = btn.getBoundingClientRect();
+  PC_UI.openQuickAdd({
+    x: toScreen(r.left + r.width / 2, fr.left), y: toScreen(r.top + r.height / 2, fr.top), side,
+    onPick: key => quickAddAt(id, side, key),
+    /* The full Add panel, aimed at the same edge: its next add lands there. */
+    onMore: () => {
+      quickPending = { id, side };
+      if (window.showPanel) window.showPanel('add');
+      toast(`Choose an element to add ${QUICK_LABEL[side].replace('Add ', '')}`);
+    }
+  });
+}
+function quickAddAt(id, side, key) {
+  quickPending = null;
+  let leaf = null;
+  edit(() => { leaf = quickAdd(id, side, key); }, semanticAddHistoryLabel(key));
+  if (!leaf) { toast('That does not fit there'); return; }
+  PC_UI.recordElementUse(key);
   state.ui.stab = 'content';
   select(leaf.id);
   toast(labelOf(key) + ' added');
