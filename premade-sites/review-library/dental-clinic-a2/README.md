@@ -1,17 +1,17 @@
 # Linden Dental A2 source
 
-This is the current native source for the six-page Linden Dental site. It preserves the selected A2 palette and typography and the L2 identity. The native page bodies contain:
+This is the current native source for the four-page Linden Dental site. It preserves the selected A2 palette and typography and the L2 identity. The native page bodies contain:
 
 - Home: 7 sections, including the native treatment explorer and the approved fuller Practice, Team and First Visit layouts
 - Treatments: 5 sections
-- Care Team: 5 sections
-- First Visit: 5 sections
-- Patient Information: 6 sections
+- About: 6 sections, including the approved practice introduction above the individual team profiles
 - Contact: 4 sections
 
 The source uses approved photographs, Iconify SVG icons, the logo, favicon and `bp` mark. Practice uses the approved reception panorama. Team imagery is illustrative. Replace it with actual provider photos, and supply and verify names, credentials and practice details before a customer launch.
 
-All five Care Team section layouts have individual approvals recorded under `/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/inner-pages-2026-11-14/CareTeam/`. The sections use native components. Built-page, exact-package, full-site and catalog approval remain pending. The current source targets schema 17 and renderer 4. A new hosted revision and package hash must be recorded only after an actual save and package verification.
+The built Care Team page was approved at private revision 45. The user then requested that it become About and that the First Visit and Patient Information pages be removed. The new introduction layout and its original group-photo placement are approved in `/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/about-revision-2026-11-16/`. It uses native Section, Box, Heading and Image controls. Existing individual profiles, Listening and Perspective sections are preserved. Navigation and affected calls to action use the remaining four pages or valid Home anchors. Home visit guidance remains available without a separate page.
+
+Actual hosted MCP saved, reopened, validated and exported private revision 46 with package SHA-256 `45b61e6e17b42ca3c4740172d552f24ae165e5b37bea77fafdd6539340816bfe`, schema 17 and renderer 4. The package has four pages and 19 referenced assets. The original approved group photo was already stored; no new image upload was needed. The revised built page/site and exact-package release still require their applicable review decisions. Earlier Care Team approval is preserved as history and does not approve this replacement. The customer catalog and production remain unchanged.
 
 Historical private review revision 37 had package SHA-256 `0231380dc63eafbb555351c599896369033525f27b1885ca2ab4ae284be36b74`. That historical package replaced three Home sections and retained the other pages and shared elements at that time. It used schema 15 and renderer 3, with its hosted draft normalized to schema 16. It does not describe the current source or establish approval of it.
 
