@@ -61,11 +61,15 @@ const PAL: { g: string; items: [string, string][] }[] = [
 /* Quick add (the + on a selected element's edges) offers these first, and searches the whole
    palette with the same words the Add panel's search understands. */
 export const QUICK_ADD_DEFAULTS = ['heading', 'text', 'button', 'image', 'columns'];
+const QUICK_ADD_LIMIT = 7;
 export function quickAddChoices(query: string): [string, string][] {
   const all = PAL.flatMap(group => group.items.map(([key, label]) => ({ group: group.g, key, label })))
     .filter(item => item.key !== 'list' || L.dynamicContentProvider() === 'pagecraft');
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (!terms.length) return QUICK_ADD_DEFAULTS.map(key => [key, all.find(item => item.key === key)?.label || key]);
+  /* With nothing typed: what you added most recently first, then the common five, seven at most. */
+  if (!terms.length) return [...new Set([...recentElements.read(), ...QUICK_ADD_DEFAULTS])]
+    .map(key => all.find(item => item.key === key)).filter((item): item is NonNullable<typeof item> => !!item)
+    .slice(0, QUICK_ADD_LIMIT).map(item => [item.key, item.label]);
   return all.filter(item => {
     const haystack = `${item.group} ${item.label} ${item.key} ${ALIASES[item.key] || ''}`.toLowerCase();
     return terms.every(term => haystack.includes(term));

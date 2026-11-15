@@ -66,8 +66,15 @@ export function writer(n: PcNode, c: Control): Writer {
   return {
     live(v) {
       L.tx(key);
+      /* Typing the first value at a breakpoint turns an inherited value into an override (and
+         clearing it turns it back). The panel is not redrawn while typing, so the field's
+         Inherited/Override badge kept the old word until focus left. Redraw once when that
+         ownership flips; the focused input survives the redraw. */
+      const owned = () => cssOnly && c.t !== 'box' && !c.paint ? C.cssVal(C.tgtObj(n), c.c!, !!c.r).own : null;
+      const before = owned();
       C.applyC(n, c, v);
       (cssOnly ? L.repaintCss : L.repaint)();
+      if (before !== null && owned() !== before) requestAnimationFrame(() => repaint('right'));
     },
     hard(v) {
       L.tx(key);

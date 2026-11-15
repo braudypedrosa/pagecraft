@@ -313,6 +313,7 @@ input,select,textarea{font:inherit;color:inherit}
 .pc-quick-add-search{width:100%;box-sizing:border-box;margin:0 0 4px}
 .pc-quick-add .pc-menu-item.on{background:var(--pc-hover-bg)}
 .pc-quick-add-empty{padding:8px 10px;font-size:12px;opacity:.7}
+.pc-quick-add-group{padding:8px 10px 4px;font-size:var(--fs-1);font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
 .moreToolsPop .pc-menu-item{
   width:100%;min-height:40px;padding:0 10px;display:flex;align-items:center;border-radius:var(--r-sm);
   color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-align:left
@@ -4722,6 +4723,12 @@ var DEF = {
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["wrap-reverse", "Wrap, reversed"], ["nowrap", "No wrap"]] },
         { t: "cols", label: "Columns" },
         {
+          t: "stack",
+          label: "Stack on tablet",
+          when: (n) => (n.children || []).length > 1,
+          note: "Puts each column on its own line on tablets, the way they stack on phones."
+        },
+        {
           t: "order",
           label: "Order",
           when: (n) => (n.children || []).length > 1,
@@ -6762,6 +6769,17 @@ function setRowReversed(row, on) {
     put("flex-wrap", on ? "wrap-reverse" : "wrap", "wrap");
     if (cssVal(o, "flex-direction", true).v === "column-reverse") put("flex-direction", "row", "row");
   } else put("flex-direction", on ? "row-reverse" : "row", "row");
+}
+function rowStacksOnTablet(row) {
+  const kids = (row.children || []).filter((k) => k.type === "column");
+  return kids.length > 1 && kids.every((k) => String((k.css.t || {})["flex-basis"] || "").trim() === "100%");
+}
+function setRowStackOnTablet(row, on) {
+  for (const col of (row.children || []).filter((k) => k.type === "column")) {
+    col.css.t = col.css.t || {};
+    if (on) col.css.t["flex-basis"] = "100%";
+    else if (String(col.css.t["flex-basis"] || "").trim() === "100%") delete col.css.t["flex-basis"];
+  }
 }
 var rowOrderProp = (row) => rowStacked(row) ? "flex-wrap" : "flex-direction";
 function rowVerticalValue(row, b) {
@@ -9056,6 +9074,17 @@ function quickAddSides(id) {
   }
   if (quickHorizontal(parent)) return ["left", "right"];
   return fitsIn(parent ? parent.type : null, "row") ? [...QUICK_SIDES] : ["top", "bottom"];
+}
+function quickAddSections(id) {
+  const h = locate(id);
+  if (!h || h.parent || h.node.type !== "section" || !quickAddSides(id).length) return [];
+  return PATTERNS.filter((p) => !p.scope).map((p) => [p.id, p.name]);
+}
+function quickAddSection(id, side, patternId) {
+  if (side !== "top" && side !== "bottom" || !quickAddSections(id).some(([pid]) => pid === patternId)) return null;
+  const h = locate(id);
+  if (!h) return null;
+  return patternInsert(patternId, null, side === "bottom" ? h.i + 1 : h.i);
 }
 function quickAdd(id, side, key) {
   if (!quickAddSides(id).includes(side)) return null;
@@ -13083,6 +13112,11 @@ ${m.css || ""}
   background:#111311;color:#f5f7f8;font:600 ${UI_TEXT_SIZES.label} "Manrope",system-ui,sans-serif;
 }
 .s-openadd:hover{background:#2a2e2a}
+.s-startheroes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:4px 0 12px}
+.s-starthero{display:flex;flex-direction:column;gap:6px;width:168px;padding:8px;border:1px solid #dfe3dd;border-radius:10px;background:#fff;cursor:pointer;color:#111311;font:600 12px/1.2 "Manrope",system-ui,sans-serif;transition:border-color .12s,box-shadow .12s}
+.s-starthero:hover,.s-starthero:focus-visible{border-color:#b7f34a;box-shadow:0 0 0 3px rgba(183,243,74,.35);outline:none}
+.s-starthero .pvw{display:block;width:100%;height:auto;border-radius:6px;background:#f3f5f1}
+.s-starthero .pv-b{fill:#d5dad3}.s-starthero .pv-l{fill:#adb7bf}.s-starthero .pv-h{fill:#8f9a90}.s-starthero .pv-g{fill:#b7f34a}
 
 /* selection: green outline plus the eight handles from the product screens */
 #s-hud{position:absolute;top:0;left:0;z-index:9998;pointer-events:none}
@@ -13124,6 +13158,11 @@ ${m.css || ""}
 #s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
 #s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
 #s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
+#s-hud .qa-line{position:absolute;background:#b7f34a;pointer-events:none;border-radius:2px;box-shadow:0 0 0 1px rgba(17,19,17,.35)}
+#s-hud .qa-line.top,#s-hud .qa-line.bottom{height:calc(4px / var(--z,1));margin-top:calc(-2px / var(--z,1))}
+#s-hud .qa-line.left,#s-hud .qa-line.right{width:calc(4px / var(--z,1));margin-left:calc(-2px / var(--z,1))}
+#s-hud .rev-chip{position:absolute;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:0 0 6px 6px;background:#111311;color:#b7f34a;font:600 11px/1.2 system-ui,sans-serif;pointer-events:auto;white-space:nowrap;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0}
+#s-hud .rev-chip svg{width:11px;height:11px}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
@@ -14984,6 +15023,8 @@ var __CORE = {
   publicFormControlCssFor,
   published,
   quickAdd,
+  quickAddSection,
+  quickAddSections,
   quickAddSides,
   redo,
   refId,
@@ -15005,6 +15046,7 @@ var __CORE = {
   rowRatiosAt,
   rowReversed,
   rowStacked,
+  rowStacksOnTablet,
   safeRichUrl,
   safeUrl,
   searchAll,
@@ -15023,6 +15065,7 @@ var __CORE = {
   setCss,
   setMobileMenuMode,
   setRowReversed,
+  setRowStackOnTablet,
   setStyleClipProject,
   showsNode,
   sitePlan,
@@ -21040,10 +21083,11 @@ var PC_UI = (() => {
     { g: "Spacing", items: [["divider", "Divider"], ["spacer", "Spacer"]] }
   ];
   var QUICK_ADD_DEFAULTS = ["heading", "text", "button", "image", "columns"];
+  var QUICK_ADD_LIMIT = 7;
   function quickAddChoices(query) {
     const all = PAL.flatMap((group) => group.items.map(([key2, label]) => ({ group: group.g, key: key2, label }))).filter((item) => item.key !== "list" || L2.dynamicContentProvider() === "pagecraft");
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) return QUICK_ADD_DEFAULTS.map((key2) => [key2, all.find((item) => item.key === key2)?.label || key2]);
+    if (!terms.length) return [.../* @__PURE__ */ new Set([...recentElements.read(), ...QUICK_ADD_DEFAULTS])].map((key2) => all.find((item) => item.key === key2)).filter((item) => !!item).slice(0, QUICK_ADD_LIMIT).map((item) => [item.key, item.label]);
     return all.filter((item) => {
       const haystack = `${item.group} ${item.label} ${item.key} ${ALIASES[item.key] || ""}`.toLowerCase();
       return terms.every((term) => haystack.includes(term));
@@ -21606,11 +21650,13 @@ var PC_UI = (() => {
     host.remove();
     host = null;
   }
-  function Picker({ side, onPick, onMore }) {
+  function Picker({ side, onPick, onMore, sections = [], onPickSection }) {
     const [query, setQuery] = d2("");
     const [active, setActive] = d2(0);
     const input = A2(null);
     const choices = quickAddChoices(query);
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const sectionChoices = sections.filter(([id, name]) => terms.every((t3) => `${name} ${id} section`.toLowerCase().includes(t3)));
     h2(() => {
       input.current?.focus();
     }, []);
@@ -21621,11 +21667,16 @@ var PC_UI = (() => {
       closeQuickAdd();
       onPick(key2);
     };
+    const pickSection = (id) => {
+      closeQuickAdd();
+      onPickSection?.(id);
+    };
     const more = () => {
       closeQuickAdd();
       onMore();
     };
-    const rows2 = choices.length + 1;
+    const rows2 = choices.length + sectionChoices.length + 1;
+    const moreRow = rows2 - 1;
     const onKey = (e3) => {
       if (e3.key === "Escape") {
         e3.preventDefault();
@@ -21645,6 +21696,7 @@ var PC_UI = (() => {
       if (e3.key === "Enter") {
         e3.preventDefault();
         if (active < choices.length) pick(choices[active][0]);
+        else if (active < moreRow) pickSection(sectionChoices[active - choices.length][0]);
         else more();
       }
     };
@@ -21674,29 +21726,49 @@ var PC_UI = (() => {
           children: label
         },
         key2
-      )) : /* @__PURE__ */ u2("div", { class: "pc-quick-add-empty", children: "No elements match" }) }),
+      )) : sectionChoices.length ? null : /* @__PURE__ */ u2("div", { class: "pc-quick-add-empty", children: "No elements match" }) }),
+      sectionChoices.length ? /* @__PURE__ */ u2(S, { children: [
+        /* @__PURE__ */ u2("div", { class: "pc-quick-add-group", id: "pc-quick-add-sections", children: "Sections" }),
+        /* @__PURE__ */ u2("div", { role: "listbox", "aria-labelledby": "pc-quick-add-sections", children: sectionChoices.map(([id, name], i3) => {
+          const index = choices.length + i3;
+          return /* @__PURE__ */ u2(
+            "button",
+            {
+              type: "button",
+              role: "option",
+              "aria-selected": index === active ? "true" : "false",
+              class: "pc-menu-item" + (index === active ? " on" : ""),
+              "data-section": id,
+              onMouseEnter: () => setActive(index),
+              onClick: () => pickSection(id),
+              children: name
+            },
+            id
+          );
+        }) })
+      ] }) : null,
       /* @__PURE__ */ u2("div", { class: "pc-menu-divider", role: "separator" }),
       /* @__PURE__ */ u2(
         "button",
         {
           type: "button",
-          class: "pc-menu-item" + (active === choices.length ? " on" : ""),
+          class: "pc-menu-item" + (active === moreRow ? " on" : ""),
           "data-more": true,
-          onMouseEnter: () => setActive(choices.length),
+          onMouseEnter: () => setActive(moreRow),
           onClick: more,
           children: "More\u2026"
         }
       )
     ] });
   }
-  function openQuickAdd({ x: x2, y: y3, side, onPick, onMore }) {
+  function openQuickAdd({ x: x2, y: y3, side, onPick, onMore, sections, onPickSection }) {
     closeQuickAdd();
     host = document.createElement("div");
     host.className = "pc-quick-add-host";
     host.style.position = "fixed";
     host.style.zIndex = "10000";
     document.body.appendChild(host);
-    R(/* @__PURE__ */ u2(Picker, { side, onPick, onMore }), host);
+    R(/* @__PURE__ */ u2(Picker, { side, onPick, onMore, sections, onPickSection }), host);
     const box = host.firstElementChild;
     const r3 = box.getBoundingClientRect();
     let left = side === "left" ? x2 - r3.width - 12 : side === "right" ? x2 + 12 : x2 - r3.width / 2;
@@ -22580,8 +22652,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     return {
       live(v3) {
         L2.tx(key2);
+        const owned = () => cssOnly && c3.t !== "box" && !c3.paint ? C2.cssVal(C2.tgtObj(n2), c3.c, !!c3.r).own : null;
+        const before = owned();
         C2.applyC(n2, c3, v3);
         (cssOnly ? L2.repaintCss : L2.repaint)();
+        if (before !== null && owned() !== before) requestAnimationFrame(() => repaint("right"));
       },
       hard(v3) {
         L2.tx(key2);
@@ -25031,16 +25106,17 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const [pop, setPop] = d2(null);
     const [, setGradientRevision] = d2(0);
     const editKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
-    const [draft, setDraft] = d2({ key: editKey, value: v3, active: false });
+    const [draft, setDraft] = d2({ key: editKey, value: v3, active: false, typing: false });
     const inputValue = draft.key === editKey && draft.active ? draft.value : v3;
     const inputValid = validCssColor(inputValue);
+    const showInvalid = !inputValid && !(draft.key === editKey && draft.typing);
     const errorId = g2();
     const liveColour = (value) => {
-      setDraft({ key: editKey, value, active: false });
+      setDraft({ key: editKey, value, active: false, typing: false });
       w3.live(value);
     };
     const hardColour = (value) => {
-      setDraft({ key: editKey, value, active: false });
+      setDraft({ key: editKey, value, active: false, typing: false });
       w3.hard(value);
     };
     const addToken = async () => {
@@ -25127,16 +25203,16 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               class: "ctl hex",
               value: inputValue,
               placeholder: "inherit",
-              "aria-invalid": !inputValid ? "true" : void 0,
-              "aria-describedby": !inputValid ? errorId : void 0,
-              onFocus: () => setDraft({ key: editKey, value: v3, active: true }),
+              "aria-invalid": showInvalid ? "true" : void 0,
+              "aria-describedby": showInvalid ? errorId : void 0,
+              onFocus: () => setDraft((d3) => d3.key === editKey && d3.active ? { ...d3, typing: false } : { key: editKey, value: v3, active: true, typing: false }),
               onInput: (e3) => {
                 const next = e3.target.value.trim();
-                setDraft({ key: editKey, value: next, active: true });
+                setDraft({ key: editKey, value: next, active: true, typing: true });
                 if (validCssColor(next)) w3.live(next);
               },
               onBlur: () => {
-                if (inputValid) setDraft({ key: editKey, value: inputValue, active: false });
+                setDraft({ key: editKey, value: inputValue, active: !inputValid, typing: false });
                 w3.done();
               }
             }
@@ -25144,7 +25220,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           /* @__PURE__ */ u2("button", { class: "x", title: "Clear", onClick: () => hardColour(""), children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 }) })
         ] })
       ] }),
-      !inputValid ? /* @__PURE__ */ u2("div", { class: "note", id: errorId, role: "alert", children: "Enter a valid colour." }) : null,
+      showInvalid ? /* @__PURE__ */ u2("div", { class: "note", id: errorId, role: "alert", children: "Enter a valid colour." }) : null,
       /* @__PURE__ */ u2("div", { class: "toks", children: [
         C2.colors().map((t3) => /* @__PURE__ */ u2(
           "button",
@@ -26066,6 +26142,32 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       label
     )) }) });
   }
+  function StackCtl({ n: n2, c: c3 }) {
+    const on = C2.rowStacksOnTablet(n2);
+    const helpId = g2();
+    return /* @__PURE__ */ u2("div", { class: "f", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+      /* @__PURE__ */ u2("span", { children: [
+        c3.label,
+        c3.note ? /* @__PURE__ */ u2(HelpTip, { label: c3.label || "Field", text: c3.note, id: helpId }) : null
+      ] }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": on ? "true" : "false",
+          "aria-label": c3.label,
+          "aria-describedby": c3.note ? helpId : void 0,
+          class: "sw-tog" + (on ? " on" : ""),
+          onClick: () => {
+            C2.edit(() => C2.setRowStackOnTablet(n2, !on), on ? "Columns side by side on tablet" : "Stack columns on tablet");
+            repaint("right");
+          },
+          children: /* @__PURE__ */ u2("i", {})
+        }
+      )
+    ] }) });
+  }
   var KINDS = {
     text: TextCtl,
     area: AreaCtl,
@@ -26091,7 +26193,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     imgs: ImgsCtl,
     icon: IconCtl,
     cols: ColsCtl,
-    order: OrderCtl
+    order: OrderCtl,
+    stack: StackCtl
   };
   var CONTROL_KINDS = Object.keys(KINDS);
   function Ctl({ n: n2, c: c3 }) {
@@ -26890,7 +26993,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const assetId = pr.t === "img" ? value.match(/^asset:([A-Za-z0-9][A-Za-z0-9._:-]*)$/)?.[1] : "";
     const asset = assetId ? L2.asset(assetId) : null;
     const options = pr.t === "bool" ? [["0", "No"], ["1", "Yes"]] : pr.t === "icon" ? [["", "No icon"], ...C2.ICONS.flatMap(([, list2]) => list2.map(([name]) => [name, name]))] : pr.opts || [];
+    const [typingColour, setTypingColour] = d2(false);
     const validColour = pr.t !== "color" || !value || !!C2.parseColor(C2.resolveColor(value) || value) || typeof CSS !== "undefined" && CSS.supports("color", value);
+    const showColourError = !validColour && !typingColour;
     const save = () => {
       const current = C2.findProp(C2.findComponent(cid), pr.k);
       if (!current || current.t !== pr.t || !validColour || !L2.canStructure()) return;
@@ -26985,8 +27090,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
                 class: "ctl",
                 "aria-labelledby": id,
                 value,
-                "aria-invalid": !validColour ? "true" : void 0,
-                onInput: (e3) => setValue(e3.currentTarget.value)
+                "aria-invalid": showColourError ? "true" : void 0,
+                onInput: (e3) => {
+                  setTypingColour(true);
+                  setValue(e3.currentTarget.value);
+                },
+                onBlur: () => setTypingColour(false)
               }
             )
           ] }),
@@ -27001,7 +27110,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               onClose: () => setColourAnchor(null)
             }
           ) : null,
-          !validColour ? /* @__PURE__ */ u2("div", { class: "note", role: "alert", children: "Enter a valid colour." }) : null,
+          showColourError ? /* @__PURE__ */ u2("div", { class: "note", role: "alert", children: "Enter a valid colour." }) : null,
           /* @__PURE__ */ u2("p", { class: "note", children: "Instances without an override follow this default. Their own values and variants stay as saved." }),
           /* @__PURE__ */ u2("div", { class: "pc-field-actions", children: [
             /* @__PURE__ */ u2("button", { type: "button", class: "btn grow", onClick: close, children: "Cancel" }),
@@ -27217,6 +27326,35 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] }) : null
     ] });
   }
+  function DeviceVisibility({ n: n2 }) {
+    const b2 = C2.dk();
+    if (b2 === "d") return null;
+    const shown2 = !(n2.hide && n2.hide[b2]);
+    const label = `Show on ${C2.DEV_LABEL[b2]}`;
+    return /* @__PURE__ */ u2("div", { class: "f pc-device-visibility", children: /* @__PURE__ */ u2("div", { class: "tog-row", children: [
+      /* @__PURE__ */ u2("span", { children: [
+        /* @__PURE__ */ u2(Icon, { name: DEV_ICON2[b2], size: 12 }),
+        " ",
+        label
+      ] }),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          role: "switch",
+          "aria-label": label,
+          "aria-checked": shown2 ? "true" : "false",
+          title: "Hidden elements remain selectable in the editor",
+          class: "sw-tog" + (shown2 ? " on" : ""),
+          onClick: () => C2.edit(() => {
+            n2.hide = n2.hide || {};
+            n2.hide[b2] = shown2;
+          }, shown2 ? `Hide on ${C2.DEV_LABEL[b2]}` : `Show on ${C2.DEV_LABEL[b2]}`),
+          children: /* @__PURE__ */ u2("i", {})
+        }
+      )
+    ] }) });
+  }
   function Visibility({ n: n2 }) {
     return /* @__PURE__ */ u2(Panel, { title: "Visibility", n: n2, children: [
       ["d", "t", "m"].map((b2) => /* @__PURE__ */ u2("div", { class: "tog-row", style: { marginBottom: "var(--gap-1)" }, children: [
@@ -27360,6 +27498,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
               modifiedOnly ? null : /* @__PURE__ */ u2(Visibility, { n: n2 }),
               modifiedOnly && !hasModifiedAdvanced ? /* @__PURE__ */ u2("div", { class: "empty inspector-modified-empty", children: "No modified settings in this scope." }) : null
             ] }),
+            tab2 === "content" && !many && !modifiedOnly ? /* @__PURE__ */ u2(DeviceVisibility, { n: n2 }) : null,
             tab2 === "content" && n2.type === "nav" && !n2.use && !many && L2.canStructure() && n2.props.collapse !== "never" && n2.props.mobileMenu !== "fullscreen" ? /* @__PURE__ */ u2(Panel, { title: "Mobile menu builder", n: n2, children: /* @__PURE__ */ u2(MobileMenuBuilder, { n: n2 }) }) : null
           ]
         }
@@ -28563,6 +28702,12 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
              too rather than showing no choice for a row it was looking at. */
           { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["wrap-reverse", "Wrap, reversed"], ["nowrap", "No wrap"]] },
           { t: "cols", label: "Columns" },
+          {
+            t: "stack",
+            label: "Stack on tablet",
+            when: (n2) => (n2.children || []).length > 1,
+            note: "Puts each column on its own line on tablets, the way they stack on phones."
+          },
           {
             t: "order",
             label: "Order",
@@ -33429,7 +33574,8 @@ function paint() {
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
       || (live ? `<div class="s-canvas-empty"><b>${R.kind === 'main' ? 'This page is empty' : R.label + ' is empty'}</b>
-          <span>Drag an element onto the canvas, or</span>
+          ${R.kind === 'main' && canStructure() ? startHeroHtml() : ''}
+          <span>${R.kind === 'main' && canStructure() ? 'Or drag an element onto the canvas, or' : 'Drag an element onto the canvas, or'}</span>
           <button class="s-openadd" data-openadd="1">Open the Add panel</button></div>` : '');
 
     /* dim everything that is not the region being edited */
@@ -33539,7 +33685,8 @@ function positionHud() {
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
     + (many ? '' : gripsHtml(s))
-    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height));
+    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height))
+    + (many || typeof reversedRowHtml !== 'function' ? '' : reversedRowHtml(s));
 
   /* Above the element, unless there is not room — and the room is measured rather than
      guessed. The bar carries `scale(1 / --z)` so it stays the same size on screen at any
@@ -34147,6 +34294,12 @@ function bindCanvas() {
     selectEditableTab(tab, e.key === 'Home' ? 0 : e.key === 'End' ? tab.count - 1 : (tab.index + delta + tab.count) % tab.count, true);
   }, true);
 
+  for (const [type, on] of [['pointerover', true], ['focusin', true], ['pointerout', false], ['focusout', false]]) {
+    cdoc.addEventListener(type, e => {
+      const q = e.target.closest && e.target.closest('#s-hud .qa');
+      if (q && typeof quickAddPreview === 'function') quickAddPreview(on ? q : null);
+    });
+  }
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
     if (typeof PC_UI !== 'undefined' && PC_UI.closeQuickAdd && !(e.target.closest && e.target.closest('#s-hud .qa'))) PC_UI.closeQuickAdd();
@@ -34165,6 +34318,8 @@ function bindCanvas() {
 
     /* A locked region is context, not a trap: only the explicit button opens
        its editor. Clicking elsewhere in it simply clears the selection. */
+    const hero = e.target.closest('[data-starthero]');
+    if (hero && typeof startWithHero === 'function') { e.preventDefault(); startWithHero(hero.dataset.starthero); return; }
     if (e.target.closest('[data-openadd]')) {
       e.preventDefault();
       const tab = $('#leftRail button[data-t="add"]');
@@ -34608,10 +34763,25 @@ function placeRT() {
   const w = rt.offsetWidth || 340;
   /* the toolbar lives in the outer document, so the element's iframe rect has to be
      scaled before it is offset — at 50% zoom it otherwise floats twice as far out */
-  let left = toScreen(r.left + r.width / 2, fr.left) - w / 2;
+  /* Placed the way the selection bar is: above, else below, else the nearest spot that
+     covers neither the text being edited nor its neighbours. Measured in canvas pixels,
+     so the toolbar's screen size is divided by the zoom first. */
+  const host = el.closest('[data-id]');
+  const h = host ? locate(host.dataset.id) : null;
+  const blockers = h ? (h.list || []).filter(node => node.id !== h.node.id).map(node => {
+    const sibling = selectedCanvasElement(node.id);
+    return sibling ? sibling.getBoundingClientRect() : null;
+  }).filter(Boolean) : [];
+  const k = typeof zoomK === 'number' && zoomK > 0 ? zoomK : 1;
+  const size = { width: w / k, height: (rt.offsetHeight + 8) / k };
+  const placed = typeof PC_UI !== 'undefined' && PC_UI.selectionToolbarPosition
+    ? PC_UI.selectionToolbarPosition(r, size, { width: cwin.innerWidth, height: cwin.innerHeight }, blockers)
+    : { left: r.left, top: r.top - size.height };
+  let left = toScreen(placed.left, fr.left);
   left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-  let top = toScreen(r.top, fr.top) - rt.offsetHeight - 8;
-  if (top < 54) top = Math.min(fr.top + r.bottom + 8, window.innerHeight - 40);
+  /* The 8px gap sits on the side away from the element. */
+  let top = toScreen(placed.top, fr.top) + (placed.top < r.top ? 0 : 8);
+  top = Math.max(fr.top + 4, Math.min(top, window.innerHeight - rt.offsetHeight - 8));
   rt.style.left = left + 'px'; rt.style.top = top + 'px';
 }
 /* `createLink` runs against the canvas iframe's live selection, and opening a
@@ -35113,13 +35283,58 @@ function appendSmart(key) {
 /* Quick add: a + on each edge of the selected element that can take something there.
    Which sides, and what each one does, is the core's `quickAddSides` / `quickAdd`. */
 const QUICK_LABEL = { top: 'Add above', bottom: 'Add below', left: 'Add to the left', right: 'Add to the right' };
+const QUICK_KEY = { bottom: ' (⇧↵)' };
 function quickAddHtml(id, left, top, w, h) {
   return quickAddSides(id).map(side => {
     const x = side === 'left' ? left : side === 'right' ? left + w : left + w / 2;
     const y = side === 'top' ? top : side === 'bottom' ? top + h : top + h / 2;
-    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}"
+    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}${QUICK_KEY[side] || ''}"
       style="left:${x}px;top:${y}px">${svg('plus', 12)}</button>`;
   }).join('');
+}
+/* Hovering or focusing a + draws a line on that edge of the selected element: the spot the
+   new element will take. */
+function quickAddPreview(btn) {
+  const hud = cdoc && cdoc.getElementById('s-hud');
+  if (!hud) return;
+  hud.querySelectorAll('.qa-line').forEach(x => x.remove());
+  const el = btn && state.ui.sel ? selectedCanvasElement(state.ui.sel) : null;
+  if (!el) return;
+  const r = el.getBoundingClientRect(), side = btn.dataset.side;
+  const x = r.left + cwin.scrollX, y = r.top + cwin.scrollY;
+  const line = cdoc.createElement('div');
+  line.className = 'qa-line ' + side;
+  const across = side === 'top' || side === 'bottom';
+  line.style.left = (side === 'right' ? x + r.width : x) + 'px';
+  line.style.top = (side === 'bottom' ? y + r.height : y) + 'px';
+  line.style[across ? 'width' : 'height'] = (across ? r.width : r.height) + 'px';
+  hud.appendChild(line);
+}
+/* A reversed row reads in a different order on the canvas than in the Navigator. When the
+   selection is that row or one of its columns, say so on the row itself. */
+function reversedRowHtml(s) {
+  const row = s.node.type === 'row' ? s.node : s.node.type === 'column' && s.parent && s.parent.type === 'row' ? s.parent : null;
+  if (!row || !rowReversed(row)) return '';
+  const el = selectedCanvasElement(row.id);
+  if (!el) return '';
+  const r = el.getBoundingClientRect();
+  return `<div class="rev-chip" style="left:${r.left + cwin.scrollX}px;top:${r.bottom + cwin.scrollY}px"
+    title="The columns show in reverse order at this screen size (Row › Order)">${svg({ d: 'desktop', t: 'tablet', m: 'mobile' }[dk()], 11)} Reversed on ${esc(DEV_LABEL[dk()])}</div>`;
+}
+/* A blank page opens on three hero layouts, so the first click gives a designed section
+   rather than an empty canvas. They are the Add panel's own hero patterns. */
+const START_HEROES = ['hero-split', 'hero-centre', 'hero-form'];
+function startHeroHtml() {
+  const cards = START_HEROES.map(id => PATTERNS.find(p => p.id === id)).filter(Boolean)
+    .map(p => `<button type="button" class="s-starthero" data-starthero="${p.id}" title="${esc(p.desc || p.name)}">${p.preview()}<span>${esc(p.name)}</span></button>`).join('');
+  return cards ? `<span>Start with a hero</span><div class="s-startheroes">${cards}</div>` : '';
+}
+function startWithHero(id) {
+  let made = null;
+  edit(() => { made = patternInsert(id, null, tree().length); }, 'Add section');
+  if (!made) { toast('That does not fit there'); return; }
+  select(made.id);
+  toast((PATTERNS.find(p => p.id === id) || {}).name + ' added');
 }
 let quickPending = null;
 function openQuickAddAt(side, btn) {
@@ -35128,6 +35343,17 @@ function openQuickAddAt(side, btn) {
   PC_UI.openQuickAdd({
     x: toScreen(r.left + r.width / 2, fr.left), y: toScreen(r.top + r.height / 2, fr.top), side,
     onPick: key => quickAddAt(id, side, key),
+    sections: quickAddSections(id),
+    onPickSection: pid => {
+      quickPending = null;
+      let made = null;
+      edit(() => { made = quickAddSection(id, side, pid); }, 'Add section');
+      if (!made) { toast('That does not fit there'); return; }
+      select(made.id);
+      toast((PATTERNS.find(p => p.id === pid) || {}).name + ' added');
+      const el = cdoc && cdoc.getElementById(made.id);
+      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    },
     /* The full Add panel, aimed at the same edge: its next add lands there. */
     onMore: () => {
       quickPending = { id, side };
@@ -37574,6 +37800,7 @@ function helpModal() {
     ['Move through elements', '↑ ↓'], ['Select parent · first child', '← →'],
     ['Add to the selection', '⌘click'], ['Select a range, in the Navigator', '⇧click'],
     ['Reorder among siblings', '⇧↑ ⇧↓'], ['Edit text in place', '↵ or double-click'],
+    ['Add an element below', '⇧↵ or the + on an edge'],
     ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'],
     ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
     ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
@@ -37825,6 +38052,13 @@ function hotkey(e) {
     else next = firstChildOf(cur) || step(cur, 1);
     if (next) select(next, { scroll: true });
     return;
+  }
+  /* Shift+Enter: quick add below the selected element (beside it in a horizontal list). */
+  if (k === 'enter' && e.shiftKey && state.ui.sel && !meta && canStructure() && typeof openQuickAddAt === 'function') {
+    const sides = quickAddSides(state.ui.sel);
+    const side = sides.includes('bottom') ? 'bottom' : sides.includes('right') ? 'right' : '';
+    const btn = side && cdoc && cdoc.querySelector(`#s-hud .qa[data-side="${side}"]`);
+    if (btn) { e.preventDefault(); openQuickAddAt(side, btn); return; }
   }
   if (k === 'enter' && state.ui.sel && !meta) {
     const n = locate(state.ui.sel);

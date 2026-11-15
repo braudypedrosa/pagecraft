@@ -308,6 +308,7 @@ input,select,textarea{font:inherit;color:inherit}
 .pc-quick-add-search{width:100%;box-sizing:border-box;margin:0 0 4px}
 .pc-quick-add .pc-menu-item.on{background:var(--pc-hover-bg)}
 .pc-quick-add-empty{padding:8px 10px;font-size:12px;opacity:.7}
+.pc-quick-add-group{padding:8px 10px 4px;font-size:var(--fs-1);font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
 .moreToolsPop .pc-menu-item{
   width:100%;min-height:40px;padding:0 10px;display:flex;align-items:center;border-radius:var(--r-sm);
   color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-align:left
@@ -4238,7 +4239,8 @@ function paint() {
 
     const inner = renderList(nodes, { edit: live, ...pageCtx() })
       || (live ? `<div class="s-canvas-empty"><b>${R.kind === 'main' ? 'This page is empty' : R.label + ' is empty'}</b>
-          <span>Drag an element onto the canvas, or</span>
+          ${R.kind === 'main' && canStructure() ? startHeroHtml() : ''}
+          <span>${R.kind === 'main' && canStructure() ? 'Or drag an element onto the canvas, or' : 'Drag an element onto the canvas, or'}</span>
           <button class="s-openadd" data-openadd="1">Open the Add panel</button></div>` : '');
 
     /* dim everything that is not the region being edited */
@@ -4348,7 +4350,8 @@ function positionHud() {
       <button data-act="more" title="Everything else — or right-click the element">${svg('more', 12)}</button>
     </div>`
     + (many ? '' : gripsHtml(s))
-    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height));
+    + (many || typeof quickAddHtml !== 'function' ? '' : quickAddHtml(s.node.id, left, top, r.width, r.height))
+    + (many || typeof reversedRowHtml !== 'function' ? '' : reversedRowHtml(s));
 
   /* Above the element, unless there is not room — and the room is measured rather than
      guessed. The bar carries `scale(1 / --z)` so it stays the same size on screen at any
@@ -4956,6 +4959,12 @@ function bindCanvas() {
     selectEditableTab(tab, e.key === 'Home' ? 0 : e.key === 'End' ? tab.count - 1 : (tab.index + delta + tab.count) % tab.count, true);
   }, true);
 
+  for (const [type, on] of [['pointerover', true], ['focusin', true], ['pointerout', false], ['focusout', false]]) {
+    cdoc.addEventListener(type, e => {
+      const q = e.target.closest && e.target.closest('#s-hud .qa');
+      if (q && typeof quickAddPreview === 'function') quickAddPreview(on ? q : null);
+    });
+  }
   cdoc.addEventListener('pointerdown', e => {
     if (document.body.classList.contains('preview')) return;
     if (typeof PC_UI !== 'undefined' && PC_UI.closeQuickAdd && !(e.target.closest && e.target.closest('#s-hud .qa'))) PC_UI.closeQuickAdd();
@@ -4974,6 +4983,8 @@ function bindCanvas() {
 
     /* A locked region is context, not a trap: only the explicit button opens
        its editor. Clicking elsewhere in it simply clears the selection. */
+    const hero = e.target.closest('[data-starthero]');
+    if (hero && typeof startWithHero === 'function') { e.preventDefault(); startWithHero(hero.dataset.starthero); return; }
     if (e.target.closest('[data-openadd]')) {
       e.preventDefault();
       const tab = $('#leftRail button[data-t="add"]');
@@ -5417,10 +5428,25 @@ function placeRT() {
   const w = rt.offsetWidth || 340;
   /* the toolbar lives in the outer document, so the element's iframe rect has to be
      scaled before it is offset — at 50% zoom it otherwise floats twice as far out */
-  let left = toScreen(r.left + r.width / 2, fr.left) - w / 2;
+  /* Placed the way the selection bar is: above, else below, else the nearest spot that
+     covers neither the text being edited nor its neighbours. Measured in canvas pixels,
+     so the toolbar's screen size is divided by the zoom first. */
+  const host = el.closest('[data-id]');
+  const h = host ? locate(host.dataset.id) : null;
+  const blockers = h ? (h.list || []).filter(node => node.id !== h.node.id).map(node => {
+    const sibling = selectedCanvasElement(node.id);
+    return sibling ? sibling.getBoundingClientRect() : null;
+  }).filter(Boolean) : [];
+  const k = typeof zoomK === 'number' && zoomK > 0 ? zoomK : 1;
+  const size = { width: w / k, height: (rt.offsetHeight + 8) / k };
+  const placed = typeof PC_UI !== 'undefined' && PC_UI.selectionToolbarPosition
+    ? PC_UI.selectionToolbarPosition(r, size, { width: cwin.innerWidth, height: cwin.innerHeight }, blockers)
+    : { left: r.left, top: r.top - size.height };
+  let left = toScreen(placed.left, fr.left);
   left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-  let top = toScreen(r.top, fr.top) - rt.offsetHeight - 8;
-  if (top < 54) top = Math.min(fr.top + r.bottom + 8, window.innerHeight - 40);
+  /* The 8px gap sits on the side away from the element. */
+  let top = toScreen(placed.top, fr.top) + (placed.top < r.top ? 0 : 8);
+  top = Math.max(fr.top + 4, Math.min(top, window.innerHeight - rt.offsetHeight - 8));
   rt.style.left = left + 'px'; rt.style.top = top + 'px';
 }
 /* `createLink` runs against the canvas iframe's live selection, and opening a
@@ -5922,13 +5948,58 @@ function appendSmart(key) {
 /* Quick add: a + on each edge of the selected element that can take something there.
    Which sides, and what each one does, is the core's `quickAddSides` / `quickAdd`. */
 const QUICK_LABEL = { top: 'Add above', bottom: 'Add below', left: 'Add to the left', right: 'Add to the right' };
+const QUICK_KEY = { bottom: ' (⇧↵)' };
 function quickAddHtml(id, left, top, w, h) {
   return quickAddSides(id).map(side => {
     const x = side === 'left' ? left : side === 'right' ? left + w : left + w / 2;
     const y = side === 'top' ? top : side === 'bottom' ? top + h : top + h / 2;
-    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}"
+    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}${QUICK_KEY[side] || ''}"
       style="left:${x}px;top:${y}px">${svg('plus', 12)}</button>`;
   }).join('');
+}
+/* Hovering or focusing a + draws a line on that edge of the selected element: the spot the
+   new element will take. */
+function quickAddPreview(btn) {
+  const hud = cdoc && cdoc.getElementById('s-hud');
+  if (!hud) return;
+  hud.querySelectorAll('.qa-line').forEach(x => x.remove());
+  const el = btn && state.ui.sel ? selectedCanvasElement(state.ui.sel) : null;
+  if (!el) return;
+  const r = el.getBoundingClientRect(), side = btn.dataset.side;
+  const x = r.left + cwin.scrollX, y = r.top + cwin.scrollY;
+  const line = cdoc.createElement('div');
+  line.className = 'qa-line ' + side;
+  const across = side === 'top' || side === 'bottom';
+  line.style.left = (side === 'right' ? x + r.width : x) + 'px';
+  line.style.top = (side === 'bottom' ? y + r.height : y) + 'px';
+  line.style[across ? 'width' : 'height'] = (across ? r.width : r.height) + 'px';
+  hud.appendChild(line);
+}
+/* A reversed row reads in a different order on the canvas than in the Navigator. When the
+   selection is that row or one of its columns, say so on the row itself. */
+function reversedRowHtml(s) {
+  const row = s.node.type === 'row' ? s.node : s.node.type === 'column' && s.parent && s.parent.type === 'row' ? s.parent : null;
+  if (!row || !rowReversed(row)) return '';
+  const el = selectedCanvasElement(row.id);
+  if (!el) return '';
+  const r = el.getBoundingClientRect();
+  return `<div class="rev-chip" style="left:${r.left + cwin.scrollX}px;top:${r.bottom + cwin.scrollY}px"
+    title="The columns show in reverse order at this screen size (Row › Order)">${svg({ d: 'desktop', t: 'tablet', m: 'mobile' }[dk()], 11)} Reversed on ${esc(DEV_LABEL[dk()])}</div>`;
+}
+/* A blank page opens on three hero layouts, so the first click gives a designed section
+   rather than an empty canvas. They are the Add panel's own hero patterns. */
+const START_HEROES = ['hero-split', 'hero-centre', 'hero-form'];
+function startHeroHtml() {
+  const cards = START_HEROES.map(id => PATTERNS.find(p => p.id === id)).filter(Boolean)
+    .map(p => `<button type="button" class="s-starthero" data-starthero="${p.id}" title="${esc(p.desc || p.name)}">${p.preview()}<span>${esc(p.name)}</span></button>`).join('');
+  return cards ? `<span>Start with a hero</span><div class="s-startheroes">${cards}</div>` : '';
+}
+function startWithHero(id) {
+  let made = null;
+  edit(() => { made = patternInsert(id, null, tree().length); }, 'Add section');
+  if (!made) { toast('That does not fit there'); return; }
+  select(made.id);
+  toast((PATTERNS.find(p => p.id === id) || {}).name + ' added');
 }
 let quickPending = null;
 function openQuickAddAt(side, btn) {
@@ -5937,6 +6008,17 @@ function openQuickAddAt(side, btn) {
   PC_UI.openQuickAdd({
     x: toScreen(r.left + r.width / 2, fr.left), y: toScreen(r.top + r.height / 2, fr.top), side,
     onPick: key => quickAddAt(id, side, key),
+    sections: quickAddSections(id),
+    onPickSection: pid => {
+      quickPending = null;
+      let made = null;
+      edit(() => { made = quickAddSection(id, side, pid); }, 'Add section');
+      if (!made) { toast('That does not fit there'); return; }
+      select(made.id);
+      toast((PATTERNS.find(p => p.id === pid) || {}).name + ' added');
+      const el = cdoc && cdoc.getElementById(made.id);
+      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    },
     /* The full Add panel, aimed at the same edge: its next add lands there. */
     onMore: () => {
       quickPending = { id, side };
@@ -8383,6 +8465,7 @@ function helpModal() {
     ['Move through elements', '↑ ↓'], ['Select parent · first child', '← →'],
     ['Add to the selection', '⌘click'], ['Select a range, in the Navigator', '⇧click'],
     ['Reorder among siblings', '⇧↑ ⇧↓'], ['Edit text in place', '↵ or double-click'],
+    ['Add an element below', '⇧↵ or the + on an edge'],
     ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'],
     ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
     ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
@@ -8634,6 +8717,13 @@ function hotkey(e) {
     else next = firstChildOf(cur) || step(cur, 1);
     if (next) select(next, { scroll: true });
     return;
+  }
+  /* Shift+Enter: quick add below the selected element (beside it in a horizontal list). */
+  if (k === 'enter' && e.shiftKey && state.ui.sel && !meta && canStructure() && typeof openQuickAddAt === 'function') {
+    const sides = quickAddSides(state.ui.sel);
+    const side = sides.includes('bottom') ? 'bottom' : sides.includes('right') ? 'right' : '';
+    const btn = side && cdoc && cdoc.querySelector(`#s-hud .qa[data-side="${side}"]`);
+    if (btn) { e.preventDefault(); openQuickAddAt(side, btn); return; }
   }
   if (k === 'enter' && state.ui.sel && !meta) {
     const n = locate(state.ui.sel);

@@ -378,16 +378,18 @@ function ColorCtl({ n, c }: P) {
   const [pop, setPop] = useState<HTMLElement | null>(null);
   const [, setGradientRevision] = useState(0);
   const editKey = [n.id, c.c || c.k || c.t, C.dk(), C.state.ui.st || '', C.state.ui.target || ''].join('|');
-  const [draft, setDraft] = useState({ key: editKey, value: v, active: false });
+  const [draft, setDraft] = useState({ key: editKey, value: v, active: false, typing: false });
   const inputValue = draft.key === editKey && draft.active ? draft.value : v;
   const inputValid = validCssColor(inputValue);
+  /* A half-typed hex is not a mistake yet. Say so once typing stops (on blur), not on every key. */
+  const showInvalid = !inputValid && !(draft.key === editKey && draft.typing);
   const errorId = useId();
   const liveColour = (value: string) => {
-    setDraft({ key: editKey, value, active: false });
+    setDraft({ key: editKey, value, active: false, typing: false });
     w.live(value);
   };
   const hardColour = (value: string) => {
-    setDraft({ key: editKey, value, active: false });
+    setDraft({ key: editKey, value, active: false, typing: false });
     w.hard(value);
   };
 
@@ -446,22 +448,22 @@ function ColorCtl({ n, c }: P) {
             onClick={() => hardColour(C.resolveColor(cur()))}><Icon name="unlink" size={11} /></button>
         </>
         : <>
-          <input class="ctl hex" value={inputValue} placeholder="inherit" aria-invalid={!inputValid ? 'true' : undefined}
-            aria-describedby={!inputValid ? errorId : undefined}
-            onFocus={() => setDraft({ key: editKey, value: v, active: true })}
+          <input class="ctl hex" value={inputValue} placeholder="inherit" aria-invalid={showInvalid ? 'true' : undefined}
+            aria-describedby={showInvalid ? errorId : undefined}
+            onFocus={() => setDraft(d => d.key === editKey && d.active ? { ...d, typing: false } : { key: editKey, value: v, active: true, typing: false })}
             onInput={e => {
               const next = (e.target as HTMLInputElement).value.trim();
-              setDraft({ key: editKey, value: next, active: true });
+              setDraft({ key: editKey, value: next, active: true, typing: true });
               if (validCssColor(next)) w.live(next);
             }}
             onBlur={() => {
-              if (inputValid) setDraft({ key: editKey, value: inputValue, active: false });
+              setDraft({ key: editKey, value: inputValue, active: !inputValid, typing: false });
               w.done();
             }} />
           <button class="x" title="Clear" onClick={() => hardColour('')}><Icon name="trash" size={11} /></button>
         </>}
     </div>
-    {!inputValid ? <div class="note" id={errorId} role="alert">Enter a valid colour.</div> : null}
+    {showInvalid ? <div class="note" id={errorId} role="alert">Enter a valid colour.</div> : null}
     <div class="toks">
       {C.colors().map(t => (
         <button key={t.id} class={'tok' + (tok && tok.id === t.id ? ' on' : '')} title={t.name}
@@ -1207,12 +1209,25 @@ function OrderCtl({ n, c }: P) {
   </Field>;
 }
 
+/* Row › Stack on tablet. One switch for every column's tablet width. */
+function StackCtl({ n, c }: P) {
+  const on = C.rowStacksOnTablet(n);
+  const helpId = useId();
+  return <div class="f">
+    <div class="tog-row"><span>{c.label}{c.note ? <HelpTip label={c.label || 'Field'} text={c.note} id={helpId} /> : null}</span>
+      <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={c.label} aria-describedby={c.note ? helpId : undefined}
+        class={'sw-tog' + (on ? ' on' : '')}
+        onClick={() => { C.edit(() => C.setRowStackOnTablet(n, !on), on ? 'Columns side by side on tablet' : 'Stack columns on tablet'); repaint('right'); }}><i /></button>
+    </div>
+  </div>;
+}
+
 const KINDS: Record<string, (p: P) => any> = {
   text: TextCtl, area: AreaCtl, select: SelectCtl, unit: UnitCtl, lengthList: LengthListCtl, slider: SliderCtl,
   color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
-  icon: IconCtl, cols: ColsCtl, order: OrderCtl
+  icon: IconCtl, cols: ColsCtl, order: OrderCtl, stack: StackCtl
 };
 
 /** Every kind the inspector can draw. Exported so a test — and the build — can check

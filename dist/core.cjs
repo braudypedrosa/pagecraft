@@ -385,6 +385,8 @@ __export(index_exports, {
   publicFormControlCssFor: () => publicFormControlCssFor,
   published: () => published,
   quickAdd: () => quickAdd,
+  quickAddSection: () => quickAddSection,
+  quickAddSections: () => quickAddSections,
   quickAddSides: () => quickAddSides,
   redo: () => redo,
   refId: () => refId,
@@ -406,6 +408,7 @@ __export(index_exports, {
   rowRatiosAt: () => rowRatiosAt,
   rowReversed: () => rowReversed,
   rowStacked: () => rowStacked,
+  rowStacksOnTablet: () => rowStacksOnTablet,
   safeRichUrl: () => safeRichUrl,
   safeUrl: () => safeUrl,
   searchAll: () => searchAll,
@@ -424,6 +427,7 @@ __export(index_exports, {
   setCss: () => setCss,
   setMobileMenuMode: () => setMobileMenuMode,
   setRowReversed: () => setRowReversed,
+  setRowStackOnTablet: () => setRowStackOnTablet,
   setStyleClipProject: () => setStyleClipProject,
   showsNode: () => showsNode,
   sitePlan: () => sitePlan,
@@ -2968,6 +2972,12 @@ var DEF = {
         { t: "select", c: "flex-wrap", label: "Wrap", r: 1, opts: [["wrap", "Wrap"], ["wrap-reverse", "Wrap, reversed"], ["nowrap", "No wrap"]] },
         { t: "cols", label: "Columns" },
         {
+          t: "stack",
+          label: "Stack on tablet",
+          when: (n) => (n.children || []).length > 1,
+          note: "Puts each column on its own line on tablets, the way they stack on phones."
+        },
+        {
           t: "order",
           label: "Order",
           when: (n) => (n.children || []).length > 1,
@@ -5008,6 +5018,17 @@ function setRowReversed(row, on) {
     put("flex-wrap", on ? "wrap-reverse" : "wrap", "wrap");
     if (cssVal(o, "flex-direction", true).v === "column-reverse") put("flex-direction", "row", "row");
   } else put("flex-direction", on ? "row-reverse" : "row", "row");
+}
+function rowStacksOnTablet(row) {
+  const kids = (row.children || []).filter((k) => k.type === "column");
+  return kids.length > 1 && kids.every((k) => String((k.css.t || {})["flex-basis"] || "").trim() === "100%");
+}
+function setRowStackOnTablet(row, on) {
+  for (const col of (row.children || []).filter((k) => k.type === "column")) {
+    col.css.t = col.css.t || {};
+    if (on) col.css.t["flex-basis"] = "100%";
+    else if (String(col.css.t["flex-basis"] || "").trim() === "100%") delete col.css.t["flex-basis"];
+  }
 }
 var rowOrderProp = (row) => rowStacked(row) ? "flex-wrap" : "flex-direction";
 function rowVerticalValue(row, b) {
@@ -7302,6 +7323,17 @@ function quickAddSides(id) {
   }
   if (quickHorizontal(parent)) return ["left", "right"];
   return fitsIn(parent ? parent.type : null, "row") ? [...QUICK_SIDES] : ["top", "bottom"];
+}
+function quickAddSections(id) {
+  const h = locate(id);
+  if (!h || h.parent || h.node.type !== "section" || !quickAddSides(id).length) return [];
+  return PATTERNS.filter((p) => !p.scope).map((p) => [p.id, p.name]);
+}
+function quickAddSection(id, side, patternId) {
+  if (side !== "top" && side !== "bottom" || !quickAddSections(id).some(([pid]) => pid === patternId)) return null;
+  const h = locate(id);
+  if (!h) return null;
+  return patternInsert(patternId, null, side === "bottom" ? h.i + 1 : h.i);
 }
 function quickAdd(id, side, key) {
   if (!quickAddSides(id).includes(side)) return null;
@@ -11329,6 +11361,11 @@ ${m.css || ""}
   background:#111311;color:#f5f7f8;font:600 ${UI_TEXT_SIZES.label} "Manrope",system-ui,sans-serif;
 }
 .s-openadd:hover{background:#2a2e2a}
+.s-startheroes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:4px 0 12px}
+.s-starthero{display:flex;flex-direction:column;gap:6px;width:168px;padding:8px;border:1px solid #dfe3dd;border-radius:10px;background:#fff;cursor:pointer;color:#111311;font:600 12px/1.2 "Manrope",system-ui,sans-serif;transition:border-color .12s,box-shadow .12s}
+.s-starthero:hover,.s-starthero:focus-visible{border-color:#b7f34a;box-shadow:0 0 0 3px rgba(183,243,74,.35);outline:none}
+.s-starthero .pvw{display:block;width:100%;height:auto;border-radius:6px;background:#f3f5f1}
+.s-starthero .pv-b{fill:#d5dad3}.s-starthero .pv-l{fill:#adb7bf}.s-starthero .pv-h{fill:#8f9a90}.s-starthero .pv-g{fill:#b7f34a}
 
 /* selection: green outline plus the eight handles from the product screens */
 #s-hud{position:absolute;top:0;left:0;z-index:9998;pointer-events:none}
@@ -11370,6 +11407,11 @@ ${m.css || ""}
 #s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
 #s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
 #s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
+#s-hud .qa-line{position:absolute;background:#b7f34a;pointer-events:none;border-radius:2px;box-shadow:0 0 0 1px rgba(17,19,17,.35)}
+#s-hud .qa-line.top,#s-hud .qa-line.bottom{height:calc(4px / var(--z,1));margin-top:calc(-2px / var(--z,1))}
+#s-hud .qa-line.left,#s-hud .qa-line.right{width:calc(4px / var(--z,1));margin-left:calc(-2px / var(--z,1))}
+#s-hud .rev-chip{position:absolute;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:0 0 6px 6px;background:#111311;color:#b7f34a;font:600 11px/1.2 system-ui,sans-serif;pointer-events:auto;white-space:nowrap;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0}
+#s-hud .rev-chip svg{width:11px;height:11px}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
@@ -13230,6 +13272,8 @@ function proposalApply(changes, proposalId = "", options) {
   publicFormControlCssFor,
   published,
   quickAdd,
+  quickAddSection,
+  quickAddSections,
   quickAddSides,
   redo,
   refId,
@@ -13251,6 +13295,7 @@ function proposalApply(changes, proposalId = "", options) {
   rowRatiosAt,
   rowReversed,
   rowStacked,
+  rowStacksOnTablet,
   safeRichUrl,
   safeUrl,
   searchAll,
@@ -13269,6 +13314,7 @@ function proposalApply(changes, proposalId = "", options) {
   setCss,
   setMobileMenuMode,
   setRowReversed,
+  setRowStackOnTablet,
   setStyleClipProject,
   showsNode,
   sitePlan,
