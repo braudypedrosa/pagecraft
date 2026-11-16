@@ -1,0 +1,63 @@
+{
+  "layout": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/01-six-profiles.png",
+  "layoutApproval": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/01-six-profiles-approval.json",
+  "allPortraitAuthorization": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/all-portraits-authorization.json",
+  "newStandaloneImagesIndividuallyReviewedByUser": [
+    "Aisha",
+    "Oliver"
+  ],
+  "newStandaloneImagesCompletedUnderUserDirectionApproval": [
+    "Naomi",
+    "Elena"
+  ],
+  "assets": [
+    {
+      "alias": "care-team-aisha-khan",
+      "profile": "Dr Aisha Khan",
+      "sourceFile": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/01-aisha-khan.png",
+      "sourceSha256": "eec07fe1f34b9896e6abc8995b38d3ac46dd7f54d0f35bc479e6fc9094a7d797",
+      "file": "premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-aisha-khan.webp",
+      "storedSha256": "2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f",
+      "width": 1122,
+      "height": 1402,
+      "authorization": "portraits/all-portraits-authorization.json",
+      "approvalKind": "individual or exact shown asset"
+    },
+    {
+      "alias": "care-team-oliver-chen",
+      "profile": "Dr Oliver Chen",
+      "sourceFile": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/02-oliver-chen.png",
+      "sourceSha256": "7f0d928a95bed7f25963251a8ca18cbb6e3bc69a98495b9d26e9def093c5e6fb",
+      "file": "premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-oliver-chen.webp",
+      "storedSha256": "50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d",
+      "width": 1122,
+      "height": 1402,
+      "authorization": "portraits/all-portraits-authorization.json",
+      "approvalKind": "individual or exact shown asset"
+    },
+    {
+      "alias": "care-team-naomi-brooks",
+      "profile": "Dr Naomi Brooks",
+      "sourceFile": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/03-naomi-brooks.png",
+      "sourceSha256": "cfc13a99518f7f4c2af0c22c2e3719246aee3430248513ea62fd484f216958ef",
+      "file": "premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-naomi-brooks.webp",
+      "storedSha256": "9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b",
+      "width": 1122,
+      "height": 1402,
+      "authorization": "portraits/all-portraits-authorization.json",
+      "approvalKind": "prospective approved direction; root inspected"
+    },
+    {
+      "alias": "care-team-elena-cruz",
+      "profile": "Dr Elena Cruz",
+      "sourceFile": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/04-elena-cruz.png",
+      "sourceSha256": "cbacecc4217bd9f06c4a0405f97e58389c07cbb8fb71a66cdb8d3f709261d444",
+      "file": "premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-elena-cruz.webp",
+      "storedSha256": "1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed",
+      "width": 1122,
+      "height": 1402,
+      "authorization": "portraits/all-portraits-authorization.json",
+      "approvalKind": "prospective approved direction; root inspected"
+    }
+  ]
+}
