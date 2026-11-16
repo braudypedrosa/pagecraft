@@ -25,6 +25,8 @@ const harness = vi.hoisted(() => ({
   failOnceWhen: null as RegExp | null,
   postgresOptions: null as null | Record<string, unknown>,
   files: new Map<string, Uint8Array>(),
+  deletedAuthUsers: [] as string[],
+  deleteUserError: null as null | { message: string },
 }));
 
 vi.mock('jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts', () => ({}));
@@ -36,7 +38,14 @@ vi.mock('npm:postgres@3.4.7', () => ({
 }));
 vi.mock('npm:@supabase/supabase-js@2.112.4', () => ({
   createClient: () => ({
-    auth: { admin: { inviteUserByEmail: async () => ({ error: null }) } },
+    auth: { admin: {
+      inviteUserByEmail: async () => ({ error: null }),
+      deleteUser: async (id: string) => {
+        if (harness.deleteUserError) return { data: null, error: harness.deleteUserError };
+        harness.deletedAuthUsers.push(id);
+        return { data: {}, error: null };
+      },
+    } },
     storage: {
       from: () => ({
         upload: async (path: string, bytes: Uint8Array) => {
@@ -664,4 +673,61 @@ test('database errors reach the caller as a stable code, with only a unique cons
   // The gateway's own refusals keep their words: the server matches some of them.
   const unknown = await call('no.such.op', {});
   a.deepEqual(unknown, { status: 400, body: { error: 'unknown gateway operation', code: 'UNKNOWN_OPERATION' } });
+});
+
+test('account deletion checks blockers, deletes the profile with its cascades, then the Auth user', async () => {
+  const leaver = 'gw-leaver', other = 'gw-other';
+  await siteWithOwner('gw-leaver-site', leaver);
+  await db.query('update users set auth_user_id=$1 where id=$2', ['auth-gw-leaver', leaver]);
+  await siteWithOwner('gw-kept-site', other);
+  await db.query(`insert into site_users (site_id, user_id, role) values ('gw-kept-site', $1, 'content')`, [leaver]);
+  await db.query(`insert into site_users (site_id, user_id, role) values ('gw-leaver-site', $1, 'owner')`, [other]);
+  await db.query(`insert into sessions (digest, user_id, expires_at) values ('gw-session', $1, now() + interval '1 hour')`, [leaver]).catch(() => undefined);
+
+  const shared = await operation('auth.accountDeletionCheck', { userId: leaver });
+  a.equal(shared.status, 200, JSON.stringify(shared.body));
+  a.deepEqual(shared.body, { status: 'shared_sites', sites: [{ id: 'gw-leaver-site', name: 'gw-leaver-site' }] });
+  a.equal((await operation('auth.deleteAccount', { userId: leaver })).body.status, 'shared_sites', 'nothing deleted while shared');
+  a.equal(await count('select * from users where id=$1', [leaver]), 1);
+
+  await db.query(`delete from site_users where site_id='gw-leaver-site' and user_id=$1`, [other]);
+  await db.query(`update users set plan='pro' where id=$1`, [leaver]);
+  a.deepEqual((await operation('auth.accountDeletionCheck', { userId: leaver })).body, { status: 'plan' });
+  await db.query(`update users set plan='free' where id=$1`, [leaver]);
+  a.deepEqual((await operation('auth.accountDeletionCheck', { userId: leaver })).body, { status: 'ok', ownedSites: 1 });
+  a.deepEqual((await operation('auth.deleteAccount', { userId: leaver })).body, { status: 'owned_sites' }, 'owned sites go first, through site.delete');
+
+  a.equal((await operation('site.delete', { id: 'gw-leaver-site' })).body, true);
+  harness.deletedAuthUsers.length = 0;
+  const deleted = await operation('auth.deleteAccount', { userId: leaver });
+  a.equal(deleted.status, 200, JSON.stringify(deleted.body));
+  a.deepEqual(deleted.body, { status: 'deleted', authUserDeleted: true });
+  a.deepEqual(harness.deletedAuthUsers, ['auth-gw-leaver']);
+  a.equal(await count('select * from users where id=$1', [leaver]), 0);
+  a.equal(await count('select * from site_users where user_id=$1', [leaver]), 0, 'memberships cascade');
+  a.equal(await count(`select * from sites where id='gw-kept-site'`), 1, 'the collaborator site stays');
+  a.equal(await count(`select * from site_users where site_id='gw-kept-site' and user_id=$1 and role='owner'`, [other]), 1);
+  a.deepEqual((await operation('auth.deleteAccount', { userId: leaver })).body, { status: 'missing' });
+  a.deepEqual((await operation('auth.accountDeletionCheck', { userId: leaver })).body, { status: 'missing' });
+});
+
+test('account deletion reports a profile whose Auth user could not be removed', async () => {
+  const user = 'gw-auth-fails';
+  await db.query('insert into users (id, email, auth_user_id) values ($1, $2, $3)', [user, 'gw-auth-fails@example.test', 'auth-gw-fails']);
+  harness.deleteUserError = { message: 'service unavailable' };
+  const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  try {
+    a.deepEqual((await operation('auth.deleteAccount', { userId: user })).body, { status: 'deleted', authUserDeleted: false });
+  } finally { harness.deleteUserError = null; spy.mockRestore(); }
+  a.equal(await count('select * from users where id=$1', [user]), 0);
+});
+
+test('a client running against the gateway reaches the deletion actions', async () => {
+  const user = 'gw-client-leaver';
+  await db.query('insert into users (id, email, auth_user_id) values ($1, $2, $3)', [user, 'gw-client@example.test', 'auth-gw-client']);
+  const { GatewayAuthStore } = await import('../src/store-gateway.ts');
+  const auth = new GatewayAuthStore(client());
+  a.deepEqual(await auth.accountDeletionCheck(user), { status: 'ok', ownedSites: 0 });
+  a.deepEqual(await auth.deleteAccount(user), { status: 'deleted', authUserDeleted: true });
+  a.equal(await auth.userById(user), null);
 });

@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { Context } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie';
@@ -10,6 +11,8 @@ export interface VerifiedIdentity {
   name: string;
   providers?: string[];
   createdAt?: string;
+  /** When Auth last issued this person a session; account deletion asks for a recent one. */
+  lastSignInAt?: string;
 }
 
 export interface AccountAuth {
@@ -25,6 +28,10 @@ export interface AccountAuth {
   updateEmail(c: Context, input: { email: string; redirectTo: string }): Promise<boolean>;
   updatePassword(c: Context, input: { password: string; currentPassword?: string }): Promise<boolean>;
   signOut(c: Context): Promise<void>;
+  /** Checks the password without touching the browser session (account deletion). */
+  verifyPassword?(c: Context, input: { email: string; password: string; captchaToken: string }): Promise<boolean | 'challenge'>;
+  /** Ends every session for this person, on all devices. */
+  signOutEverywhere?(c: Context): Promise<void>;
 }
 
 export interface SupabaseAccountAuthOptions {
@@ -45,7 +52,8 @@ const verified = (user: User | null): VerifiedIdentity | null => {
   ].filter(provider => typeof provider === 'string'))] as string[];
   return {
     authUserId: user.id, email: normalEmail(user.email), name,
-    providers, createdAt: user.created_at
+    providers, createdAt: user.created_at,
+    ...(user.last_sign_in_at ? { lastSignInAt: user.last_sign_in_at } : {}),
   };
 };
 
@@ -158,5 +166,23 @@ export class SupabaseAccountAuth implements AccountAuth {
 
   async signOut(c: Context) {
     await this.client(c).auth.signOut({ scope: 'local' });
+  }
+
+  /* A throwaway client with no cookies or storage: the browser's session is untouched, and the
+     extra session the check creates is signed out again immediately. */
+  async verifyPassword(_c: Context, input: { email: string; password: string; captchaToken: string }) {
+    const probe = createClient(this.options.url, this.options.publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const { data, error } = await probe.auth.signInWithPassword({
+      email: input.email, password: input.password, options: { captchaToken: input.captchaToken },
+    });
+    if (error) return error.code === 'captcha_failed' ? 'challenge' as const : false;
+    if (data.session) await probe.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    return normalEmail(data.user?.email || '') === normalEmail(input.email);
+  }
+
+  async signOutEverywhere(c: Context) {
+    await this.client(c).auth.signOut({ scope: 'global' });
   }
 }

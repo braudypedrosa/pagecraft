@@ -205,6 +205,51 @@ const connectionSlotsUnavailable = (caught: unknown) => {
   return error?.name === "PostgresError" && error.code === "53300";
 };
 
+type AccountDeletionState =
+  | { status: "ok"; ownedSites: number }
+  | { status: "missing" | "plan" | "retained_records" }
+  | { status: "shared_sites"; sites: { id: string; name: string }[] };
+
+/* What stands between a profile and its deletion, read inside the caller's transaction. */
+async function accountDeletionState(
+  // deno-lint-ignore no-explicit-any
+  transaction: any,
+  userId: string,
+): Promise<AccountDeletionState> {
+  const user = (await transaction`select plan from users where id = ${userId}`)[0];
+  if (!user) return { status: "missing" };
+  if (text(user.plan || "free") !== "free") return { status: "plan" };
+  const shared = await transaction`
+    select s.id, s.name from site_users mine join sites s on s.id = mine.site_id
+    where mine.user_id = ${userId} and mine.role = 'owner'
+      and exists (select 1 from site_users other where other.site_id = mine.site_id
+        and other.role = 'owner' and other.user_id <> ${userId})
+    order by s.name
+  `;
+  if (shared.length) {
+    return {
+      status: "shared_sites",
+      sites: shared.map((row: Record<string, unknown>) => ({ id: text(row.id), name: text(row.name) })),
+    };
+  }
+  const retained = (await transaction`
+    with owned as (
+      select site_id from site_users where user_id = ${userId} and role = 'owner'
+    )
+    select
+      (select count(*) from site_releases where created_by = ${userId})::integer
+      + (select count(*) from site_release_reservations where created_by = ${userId}
+          and site_id not in (select site_id from owned))::integer
+      + (select count(*) from wordpress_connections where created_by = ${userId}
+          and site_id not in (select site_id from owned))::integer
+      + (select count(*) from assets where owner_id = ${userId}
+          and site_id not in (select site_id from owned))::integer as retained,
+      (select count(*) from owned)::integer as owned
+  `)[0];
+  if (integer(retained?.retained) > 0) return { status: "retained_records" };
+  return { status: "ok", ownedSites: integer(retained?.owned) };
+}
+
 async function loadConfiguredKeyHash() {
   const select = () =>
     sql<{ secret_hash: string }[]>`
@@ -3134,6 +3179,40 @@ async function dispatch(op: string, args: Record<string, unknown>) {
         from site_users m join users u on u.id = m.user_id
         where m.site_id = ${text(args.siteId)} order by u.email
       `;
+    /* Self-serve account deletion. The app deletes the person's solely owned sites (and their
+       files) first through site.delete; this removes the profile row, whose foreign keys
+       cascade to sessions, memberships, owned libraries, library memberships, invitations and
+       WordPress import credentials, and then the Supabase Auth user. Anything that must be kept
+       (signed releases, connections or media the person created on sites that stay) blocks
+       the deletion before anything changes. `auth.accountDeletionCheck` changes nothing. */
+    case "auth.accountDeletionCheck":
+      return await sql.begin(async (transaction) =>
+        accountDeletionState(transaction, text(args.userId))
+      );
+    case "auth.deleteAccount": {
+      const userId = text(args.userId);
+      const outcome = await sql.begin(async (transaction) => {
+        const user = one(
+          await transaction<Record<string, unknown>[]>`
+            select id, auth_user_id, plan from users where id = ${userId} for update
+          `,
+        );
+        if (!user) return { status: "missing" } as const;
+        const state = await accountDeletionState(transaction, userId);
+        if (state.status !== "ok") return state;
+        if (state.ownedSites > 0) return { status: "owned_sites" } as const;
+        await transaction`delete from users where id = ${userId}`;
+        return { status: "deleted", authUserId: text(user.auth_user_id) } as const;
+      });
+      if (outcome.status !== "deleted") return outcome;
+      let authUserDeleted = false;
+      if (outcome.authUserId) {
+        const { error } = await supabase.auth.admin.deleteUser(outcome.authUserId);
+        authUserDeleted = !error;
+        if (error) console.error("profile deleted but the Auth user remains", error.message);
+      }
+      return { status: "deleted", authUserDeleted };
+    }
     case "auth.revoke":
       return (await sql`
         delete from site_users where site_id = ${

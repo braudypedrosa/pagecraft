@@ -179,6 +179,7 @@ import {
 } from "./integrations.ts";
 import {
   accountSettingsPage,
+  type AccountDeletionView,
   confirmLinkPage,
   dashboardPage,
   collaborationInvitationsPage,
@@ -387,6 +388,8 @@ export interface Options {
   cookieSecret?: string;
   /** Bounded, sanitized record of unhandled request errors (see system-health.ts). */
   serverErrors?: ServerErrorLog;
+  /** Deleted accounts whose Auth identity still needs an administrator to remove it. */
+  accountDeletions?: { record(entry: { authUserId: string }): Promise<void> };
 }
 
 const TYPES: Record<string, string> = {
@@ -1777,11 +1780,13 @@ export function createApp(o: Options) {
           ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
           : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
       ]);
+      const deletion = await accountDeletionPlan(user, identity, mine);
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
         ownerCount: await ownedSiteCount(user, mine),
         storage,
+        deletion: deletion.view,
         wordpress: wordpress.map((credential) => ({
           id: credential.id,
           installationId: credential.installationId,
@@ -1903,6 +1908,140 @@ export function createApp(o: Options) {
             : "/account?tab=security&message=Password+updated.",
           303,
         );
+      },
+    );
+    /* Self-serve account deletion (Security → Delete account).
+
+       Nothing is deleted unless every check passes first: the backing store must support
+       deleting profiles (an older database gateway does not), the person must retype their
+       email and prove the session is theirs (current password + security check, or a Google
+       sign-in within 15 minutes), and nothing that has to be kept may depend on the account
+       (shared ownership, an assigned plan, signed WordPress releases). Then solely owned sites
+       are deleted with all their files, collaborator memberships and the person's assistant
+       tokens on those sites are removed, and the profile goes last; its database cascades take
+       sessions, owned libraries, library memberships, invitations and WordPress credentials. */
+    const FRESH_SIGN_IN_MS = 15 * 60 * 1000;
+    type DeletionSite = { id: string; name: string };
+    const accountDeletionPlan = async (
+      user: User,
+      identity: VerifiedIdentity,
+      visible?: Awaited<ReturnType<typeof visibleSites>>,
+    ) => {
+      const mine = visible || await visibleSites(user);
+      const owned: DeletionSite[] = mine.filter((x) => x.role === "owner").map((x) => ({ id: x.site.id, name: x.site.name }));
+      const collaborator: DeletionSite[] = mine.filter((x) => x.role !== "owner").map((x) => ({ id: x.site.id, name: x.site.name }));
+      const blockers: AccountDeletionView["blockers"] = [];
+      let available = !!(o.auth.deleteAccount && o.auth.accountDeletionCheck);
+      if (available) {
+        try {
+          const state = await o.auth.accountDeletionCheck!(user.id);
+          if (state.status === "plan") blockers.push({ kind: "plan", plan: planEntitlements(user.plan).label });
+          else if (state.status === "shared_sites") blockers.push({ kind: "shared_sites", sites: state.sites.map((site) => site.name) });
+          else if (state.status === "retained_records") blockers.push({ kind: "retained" });
+          else if (state.status === "missing") available = false;
+        } catch {
+          // An older gateway rejects the unknown action: report unavailable, delete nothing.
+          available = false;
+        }
+      }
+      if (available && (user.plan || "free") !== "free" && !blockers.some((b) => b.kind === "plan")) {
+        blockers.push({ kind: "plan", plan: planEntitlements(user.plan).label });
+      }
+      if (available && o.connected) {
+        const released: string[] = [];
+        for (const site of owned) {
+          if ((await o.connected.releasesForSite(site.id).catch(() => [])).length) released.push(site.name);
+        }
+        if (released.length) blockers.push({ kind: "releases", sites: released });
+      }
+      const providers = identity.providers || [];
+      const passwordRequired = providers.includes("email");
+      const lastSignIn = Date.parse(identity.lastSignInAt || "");
+      const freshSignInRequired = !passwordRequired &&
+        !(Number.isFinite(lastSignIn) && Date.now() - lastSignIn <= FRESH_SIGN_IN_MS);
+      const view: AccountDeletionView = {
+        available, blockers, passwordRequired, freshSignInRequired,
+        ownedSites: owned.map((site) => site.name),
+        collaboratorSites: collaborator.map((site) => site.name),
+        ...(siteKey ? { turnstileSiteKey: siteKey } : {}),
+      };
+      return { view, owned, collaborator };
+    };
+
+    app.post(
+      "/account/delete",
+      bodyLimit({
+        maxSize: 16 * 1024,
+        onError: (c) => c.text("Request too large", 413),
+      }),
+      async (c) => {
+        const [user, identity] = await Promise.all([who(c), verifiedIdentity(c)]);
+        if (!user || !identity) return c.redirect("/sign-in?next=%2Faccount%3Ftab%3Dsecurity", 303);
+        const back = (error: string) => c.redirect(`/account?tab=security&error=${error}#delete-account`, 303);
+        if (!accountChangeLimit.take(`${requestSource(c)}|delete`)) return back("password_rate");
+        const body = await form(c);
+        if (normalEmail(String(body.confirmEmail || "")) !== normalEmail(user.email)) return back("account_delete_email");
+        const plan = await accountDeletionPlan(user, identity);
+        if (!plan.view.available) return back("account_delete_unavailable");
+        if (plan.view.blockers.length) return back("account_delete_blocked");
+        if (plan.view.passwordRequired) {
+          const currentPassword = String(body.currentPassword || "");
+          if (!currentPassword || !o.accountAuth!.verifyPassword) return back("account_delete_password");
+          const captchaToken = await challengeToken(c, body, "login");
+          if (!captchaToken) return back("challenge");
+          const verified = await o.accountAuth!.verifyPassword(c, { email: identity.email, password: currentPassword, captchaToken })
+            .catch(() => false);
+          if (verified === "challenge") return back("challenge");
+          if (!verified) return back("account_delete_password");
+        } else if (plan.view.freshSignInRequired) {
+          return back("account_delete_reauth");
+        }
+
+        for (const site of plan.owned) {
+          const outcome = await deleteSiteEverywhere(site.id);
+          if (outcome === "releases") return back("account_delete_blocked");
+        }
+        for (const site of plan.collaborator) {
+          if (o.assistants) {
+            const tokens = await o.assistants.tokens(site.id).catch(() => []);
+            for (const token of tokens) {
+              if (token.createdBy === user.id && !token.revokedAt) {
+                await o.assistants.revokeToken(site.id, token.id).catch(() => undefined);
+              }
+            }
+          }
+          await o.auth.revoke(site.id, user.id).catch(() => false);
+        }
+        if (o.libraries) {
+          for (const library of await o.libraries.listForUser(user.id).catch(() => [])) {
+            if (library.access !== "owner") await o.libraries.removeMember(library.id, user.id).catch(() => false);
+          }
+        }
+        for (const invitation of await invitations.listForUser(user.id).catch(() => [])) {
+          await invitations.removeForRecipient(invitation.kind, invitation.resourceId, user.id).catch(() => false);
+        }
+        await revokeWordPressImports(user.id);
+
+        let result: Awaited<ReturnType<NonNullable<typeof o.auth.deleteAccount>>>;
+        try {
+          result = await o.auth.deleteAccount!(user.id);
+        } catch (error) {
+          console.error(`account ${user.id}: profile deletion failed after its sites were removed:`, error);
+          return back("account_delete_failed");
+        }
+        if (result.status !== "deleted") {
+          console.error(`account ${user.id}: profile deletion refused (${result.status}) after its sites were removed`);
+          return back(result.status === "owned_sites" ? "account_delete_failed" : "account_delete_blocked");
+        }
+        if (!result.authUserDeleted) {
+          await o.accountDeletions?.record({ authUserId: identity.authUserId }).catch(() => undefined);
+          console.warn(`account ${user.id}: profile deleted; the Auth identity must be removed by an administrator`);
+        }
+        // The Auth user is gone (or being removed), so every refresh token is already invalid.
+        await o.accountAuth!.signOutEverywhere?.(c).catch(() => undefined);
+        await o.accountAuth!.signOut(c).catch(() => undefined);
+        deleteCookie(c, SESSION_COOKIE, { path: "/" });
+        return c.redirect("/sign-in?message=Your+Pagecraft+account+was+deleted.", 303);
       },
     );
   }
@@ -2949,6 +3088,16 @@ export function createApp(o: Options) {
         303,
       );
     }
+    const outcome = await deleteSiteEverywhere(id);
+    if (outcome === "releases") {
+      return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_has_releases`, 303);
+    }
+    if (outcome === "missing") return deny(c, 404);
+    return c.redirect("/?message=Site+deleted.", 303);
+  });
+
+  /** Deletes a site and every file kept for it; shared by site settings and account deletion. */
+  async function deleteSiteEverywhere(id: string): Promise<"deleted" | "missing" | "releases"> {
     const memberIds = (await o.auth.members(id)).map((member) => member.userId);
     /* The database delete goes first and the files follow only once it has succeeded, so a
        failed delete leaves the site, its inbox and its public address exactly as they were.
@@ -2988,17 +3137,17 @@ export function createApp(o: Options) {
         : await remove();
     } catch (error) {
       if ((error as { code?: string } | null)?.code !== "SITE_HAS_RELEASES") throw error;
-      return c.redirect(`/sites/${encodeURIComponent(id)}/settings?error=site_has_releases`, 303);
+      return "releases";
     }
-    if (!deleted) return deny(c, 404);
+    if (!deleted) return "missing";
     /* Postgres removes memberships through the site's cascading foreign key. The in-memory
        development stores are separate objects, so mirror that cleanup after the site is gone. */
     await Promise.all(
       memberIds.map((userId) => o.auth.revoke(id, userId).catch(() => false)),
     );
     built.delete(id);
-    return c.redirect("/?message=Site+deleted.", 303);
-  });
+    return "deleted";
+  }
 
   /* The editor, with the document already in the page.
 

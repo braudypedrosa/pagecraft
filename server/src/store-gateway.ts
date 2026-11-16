@@ -30,6 +30,8 @@ import {
   type Session,
   type User,
   type AccountPlan,
+  type AccountDeletionResult,
+  type AccountDeletionState,
 } from "./auth.ts";
 import {
   type CmsWriteHead,
@@ -2069,6 +2071,16 @@ export class GatewayAuthStore implements AuthStore {
       name: row.name || "",
       authUserId: row.auth_user_id ?? null,
     }));
+  }
+  /* An older gateway rejects these unknown actions, which the app reads as "not available
+     yet" before anything is deleted. */
+  accountDeletionCheck(userId: string) {
+    return this.gateway.call<AccountDeletionState>("auth.accountDeletionCheck", { userId });
+  }
+  async deleteAccount(userId: string) {
+    const result = await this.gateway.call<AccountDeletionResult>("auth.deleteAccount", { userId });
+    if (result.status === "deleted") this.forgetUser(userId);
+    return result;
   }
   revoke(siteId: string, userId: string) {
     return this.gateway.call<boolean>("auth.revoke", { siteId, userId });

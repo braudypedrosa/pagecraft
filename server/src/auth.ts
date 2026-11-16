@@ -155,7 +155,23 @@ export interface AuthStore {
   /** The owner's active WordPress credentials, newest first, so they can see and revoke them. */
   manualImportsForOwner(ownerId: string): Promise<ManualImportCredential[]>;
   revokeManualImportForOwner(id: string, ownerId: string): Promise<boolean>;
+  /** What blocks deleting this profile; changes nothing. Absent or throwing means the backing
+      store cannot delete accounts yet (for example a gateway that predates the action). */
+  accountDeletionCheck?(userId: string): Promise<AccountDeletionState>;
+  /** Deletes the profile (cascading sessions, memberships, owned libraries, library
+      memberships, invitations and WordPress import credentials) and, where the store can,
+      the authentication identity. Solely owned sites must already be deleted. */
+  deleteAccount?(userId: string): Promise<AccountDeletionResult>;
 }
+
+export type AccountDeletionState =
+  | { status: 'ok'; ownedSites: number }
+  | { status: 'missing' | 'plan' | 'retained_records' }
+  | { status: 'shared_sites'; sites: { id: string; name: string }[] };
+export type AccountDeletionResult =
+  | { status: 'deleted'; authUserDeleted: boolean }
+  | { status: 'missing' | 'plan' | 'retained_records' | 'owned_sites' }
+  | { status: 'shared_sites'; sites: { id: string; name: string }[] };
 
 /** The auth half of the schema, beside the site half in `store-pg.ts`. */
 export const AUTH_SCHEMA = `
@@ -393,6 +409,32 @@ export class MemoryAuthStore implements AuthStore {
   }
   async revoke(siteId: string, userId: string) {
     return this.memberships.delete(siteId + '|' + userId);
+  }
+  /** Site names for shared-ownership checks; the memory store has no site table of its own. */
+  siteNames?: (ids: string[]) => Promise<Map<string, string>>;
+  async accountDeletionCheck(userId: string): Promise<AccountDeletionState> {
+    const user = await this.userById(userId);
+    if (!user) return { status: 'missing' };
+    if ((user.plan || 'free') !== 'free') return { status: 'plan' };
+    const owned = [...this.memberships.values()].filter(m => m.userId === userId && m.role === 'owner');
+    const shared = owned.filter(m => [...this.memberships.values()].some(other =>
+      other.siteId === m.siteId && other.role === 'owner' && other.userId !== userId));
+    if (shared.length) {
+      const names = await this.siteNames?.(shared.map(m => m.siteId)) || new Map<string, string>();
+      return { status: 'shared_sites', sites: shared.map(m => ({ id: m.siteId, name: names.get(m.siteId) || m.siteId })) };
+    }
+    return { status: 'ok', ownedSites: owned.length };
+  }
+  async deleteAccount(userId: string): Promise<AccountDeletionResult> {
+    const state = await this.accountDeletionCheck(userId);
+    if (state.status !== 'ok') return state;
+    if (state.ownedSites > 0) return { status: 'owned_sites' };
+    // Mirror the database's cascades.
+    this.users.delete(userId);
+    for (const [key, session] of this.sessions) if (session.userId === userId) this.sessions.delete(key);
+    for (const [key, membership] of this.memberships) if (membership.userId === userId) this.memberships.delete(key);
+    for (const [key, credential] of this.manualImports) if (credential.ownerId === userId) this.manualImports.delete(key);
+    return { status: 'deleted', authUserDeleted: false };
   }
   async changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult> {
     const current = await this.membership(siteId, userId);

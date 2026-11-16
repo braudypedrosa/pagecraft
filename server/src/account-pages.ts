@@ -57,6 +57,12 @@ const messages: Record<string, string> = {
   site_slug_taken: 'That Pagecraft address is already used by another site.',
   site_has_releases: 'This site has signed WordPress releases, which are kept permanently, so it can’t be deleted.',
   site_delete_confirm: 'Type the complete site name to confirm permanent deletion.',
+  account_delete_email: 'Type your account email address exactly to confirm deletion. Nothing was deleted.',
+  account_delete_password: 'Your current password could not be verified. Nothing was deleted.',
+  account_delete_reauth: 'Sign out and sign in again, then delete your account within 15 minutes. Nothing was deleted.',
+  account_delete_blocked: 'Your account cannot be deleted yet. See Delete account below for what to do first. Nothing was deleted.',
+  account_delete_unavailable: 'Self-serve deletion is not available yet. Nothing was deleted; email hello@braudyp.dev and we will delete the account for you.',
+  account_delete_failed: 'We could not finish deleting your account. Email hello@braudyp.dev so we can complete it.',
   site_settings: 'We could not update this site. Refresh the page and try again.',
   people_email: 'Enter a valid email address.',
   people_role: 'Choose Owner, Content editor, or Reviewer.',
@@ -302,7 +308,7 @@ export const privacyPage = () => legalShell('Privacy Policy',
 <section><h2>5. Service providers and disclosures</h2><p>We use service providers only where needed to run Pagecraft. Each one processes information on our behalf for the purpose listed:</p><ul><li><strong>Supabase</strong> — database and account authentication, including sign-in, password handling, and storage of your account and site records.</li><li><strong>Namecheap</strong> — hosting of the Pagecraft application, published sites, uploaded media, and server logs.</li><li><strong>Cloudflare</strong> — DNS, network delivery and protection, and Cloudflare Turnstile bot protection on sign-in and sign-up forms.</li><li><strong>Our email (SMTP) delivery provider</strong> — sending account emails such as confirmations, password resets, invitations, and form notifications.</li><li><strong>Paddle</strong> — payment processing for paid plans once billing launches. Paddle acts as the merchant of record and reseller, so it handles checkout, payment details, tax, invoices, and refunds under its own privacy notice.</li><li><strong>Google</strong> — optional “Continue with Google” sign-in, only if you choose it.</li></ul><p>If you connect WordPress or another publishing destination, information is also sent to that destination at your direction.</p><p>We may disclose information when required by law, to protect Pagecraft or others from harm, or as part of a business transfer. We do not give service providers permission to use your information for their own advertising.</p></section>
 <section><h2>6. International processing</h2><p>Pagecraft and its providers may process information outside your country. We take reasonable steps to use providers and safeguards appropriate to the information and the service.</p></section>
 <section><h2>7. Retention and security</h2><p>We keep account and site information while your account is active and for a reasonable period afterward when needed for recovery, security, disputes, or legal compliance. Security logs and backups may remain for a limited period. Server error records, which hold the time, page address, status, and a short technical message but no cookies, passwords, tokens, form contents, or site content, are kept for up to 14 days. We use access controls, encrypted connections, and other reasonable safeguards, but no online service can guarantee absolute security.</p></section>
-<section><h2>8. Your choices and rights</h2><p>You may ask to access, correct, export, or delete personal information associated with your account, or object to or restrict certain processing where applicable. You may also withdraw consent where consent is the basis for processing. Email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> from your account address so we can verify the request.</p><p>Depending on where you live, additional rights may apply. People in the Philippines may also contact the National Privacy Commission if a privacy concern cannot be resolved directly.</p></section>
+<section><h2>8. Your choices and rights</h2><p>You may ask to access, correct, export, or delete personal information associated with your account, or object to or restrict certain processing where applicable. You may also withdraw consent where consent is the basis for processing. Email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> from your account address so we can verify the request.</p><p>You can also delete your account yourself from Account settings → Security → Delete account. That permanently removes your profile and sign-in, the sites you own with their media, publications and form submissions, and your access to sites you collaborate on.</p><p>Depending on where you live, additional rights may apply. People in the Philippines may also contact the National Privacy Commission if a privacy concern cannot be resolved directly.</p></section>
 <section><h2>9. Children</h2><p>Pagecraft is not directed to children under 13, and we do not knowingly collect personal information from them.</p></section>
 <section><h2>10. Changes to this policy</h2><p>We may update this policy as Pagecraft changes. The date at the top shows the latest revision. Material changes will be communicated through the service or by email when appropriate.</p></section>`);
 
@@ -362,7 +368,63 @@ export interface AccountSettingsData {
   storage: DashboardStorage;
   /** WordPress installations this account approved for import. */
   wordpress?: { id: string; installationId: string; siteUrl?: string | null; createdAt: string; lastUsedAt: string }[];
+  /** The Delete account section on Security; absent hides it (for example legacy cookie mode). */
+  deletion?: AccountDeletionView;
 }
+
+export interface AccountDeletionView {
+  /** False until the database gateway supports deleting profiles. Nothing is deleted then. */
+  available: boolean;
+  ownedSites: string[];
+  collaboratorSites: string[];
+  blockers: (
+    | { kind: 'plan'; plan: string }
+    | { kind: 'shared_sites'; sites: string[] }
+    | { kind: 'releases'; sites: string[] }
+    | { kind: 'retained' }
+  )[];
+  /** Email-and-password accounts confirm with their password and the security check. */
+  passwordRequired: boolean;
+  /** Google-only accounts confirm by having signed in within the last 15 minutes. */
+  freshSignInRequired: boolean;
+  turnstileSiteKey?: string;
+}
+
+const siteList = (names: string[]) => names.length
+  ? `<ul class="pc-delete-sites">${names.slice(0, 12).map(name => `<li>${esc(name)}</li>`).join('')}${names.length > 12 ? `<li>and ${names.length - 12} more</li>` : ''}</ul>` : '';
+
+const accountDeletionSection = (user: User, view: AccountDeletionView) => {
+  const blockerCopy = view.blockers.map(blocker => blocker.kind === 'plan'
+    ? `<li>Your account has the ${esc(blocker.plan)} plan. Paid or assigned plans must be cancelled or removed first — email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> and we will help.</li>`
+    : blocker.kind === 'shared_sites'
+      ? `<li>You own sites that also have other owners. Remove yourself as an owner from each one (Manage site → People), or remove the other owners, before deleting your account:${siteList(blocker.sites)}</li>`
+      : blocker.kind === 'releases'
+        ? `<li>These sites have signed WordPress releases, which are kept permanently, so they cannot be deleted. Email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> to close the account:${siteList(blocker.sites)}</li>`
+        : '<li>You published WordPress releases, connections or media on sites you do not own, and those records are kept permanently. Email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> to close the account.</li>').join('');
+  const owned = view.ownedSites.length
+    ? `<li>The ${view.ownedSites.length === 1 ? 'site' : `${view.ownedSites.length} sites`} you own, including drafts, revisions, uploaded media, hosted publications, form submissions, analytics, reviews and schedules:${siteList(view.ownedSites)}</li>`
+    : '<li>Any sites you own (you currently own none).</li>';
+  const kept = view.collaboratorSites.length
+    ? `<li>${view.collaboratorSites.length === 1 ? 'The site' : `The ${view.collaboratorSites.length} sites`} you collaborate on stay with their owners. You are removed from ${view.collaboratorSites.length === 1 ? 'it' : 'them'}; content you added there stays with the site.${siteList(view.collaboratorSites)}</li>`
+    : '<li>Sites you collaborate on stay with their owners; you are only removed from them. You do not collaborate on any sites now.</li>';
+  const summary = `<div class="pc-delete-summary"><div><h3>Deleted permanently</h3><ul>${owned}<li>Assistant access tokens you created and integration connections on deleted sites</li><li>Connected WordPress sites, libraries you own and share, your library memberships, and invitations you sent or received</li><li>Your profile, sign-in identity, and every signed-in session on all devices</li></ul></div><div><h3>Kept</h3><ul>${kept}<li>Copies of your published sites that visitors or search engines already saved are outside Pagecraft’s control.</li></ul></div></div>`;
+  let action: string;
+  if (!view.available) {
+    action = '<p class="pc-delete-note" role="status" data-account-delete-unavailable>Self-serve deletion is not available yet. Nothing has been deleted. Email <a href="mailto:hello@braudyp.dev">hello@braudyp.dev</a> from this address and we will delete the account for you.</p>';
+  } else if (view.blockers.length) {
+    action = `<div class="pc-delete-note" role="status" data-account-delete-blocked><strong>Your account cannot be deleted yet</strong><ul>${blockerCopy}</ul></div>`;
+  } else {
+    const verify = view.passwordRequired
+      ? `<div class="pc-settings-field"><label for="delete-password">Current password</label><input id="delete-password" name="currentPassword" type="password" autocomplete="current-password" required></div>${view.turnstileSiteKey ? challenge(view.turnstileSiteKey, 'login') : ''}`
+      : view.freshSignInRequired
+        ? '<p class="pc-delete-note" role="status" data-account-delete-reauth>For your security, sign out and sign in with Google again, then return here within 15 minutes to delete your account.</p>'
+        : '';
+    action = `<form class="pc-settings-form pc-delete-form" method="post" action="/account/delete" data-account-delete-form><div class="pc-settings-field"><label for="delete-confirm-email">Type <strong>${esc(user.email)}</strong> to confirm</label><input id="delete-confirm-email" name="confirmEmail" type="email" autocomplete="off" spellcheck="false" required data-account-delete-email data-expected="${esc(user.email.toLowerCase())}"></div>${verify}<div class="pc-settings-actions"><button class="pc-btn pc-delete-account" type="submit" disabled data-account-delete-submit${view.freshSignInRequired ? ' data-reauth-required' : ''}>Delete account permanently</button></div></form>`;
+  }
+  return `<div class="pc-account-delete" id="delete-account" data-account-delete><div class="pc-settings-title"><div><h2>Delete account</h2><p>Permanently delete your Pagecraft account and everything it owns. This cannot be undone.</p></div></div>${summary}${action}</div>`;
+};
+
+const accountDeletionCss = '<style>.pc-account-delete{margin-top:40px;padding-top:28px;border-top:1px solid var(--pc-line)}.pc-delete-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:0 0 20px}.pc-delete-summary h3{margin:0 0 8px;font:var(--pc-type-label);font-weight:700;color:var(--pc-text)}.pc-delete-summary ul,.pc-delete-note ul{margin:0;padding-left:1.1rem;font:var(--pc-type-description);color:var(--pc-text-2)}.pc-delete-summary li,.pc-delete-note li{margin:0 0 6px}.pc-delete-sites{margin:6px 0 0;padding-left:1rem}.pc-delete-sites li{margin:0 0 2px;color:var(--pc-text)}.pc-delete-note{margin:0 0 16px;padding:13px 15px;border-left:3px solid #bd791e;background:#fff8e8;font:var(--pc-type-description)}.pc-delete-note strong{display:block;margin-bottom:6px;color:var(--pc-text)}.pc-delete-account{border-color:#b45b53;color:#7c2721}.pc-delete-account:not(:disabled):hover{background:#fff0ed}@media(max-width:720px){.pc-delete-summary{grid-template-columns:1fr}}</style>';
 
 type AccountSettingsTab = 'profile' | 'security' | 'plan';
 const mediaSize = (bytes: number) => bytes >= 1024 * 1024 * 1024
@@ -719,7 +781,7 @@ export const accountSettingsPage = (
   const tabState = (tab: AccountSettingsTab) => selectedTab === tab
     ? 'aria-selected="true" tabindex="0"'
     : 'aria-selected="false" tabindex="-1"';
-  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${workbenchHeader(user, 'Account')}
+  return shell('Account settings', `<main class="dashboard-app">${accountMenuCss}${accountSettingsCss}${data.deletion ? accountDeletionCss : ''}${workbenchHeader(user, 'Account')}
   <div class="pc-main">${sitesRail()}<section class="pc-workspace"><div class="pc-settings-content"><header class="pc-settings-head pc-workspace-head"><div><h1>Account settings</h1><p>Manage your profile, sign-in security, and Pagecraft plan.</p></div></header>
   ${notice(input.error, input.message)}<div class="pc-settings-layout"><div class="pc-settings-nav" role="tablist" aria-label="Account settings"><button id="settings-tab-profile" type="button" role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" ${tabState('profile')}>Profile</button><button id="settings-tab-security" type="button" role="tab" aria-controls="settings-panel-security" data-settings-tab="security" ${tabState('security')}>Security</button><button id="settings-tab-plan" type="button" role="tab" aria-controls="settings-panel-plan" data-settings-tab="plan" ${tabState('plan')}>Plan &amp; billing</button></div><div class="pc-settings-main">
   <section class="pc-settings-section" id="settings-panel-profile" role="tabpanel" aria-labelledby="settings-tab-profile" tabindex="0" data-settings-panel="profile"><div class="pc-settings-title"><div><h2>Profile</h2><p>Your verified email is used for sign-in, collaboration invitations, and account notices.</p></div>${joinedCopy ? `<span class="pc-account-meta">Joined ${joinedCopy}</span>` : ''}</div>
@@ -727,7 +789,7 @@ export const accountSettingsPage = (
   <div class="pc-provider-list" aria-label="Sign-in methods"><div class="pc-provider"><strong>Email and password</strong><span>${hasPassword ? 'Connected' : 'Not set'}</span></div><div class="pc-provider"><strong>Google</strong><span>${providers.has('google') ? 'Connected' : 'Not connected'}</span></div></div></section>
   <section class="pc-settings-section" id="settings-panel-security" role="tabpanel" aria-labelledby="settings-tab-security" tabindex="0" data-settings-panel="security"><div class="pc-settings-title"><div><h2>${hasPassword ? 'Change password' : 'Set a password'}</h2><p>${hasPassword ? 'Use your current password to protect this change.' : 'Add email and password as another way to access your account.'}</p></div></div><form class="pc-settings-form" method="post" action="/account/password">
   ${hasPassword ? '<div class="pc-settings-field"><label for="current-password">Current password</label><input id="current-password" name="currentPassword" type="password" autocomplete="current-password" required></div>' : ''}<div class="pc-settings-field"><label for="new-password">New password</label><input id="new-password" name="password" type="password" minlength="12" autocomplete="new-password" aria-describedby="new-password-help" required><small id="new-password-help">At least 12 characters. Passphrases are welcome.</small></div><div class="pc-settings-field"><label for="confirm-password">Confirm new password</label><input id="confirm-password" name="passwordConfirm" type="password" minlength="12" autocomplete="new-password" required></div><div class="pc-settings-actions"><button class="pc-btn primary" type="submit">${hasPassword ? 'Change password' : 'Set password'}</button></div></form>
-  <div class="pc-wordpress"><div class="pc-settings-title"><div><h2>Connected WordPress sites</h2><p>These WordPress sites can read and import the sites you own. Changing your password disconnects all of them.</p></div></div><div class="pc-provider-list" aria-label="Connected WordPress sites">${(data.wordpress || []).map(site => `<div class="pc-provider"><div class="pc-wordpress-site"><strong>WordPress site</strong><span>${site.siteUrl ? esc(site.siteUrl) : esc(site.installationId)}</span><span>Connected ${timeDate(site.createdAt)} · Last refreshed ${timeDate(site.lastUsedAt)}</span></div><form method="post" action="/account/wordpress/${encodeURIComponent(site.id)}/revoke"><button class="pc-btn" type="submit">Disconnect</button></form></div>`).join('') || '<div class="pc-provider"><span>No WordPress sites are connected.</span></div>'}</div></div></section>
+  <div class="pc-wordpress"><div class="pc-settings-title"><div><h2>Connected WordPress sites</h2><p>These WordPress sites can read and import the sites you own. Changing your password disconnects all of them.</p></div></div><div class="pc-provider-list" aria-label="Connected WordPress sites">${(data.wordpress || []).map(site => `<div class="pc-provider"><div class="pc-wordpress-site"><strong>WordPress site</strong><span>${site.siteUrl ? esc(site.siteUrl) : esc(site.installationId)}</span><span>Connected ${timeDate(site.createdAt)} · Last refreshed ${timeDate(site.lastUsedAt)}</span></div><form method="post" action="/account/wordpress/${encodeURIComponent(site.id)}/revoke"><button class="pc-btn" type="submit">Disconnect</button></form></div>`).join('') || '<div class="pc-provider"><span>No WordPress sites are connected.</span></div>'}</div></div>${data.deletion ? accountDeletionSection(user, data.deletion) : ''}</section>
   <section class="pc-settings-section" id="settings-panel-plan" role="tabpanel" aria-labelledby="settings-tab-plan" tabindex="0" data-settings-panel="plan"><div class="pc-settings-title"><div><h2>Plan &amp; billing</h2><p>Your current Pagecraft allowances and usage.</p></div><span class="pc-plan-badge">${esc(plan.label)}</span></div>${planSummary}</section>
   <div class="pc-settings-links"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/refunds">Refund Policy</a><a href="mailto:hello@braudyp.dev">Contact support</a></div></div></div></div></section></div></main><script>(()=>{
     const tabs=[...document.querySelectorAll('[data-settings-tab]')],panels=[...document.querySelectorAll('[data-settings-panel]')];
@@ -736,7 +798,7 @@ export const accountSettingsPage = (
     const activate=(name,focus=false)=>{if(!names.has(name))return;tabs.forEach(tab=>{const selected=tab.dataset.settingsTab===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;if(selected&&focus)tab.focus();});panels.forEach(panel=>{panel.hidden=panel.dataset.settingsPanel!==name;});};
     tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>activate(tab.dataset.settingsTab));tab.addEventListener('keydown',event=>{let next=index;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+tabs.length)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();activate(tabs[next].dataset.settingsTab,true);});});
     const selected=tabs.find(tab=>tab.getAttribute('aria-selected')==='true')?.dataset.settingsTab||'profile',legacy=location.hash.slice(1);activate(names.has(legacy)?legacy:selected);if(legacy&&names.has(legacy))history.replaceState(null,'',location.pathname+location.search);
-  })();</script>`);
+  })();(()=>{const form=document.querySelector('[data-account-delete-form]');if(!form)return;const email=form.querySelector('[data-account-delete-email]'),submit=form.querySelector('[data-account-delete-submit]');if(!email||!submit)return;const sync=()=>{submit.disabled=submit.hasAttribute('data-reauth-required')||email.value.trim().toLowerCase()!==email.dataset.expected;};email.addEventListener('input',sync);sync();form.addEventListener('submit',event=>{if(submit.disabled||form.dataset.submitting==='true'||!confirm('Delete your Pagecraft account and everything it owns? This cannot be undone.')){event.preventDefault();return;}form.dataset.submitting='true';submit.disabled=true;submit.textContent='Deleting…';});})();</script>`, data.deletion?.available && data.deletion.passwordRequired && !data.deletion.blockers.length ? data.deletion.turnstileSiteKey : undefined);
 };
 
 const latestDashboardTemplates = (templates: SiteTemplateSummary[]) => {
