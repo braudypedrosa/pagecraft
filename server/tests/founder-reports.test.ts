@@ -83,6 +83,8 @@ test('strict host and privacy headers cover redirects, errors and unknown paths'
     a.match(response.headers.get('cache-control') || '', /no-store/);
     a.match(response.headers.get('x-robots-tag') || '', /noindex/);
     a.match(response.headers.get('content-security-policy') || '', /frame-ancestors 'none'/);
+    // `no-referrer` makes browsers send `Origin: null` on form posts, which the origin check refuses.
+    a.equal(response.headers.get('referrer-policy'), 'same-origin');
   }
   const wrongHost = await r.request('/sign-in', { headers: { host: 'staging.itspagecraft.com' } });
   a.equal(wrongHost.status, 404);

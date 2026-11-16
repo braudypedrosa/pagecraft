@@ -114,7 +114,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
     c.header('pragma', 'no-cache');
     c.header('x-robots-tag', 'noindex, nofollow');
     c.header('x-content-type-options', 'nosniff');
-    c.header('referrer-policy', 'no-referrer');
+    c.header('referrer-policy', 'same-origin');
     c.header('permissions-policy', 'camera=(), microphone=(), geolocation=()');
     c.header('content-security-policy', "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; font-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
     if (origin.protocol === 'https:') c.header('strict-transport-security', 'max-age=31536000');
