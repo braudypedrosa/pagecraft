@@ -1,5 +1,6 @@
 import type { Node, Page } from '../../../app/src/core/types.ts';
 import type { DentalHelpers } from './expanded-types.ts';
+import { refineInnerHeroes } from './inner-heroes.ts';
 
 /** Apply the approved four-page sitemap after the existing pages are built. */
 export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], footer: Node[]): Page[] {
@@ -115,5 +116,6 @@ export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], foo
   const retained = pages.filter(page => !['dental-first-visit', 'dental-patient-information'].includes(page.id));
   update(header); update(footer);
   for (const page of retained) update(page.tree);
+  refineInnerHeroes(h, retained);
   return retained;
 }
