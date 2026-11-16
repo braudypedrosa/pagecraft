@@ -1,3 +1,4 @@
+import { PASSWORD_TOGGLE_CSS, PASSWORD_TOGGLE_SCRIPT } from './password-toggle.ts';
 import { cloudHeader, CLOUD_HEADER_CSS } from './cloud-header.ts';
 import { ownerBillingBody } from './owner-billing-page.ts';
 import type { OwnerBillingLoadResult } from './owner-billing.ts';
@@ -104,8 +105,8 @@ ${body.includes('<select') ? CUSTOM_SELECT_CSS : ''}
 </style>${turnstileSiteKey && turnstileSiteKey !== 'pagecraft-local-test' ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : ''}
 <style id="pc-workspace-styles">${WORKSPACE_CSS}</style>
 <style id="pc-ui-typography">${UI_TYPOGRAPHY_CSS}</style>
-<style id="pc-ui-focus">${UI_FOCUS_CSS}</style>
-</head><body><script>${UI_MOTION_BOOT_SCRIPT}${ACTION_FEEDBACK_BOOT_SCRIPT}</script>${body}<script>${body.includes('<select') ? CUSTOM_SELECT_BOOT_SCRIPT : ''}\n${ACCOUNT_ACTIONS_BOOT_SCRIPT}${body.includes('data-notify-root') ? NOTIFY_MENU_BOOT_SCRIPT : ''}${LOCAL_TIME_SCRIPT}</script></body></html>`;
+<style id="pc-ui-focus">${UI_FOCUS_CSS}</style>${body.includes('type="password"') ? `<style id="pc-password-toggle">${PASSWORD_TOGGLE_CSS}</style>` : ''}
+</head><body><script>${UI_MOTION_BOOT_SCRIPT}${ACTION_FEEDBACK_BOOT_SCRIPT}</script>${body}<script>${body.includes('<select') ? CUSTOM_SELECT_BOOT_SCRIPT : ''}\n${ACCOUNT_ACTIONS_BOOT_SCRIPT}${body.includes('data-notify-root') ? NOTIFY_MENU_BOOT_SCRIPT : ''}${LOCAL_TIME_SCRIPT}${body.includes('type="password"') ? PASSWORD_TOGGLE_SCRIPT : ''}</script></body></html>`;
 
 const notice = (code?: string, success?: string) => success
   ? `<div class="notice" role="status">${esc(success)}</div>`
