@@ -106,6 +106,15 @@ def main(commit, home=Path('/home/itspbuku')):
             temporary.unlink()
         temporary.symlink_to(release)
         def restart():
+            # LiteSpeed notices a restart through <app root>/tmp/restart.txt as the web server
+            # user. Under umask 077 the app root, tmp and restart.txt are owner-only, the
+            # restart is silently ignored and the old process keeps serving the old release.
+            (app_root / 'tmp').mkdir(exist_ok=True)
+            app_root.chmod(0o711)
+            (app_root / 'tmp').chmod(0o711)
+            restart_file = app_root / 'tmp' / 'restart.txt'
+            if restart_file.is_file() and not restart_file.is_symlink():
+                restart_file.chmod(0o644)
             result = json.loads(subprocess.check_output(['cloudlinux-selector', 'restart', '--json',
                 '--interpreter', 'nodejs', '--domain', domain, '--app-root', 'pagecraft-reports']))
             if result.get('result') != 'success':

@@ -228,6 +228,19 @@ class ActivationTests(unittest.TestCase):
         self.assert_rolled_back()
         self.assertEqual(self.restarts[-1], self.previous)
 
+    def test_restart_signal_is_visible_to_the_web_server(self):
+        app_root = self.home / 'pagecraft-reports'
+        (app_root / 'tmp').mkdir(mode=0o700)
+        restart_file = app_root / 'tmp/restart.txt'
+        restart_file.write_text('')
+        restart_file.chmod(0o600)
+        app_root.chmod(0o700)
+        self.run_activation()
+        self.assertEqual(app_root.stat().st_mode & 0o777, 0o711)
+        self.assertEqual((app_root / 'tmp').stat().st_mode & 0o777, 0o711)
+        self.assertEqual(restart_file.stat().st_mode & 0o777, 0o644)
+        self.assertEqual((app_root / 'releases').stat().st_mode & 0o777, 0o700)
+
     def test_success_switches_only_reports_pointer_and_records_rollback(self):
         self.run_activation()
         release = self.reports_current.resolve()
