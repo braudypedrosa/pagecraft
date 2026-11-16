@@ -1,3 +1,4 @@
+import { PASSWORD_TOGGLE_CSS, PASSWORD_TOGGLE_SCRIPT } from './password-toggle.ts';
 import { UI_FONTS_CSS } from '../../shared/ui-fonts.js';
 import type { User } from './auth.ts';
 import type {
@@ -414,7 +415,7 @@ const icon = (section: CrmSection) => ({
   health: '<path d="M2 10h4l2-5 4 10 2-5h4"/>',
 }[section]);
 
-const shell = (title: string, body: string, challengeSiteKey?: string, context?: { range: string; tests: string; currency: string; environment: string; day: string }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(title)} — Pagecraft HQ</title><link rel="icon" href="/brand/pagecraft-favicon.svg">${challengeSiteKey ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : ''}<style>${UI_FONTS_CSS}${styles}</style>${context ? '<link rel="stylesheet" href="/assets/founder-crm.css"><script src="/assets/founder-crm.js" defer></script>' : ''}</head><body${context ? ` data-report-range="${esc(context.range)}" data-report-tests="${esc(context.tests)}" data-report-currency="${esc(context.currency)}" data-report-environment="${esc(context.environment)}" data-report-day="${esc(context.day)}"` : ''}>${body}${clientScript}</body></html>`;
+const shell = (title: string, body: string, challengeSiteKey?: string, context?: { range: string; tests: string; currency: string; environment: string; day: string }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(title)} — Pagecraft HQ</title><link rel="icon" href="/brand/pagecraft-favicon.svg">${challengeSiteKey ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' : ''}<style>${UI_FONTS_CSS}${styles}${body.includes('type="password"') ? PASSWORD_TOGGLE_CSS : ''}</style>${context ? '<link rel="stylesheet" href="/assets/founder-crm.css"><script src="/assets/founder-crm.js" defer></script>' : ''}</head><body${context ? ` data-report-range="${esc(context.range)}" data-report-tests="${esc(context.tests)}" data-report-currency="${esc(context.currency)}" data-report-environment="${esc(context.environment)}" data-report-day="${esc(context.day)}"` : ''}>${body}${clientScript}${body.includes('type="password"') ? `<script>${PASSWORD_TOGGLE_SCRIPT}</script>` : ''}</body></html>`;
 
 export function founderCrmPage(user: User, data: FounderCrmData, input: FounderCrmPageInput): string {
   const currency = selectedCurrency(data, input.currencyCode);
