@@ -52,7 +52,7 @@ import { TemplateDraftStore } from './template-draft-store.ts';
 import { TemplateAuthorGrants } from './template-authoring-grants.ts';
 import { stagingProposalGatewayUrl } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
-import { FileServerErrorLog, installCrashRecorder } from "./system-health.ts";
+import { FileAccountDeletionLog, FileServerErrorLog, installCrashRecorder } from "./system-health.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -568,6 +568,7 @@ analytics.start();
 
 const app = createApp({
   serverErrors,
+  accountDeletions: new FileAccountDeletionLog(join(resolve(publicationRoot), ".account-deletions")),
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),

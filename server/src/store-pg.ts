@@ -31,7 +31,8 @@ import {
   AUTH_SCHEMA, MANUAL_IMPORT_IDLE_MS, normalEmail, type AuthStore, type InviteDeliveryResult,
   type InvitationDrainResult, type InvitationProvisionResult,
   type MemberChangeResult, type MemberRemovalResult, type Role, type Session,
-  type ManualImportCredential, type ManualImportRefreshResult, type User, type AccountPlan
+  type ManualImportCredential, type ManualImportRefreshResult, type User, type AccountPlan,
+  type AccountDeletionResult, type AccountDeletionState
 } from './auth.ts';
 import {
   type ConnectedEditorCredential, type ConnectedGrant, type ConnectedGrantKind,
@@ -2048,6 +2049,62 @@ export class PgAuthStore implements AuthStore {
     const { rows } = await this.db.query<{ user_id: string }>(
       'delete from site_users where site_id = $1 and user_id = $2 returning user_id', [siteId, userId]);
     return rows.length > 0;
+  }
+  async accountDeletionCheck(userId: string, db: Queryable = this.db): Promise<AccountDeletionState> {
+    const user = (await db.query<{ plan: string | null }>('select plan from users where id = $1', [userId])).rows[0];
+    if (!user) return { status: 'missing' };
+    if ((user.plan || 'free') !== 'free') return { status: 'plan' };
+    const shared = await db.query<{ id: string; name: string }>(
+      `select s.id, s.name from site_users mine join sites s on s.id = mine.site_id
+       where mine.user_id = $1 and mine.role = 'owner'
+         and exists (select 1 from site_users other where other.site_id = mine.site_id
+           and other.role = 'owner' and other.user_id <> $1)
+       order by s.name`, [userId]);
+    if (shared.rows.length) return { status: 'shared_sites', sites: shared.rows.map(row => ({ id: row.id, name: row.name })) };
+    // The connected (WordPress) tables exist only where that store has been initialised.
+    const present = (await db.query<{ releases: boolean; reservations: boolean; connections: boolean }>(
+      `select to_regclass('site_releases') is not null as releases,
+              to_regclass('site_release_reservations') is not null as reservations,
+              to_regclass('wordpress_connections') is not null as connections`)).rows[0];
+    const retainedParts = [
+      ...(present?.releases ? ['(select count(*) from site_releases where created_by = $1)::integer'] : []),
+      ...(present?.reservations ? [`(select count(*) from site_release_reservations where created_by = $1
+             and site_id not in (select site_id from owned))::integer`] : []),
+      ...(present?.connections ? [`(select count(*) from wordpress_connections where created_by = $1
+             and site_id not in (select site_id from owned))::integer`] : []),
+    ];
+    const counts = (await db.query<{ retained: number; owned: number }>(
+      `with owned as (select site_id from site_users where user_id = $1 and role = 'owner')
+       select ${retainedParts.length ? retainedParts.join(' + ') : '0'} as retained,
+         (select count(*) from owned)::integer as owned`, [userId])).rows[0];
+    if (Number(counts?.retained) > 0) return { status: 'retained_records' };
+    return { status: 'ok', ownedSites: Number(counts?.owned) };
+  }
+  /** Postgres cascades sessions, memberships and import credentials. Without Supabase's admin
+      API this store cannot remove an Auth identity, so it reports `authUserDeleted: false`. */
+  async deleteAccount(userId: string): Promise<AccountDeletionResult> {
+    const acquired = this.db.connect ? await this.db.connect() : null;
+    const client = acquired || this.db;
+    try {
+      await client.query('begin');
+      if (!(await client.query('select id from users where id = $1 for update', [userId])).rows[0]) {
+        await client.query('rollback');
+        return { status: 'missing' };
+      }
+      const state = await this.accountDeletionCheck(userId, client);
+      if (state.status !== 'ok' || state.ownedSites > 0) {
+        await client.query('rollback');
+        return state.status === 'ok' ? { status: 'owned_sites' } : state;
+      }
+      await client.query('delete from users where id = $1', [userId]);
+      await client.query('commit');
+      return { status: 'deleted', authUserDeleted: false };
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      acquired?.release?.();
+    }
   }
   async changeMemberRole(siteId: string, userId: string, role: Role): Promise<MemberChangeResult> {
     const client = this.db.connect ? await this.db.connect() : this.db;

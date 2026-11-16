@@ -363,3 +363,44 @@ export function deploymentFromUrl(url: string, fetcher: typeof fetch = fetch, ti
     return { commit, branch };
   };
 }
+
+/* --------------------------------------------------- account deletions */
+
+/** Deleted accounts whose Supabase Auth identity could not be removed automatically, so an
+    administrator can finish the deletion. Only the opaque Auth user id is kept, never email. */
+export class FileAccountDeletionLog {
+  readonly path: string;
+  private queue: Promise<void> = Promise.resolve();
+  constructor(directory: string) { this.path = join(directory, 'pending-auth-deletions.json'); }
+  async record(entry: { authUserId: string }) {
+    if (!/^[\w-]{1,64}$/.test(entry.authUserId)) return;
+    const work = async () => {
+      let rows: { at: string; authUserId: string }[] = [];
+      try { rows = JSON.parse(await readFile(this.path, 'utf8')); } catch { /* first entry */ }
+      if (!Array.isArray(rows)) rows = [];
+      rows = [{ at: new Date().toISOString(), authUserId: entry.authUserId }, ...rows.filter(row => row?.authUserId !== entry.authUserId)].slice(0, 1000);
+      await mkdir(dirname(this.path), { recursive: true, mode: 0o700 });
+      const temporary = `${this.path}.${process.pid}.${randomUUID()}.tmp`;
+      await writeFileAtomic(temporary, this.path, JSON.stringify(rows) + '\n');
+    };
+    this.queue = this.queue.then(work, work);
+    return this.queue;
+  }
+  async list(): Promise<{ at: string; authUserId: string }[]> {
+    await this.queue.catch(() => undefined);
+    try { const rows = JSON.parse(await readFile(this.path, 'utf8')); return Array.isArray(rows) ? rows : []; } catch { return []; }
+  }
+}
+
+async function writeFileAtomic(temporary: string, path: string, text: string) {
+  const handle = await open(temporary, 'wx', 0o600);
+  try {
+    await handle.writeFile(text, 'utf8');
+    await handle.close();
+    await rename(temporary, path);
+  } catch (error) {
+    await handle.close().catch(() => undefined);
+    await rm(temporary, { force: true }).catch(() => undefined);
+    throw error;
+  }
+}
