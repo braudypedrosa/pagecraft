@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Confirm your new email</title>
+</head>
+<body style="margin:0;padding:0;background:#eef0ec;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Confirm the change to your Pagecraft sign-in email.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef0ec">
+<tr><td align="center" style="padding:32px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+<tr><td style="background:#111311;border-radius:14px 14px 0 0;padding:26px 32px">
+<img src="https://itspagecraft.com/images/email/pagecraft-logo.png" width="148" height="32" alt="Pagecraft" style="display:block;border:0;width:148px;height:32px">
+</td></tr>
+<tr><td style="background:#ffffff;border-radius:0 0 14px 14px;padding:36px 32px 32px">
+<h1 style="margin:0 0 14px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:24px;line-height:1.25;font-weight:700;letter-spacing:-.02em;color:#111311">Confirm your new email</h1>
+<p style="margin:0 0 16px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#3d443c">You asked to change your Pagecraft sign-in email from <strong style="color:#111311">{{ .Email }}</strong> to <strong style="color:#111311">{{ .NewEmail }}</strong>.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 26px"><tr><td style="background:#b7f34a;border-radius:10px">
+<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type={{ .EmailActionType }}" style="display:inline-block;padding:14px 26px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1;color:#111311;text-decoration:none;border-radius:10px">Confirm new email</a>
+</td></tr></table>
+<p style="margin:0 0 6px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6b7369">Button not working? Paste this link into your browser:</p>
+<p style="margin:0 0 22px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;word-break:break-all"><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type={{ .EmailActionType }}" style="color:#3f6b12;text-decoration:underline">{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type={{ .EmailActionType }}</a></p>
+<p style="margin:0;padding-top:20px;border-top:1px solid #e3e6e1;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b7369">If you didn’t request this change, don’t click the link and change your password from Account settings.</p>
+</td></tr>
+<tr><td align="center" style="padding:20px 8px 0;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#80887e">
+Pagecraft · Build, review and publish client sites<br>
+<a href="https://itspagecraft.com" style="color:#80887e;text-decoration:underline">itspagecraft.com</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
