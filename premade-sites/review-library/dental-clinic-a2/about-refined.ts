@@ -27,9 +27,9 @@ export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], foo
   const role = (copy: string) => h.text(copy, 'body', 'p', { color: h.color.primary, 'font-weight': '600', 'margin-top': '4px' });
   const existingRoles = [role('General Dentistry'), role('Restorative Dentistry')];
   const setPhotoStyle = (image: Node) => {
-    Object.assign(image.css.d, { width: '100%', height: '300px', 'object-fit': 'cover', 'object-position': '50% 10%', 'border-radius': '12px' });
-    Object.assign(image.css.t, { height: '360px' });
-    Object.assign(image.css.m, { height: '300px' });
+    Object.assign(image.css.d, { width: '100%', height: '520px', 'object-fit': 'cover', 'object-position': '50% 10%', 'border-radius': '12px' });
+    Object.assign(image.css.t, { height: '520px' });
+    Object.assign(image.css.m, { height: '420px' });
   };
   const existing = [
     [maya, 'Dr Maya Bennett', 'Everyday dental care, with clear explanations at each step.'],
