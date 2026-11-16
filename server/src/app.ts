@@ -1,5 +1,7 @@
 import { LiveReviewStore } from './live-reviews.ts';
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { HTTPException } from "hono/http-exception";
+import type { ServerErrorLog } from "./system-health.ts";
 import type { IncomingMessage } from "node:http";
 import { runDueSchedules } from "./schedule-runner.ts";
 import type { PublicationScheduleStore } from "./schedules.ts";
@@ -383,6 +385,8 @@ export interface Options {
   /** Signs short-lived account cookies. Absent means a per-process key, which is enough for
       one Node process; several processes behind one host need the same configured value. */
   cookieSecret?: string;
+  /** Bounded, sanitized record of unhandled request errors (see system-health.ts). */
+  serverErrors?: ServerErrorLog;
 }
 
 const TYPES: Record<string, string> = {
@@ -440,6 +444,20 @@ export function createApp(o: Options) {
   const inviteSiteLimit = throttle(20, 60 * 60 * 1000, 5000);
   const inviteEmailLimit = throttle(3, 60 * 60 * 1000, 5000);
   const inviteCooldown = throttle(1, 60 * 1000, 5000);
+
+  /* An unhandled error answers with a request id the person can quote, and leaves a sanitized
+     record — never the cookie, query, body or stack — in the server error log. */
+  app.onError((error, c) => {
+    if (error instanceof HTTPException && error.status < 500) return error.getResponse();
+    const requestId = requestTiming.getStore()?.id || randomUUID();
+    const status = error instanceof HTTPException ? error.status : 500;
+    let path = "/";
+    try { path = new URL(c.req.url).pathname; } catch { /* keep the root */ }
+    o.serverErrors?.record({ kind: "request", error, method: c.req.method, path, status, requestId })
+      .catch(() => undefined);
+    console.error(`unhandled request error ${requestId} ${c.req.method} ${path}:`, error);
+    return c.text("Internal Server Error", status as 500, { "x-request-id": requestId });
+  });
 
   app.use('*', async (c, next) => {
     const trace = newRequestTiming();

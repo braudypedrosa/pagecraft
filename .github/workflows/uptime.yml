@@ -1,0 +1,38 @@
+# Uptime check: every 10 minutes, request production and staging /__deployment and fail the
+# run when either is down, not serving a deployment record, or slower than 8 seconds.
+# GitHub emails the owner about failed scheduled runs, which is the alert. No secrets.
+#
+# GitHub runs scheduled workflows only from the default branch (production), so this
+# schedule starts once the workflow is promoted there. `workflow_dispatch` runs it on demand
+# from any branch. GitHub may delay or skip scheduled runs under load and disables schedules
+# in repositories with no activity for 60 days.
+name: uptime
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          sparse-checkout: tools/uptime-check.mjs
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Check production and staging
+        run: node tools/uptime-check.mjs
