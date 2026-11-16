@@ -31,6 +31,7 @@ export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], foo
   };
   function update(nodes: Node[]) {
     for (const n of nodes) {
+      if (n.id === 'dental-a2-1') { n.css.d['margin-left'] = 'auto'; n.css.t['margin-left'] = '0'; }
       if (n.id === 'dental-a2-641') n.css.d['background-color'] = '#FFFFFF';
       if (n.id === 'dental-a2-638') n.css.d['background-color'] = '#F4F7F8';
       if (n.id === 'dental-a2-189') n.adv.htmlId = 'visit-guidance';
