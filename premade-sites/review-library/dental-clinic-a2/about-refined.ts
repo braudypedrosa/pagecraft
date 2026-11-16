@@ -14,7 +14,7 @@ export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], foo
     h.text('Linden Dental is a friendly, family-focused practice with a thoughtful approach to everyday dental care. We make space to listen, explain your options and understand what matters to you.', 'lead', 'p', { 'margin-top': '16px', 'max-width': '1000px' }),
     h.text('Whether you are coming in for routine care or want to discuss a concern, the conversation starts with your needs and questions.', 'lead', 'p', { 'margin-top': '14px', 'max-width': '1000px' }),
     photo
-  ], { 'max-width': '1320px', 'margin-left': 'auto', 'margin-right': 'auto' })], { 'background-color': '#F4F7F8' });
+  ], { 'max-width': '1320px', 'margin-left': 'auto', 'margin-right': 'auto' })], { 'background-color': '#FFFFFF' });
   about.name = 'About';
   about.slug = 'about';
   about.title = 'About | Linden Dental';
@@ -31,6 +31,8 @@ export function refineAbout(h: DentalHelpers, pages: Page[], header: Node[], foo
   };
   function update(nodes: Node[]) {
     for (const n of nodes) {
+      if (n.id === 'dental-a2-641') n.css.d['background-color'] = '#FFFFFF';
+      if (n.id === 'dental-a2-638') n.css.d['background-color'] = '#F4F7F8';
       if (n.id === 'dental-a2-189') n.adv.htmlId = 'visit-guidance';
       if (n.id === 'dental-a2-207') n.adv.htmlId = 'home-faq';
       if (n.type === 'heading') {
