@@ -215,6 +215,21 @@ class ActivationTests(unittest.TestCase):
         self.assertNotEqual(self.restarts[0], self.previous)
         self.assertEqual(self.restarts[1], self.previous)
 
+    def test_https_check_waits_between_attempts_while_the_old_release_answers(self):
+        with patch('activate_reports.time.sleep') as sleep:
+            with self.assertRaisesRegex(ValueError, 'HTTPS verification failed'):
+                with ExitStack() as stack:
+                    stack.enter_context(patch('activate_reports.subprocess.Popen', return_value=self.process))
+                    stack.enter_context(patch('activate_reports.subprocess.check_output', side_effect=self.cloudlinux))
+                    stack.enter_context(patch('activate_reports.urllib.request.urlopen',
+                                              side_effect=lambda request, **_kwargs: self.response(request, True)))
+                    stack.enter_context(patch('activate_reports.shutil.disk_usage',
+                                              return_value=shutil._ntuple_diskusage(10**9, 1, 10**9)))
+                    stack.enter_context(redirect_stdout(io.StringIO()))
+                    activate_reports.main(self.sha, self.home)
+        self.assertGreaterEqual(sleep.call_count, 20)
+        self.assert_rolled_back()
+
     def test_failed_atomic_status_write_also_rolls_back_reports_pointer(self):
         real_replace = os.replace
 
