@@ -650,7 +650,11 @@ test('Postgres counts only created owned sites, and rotates, expires, lists and 
   a.equal(await owned.owned(owner.id), 1, 'being added as an owner uses none of the allowance');
   a.equal(await owned.owned(stranger.id), 1);
   const made = await owned.create({ ownerId: owner.id, host: 'mine.test', name: 'Mine', doc: blankDoc('Mine') });
-  a.ok(made.ok);
+  a.deepEqual(made, { ok: false, reason: 'site_limit_reached' }, 'the Free plan allows one created site');
+  a.equal(await owned.owned(owner.id), 1);
+  await db.query("update users set plan='pro' where id=$1", [owner.id]);
+  const mine = await owned.create({ ownerId: owner.id, host: 'mine.test', name: 'Mine', doc: blankDoc('Mine') });
+  a.ok(mine.ok);
   a.equal(await owned.owned(owner.id), 2);
 
   await auth.createManualImportCredential({

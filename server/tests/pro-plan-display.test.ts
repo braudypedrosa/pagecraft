@@ -13,15 +13,16 @@ const user = (plan?: string): User => ({
   ...(plan ? { plan } : {}),
 } as unknown as User);
 
-test('Free dashboard keeps its public allowance and disables creation at three owned sites', () => {
+test('Free dashboard keeps its public allowance and disables creation at one owned site', () => {
   const html = dashboardPage(
     user(),
     [],
-    3,
+    1,
     { usedBytes: 2 * MB, limitBytes: 100 * MB },
   );
 
-  a.match(html, /3 of 3 owned sites · 2 MB of 100 MB media used/);
+  a.match(html, /1 of 1 owned sites · 2 MB of 100 MB media used/);
+  a.match(html, /The Free plan includes 1 site in total, including drafts\. Your existing sites stay available/);
   a.match(html, /<button class="pc-btn primary" type="button" disabled>Add new site<\/button>/);
   a.match(html, /<h2>Site limit reached<\/h2>/);
   a.doesNotMatch(html, />Pro</);
@@ -47,14 +48,16 @@ test('Pro dashboard shows unlimited owned sites and never disables creation by s
 test('Free account settings keep the Free plan details and finite owned-sites meter', () => {
   const html = accountSettingsPage(user(), {
     providers: ['email'],
-    ownerCount: 2,
+    ownerCount: 0,
     storage: { usedBytes: 25 * MB, limitBytes: 100 * MB },
   }, { tab: 'plan' });
 
   a.match(html, /<span class="pc-plan-badge">Free<\/span>/);
   a.match(html, /\$0 <span>current plan<\/span>/);
-  a.match(html, /2 of 3 used/);
-  a.match(html, /aria-label="Owned sites used"[^>]*aria-valuemax="3"[^>]*aria-valuenow="2"/);
+  a.match(html, /0 of 1 used/);
+  a.match(html, /aria-label="Owned sites used"[^>]*aria-valuemax="1"[^>]*aria-valuenow="0"/);
+  a.match(html, /<li>1 owned site, drafts included<\/li>/);
+  a.doesNotMatch(html, /Up to 3 owned sites/);
   a.match(html, /25 MB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
   a.doesNotMatch(html, />Pro<\/span>/);
@@ -83,11 +86,32 @@ test('unknown account plans fall back to the public Free display', () => {
   const html = dashboardPage(
     user('unknown'),
     [],
-    3,
+    1,
     { usedBytes: 0, limitBytes: 100 * MB },
   );
 
-  a.match(html, /3 of 3 owned sites/);
+  a.match(html, /1 of 1 owned sites/);
   a.match(html, /disabled>Add new site/);
   a.doesNotMatch(html, /Unlimited owned sites/);
+});
+
+test('Free accounts that already own more than one site keep them and see the limit, not an error', () => {
+  const html = dashboardPage(
+    user(),
+    [],
+    3,
+    { usedBytes: 0, limitBytes: 100 * MB },
+  );
+  a.match(html, /3 of 1 owned sites/);
+  a.match(html, /disabled>Add new site/);
+  a.match(html, /<h2>Site limit reached<\/h2>/);
+  a.match(html, /Your existing sites stay available to edit and publish/);
+  a.doesNotMatch(html, /-\d+ sites? remaining/);
+  const settings = accountSettingsPage(user(), {
+    providers: ['email'],
+    ownerCount: 3,
+    storage: { usedBytes: 0, limitBytes: 100 * MB },
+  }, { tab: 'plan' });
+  a.match(settings, /3 of 1 used/);
+  a.match(settings, /aria-valuemax="1" aria-valuenow="3"><span style="width:100%">/);
 });

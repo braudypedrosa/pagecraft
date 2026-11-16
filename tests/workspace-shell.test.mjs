@@ -104,7 +104,7 @@ test('Cloud dialog variants share named regions and retain safe deletion control
   const user={id:'qa',email:'qa@example.invalid',name:'QA'};
   const site={id:'qa',name:'QA',slug:'qa',url:'https://example.test/qa/',updatedAt:'2026-09-11T00:00:00Z',role:'owner',published:false};
   const pages=[
-    dashboardPage(user,[site],1,{used:0,limit:104857600}),
+    dashboardPage(user,[site],0,{used:0,limit:104857600}),
     siteIntegrationsPage(user,{...site,version:1},{enabled:true,connected:false,selected:[]}),
     siteSubmissionsPage(user,site,'owner',[{id:'contact',name:'Contact',pages:['Home'],fields:[]}],
       [{id:'entry',formId:'contact',formName:'Contact',createdAt:'2026-09-11T00:00:00Z',status:'success',values:[{label:'Name',value:'QA'}]}],'contact','',1,true)

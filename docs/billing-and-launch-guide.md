@@ -21,7 +21,7 @@ Pagecraft is a tablet/desktop editing app. Beta onboarding and advertising shoul
 | Launch | $10/month or $96/year | 5, with 1 custom-domain hosted publication | A first business or client site |
 | Studio | $24/month or $228/year | 20, with 5 custom-domain hosted publications | Freelancers and small studios |
 
-Paid rates and resource allowances remain proposals. The user confirmed the one-site Free policy, but the existing entitlement catalog still enforces three sites; implement and verify the one-site limit before presenting that allowance as available. Preserve existing Free sites and block additional creation at or above the new allowance.
+Paid rates and resource allowances remain proposals. The user confirmed the one-site Free policy. The entitlement catalog now sets Free to 1 owned site (drafts included); existing Free sites are preserved and additional creation is blocked at or above the allowance. The `pagecraft-db` gateway edge function must be redeployed to Supabase before gateway-backed environments enforce 1 instead of 3 (see [account plan entitlements](account-plan-entitlements.md)).
 
 The [full pricing and margin proposal](../../research/pricing-2026-10-09/pricing-proposal.md) is in the adjacent project research folder. It includes storage, bandwidth, forms, CMS, seats, comparison commitments and cost assumptions. The private complimentary Pro plan remains a testing entitlement, not proof of payment or a platform administrator role. Domain registration is separate.
 

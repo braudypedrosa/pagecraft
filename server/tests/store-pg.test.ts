@@ -76,11 +76,9 @@ test('owned-site creation commits the site, revision and membership together and
   a.equal(first.ok, true);
   if (!first.ok) throw new Error('site was not created');
   await auth.grant(first.site.id, collaborator.id, 'content');
-  for (const [host, name] of [['two.test', 'Two'], ['three.test', 'Three']]) {
-    a.equal((await owned.create({ ownerId: owner.id, host, name, doc: demo() })).ok, true);
-  }
-  const fourth = await owned.create({ ownerId: owner.id, host: 'four.test', name: 'Four', doc: demo() });
-  a.deepEqual(fourth, { ok: false, reason: 'site_limit_reached' });
+  const second = await owned.create({ ownerId: owner.id, host: 'two.test', name: 'Two', doc: demo() });
+  a.deepEqual(second, { ok: false, reason: 'site_limit_reached' }, 'the Free plan allows one created site');
+  a.equal(await sites.byHost('two.test'), null, 'a rejected creation leaves no site behind');
   a.equal((await auth.membershipsForUser(collaborator.id)).length, 1,
     'collaborator membership exists but does not consume their own creation quota');
   a.equal((await owned.create({ ownerId: collaborator.id, host: 'collab-owned.test', name: 'Mine', doc: demo() })).ok, true);

@@ -123,9 +123,11 @@ const rig = (options: {
   siteTemplates?: SiteTemplateStore;
   challenge?: HumanChallenge;
   trustCloudflare?: boolean;
+  /** Tests that need several owned sites for reasons unrelated to the Free allowance. */
+  plan?: "pro";
 } = {}) => {
   const store = new MemoryStore(),
-    auth = new MemoryAuthStore(),
+    auth = options.plan ? new PlanAuthStore(options.plan) : new MemoryAuthStore(),
     accountAuth = new FakeAccountAuth();
   const app = createApp({
     store,
@@ -154,6 +156,15 @@ const rig = (options: {
     );
   return { store, auth, accountAuth, app, request };
 };
+
+class PlanAuthStore extends MemoryAuthStore {
+  private plan: "pro";
+  constructor(plan: "pro") { super(); this.plan = plan; }
+  override async userById(id: string) {
+    const user = await super.userById(id);
+    return user ? { ...user, plan: this.plan } : null;
+  }
+}
 
 class ConcurrentAssetStore extends MemoryAssetStore {
   active = 0;
@@ -462,13 +473,19 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
     email: "builder@example.test",
     name: "Builder",
   };
-  await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
+  const builder = await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
+  /* Another person creates the site and adds the builder as an owner, so the builder still
+     has their one Free site available and the create dialog renders. */
+  accountAuth.current = { authUserId: "auth-2", email: "partner@example.test", name: "Partner" };
+  await auth.ensureAuthUser("auth-2", "partner@example.test", "Partner");
   const created = await request("/api/sites", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ name: "Braudy", doc: doc() }),
   });
   a.equal(created.status, 201);
+  await auth.grant((await created.json() as { id: string }).id, builder.id, "owner");
+  accountAuth.current = { authUserId: "auth-1", email: "builder@example.test", name: "Builder" };
 
   const dashboard = await request("/");
   a.equal(dashboard.status, 200);
@@ -491,8 +508,8 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, />Edit<\/a>/);
   a.match(html, />View site<\/a>/);
   a.match(html, />Owner<\/div>/);
-  a.match(html, /2 sites remaining/);
-  a.match(html, /1 of 3 owned sites · 0 KB of 100 MB media used/);
+  a.match(html, /1 site remaining/);
+  a.match(html, /0 of 1 owned sites · 0 KB of 100 MB media used/);
   a.match(html, /data-site-view="owned"/);
   a.match(html, /data-filter-empty/);
   a.match(html, /No sites match your search/);
@@ -690,6 +707,11 @@ test("a Cloud curated site charges optimized template images to its owner's medi
   a.match(JSON.stringify(reloaded.doc), /Editable in Pagecraft Cloud\./,
     "a template node remains editable and persists through the normal cloud save route");
 
+  /* The owner has now used their one Free site, so the template picker is checked from a
+     fresh account that can still create one. */
+  a.match(await (await request("/")).text(), /<h2>Site limit reached<\/h2>/);
+  accountAuth.current = { authUserId: "auth-fresh", email: "fresh@example.test", name: "Fresh" };
+  await auth.ensureAuthUser("auth-fresh", "fresh@example.test", "Fresh");
   const dashboard = await request("/");
   const html = await dashboard.text();
   a.match(html, /Northline · Creative Studio/);
@@ -1097,7 +1119,7 @@ test("invitation confirmation requires a password and preserves the safe People 
 });
 
 test("site settings let only owners rename, change the Pagecraft address, and delete by typed confirmation", async () => {
-  const { request, accountAuth, auth, store } = rig();
+  const { request, accountAuth, auth, store } = rig({ plan: "pro" });
   accountAuth.current = {
     authUserId: "auth-owner",
     email: "owner@example.test",
@@ -1224,7 +1246,8 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /Current password/);
   a.match(html, /Plan &amp; billing/);
   a.match(html, /<span class="pc-plan-badge">Free<\/span>/);
-  a.match(html, /0 of 3 used/);
+  a.match(html, /0 of 1 used/);
+  a.match(html, /1 owned site, drafts included/);
   a.match(html, /0 KB of 100 MB/);
   a.match(html, /Paid plans are not available yet/);
   a.match(html, /Joined <time datetime="2026-01-12T00:00:00.000Z" data-local="date">Jan 12, 2026<\/time>/, "a UTC date the browser rewrites in its own time zone");
@@ -1462,7 +1485,7 @@ test("site management forms reject oversized bodies before parsing", async () =>
 });
 
 test("site creation reports usable slug errors to JSON and redirects form submissions safely", async () => {
-  const { request, accountAuth, auth } = rig();
+  const { request, accountAuth, auth } = rig({ plan: "pro" });
   accountAuth.current = {
     authUserId: "auth-1",
     email: "builder@example.test",
@@ -1615,7 +1638,7 @@ test("signup validates a human challenge and does not provision an unconfirmed p
   a.equal(await auth.userByEmail("builder@example.test"), null);
 });
 
-test("three concurrent owned sites succeed and the fourth is rejected atomically", async () => {
+test("one of four concurrent Free site creations succeeds and the rest are rejected atomically", async () => {
   const { request, accountAuth, auth } = rig();
   accountAuth.current = {
     authUserId: "auth-1",
@@ -1634,12 +1657,16 @@ test("three concurrent owned sites succeed and the fourth is rejected atomically
   );
   a.deepEqual(responses.map((response) => response.status).sort(), [
     201,
-    201,
-    201,
+    409,
+    409,
     409,
   ]);
   const limited = responses.find((response) => response.status === 409)!;
-  a.deepEqual(await limited.json(), { error: "site_limit_reached", limit: 3 });
+  a.deepEqual(await limited.json(), {
+    error: "site_limit_reached",
+    limit: 1,
+    detail: "Your plan includes 1 site in total, including drafts. Your existing sites stay available to edit and publish. Sites you collaborate on do not count toward this limit.",
+  });
 });
 
 test("cross-origin cookie-backed mutations are refused", async () => {
@@ -1980,13 +2007,64 @@ test("sites somebody else created and added you to as owner do not use your allo
     await auth.grant(site.id, stranger.id, "owner");
     await auth.grant(site.id, user.id, "owner");
   }
-  a.match(await (await request("/")).text(), /0 of 3 owned sites/);
+  a.match(await (await request("/")).text(), /0 of 1 owned sites/);
   const make = (name: string) => request("/api/sites", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ name, doc: doc() }),
   });
-  for (const name of ["Mine one", "Mine two", "Mine three"]) a.equal((await make(name)).status, 201, name);
-  a.equal((await make("Mine four")).status, 409, "the sites they created still count");
-  a.match(await (await request("/")).text(), /3 of 3 owned sites/);
+  a.equal((await make("Mine one")).status, 201, "sites shared with them leave the Free site available");
+  a.equal((await make("Mine two")).status, 409, "the site they created still counts");
+  a.match(await (await request("/")).text(), /1 of 1 owned sites/);
+});
+
+test("a Free account that already owns three sites keeps all of them and is only blocked from creating more", async () => {
+  const { request, accountAuth, auth, store } = rig();
+  accountAuth.current = { authUserId: "auth-legacy", email: "legacy@example.test", name: "Legacy" };
+  const user = await auth.ensureAuthUser("auth-legacy", "legacy@example.test", "Legacy");
+  // Created before the Free plan moved from three sites to one.
+  const legacy = [];
+  for (const name of ["Legacy one", "Legacy two", "Legacy draft"]) {
+    const site = await store.create({ host: `${name.replace(/ /g, "-").toLowerCase()}.invalid`, name, doc: doc(), savedBy: user.id });
+    await auth.grant(site.id, user.id, "owner");
+    legacy.push(site);
+  }
+
+  const html = await (await request("/")).text();
+  for (const site of legacy) {
+    a.match(html, new RegExp(`>${site.name}</div>`), `${site.name} is still listed`);
+    a.match(html, new RegExp(`href="/edit/${site.id}"`), `${site.name} can still be edited`);
+  }
+  a.match(html, /3 of 1 owned sites/);
+  a.match(html, /<h2>Site limit reached<\/h2>/);
+  a.match(html, /The Free plan includes 1 site in total, including drafts\. Your existing sites stay available to edit and publish\./);
+  a.match(html, /<button class="pc-btn primary" type="button" disabled>Add new site<\/button>/);
+  a.doesNotMatch(html, /<dialog class="[^"\n]*\bpc-create-modal\b/);
+
+  const json = await request("/api/sites", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Fourth", doc: doc() }),
+  });
+  a.equal(json.status, 409);
+  const body = await json.json() as { error: string; limit: number; detail: string };
+  a.equal(body.error, "site_limit_reached");
+  a.equal(body.limit, 1);
+  a.match(body.detail, /Your existing sites stay available/);
+
+  const form = await request("/api/sites", {
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ name: "Fourth form" }),
+  });
+  a.equal(form.status, 303);
+  a.equal(form.headers.get("location"), "/?error=limit");
+  a.match(await (await request("/?error=limit")).text(), /The Free plan includes 1 site in total/);
+
+  const listed = await (await request("/api/sites")).json() as Array<{ id: string }>;
+  a.deepEqual(listed.map(site => site.id).sort(), legacy.map(site => site.id).sort(), "nothing was removed or hidden");
+  for (const site of legacy) a.ok(await store.byId(site.id), `${site.name} still exists`);
+  const saved = await request(`/api/sites/${legacy[2].id}`, {
+    method: "PUT", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ doc: legacy[2].doc, version: legacy[2].version }),
+  });
+  a.equal(saved.status, 200, "an existing site over the allowance can still be saved");
 });
