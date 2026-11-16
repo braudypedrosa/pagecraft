@@ -4106,7 +4106,11 @@ export function createApp(o: Options) {
         if (created.reason === "site_limit_reached") {
           return htmlForm
             ? c.redirect("/?error=limit", 303)
-            : c.json({ error: "site_limit_reached", limit: planEntitlements(user.plan).ownedSites }, 409);
+            : c.json({
+              error: "site_limit_reached",
+              limit: planEntitlements(user.plan).ownedSites,
+              detail: siteLimitDetail(planEntitlements(user.plan).ownedSites),
+            }, 409);
         }
         return htmlForm ? c.redirect("/?error=account", 303) : c.json({
           error: "profile_missing",
@@ -7856,6 +7860,12 @@ const escapeHtml = (v: string) =>
   String(v)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+/** What a person at their owned-site allowance is told. Existing sites are never removed. */
+function siteLimitDetail(limit: number | null) {
+  const allowance = limit === 1 ? "1 site" : `${limit} sites`;
+  return `Your plan includes ${allowance} in total, including drafts. Your existing sites stay available to edit and publish. Sites you collaborate on do not count toward this limit.`;
+}
 
 function isEditorHost(host: string | undefined, o: Options) {
   if (!o.editorHost) return true; // no split configured: everything is the editor

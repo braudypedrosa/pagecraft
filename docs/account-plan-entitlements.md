@@ -2,7 +2,7 @@
 
 | Plan | Publicly available | Owned sites | Optimized media pool |
 | --- | --- | --- | --- |
-| Free | Yes; default for new profiles | 3 | 100 MB |
+| Free | Yes; default for new profiles | 1 in total, including drafts | 100 MB |
 | Pro | No; privately assigned | Unlimited | 5 GB |
 
 Pro is complimentary. It has no checkout, public upgrade option, or payment obligation.
@@ -14,6 +14,20 @@ The canonical catalog is `supabase/functions/pagecraft-db/plan-entitlements.ts`,
 by `server/src/plans.ts`. The Node deployment bundles that one pure module; the gateway
 deployment includes it alongside the function entrypoint. Unknown values fail closed to
 Free, and the database constraint permits only `free` and `pro`.
+
+The Free allowance changed from 3 to 1 owned site on 2026-11-16 (user decision). Existing
+Free accounts that already own more sites keep every one of them: nothing is deleted, hidden
+or made read-only. They can keep editing and publishing those sites; only creating another
+site is refused while their count is at or above the allowance. The dashboard shows, for
+example, `3 of 1 owned sites` and the "Site limit reached" card, and the API answers
+`409 site_limit_reached` with `limit` and a readable `detail`.
+
+Enforcement happens in two places that share this catalog: the Node app (memory and Postgres
+stores) and the `pagecraft-db` database gateway edge function (`account.createOwnedSite`).
+The gateway is deployed to Supabase separately; the Node deployment does not update it.
+Until the edge function is redeployed with the new catalog, gateway-backed environments keep
+enforcing the old allowance of 3. Because staging and production share one database and
+gateway, that redeploy affects both environments at once.
 
 An unlimited site allowance is represented by `null`, never `Infinity` or a large invented
 number. Site creation resolves the owner’s stored plan while holding the user row lock.

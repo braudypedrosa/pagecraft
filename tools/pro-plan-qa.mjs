@@ -35,7 +35,7 @@ const ownedSites = new MemoryOwnedSiteStore(store, auth);
 for (const [plan, fixture] of fixtures) {
   const owner = await auth.ensureAuthUser(fixture.authUserId, fixture.email, fixture.name);
   auth.plans.set(owner.id, plan);
-  for (let i = 0; i < (plan === 'pro' ? 4 : 3); i++) await ownedSites.create({
+  for (let i = 0; i < (plan === 'pro' ? 4 : 1); i++) await ownedSites.create({
     ownerId: owner.id, host: `${plan}-${i}.invalid`, name: `${plan.toUpperCase()} QA ${i + 1}`, doc: blankDoc(`QA ${i + 1}`),
   });
 }

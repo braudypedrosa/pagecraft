@@ -12,7 +12,7 @@ test("plan catalog keeps Pro hidden and defaults unknown plans to Free", () => {
   a.deepEqual(FREE_PLAN, {
     id: "free",
     label: "Free",
-    ownedSites: 3,
+    ownedSites: 1,
     storageBytes: 100 * 1024 * 1024,
     public: true,
   });

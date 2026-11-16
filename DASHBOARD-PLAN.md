@@ -55,7 +55,7 @@ The `bp/accounts-dashboard` branch already provides the beginning of the dashboa
 - Search and sorting
 - Owned and shared-site filtering
 - Blank-site creation
-- Three-owned-site limit handling
+- Owned-site limit handling (Free: 1 site including drafts since 2026-11-16; originally 3)
 - Published and draft-change states
 - Owner and content-editor roles
 - Open Builder and View Site actions
@@ -76,7 +76,7 @@ dashboard architecture.
 - Sort sites by last edited or name.
 - Filter between `All sites`, `Owned`, and `Shared`.
 - Create a blank site from its name.
-- Show owned-site allowance, such as `2 of 3 sites used`.
+- Show owned-site allowance, such as `1 of 1 sites used`.
 - Open the builder.
 - Open the public site in a new tab.
 - Provide a compact site-actions menu for management routes as they become available.
@@ -288,7 +288,7 @@ surface behind it.
 - Verified email/password and Google authentication
 - Membership-scoped site listing
 - Site cards, live preview, search, sorting, publishing state, and role
-- Blank-site creation with the three-owned-site limit
+- Blank-site creation with the Free owned-site limit (now 1)
 - Builder and public-site actions
 
 ### Phase 1: Sites workspace completeness — Complete

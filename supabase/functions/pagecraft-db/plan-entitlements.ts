@@ -11,7 +11,7 @@ export interface PlanEntitlements {
 export const FREE_PLAN: PlanEntitlements = Object.freeze({
   id: "free",
   label: "Free",
-  ownedSites: 3,
+  ownedSites: 1,
   storageBytes: 100 * 1024 * 1024,
   public: true,
 });

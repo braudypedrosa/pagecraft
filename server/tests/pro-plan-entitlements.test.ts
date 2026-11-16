@@ -74,10 +74,14 @@ test('assigned Pro creates six sites concurrently, survives profile edits, and r
 
 test('Free cannot self-assign Pro through creation or editable profile fields', async () => {
   const { request, create } = await rig('free');
-  for (let i = 0; i < 3; i++) a.equal((await create(`Free ${i}`, { plan: 'pro' })).status, 201);
-  const blocked = await create('Fourth', { plan: 'pro', ownedSites: null });
+  a.equal((await create('Free 0', { plan: 'pro' })).status, 201);
+  const blocked = await create('Second', { plan: 'pro', ownedSites: null });
   a.equal(blocked.status, 409);
-  a.deepEqual(await blocked.json(), { error: 'site_limit_reached', limit: 3 });
+  const body = await blocked.json();
+  a.equal(body.error, 'site_limit_reached');
+  a.equal(body.limit, 1);
+  a.match(body.detail, /1 site in total, including drafts/);
+  a.match(body.detail, /existing sites stay available/);
   await request('/account/profile', { method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ name: 'Owner', email: 'owner@example.test', plan: 'pro' }),
@@ -112,13 +116,13 @@ test('Postgres resolves the assigned plan while preserving atomic Free creation 
     const store = new PgStore(query), auth = new PgAuthStore(query), owned = new PgOwnedSiteStore(query);
     await store.init(); await auth.init();
     const owner = await auth.createUser('pg-pro@example.test', 'Pg Pro');
-    for (let i = 0; i < 3; i++) a.equal((await owned.create({ ownerId: owner.id, host: `pg${i}.test`, name: `Pg ${i}`, doc: blankDoc(`Pg ${i}`) })).ok, true);
+    a.equal((await owned.create({ ownerId: owner.id, host: 'pg0.test', name: 'Pg 0', doc: blankDoc('Pg 0') })).ok, true);
     a.deepEqual(await owned.create({ ownerId: owner.id, host: 'pg-blocked.test', name: 'Blocked', doc: blankDoc('Blocked') }), { ok: false, reason: 'site_limit_reached' });
     await db.query("update users set plan='pro' where id=$1", [owner.id]);
-    a.equal((await owned.create({ ownerId: owner.id, host: 'pg-fourth.test', name: 'Fourth', doc: blankDoc('Fourth') })).ok, true);
+    a.equal((await owned.create({ ownerId: owner.id, host: 'pg-second.test', name: 'Second', doc: blankDoc('Second') })).ok, true);
     a.equal((await auth.updateProfile(owner.id, { name: 'Renamed' }))?.plan, 'pro');
     a.equal((await auth.ensureAuthUser('pg-auth', owner.email))?.plan, 'pro');
     a.equal((await auth.usersByIds([owner.id]))[0]?.plan, 'pro');
-    a.equal(await owned.owned(owner.id), 4);
+    a.equal(await owned.owned(owner.id), 2);
   } finally { await db.close(); }
 });
