@@ -128,7 +128,10 @@ def main(commit, home=Path('/home/itspbuku')):
                         if json.load(response) == meta:
                             break
                 except (OSError, ValueError):
-                    time.sleep(1)
+                    pass
+                # Wait between attempts even when the old release answers, so a slow restart
+                # gets the full window instead of 20 back-to-back requests.
+                time.sleep(1)
             else:
                 raise ValueError('Reports HTTPS verification failed')
             status_temporary = app_root / 'deployment-status.next.json'
