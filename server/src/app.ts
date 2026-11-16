@@ -195,6 +195,7 @@ import {
   notificationStatusExamples,
   notificationsMiniMarkup,
   termsPage,
+  refundPage,
 } from "./account-pages.ts";
 import {
   CUSTOM_SELECT_BOOT_SCRIPT,
@@ -515,6 +516,7 @@ export function createApp(o: Options) {
   app.use("/review/*", editorOnly);
   app.use("/privacy", editorOnly);
   app.use("/terms", editorOnly);
+  app.use("/refunds", editorOnly);
   // Share the builder's exact font files; only the product font manifest is public.
   // CloudLinux launches from a fixed directory outside the active release.
   const brandFile = (path: string) => fileURLToPath(new URL(`../../brand/${path}`, import.meta.url));
@@ -1251,6 +1253,7 @@ export function createApp(o: Options) {
   const sourceLimit = throttle(30, 15 * 60 * 1000, 5000);
   app.get("/privacy", (c) => c.html(privacyPage()));
   app.get("/terms", (c) => c.html(termsPage()));
+  app.get("/refunds", (c) => c.html(refundPage()));
   if (!o.accountAuth) {
     app.post(
       "/auth/login",

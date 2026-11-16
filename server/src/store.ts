@@ -148,7 +148,7 @@ export const RESERVED_PATHS = [
   'forms', 'review', '_pc', 'oauth',
   'account', 'notifications', 'mcp', 'owner',
   'api', 'auth', 'brand', 'internal', 'edit', 'sites', 'templates', 'v1', 'sign-up', 'sign-in', 'forgot-password',
-  'reset-password', 'privacy', 'terms',
+  'reset-password', 'privacy', 'terms', 'refunds',
   /* not routes, but names a browser or a crawler asks for at the root */
   'assets', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'index.html', '.well-known'
 ];
