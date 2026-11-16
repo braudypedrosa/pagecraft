@@ -20,9 +20,11 @@ export interface FounderCrmRouteOptions {
   origin: string;
   dataEnvironment: FounderCrmPageInput['dataEnvironment'];
   previewLabel?: string;
+  /** Server errors, disk and deployed commits for the System health section. */
+  systemHealth?: () => Promise<import('./system-health.ts').SystemHealthSnapshot>;
 }
 
-const sections: CrmSection[] = ['overview', 'customers', 'pipeline', 'revenue', 'costs', 'reports', 'sources'];
+const sections: CrmSection[] = ['overview', 'customers', 'pipeline', 'revenue', 'costs', 'reports', 'sources', 'health'];
 export function founderCrmQuery(c: Context): FounderCrmQuery {
   const range = c.req.query('range');
   return { range: range === '90d' || range === '12m' ? range : '30d', includeTests: c.req.query('tests') !== 'exclude' };
@@ -102,9 +104,12 @@ export function founderCrmRoutes(app: Hono, o: FounderCrmRouteOptions) {
     },
   });
   const render = async (c: Context, current: VerifiedIdentity, section: CrmSection, extra: Partial<FounderCrmPageInput> = {}, status: 200 | 422 | 409 | 503 = 200, query = founderCrmQuery(c)) => {
-    const data = await load(current, query);
+    const [data, systemHealth] = await Promise.all([
+      load(current, query),
+      section === 'health' && o.systemHealth ? o.systemHealth().catch(() => null) : Promise.resolve(null),
+    ]);
     if ('status' in data) return c.text('CRM data is unavailable. Try again.', 503);
-    return c.html(founderCrmPage(identityUser(current), data, { ...input(c, section), ...extra }), status);
+    return c.html(founderCrmPage(identityUser(current), data, { ...input(c, section), systemHealth, ...extra }), status);
   };
 
   for (const section of sections) app.get('/' + section, async c => {

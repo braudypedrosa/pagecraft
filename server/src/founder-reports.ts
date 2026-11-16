@@ -31,6 +31,8 @@ export interface FounderReportsAppOptions {
   brandRoot?: string;
   /** Built, self-hosted CRM JavaScript/CSS; never a user-selected directory. */
   assetRoot?: string;
+  /** Server errors, disk and deployed commits for the System health section. */
+  systemHealth?: () => Promise<import('./system-health.ts').SystemHealthSnapshot>;
 }
 
 const signInError = (o: FounderReportsAppOptions, error?: string) => founderCrmSignInPage({
@@ -243,7 +245,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   founderCrmRoutes(app, {
     billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts,
     identity, origin: origin.origin, dataEnvironment: o.dataEnvironment,
-    previewLabel: o.previewLabel,
+    previewLabel: o.previewLabel, systemHealth: o.systemHealth,
   });
 
   ownerBillingRoutes(app, {

@@ -11,6 +11,10 @@ import { FileFounderCrmStore } from './founder-crm-store.ts';
 import type { CrmPlatformSnapshot } from './founder-crm-types.ts';
 import { reportsConfigKeys, reportsRuntimeConfig } from './reports-config.ts';
 import { PagecraftGateway, GatewayStore } from './store-gateway.ts';
+import {
+  DEFAULT_RELEASE_BUDGET_BYTES, FileServerErrorLog, deploymentFromUrl, diskThresholdsFromEnv,
+  systemHealthSnapshot, type DiskTarget,
+} from './system-health.ts';
 
 const env = { ...process.env };
 const configPath = env.PAGECRAFT_REPORTS_CONFIG;
@@ -37,7 +41,24 @@ const store = config.gatewayUrl && config.gatewayKey
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const crmGateway = config.reportsDataGatewayUrl && config.gatewayKey
   ? new PagecraftGateway(config.reportsDataGatewayUrl, config.gatewayKey, fetch, config.gatewayRegion) : undefined;
+const deploymentPath = join(repo, 'deployment.json');
+const deployment = existsSync(deploymentPath) ? JSON.parse(readFileSync(deploymentPath, 'utf8')) : null;
+const healthDisks: DiskTarget[] = [
+  ...(config.healthRoot ? [{ label: 'Publication storage', path: config.healthRoot }] : []),
+  ...(config.releaseRoot ? [{ label: 'Release storage', path: config.releaseRoot, measure: true, budgetBytes: DEFAULT_RELEASE_BUDGET_BYTES }] : []),
+];
+const healthErrors = config.healthRoot ? new FileServerErrorLog(join(config.healthRoot, '.system-health')) : undefined;
+const systemHealth = config.healthRoot ? () => systemHealthSnapshot({
+  errors: healthErrors,
+  disks: healthDisks,
+  thresholds: diskThresholdsFromEnv(env),
+  deployments: [
+    ...(config.appOrigin ? [{ label: `Pagecraft app (${config.dataEnvironment})`, read: deploymentFromUrl(`${config.appOrigin}/__deployment`) }] : []),
+    { label: 'Founder reports', read: async () => deployment ? { commit: deployment.commit ?? null, branch: deployment.branch ?? null } : null },
+  ],
+}) : undefined;
 const app = createFounderReportsApp({
+  systemHealth,
   brandRoot: join(repo, 'brand'),
   assetRoot: join(repo, 'server', 'public'),
   host: config.host, origin: config.origin, appOrigin: config.appOrigin,
@@ -54,8 +75,6 @@ const app = createFounderReportsApp({
     paddle: config.paddle,
   },
 });
-const deploymentPath = join(repo, 'deployment.json');
-const deployment = existsSync(deploymentPath) ? JSON.parse(readFileSync(deploymentPath, 'utf8')) : null;
 serve({
   port: Number(env.PORT || 8788), hostname: env.BIND_HOST || '0.0.0.0',
   fetch: (request, ...args) => {

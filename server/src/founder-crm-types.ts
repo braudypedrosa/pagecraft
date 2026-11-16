@@ -1,7 +1,7 @@
 import type { OwnerBillingLoadResult } from './owner-billing.ts';
 
 export type CrmRange = '30d' | '90d' | '12m';
-export type CrmSection = 'overview' | 'customers' | 'pipeline' | 'revenue' | 'costs' | 'reports' | 'sources';
+export type CrmSection = 'overview' | 'customers' | 'pipeline' | 'revenue' | 'costs' | 'reports' | 'sources' | 'health';
 export const CRM_STAGES = ['lead', 'contacted', 'qualified', 'customer', 'archived'] as const;
 export const CRM_SOURCES = ['unknown', 'direct', 'referral', 'organic', 'social', 'paid', 'other'] as const;
 export type CrmStage = typeof CRM_STAGES[number];
@@ -117,4 +117,6 @@ export interface FounderCrmPageInput {
   csrfOrigin?: string;
   /** Only used by isolated local fixtures; never configured by the hosted runtime. */
   previewLabel?: string;
+  /** The System health section; null means it is not configured for this runtime. */
+  systemHealth?: import('./system-health.ts').SystemHealthSnapshot | null;
 }

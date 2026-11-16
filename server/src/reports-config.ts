@@ -9,6 +9,8 @@ export const reportsConfigKeys = [
   'DATABASE_GATEWAY_URL', 'DATABASE_GATEWAY_KEY', 'DATABASE_GATEWAY_REGION',
   'REPORTS_DATA_GATEWAY_URL',
   'PADDLE_API_KEY', 'PADDLE_ENVIRONMENT',
+  'PAGECRAFT_REPORTS_HEALTH_ROOT', 'PAGECRAFT_REPORTS_RELEASE_ROOT',
+  'PAGECRAFT_DISK_WARN_FREE_BYTES', 'PAGECRAFT_DISK_WARN_USED_PERCENT',
 ] as const;
 
 export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
@@ -56,6 +58,13 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
   }
   const storageRoot = env.PAGECRAFT_REPORTS_STORAGE_ROOT;
   if (!storageRoot || !isAbsolute(storageRoot)) throw new Error('Reports requires an absolute private storage root');
+  /* System health reads the reported app's publication root (error log + disk) and the
+     deployment receiver's release storage on the same hosting account. Both are optional. */
+  const healthRoot = env.PAGECRAFT_REPORTS_HEALTH_ROOT?.trim() || undefined;
+  const releaseRoot = env.PAGECRAFT_REPORTS_RELEASE_ROOT?.trim() || undefined;
+  for (const [name, value] of [['PAGECRAFT_REPORTS_HEALTH_ROOT', healthRoot], ['PAGECRAFT_REPORTS_RELEASE_ROOT', releaseRoot]]) {
+    if (value && !isAbsolute(value)) throw new Error(`${name} must be an absolute path`);
+  }
   const paddleEnvironment = env.PADDLE_ENVIRONMENT || 'sandbox';
   if (!['sandbox', 'live'].includes(paddleEnvironment)) throw new Error('PADDLE_ENVIRONMENT must be sandbox or live');
   return {
@@ -68,6 +77,7 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
     reportsDataGatewayUrl,
     costsPath: join(storageRoot, 'costs.json'),
     contactsPath: join(storageRoot, 'contacts.json'),
+    healthRoot, releaseRoot,
     paddle: env.PADDLE_API_KEY?.trim() ? {
       apiKey: env.PADDLE_API_KEY,
       environment: paddleEnvironment as 'sandbox' | 'live',

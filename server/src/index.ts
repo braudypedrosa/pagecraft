@@ -52,6 +52,7 @@ import { TemplateDraftStore } from './template-draft-store.ts';
 import { TemplateAuthorGrants } from './template-authoring-grants.ts';
 import { stagingProposalGatewayUrl } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
+import { FileServerErrorLog, installCrashRecorder } from "./system-health.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -210,6 +211,11 @@ const publications = new FileHostedPublicationStore(publicationRoot, {
   timing: ({ name, durationMs, outcome }) =>
     recordTiming(`publication.${name}.${outcome}`, durationMs),
 });
+/* Sanitized server errors, ≤500 entries / 14 days, beside the other per-environment stores.
+   The monitor observes crashes without changing them: Node still exits as before, and an
+   unhandled rejection reaches it with origin "unhandledRejection". */
+const serverErrors = new FileServerErrorLog(join(resolve(publicationRoot), ".system-health"));
+installCrashRecorder(serverErrors);
 // A sibling private directory survives deployments and is isolated by environment.
 const cloudIntegrations = { connections: new FileCloudConnectionStore(resolve(publicationRoot) + "-integrations"), client: new UplistingClient() };
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -561,6 +567,7 @@ if (process.env.PAGECRAFT_TEMPLATE_AUTHORING === '1') {
 analytics.start();
 
 const app = createApp({
+  serverErrors,
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
