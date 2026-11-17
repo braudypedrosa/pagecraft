@@ -88,13 +88,14 @@ const visibleCards = (document: Document) => [
   ...document.querySelectorAll<HTMLElement>("[data-template-card]"),
 ].filter(card => !card.hidden);
 
-test("template picker renders the five named templates and represented facets", async () => {
+test("template picker renders the six named templates and represented facets", async () => {
   const { document } = await renderPicker();
   const names = [...document.querySelectorAll("[data-template-card] strong")]
     .map(node => node.textContent);
   a.deepEqual(names, [
     "Common Ground · Architecture Studio",
     "Marea · Coastal Stays",
+    "Linden Dental · Dental Clinic",
     "Northline · Creative Studio",
     "Salt House · Holiday Homes",
     "Stillwood · Cabin Retreat",
@@ -106,6 +107,7 @@ test("template picker renders the five named templates and represented facets", 
       ["", "All industries"],
       ["architecture-design", "Architecture & Design"],
       ["creative-services", "Creative Services"],
+      ["health-and-wellness", "Health & Wellness"],
       ["travel-hospitality", "Travel & Hospitality"],
     ],
   );
@@ -158,7 +160,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 5);
+  a.equal(visibleCards(document).length, 6);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);
