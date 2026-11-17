@@ -927,6 +927,11 @@
       "source": "evidence/dental-catalog-2026-11-17/final/root-package-review.json",
       "path": "evidence/final/root-package-review.json",
       "sha256": "9c0b0e750b1c48cc5e9578b45c6491c374931969a1bc45502efd57817170ff2b"
+    },
+    {
+      "source": "evidence/dental-catalog-2026-11-17/final/asset-provenance-r64.json",
+      "path": "evidence/asset-provenance.json",
+      "sha256": "9982efc9466cdb6d64acd8b04c730d361b905ebb8f04207918026239c2752324"
     }
   ]
 }

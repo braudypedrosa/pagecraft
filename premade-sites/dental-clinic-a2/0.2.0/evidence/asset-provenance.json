@@ -1,0 +1,424 @@
+{
+  "package": "evidence/dental-catalog-2026-11-17/license-fix/Hosted/site-r64.pagecraft-site.zip",
+  "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+  "assets": [
+    {
+      "name": "bp-mark-ink.svg",
+      "archivePath": "assets/bp-mark-ink-img773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be.svg",
+      "sha256": "773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be",
+      "bytes": 1485,
+      "provenance": "canonical creator credit mark; project-owned vector",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/bp-mark-ink.svg",
+          "sha256": "1d297b881759ee0483bf4a694cf36bdae161cc50c311853704bd6cc583c6e707"
+        }
+      ]
+    },
+    {
+      "name": "care-team-aisha-khan.webp",
+      "archivePath": "assets/care-team-aisha-khan-img2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f.webp",
+      "sha256": "2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f",
+      "bytes": 76564,
+      "provenance": "approved-additions/team-portrait-provenance.json: generated fictional portrait; prospective authorization distinguishes Naomi and Elena",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-aisha-khan.webp",
+          "sha256": "2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f"
+        }
+      ]
+    },
+    {
+      "name": "care-team-elena-cruz.webp",
+      "archivePath": "assets/care-team-elena-cruz-img1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed.webp",
+      "sha256": "1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed",
+      "bytes": 77820,
+      "provenance": "approved-additions/team-portrait-provenance.json: generated fictional portrait; prospective authorization distinguishes Naomi and Elena",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-elena-cruz.webp",
+          "sha256": "1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed"
+        }
+      ]
+    },
+    {
+      "name": "care-team-naomi-brooks.webp",
+      "archivePath": "assets/care-team-naomi-brooks-img9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b.webp",
+      "sha256": "9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b",
+      "bytes": 68124,
+      "provenance": "approved-additions/team-portrait-provenance.json: generated fictional portrait; prospective authorization distinguishes Naomi and Elena",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-naomi-brooks.webp",
+          "sha256": "9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b"
+        }
+      ]
+    },
+    {
+      "name": "care-team-oliver-chen.webp",
+      "archivePath": "assets/care-team-oliver-chen-img50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d.webp",
+      "sha256": "50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d",
+      "bytes": 57916,
+      "provenance": "approved-additions/team-portrait-provenance.json: generated fictional portrait; prospective authorization distinguishes Naomi and Elena",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-oliver-chen.webp",
+          "sha256": "50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d"
+        }
+      ]
+    },
+    {
+      "name": "care-team-portrait-01.webp",
+      "archivePath": "assets/care-team-portrait-01-img4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18.webp",
+      "sha256": "4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18",
+      "bytes": 70302,
+      "provenance": "branding/revisions-v2/image-approvals.json: P5/P6 approved generated portrait; displayed as fictional demo staff",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/care-team-portrait-01.webp",
+          "sha256": "22a60a9d5669e5f234afabb7d1d9455a5bec250d8b46d58d996b4d23933ad48a"
+        }
+      ]
+    },
+    {
+      "name": "care-team-portrait-02.webp",
+      "archivePath": "assets/care-team-portrait-02-imgcb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188.webp",
+      "sha256": "cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188",
+      "bytes": 55260,
+      "provenance": "branding/revisions-v2/image-approvals.json: P5/P6 approved generated portrait; displayed as fictional demo staff",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/care-team-portrait-02.webp",
+          "sha256": "255331c67ff4fb2fa37ec63bca2e0db7b93e1cc097858e1093a40530866dae14"
+        }
+      ]
+    },
+    {
+      "name": "care-team-scene.webp",
+      "archivePath": "assets/care-team-scene-img14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a.webp",
+      "sha256": "14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a",
+      "bytes": 74324,
+      "provenance": "revisions-v3/build-approval.json: approved concept image extraction; generated illustration",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/care-team-scene.webp",
+          "sha256": "71955098665a7303ffd85b17c86287395de75eee5c71aa346602120e5751c896"
+        }
+      ]
+    },
+    {
+      "name": "comfortable-consultation.webp",
+      "archivePath": "assets/comfortable-consultation-imgb224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b.webp",
+      "sha256": "b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b",
+      "bytes": 98110,
+      "provenance": "branding/revisions-v2/image-approvals.json and branding images manifests: approved generated illustration; package may use optimized derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/comfortable-consultation.webp",
+          "sha256": "0142df8c8892b650873a410bdeafee09568417500dae071e52313815de2f8ce9"
+        }
+      ]
+    },
+    {
+      "name": "cta-clinic-entrance.webp",
+      "archivePath": "assets/cta-clinic-entrance-imgf3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2.webp",
+      "sha256": "f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2",
+      "bytes": 65728,
+      "provenance": "approved-additions/cta-image-provenance.json: approved generated image, optimized package derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/cta-clinic-entrance.webp",
+          "sha256": "f6745633f19c4d28964ec6cad1e07ce3c32cf4cb93ec2555a1709e704676f5e8"
+        }
+      ]
+    },
+    {
+      "name": "everyday-care-adult.webp",
+      "archivePath": "assets/everyday-care-adult-imgbcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce.webp",
+      "sha256": "bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce",
+      "bytes": 76706,
+      "provenance": "branding/revisions-v2/image-approvals.json and branding images manifests: approved generated illustration; package may use optimized derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/images/everyday-care-adult.webp",
+          "sha256": "9e62fb7b7b93a422d87bf63d0da041e0d2dedd09af3ca47b5d792e8a991b584d"
+        }
+      ]
+    },
+    {
+      "name": "family-care-hero.webp",
+      "archivePath": "assets/family-care-hero-imgb5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd.webp",
+      "sha256": "b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd",
+      "bytes": 118776,
+      "provenance": "branding/revisions-v2/image-approvals.json and branding images manifests: approved generated illustration; package may use optimized derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/images/family-care-hero.webp",
+          "sha256": "89f221a0a248a15e1cdf86f563e0a486d35cb241afd3e0359b357920084b3d3c"
+        }
+      ]
+    },
+    {
+      "name": "icon-planning.svg",
+      "archivePath": "assets/icon-planning-img3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431.svg",
+      "sha256": "3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431",
+      "bytes": 3570,
+      "provenance": "approved-additions/icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/icon-planning.svg",
+          "sha256": "7783f93f9c55057d2dc5f1bc2db6794398483bd94d6b83c05edb4c49887713c0"
+        }
+      ],
+      "previousPackageSha256": "de2d578f111f7945f519bc17e46276438849eff514bf007df550d8651d101cf1",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "icon-preventive.svg",
+      "archivePath": "assets/icon-preventive-imga19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853.svg",
+      "sha256": "a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853",
+      "bytes": 3600,
+      "provenance": "approved-additions/icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/icon-preventive.svg",
+          "sha256": "e3aff45e84e2b81690f78d64dd75039419f6b2d047d843c2b9c6a1e509dfd65d"
+        }
+      ],
+      "previousPackageSha256": "f67ccabb21c5996d6173e21c576e1261d82d16ca8787d462001ebc37c4bf97fc",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "icon-restorative.svg",
+      "archivePath": "assets/icon-restorative-imgbed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86.svg",
+      "sha256": "bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86",
+      "bytes": 3485,
+      "provenance": "approved-additions/icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/icon-restorative.svg",
+          "sha256": "59d8377cc0b2c70efc0443863f0369e503dd066dee0c9ffc5310005cb0c4ca46"
+        }
+      ],
+      "previousPackageSha256": "e080b5885b2fe89ec8f98a34d79c832d7f745853405392a0c98bdc88adb7b7a4",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "l2-horizontal-primary.svg",
+      "archivePath": "assets/l2-horizontal-primary-imga37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9.svg",
+      "sha256": "a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9",
+      "bytes": 3394,
+      "provenance": "branding/revisions-v2/logo-selection.json: user-selected vector mark and Figtree outlined wordmark",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/logos/l2-horizontal-primary.svg",
+          "sha256": "5990364b1b972a464e6b9e01d660653e2b1f979b0bc49c5fc22c383566deb6c4"
+        }
+      ]
+    },
+    {
+      "name": "l2-mark-primary.svg",
+      "archivePath": "assets/l2-mark-primary-img8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020.svg",
+      "sha256": "8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020",
+      "bytes": 331,
+      "provenance": "branding/revisions-v2/logo-selection.json: user-selected vector mark and Figtree outlined wordmark",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/logos/l2-mark-primary.svg",
+          "sha256": "2b78fe605238ea9f29968e6bfabb43965f8326ab6a5061e00df7d63edd435700"
+        }
+      ]
+    },
+    {
+      "name": "light-filled-treatment-room.webp",
+      "archivePath": "assets/light-filled-treatment-room-imgb8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9.webp",
+      "sha256": "b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9",
+      "bytes": 77608,
+      "provenance": "branding/revisions-v2/image-approvals.json and branding images manifests: approved generated illustration; package may use optimized derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/light-filled-treatment-room.webp",
+          "sha256": "88ece3e075bd77060bdc0bec498fbc5c4e499fb4945462f1b522cbd637209753"
+        }
+      ]
+    },
+    {
+      "name": "perspective-choices.svg",
+      "archivePath": "assets/perspective-choices-img225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6.svg",
+      "sha256": "225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6",
+      "bytes": 3510,
+      "provenance": "approved-additions/perspective-icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/perspective-choices.svg",
+          "sha256": "e9424547ff20cbaa2247909e65e3aceff0a78ec418030440c1c0bf0240bf33a8"
+        }
+      ],
+      "previousPackageSha256": "bbee2d85b8fb9e71b6279e7b0d05caccfae6ce4698912ec101094cc5567b1576",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "perspective-comfort.svg",
+      "archivePath": "assets/perspective-comfort-img7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41.svg",
+      "sha256": "7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41",
+      "bytes": 3496,
+      "provenance": "approved-additions/perspective-icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/perspective-comfort.svg",
+          "sha256": "7ec36812cf3a7a9ead3c038b89b9024d38da7c5d670c8f050cc8358a530df9c9"
+        }
+      ],
+      "previousPackageSha256": "bd5f28ca08098b81c411ea4f20242357e0e17cd52b25bb874cc2d20d230b119a",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "perspective-concerns.svg",
+      "archivePath": "assets/perspective-concerns-img8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f.svg",
+      "sha256": "8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f",
+      "bytes": 3579,
+      "provenance": "approved-additions/perspective-icon-provenance.json: Iconify Lucide, ISC/MIT notices",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/perspective-concerns.svg",
+          "sha256": "4c3d72ce688ec2b5b6dfb9197f739bb598fba3546f56e51ebb2e5842fc2c2740"
+        }
+      ],
+      "previousPackageSha256": "b67f7b229d3679696933e95fcdfe11a742654f6da44ce9e92a1e9fab84be956f",
+      "embeddedNotice": "Complete Lucide ISC and Feather-derived MIT notice retained in SVG comment.",
+      "vectorMarkupUnchanged": true
+    },
+    {
+      "name": "visit-consultation-detail.webp",
+      "archivePath": "assets/visit-consultation-detail-img7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp",
+      "sha256": "7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac",
+      "bytes": 39710,
+      "provenance": "approved-additions/visit-image-provenance.json: approved generated image, optimized package derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/visit-consultation-detail.webp",
+          "sha256": "a14dab2dd55ad94d15fd4304b84feb20f25b06612393900475c91e42ea4953fc"
+        }
+      ]
+    },
+    {
+      "name": "welcoming-reception.webp",
+      "archivePath": "assets/welcoming-reception-img66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875.webp",
+      "sha256": "66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875",
+      "bytes": 134684,
+      "provenance": "branding/revisions-v2/image-approvals.json and branding images manifests: approved generated illustration; package may use optimized derivative",
+      "matchingNamedSourceFiles": [
+        {
+          "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/welcoming-reception.webp",
+          "sha256": "d3fd57bd9189c5f0eafd9f420c87f63bdc95aad0480c8777f13912a6e43f99af"
+        }
+      ]
+    }
+  ],
+  "sourceRecords": [
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/concepts/manifest.json",
+      "sha256": "16cf196bea6e6e1cf0da5fbceaca73c4b029e0e29cc689311f761a4f2bbc2dd6"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/concepts/variants-v2/selection.json",
+      "sha256": "e14abd288d25f3418c20c314fd8dedd2703ae07fb538daed49f3f288d6ec80aa"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/concepts/variants-v2/manifest.json",
+      "sha256": "194bb41d01a6dc67eaa440e5cd5da763124f38983e5e45e0a05d16bd798d466d"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/approval-summary.json",
+      "sha256": "ea75ec41cd5e2a3e1ee6898f0f1ef6e162ce5fce6249fd3352e39be9aebe5f40"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/logo-selection.json",
+      "sha256": "73c93f555ba44034209aae3299ec90485594c1318a6255cc785b321f032f5db0"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/image-approvals.json",
+      "sha256": "6c51c96c1e4033aef5383d8617c56d15115b1aeae9e3b394c54f29e1c7d2a428"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/typography/SOURCES.md",
+      "sha256": "0bcde4d5116de78b96471f1d39c00466650d5966d8f6485ab9e74b7e397f3bbb"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/revisions-v3/build-approval.json",
+      "sha256": "e458ee2047ea961b2b488db8b9cf097c5f05df591fbc512b78560072251fee52"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/refinement/cta-image-approval.json",
+      "sha256": "cf1924bae07956144002d7b86d3bab712b74552bcb64e211731aebdf2fe9e5ec"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/01-six-profiles-approval.json",
+      "sha256": "caaa9fcd7c3cba3f5bd87d1912c9e1163a6071fb2bafb1692ff698d4e3573dec"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/team-expansion-2026-11-16/portraits/all-portraits-authorization.json",
+      "sha256": "9bb4d5873f14e69795cdcdff245e5a19eea954268d873535abeea4d6386aab16"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/inner-pages-2026-11-14/Contact/built-contact-package-approval-2026-11-17.json",
+      "sha256": "a52c206b7f2f1269b2bcf6ffcdfd15e6bee12bb413fa7b41f45b411dafb8a8c6"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/team-portrait-provenance.json",
+      "sha256": "c5a546c99275857e40a9f114950663978566c4455c2919237fc8386f02cb5b41"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/icon-provenance.json",
+      "sha256": "da07e3ac46f7f020f4c2eb1a655b71f46a7162d49e1f25bc18bf1dc9c62329c3"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/perspective-icon-provenance.json",
+      "sha256": "879547f2747553c822482d52d6643f3a7db4fbd5015bf4969938e5dbb85096a9"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/visit-image-provenance.json",
+      "sha256": "4aba406ddb756567b6fd02f629311840a1511ba75519e1e5460fbd83e2e139ac"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-2026-11-12/manifest.json",
+      "sha256": "aac6dd3ae5bae4f2de6a83272210bdb3c823ce7ea7cac39bd9491df2528cd796"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/style-rotation.json",
+      "sha256": "a80ce059dafd119049c896149d836007a2cb8162c070e9899a863588710628d7"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/skills/pagecraft-premade-templates/library/usage.json",
+      "sha256": "2c7dbaca87a33c846ecca86438775c9a55fb5ab1650facdb463c07f07980fa4d"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/images/manifest.json",
+      "sha256": "13c2ae532421ffbf30fd8d28f8860982266610a33e733485e7a78ea81b41d1ce"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/branding/revisions-v2/images/manifest.json",
+      "sha256": "69fc964a15607e9bd1ba72345e069abed552220637d85ca9c7892282bf0c8fe5"
+    },
+    {
+      "path": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/native-review/revision-54/Assets/provenance.json",
+      "sha256": "844b4a2df79bac1befaa7700ba1e84c23c8fae358e8917232018524d650f87e1"
+    },
+    {
+      "path": "/Users/braudypedorsa/.codex/worktrees/pagecraft-template-authoring/pagecraft/premade-sites/review-library/dental-clinic-a2/approved-additions/cta-image-provenance.json",
+      "sha256": "8e8c2577f1106671b10f8dc9f3f12170f99113822f2245927914874275d03e21"
+    }
+  ],
+  "notes": [
+    "Asset package hashes are of actual delivered bytes; source masters can differ due to media optimization.",
+    "All six names and profiles are fictional template content. Replace names, credentials and portraits with verified practice details before customer launch.",
+    "Naomi and Elena were generated after prospective direction approval, not individually shown for exact-file approval.",
+    "Revision 64 changes only six icon notices and the corresponding 15 native asset references. Photo, logo and vector appearance remains unchanged; each delivered asset hash above is from the exact r64 ZIP."
+  ],
+  "derivedFromPackageSha256": "950f680d39123500e1e9d44143de68c01f7767876c6b3ff8467d2f327aaa53e1"
+}

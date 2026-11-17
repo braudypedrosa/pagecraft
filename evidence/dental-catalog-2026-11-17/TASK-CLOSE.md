@@ -1,6 +1,6 @@
 # Task close: Dental catalog acceptance
 
-- Date and timezone: 2026-11-17, Asia/Manila.
+- Date and timezone: 2026-11-17 to 2026-11-18, Asia/Manila.
 - Project: Pagecraft, Dental premade-site pilot.
 - Task reference: This chat, “Finish Dental catalog checks.”
 - Status: Technical acceptance complete; current-package approval pending.
