@@ -40,6 +40,13 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [accommodation],
     aliases: ['coastal stays', 'holiday rental', 'short-term rental', 'vacation rental', 'guest house'],
   },
+  'dental-clinic-a2': {
+    name: 'Linden Dental · Dental Clinic',
+    description: 'A four-page dental practice website with treatment information, team profiles and enquiries.',
+    industries: [healthAndWellness],
+    siteTypes: [business],
+    aliases: ['dentist', 'dental practice', 'family dentistry'],
+  },
   'neighborhood-cafe': {
     name: 'Morning Field · Neighborhood Café',
     description: 'A warm four-page neighborhood cafe site with an editorial menu, story and visit details across Home, Menu, Story and Visit pages.',

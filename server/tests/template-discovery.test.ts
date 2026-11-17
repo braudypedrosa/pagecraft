@@ -43,6 +43,12 @@ test('known templates receive clear names and separate controlled facets', () =>
       siteTypes: ['Accommodation'],
     },
     {
+      id: 'dental-clinic-a2',
+      name: 'Linden Dental · Dental Clinic',
+      industries: ['Health & Wellness'],
+      siteTypes: ['Business'],
+    },
+    {
       id: 'neighborhood-cafe',
       name: 'Morning Field · Neighborhood Café',
       industries: ['Food & Drink'],

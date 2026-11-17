@@ -1,0 +1,1612 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Families and adults seeking dental care",
+    "primaryAction": "Explore care and make an enquiry when a receiving destination is configured",
+    "pages": [
+      "index",
+      "treatments",
+      "about",
+      "contact"
+    ],
+    "content": "Four-page fictional Linden Dental template: family-focused care, treatments, six fictional team profiles and contact guidance. Replace demo names, roles and portraits with verified practice details. Portable/WordPress enquiry form has no configured destination.",
+    "imagery": "Approved A2 Sky and Ice palette, Figtree and Source Sans 3, selected L2 vector identity, generated illustrative photography and Iconify Lucide icons. See evidence/asset-provenance.json.",
+    "provenance": [
+      {
+        "asset": "Approved illustration, logos and photography",
+        "source": "evidence/original-a2-selection.json and project design records",
+        "license": "User-approved original template assets; see asset provenance records."
+      },
+      {
+        "asset": "Six Lucide icons",
+        "source": "THIRD_PARTY_NOTICES.md",
+        "license": "ISC and Feather-derived MIT, notices embedded in SVGs."
+      }
+    ]
+  },
+  "directions": [
+    {
+      "id": "A",
+      "thesis": "Warm family practice, led by a family-care image and approachable care choices.",
+      "fingerprint": {
+        "header": "Light header with graphic mark and native navigation",
+        "hero": "Family-care photograph with left-aligned invitation",
+        "textAnchor": "Serif-led stacked heading and support",
+        "inventory": "Two photographic care choices",
+        "cta": "Request a visit",
+        "footer": "Light credit and logo footer"
+      },
+      "comparison": "Original A was preferred for composition; palette and typography were revised to selected A2.",
+      "sections": [
+        {
+          "purpose": "Introduce family care",
+          "archetype": "family-photo-overlay",
+          "composition": "Family scene with left-aligned stacked invitation",
+          "typography": "Serif heading and sans support in original board",
+          "imagery": "Family-care scene",
+          "action": "Request a visit"
+        },
+        {
+          "purpose": "Guide care choices",
+          "archetype": "paired-photo-features",
+          "composition": "Two image-led care features below a centered introduction",
+          "typography": "Serif feature headings and sans descriptions",
+          "imagery": "Adult and child care scenes",
+          "action": "Learn more"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "thesis": "Contemporary precision through a dark type-first opening and clear treatment choices.",
+      "fingerprint": {
+        "header": "Dark header with graphic L mark",
+        "hero": "Broad dark typographic opening above room panorama",
+        "textAnchor": "Large sans heading and stacked support",
+        "inventory": "Ruled treatment accordion",
+        "cta": "Request a visit",
+        "footer": "Dark credit and logo footer"
+      },
+      "comparison": "Retained original alternative, not selected.",
+      "sections": [
+        {
+          "purpose": "Introduce considered care",
+          "archetype": "type-first-panorama",
+          "composition": "Dark headline and support above treatment-room panorama",
+          "typography": "Bold sans headline and support",
+          "imagery": "Bright treatment room",
+          "action": "Request a visit"
+        },
+        {
+          "purpose": "Explain treatment choices",
+          "archetype": "treatment-accordion",
+          "composition": "Stacked introduction and ruled care rows",
+          "typography": "Sans headings and concise support",
+          "imagery": "None",
+          "action": "Expand treatment choices"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "thesis": "Calm boutique practice with a centered invitation and architectural setting.",
+      "fingerprint": {
+        "header": "Light header with centered graphic mark",
+        "hero": "Centered introduction above architectural panorama",
+        "textAnchor": "Centered serif heading with stacked support",
+        "inventory": "Single focused care statement",
+        "cta": "Request a visit",
+        "footer": "Brown credit and logo footer"
+      },
+      "comparison": "Retained original alternative, not selected.",
+      "sections": [
+        {
+          "purpose": "Introduce a calm practice",
+          "archetype": "centered-editorial-panorama",
+          "composition": "Centered text and action above wide reception image",
+          "typography": "Serif headline and sans support",
+          "imagery": "Reception interior",
+          "action": "Request a visit"
+        },
+        {
+          "purpose": "Explain comfort",
+          "archetype": "care-statement",
+          "composition": "Focused text group with a supporting detail photograph",
+          "typography": "Serif heading and sans paragraph",
+          "imagery": "Tea and hand detail",
+          "action": "No separate action shown"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "directionId": "A",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Okay, all approved.",
+      "at": "2026-11-17T14:38:58.166362Z",
+      "evidence": "evidence/selection-affirmation-2026-11-17.json; record timestamp is receipt creation, not a claimed exact decision time. Original A2 selection is date-only in evidence/original-a2-selection.json."
+    }
+  },
+  "targets": {
+    "cloud": {
+      "hostRevision": "e9e73446a00003db9ca727eef553ee4e0241c087",
+      "editorVersion": "0.2.19"
+    },
+    "wordpress": {
+      "hostRevision": "WordPress 7.1.3; Pagecraft Builder 0.2.2",
+      "editorVersion": "0.2.19"
+    }
+  },
+  "findings": [],
+  "qa": [
+    {
+      "host": "cloud",
+      "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+      "hostRevision": "e9e73446a00003db9ca727eef553ee4e0241c087",
+      "editorVersion": "0.2.19",
+      "at": "2026-11-17T15:58:22.582712Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "766, 767, 768, 1023, 1024 and 1025 px: navigation and overflow checks recorded in evidence/final/breakpoints.json.",
+      "evidence": [
+        {
+          "path": "evidence/final/bounded-health.json",
+          "sha256": "d80e5d9286cf35c938ac1960597abedb7af55ca959c27e4650893af5a3db2cf5"
+        },
+        {
+          "path": "evidence/final/breakpoints.json",
+          "sha256": "70c4dbf9164836b98a19230432e43a5485dcb54f96493cac39fd958faf552d63"
+        },
+        {
+          "path": "evidence/final/native-extra-interactions.json",
+          "sha256": "dc6c702acbb58e7e3b727e1284545cbff8287a038e88f6828e8fc65dd4783683"
+        },
+        {
+          "path": "evidence/final/design-review.json",
+          "sha256": "8d59e9a21a9c3760039c9e9b213b4ee127bbcbc29964a8eab19f1c3ff090a289"
+        },
+        {
+          "path": "evidence/final/design-review.md",
+          "sha256": "88e08caad8e4730cc7145bdcb89c5a38182af32eefa495ed124e8a1451eeb817"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-1024-viewport.jpg",
+          "sha256": "b179bb06d345139ff704692a406dc0a4ee3f2734193ab3b27e0b77629a3f1e47"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-1024.jpg",
+          "sha256": "fb1aefad15791bf724a799f967b073c25ac13c2f317312f3a6bde653aced9a11"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-1440-viewport.jpg",
+          "sha256": "cc0e97d7554ae271f295118302f005f1c87469e69afa5c0454fcf7adfda595ee"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-1440.jpg",
+          "sha256": "b43c6f186c092bdda401a9cab0fbe63aad4d4441f79264471b66c7ef5bbe487a"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-390-menu-focus.jpg",
+          "sha256": "956c23c4951442c05ffa002ddf97bf13b187000740abc737f7c072fcbc1a79b4"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-390-viewport.jpg",
+          "sha256": "3a2e5060debfb7e9b76798a0daeb902d86cc61c3892a08849090b31923e4ee9b"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-390.jpg",
+          "sha256": "bb5a4c4e32eb4bc78498ffa61f4978e936bcbc3648ae965477f1389dded4b249"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-768-viewport.jpg",
+          "sha256": "e1334a07b043a8568d03773a79abaddb1b443cb9bc2429df4ebb63656cdaa614"
+        },
+        {
+          "path": "evidence/final/cloud/After/about-768.jpg",
+          "sha256": "e57a6e346a344898501d701d3e51f1d7ddbc9ad1476ba855f084880e22d9e8f8"
+        },
+        {
+          "path": "evidence/final/cloud/After/browser.json",
+          "sha256": "254d37382189bbebb7a4ee601e3dbfd4adcaedf585d78b2bff110ea4511c95f6"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-1024-viewport.jpg",
+          "sha256": "1f932b55839c367740d7d839724fda87634c90f5f32e2f0e48b6d4e578cf1718"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-1024.jpg",
+          "sha256": "a995823ee04caf029d7e8e48c7a9d58237899c7bb219f85768b02993d398f3c9"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-1440-viewport.jpg",
+          "sha256": "bd674892e7fd5fe4543567deebbe85b181d8b7a581deace7d5296024798ce444"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-1440.jpg",
+          "sha256": "20370db81a2a24850691ee21a25618194b7c1140d6996313a88a54c9c741c8eb"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-390-menu-focus.jpg",
+          "sha256": "3e6a9cda9a0243f190c86e23c77f5f1f0bf396cc762eabb12238171c5636eb34"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-390-viewport.jpg",
+          "sha256": "328af7e1e8e16a6ccbe336c2f9f91ad875518178817236fa4b8a6460085d2a5c"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-390.jpg",
+          "sha256": "526b85d67c00968b930fdf18c95c5f7c7c28740098f93870f528059392f05260"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-768-viewport.jpg",
+          "sha256": "87e239358645f766849ef3d2060f0cf0d6420ef77e25968e60ccd1727eae3bfb"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-768.jpg",
+          "sha256": "9121bf54c38278bad0e95ac6a87d73ba1719987930e8d1aadfeaad08b8f28de2"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-empty-validation.jpg",
+          "sha256": "d8f8e5cebc97cf40e6c9202a2854ae05d53a65e3ccce1b5cb4f633f522b2fcca"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-invalid-email.jpg",
+          "sha256": "75be9184ee18365ff496d22f779beb587e71389f2fb8e046429eeaef7cb1cee9"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-local-received.jpg",
+          "sha256": "470c15c248323664a77ac85d47eeab8e2fa2f32c3d647b9b7ee3996f1def157e"
+        },
+        {
+          "path": "evidence/final/cloud/After/contact-native-inbox.jpg",
+          "sha256": "7ed59d41207caa65051f262c3ef937dbc3c41ceb1d2257faae2b8cb36ec0a365"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-1024-viewport.jpg",
+          "sha256": "6e72d15dcbd002e38732b63e4d9ddcd695cb6992b777dab735bdafb6236d4a96"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-1024.jpg",
+          "sha256": "098403ba85c9e8c328763703628d3c3b0d6eb94d6e7d3e4bd3c4f79a5c190974"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-1440-viewport.jpg",
+          "sha256": "b166247ce03c1489b543d912e4fbccd3b6c7b9b41f50b1d7f47c4f6f4620a80e"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-1440.jpg",
+          "sha256": "27574e51b485cb75ad168082c134915dea4948dacab6088f32ab5c4109d52cc4"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-390-menu-focus.jpg",
+          "sha256": "8ee7392ebe74ae8bb76669af5df2b1b1523ceac24761565e6050559c89221c49"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-390-viewport.jpg",
+          "sha256": "a9159eab452e7480bea43ac90aa179278de2859f6cdb68240563f06760364712"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-390.jpg",
+          "sha256": "9ec2ef9a55b9bad3bdf56852155cc6d0f901f69b82faecb63cf465da4e6e5985"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-768-viewport.jpg",
+          "sha256": "b9258437bafcd2778bc9abc30d9808d177692d60e059b556c0728d9fbae2902e"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-768.jpg",
+          "sha256": "70ed2c8b4234d0446918ed8d1009d9725a5e86e0f62334a205410e5e53be3f45"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-faq-keyboard.jpg",
+          "sha256": "a1a38c1642f2448cd746a4e4ebc20818ce31e1df9cbec02d20ad4f111bf47e64"
+        },
+        {
+          "path": "evidence/final/cloud/After/index-tabs-keyboard.jpg",
+          "sha256": "7e2ce37c22080cb17113676a9b49e938990091060f64a48f589d79fc48001c07"
+        },
+        {
+          "path": "evidence/final/cloud/After/interactive-pages.json",
+          "sha256": "9cafbfb568d105566ec9ad46f33a1f74c9f8ed5fc2615b94be46cd6947a98960"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-1024-viewport.jpg",
+          "sha256": "1a37ed0898919f8e1ead9577a7797a5175678f37cc51e361266d41dea9c1e471"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-1024.jpg",
+          "sha256": "296a2e12a6e381339e409183300a5ee0a6c5f92d78427b369119bc12a4529a3f"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-1440-viewport.jpg",
+          "sha256": "5e8aeb170ab242603fe7b4930dca9271d39f989b549b49559bfb3e072424f8bb"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-1440.jpg",
+          "sha256": "112eb4a9b71778f2d03d0a9d721b4f35e2f380cbc6dec773fcc5814740bb0bc9"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-390-menu-focus.jpg",
+          "sha256": "9d4aed452bdbd1310026a1e727b682e195e2c807ff0722e9242a90d2ff465cba"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-390-viewport.jpg",
+          "sha256": "d9bc07a7bf457cad91406fd19a0b9c9325e857b5a4b687fa987b89220cf308b4"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-390.jpg",
+          "sha256": "ed3f68367e00f4819cc01472c0f78929e4d15b9eb151f3353f7ab263f2448e99"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-768-viewport.jpg",
+          "sha256": "870e4da7f9ff178ce169c98f2b564c4541b41e82a4f170f5b59eb0df7ab0be51"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-768.jpg",
+          "sha256": "01c8a44c5b00cf8fe80755cc50d9b00838500f77681b04c3253f01537052ddc4"
+        },
+        {
+          "path": "evidence/final/cloud/After/treatments-faq-keyboard.jpg",
+          "sha256": "e456e4c5c56221245dcd3e715c637a5bb62e4868727a88b9ea460d87f27cfda1"
+        },
+        {
+          "path": "evidence/final/cloud/native/00-baseline.jpg",
+          "sha256": "fe09a54f750760edcd2e4dd32d5498364309a43bd72ee1b34eacbe98dfc8654a"
+        },
+        {
+          "path": "evidence/final/cloud/native/01-long-heading.jpg",
+          "sha256": "4731f06b38233af8d8f9a4031734ef9a73244a0134c2210295c01f635e48906a"
+        },
+        {
+          "path": "evidence/final/cloud/native/02-duplicate-reorder.jpg",
+          "sha256": "1b3d8154f4f99f5917da262cde7ef1bf9c3047b4c9ccaa338ef237fd2b7d95a6"
+        },
+        {
+          "path": "evidence/final/cloud/native/03-global-settings.jpg",
+          "sha256": "595401d1c29f8b7c75d69d41fd8848fe3b45b18b5be37838a169839553148243"
+        },
+        {
+          "path": "evidence/final/cloud/native/04-global-styles.jpg",
+          "sha256": "8ca0469e3ec216fef1f5ff8cf98fcce090de7ea845f4e999bbfbbd31b187b1aa"
+        },
+        {
+          "path": "evidence/final/cloud/native/06-mobile-override.jpg",
+          "sha256": "8c17c816e949bbda1eca7bbc46519ae97bac2a997c67e973e620a681c5449e77"
+        },
+        {
+          "path": "evidence/final/cloud/native/07-replaced-image.jpg",
+          "sha256": "3118e65710a703131337e7e16e0cd2d81efc6eb3de972648685bc8bbe86ece66"
+        },
+        {
+          "path": "evidence/final/cloud/native/08-form-edit.jpg",
+          "sha256": "f201739d680623ac20d62a56c44b671c15778dffa2a044a45fdb6ae3e4f98827"
+        },
+        {
+          "path": "evidence/final/cloud/native/09-shared-instance-reopened.jpg",
+          "sha256": "2a5c4265734b388ca81251678f29b76a3ed5bd3714893da5b09c7127f8e44fef"
+        },
+        {
+          "path": "evidence/final/cloud/native/10-global-cross-page.jpg",
+          "sha256": "942e4a17efb7ccf29f4c405f5cfccdca181b781dd1dc967c705addc9b58ecb11"
+        },
+        {
+          "path": "evidence/final/cloud/native/contact-interactions.json",
+          "sha256": "62e13b0463973427ccd1d136fa758fdd142f48e104ae0a025a2841e8a2f7b4af"
+        },
+        {
+          "path": "evidence/final/cloud/native/optional-background-fallback.jpg",
+          "sha256": "0bb0e80fe73c3c578eda6be41ef1d5290e0125fcc399cef1ff87f9666919cccc"
+        },
+        {
+          "path": "evidence/final/cloud/native/stress-interactions.json",
+          "sha256": "b9a17415e4fe596d6fb61cfcd0f898bff70c8a41611b578da7c15b515875acbf"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-1-desktop.jpg",
+          "sha256": "534ebee767df43c69c24de7e3eb121de30fc1a285eb121a662247ffbe3e5486c"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-1-mobile.jpg",
+          "sha256": "743a1a3468892deb1807a23a270aa260912561d0286da65a2bc8f7b00a204253"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-3-desktop.jpg",
+          "sha256": "a31c310729880978d4c75b2bf382afc13f98e1ba99832618121cab560ab902be"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-3-mobile.jpg",
+          "sha256": "c7fe12d576e8d980f8c735b4c9e6e622b41191ac5a121a574f170ffaa57a8173"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-7-desktop.jpg",
+          "sha256": "af768b85776389333ff1e67a0e53389b8c6c394608c82f969b8e2694e51549b8"
+        },
+        {
+          "path": "evidence/final/cloud/native/team-7-mobile.jpg",
+          "sha256": "b7e9fd229e876c1a8a9f5b239333893be1f533e030b5e1d8ee1f4a5a5edb1081"
+        },
+        {
+          "path": "evidence/final/cloud/restored-comparison.json",
+          "sha256": "3e4740474125e9fda8a2e6d3250507c532ada549c0c00f77acfc67b34cef9ebc"
+        },
+        {
+          "path": "evidence/final/cloud/restored-readback.json",
+          "sha256": "f283e59730a1da593f39b1ef42b21f9356277fd35109289b20af678ff20030ce"
+        },
+        {
+          "path": "evidence/license-fix/cloud/notices.json",
+          "sha256": "b79e8bb88e9c1a67467e4ec7214e2f5a318eaa99cf33f71ade4a227366b1646c"
+        },
+        {
+          "path": "evidence/license-fix/cloud/reexport.json",
+          "sha256": "b4f7997138716b8ebeef5098c737c1b943fcb652a5f25836946c5a0a0e57f6ed"
+        },
+        {
+          "path": "evidence/license-fix/cloud/baseline.json",
+          "sha256": "89fc20b89336f04f51e0d37f66994fe218e8037c813806b8e8cdfc67de9e8aae"
+        },
+        {
+          "path": "evidence/license-fix/cloud/assets.json",
+          "sha256": "169d0e2206ba7b56083ae299b657b2c7a9a7354771f753ee1cfa9a1ee07e2fd1"
+        },
+        {
+          "path": "evidence/license-fix/cloud/import.json",
+          "sha256": "e3a1a7772cc10af0d34e2e53bca910764ebae1ee6d64c4d0fc71cfefe37c5fbb"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/binding.json",
+          "sha256": "b9de4174689bfa4d186853f13ea2bfa1e3b073e4b98e1e17579b51a0bfcc93c7"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/vector-check.json",
+          "sha256": "c1dc8775af2f13f8e37e0eec13f3b9e4edd14875e1f1f575162d4580e581a604"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/calls.json",
+          "sha256": "3e946be7520560eb443f8d56ed887088044103ffb80c3034f8311810d1ac9257"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/about-1440-header-focus.jpg",
+          "sha256": "50170031fa59ed240a89e02ec7328501fb0a15fa987987eebd595e8fbf56b427"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/about-1440-keyboard.jpg",
+          "sha256": "cac161af8891911e4f4b15a125ef0b3f5ea1aa4272d5b644af145bbdaf6a5373"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/about-390-keyboard.jpg",
+          "sha256": "88ce84ef1bd245995e75f4bf5f2a90c00421620fd61e925c58f1c26d14c32e0b"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/baseline.json",
+          "sha256": "083a6c6100efee38d9b38ad708bfd7f22b9002b3f5115e3b4ab77b841225f1fb"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/contact-1440-header-focus.jpg",
+          "sha256": "9fd0146df50f1e8be8c5d442b91edc886f17a5ab13d3bb1261d8c1b022cc2113"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/contact-1440-keyboard.jpg",
+          "sha256": "bd674892e7fd5fe4543567deebbe85b181d8b7a581deace7d5296024798ce444"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/contact-390-keyboard.jpg",
+          "sha256": "70f199e0c58170ed1d45e21f7e690e715ac1f415578af624d6921adc322691c6"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/import.json",
+          "sha256": "91671ba3bb3c980357770fa057d81fc33783c764e703966d2ee199d4f310486a"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/index-1440-header-focus.jpg",
+          "sha256": "a3231a90e3a81550c11ed7d5c8e78691263582ad7a2235c593aa58064b0b999c"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/index-1440-keyboard.jpg",
+          "sha256": "af786f6f6961cc3a43a3fd795cf94d8c165164e91f72936f23524812a79c2a90"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/index-390-keyboard.jpg",
+          "sha256": "0d33dfc8607216b2fd78cd72bc856dcb68350ed8824557c3a8df23e218faa9df"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/published-readback.json",
+          "sha256": "fa2aaa6150ea1ab769858146e98d0dca48ba777c2ae3f04993ee3f6bdda166b2"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/results.json",
+          "sha256": "1e1a417bfa0eb7e75b9d470a7978bd69586f68380dc328c39b2765541b349168"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/runtime.json",
+          "sha256": "b85ba3affa81318b0d49cf0fb1c1611994d81d5a84d20f8fc3f9f943a39d0017"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/treatments-1440-header-focus.jpg",
+          "sha256": "685371bf455934a3ef2e95c3bccca1b1a2923c79d908ef62adce2c21a4e2e1c5"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/treatments-1440-keyboard.jpg",
+          "sha256": "e0b1d9f984208121762cfdb95b17ffbc0ae269bb9a8a732c1f72e41ed24a3fac"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/cloud/treatments-390-keyboard.jpg",
+          "sha256": "f15f4bbfb3045c4d68c14f12a42873a8f9e78f41f211f4ba74cc117da63f2933"
+        }
+      ]
+    },
+    {
+      "host": "wordpress",
+      "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+      "hostRevision": "WordPress 7.1.3; Pagecraft Builder 0.2.2",
+      "editorVersion": "0.2.19",
+      "at": "2026-11-17T15:58:22.582888Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "treatments",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "766, 767, 768, 1023, 1024 and 1025 px: navigation and overflow checks recorded in evidence/final/breakpoints.json.",
+      "evidence": [
+        {
+          "path": "evidence/final/bounded-health.json",
+          "sha256": "d80e5d9286cf35c938ac1960597abedb7af55ca959c27e4650893af5a3db2cf5"
+        },
+        {
+          "path": "evidence/final/breakpoints.json",
+          "sha256": "70c4dbf9164836b98a19230432e43a5485dcb54f96493cac39fd958faf552d63"
+        },
+        {
+          "path": "evidence/final/native-extra-interactions.json",
+          "sha256": "dc6c702acbb58e7e3b727e1284545cbff8287a038e88f6828e8fc65dd4783683"
+        },
+        {
+          "path": "evidence/final/design-review.json",
+          "sha256": "8d59e9a21a9c3760039c9e9b213b4ee127bbcbc29964a8eab19f1c3ff090a289"
+        },
+        {
+          "path": "evidence/final/design-review.md",
+          "sha256": "88e08caad8e4730cc7145bdcb89c5a38182af32eefa495ed124e8a1451eeb817"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-1024-viewport.jpg",
+          "sha256": "e025d743c9a17a3e2bc7438418dd5fd5019d77367d947cf9d31dc9fdf9e31068"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-1024.jpg",
+          "sha256": "a2e1b25284e942f832241eebf9288fa4a8fd520b7086500516de75e736f58ffc"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-1440-viewport.jpg",
+          "sha256": "5c3f0bd7303cf6f1f59090fb19b7802c5c74e050e3dabc6089ae4a6a821cdfc3"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-1440.jpg",
+          "sha256": "485cbb0d229cfa09d91c5fe693d976924e6013d9b284f863778c3f335148ef3d"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-390-menu-focus.jpg",
+          "sha256": "dd13c3e84953fc99afb10ec67a4dac702e59d3edce2270385898e87c9c4c1314"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-390-viewport.jpg",
+          "sha256": "95a2816e0146f4c0eda0e7bfe42266422f38bf156662d690e49c4ef22d6f883c"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-390.jpg",
+          "sha256": "9778d9d58888318e5f655842f046ea7106e89ef3ca933c929a51b7823dde9b76"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-768-viewport.jpg",
+          "sha256": "b7532cb0c5fb637e839d46b82a0d30042cb35d78011c6896ffe0621b0299ebe2"
+        },
+        {
+          "path": "evidence/final/wordpress/After/about-768.jpg",
+          "sha256": "63ab3dd775b0740f6a1e2b845aed3950338a18eb45fd6e1bb5b7944683b35c75"
+        },
+        {
+          "path": "evidence/final/wordpress/After/browser.json",
+          "sha256": "f4195c88e0241719d54740d9e84ef0d8922ec6ec93c914ea5055002730671d15"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-1024-viewport.jpg",
+          "sha256": "efff414a485a777315f16eec1d3d86148e9871b8e0c1784e11c1458009cf08ab"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-1024.jpg",
+          "sha256": "8301c7be3ee606b3062dbffd89ee4e730137abb5a6d944f11b2776e3f8b34de5"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-1440-viewport.jpg",
+          "sha256": "23ea2e121dfbada491851bfcde89eb3e59d2c2e066a71af75fde44d91781d6c4"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-1440.jpg",
+          "sha256": "509fc68a97dae8765acf23d2123a0d21d07eee595848920a4df23cad99450040"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-390-menu-focus.jpg",
+          "sha256": "f86096447e4a119e3837000b1101409bb907d41173a5991402fc4a568fcbe93b"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-390-viewport.jpg",
+          "sha256": "5c826a828982add31f5eb548e38d59190bf013972de69b7ba1d3a3e9ef5c4830"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-390.jpg",
+          "sha256": "c7b44970b5c822dfd5fc45f47f11eb97b9f5afdad0171f804ac0c4950035f9bd"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-768-viewport.jpg",
+          "sha256": "98f2b9bc5718dfaa05507aa5878cb1223b3ed10a4d5457b16e0860d5387d0e07"
+        },
+        {
+          "path": "evidence/final/wordpress/After/contact-768.jpg",
+          "sha256": "c963d77323a07a0fc98d9beaeac1eee556c3ebb05a07159ce4f2baa5d4213ed3"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1024-viewport.jpg",
+          "sha256": "ed4b6692235de9681055e7b9f283d6f47c86f33e54988bc551283f72d727a46a"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1024.jpg",
+          "sha256": "8c52343164c999a03deeb985533b21711236c41d15d062b6ad30d409bf4edc8d"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1440-practice-painted.jpg",
+          "sha256": "707796e796bc202609579f2b967a85a517da0771b82d7199393a08f9504728f1"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1440-team-01-painted.jpg",
+          "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1440-team-02-painted.jpg",
+          "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1440-viewport.jpg",
+          "sha256": "4e119e04888e55fcd5c8773f7c5bebcc6e9cfa3a63ef946c3833d7aee796e0eb"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-1440.jpg",
+          "sha256": "720ac874d0c772a5a28f432ca184bcf358891c5558ada8d1dca48ec678330151"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-390-menu-focus.jpg",
+          "sha256": "ad08b7fe3842aa531b5a9e3e5676470e0c81baa1749379888f23771524be02b3"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-390-viewport.jpg",
+          "sha256": "1f83f4dc325795a0a64e90d911122a84263ef1dfc47cad2641e6bb5732ea6835"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-390.jpg",
+          "sha256": "8e52a9655da297add5cb460d7faf29d9641af2492cdbfd7f7572ff4d04fc8b68"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-768-viewport.jpg",
+          "sha256": "cde9070c53d39dc6387cbbf5d7cff8077b24e3a1f162c03319b499071894600a"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-768.jpg",
+          "sha256": "9f8a0723de0d0b537f3a734fec913d467fd0f84057a4f107118a0fc14c0cc8fd"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-faq-keyboard.jpg",
+          "sha256": "3ee9f8732920befe7fefdc17c777e28f262e28e5bb86a22fc221a1ad3daf323c"
+        },
+        {
+          "path": "evidence/final/wordpress/After/index-tabs-keyboard.jpg",
+          "sha256": "71512808b81804a7b93ff177f4fbe848642876f4683799f32e22284b75fda8e1"
+        },
+        {
+          "path": "evidence/final/wordpress/After/interactive-pages.json",
+          "sha256": "e7952c933fd1088c6b89f179e9feb303d4725cc135f0c772265c26174de2540b"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-1024-viewport.jpg",
+          "sha256": "33f3118dfa4b02dc8187cf3ae1392aa233896cd67c333757d3fd84f570e2e160"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-1024.jpg",
+          "sha256": "6ca709c1b17cfb6be9d73e9a710a13c97956cb12593a9b155d160c68a66071a4"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-1440-viewport.jpg",
+          "sha256": "7c33d623c8c01133179470b7951c2b4067f7269313b20416bd446afe852f2118"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-1440.jpg",
+          "sha256": "ba91b8691077ce4cb6c3880afa77179f0e01dcc1e9172c200ac828b8f526262e"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-390-menu-focus.jpg",
+          "sha256": "8edd1ec9e357fa1178478bbfdb898624b87308221df223b6c6e63f2071cd351d"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-390-viewport.jpg",
+          "sha256": "846ee45dcaae883be1bd359d3b988523e9d1fa36d79519cf6818287635f7fb79"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-390.jpg",
+          "sha256": "58d17cdc05b27bc929bdcfc538f298c782d3cd3043d6ab2e04cbd405381794a7"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-768-viewport.jpg",
+          "sha256": "4568eee1b86db6390ec1e88096d3404e9a67264338af8dcf96d0c446cbdb48f1"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-768.jpg",
+          "sha256": "27daeaf3d4ab51b4ddd52b15d35f0d78a86bf4af177e8dea7f27574adcca73c3"
+        },
+        {
+          "path": "evidence/final/wordpress/After/treatments-faq-keyboard.jpg",
+          "sha256": "5e39e6053252045631593647f694e50acae05cfdc390b683c2f83e140a173d9c"
+        },
+        {
+          "path": "evidence/final/wordpress/native/00-baseline.jpg",
+          "sha256": "db876da54a9c40ae03a73bf59480a0e334936f44b6b2717bdbc51165ee6493b7"
+        },
+        {
+          "path": "evidence/final/wordpress/native/01-long-heading.jpg",
+          "sha256": "77e3b95876110b0ba99bbf3e2eedd6bf702b301125e05ff5510bcb7d3fa83da7"
+        },
+        {
+          "path": "evidence/final/wordpress/native/02-duplicate-reorder.jpg",
+          "sha256": "fd136107e1e4b5184b16524169292552b2890fdc792ff80b00b29316c6946171"
+        },
+        {
+          "path": "evidence/final/wordpress/native/03-global-settings.jpg",
+          "sha256": "6ec5684e7e05934a0192945174a3e5fa5e6c4202d0ead89217acdd480c619393"
+        },
+        {
+          "path": "evidence/final/wordpress/native/04-global-styles.jpg",
+          "sha256": "a247dc1b9ee3dbdbbd3ba0304f0fe9e66f090d1984d35afc79b1b31d5038fd6d"
+        },
+        {
+          "path": "evidence/final/wordpress/native/06-mobile-override.jpg",
+          "sha256": "a3f09e23a3743c715408b56c7a12ba27724c8ae65e94228360bdac4e63c2de69"
+        },
+        {
+          "path": "evidence/final/wordpress/native/07-replaced-image.jpg",
+          "sha256": "ba1e147d566b78826cfc44b5afe5f405ffa75b28c9c4d6c3a82f90ed0e17f5fa"
+        },
+        {
+          "path": "evidence/final/wordpress/native/08-form-edit.jpg",
+          "sha256": "6012cf21e14eb2f05a9bf2ad8361e9e52d3a7f6c76a1e1d9fc688b6ec14439f1"
+        },
+        {
+          "path": "evidence/final/wordpress/native/09-shared-instance-reopened.jpg",
+          "sha256": "cc53a358f914cc674cf5364589973d06bf9d4717087a6e8e33fc8557694814c7"
+        },
+        {
+          "path": "evidence/final/wordpress/native/10-global-cross-page.jpg",
+          "sha256": "8a7a5de1dfcfbfb24e3be74fdb35fb984bb35e9be37d1295dcebfd74d962b496"
+        },
+        {
+          "path": "evidence/final/wordpress/native/contact-interactions.json",
+          "sha256": "74cf964c30d3b1fddb027fce10a853c99c732398639c7f56ef4e5fd25c45b3ca"
+        },
+        {
+          "path": "evidence/final/wordpress/native/optional-background-fallback.jpg",
+          "sha256": "bd3be0a4af3efb6198bead8e3ce3c1120e42a258d308d33b093d9b448ab80167"
+        },
+        {
+          "path": "evidence/final/wordpress/native/stress-interactions.json",
+          "sha256": "bf5a3ece78d63bb4b9f48794d319ebb55666e6af9666ad049cd3049f4efd1b90"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-1-desktop.jpg",
+          "sha256": "2e5303e0fe5d758938fd6f3dacf15c544fd97dd9e3af49c5a8b7cd7a32c6ced9"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-1-mobile.jpg",
+          "sha256": "92563fcdaf2c84a57fb0b1b17d600076c904783dae60dbd2a698f479ae79c4bc"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-3-desktop.jpg",
+          "sha256": "1b149884afe6bc6e9bd935c689757933c221461446c9e48732a5a42236ae0cdd"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-3-mobile.jpg",
+          "sha256": "1ded339a5a141c8a3548b5c35f9361d2bd69d93b0177a87776172b7ecb058cea"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-7-desktop.jpg",
+          "sha256": "38184eb12be4066e6f6d87199d7f90ea328a38b926ccb1d27c7b2d372c8c4ccd"
+        },
+        {
+          "path": "evidence/final/wordpress/native/team-7-mobile.jpg",
+          "sha256": "a877f34db80b9ea118464913bdeb405d0602492c40ee9b8e0f024632ec0a1506"
+        },
+        {
+          "path": "evidence/wordpress-license/runtime.json",
+          "sha256": "465ba7d5bb675f6c034f81ee92c9b260c4a225c7368ecfe30aa47f48883e06a3"
+        },
+        {
+          "path": "evidence/wordpress-license/fresh-r64-checks.json",
+          "sha256": "3ea6a5631c9f34bfce292c8e2cbc149396a3603d938879754e605a66590a0c84"
+        },
+        {
+          "path": "evidence/wordpress-license/fresh-r64.json",
+          "sha256": "0da66c2800cf5e6cf428a2bba756c2a08ab90d30a9f4998acc4a09df16c4bb34"
+        },
+        {
+          "path": "evidence/wordpress-license/fresh-r64-reimport.json",
+          "sha256": "0fc16a69b618f5ffc0a3d60e105e1b9002c2e1a808fe4f505750558e697dd069"
+        },
+        {
+          "path": "evidence/wordpress-license/fresh-r64-reimport-readback.json",
+          "sha256": "408eae2b6914f98b7d96bbd5ab5c3b0349f4021b3ae14e3aa9aae01acb14e35e"
+        },
+        {
+          "path": "evidence/wordpress-license/r64-icon-notices.json",
+          "sha256": "c20a16da110f291582b95337145256e45c75b2f564d195df13dde22e800cb7c1"
+        },
+        {
+          "path": "evidence/wordpress-license/license-readback.json",
+          "sha256": "205bf67637615d010404ff72e6099c9f85824d12ec3e310f0dc1b8685d0fd6c0"
+        },
+        {
+          "path": "evidence/wordpress-license/published-local.json",
+          "sha256": "6a4ccd159078244d4a6230966c877796072c0320ac8abc314cd8f5d9a2f6e0c8"
+        },
+        {
+          "path": "evidence/wordpress-license/final-reset-import.json",
+          "sha256": "a6bb13db1e3b83db9227e7f9cb62948b0924e8bc31fc9490d11885e94c5d5a7b"
+        },
+        {
+          "path": "evidence/wordpress-license/final-reset-readback.json",
+          "sha256": "72786d3a46a61aea04269c58f1a997610ad80d29d9eefc0fe83c3e057d9991b0"
+        },
+        {
+          "path": "evidence/wordpress-license/native-final-restored.json",
+          "sha256": "9c7795eb663e8747b9fedb3297de56d1ce545255ae7b3a4479447401aca2edbe"
+        },
+        {
+          "path": "evidence/wordpress-license/globals-final-restored.json",
+          "sha256": "d34b5e2a0d505ba6f8b125f3e3f812ed0c7d7e62c77d5aaf6f05dc0bcd537f2b"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/binding.json",
+          "sha256": "b9de4174689bfa4d186853f13ea2bfa1e3b073e4b98e1e17579b51a0bfcc93c7"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/vector-check.json",
+          "sha256": "c1dc8775af2f13f8e37e0eec13f3b9e4edd14875e1f1f575162d4580e581a604"
+        },
+        {
+          "path": "evidence/license-fix/Hosted/calls.json",
+          "sha256": "3e946be7520560eb443f8d56ed887088044103ffb80c3034f8311810d1ac9257"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/about-1440-header-focus.jpg",
+          "sha256": "0b553bf0a8a37263dd227038622bf8f5127828b234a2fb33148f0d1cca7b541e"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/about-1440-keyboard.jpg",
+          "sha256": "764120a4083d98c288187fb958b1ccb4cb15e5890d95f85efceea310ce69ecd5"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/about-390-keyboard.jpg",
+          "sha256": "07bd5394ecb65cd24eba7bacfb0afa0435e680539a7ea5098cc82270a8a220ce"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/contact-1440-header-focus.jpg",
+          "sha256": "490f9df0fb7904cfbc9c0881af9147febf9a5bf825ba34c88c9e46d7db278721"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/contact-1440-keyboard.jpg",
+          "sha256": "256ab26f67c44e4989a1775944ceaed23ce252fa435f76ec949c2ce2582d6f4e"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/contact-390-keyboard.jpg",
+          "sha256": "89f2c6605ecc52c99d48824b975a66f8b46cf7015742e1371e712b6573291069"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/index-1440-header-focus.jpg",
+          "sha256": "f015bbf6c196f162c1cc7ea1c2904e65c71cae01842bd172302897af7e05ffff"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/index-1440-keyboard.jpg",
+          "sha256": "74aff9011abcab0011609c08b2880758d31335ac63135b489a1655678c0c2bf0"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/index-390-keyboard.jpg",
+          "sha256": "5c541120b0e051c0da7d6dba2c8c5232bba9dd5d0346f3ecc2174f3623d312ff"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/results.json",
+          "sha256": "da66b3fd7981827f441265753afb64a50e85ae5d6ffd783fcfbbb48e4458b87d"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/treatments-1440-header-focus.jpg",
+          "sha256": "d86734b592efb1c1b404c04b580d581b02826fc008a2adf7f532668699b79b37"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/treatments-1440-keyboard.jpg",
+          "sha256": "8e94924c4d012d738f8e7b42adc155d62fc439f79dda0922870dcc13d218205e"
+        },
+        {
+          "path": "evidence/final/supplemental-keyboard/wordpress/treatments-390-keyboard.jpg",
+          "sha256": "791624c7063468935adb2af46f996f38651756beeaa97fa0b4b0df945d2033cf"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+    "verdict": "pass",
+    "rationale": "Bounded independent review of 32 full-page Cloud and WordPress captures at four widths, with three WordPress painted-image supplements; interaction, licensing, release and approval boundaries remain separately recorded.",
+    "evidence": [
+      {
+        "path": "evidence/final/design-review.json",
+        "sha256": "8d59e9a21a9c3760039c9e9b213b4ee127bbcbc29964a8eab19f1c3ff090a289"
+      },
+      {
+        "path": "evidence/final/design-review.md",
+        "sha256": "88e08caad8e4730cc7145bdcb89c5a38182af32eefa495ed124e8a1451eeb817"
+      },
+      {
+        "path": "evidence/final/cloud/After/about-1024.jpg",
+        "sha256": "fb1aefad15791bf724a799f967b073c25ac13c2f317312f3a6bde653aced9a11"
+      },
+      {
+        "path": "evidence/final/cloud/After/about-1440.jpg",
+        "sha256": "b43c6f186c092bdda401a9cab0fbe63aad4d4441f79264471b66c7ef5bbe487a"
+      },
+      {
+        "path": "evidence/final/cloud/After/about-390.jpg",
+        "sha256": "bb5a4c4e32eb4bc78498ffa61f4978e936bcbc3648ae965477f1389dded4b249"
+      },
+      {
+        "path": "evidence/final/cloud/After/about-768.jpg",
+        "sha256": "e57a6e346a344898501d701d3e51f1d7ddbc9ad1476ba855f084880e22d9e8f8"
+      },
+      {
+        "path": "evidence/final/cloud/After/contact-1024.jpg",
+        "sha256": "a995823ee04caf029d7e8e48c7a9d58237899c7bb219f85768b02993d398f3c9"
+      },
+      {
+        "path": "evidence/final/cloud/After/contact-1440.jpg",
+        "sha256": "20370db81a2a24850691ee21a25618194b7c1140d6996313a88a54c9c741c8eb"
+      },
+      {
+        "path": "evidence/final/cloud/After/contact-390.jpg",
+        "sha256": "526b85d67c00968b930fdf18c95c5f7c7c28740098f93870f528059392f05260"
+      },
+      {
+        "path": "evidence/final/cloud/After/contact-768.jpg",
+        "sha256": "9121bf54c38278bad0e95ac6a87d73ba1719987930e8d1aadfeaad08b8f28de2"
+      },
+      {
+        "path": "evidence/final/cloud/After/index-1024.jpg",
+        "sha256": "098403ba85c9e8c328763703628d3c3b0d6eb94d6e7d3e4bd3c4f79a5c190974"
+      },
+      {
+        "path": "evidence/final/cloud/After/index-1440.jpg",
+        "sha256": "27574e51b485cb75ad168082c134915dea4948dacab6088f32ab5c4109d52cc4"
+      },
+      {
+        "path": "evidence/final/cloud/After/index-390.jpg",
+        "sha256": "9ec2ef9a55b9bad3bdf56852155cc6d0f901f69b82faecb63cf465da4e6e5985"
+      },
+      {
+        "path": "evidence/final/cloud/After/index-768.jpg",
+        "sha256": "70ed2c8b4234d0446918ed8d1009d9725a5e86e0f62334a205410e5e53be3f45"
+      },
+      {
+        "path": "evidence/final/cloud/After/treatments-1024.jpg",
+        "sha256": "296a2e12a6e381339e409183300a5ee0a6c5f92d78427b369119bc12a4529a3f"
+      },
+      {
+        "path": "evidence/final/cloud/After/treatments-1440.jpg",
+        "sha256": "112eb4a9b71778f2d03d0a9d721b4f35e2f380cbc6dec773fcc5814740bb0bc9"
+      },
+      {
+        "path": "evidence/final/cloud/After/treatments-390.jpg",
+        "sha256": "ed3f68367e00f4819cc01472c0f78929e4d15b9eb151f3353f7ab263f2448e99"
+      },
+      {
+        "path": "evidence/final/cloud/After/treatments-768.jpg",
+        "sha256": "01c8a44c5b00cf8fe80755cc50d9b00838500f77681b04c3253f01537052ddc4"
+      },
+      {
+        "path": "evidence/final/wordpress/After/about-1024.jpg",
+        "sha256": "a2e1b25284e942f832241eebf9288fa4a8fd520b7086500516de75e736f58ffc"
+      },
+      {
+        "path": "evidence/final/wordpress/After/about-1440.jpg",
+        "sha256": "485cbb0d229cfa09d91c5fe693d976924e6013d9b284f863778c3f335148ef3d"
+      },
+      {
+        "path": "evidence/final/wordpress/After/about-390.jpg",
+        "sha256": "9778d9d58888318e5f655842f046ea7106e89ef3ca933c929a51b7823dde9b76"
+      },
+      {
+        "path": "evidence/final/wordpress/After/about-768.jpg",
+        "sha256": "63ab3dd775b0740f6a1e2b845aed3950338a18eb45fd6e1bb5b7944683b35c75"
+      },
+      {
+        "path": "evidence/final/wordpress/After/contact-1024.jpg",
+        "sha256": "8301c7be3ee606b3062dbffd89ee4e730137abb5a6d944f11b2776e3f8b34de5"
+      },
+      {
+        "path": "evidence/final/wordpress/After/contact-1440.jpg",
+        "sha256": "509fc68a97dae8765acf23d2123a0d21d07eee595848920a4df23cad99450040"
+      },
+      {
+        "path": "evidence/final/wordpress/After/contact-390.jpg",
+        "sha256": "c7b44970b5c822dfd5fc45f47f11eb97b9f5afdad0171f804ac0c4950035f9bd"
+      },
+      {
+        "path": "evidence/final/wordpress/After/contact-768.jpg",
+        "sha256": "c963d77323a07a0fc98d9beaeac1eee556c3ebb05a07159ce4f2baa5d4213ed3"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-1024.jpg",
+        "sha256": "8c52343164c999a03deeb985533b21711236c41d15d062b6ad30d409bf4edc8d"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-1440-practice-painted.jpg",
+        "sha256": "707796e796bc202609579f2b967a85a517da0771b82d7199393a08f9504728f1"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-1440-team-01-painted.jpg",
+        "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-1440-team-02-painted.jpg",
+        "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-1440.jpg",
+        "sha256": "720ac874d0c772a5a28f432ca184bcf358891c5558ada8d1dca48ec678330151"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-390.jpg",
+        "sha256": "8e52a9655da297add5cb460d7faf29d9641af2492cdbfd7f7572ff4d04fc8b68"
+      },
+      {
+        "path": "evidence/final/wordpress/After/index-768.jpg",
+        "sha256": "9f8a0723de0d0b537f3a734fec913d467fd0f84057a4f107118a0fc14c0cc8fd"
+      },
+      {
+        "path": "evidence/final/wordpress/After/treatments-1024.jpg",
+        "sha256": "6ca709c1b17cfb6be9d73e9a710a13c97956cb12593a9b155d160c68a66071a4"
+      },
+      {
+        "path": "evidence/final/wordpress/After/treatments-1440.jpg",
+        "sha256": "ba91b8691077ce4cb6c3880afa77179f0e01dcc1e9172c200ac828b8f526262e"
+      },
+      {
+        "path": "evidence/final/wordpress/After/treatments-390.jpg",
+        "sha256": "58d17cdc05b27bc929bdcfc538f298c782d3cd3043d6ab2e04cbd405381794a7"
+      },
+      {
+        "path": "evidence/final/wordpress/After/treatments-768.jpg",
+        "sha256": "27daeaf3d4ab51b4ddd52b15d35f0d78a86bf4af177e8dea7f27574adcca73c3"
+      }
+    ]
+  },
+  "approval": {
+    "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Approve corrected Dental package",
+      "at": "2026-11-17T17:51:01.469202Z",
+      "evidence": "evidence/catalog-package-approval-2026-11-18.json; direct user reply to [\"request_user_input_async\",\"call_b56f9b6882de4d31b7313e8250e55824\",0]. Timestamp records receipt creation, not the exact decision time."
+    }
+  }
+}
