@@ -1,0 +1,5386 @@
+[
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 133.90625,
+        "id": "pagecraft-heading-dental-a2-20",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Good care,for every smile.",
+        "width": 600,
+        "x": 78,
+        "y": 258.046875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-463",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Find a clearer path to your care.",
+        "width": 1320,
+        "x": 60,
+        "y": 831.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-470",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place to talk about your smile.",
+        "width": 1320,
+        "x": 60,
+        "y": 1734.171875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 86.375,
+        "id": "pagecraft-heading-dental-a2-525",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Your first visit, at your pace.",
+        "width": 492.625,
+        "x": 60,
+        "y": 2644.015625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 86.375,
+        "id": "pagecraft-heading-dental-a2-486",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 382.9375,
+        "x": 60,
+        "y": 3366.546875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-201",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A few questions, answered.",
+        "width": 1320,
+        "x": 60,
+        "y": 4071.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-208",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your next visit.",
+        "width": 1320,
+        "x": 60,
+        "y": 4798.65625
+      }
+    ],
+    "height": 5138,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A clinician speaking with a parent and child",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/family-care-hero-afde016d75ba6.webp"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "An adult discussing dental care",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/everyday-care-adult-a48e308f870c4.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "Dental team member in a bright practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dental team member in a clinical setting",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatment planning"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Get to know our approach"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#home-faq",
+        "text": "View common questions"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Meet the care team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1440,
+    "sections": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 640,
+        "id": "pagecraft-section-dental-a2-26",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 902.671875,
+        "id": "pagecraft-section-dental-a2-466",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 722
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 935.34375,
+        "id": "pagecraft-section-dental-a2-145",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 1624.671875
+      },
+      {
+        "background": "rgb(7, 106, 159)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 730.53125,
+        "id": "visit-guidance",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 2560.015625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 704.953125,
+        "id": "pagecraft-section-dental-a2-198",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 3290.546875
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 727.15625,
+        "id": "home-faq",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 3995.5
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 321.1875,
+        "id": "pagecraft-section-dental-a2-215",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 4722.65625
+      }
+    ],
+    "title": "Home | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/",
+    "width": 1440,
+    "page": "index",
+    "screenshotFile": "index-1440.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 108,
+        "id": "pagecraft-heading-dental-a2-20",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Good care,for every smile.",
+        "width": 600,
+        "x": 50,
+        "y": 242.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-463",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Find a clearer path to your care.",
+        "width": 960,
+        "x": 32,
+        "y": 755.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-470",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place to talk about your smile.",
+        "width": 960,
+        "x": 32,
+        "y": 1605.734375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 73.4375,
+        "id": "pagecraft-heading-dental-a2-525",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Your first visit, at your pace.",
+        "width": 418.734375,
+        "x": 32,
+        "y": 2492.359375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-486",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 960,
+        "x": 32,
+        "y": 4225.796875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-201",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A few questions, answered.",
+        "width": 960,
+        "x": 32,
+        "y": 4733.828125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-208",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your next visit.",
+        "width": 960,
+        "x": 32,
+        "y": 5421.015625
+      }
+    ],
+    "height": 5935,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A clinician speaking with a parent and child",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/family-care-hero-afde016d75ba6.webp"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "An adult discussing dental care",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/everyday-care-adult-a48e308f870c4.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "Dental team member in a bright practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dental team member in a clinical setting",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatment planning"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Get to know our approach"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#home-faq",
+        "text": "View common questions"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Meet the care team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1024,
+    "sections": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 580,
+        "id": "pagecraft-section-dental-a2-26",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 850.234375,
+        "id": "pagecraft-section-dental-a2-466",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 662
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 916.125,
+        "id": "pagecraft-section-dental-a2-145",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 1512.234375
+      },
+      {
+        "background": "rgb(7, 106, 159)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1115.65625,
+        "id": "visit-guidance",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 2428.359375
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1129.8125,
+        "id": "pagecraft-section-dental-a2-198",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 3544.015625
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 687.1875,
+        "id": "home-faq",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 4673.828125
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 281.21875,
+        "id": "pagecraft-section-dental-a2-215",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 5361.015625
+      }
+    ],
+    "title": "Home | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/",
+    "width": 1024,
+    "page": "index",
+    "screenshotFile": "index-1024.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 108,
+        "id": "pagecraft-heading-dental-a2-20",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Good care,for every smile.",
+        "width": 600,
+        "x": 50,
+        "y": 242.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-463",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Find a clearer path to your care.",
+        "width": 704,
+        "x": 32,
+        "y": 755.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-470",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place to talk about your smile.",
+        "width": 704,
+        "x": 32,
+        "y": 1819.453125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 73.4375,
+        "id": "pagecraft-heading-dental-a2-525",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Your first visit, at your pace.",
+        "width": 418.734375,
+        "x": 32,
+        "y": 2731.578125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-486",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 704,
+        "x": 32,
+        "y": 4330.578125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-201",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A few questions, answered.",
+        "width": 704,
+        "x": 32,
+        "y": 4838.609375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-208",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your next visit.",
+        "width": 704,
+        "x": 32,
+        "y": 5525.796875
+      }
+    ],
+    "height": 6040,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A clinician speaking with a parent and child",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/family-care-hero-afde016d75ba6.webp"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "An adult discussing dental care",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/everyday-care-adult-a48e308f870c4.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "Dental team member in a bright practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dental team member in a clinical setting",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatment planning"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Get to know our approach"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#home-faq",
+        "text": "View common questions"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Meet the care team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 768,
+    "sections": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 580,
+        "id": "pagecraft-section-dental-a2-26",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1063.953125,
+        "id": "pagecraft-section-dental-a2-466",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 662
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 941.625,
+        "id": "pagecraft-section-dental-a2-145",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 1725.953125
+      },
+      {
+        "background": "rgb(7, 106, 159)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1141.15625,
+        "id": "visit-guidance",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 2667.578125
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 969.875,
+        "id": "pagecraft-section-dental-a2-198",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 3808.734375
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 687.1875,
+        "id": "home-faq",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 4778.609375
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 281.21875,
+        "id": "pagecraft-section-dental-a2-215",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 5465.796875
+      }
+    ],
+    "title": "Home | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/",
+    "width": 768,
+    "page": "index",
+    "screenshotFile": "index-768.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 82.0625,
+        "id": "pagecraft-heading-dental-a2-20",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Good care,for every smile.",
+        "width": 332,
+        "x": 36,
+        "y": 396
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-463",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Find a clearer path to your care.",
+        "width": 346,
+        "x": 22,
+        "y": 769.0625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-470",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place to talk about your smile.",
+        "width": 346,
+        "x": 22,
+        "y": 2171.8125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-525",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Your first visit, at your pace.",
+        "width": 346,
+        "x": 22,
+        "y": 3178.09375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 32.390625,
+        "id": "pagecraft-heading-dental-a2-486",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 346,
+        "x": 22,
+        "y": 4579.296875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-201",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A few questions, answered.",
+        "width": 346,
+        "x": 22,
+        "y": 5096.6875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-208",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your next visit.",
+        "width": 346,
+        "x": 22,
+        "y": 5755.828125
+      }
+    ],
+    "height": 6268,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A clinician speaking with a parent and child",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/family-care-hero-afde016d75ba6.webp"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "An adult discussing dental care",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/everyday-care-adult-a48e308f870c4.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "Dental team member in a bright practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dental team member in a clinical setting",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatment planning"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "View all care topics"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Get to know our approach"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#home-faq",
+        "text": "View common questions"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "Meet the care team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Explore treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 390,
+    "sections": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 621.5625,
+        "id": "pagecraft-section-dental-a2-26",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 66
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1402.75,
+        "id": "pagecraft-section-dental-a2-466",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 687.5625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1039.78125,
+        "id": "pagecraft-section-dental-a2-145",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 2090.3125
+      },
+      {
+        "background": "rgb(7, 106, 159)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1164.53125,
+        "id": "visit-guidance",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 3130.09375
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 754.0625,
+        "id": "pagecraft-section-dental-a2-198",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 4294.625
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 659.140625,
+        "id": "home-faq",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 5048.6875
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.28125,
+        "id": "pagecraft-section-dental-a2-215",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 5707.828125
+      }
+    ],
+    "title": "Home | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/",
+    "width": 390,
+    "page": "index",
+    "screenshotFile": "index-390.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 67,
+        "id": "pagecraft-heading-dental-a2-537",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care that starts with you.",
+        "width": 1302,
+        "x": 78,
+        "y": 215.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 86.375,
+        "id": "pagecraft-heading-dental-a2-550",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Support for your everyday oral health.",
+        "width": 632,
+        "x": 748,
+        "y": 727.0625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-576",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Understand the options before deciding.",
+        "width": 1173.90625,
+        "x": 133.03125,
+        "y": 2290
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-592",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Make space for the questions that matter.",
+        "width": 1320,
+        "x": 60,
+        "y": 2767.34375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-597",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Start with a conversation.",
+        "width": 1320,
+        "x": 60,
+        "y": 3445.046875
+      }
+    ],
+    "height": 3814,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Talk about your care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#preventive-care",
+        "text": "Preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#restorative-care",
+        "text": "Restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#planning-together",
+        "text": "Planning together"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Discuss your care options"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1440,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 458.5,
+        "id": "pagecraft-section-dental-a2-547",
+        "padding": "100px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 68,
+        "id": "pagecraft-section-dental-a2-699",
+        "padding": "12px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 540.5
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 672,
+        "id": "preventive-care",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 608.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1377.34375,
+        "id": "restorative-care",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 1280.5
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 711.203125,
+        "id": "planning-together",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 2657.84375
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 351.1875,
+        "id": "pagecraft-section-dental-a2-604",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 3369.046875
+      }
+    ],
+    "title": "Treatments | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/treatments",
+    "width": 1440,
+    "page": "treatments",
+    "screenshotFile": "treatments-1440.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-537",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care that starts with you.",
+        "width": 942,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 73.4375,
+        "id": "pagecraft-heading-dental-a2-550",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Support for your everyday oral health.",
+        "width": 464,
+        "x": 528,
+        "y": 626
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-576",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Understand the options before deciding.",
+        "width": 853.75,
+        "x": 85.109375,
+        "y": 1970.9375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-592",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Make space for the questions that matter.",
+        "width": 960,
+        "x": 32,
+        "y": 2422.5625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-597",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Start with a conversation.",
+        "width": 960,
+        "x": 32,
+        "y": 3060.296875
+      }
+    ],
+    "height": 3603,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Talk about your care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#preventive-care",
+        "text": "Preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#restorative-care",
+        "text": "Restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#planning-together",
+        "text": "Planning together"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Discuss your care options"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1024,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-547",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64,
+        "id": "pagecraft-section-dental-a2-699",
+        "padding": "10px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 656.9375,
+        "id": "preventive-care",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 532.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1139.625,
+        "id": "restorative-care",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 1189.4375
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 671.234375,
+        "id": "planning-together",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 2329.0625
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.71875,
+        "id": "pagecraft-section-dental-a2-604",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 3000.296875
+      }
+    ],
+    "title": "Treatments | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/treatments",
+    "width": 1024,
+    "page": "treatments",
+    "screenshotFile": "treatments-1024.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-537",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care that starts with you.",
+        "width": 686,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 73.4375,
+        "id": "pagecraft-heading-dental-a2-550",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Support for your everyday oral health.",
+        "width": 336,
+        "x": 400,
+        "y": 626
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 73.4375,
+        "id": "pagecraft-heading-dental-a2-576",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Understand the options before deciding.",
+        "width": 609.015625,
+        "x": 79.484375,
+        "y": 1832.9375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-592",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Make space for the questions that matter.",
+        "width": 704,
+        "x": 32,
+        "y": 2375.28125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-597",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Start with a conversation.",
+        "width": 704,
+        "x": 32,
+        "y": 3041.515625
+      }
+    ],
+    "height": 3584,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Talk about your care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#preventive-care",
+        "text": "Preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#restorative-care",
+        "text": "Restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#planning-together",
+        "text": "Planning together"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Discuss your care options"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 768,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-547",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64,
+        "id": "pagecraft-section-dental-a2-699",
+        "padding": "10px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 710.9375,
+        "id": "preventive-care",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 532.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1038.34375,
+        "id": "restorative-care",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 1243.4375
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 699.734375,
+        "id": "planning-together",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 2281.78125
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.71875,
+        "id": "pagecraft-section-dental-a2-604",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 2981.515625
+      }
+    ],
+    "title": "Treatments | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/treatments",
+    "width": 768,
+    "page": "treatments",
+    "screenshotFile": "treatments-768.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 82.0625,
+        "id": "pagecraft-heading-dental-a2-537",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care that starts with you.",
+        "width": 332,
+        "x": 36,
+        "y": 155.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-550",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Support for your everyday oral health.",
+        "width": 346,
+        "x": 22,
+        "y": 999.5625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 97.171875,
+        "id": "pagecraft-heading-dental-a2-576",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Understand the options before deciding.",
+        "width": 302,
+        "x": 44,
+        "y": 1957.84375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-592",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Make space for the questions that matter.",
+        "width": 346,
+        "x": 22,
+        "y": 2589.015625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-597",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Start with a conversation.",
+        "width": 346,
+        "x": 22,
+        "y": 3266.140625
+      }
+    ],
+    "height": 3778,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A bright dental treatment room",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/light-filled-treatment-room-a25ce5bc72b21.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-preventive-a0d06c331ef6f.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-restorative-a0332b6e4169c.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/icon-planning-a30e0a243dfa7.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Talk about your care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#preventive-care",
+        "text": "Preventive care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#restorative-care",
+        "text": "Restorative care"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments#planning-together",
+        "text": "Planning together"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Ask about a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Discuss your care options"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 390,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 432.0625,
+        "id": "pagecraft-section-dental-a2-547",
+        "padding": "56px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 66
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 112,
+        "id": "pagecraft-section-dental-a2-699",
+        "padding": "10px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 498.0625
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 968.28125,
+        "id": "preventive-care",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 610.0625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 929.171875,
+        "id": "restorative-care",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 1578.34375
+      },
+      {
+        "background": "rgb(237, 248, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 710.625,
+        "id": "planning-together",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 2507.515625
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.28125,
+        "id": "pagecraft-section-dental-a2-604",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 3218.140625
+      }
+    ],
+    "title": "Treatments | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/treatments",
+    "width": 390,
+    "page": "treatments",
+    "screenshotFile": "treatments-390.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 67,
+        "id": "pagecraft-heading-dental-a2-606",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A team that listens.",
+        "width": 1302,
+        "x": 78,
+        "y": 215.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-669",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place for everyday care.",
+        "width": 1320,
+        "x": 60,
+        "y": 648
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-612",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 1320,
+        "x": 60,
+        "y": 1581.203125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-629",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care starts with listening.",
+        "width": 574.8125,
+        "x": 753.1875,
+        "y": 3259.640625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-642",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Bring your perspective",
+        "width": 1320,
+        "x": 60,
+        "y": 3821.09375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-659",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your care.",
+        "width": 1320,
+        "x": 60,
+        "y": 4411.59375
+      }
+    ],
+    "height": 4805,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "The dental team together at the practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-scene-a0eca940713c0.webp"
+      },
+      {
+        "alt": "Dr Maya Bennett",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dr Daniel Reed",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "Dr Aisha Khan",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-aisha-khan-a0976adf211e2.webp"
+      },
+      {
+        "alt": "Dr Oliver Chen",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-oliver-chen-a3c2ab09ecf3b.webp"
+      },
+      {
+        "alt": "Dr Naomi Brooks",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-naomi-brooks-a2ecd1db7ee30.webp"
+      },
+      {
+        "alt": "Dr Elena Cruz",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-elena-cruz-a45de3dd337d8.webp"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-concerns-a7cc69e2d0039.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-comfort-a8fa88d681dd0.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-choices-a75f07e579712.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/about#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about#meet-the-team",
+        "text": "Meet the team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Get in touch"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1440,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 458.5,
+        "id": "pagecraft-section-dental-a2-611",
+        "padding": "100px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 964.703125,
+        "id": "pagecraft-section-dental-a2-673",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 540.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1583,
+        "id": "meet-the-team",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 1505.203125
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 656.890625,
+        "id": "pagecraft-section-dental-a2-641",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 3088.203125
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 566.5,
+        "id": "pagecraft-section-dental-a2-658",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 3745.09375
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 399.1875,
+        "id": "pagecraft-section-dental-a2-666",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 4311.59375
+      }
+    ],
+    "title": "About | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/about",
+    "width": 1440,
+    "page": "about",
+    "screenshotFile": "about-1440.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-606",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A team that listens.",
+        "width": 942,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-669",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place for everyday care.",
+        "width": 960,
+        "x": 32,
+        "y": 560
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-612",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 960,
+        "x": 32,
+        "y": 1297.09375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-629",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care starts with listening.",
+        "width": 896,
+        "x": 64,
+        "y": 4272.53125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-642",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Bring your perspective",
+        "width": 960,
+        "x": 32,
+        "y": 4672.65625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-659",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your care.",
+        "width": 960,
+        "x": 32,
+        "y": 5606.59375
+      }
+    ],
+    "height": 6161,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "The dental team together at the practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-scene-a0eca940713c0.webp"
+      },
+      {
+        "alt": "Dr Maya Bennett",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dr Daniel Reed",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "Dr Aisha Khan",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-aisha-khan-a0976adf211e2.webp"
+      },
+      {
+        "alt": "Dr Oliver Chen",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-oliver-chen-a3c2ab09ecf3b.webp"
+      },
+      {
+        "alt": "Dr Naomi Brooks",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-naomi-brooks-a2ecd1db7ee30.webp"
+      },
+      {
+        "alt": "Dr Elena Cruz",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-elena-cruz-a45de3dd337d8.webp"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-concerns-a7cc69e2d0039.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-comfort-a8fa88d681dd0.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-choices-a75f07e579712.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/about#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about#meet-the-team",
+        "text": "Meet the team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Get in touch"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1024,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-611",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 768.59375,
+        "id": "pagecraft-section-dental-a2-673",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 2167.9375,
+        "id": "meet-the-team",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 1237.09375
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1207.625,
+        "id": "pagecraft-section-dental-a2-641",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 3405.03125
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 921.9375,
+        "id": "pagecraft-section-dental-a2-658",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 4612.65625
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 333.71875,
+        "id": "pagecraft-section-dental-a2-666",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 5534.59375
+      }
+    ],
+    "title": "About | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/about",
+    "width": 1024,
+    "page": "about",
+    "screenshotFile": "about-1024.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-606",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A team that listens.",
+        "width": 686,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-669",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place for everyday care.",
+        "width": 704,
+        "x": 32,
+        "y": 560
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-612",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 704,
+        "x": 32,
+        "y": 1217.75
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-629",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care starts with listening.",
+        "width": 640,
+        "x": 64,
+        "y": 4077.6875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-642",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Bring your perspective",
+        "width": 704,
+        "x": 32,
+        "y": 4531.8125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-659",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your care.",
+        "width": 704,
+        "x": 32,
+        "y": 5516.75
+      }
+    ],
+    "height": 6071,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "The dental team together at the practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-scene-a0eca940713c0.webp"
+      },
+      {
+        "alt": "Dr Maya Bennett",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dr Daniel Reed",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "Dr Aisha Khan",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-aisha-khan-a0976adf211e2.webp"
+      },
+      {
+        "alt": "Dr Oliver Chen",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-oliver-chen-a3c2ab09ecf3b.webp"
+      },
+      {
+        "alt": "Dr Naomi Brooks",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-naomi-brooks-a2ecd1db7ee30.webp"
+      },
+      {
+        "alt": "Dr Elena Cruz",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-elena-cruz-a45de3dd337d8.webp"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-concerns-a7cc69e2d0039.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-comfort-a8fa88d681dd0.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-choices-a75f07e579712.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/about#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about#meet-the-team",
+        "text": "Meet the team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Get in touch"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 768,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-611",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 689.25,
+        "id": "pagecraft-section-dental-a2-673",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 2244.4375,
+        "id": "meet-the-team",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 1157.75
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1069.625,
+        "id": "pagecraft-section-dental-a2-641",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 3402.1875
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 972.9375,
+        "id": "pagecraft-section-dental-a2-658",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 4471.8125
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 333.71875,
+        "id": "pagecraft-section-dental-a2-666",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 5444.75
+      }
+    ],
+    "title": "About | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/about",
+    "width": 768,
+    "page": "about",
+    "screenshotFile": "about-768.jpg"
+  },
+  {
+    "contactNodes": [],
+    "fonts": "loaded",
+    "form": {
+      "action": null,
+      "controls": [],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 82.0625,
+        "id": "pagecraft-heading-dental-a2-606",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A team that listens.",
+        "width": 332,
+        "x": 36,
+        "y": 155.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-669",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A welcoming place for everyday care.",
+        "width": 346,
+        "x": 22,
+        "y": 577.5625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 32.390625,
+        "id": "pagecraft-heading-dental-a2-612",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "People behind your care.",
+        "width": 346,
+        "x": 22,
+        "y": 1162.078125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-629",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Care starts with listening.",
+        "width": 302,
+        "x": 44,
+        "y": 5050.96875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 32.390625,
+        "id": "pagecraft-heading-dental-a2-642",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Bring your perspective",
+        "width": 346,
+        "x": 22,
+        "y": 5646.25
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-659",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your care.",
+        "width": 346,
+        "x": 22,
+        "y": 6736.140625
+      }
+    ],
+    "height": 7256,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "The dental team together at the practice",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-scene-a0eca940713c0.webp"
+      },
+      {
+        "alt": "Dr Maya Bennett",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-01-a7e967b1803c1.webp"
+      },
+      {
+        "alt": "Dr Daniel Reed",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-portrait-02-a084291a85423.webp"
+      },
+      {
+        "alt": "Dr Aisha Khan",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-aisha-khan-a0976adf211e2.webp"
+      },
+      {
+        "alt": "Dr Oliver Chen",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-oliver-chen-a3c2ab09ecf3b.webp"
+      },
+      {
+        "alt": "Dr Naomi Brooks",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-naomi-brooks-a2ecd1db7ee30.webp"
+      },
+      {
+        "alt": "Dr Elena Cruz",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/care-team-elena-cruz-a45de3dd337d8.webp"
+      },
+      {
+        "alt": "A clinician and patient in conversation",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/comfortable-consultation-a355865b3b23e.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-concerns-a7cc69e2d0039.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-comfort-a8fa88d681dd0.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/perspective-choices-a75f07e579712.svg"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/about#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about#meet-the-team",
+        "text": "Meet the team"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Get in touch"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 390,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 432.0625,
+        "id": "pagecraft-section-dental-a2-611",
+        "padding": "56px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 66
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 616.015625,
+        "id": "pagecraft-section-dental-a2-673",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 498.0625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 3549.890625,
+        "id": "meet-the-team",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 1114.078125
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 934.28125,
+        "id": "pagecraft-section-dental-a2-641",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 4663.96875
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 1081.890625,
+        "id": "pagecraft-section-dental-a2-658",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 5598.25
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 325.28125,
+        "id": "pagecraft-section-dental-a2-666",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 6680.140625
+      }
+    ],
+    "title": "About | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/about",
+    "width": 390,
+    "page": "about",
+    "screenshotFile": "about-390.jpg"
+  },
+  {
+    "contactNodes": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 486.203125,
+        "id": "pagecraft-image-dental-a2-700",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 540.953125,
+        "x": 60,
+        "y": 737.6875
+      },
+      {
+        "background": "rgb(244, 247, 248)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 486.203125,
+        "id": "pagecraft-box-dental-a2-133",
+        "padding": "36px",
+        "radius": "12px",
+        "width": 747.046875,
+        "x": 632.953125,
+        "y": 737.6875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "540.953px 747.047px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 486.203125,
+        "id": "pagecraft-box-dental-a2-701",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1320,
+        "x": 60,
+        "y": 737.6875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "636px 636px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 140.65625,
+        "id": "pagecraft-box-dental-a2-378",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 1320,
+        "x": 60,
+        "y": 1559.078125
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 359.1875,
+        "id": "pagecraft-box-dental-a2-387",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 1320,
+        "x": 60,
+        "y": 1851.734375
+      }
+    ],
+    "fonts": "loaded",
+    "form": {
+      "action": "http://localhost:4992/forms/s1/dental-a2-125",
+      "controls": [
+        {
+          "disabled": false,
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "disabled": false,
+          "name": "message",
+          "type": "textarea"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_trap",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": null,
+          "type": "submit"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_request",
+          "type": "hidden"
+        }
+      ],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 67,
+        "id": "pagecraft-heading-dental-a2-127",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your visit.",
+        "width": 1302,
+        "x": 78,
+        "y": 215.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-131",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Request a visit",
+        "width": 1320,
+        "x": 60,
+        "y": 616.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-370",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A useful message can stay simple.",
+        "width": 1320,
+        "x": 60,
+        "y": 1375.890625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 43.1875,
+        "id": "pagecraft-heading-dental-a2-382",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Preparing for a visit?",
+        "width": 1192,
+        "x": 124,
+        "y": 1931.734375
+      }
+    ],
+    "height": 2381,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#contact-enquiry",
+        "text": "Make an enquiry"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#visit-guidance",
+        "text": "Visit guidance"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1440,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 458.5,
+        "id": "pagecraft-section-dental-a2-130",
+        "padding": "100px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 759.390625,
+        "id": "contact-enquiry",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 540.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 475.84375,
+        "id": "pagecraft-section-dental-a2-381",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 1299.890625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 511.1875,
+        "id": "pagecraft-section-dental-a2-388",
+        "padding": "76px 56px",
+        "radius": "0px",
+        "width": 1440,
+        "x": 0,
+        "y": 1775.734375
+      }
+    ],
+    "title": "Contact | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/contact",
+    "width": 1440,
+    "page": "contact",
+    "screenshotFile": "contact-1440.jpg"
+  },
+  {
+    "contactNodes": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-image-dental-a2-700",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 393.109375,
+        "x": 32,
+        "y": 641.71875
+      },
+      {
+        "background": "rgb(244, 247, 248)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-box-dental-a2-133",
+        "padding": "28px",
+        "radius": "12px",
+        "width": 542.890625,
+        "x": 449.109375,
+        "y": 641.71875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "393.109px 542.891px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-box-dental-a2-701",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 960,
+        "x": 32,
+        "y": 641.71875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "456px 456px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 137.40625,
+        "id": "pagecraft-box-dental-a2-378",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 960,
+        "x": 32,
+        "y": 1404.140625
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.71875,
+        "id": "pagecraft-box-dental-a2-387",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 960,
+        "x": 32,
+        "y": 1661.546875
+      }
+    ],
+    "fonts": "loaded",
+    "form": {
+      "action": "http://localhost:4992/forms/s1/dental-a2-125",
+      "controls": [
+        {
+          "disabled": false,
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "disabled": false,
+          "name": "message",
+          "type": "textarea"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_trap",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": null,
+          "type": "submit"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_request",
+          "type": "hidden"
+        }
+      ],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-127",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your visit.",
+        "width": 942,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-131",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Request a visit",
+        "width": 960,
+        "x": 32,
+        "y": 528.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-370",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A useful message can stay simple.",
+        "width": 960,
+        "x": 32,
+        "y": 1231.921875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-382",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Preparing for a visit?",
+        "width": 880,
+        "x": 72,
+        "y": 1721.546875
+      }
+    ],
+    "height": 2324,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#contact-enquiry",
+        "text": "Make an enquiry"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#visit-guidance",
+        "text": "Visit guidance"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 1024,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-130",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 703.421875,
+        "id": "contact-enquiry",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 429.625,
+        "id": "pagecraft-section-dental-a2-381",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 1171.921875
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 429.71875,
+        "id": "pagecraft-section-dental-a2-388",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 1024,
+        "x": 0,
+        "y": 1601.546875
+      }
+    ],
+    "title": "Contact | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/contact",
+    "width": 1024,
+    "page": "contact",
+    "screenshotFile": "contact-1024.jpg"
+  },
+  {
+    "contactNodes": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-image-dental-a2-700",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 285.59375,
+        "x": 32,
+        "y": 641.71875
+      },
+      {
+        "background": "rgb(244, 247, 248)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-box-dental-a2-133",
+        "padding": "28px",
+        "radius": "12px",
+        "width": 394.40625,
+        "x": 341.59375,
+        "y": 641.71875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "285.594px 394.406px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 470.203125,
+        "id": "pagecraft-box-dental-a2-701",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 704,
+        "x": 32,
+        "y": 641.71875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "328px 328px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 137.40625,
+        "id": "pagecraft-box-dental-a2-378",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 704,
+        "x": 32,
+        "y": 1404.140625
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 309.71875,
+        "id": "pagecraft-box-dental-a2-387",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 704,
+        "x": 32,
+        "y": 1661.546875
+      }
+    ],
+    "fonts": "loaded",
+    "form": {
+      "action": "http://localhost:4992/forms/s1/dental-a2-125",
+      "controls": [
+        {
+          "disabled": false,
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "disabled": false,
+          "name": "message",
+          "type": "textarea"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_trap",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": null,
+          "type": "submit"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_request",
+          "type": "hidden"
+        }
+      ],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 54,
+        "id": "pagecraft-heading-dental-a2-127",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your visit.",
+        "width": 686,
+        "x": 50,
+        "y": 187.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-131",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Request a visit",
+        "width": 704,
+        "x": 32,
+        "y": 528.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-370",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A useful message can stay simple.",
+        "width": 704,
+        "x": 32,
+        "y": 1231.921875
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 36.71875,
+        "id": "pagecraft-heading-dental-a2-382",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Preparing for a visit?",
+        "width": 624,
+        "x": 72,
+        "y": 1721.546875
+      }
+    ],
+    "height": 2324,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#contact-enquiry",
+        "text": "Make an enquiry"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#visit-guidance",
+        "text": "Visit guidance"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 768,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 386.5,
+        "id": "pagecraft-section-dental-a2-130",
+        "padding": "72px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 82
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 703.421875,
+        "id": "contact-enquiry",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 468.5
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 429.625,
+        "id": "pagecraft-section-dental-a2-381",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 1171.921875
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 429.71875,
+        "id": "pagecraft-section-dental-a2-388",
+        "padding": "60px 32px",
+        "radius": "0px",
+        "width": 768,
+        "x": 0,
+        "y": 1601.546875
+      }
+    ],
+    "title": "Contact | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/contact",
+    "width": 768,
+    "page": "contact",
+    "screenshotFile": "contact-768.jpg"
+  },
+  {
+    "contactNodes": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 280,
+        "id": "pagecraft-image-dental-a2-700",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 346,
+        "x": 22,
+        "y": 674.453125
+      },
+      {
+        "background": "rgb(244, 247, 248)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 462.203125,
+        "id": "pagecraft-box-dental-a2-133",
+        "padding": "24px 22px",
+        "radius": "12px",
+        "width": 346,
+        "x": 22,
+        "y": 974.453125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "346px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 762.203125,
+        "id": "pagecraft-box-dental-a2-701",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 346,
+        "x": 22,
+        "y": 674.453125
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "346px",
+        "display": "grid",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 261.5,
+        "id": "pagecraft-box-dental-a2-378",
+        "padding": "0px",
+        "radius": "0px",
+        "width": 346,
+        "x": 22,
+        "y": 1741.4375
+      },
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 276.890625,
+        "id": "pagecraft-box-dental-a2-387",
+        "padding": "0px",
+        "radius": "12px",
+        "width": 346,
+        "x": 22,
+        "y": 2098.9375
+      }
+    ],
+    "fonts": "loaded",
+    "form": {
+      "action": "http://localhost:4992/forms/s1/dental-a2-125",
+      "controls": [
+        {
+          "disabled": false,
+          "name": "name",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": "email",
+          "type": "email"
+        },
+        {
+          "disabled": false,
+          "name": "message",
+          "type": "textarea"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_trap",
+          "type": "text"
+        },
+        {
+          "disabled": false,
+          "name": null,
+          "type": "submit"
+        },
+        {
+          "disabled": false,
+          "name": "_pc_request",
+          "type": "hidden"
+        }
+      ],
+      "notice": null
+    },
+    "headings": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 82.0625,
+        "id": "pagecraft-heading-dental-a2-127",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Let’s talk about your visit.",
+        "width": 332,
+        "x": 36,
+        "y": 155.5
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 32.390625,
+        "id": "pagecraft-heading-dental-a2-131",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Request a visit",
+        "width": 346,
+        "x": 22,
+        "y": 546.0625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 64.78125,
+        "id": "pagecraft-heading-dental-a2-370",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "A useful message can stay simple.",
+        "width": 346,
+        "x": 22,
+        "y": 1532.65625
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "columns": "none",
+        "display": "block",
+        "font": "Figtree, system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 32.390625,
+        "id": "pagecraft-heading-dental-a2-382",
+        "padding": "0px",
+        "radius": "0px",
+        "text": "Preparing for a visit?",
+        "width": 298,
+        "x": 46,
+        "y": 2146.9375
+      }
+    ],
+    "height": 2675,
+    "images": [
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      },
+      {
+        "alt": "A welcoming dental practice reception",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/welcoming-reception-aa9062e3b67d5.webp"
+      },
+      {
+        "alt": "",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/bp-mark-ink-aaa187018eedf.svg"
+      },
+      {
+        "alt": "Linden Dental",
+        "loaded": true,
+        "src": "http://localhost:4992/linden-license-review/assets/l2-horizontal-primary-a4cc0ad54dbd1.svg"
+      }
+    ],
+    "links": [
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#pagecraft-main",
+        "text": "Skip to content"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Request a visit"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact#contact-enquiry",
+        "text": "Make an enquiry"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/#visit-guidance",
+        "text": "Visit guidance"
+      },
+      {
+        "href": "https://braudyp.dev/",
+        "text": "Created by braudyp.dev"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/treatments",
+        "text": "Treatments"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/about",
+        "text": "About"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/contact",
+        "text": "Contact"
+      },
+      {
+        "href": "http://localhost:4992/linden-license-review/",
+        "text": "Linden Dental"
+      }
+    ],
+    "overflow": false,
+    "scrollWidth": 390,
+    "sections": [
+      {
+        "background": "rgb(24, 58, 80)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 432.0625,
+        "id": "pagecraft-section-dental-a2-130",
+        "padding": "56px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 66
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 986.59375,
+        "id": "contact-enquiry",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 498.0625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 566.28125,
+        "id": "pagecraft-section-dental-a2-381",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 1484.65625
+      },
+      {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(24, 58, 80)",
+        "columns": "none",
+        "display": "block",
+        "font": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "height": 372.890625,
+        "id": "pagecraft-section-dental-a2-388",
+        "padding": "48px 22px",
+        "radius": "0px",
+        "width": 390,
+        "x": 0,
+        "y": 2050.9375
+      }
+    ],
+    "title": "Contact | Linden Dental",
+    "url": "http://localhost:4992/linden-license-review/contact",
+    "width": 390,
+    "page": "contact",
+    "screenshotFile": "contact-390.jpg"
+  }
+]

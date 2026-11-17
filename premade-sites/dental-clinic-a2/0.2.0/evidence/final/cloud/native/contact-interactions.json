@@ -1,0 +1,96 @@
+[
+  {
+    "check": "long-headings/save-reopen",
+    "detail": "Request a visit and tell us what would help you feel comfortable at your next appointment",
+    "at": "2026-11-17T15:19:12.498Z"
+  },
+  {
+    "check": "duplicate-reorder",
+    "detail": [
+      "Request a visit",
+      "Visit questions for your care team",
+      "A useful message can stay simple.",
+      "Preparing for a visit?"
+    ],
+    "at": "2026-11-17T15:19:13.508Z"
+  },
+  {
+    "check": "delete",
+    "detail": 0,
+    "at": "2026-11-17T15:19:13.779Z"
+  },
+  {
+    "check": "global-colors/global-typography",
+    "detail": {
+      "headings": [
+        {
+          "size": "36px",
+          "text": "Request a visit"
+        },
+        {
+          "size": "36px",
+          "text": "A useful message can stay simple."
+        },
+        {
+          "size": "36px",
+          "text": "Preparing for a visit?"
+        }
+      ],
+      "links": [
+        {
+          "background": "rgb(39, 98, 122)"
+        }
+      ]
+    },
+    "at": "2026-11-17T15:19:15.013Z"
+  },
+  {
+    "check": "shared-and-instance-styles",
+    "detail": [
+      {
+        "size": "36px",
+        "text": "Request a visit"
+      },
+      {
+        "size": "36px",
+        "text": "A useful message can stay simple."
+      },
+      {
+        "size": "36px",
+        "text": "Preparing for a visit?"
+      }
+    ],
+    "at": "2026-11-17T15:19:15.616Z"
+  },
+  {
+    "check": "responsive-mobile",
+    "detail": {
+      "value": "300",
+      "unit": "px"
+    },
+    "at": "2026-11-17T15:19:16.498Z"
+  },
+  {
+    "check": "responsive-desktop",
+    "detail": {
+      "value": "100",
+      "unit": "%"
+    },
+    "at": "2026-11-17T15:19:16.786Z"
+  },
+  {
+    "check": "replace-images",
+    "detail": {
+      "loaded": true,
+      "src": "http://localhost:4992/api/sites/s1/assets/a25ce5bc72b21"
+    },
+    "at": "2026-11-17T15:19:17.621Z"
+  },
+  {
+    "check": "form-edit",
+    "detail": {
+      "disabled": null
+    },
+    "at": "2026-11-17T15:19:18.597Z"
+  }
+]

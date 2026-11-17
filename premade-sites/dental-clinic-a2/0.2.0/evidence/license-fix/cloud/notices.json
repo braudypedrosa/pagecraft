@@ -1,0 +1,38 @@
+{
+  "fixture": "http://localhost:4992",
+  "candidateSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+  "assets": [
+    {
+      "name": "icon-planning.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    },
+    {
+      "name": "icon-preventive.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    },
+    {
+      "name": "icon-restorative.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    },
+    {
+      "name": "perspective-choices.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    },
+    {
+      "name": "perspective-comfort.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    },
+    {
+      "name": "perspective-concerns.svg",
+      "fullNoticePresent": true,
+      "matchesNativeOptimizer": true
+    }
+  ],
+  "allNoticesPresent": true,
+  "allMatchNativeOptimizer": true
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "host": "cloud",
+    "width": 766,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "cloud",
+    "width": 767,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "cloud",
+    "width": 768,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "cloud",
+    "width": 1023,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "cloud",
+    "width": 1024,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "cloud",
+    "width": 1025,
+    "menuVisible": false,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 766,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 767,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 768,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 1023,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 1024,
+    "menuVisible": true,
+    "overflow": false
+  },
+  {
+    "host": "wordpress",
+    "width": 1025,
+    "menuVisible": false,
+    "overflow": false
+  }
+]

@@ -1,0 +1,210 @@
+{
+    "site": "http://127.0.0.1:4401",
+    "pages": [
+        {
+            "id": 28,
+            "sourceId": "dental-index",
+            "slug": "index",
+            "status": "draft",
+            "schema": 17,
+            "version": 2,
+            "sections": 7,
+            "fontUrlPresent": true
+        },
+        {
+            "id": 29,
+            "sourceId": "dental-treatments",
+            "slug": "treatments",
+            "status": "draft",
+            "schema": 17,
+            "version": 2,
+            "sections": 6,
+            "fontUrlPresent": true
+        },
+        {
+            "id": 30,
+            "sourceId": "dental-care-team",
+            "slug": "about",
+            "status": "draft",
+            "schema": 17,
+            "version": 2,
+            "sections": 6,
+            "fontUrlPresent": true
+        },
+        {
+            "id": 31,
+            "sourceId": "dental-contact",
+            "slug": "contact",
+            "status": "draft",
+            "schema": 17,
+            "version": 2,
+            "sections": 4,
+            "fontUrlPresent": true
+        }
+    ],
+    "media": [
+        {
+            "id": 5,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/bp-mark-ink.svg",
+            "sha256": "773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be"
+        },
+        {
+            "id": 6,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-aisha-khan.webp",
+            "sha256": "2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f"
+        },
+        {
+            "id": 7,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-elena-cruz.webp",
+            "sha256": "1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed"
+        },
+        {
+            "id": 8,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-naomi-brooks.webp",
+            "sha256": "9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b"
+        },
+        {
+            "id": 9,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-oliver-chen.webp",
+            "sha256": "50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d"
+        },
+        {
+            "id": 10,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-portrait-01.webp",
+            "sha256": "4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18"
+        },
+        {
+            "id": 11,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-portrait-02.webp",
+            "sha256": "cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188"
+        },
+        {
+            "id": 12,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/care-team-scene.webp",
+            "sha256": "14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a"
+        },
+        {
+            "id": 13,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/comfortable-consultation.webp",
+            "sha256": "b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b"
+        },
+        {
+            "id": 14,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/cta-clinic-entrance.webp",
+            "sha256": "f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2"
+        },
+        {
+            "id": 15,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/everyday-care-adult.webp",
+            "sha256": "bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce"
+        },
+        {
+            "id": 16,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/family-care-hero.webp",
+            "sha256": "b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd"
+        },
+        {
+            "id": 17,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/icon-planning.svg",
+            "sha256": "3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431"
+        },
+        {
+            "id": 18,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/icon-preventive.svg",
+            "sha256": "a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853"
+        },
+        {
+            "id": 19,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/icon-restorative.svg",
+            "sha256": "bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86"
+        },
+        {
+            "id": 20,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/l2-horizontal-primary.svg",
+            "sha256": "a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9"
+        },
+        {
+            "id": 21,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/l2-mark-primary.svg",
+            "sha256": "8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020"
+        },
+        {
+            "id": 22,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/light-filled-treatment-room.webp",
+            "sha256": "b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9"
+        },
+        {
+            "id": 23,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/perspective-choices.svg",
+            "sha256": "225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6"
+        },
+        {
+            "id": 24,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/perspective-comfort.svg",
+            "sha256": "7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41"
+        },
+        {
+            "id": 25,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/perspective-concerns.svg",
+            "sha256": "8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f"
+        },
+        {
+            "id": 26,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/visit-consultation-detail.webp",
+            "sha256": "7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac"
+        },
+        {
+            "id": 27,
+            "url": "http://127.0.0.1:4401/wp-content/uploads/2026/11/welcoming-reception.webp",
+            "sha256": "66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875"
+        }
+    ],
+    "menus": [
+        {
+            "id": 2,
+            "items": [
+                {
+                    "id": 38,
+                    "title": "Treatments",
+                    "url": "http://127.0.0.1:4401/?page_id=29"
+                },
+                {
+                    "id": 39,
+                    "title": "About",
+                    "url": "http://127.0.0.1:4401/?page_id=30"
+                },
+                {
+                    "id": 40,
+                    "title": "Contact",
+                    "url": "http://127.0.0.1:4401/?page_id=31"
+                }
+            ]
+        }
+    ],
+    "linked": {
+        "project_id": "template:dental-clinic-a2:0.1.0",
+        "source_version": 64,
+        "last_job_id": 41,
+        "imported_at": "2026-11-17T15:17:09+00:00"
+    },
+    "baseline": [
+        {
+            "id": 2,
+            "status": "publish"
+        },
+        {
+            "id": 3,
+            "status": "draft"
+        }
+    ],
+    "frontPage": "0",
+    "headerId": "36",
+    "footerId": "37",
+    "contract": {
+        "editorVersion": "0.2.19",
+        "schemaVersion": 17,
+        "rendererVersion": "pagecraft-core-17",
+        "rendererRevision": "pagecraft-renderer-4"
+    },
+    "builderVersion": "0.2.2"
+}

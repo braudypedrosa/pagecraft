@@ -1,0 +1,15 @@
+{
+  "origin": "http://localhost:4992",
+  "siteId": "s1",
+  "editor": "http://localhost:4992/edit/s1",
+  "reviewSession": "http://localhost:4992/review-session",
+  "frontend": "http://localhost:4992/linden-keyboard-review/",
+  "pid": 32897,
+  "scratch": "/var/folders/ph/bvqc6gt11jvghjr26g1g6v4m0000gp/T/pagecraft-dental-cloud-qa-6HWn22",
+  "packageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb",
+  "candidateVersion": "0.2.0",
+  "initialVersion": 1,
+  "assetCount": 23,
+  "publishedInitially": "draft",
+  "cohort": "fresh supplemental keyboard fixture"
+}

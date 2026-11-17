@@ -1,0 +1,43 @@
+{
+  "root": "/tmp/pagecraft-catalog-license-wp-x097uf3h",
+  "docroot": "/tmp/pagecraft-catalog-license-wp-x097uf3h/wordpress",
+  "socket": "/tmp/pagecraft-catalog-license-wp-x097uf3h/mysql.sock",
+  "url": "http://127.0.0.1:4401",
+  "phpPid": 30738,
+  "mysqlPid": 30731,
+  "admin": "site-reviewer",
+  "pluginVersion": "0.2.2",
+  "health": {
+    "checks": {
+      "root": true,
+      "site": true,
+      "admin": true,
+      "socket": true,
+      "uploads": true,
+      "builder": true,
+      "importer": true,
+      "theme": true,
+      "contract": true,
+      "neutralTitle": true
+    },
+    "wordpressVersion": "7.1.3",
+    "contract": {
+      "editorVersion": "0.2.19",
+      "schemaVersion": 17,
+      "rendererVersion": "pagecraft-core-17",
+      "rendererRevision": "pagecraft-renderer-4"
+    },
+    "pages": [
+      {
+        "id": 2,
+        "status": "publish"
+      },
+      {
+        "id": 3,
+        "status": "draft"
+      }
+    ],
+    "mediaCount": 0
+  },
+  "cleanup": "Validate process command lines contain this root and port; send SIGTERM to only these PIDs; preserve root and evidence."
+}

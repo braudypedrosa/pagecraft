@@ -1,0 +1,21 @@
+{
+  "selection": "A2",
+  "userText": "A2",
+  "source": "User message in this chat, 12 November 2026",
+  "artifact": "/Users/braudypedorsa/Braudy/Projects/Pagecraft/design/dental-clinic/concepts/variants-v2/a2-sky-ice.png",
+  "artifactSha256": "ea7c7b529b978c6c8f5c5cd6b5def31d35e491565da8ff7b4b08296a0ddda1a7",
+  "scope": [
+    "concept direction",
+    "layout direction",
+    "Sky and Ice palette",
+    "Figtree headings",
+    "Source Sans 3 body"
+  ],
+  "notYetApproved": [
+    "separate production image files",
+    "editable vector logo masters",
+    "native built site",
+    "catalog package",
+    "production activation"
+  ]
+}

@@ -1,0 +1,96 @@
+[
+  {
+    "check": "long-headings/save-reopen",
+    "detail": "Request a visit and tell us what would help you feel comfortable at your next appointment",
+    "at": "2026-11-17T15:19:33.500Z"
+  },
+  {
+    "check": "duplicate-reorder",
+    "detail": [
+      "Request a visit",
+      "Visit questions for your care team",
+      "A useful message can stay simple.",
+      "Preparing for a visit?"
+    ],
+    "at": "2026-11-17T15:19:34.492Z"
+  },
+  {
+    "check": "delete",
+    "detail": 0,
+    "at": "2026-11-17T15:19:34.760Z"
+  },
+  {
+    "check": "global-colors/global-typography",
+    "detail": {
+      "headings": [
+        {
+          "size": "36px",
+          "text": "Request a visit"
+        },
+        {
+          "size": "36px",
+          "text": "A useful message can stay simple."
+        },
+        {
+          "size": "36px",
+          "text": "Preparing for a visit?"
+        }
+      ],
+      "links": [
+        {
+          "background": "rgb(39, 98, 122)"
+        }
+      ]
+    },
+    "at": "2026-11-17T15:19:35.409Z"
+  },
+  {
+    "check": "shared-and-instance-styles",
+    "detail": [
+      {
+        "size": "36px",
+        "text": "Request a visit"
+      },
+      {
+        "size": "36px",
+        "text": "A useful message can stay simple."
+      },
+      {
+        "size": "36px",
+        "text": "Preparing for a visit?"
+      }
+    ],
+    "at": "2026-11-17T15:19:36.003Z"
+  },
+  {
+    "check": "responsive-mobile",
+    "detail": {
+      "value": "300",
+      "unit": "px"
+    },
+    "at": "2026-11-17T15:19:36.885Z"
+  },
+  {
+    "check": "responsive-desktop",
+    "detail": {
+      "value": "100",
+      "unit": "%"
+    },
+    "at": "2026-11-17T15:19:37.181Z"
+  },
+  {
+    "check": "replace-images",
+    "detail": {
+      "loaded": true,
+      "src": "http://127.0.0.1:4401/wp-content/uploads/2026/11/light-filled-treatment-room.webp"
+    },
+    "at": "2026-11-17T15:19:38.287Z"
+  },
+  {
+    "check": "form-edit",
+    "detail": {
+      "disabled": ""
+    },
+    "at": "2026-11-17T15:19:39.547Z"
+  }
+]

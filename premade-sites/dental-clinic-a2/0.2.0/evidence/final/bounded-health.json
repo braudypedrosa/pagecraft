@@ -1,0 +1,79 @@
+[
+  {
+    "host": "cloud",
+    "url": "http://localhost:4992/linden-license-review/",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "cloud",
+    "url": "http://localhost:4992/linden-license-review/treatments",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "cloud",
+    "url": "http://localhost:4992/linden-license-review/about",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "cloud",
+    "url": "http://localhost:4992/linden-license-review/contact",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "wordpress",
+    "url": "http://127.0.0.1:4401/?page_id=28",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "wordpress",
+    "url": "http://127.0.0.1:4401/?page_id=29",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "wordpress",
+    "url": "http://127.0.0.1:4401/?page_id=30",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [],
+    "httpErrors": []
+  },
+  {
+    "host": "wordpress",
+    "url": "http://127.0.0.1:4401/?page_id=31",
+    "truncated": false,
+    "hasMore": false,
+    "exceptions": [],
+    "failedRequests": [
+      {
+        "error": "net::ERR_ABORTED",
+        "cancelled": true
+      }
+    ],
+    "httpErrors": []
+  }
+]

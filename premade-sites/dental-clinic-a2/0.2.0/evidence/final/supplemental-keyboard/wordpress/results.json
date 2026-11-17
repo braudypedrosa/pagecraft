@@ -1,0 +1,212 @@
+[
+  {
+    "page": "index",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-22",
+      "insideMain": true,
+      "text": "Request a visit"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "tabSelected": "true",
+    "faqOpen": ""
+  },
+  {
+    "page": "index",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-22",
+      "insideMain": true,
+      "text": "Request a visit"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "tabSelected": "true",
+    "faqOpen": ""
+  },
+  {
+    "page": "treatments",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-539",
+      "insideMain": true,
+      "text": "Talk about your care"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://127.0.0.1:4401/?page_id=29#restorative-care",
+    "faqOpen": ""
+  },
+  {
+    "page": "treatments",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-539",
+      "insideMain": true,
+      "text": "Talk about your care"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://127.0.0.1:4401/?page_id=29#restorative-care",
+    "faqOpen": ""
+  },
+  {
+    "page": "about",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-608",
+      "insideMain": true,
+      "text": "Meet the team"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://127.0.0.1:4401/?page_id=30#meet-the-team",
+    "profiles": 6
+  },
+  {
+    "page": "about",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-608",
+      "insideMain": true,
+      "text": "Meet the team"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://127.0.0.1:4401/?page_id=30#meet-the-team",
+    "profiles": 6
+  },
+  {
+    "page": "contact",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-696",
+      "insideMain": true,
+      "text": "Make an enquiry"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://127.0.0.1:4401/?page_id=31#contact-enquiry",
+    "formFocus": {
+      "name": null,
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "Visit guidance"
+    },
+    "formDisabled": [
+      {
+        "disabled": true,
+        "name": "name"
+      },
+      {
+        "disabled": true,
+        "name": "email"
+      },
+      {
+        "disabled": true,
+        "name": "message"
+      },
+      {
+        "disabled": true,
+        "name": null
+      }
+    ]
+  },
+  {
+    "page": "contact",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-696",
+      "insideMain": true,
+      "text": "Make an enquiry"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://127.0.0.1:4401/?page_id=31#contact-enquiry",
+    "formFocus": {
+      "name": null,
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "Visit guidance"
+    },
+    "formDisabled": [
+      {
+        "disabled": true,
+        "name": "name"
+      },
+      {
+        "disabled": true,
+        "name": "email"
+      },
+      {
+        "disabled": true,
+        "name": "message"
+      },
+      {
+        "disabled": true,
+        "name": null
+      }
+    ]
+  }
+]

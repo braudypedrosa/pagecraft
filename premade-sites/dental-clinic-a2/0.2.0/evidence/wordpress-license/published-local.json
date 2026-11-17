@@ -1,0 +1,35 @@
+{
+    "site": "http://127.0.0.1:4401",
+    "environment": "isolated local fixture",
+    "method": "WP-CLI",
+    "pages": [
+        {
+            "id": 28,
+            "sourceId": "dental-index",
+            "status": "publish",
+            "url": "http://127.0.0.1:4401/?page_id=28",
+            "documentVersion": 2
+        },
+        {
+            "id": 29,
+            "sourceId": "dental-treatments",
+            "status": "publish",
+            "url": "http://127.0.0.1:4401/?page_id=29",
+            "documentVersion": 2
+        },
+        {
+            "id": 30,
+            "sourceId": "dental-care-team",
+            "status": "publish",
+            "url": "http://127.0.0.1:4401/?page_id=30",
+            "documentVersion": 2
+        },
+        {
+            "id": 31,
+            "sourceId": "dental-contact",
+            "status": "publish",
+            "url": "http://127.0.0.1:4401/?page_id=31",
+            "documentVersion": 2
+        }
+    ]
+}

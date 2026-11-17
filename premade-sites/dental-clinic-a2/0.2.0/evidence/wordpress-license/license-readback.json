@@ -1,0 +1,57 @@
+{
+  "fixture": "http://127.0.0.1:4401",
+  "sourcePackageSha256": "6df5cee2cedf84804839edb1a422b537167807553e1",
+  "scope": "Fresh native WordPress import, original attachment file readback; portable WordPress reexport not established",
+  "assets": [
+    {
+      "name": "icon-preventive.svg",
+      "attachmentId": 18,
+      "sha256": "d69b7971ef4db2bdaf39e0600679957fc6ba6c306c68770ef122a9c2500abe33",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    },
+    {
+      "name": "icon-restorative.svg",
+      "attachmentId": 19,
+      "sha256": "01acd53c594efb09751b7230dcef7ad3ce4585bec148a0855d5d98da4d0fb378",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    },
+    {
+      "name": "icon-planning.svg",
+      "attachmentId": 17,
+      "sha256": "23883aac6bd009ad51a658ffebb4e1f8b8ec83bba19c566110519641912db395",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    },
+    {
+      "name": "perspective-concerns.svg",
+      "attachmentId": 25,
+      "sha256": "bcf36126c1705c9eefaa714e5c7494ca58c28973f8ce233d6447a6c9fc613536",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    },
+    {
+      "name": "perspective-comfort.svg",
+      "attachmentId": 24,
+      "sha256": "a944f355702176f6be04a97e46fae385eca7832b07bb70f239ee1caca8b62404",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    },
+    {
+      "name": "perspective-choices.svg",
+      "attachmentId": 23,
+      "sha256": "77ecf2c373251b0da20b68b5e95935deef3c3f6a8785d7c59c390fff50c7f1a9",
+      "fullNoticePresent": true,
+      "licenseCommentPresent": true,
+      "bytesMatchPackage": true
+    }
+  ],
+  "allNoticesPresent": true,
+  "allBytesMatch": true
+}

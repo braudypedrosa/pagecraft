@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "assets_metadata_equal": true,
+    "site_version_20": true,
+    "published_version_20": true,
+    "four_pages": true,
+    "23_assets": true,
+    "document_matches_baseline": true
+  },
+  "differences": [],
+  "siteVersion": 20,
+  "publishedVersion": 20,
+  "publicUrl": "http://localhost:4992/linden-license-review/",
+  "assetCount": 23,
+  "baseline": "license-fix/cloud/baseline.json",
+  "comparisonNote": "Document exactly equal to imported baseline; no legacy-field difference occurred."
+}

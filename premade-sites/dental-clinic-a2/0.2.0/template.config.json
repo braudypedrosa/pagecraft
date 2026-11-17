@@ -1,0 +1,188 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "dental-clinic-a2",
+  "version": "0.2.0",
+  "name": "Dental Clinic",
+  "sampleName": "Linden Dental",
+  "description": "A four-page dental practice website with treatment information, team profiles and enquiries.",
+  "categories": [
+    "Dental",
+    "Healthcare",
+    "Local-Services"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be",
+      "file": "assets/img-773802be7dd5c4d745cdf4b08591aa2a7bd2a5f52787d3b23bdf8b4246ce40be.svg",
+      "name": "bp-mark-ink.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "img-2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f",
+      "file": "assets/img-2d7314d07ae9b68fcf681fe62285f52925e3aae9edd0e568aff4844fdf79ca0f.webp",
+      "name": "care-team-aisha-khan.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed",
+      "file": "assets/img-1c84e4bd52f7733477c89c172ca40e518012e63fc277bc6b19de30b7c59798ed.webp",
+      "name": "care-team-elena-cruz.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b",
+      "file": "assets/img-9622ddfb4c66f6ff5c0f81c024efbe075ef65687bb2c84e6cbd4447e416ed94b.webp",
+      "name": "care-team-naomi-brooks.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d",
+      "file": "assets/img-50db3f4dad272d3eaa3d300039f6e5d2732db92a1411efa9c4bc0163f06f314d.webp",
+      "name": "care-team-oliver-chen.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18",
+      "file": "assets/img-4074767243ff8118e698417298b11474a62959d87f53070ebf48b713fda70b18.webp",
+      "name": "care-team-portrait-01.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188",
+      "file": "assets/img-cb1385f23b29e76288bad068b2154b3c13e4774815fccbac8e706fb6a6e5b188.webp",
+      "name": "care-team-portrait-02.webp",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "id": "img-14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a",
+      "file": "assets/img-14433a406dd2a30391d1c87b6ded55fdd4560c1bb8eebb4f5ea1b09ef0f0cf2a.webp",
+      "name": "care-team-scene.webp",
+      "width": 1536,
+      "height": 647
+    },
+    {
+      "id": "img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b",
+      "file": "assets/img-b224e616e247fdc0fa6238bc4db3adb7b25582bc425784298daf96c49ba0d66b.webp",
+      "name": "comfortable-consultation.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2",
+      "file": "assets/img-f3a89281c460b342f84b74a29936a5b3e556d50309aa0a6920aeeaa4ba8c14c2.webp",
+      "name": "cta-clinic-entrance.webp",
+      "width": 1774,
+      "height": 887
+    },
+    {
+      "id": "img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce",
+      "file": "assets/img-bcd958e60f867ca7a4d4f6f85f197ff3735edeb9c848fd0c01bf8fc07cd045ce.webp",
+      "name": "everyday-care-adult.webp",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "id": "img-b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd",
+      "file": "assets/img-b5f0380d9682842c366b554bea7cd5535da6b9337e13e4d834163c82789adfbd.webp",
+      "name": "family-care-hero.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "img-3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431",
+      "file": "assets/img-3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431.svg",
+      "name": "icon-planning.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853",
+      "file": "assets/img-a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853.svg",
+      "name": "icon-preventive.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86",
+      "file": "assets/img-bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86.svg",
+      "name": "icon-restorative.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9",
+      "file": "assets/img-a37861c327e6ee321095d4a3f617033274fee1564afb2efefaffe1ab940b36f9.svg",
+      "name": "l2-horizontal-primary.svg",
+      "width": 424,
+      "height": 100
+    },
+    {
+      "id": "img-8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020",
+      "file": "assets/img-8ef757d99c175599dcf42c172743bc7e4a2272e0b14ebb9cd753ba4fb62f7020.svg",
+      "name": "l2-mark-primary.svg",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "id": "img-b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9",
+      "file": "assets/img-b8e355e4c8a9c08f26f0ca186fd12d1311b0900d986e338420f00061db475af9.webp",
+      "name": "light-filled-treatment-room.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "img-225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6",
+      "file": "assets/img-225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6.svg",
+      "name": "perspective-choices.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41",
+      "file": "assets/img-7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41.svg",
+      "name": "perspective-comfort.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f",
+      "file": "assets/img-8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f.svg",
+      "name": "perspective-concerns.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "img-7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac",
+      "file": "assets/img-7f54483bcea5444d010ac30ad5d45fcc81a15e800eafe2990b115f3f23fe2fac.webp",
+      "name": "visit-consultation-detail.webp",
+      "width": 1800,
+      "height": 600
+    },
+    {
+      "id": "img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875",
+      "file": "assets/img-66f76e51c913348b81db2a17a0c8d581fc3dbc781c0d4ab1994c122f6ee3d875.webp",
+      "name": "welcoming-reception.webp",
+      "width": 1672,
+      "height": 941
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:dental-clinic-a2:0.1.0",
+    "sourceVersion": 64
+  },
+  "importedPackageSha256": "cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb"
+}

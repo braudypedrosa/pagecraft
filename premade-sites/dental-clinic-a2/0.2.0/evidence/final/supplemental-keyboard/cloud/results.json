@@ -1,0 +1,220 @@
+[
+  {
+    "page": "index",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-22",
+      "insideMain": true,
+      "text": "Request a visit"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "tabSelected": "true",
+    "faqOpen": ""
+  },
+  {
+    "page": "index",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-22",
+      "insideMain": true,
+      "text": "Request a visit"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "tabSelected": "true",
+    "faqOpen": ""
+  },
+  {
+    "page": "treatments",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-539",
+      "insideMain": true,
+      "text": "Talk about your care"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://localhost:4992/linden-keyboard-review/treatments#restorative-care",
+    "faqOpen": ""
+  },
+  {
+    "page": "treatments",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-539",
+      "insideMain": true,
+      "text": "Talk about your care"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://localhost:4992/linden-keyboard-review/treatments#restorative-care",
+    "faqOpen": ""
+  },
+  {
+    "page": "about",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-608",
+      "insideMain": true,
+      "text": "Meet the team"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://localhost:4992/linden-keyboard-review/about#meet-the-team",
+    "profiles": 6
+  },
+  {
+    "page": "about",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-608",
+      "insideMain": true,
+      "text": "Meet the team"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://localhost:4992/linden-keyboard-review/about#meet-the-team",
+    "profiles": 6
+  },
+  {
+    "page": "contact",
+    "width": 1440,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": false,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-696",
+      "insideMain": true,
+      "text": "Make an enquiry"
+    },
+    "headerFocus": {
+      "outline": "rgb(24, 58, 80) solid 3px",
+      "tag": "A",
+      "text": "About"
+    },
+    "anchor": "http://localhost:4992/linden-keyboard-review/contact#contact-enquiry",
+    "formFocus": {
+      "name": "name",
+      "outline": "rgb(7, 106, 159) solid 2px",
+      "tag": "INPUT",
+      "text": ""
+    },
+    "formDisabled": [
+      {
+        "disabled": false,
+        "name": "name"
+      },
+      {
+        "disabled": false,
+        "name": "email"
+      },
+      {
+        "disabled": false,
+        "name": "message"
+      },
+      {
+        "disabled": false,
+        "name": "_pc_trap"
+      },
+      {
+        "disabled": false,
+        "name": null
+      }
+    ]
+  },
+  {
+    "page": "contact",
+    "width": 390,
+    "skip": {
+      "hash": "#pagecraft-main",
+      "id": "",
+      "tag": "BODY"
+    },
+    "menuVisible": true,
+    "skipNextFocus": {
+      "id": "pagecraft-button-dental-a2-696",
+      "insideMain": true,
+      "text": "Make an enquiry"
+    },
+    "menuOpen": "true",
+    "menuClosed": "false",
+    "anchor": "http://localhost:4992/linden-keyboard-review/contact#contact-enquiry",
+    "formFocus": {
+      "name": "name",
+      "outline": "rgb(7, 106, 159) solid 2px",
+      "tag": "INPUT",
+      "text": ""
+    },
+    "formDisabled": [
+      {
+        "disabled": false,
+        "name": "name"
+      },
+      {
+        "disabled": false,
+        "name": "email"
+      },
+      {
+        "disabled": false,
+        "name": "message"
+      },
+      {
+        "disabled": false,
+        "name": "_pc_trap"
+      },
+      {
+        "disabled": false,
+        "name": null
+      }
+    ]
+  }
+]

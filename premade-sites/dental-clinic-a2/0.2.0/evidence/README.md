@@ -1,0 +1,7 @@
+# Candidate evidence plan
+
+This directory contains the original A2 selection record and the later 17 November affirmation of the previously reviewed revision 57. The original record specifies a date only. The workflow selection timestamp is the later affirmation receipt's recorded time, not a claimed exact time for the original selection or user decision. Neither record approves the notice-bearing revision 64 package hash.
+
+For final acceptance, copy only the selected current-package Cloud and WordPress receipts, editor interaction records, all required page/viewport captures and independent visual review here under `cloud/`, `wordpress/` and `visual-review/`. Preserve originals elsewhere. Compute SHA-256 for each copied file and refer to its relative path and exact hash from the corresponding `workflow.json` QA or visual review record. Bind all current-package records to `cfc93566e0e8fdaaccb97aacfa4191da6ec2bb415b6e6aee3ed6d837f7c303eb` and the pinned host/editor targets. Use the actual completion times from source records. Do not mark unperformed checks as passed or treat revision 57 receipts as revision 64 retests.
+
+Add the user's explicit approval receipt for the exact revision 64 package only after it is given. Keep the portable/WordPress form's missing destination and the absence of a verified same-site Cloud ZIP reimport explicit. Customer release and production activation remain separate.

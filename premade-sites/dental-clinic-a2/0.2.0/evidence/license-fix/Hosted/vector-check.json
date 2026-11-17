@@ -1,0 +1,41 @@
+{
+  "images": [
+    {
+      "name": "icon-planning.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 358,
+      "newBytes": 3570
+    },
+    {
+      "name": "icon-preventive.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 388,
+      "newBytes": 3600
+    },
+    {
+      "name": "icon-restorative.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 273,
+      "newBytes": 3485
+    },
+    {
+      "name": "perspective-choices.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 298,
+      "newBytes": 3510
+    },
+    {
+      "name": "perspective-comfort.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 284,
+      "newBytes": 3496
+    },
+    {
+      "name": "perspective-concerns.svg",
+      "vectorMarkupIdentical": true,
+      "oldBytes": 367,
+      "newBytes": 3579
+    }
+  ],
+  "allOriginalMarkupIdentical": true
+}

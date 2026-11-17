@@ -1,0 +1,98 @@
+[
+  {
+    "count": 7,
+    "device": "desktop",
+    "grid": {
+      "client": 1320,
+      "columns": "421.328px 421.328px 421.344px",
+      "items": 7,
+      "scroll": 1320
+    },
+    "at": "2026-11-17T15:24:26.614Z"
+  },
+  {
+    "count": 7,
+    "device": "mobile",
+    "grid": {
+      "client": 370,
+      "columns": "370px",
+      "items": 7,
+      "scroll": 370
+    },
+    "at": "2026-11-17T15:24:26.931Z"
+  },
+  {
+    "count": 7,
+    "device": "desktop",
+    "grid": {
+      "client": 1320,
+      "columns": "421.328px 421.328px 421.344px",
+      "items": 7,
+      "scroll": 1320
+    },
+    "at": "2026-11-17T15:25:24.328Z"
+  },
+  {
+    "count": 7,
+    "device": "mobile",
+    "grid": {
+      "client": 370,
+      "columns": "370px",
+      "items": 7,
+      "scroll": 370
+    },
+    "at": "2026-11-17T15:25:24.637Z"
+  },
+  {
+    "count": 3,
+    "device": "desktop",
+    "grid": {
+      "client": 1320,
+      "columns": "421.328px 421.328px 421.344px",
+      "items": 3,
+      "scroll": 1320
+    },
+    "at": "2026-11-17T15:25:29.117Z"
+  },
+  {
+    "count": 3,
+    "device": "mobile",
+    "grid": {
+      "client": 370,
+      "columns": "370px",
+      "items": 3,
+      "scroll": 370
+    },
+    "at": "2026-11-17T15:25:29.436Z"
+  },
+  {
+    "count": 1,
+    "device": "desktop",
+    "grid": {
+      "client": 1320,
+      "columns": "421.328px 421.328px 421.328px",
+      "items": 1,
+      "scroll": 1320,
+      "text": "Dr Maya BennettGeneral DentistryEveryday dental care, with clear explanations at each step. Bring the questions you want to discuss, ask for a pause when you need one, and leave with a clearer understanding of the next step in your care."
+    },
+    "at": "2026-11-17T15:27:23.549Z"
+  },
+  {
+    "count": 1,
+    "device": "mobile",
+    "grid": {
+      "client": 370,
+      "columns": "370px",
+      "items": 1,
+      "scroll": 370
+    },
+    "at": "2026-11-17T15:27:23.878Z"
+  },
+  {
+    "check": "optional-background-fallback",
+    "background": "rgb(24, 58, 80)",
+    "image": "none",
+    "text": "Let’s talk about your care.Share your questions with the team and start a conversation about your care.Get in touch",
+    "at": "2026-11-17T15:27:47.698Z"
+  }
+]

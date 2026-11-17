@@ -1,0 +1,51 @@
+[
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "icon-planning.svg",
+    "fromRevision": 57,
+    "toRevision": 58,
+    "assetId": "img-3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431"
+  },
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "icon-preventive.svg",
+    "fromRevision": 58,
+    "toRevision": 59,
+    "assetId": "img-a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853"
+  },
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "icon-restorative.svg",
+    "fromRevision": 59,
+    "toRevision": 60,
+    "assetId": "img-bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86"
+  },
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "perspective-choices.svg",
+    "fromRevision": 60,
+    "toRevision": 61,
+    "assetId": "img-225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6"
+  },
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "perspective-comfort.svg",
+    "fromRevision": 61,
+    "toRevision": 62,
+    "assetId": "img-7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41"
+  },
+  {
+    "tool": "pagecraft_template_upload_image",
+    "name": "perspective-concerns.svg",
+    "fromRevision": 62,
+    "toRevision": 63,
+    "assetId": "img-8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f"
+  },
+  {
+    "tool": "pagecraft_template_save",
+    "fromRevision": 63,
+    "toRevision": 64,
+    "uniqueAssets": 6,
+    "replacedAssetReferences": 15
+  }
+]

@@ -1,0 +1,131 @@
+{
+  "pagesStable": true,
+  "mediaStable": true,
+  "mediaCount": 23,
+  "packagedAssets": 23,
+  "allAssetBytesMatch": true,
+  "allSixNoticesPresent": true,
+  "assets": [
+    {
+      "name": "bp-mark-ink.svg",
+      "id": 5,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-aisha-khan.webp",
+      "id": 6,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-elena-cruz.webp",
+      "id": 7,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-naomi-brooks.webp",
+      "id": 8,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-oliver-chen.webp",
+      "id": 9,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-portrait-01.webp",
+      "id": 10,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-portrait-02.webp",
+      "id": 11,
+      "bytesMatch": true
+    },
+    {
+      "name": "care-team-scene.webp",
+      "id": 12,
+      "bytesMatch": true
+    },
+    {
+      "name": "comfortable-consultation.webp",
+      "id": 13,
+      "bytesMatch": true
+    },
+    {
+      "name": "cta-clinic-entrance.webp",
+      "id": 14,
+      "bytesMatch": true
+    },
+    {
+      "name": "everyday-care-adult.webp",
+      "id": 15,
+      "bytesMatch": true
+    },
+    {
+      "name": "family-care-hero.webp",
+      "id": 16,
+      "bytesMatch": true
+    },
+    {
+      "name": "icon-planning.svg",
+      "id": 17,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "icon-preventive.svg",
+      "id": 18,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "icon-restorative.svg",
+      "id": 19,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "l2-horizontal-primary.svg",
+      "id": 20,
+      "bytesMatch": true
+    },
+    {
+      "name": "l2-mark-primary.svg",
+      "id": 21,
+      "bytesMatch": true
+    },
+    {
+      "name": "light-filled-treatment-room.webp",
+      "id": 22,
+      "bytesMatch": true
+    },
+    {
+      "name": "perspective-choices.svg",
+      "id": 23,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "perspective-comfort.svg",
+      "id": 24,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "perspective-concerns.svg",
+      "id": 25,
+      "bytesMatch": true,
+      "fullNoticePresent": true
+    },
+    {
+      "name": "visit-consultation-detail.webp",
+      "id": 26,
+      "bytesMatch": true
+    },
+    {
+      "name": "welcoming-reception.webp",
+      "id": 27,
+      "bytesMatch": true
+    }
+  ]
+}

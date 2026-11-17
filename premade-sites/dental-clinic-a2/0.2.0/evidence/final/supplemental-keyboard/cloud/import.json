@@ -1,0 +1,13 @@
+{
+  "id": "s1",
+  "slug": "linden-keyboard-review",
+  "version": 1,
+  "url": "http://localhost:4992/linden-keyboard-review/",
+  "files": [
+    "index.html",
+    "treatments.html",
+    "about.html",
+    "contact.html",
+    "robots.txt"
+  ]
+}

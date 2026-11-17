@@ -1,0 +1,344 @@
+{
+  "revision": 64,
+  "scope": "Independent inspection of all 32 full-page captures; viewport captures recorded as supplemental evidence.",
+  "verdict": "bounded captured-state visual pass",
+  "findings": [
+    "No material visual defect observed in painted content compared with approved r57 layout.",
+    "Initial WordPress Home 1440 full-page capture omitted painted regions. Three focused viewport captures show the practice and team images painted; the visual evidence gap is resolved.",
+    "WordPress About 1440 imagery is painted.",
+    "Contact form configuration differs by host: Cloud local receiver and unconfigured WordPress notice.",
+    "Existing Home 390 adjacent pale surfaces predate this revision.",
+    "Native editor screenshots show the sampled one, three and seven profile states at desktop and mobile, plus the reopened shared-instance style state on each host. Some editor screenshots have selection chrome, transient toasts, or partially clipped canvas content, so they are supporting evidence rather than complete-page render proof."
+  ],
+  "limitations": [
+    "Static visual review does not establish interaction behavior, release readiness, licensing or user approval."
+  ],
+  "captures": [
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-1440.jpg",
+      "sha256": "27574e51b485cb75ad168082c134915dea4948dacab6088f32ab5c4109d52cc4"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-1440-viewport.jpg",
+      "sha256": "b166247ce03c1489b543d912e4fbccd3b6c7b9b41f50b1d7f47c4f6f4620a80e"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-1024.jpg",
+      "sha256": "098403ba85c9e8c328763703628d3c3b0d6eb94d6e7d3e4bd3c4f79a5c190974"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-1024-viewport.jpg",
+      "sha256": "6e72d15dcbd002e38732b63e4d9ddcd695cb6992b777dab735bdafb6236d4a96"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-768.jpg",
+      "sha256": "70ed2c8b4234d0446918ed8d1009d9725a5e86e0f62334a205410e5e53be3f45"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-768-viewport.jpg",
+      "sha256": "b9258437bafcd2778bc9abc30d9808d177692d60e059b556c0728d9fbae2902e"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-390.jpg",
+      "sha256": "9ec2ef9a55b9bad3bdf56852155cc6d0f901f69b82faecb63cf465da4e6e5985"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/index-390-viewport.jpg",
+      "sha256": "a9159eab452e7480bea43ac90aa179278de2859f6cdb68240563f06760364712"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-1440.jpg",
+      "sha256": "112eb4a9b71778f2d03d0a9d721b4f35e2f380cbc6dec773fcc5814740bb0bc9"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-1440-viewport.jpg",
+      "sha256": "5e8aeb170ab242603fe7b4930dca9271d39f989b549b49559bfb3e072424f8bb"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-1024.jpg",
+      "sha256": "296a2e12a6e381339e409183300a5ee0a6c5f92d78427b369119bc12a4529a3f"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-1024-viewport.jpg",
+      "sha256": "1a37ed0898919f8e1ead9577a7797a5175678f37cc51e361266d41dea9c1e471"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-768.jpg",
+      "sha256": "01c8a44c5b00cf8fe80755cc50d9b00838500f77681b04c3253f01537052ddc4"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-768-viewport.jpg",
+      "sha256": "870e4da7f9ff178ce169c98f2b564c4541b41e82a4f170f5b59eb0df7ab0be51"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-390.jpg",
+      "sha256": "ed3f68367e00f4819cc01472c0f78929e4d15b9eb151f3353f7ab263f2448e99"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/treatments-390-viewport.jpg",
+      "sha256": "d9bc07a7bf457cad91406fd19a0b9c9325e857b5a4b687fa987b89220cf308b4"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-1440.jpg",
+      "sha256": "b43c6f186c092bdda401a9cab0fbe63aad4d4441f79264471b66c7ef5bbe487a"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-1440-viewport.jpg",
+      "sha256": "cc0e97d7554ae271f295118302f005f1c87469e69afa5c0454fcf7adfda595ee"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-1024.jpg",
+      "sha256": "fb1aefad15791bf724a799f967b073c25ac13c2f317312f3a6bde653aced9a11"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-1024-viewport.jpg",
+      "sha256": "b179bb06d345139ff704692a406dc0a4ee3f2734193ab3b27e0b77629a3f1e47"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-768.jpg",
+      "sha256": "e57a6e346a344898501d701d3e51f1d7ddbc9ad1476ba855f084880e22d9e8f8"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-768-viewport.jpg",
+      "sha256": "e1334a07b043a8568d03773a79abaddb1b443cb9bc2429df4ebb63656cdaa614"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-390.jpg",
+      "sha256": "bb5a4c4e32eb4bc78498ffa61f4978e936bcbc3648ae965477f1389dded4b249"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/about-390-viewport.jpg",
+      "sha256": "3a2e5060debfb7e9b76798a0daeb902d86cc61c3892a08849090b31923e4ee9b"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-1440.jpg",
+      "sha256": "20370db81a2a24850691ee21a25618194b7c1140d6996313a88a54c9c741c8eb"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-1440-viewport.jpg",
+      "sha256": "bd674892e7fd5fe4543567deebbe85b181d8b7a581deace7d5296024798ce444"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-1024.jpg",
+      "sha256": "a995823ee04caf029d7e8e48c7a9d58237899c7bb219f85768b02993d398f3c9"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-1024-viewport.jpg",
+      "sha256": "1f932b55839c367740d7d839724fda87634c90f5f32e2f0e48b6d4e578cf1718"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-768.jpg",
+      "sha256": "9121bf54c38278bad0e95ac6a87d73ba1719987930e8d1aadfeaad08b8f28de2"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-768-viewport.jpg",
+      "sha256": "87e239358645f766849ef3d2060f0cf0d6420ef77e25968e60ccd1727eae3bfb"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-390.jpg",
+      "sha256": "526b85d67c00968b930fdf18c95c5f7c7c28740098f93870f528059392f05260"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/After/contact-390-viewport.jpg",
+      "sha256": "328af7e1e8e16a6ccbe336c2f9f91ad875518178817236fa4b8a6460085d2a5c"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1440.jpg",
+      "sha256": "720ac874d0c772a5a28f432ca184bcf358891c5558ada8d1dca48ec678330151"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1440-viewport.jpg",
+      "sha256": "4e119e04888e55fcd5c8773f7c5bebcc6e9cfa3a63ef946c3833d7aee796e0eb"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1024.jpg",
+      "sha256": "8c52343164c999a03deeb985533b21711236c41d15d062b6ad30d409bf4edc8d"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1024-viewport.jpg",
+      "sha256": "ed4b6692235de9681055e7b9f283d6f47c86f33e54988bc551283f72d727a46a"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-768.jpg",
+      "sha256": "9f8a0723de0d0b537f3a734fec913d467fd0f84057a4f107118a0fc14c0cc8fd"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-768-viewport.jpg",
+      "sha256": "cde9070c53d39dc6387cbbf5d7cff8077b24e3a1f162c03319b499071894600a"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-390.jpg",
+      "sha256": "8e52a9655da297add5cb460d7faf29d9641af2492cdbfd7f7572ff4d04fc8b68"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-390-viewport.jpg",
+      "sha256": "1f83f4dc325795a0a64e90d911122a84263ef1dfc47cad2641e6bb5732ea6835"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-1440.jpg",
+      "sha256": "ba91b8691077ce4cb6c3880afa77179f0e01dcc1e9172c200ac828b8f526262e"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-1440-viewport.jpg",
+      "sha256": "7c33d623c8c01133179470b7951c2b4067f7269313b20416bd446afe852f2118"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-1024.jpg",
+      "sha256": "6ca709c1b17cfb6be9d73e9a710a13c97956cb12593a9b155d160c68a66071a4"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-1024-viewport.jpg",
+      "sha256": "33f3118dfa4b02dc8187cf3ae1392aa233896cd67c333757d3fd84f570e2e160"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-768.jpg",
+      "sha256": "27daeaf3d4ab51b4ddd52b15d35f0d78a86bf4af177e8dea7f27574adcca73c3"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-768-viewport.jpg",
+      "sha256": "4568eee1b86db6390ec1e88096d3404e9a67264338af8dcf96d0c446cbdb48f1"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-390.jpg",
+      "sha256": "58d17cdc05b27bc929bdcfc538f298c782d3cd3043d6ab2e04cbd405381794a7"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/treatments-390-viewport.jpg",
+      "sha256": "846ee45dcaae883be1bd359d3b988523e9d1fa36d79519cf6818287635f7fb79"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-1440.jpg",
+      "sha256": "485cbb0d229cfa09d91c5fe693d976924e6013d9b284f863778c3f335148ef3d"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-1440-viewport.jpg",
+      "sha256": "5c3f0bd7303cf6f1f59090fb19b7802c5c74e050e3dabc6089ae4a6a821cdfc3"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-1024.jpg",
+      "sha256": "a2e1b25284e942f832241eebf9288fa4a8fd520b7086500516de75e736f58ffc"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-1024-viewport.jpg",
+      "sha256": "e025d743c9a17a3e2bc7438418dd5fd5019d77367d947cf9d31dc9fdf9e31068"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-768.jpg",
+      "sha256": "63ab3dd775b0740f6a1e2b845aed3950338a18eb45fd6e1bb5b7944683b35c75"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-768-viewport.jpg",
+      "sha256": "b7532cb0c5fb637e839d46b82a0d30042cb35d78011c6896ffe0621b0299ebe2"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-390.jpg",
+      "sha256": "9778d9d58888318e5f655842f046ea7106e89ef3ca933c929a51b7823dde9b76"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/about-390-viewport.jpg",
+      "sha256": "95a2816e0146f4c0eda0e7bfe42266422f38bf156662d690e49c4ef22d6f883c"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-1440.jpg",
+      "sha256": "509fc68a97dae8765acf23d2123a0d21d07eee595848920a4df23cad99450040"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-1440-viewport.jpg",
+      "sha256": "23ea2e121dfbada491851bfcde89eb3e59d2c2e066a71af75fde44d91781d6c4"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-1024.jpg",
+      "sha256": "8301c7be3ee606b3062dbffd89ee4e730137abb5a6d944f11b2776e3f8b34de5"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-1024-viewport.jpg",
+      "sha256": "efff414a485a777315f16eec1d3d86148e9871b8e0c1784e11c1458009cf08ab"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-768.jpg",
+      "sha256": "c963d77323a07a0fc98d9beaeac1eee556c3ebb05a07159ce4f2baa5d4213ed3"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-768-viewport.jpg",
+      "sha256": "98f2b9bc5718dfaa05507aa5878cb1223b3ed10a4d5457b16e0860d5387d0e07"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-390.jpg",
+      "sha256": "c7b44970b5c822dfd5fc45f47f11eb97b9f5afdad0171f804ac0c4950035f9bd"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/contact-390-viewport.jpg",
+      "sha256": "5c826a828982add31f5eb548e38d59190bf013972de69b7ba1d3a3e9ef5c4830"
+    }
+  ],
+  "supplementalCaptures": [
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1440-practice-painted.jpg",
+      "sha256": "707796e796bc202609579f2b967a85a517da0771b82d7199393a08f9504728f1"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1440-team-01-painted.jpg",
+      "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/After/index-1440-team-02-painted.jpg",
+      "sha256": "b8506f184c20ce4b517c72b72c2fe67c954edeefa998ba6ecd5c649830c2435b"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-1-desktop.jpg",
+      "sha256": "534ebee767df43c69c24de7e3eb121de30fc1a285eb121a662247ffbe3e5486c"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-1-mobile.jpg",
+      "sha256": "743a1a3468892deb1807a23a270aa260912561d0286da65a2bc8f7b00a204253"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-3-desktop.jpg",
+      "sha256": "a31c310729880978d4c75b2bf382afc13f98e1ba99832618121cab560ab902be"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-3-mobile.jpg",
+      "sha256": "c7fe12d576e8d980f8c735b4c9e6e622b41191ac5a121a574f170ffaa57a8173"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-7-desktop.jpg",
+      "sha256": "af768b85776389333ff1e67a0e53389b8c6c394608c82f969b8e2694e51549b8"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/team-7-mobile.jpg",
+      "sha256": "b7e9fd229e876c1a8a9f5b239333893be1f533e030b5e1d8ee1f4a5a5edb1081"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/cloud/native/09-shared-instance-reopened.jpg",
+      "sha256": "2a5c4265734b388ca81251678f29b76a3ed5bd3714893da5b09c7127f8e44fef"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-1-desktop.jpg",
+      "sha256": "2e5303e0fe5d758938fd6f3dacf15c544fd97dd9e3af49c5a8b7cd7a32c6ced9"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-1-mobile.jpg",
+      "sha256": "92563fcdaf2c84a57fb0b1b17d600076c904783dae60dbd2a698f479ae79c4bc"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-3-desktop.jpg",
+      "sha256": "1b149884afe6bc6e9bd935c689757933c221461446c9e48732a5a42236ae0cdd"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-3-mobile.jpg",
+      "sha256": "1ded339a5a141c8a3548b5c35f9361d2bd69d93b0177a87776172b7ecb058cea"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-7-desktop.jpg",
+      "sha256": "38184eb12be4066e6f6d87199d7f90ea328a38b926ccb1d27c7b2d372c8c4ccd"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/team-7-mobile.jpg",
+      "sha256": "a877f34db80b9ea118464913bdeb405d0602492c40ee9b8e0f024632ec0a1506"
+    },
+    {
+      "path": "evidence/dental-catalog-2026-11-17/final/wordpress/native/09-shared-instance-reopened.jpg",
+      "sha256": "cc53a358f914cc674cf5364589973d06bf9d4717087a6e8e33fc8557694814c7"
+    }
+  ]
+}

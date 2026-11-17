@@ -1,0 +1,38 @@
+[
+  {
+    "id": 42,
+    "file": "icon-planning-1.svg",
+    "sha256": "3d188a0934208f2829a30b8a64cec82d08c0acafbdb485bff48b05c52669e431",
+    "fullNoticePresent": true
+  },
+  {
+    "id": 43,
+    "file": "icon-preventive-1.svg",
+    "sha256": "a19160b50d013c11b074bfecb16932b87027c8eb89f61a47c57bc232e7b1f853",
+    "fullNoticePresent": true
+  },
+  {
+    "id": 44,
+    "file": "icon-restorative-1.svg",
+    "sha256": "bed843150ca4fac24e14c6f737c2f70f2f1254800cb738087f22ea779ab63d86",
+    "fullNoticePresent": true
+  },
+  {
+    "id": 45,
+    "file": "perspective-choices-1.svg",
+    "sha256": "225b19995155914a72f6e2157b95c3176f831141169431a9ae3d003ec8321dd6",
+    "fullNoticePresent": true
+  },
+  {
+    "id": 46,
+    "file": "perspective-comfort-1.svg",
+    "sha256": "7bae0856df1dc9682af5b8632d0627d38b9e4cb25fe3a47e2464e1fd9f906b41",
+    "fullNoticePresent": true
+  },
+  {
+    "id": 47,
+    "file": "perspective-concerns-1.svg",
+    "sha256": "8726e8a1ba8274501ee755999c546e6af8b0435b0462020b299ae0b6805e771f",
+    "fullNoticePresent": true
+  }
+]

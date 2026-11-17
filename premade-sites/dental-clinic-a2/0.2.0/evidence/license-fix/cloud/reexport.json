@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "exportPassed": true,
+  "sha256": "c82a4606ca5ba0e24535d8c051e3b1262cd263834b8cd8c66b4f525a5faa44d7",
+  "sourceId": "s1",
+  "sourceVersion": 1,
+  "assetCount": 23,
+  "allSixNoticesPresent": true
+}
