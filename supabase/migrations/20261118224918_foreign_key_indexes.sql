@@ -2,6 +2,7 @@
 -- (unindexed_foreign_keys, 2026-11-18). Without them, deleting or updating a referenced row
 -- scans the referencing table, and joins on these columns cannot use an index.
 -- Additive only: no data or behaviour changes. Safe on the shared staging/production database.
+-- Applied to the shared Supabase project on 2026-11-18; the file name matches its ledger version.
 create index if not exists collaboration_invitations_invited_by_idx on public.collaboration_invitations (invited_by);
 create index if not exists collaborator_invitation_outbox_user_id_idx on public.collaborator_invitation_outbox (user_id);
 create index if not exists connected_editor_sessions_connection_id_idx on public.connected_editor_sessions (connection_id);
