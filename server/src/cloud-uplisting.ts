@@ -20,6 +20,9 @@ export interface CloudConnectionStore {
   exclusive<T>(siteId: string, run: () => Promise<T>): Promise<T>;
 }
 
+const CONNECTION_IV_BYTES = 12;
+const CONNECTION_TAG_BYTES = 16;
+
 /** Private, persistent, environment-specific directory, outside releases and public assets.
  * The encryption key and ciphertext must both be included in restricted host backups.
  * A process crash leaves a fail-closed lock: remove it only after confirming no sync is running.
@@ -45,16 +48,21 @@ export class FileCloudConnectionStore implements CloudConnectionStore {
     let bytes: Buffer;
     try { bytes = await readFile(join(this.root, this.name(id) + '.enc')); }
     catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; }
-    const cipher = createDecipheriv('aes-256-gcm', await readFile(join(this.root, 'encryption.key')), bytes.subarray(0, 12));
+    const ciphertextOffset = CONNECTION_IV_BYTES + CONNECTION_TAG_BYTES;
+    if (bytes.length <= ciphertextOffset) throw new Error('Incomplete encrypted integration record');
+    const cipher = createDecipheriv(
+      'aes-256-gcm', await readFile(join(this.root, 'encryption.key')), bytes.subarray(0, CONNECTION_IV_BYTES),
+      { authTagLength: CONNECTION_TAG_BYTES },
+    );
     cipher.setAAD(Buffer.from(id));
-    cipher.setAuthTag(bytes.subarray(12, 28));
-    return JSON.parse(Buffer.concat([cipher.update(bytes.subarray(28)), cipher.final()]).toString()) as UplistingConnection;
+    cipher.setAuthTag(bytes.subarray(CONNECTION_IV_BYTES, ciphertextOffset));
+    return JSON.parse(Buffer.concat([cipher.update(bytes.subarray(ciphertextOffset)), cipher.final()]).toString()) as UplistingConnection;
   }
   async put(id: string, value: UplistingConnection | null) {
     const path = join(this.root, this.name(id) + '.enc');
     if (!value) { await unlink(path).catch(error => { if (error.code !== 'ENOENT') throw error; }); return; }
-    const key = await this.encryptionKey(), iv = randomBytes(12);
-    const cipher = createCipheriv('aes-256-gcm', key, iv);
+    const key = await this.encryptionKey(), iv = randomBytes(CONNECTION_IV_BYTES);
+    const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: CONNECTION_TAG_BYTES });
     cipher.setAAD(Buffer.from(id));
     const encrypted = Buffer.concat([cipher.update(JSON.stringify(value)), cipher.final()]);
     const temp = path + '.' + randomUUID();

@@ -1,5 +1,5 @@
 import { test, expect, vi } from 'vitest';
-import { mkdtemp, readdir, readFile, rm, stat, copyFile } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat, copyFile, truncate } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Hono } from 'hono';
@@ -82,6 +82,11 @@ test('credentials are encrypted, site-bound, persistent, private and exclusive',
     const other = (await readdir(root)).find(f => f.endsWith('.enc') && f !== encrypted)!;
     await copyFile(join(root, encrypted), join(root, other));
     await expect(store.get('site-b')).rejects.toThrow();
+    for (const length of [24, 28]) {
+      await copyFile(join(root, encrypted), join(root, other));
+      await truncate(join(root, other), length);
+      await expect(store.get('site-b')).rejects.toThrow('Incomplete encrypted integration record');
+    }
     await store.exclusive('site-a', async () => { await expect(store.exclusive('site-a', async () => {})).rejects.toThrow('already running'); });
     await store.put('site-a', null); expect(await store.get('site-a')).toBeNull();
   } finally { await rm(root, { recursive: true, force: true }); }
