@@ -66,7 +66,10 @@ export function withPreviewReadiness(html: string, token: string | undefined, na
         if(img.complete){done(img.naturalWidth>0);return;}
         img.addEventListener('load',loaded);img.addEventListener('error',failed);
         };
-        if(img.loading!=='lazy'){waitForImage();return;}
+        // Images now arrive as separate files, not inside the page. Readiness is the first
+        // screen: an eager image further down must not hold it. Geometry, not visibility,
+        // decides, because the frame itself may be scrolled out of the parent's view.
+        if(img.loading!=='lazy'){const b=img.getBoundingClientRect();if(b.top<innerHeight&&b.left<innerWidth)waitForImage();else resolve();return;}
         if(typeof IntersectionObserver==='function'){
           const observer=new IntersectionObserver(function(entries){
             const entry=entries.find(function(item){return item.target===img;});
