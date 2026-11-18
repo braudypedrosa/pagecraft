@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T19:23:58.343Z",
+  "capturedAt": "2026-11-18T21:10:59.288Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "457163c95e8ae3abbf1937b675e3e1af3ab6253455676c0f768330cb13feb5c3",
+    "builder.html": "31533d8dcff056ee1c820de6575b5fee1056b7100d569a619780d293ef773292",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -130,7 +130,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "f1a538bb9a7d181ea7ba869e92c298acb1576a6673db8a73d902a537a24af966",
+    "server/src/account-pages.ts": "aaec30f308da5aa7ee79ac47b1add5de1844db220038a00b5b74e3346e7d3b9c",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -291,7 +291,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "356f9e59bb136a4ee6a45457b9f058326932d48b59b0778981273b67c904a4a3",
+      "sha256": "38d6d56ee3f71d2a14a3f3c235a28367e88df2b2408c1691a81840d1b1eb370e",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "c8c05c4fa8758b076975cfaa84f3efcbc8cde2c8024d194bacc831a0c03f77bb",
+      "sha256": "cb755637b6411e6f41749f27aa81b3cbf6754516d3fa5448b802e583c799bf97",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

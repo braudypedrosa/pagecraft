@@ -136,6 +136,8 @@ input,select,textarea{font:inherit;color:inherit}
 .pc-first-edit small{color:var(--text-3);line-height:1.4}
 .pc-preview-state{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:8px 0;font-size:var(--fs-2);color:var(--text-2)}
 .pc-preview-state[hidden]{display:none}
+/* A loaded preview speaks for itself; the status stays for screen readers only. */
+.pc-preview-state.ready{position:absolute;width:1px;height:1px;min-height:0;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #canvasPreviewState{position:absolute;bottom:12px;left:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px;z-index:5}
 #canvasPreviewState.is-ready{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;left:0;right:auto;bottom:0}
 .modebar .selectionCrumb{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;overflow-x:auto}
@@ -1508,7 +1510,10 @@ pre.code{
 .publication-change-list li{align-items:center}
 .publication-change-list .msg>b{display:block;color:var(--text);font-weight:500}
 .review-affected{margin-top:6px}
-.review-affected>summary{cursor:pointer;color:var(--text-2);font-size:var(--fs-2)}
+.review-affected>summary{display:inline-flex;align-items:center;gap:8px;list-style:none;cursor:pointer;color:var(--text-2);font-size:var(--fs-2)}
+.review-affected>summary::-webkit-details-marker{display:none}
+.review-affected>summary::before{content:'';width:5px;height:5px;margin:0 2px;border:solid var(--text-3);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .12s}
+.review-affected[open]>summary::before{transform:translateY(-2px) rotate(45deg)}
 .review-page-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .review-page-links .btn{font-size:var(--fs-2);min-height:28px;height:auto;max-width:100%;white-space:normal;text-align:left;overflow-wrap:anywhere}
 @media(max-width:559px){
@@ -31922,6 +31927,7 @@ function loadPublicationFrame(frame, source, navigation = {}) {
     strip = document.createElement('div'); strip.className = 'pc-preview-state';
     frame.before(strip);
   }
+  strip.classList.remove('ready');
   strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
   const status = strip.querySelector('span'), retry = strip.querySelector('button');
   const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
@@ -31945,7 +31951,7 @@ function loadPublicationFrame(frame, source, navigation = {}) {
       return;
     }
     if (event.data.type !== 'pagecraft-preview-ready') return;
-    if (event.data.status === 'ready') finish('Page preview displayed.', false);
+    if (event.data.status === 'ready') { finish('Page preview displayed.', false); strip.classList.add('ready'); }
     else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
   };
   const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
@@ -32068,14 +32074,26 @@ async function preparePublicationReview(button) {
     const root = `${siteApiRoot()}/publication-snapshots/`;
     const url = (id, path) => root + encodeURIComponent(id) + '/files/' + path.split('/').map(encodeURIComponent).join('/');
     if ($('#exReview')) $('#exReview').hidden = true;
+    /* The picker follows the site's own page order, Home first, and names pages the way the
+       change list above does; the snapshot's file inventory is alphabetical and slug-only. */
+    const pageNames = new Map(state.pages.map((page, index) => [(page.slug || 'index') + '.html', {name: page.name, index}]));
+    reviewed.changes.forEach(change => change.pages?.forEach(page => {
+      const path = (page.slug || 'index') + '.html';
+      if (!pageNames.has(path) && page.name) pageNames.set(path, {name: page.name, index: Infinity});
+    }));
+    const pageLabel = path => pageNames.get(path)?.name || (path === 'index.html' ? 'Home' : path.replace(/\.html$/, ''));
+    const pageRank = path => path === 'index.html' ? -1 : pageNames.get(path)?.index ?? Infinity;
+    const comparePages = reviewed.pages.map((path, order) => ({path, order}))
+      .sort((a, b) => pageRank(a.path) - pageRank(b.path) || a.order - b.order).map(entry => entry.path);
+    const firstPublication = !reviewed.baselinePublicationId;
     host.innerHTML = `<h3>Changes to publish</h3>
       <p class="help">Review of saved version ${esc(reviewed.sourceVersion)}. Publication includes the whole site. Shared changes may affect every page.</p>
       ${!reviewed.comparisonAvailable ? '<p class="alert">The previous publication has no retained source document. Compare the page previews before publishing.</p>' : reviewed.changes.length ? publicationChangesHtml(reviewed.changes) : '<p>No document changes since the current publication.</p>'}
       ${reviewed.warnings.length ? '<h4>Publication suggestions</h4><div class="review" id="publicationWarnings"></div>' : ''}
-      <div class="f"><label for="publicationPage">Compare page</label><select id="publicationPage">${reviewed.pages.map(path => `<option value="${esc(path)}">${esc(path === 'index.html' ? 'Home' : path.replace(/\.html$/, ''))}</option>`).join('')}</select></div>
+      <div class="f"><label for="publicationPage">${firstPublication ? 'Preview page' : 'Compare page'}</label><select id="publicationPage">${comparePages.map(path => `<option value="${esc(path)}">${esc(pageLabel(path))}</option>`).join('')}</select></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap-2)">
-        ${reviewed.baselinePublicationId ? '<div><h4>Published version</h4><iframe id="publicationBefore" title="Published page comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>' : '<p>This site has not been published.</p>'}
-        <div><h4>Reviewed draft</h4><iframe id="publicationAfter" title="Reviewed draft comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
+        ${firstPublication ? '' : '<div><h4>Published version</h4><iframe id="publicationBefore" title="Published page comparison" sandbox="allow-scripts" style="width:100%;height:320px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>'}
+        <div>${firstPublication ? '' : '<h4>Reviewed draft</h4>'}<iframe id="publicationAfter" title="${firstPublication ? 'Reviewed draft preview' : 'Reviewed draft comparison'}" sandbox="allow-scripts" style="width:100%;height:${firstPublication ? 420 : 320}px;border:1px solid var(--line);border-radius:var(--pc-control-radius)"></iframe></div>
       </div>`;
     if (reviewed.warnings.length) ui().mountReview('publicationWarnings', false, reviewed.warnings.map(finding => ({
       ...finding, level: 'warn', msg: finding.message, where: finding.where || {}
@@ -32110,10 +32128,13 @@ async function preparePublicationReview(button) {
       else { toast('This page has no output in the reviewed draft. It may have been removed or has no published entries.'); }
     }));
     update();
-    publish.disabled = false; publish.textContent = 'Publish reviewed version';
+    publish.disabled = false; publish.hidden = false; publish.textContent = 'Publish reviewed version';
     publish.onclick = () => publishDraft(publish, reviewed);
     if (schedule) { schedule.disabled = false; schedule.onclick = () => openSchedulePanel(reviewed); }
     action.success('Review snapshot prepared. Page previews are loading.');
+    // Publishing is now the next step; preparing again is the fallback after further edits.
+    button.classList.remove('primary');
+    button.textContent = 'Create new preview';
   } catch (error) {
     const failure = publicationPreviewFailure(error);
     renderPublicationPreviewFailure(host, failure);
@@ -32211,9 +32232,9 @@ function publishModal() {
     <button class="btn" id="releaseWordPress">Publish on WordPress</button>
     <span style="flex:1"></span>
     <button class="btn" id="releaseClose">Close</button>
-    ${SRV.role === 'owner' && HOST.releases.prepare ? '<button class="btn" id="releasePrepare">Create publication preview</button>' : ''}
+    ${SRV.role === 'owner' && HOST.releases.prepare ? `<button class="btn${counts.error ? '' : ' primary'}" id="releasePrepare">Create publication preview</button>` : ''}
     ${SRV.role === 'owner' && HOST.releases.schedule && SRV.schedulingAvailable ? '<button class="btn" id="releaseSchedule" disabled title="Create a review preview first">Schedule…</button>' : ''}
-    ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
+    ${SRV.role === 'owner' ? `<button class="btn primary" id="releasePublish"${mayPublish ? '' : ' disabled'}${HOST.releases.prepare && !counts.error ? ' hidden' : ''}>${counts.error ? 'Resolve problems first' : 'Publish to Pagecraft'}</button>` : ''}`);
   ui().mountReview('exReview');
   /* The editor page already carries the current publication identity and version. Rendering
      that injected state avoids a second authenticated database round trip just to open this

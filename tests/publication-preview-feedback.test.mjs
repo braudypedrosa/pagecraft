@@ -102,6 +102,40 @@ describe('publication preview failure feedback', () => {
     w.clearPublicationFrames(); dom.window.close();
   });
 
+  test('the page picker starts on Home, follows site page order and uses page names', async () => {
+    const { dom, w, doc } = fixture(async () => ({
+      snapshotId:'reviewed-4', sourceVersion:4, baselinePublicationId:'live-3',
+      comparisonAvailable:true, warnings:[],
+      changes:[{ group:'Pages', label:'Workshop days', status:'added', pages:[{ name:'Workshop days', slug:'workshops' }] }],
+      pages:['about.html', 'contact.html', 'index.html', 'workshops.html'],
+      draftPages:['about.html', 'contact.html', 'index.html', 'workshops.html'], publishedPages:['index.html']
+    }));
+    w.state.pages = [{ id:'home', name:'Home', slug:'index' }, { id:'contact', name:'Get in touch', slug:'contact' }, { id:'about', name:'About us', slug:'about' }];
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    const options = [...doc.querySelectorAll('#publicationPage option')];
+    expect(options.map(option => option.value)).toEqual(['index.html', 'contact.html', 'about.html', 'workshops.html']);
+    expect(options.map(option => option.textContent)).toEqual(['Home', 'Get in touch', 'About us', 'Workshop days']);
+    expect(doc.querySelector('#publicationPage').value).toBe('index.html');
+    expect(doc.querySelector('label[for="publicationPage"]').textContent).toBe('Compare page');
+    expect(doc.querySelector('#publicationBefore')).not.toBeNull();
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
+  test('a first publication shows only the draft preview, at full width', async () => {
+    const { dom, w, doc } = fixture(async () => ({
+      snapshotId:'reviewed-4', sourceVersion:4, baselinePublicationId:null,
+      comparisonAvailable:true, changes:[], warnings:[], pages:['index.html'], draftPages:['index.html'], publishedPages:[]
+    }));
+    await w.preparePublicationReview(doc.querySelector('#releasePrepare'));
+    const after = doc.querySelector('#publicationAfter');
+    expect(doc.querySelector('#publicationBefore')).toBeNull();
+    expect(doc.querySelector('#publicationChanges').textContent).not.toContain('This site has not been published.');
+    expect(after.parentElement.parentElement.children.length).toBe(1);
+    expect(after.style.height).toBe('420px');
+    expect(doc.querySelector('label[for="publicationPage"]').textContent).toBe('Preview page');
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
   test('snapshot navigation stays gated by frame, token and exact page inventory after paint readiness', () => {
     const { dom, w, doc } = fixture(async () => {});
     const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');
@@ -115,6 +149,7 @@ describe('publication preview failure feedback', () => {
     const send = (data, from = frame.contentWindow) => w.dispatchEvent(new w.MessageEvent('message', {source:from, data}));
     send({type:'pagecraft-preview-ready', token, status:'ready'});
     expect(wrapper.textContent).toContain('Page preview displayed.');
+    expect(wrapper.querySelector('.pc-preview-state').classList.contains('ready')).toBe(true);
     const valid = {type:'pagecraft-preview-navigate', token, path:'menu.html', hash:'#morning'};
     send(valid, w); send({...valid, token:'wrong'});
     for (const path of ['unknown.html', '../menu.html', '/menu.html', 'https://evil.test/menu.html']) send({...valid, path});

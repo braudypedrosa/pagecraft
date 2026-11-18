@@ -191,8 +191,14 @@ test('server mode separates draft saving from explicit release publication', asy
   dom.window.askConfirm = async () => true;
   const publish = doc.querySelector('#releasePublish');
   a.ok(publish && publish.disabled, 'publication requires a reviewed snapshot');
-  await dom.window.preparePublicationReview(doc.querySelector('#releasePrepare'));
+  const prepare = doc.querySelector('#releasePrepare');
+  a.equal(publish.hidden, true, 'an unusable publish button is not offered before a preview exists');
+  a.ok(prepare.classList.contains('primary'), 'creating the preview is the first step');
+  await dom.window.preparePublicationReview(prepare);
   a.equal(publish.disabled, false, 'a prepared snapshot can be published');
+  a.equal(publish.hidden, false, 'publishing is offered once a preview exists');
+  a.equal(prepare.classList.contains('primary'), false, 'publishing becomes the primary action');
+  a.equal(prepare.textContent, 'Create new preview');
   a.equal(doc.querySelector('#releaseSchedule')?.disabled, false, 'a prepared snapshot can be scheduled');
   publish.click();
   const publishUntil = Date.now() + 2500;
