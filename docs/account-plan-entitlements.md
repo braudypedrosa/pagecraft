@@ -3,6 +3,8 @@
 | Plan | Publicly available | Owned sites | Optimized media pool |
 | --- | --- | --- | --- |
 | Free | Yes; default for new profiles | 1 in total, including drafts | 100 MB |
+| Launch | Not yet; grant only until checkout ships | 5 | 1 GB (working figure) |
+| Studio | Not yet; grant only until checkout ships | 20 | 5 GB (working figure) |
 | Pro | No; privately assigned | Unlimited | 5 GB |
 
 Pro is complimentary. It has no checkout, public upgrade option, or payment obligation.
@@ -13,7 +15,7 @@ The browser roles have no direct access to update the plan column.
 The canonical catalog is `supabase/functions/pagecraft-db/plan-entitlements.ts`, re-exported
 by `server/src/plans.ts`. The Node deployment bundles that one pure module; the gateway
 deployment includes it alongside the function entrypoint. Unknown values fail closed to
-Free, and the database constraint permits only `free` and `pro`.
+Free, and the database constraint permits only `free`, `launch`, `studio` and `pro`.
 
 The Free allowance changed from 3 to 1 owned site on 2026-11-16 (user decision). Existing
 Free accounts that already own more sites keep every one of them: nothing is deleted, hidden
@@ -47,3 +49,21 @@ the Free limit. No browser-facing plan assignment endpoint is provided.
 The current staging and production installation shares account records. A plan assignment
 is therefore account data shared by both environments; frontend/server promotion remains
 a separate deployment. A future clean production database needs its own deliberate grant.
+
+## Plan grants and subscriptions (2026-11-19)
+
+`users.plan` is now a cached value. The gateway derives it with `effectivePlan` in
+`plan-entitlements.ts`: the highest of every unrevoked, unexpired row in `plan_grants` and
+every `billing_subscriptions` row that is `active`, `trialing`, or `past_due` for less than
+`PAST_DUE_GRACE_DAYS` (7). On a tie a subscription is reported over a grant. `users.plan_source`
+records `free`, `grant` or `subscription`, and `plan_changed_at` when it last changed.
+
+Gateway operations (server key only): `plan.status`, `plan.recompute`, `plan.grant` and
+`plan.revokeGrant`. Each write locks the user row, changes its source rows and rewrites the
+cached plan in one transaction. `server/src/plan-grants.ts` is the Node client. The
+migration turned every existing `pro` account into a grant with `granted_by = 'migration'`.
+
+Use `plan.grant` instead of editing `users.plan` by hand: a direct edit is overwritten at
+the next recompute. `billing_customers`, `billing_subscriptions` and `billing_events` exist
+for the Paddle webhook (billing phase 3) and are not written yet. All four tables have row
+level security enabled and no client-role access.

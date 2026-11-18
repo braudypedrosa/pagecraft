@@ -731,3 +731,72 @@ test('a client running against the gateway reaches the deletion actions', async 
   a.deepEqual(await auth.deleteAccount(user), { status: 'deleted', authUserDeleted: true });
   a.equal(await auth.userById(user), null);
 });
+
+test('plan grants recompute the cached account plan under the user lock', async () => {
+  const userId = 'plan-grant-user';
+  await db.query(`insert into users (id, email) values ($1, $2)`, [userId, 'plan-grant-user@example.test']);
+  const plan = async () => (await db.query<{ plan: string; plan_source: string }>(
+    `select plan, plan_source from users where id=$1`, [userId])).rows[0];
+
+  harness.statements.length = 0;
+  const launch = await operation('plan.grant', { userId, plan: 'launch', reason: 'Beta tester', grantedBy: 'founder' });
+  a.equal(launch.status, 200, JSON.stringify(launch.body));
+  a.deepEqual(launch.body.plan, { plan: 'launch', source: 'grant', changed: true });
+  a.deepEqual(await plan(), { plan: 'launch', plan_source: 'grant' });
+  a.ok(harness.statements.some(text => /select id, plan, plan_source from users where id = \$1 for update/.test(text)),
+    'recompute reads the account under its row lock');
+
+  const studio = await operation('plan.grant', { userId, plan: 'studio', reason: 'Partner', grantedBy: 'founder' });
+  a.equal(studio.body.plan.plan, 'studio', 'the higher grant wins');
+
+  const status = await operation('plan.status', { userId });
+  a.equal(status.body.plan, 'studio');
+  a.equal(status.body.grants.length, 2);
+
+  const revoked = await operation('plan.revokeGrant', { grantId: studio.body.grant.id, revokedBy: 'founder' });
+  a.deepEqual(revoked.body, { revoked: true, plan: { plan: 'launch', source: 'grant', changed: true } });
+  a.equal((await operation('plan.revokeGrant', { grantId: studio.body.grant.id, revokedBy: 'founder' })).body.revoked, false);
+
+  await db.query(`insert into billing_subscriptions
+    (paddle_subscription_id, environment, user_id, price_id, plan, status, last_event_at)
+    values ('sub_plan_test', 'sandbox', $1, 'pri_test', 'launch', 'active', now())`, [userId]);
+  await operation('plan.revokeGrant', { grantId: launch.body.grant.id, revokedBy: 'founder' });
+  a.deepEqual(await plan(), { plan: 'launch', plan_source: 'subscription' },
+    'an active subscription keeps the plan after every grant is revoked');
+
+  await db.query(`update billing_subscriptions set status='canceled' where paddle_subscription_id='sub_plan_test'`);
+  a.deepEqual((await operation('plan.recompute', { userId })).body, { plan: 'free', source: 'free', changed: true });
+  a.deepEqual((await operation('plan.recompute', { userId })).body, { plan: 'free', source: 'free', changed: false });
+});
+
+test('plan grants refuse invalid input and unknown accounts', async () => {
+  const bad = [
+    { userId: 'plan-grant-user', plan: 'free', reason: 'x', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'enterprise', reason: 'x', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: '', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x'.repeat(201), grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: '' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: 'founder', expiresAt: '2000-01-01T00:00:00Z' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: 'founder', expiresAt: 'soon' },
+  ];
+  for (const args of bad) {
+    const response = await call('plan.grant', args);
+    a.equal(response.status, 400, JSON.stringify(args));
+    a.equal(response.body.code, 'INVALID_PLAN_REQUEST');
+  }
+  const missing = await call('plan.grant', { userId: 'nobody', plan: 'pro', reason: 'x', grantedBy: 'founder' });
+  a.equal(missing.status, 404);
+  a.equal((await call('plan.revokeGrant', { grantId: randomUUID(), revokedBy: 'founder' })).status, 404);
+  a.equal(await count(`select * from plan_grants where user_id='nobody'`), 0);
+});
+
+test('billing and plan tables are inaccessible to client roles', async () => {
+  for (const table of ['plan_grants', 'billing_customers', 'billing_subscriptions', 'billing_events']) {
+    for (const role of ['anon', 'authenticated']) {
+      const permissions = await db.query<{ allowed: boolean }>(`select has_table_privilege($1, $2, 'SELECT') as allowed`, [role, table]);
+      a.equal(permissions.rows[0].allowed, false, `${role} cannot read ${table}`);
+    }
+    const security = await db.query<{ enabled: boolean }>(`select relrowsecurity as enabled from pg_class where oid=$1::regclass`, [table]);
+    a.equal(security.rows[0].enabled, true);
+  }
+});
