@@ -19,6 +19,15 @@ test("review links still render as a table", () => {
   a.doesNotMatch(html, /pc-review-empty">No review links yet/);
 });
 
+test("on phones the site rail is icon-only and keeps each link's name for assistive technology", () => {
+  const html = siteAssistantsPage(user, site, { tokens: [], proposals: [], editorUrl: "/edit/s1", mcpUrl: "https://example.invalid/mcp" });
+  const phone = html.match(/@media\(max-width:520px\)\{[^@]*\.pc-rail\{[^@]*/)?.[0] ?? "";
+  a.match(phone, /\.pc-rail\{width:56px;flex-basis:56px\}/);
+  a.match(phone, /\.pc-rail a>span,\.pc-rail button>span\{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset\(50%\)/);
+  a.doesNotMatch(phone, /\.pc-rail[^{]*span\{display:none/, "labels stay in the accessibility tree");
+  a.match(html, /<a href="\/sites\/s1\/assistants" aria-current="page">[^]*?<span>Assistants<\/span><\/a>/);
+});
+
 test("assistant sections let a long address shrink on a phone instead of widening the column", () => {
   const html = siteAssistantsPage(user, site, {
     tokens: [], proposals: [], editorUrl: "/edit/s1",
