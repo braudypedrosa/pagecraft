@@ -10,7 +10,6 @@
    exactly one writer, so Preact can own it outright. */
 import { C, L } from './ctx';
 import { Icon } from './Icon';
-import { HelpTip } from './HelpTip';
 import { isTemplateImage } from '../core/cms-validation';
 import { useId } from 'preact/hooks';
 import { useImageUpload } from './useImageUpload';
@@ -40,6 +39,9 @@ export function AssetField({ value, note, onChange, disabled = false }: {
 
   return (
     <>
+      {/* A one-line note reads as the field's description, under its label. As a "?" after the
+          buttons it sat detached below the image card. */}
+      {note ? <p class="hint pc-asset-note">{note}</p> : null}
       {hasImage
         ? <div class="imgset">
           <img src={a ? a.url : value} alt="" />
@@ -74,7 +76,6 @@ export function AssetField({ value, note, onChange, disabled = false }: {
           </button>
         ) : null}
       </div>
-      {note ? <HelpTip label="Image" text={note} /> : null}
     </>
   );
 }

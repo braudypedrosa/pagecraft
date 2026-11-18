@@ -988,6 +988,42 @@ test('Settings keeps the tool rail available and closes when switching panels', 
   w.matchMedia=media;
 });
 
+test('the rail highlights the dialog that is open, then gives the highlight back to the panel', async () => {
+  // A page of its own: earlier cases rebind the shared page's rail, and a doubled listener
+  // would open and then close Settings on one click.
+  const dom = new JSDOM(readFileSync(BUILT, 'utf8'), { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/' });
+  const w = dom.window, doc = w.document;
+  await new Promise(r => setTimeout(r, 800));
+  const bootUntil = Date.now() + 2000;
+  while (doc.querySelector('#savedTag').textContent === '—' && Date.now() < bootUntil) await new Promise(r => setTimeout(r, 25));
+  if (doc.querySelector('#savedTag').textContent === '—') w.bindTop();
+  w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+  const rail = sel => doc.querySelector(`#leftRail ${sel}`);
+  const lit = () => [...doc.querySelectorAll('#leftRail button')]
+    .filter(b => b.classList.contains('rail-dialog') || (b.classList.contains('on') && !doc.querySelector('#leftRail .rail-dialog')))
+    .map(b => b.dataset.t || b.dataset.act);
+  const settle = () => new Promise(r => setTimeout(r, 450));
+  try {
+    rail('[data-t="layers"]').click();
+    a.deepEqual(lit(), ['layers']);
+    rail('[data-act="project"]').click();
+    a.equal(doc.querySelector('#modal').hidden, false);
+    a.deepEqual(lit(), ['project'], 'Settings is current while its dialog is open, not the panel behind it');
+    a.equal(rail('[data-act="project"]').getAttribute('aria-current'), 'true');
+    rail('[data-act="media"]').click();
+    await settle();
+    a.equal(doc.querySelector('#mTitle').textContent, 'Media library');
+    a.deepEqual(lit(), ['media'], 'switching dialogs moves the highlight');
+    doc.querySelector('#mClose').click();
+    await settle();
+    a.equal(doc.querySelector('#modal').hidden, true);
+    a.deepEqual(lit(), ['layers'], 'closing the dialog restores the panel highlight');
+    a.equal(rail('[data-act="media"]').hasAttribute('aria-current'), false);
+    w.openModal('Something else', '<p>x</p>');
+    a.deepEqual(lit(), ['layers'], 'an unrelated dialog does not light a rail item');
+  } finally { w.close(); }
+});
+
 test('Pages workspace opens inside the shell and page switching exposes SEO separately', async () => {
   const {window:w,doc}=await boot();
   const C=w.__CORE;

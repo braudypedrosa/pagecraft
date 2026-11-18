@@ -2162,3 +2162,28 @@ test("a Free account that already owns three sites keeps all of them and is only
   });
   a.equal(saved.status, 200, "an existing site over the allowance can still be saved");
 });
+
+test("relative edit times keep counting while a site page stays open", async () => {
+  /* Found on staging: "Last edited 4m ago" read the same ten minutes later. The server writes
+     the first text; the page recomputes it on load and every 30 seconds. */
+  // @ts-expect-error jsdom has no bundled declarations in this workspace.
+  const { JSDOM } = await import("jsdom");
+  const { request, accountAuth, auth } = rig({ publications: true });
+  accountAuth.current = { authUserId: "auth-1", email: "clock@example.test", name: "Clock" };
+  await auth.ensureAuthUser("auth-1", "clock@example.test", "Clock");
+  const created = await request("/api/sites", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Clock", doc: doc() }),
+  });
+  a.equal(created.status, 201);
+  const html = await (await request("/")).text();
+  const tag = html.match(/<time datetime="([^"]+)" data-local="" data-relative title="[^"]*">Just now<\/time>/);
+  a.ok(tag, "a just-edited site renders a relative time the page can update");
+  // The same page, read three hours after it was rendered.
+  const later = new Date(Date.parse(tag[1]) - 3 * 3600 * 1000).toISOString();
+  const dom = new JSDOM(html.split(tag[1]).join(later), { runScripts: "dangerously", url: "http://admin.test/" });
+  try {
+    const shown = dom.window.document.querySelector("time[data-relative]")?.textContent;
+    a.equal(shown, "3h ago");
+  } finally { dom.window.close(); }
+});

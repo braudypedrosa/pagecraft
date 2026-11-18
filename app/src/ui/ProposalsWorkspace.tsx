@@ -226,7 +226,7 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
         </div>
         <div class="pw-head-actions">
           {api && <a class="btn ghost" href={api.settingsUrl} target="_blank" rel="noopener">Assistants and tokens</a>}
-          <button type="button" class="btn" onClick={close} disabled={busy}>Back to editor</button>
+          <button type="button" class="btn" onClick={close} disabled={busy}>Back to builder</button>
         </div>
       </header>
       {!api ? (

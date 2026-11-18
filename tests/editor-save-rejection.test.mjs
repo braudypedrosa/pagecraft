@@ -237,3 +237,39 @@ for (const surface of ['historyModal', 'historyPanel']) {
     });
   }
 }
+
+for (const surface of ['historyModal', 'historyPanel']) {
+  test(`${surface}: loading history shows in the surface itself, with no toast over or after it`, async () => {
+    /* Found on staging: a "Loading history…" toast sat over the dialog's own "Loading saved
+       versions…", and "Version history loaded." appeared after the dialog was closed. */
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(marker,
+      `<script>window.PC_WORDPRESS=${JSON.stringify(config)}</script>\n${marker}`);
+    let release;
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/', virtualConsole: new VirtualConsole(),
+      beforeParse(window) {
+        window.fetch = async url => /revisions/.test(String(url))
+          ? new Promise(resolve => { release = () => resolve({ ok: true, status: 200, json: async () => [{ version: 1, createdAt: '2026-10-22' }] }); })
+          : { ok: true, status: 200, json: async () => ({ version: 1 }) };
+      }
+    });
+    try {
+      await wait(800);
+      const { window } = dom, document = window.document;
+      document.querySelector('#mClose')?.click();
+      await wait(200);
+      const toasts = () => [...document.querySelectorAll('.pc-notification')].map(n => n.textContent.trim()).filter(Boolean);
+      const before = toasts();
+      const opening = window[surface]();
+      await wait(50);
+      assert.match(document.body.textContent, /Loading saved versions…/);
+      assert.deepEqual(toasts(), before, 'no loading toast');
+      assert.ok(release, 'the history request was made');
+      release();
+      await opening;
+      await wait(50);
+      assert.ok(document.querySelector('.historyRow'), 'the versions are listed');
+      assert.deepEqual(toasts(), before, 'no "loaded" toast');
+    } finally { dom.window.close(); }
+  });
+}

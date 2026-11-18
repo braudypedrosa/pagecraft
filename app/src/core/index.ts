@@ -9770,7 +9770,10 @@ ${m.css || ''}
 .s-starthero .pv-b{fill:#d5dad3}.s-starthero .pv-l{fill:#adb7bf}.s-starthero .pv-h{fill:#8f9a90}.s-starthero .pv-g{fill:#b7f34a}
 
 /* selection: green outline plus the eight handles from the product screens */
-#s-hud{position:absolute;top:0;left:0;z-index:9998;pointer-events:none}
+/* As wide as the page and clipped across it: handles past an edge that touches the frame
+   must not widen the canvas page (a phone canvas grew a sideways scrollbar). Height stays 0
+   and visible, so nothing is clipped vertically. */
+#s-hud{position:absolute;top:0;left:0;width:100%;height:0;overflow-x:clip;z-index:9998;pointer-events:none}
 /* Everything below divides by --z so it stays the same size on screen whatever the
    canvas is scaled to. The frame's *position* still comes from the element, which is
    what keeps it locked on; only its thickness is corrected. */
@@ -9807,6 +9810,8 @@ ${m.css || ''}
 #s-hud .qa[data-side=bottom]{transform:scale(calc(1 / var(--z,1))) translateY(15px)}
 #s-hud .qa[data-side=left]{transform:scale(calc(1 / var(--z,1))) translateX(-15px)}
 #s-hud .qa[data-side=right]{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
+#s-hud .qa[data-side=left].inside{transform:scale(calc(1 / var(--z,1))) translateX(15px)}
+#s-hud .qa[data-side=right].inside{transform:scale(calc(1 / var(--z,1))) translateX(-15px)}
 #s-hud .qa:hover,#s-hud .qa:focus-visible{background:#fff;outline:none}
 #s-hud .qa svg{width:12px;height:12px;stroke-width:2.2}
 #s-hud .qa-line{position:absolute;background:#b7f34a;pointer-events:none;border-radius:2px;box-shadow:0 0 0 1px rgba(17,19,17,.35)}

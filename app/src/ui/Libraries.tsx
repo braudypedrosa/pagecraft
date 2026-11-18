@@ -68,10 +68,10 @@ export function addToLibrary(ref: LibraryItemRef) {
 
 type Item = { id: string; name?: string };
 const GROUPS: [LibraryItemKind, string][] = [
-  ['component', 'Components'], ['block', 'Blocks'], ['textStyle', 'Text styles'], ['class', 'Classes'], ['color', 'Colors'],
+  ['component', 'Components'], ['block', 'Blocks'], ['textStyle', 'Text styles'], ['class', 'Classes'], ['color', 'Colours'],
 ];
 const KIND: Record<LibraryItemKind, string> = {
-  component: 'Component', block: 'Block', textStyle: 'Text style', class: 'Class', color: 'Color',
+  component: 'Component', block: 'Block', textStyle: 'Text style', class: 'Class', color: 'Colour',
 };
 const refKey = (ref: { kind: LibraryItemKind; id: string }) => `${ref.kind}:${ref.id}`;
 const parseKey = (k: string): LibraryItemRef => {

@@ -84,3 +84,29 @@ test('positionHud uses measured sibling rectangles and keeps every toolbar contr
   expect(placed.bottom).toBeLessThanOrEqual(cwin.innerHeight);
   expect(bar.querySelectorAll('button').length).toBeGreaterThan(0);
 });
+
+test('side + buttons on an element that touches the frame edge move inside, so the page never widens', () => {
+  const dom = new JSDOM('<body><iframe id="canvas"></iframe></body>', { runScripts: 'outside-only', pretendToBeVisual: true });
+  windows.push(dom);
+  const w = dom.window;
+  const frame = w.document.querySelector('iframe');
+  const cdoc = frame.contentDocument, cwin = frame.contentWindow;
+  cdoc.body.innerHTML = '<div id="s-root"></div><div id="s-hud" style="width:399px"></div>';
+  cdoc.documentElement.style.setProperty('--z', '1');
+  Object.assign(w, {
+    cdoc, cwin, svg: () => '',
+    quickAddSides: () => ['top', 'right', 'bottom', 'left'],
+  });
+  w.eval(between('const QUICK_LABEL', '/* Hovering or focusing a + draws'));
+  const sides = html => {
+    const host = cdoc.createElement('div'); host.innerHTML = html;
+    return Object.fromEntries([...host.querySelectorAll('.qa')].map(b => [b.dataset.side, b.classList.contains('inside')]));
+  };
+  // Full width on the 399px phone canvas: both side buttons would sit outside the page.
+  expect(sides(w.quickAddHtml('full', 0, 100, 399, 80))).toEqual({ top: false, right: true, bottom: false, left: true });
+  // With room on both sides they stay outside the element, where they always were.
+  expect(sides(w.quickAddHtml('mid', 60, 100, 200, 80))).toEqual({ top: false, right: false, bottom: false, left: false });
+  // A zoomed-out canvas makes the button bigger in page units, so it needs more room.
+  cdoc.documentElement.style.setProperty('--z', '0.5');
+  expect(sides(w.quickAddHtml('near', 60, 100, 300, 80)).right).toBe(true);
+});

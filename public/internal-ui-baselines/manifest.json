@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T12:45:43.860Z",
+  "capturedAt": "2026-11-18T19:23:58.343Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "04d1705635f6c93619984a268541e7ef978b71ff80408abbc9b4f6b4be6ed464",
+    "builder.html": "457163c95e8ae3abbf1937b675e3e1af3ab6253455676c0f768330cb13feb5c3",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -115,7 +115,7 @@
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "62c5e8967ce4cc0ea0f7295cb97c6a59e2b858bf4e8ca72c7d3549ab335cbe89",
     "app/src/ui/inspector/Controls.tsx": "1487ee241a28ffc4db69eaab9b706268fbcf3725e94ea8e5c3edc3e8752b1b4b",
-    "app/src/ui/inspector/Inspector.tsx": "6c06178a53613351b2cb8890754ff8685eb15e09a3447982953312e500006f60",
+    "app/src/ui/inspector/Inspector.tsx": "16587429584ac3b91f6f6ffc31840311d2d1040ea0c8f15ff799b1cf74a6d9e5",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
@@ -130,7 +130,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "264d254281fccae408c12d5b667d8c4dc27345035e8bd02b8a6f7fcf50793308",
+    "server/src/account-pages.ts": "f1a538bb9a7d181ea7ba869e92c298acb1576a6673db8a73d902a537a24af966",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -291,7 +291,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "38d6d56ee3f71d2a14a3f3c235a28367e88df2b2408c1691a81840d1b1eb370e",
+      "sha256": "356f9e59bb136a4ee6a45457b9f058326932d48b59b0778981273b67c904a4a3",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -661,7 +661,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "c00549329367cab5299257ca9313a364b774fc19df3a102f1fd1e8385517bf0b",
+      "sha256": "2437857cc34579186fe6abbd05ecbe10ae2f10faf2778a7c4e9da15064cb59ef",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "ea2fbbbb0dda568af59d1901d01448c009928840168e0447c4e591bfcc6b2cc4",
+      "sha256": "c8c05c4fa8758b076975cfaa84f3efcbc8cde2c8024d194bacc831a0c03f77bb",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

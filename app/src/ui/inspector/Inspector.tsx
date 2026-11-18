@@ -101,7 +101,10 @@ function Head({ h }: { h: NonNullable<ReturnType<typeof C.locate>> }) {
       <div class="ic"><Icon name={d.icon} size={14} /></div>
       <div class="tt">
         <b>{many ? ids.length + ' selected' : name}</b>
-        <small>{many ? kinds.join(' · ') : '#' + C.domIdOf(n)}</small>
+        {/* A generated id (#pagecraft-heading-stillwood-text-42) is internal and wrapped the
+            header; only an anchor the author chose is worth showing here. */}
+        {many ? <small>{kinds.join(' · ')}</small>
+          : n.adv?.htmlId ? <small title="Anchor id">{'#' + n.adv.htmlId}</small> : null}
       </div>
       <button class="iconbtn" title="Copy this element's styling (⌘⇧C)"
         onClick={() => { C.copyStyles(n.id); L.toast('Styles copied from ' + C.styleClip.from); repaint('right'); }}>

@@ -294,6 +294,10 @@ input,select,textarea{font:inherit;color:inherit}
 .railgap{flex:1}
 .rail button.on{color:var(--ink);background:var(--green)}
 .rail button.on:hover{color:var(--ink)}
+/* While Media or Settings is open as a dialog, its rail item is the current one; the panel
+   behind keeps its own `on` and takes the highlight back when the dialog closes. */
+.rail button.rail-dialog{color:var(--ink);background:var(--green)}
+.rail:has(.rail-dialog) button.on:not(.rail-dialog){color:var(--rail-text-2);background:transparent}
 .rail .railAccount strong{width:29px;height:29px;border:1px solid rgba(246,244,236,.28);border-radius:50%;display:grid;place-items:center;color:var(--rail-text);font-family:var(--label);font-size:var(--fs-1);font-weight:600}
 .accountPop{position:fixed;left:70px;bottom:10px;width:224px;padding:10px;background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 30px rgba(10,12,11,.22);z-index:80}
 .accountPop[hidden]{display:none}.accountPop p{margin:0 0 8px;padding:4px 6px 9px;border-bottom:1px solid var(--line);color:var(--text-2);font-family:var(--label);font-size:var(--fs-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountPop a,.accountPop button{width:100%;min-height:34px;padding:0 8px;display:flex;align-items:center;border-radius:var(--r-sm);color:var(--text);font-family:var(--label);font-size:var(--fs-3);text-decoration:none}.accountPop a:hover,.accountPop button:hover{background:var(--pc-hover-bg)}.accountPop form{margin:0}
@@ -585,6 +589,7 @@ body.content-only .s-hud [data-x=down]{display:none}
 .pitem span{font-size:var(--fs-2);font-weight:500;color:var(--text-2);text-align:center;line-height:1.25}
 .pitem:hover span,.pitem:hover svg{color:var(--text)}
 .hint{color:var(--text-3);padding:0;}
+.pc-asset-note{margin:-2px 0 var(--sp-3);font-size:var(--fs-1)}
 .hint b{color:var(--text-2);font-weight:600}
 
 /* ---- navigator --------------------------------------------------------- */
@@ -1479,8 +1484,12 @@ pre.code{
 .review .go{flex:0 0 auto;padding:3px 10px;border-radius:var(--r-pill);border:1px solid var(--line-2);font-size:var(--fs-2);background:var(--panel)}
 .review .go:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .review-group{border-top:1px solid var(--line)}
-.review-group>summary{display:list-item;list-style:disclosure-closed inside;padding:12px 14px;cursor:pointer;font:var(--pc-type-label);color:var(--text)}
-.review-group[open]>summary{list-style-type:disclosure-open}
+/* The same chevron as the inspector's groups (.gh): pointing right closed, down open. */
+.review-group>summary{display:flex;align-items:center;gap:var(--sp-4);list-style:none;padding:12px 14px;cursor:pointer;font:var(--pc-type-label);color:var(--text)}
+.review-group>summary::-webkit-details-marker{display:none}
+.review-group>summary::before{content:'';flex:0 0 auto;width:5px;height:5px;margin:0 2px;border:solid var(--text-3);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .12s}
+.review-group[open]>summary::before{transform:translateY(-2px) rotate(45deg)}
+.review-group>summary .review-count{margin-left:auto}
 .review-group>summary:hover{background:var(--field)}
 .review-group-name{font-weight:600;overflow-wrap:anywhere}
 .review-count{float:right;margin-left:12px;font-size:var(--fs-1);color:var(--text-2);font-weight:400;text-align:right}
@@ -2254,7 +2263,7 @@ async function historyPanel() {
   if (!panel) return;
   const host = $('#rightHistory');
   try {
-    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.'}, () => HOST.revisions.list());
+    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.', announce:false}, () => HOST.revisions.list());
     if (!host.isConnected || panel.hidden) return;
     if (result.status === 'error') throw new Error(result.message);
     if (result.status !== 'success') return;
@@ -2292,13 +2301,15 @@ async function historyPanel() {
   }
 }
 
+/* The history surfaces show their own loading, empty and error states, so the load is not
+   also announced as toasts (one was drawn over the dialog, another appeared after closing). */
 async function historyModal() {
   openModal('Version history', '<div class="note">Loading saved versions…</div>',
     '<button class="btn" id="historyClose">Close</button>');
   $('#historyClose').addEventListener('click', closeModal);
   const host = $('#mBody'), loading = host.firstElementChild;
   try {
-    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.'}, () => HOST.revisions.list());
+    const result = await feedback().run({key:'history-load', button:$('#historyBtn'), pending:'Loading history…', success:'Version history loaded.', announce:false}, () => HOST.revisions.list());
     if (!loading.isConnected) return;
     if (result.status === 'error') throw new Error(result.message);
     if (result.status !== 'success') return;
@@ -4309,6 +4320,11 @@ function positionHud() {
   if (!el) { hud.innerHTML = ''; return; }
   const r = el.getBoundingClientRect();
   const top = r.top + cwin.scrollY, left = r.left + cwin.scrollX;
+  /* The HUD clips sideways at the page's own width (canvas CSS), so a page that is wider than
+     the frame by its own content keeps handles everywhere it can scroll to. */
+  const root = cdoc.getElementById('s-root');
+  const pageWidth = Math.max(cdoc.documentElement.clientWidth, root ? root.scrollWidth : 0);
+  hud.style.width = pageWidth + 'px';
   const d = DEF[s.node.type];
   const ids = selIds(), many = ids.length > 1;
   /* Extra members get an outline and nothing else: one bar, on the primary, so there is
@@ -5950,10 +5966,17 @@ function appendSmart(key) {
 const QUICK_LABEL = { top: 'Add above', bottom: 'Add below', left: 'Add to the left', right: 'Add to the right' };
 const QUICK_KEY = { bottom: ' (⇧↵)' };
 function quickAddHtml(id, left, top, w, h) {
+  /* A side + sits 15px past the edge (26px to its far side, divided by the zoom). On an element
+     that touches the frame, e.g. anything full-width on the phone canvas, that is outside the
+     page: it was unclickable there and gave the canvas a sideways scrollbar. It moves inside. */
+  const z = Number(cdoc && cwin.getComputedStyle(cdoc.documentElement).getPropertyValue('--z')) || 1;
+  const reach = 26 / z, viewLeft = 0;
+  const viewRight = Number.parseFloat(cdoc && cdoc.getElementById('s-hud')?.style.width) || Infinity;
   return quickAddSides(id).map(side => {
     const x = side === 'left' ? left : side === 'right' ? left + w : left + w / 2;
     const y = side === 'top' ? top : side === 'bottom' ? top + h : top + h / 2;
-    return `<button class="qa" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}${QUICK_KEY[side] || ''}"
+    const inside = (side === 'right' && x + reach > viewRight) || (side === 'left' && x - reach < viewLeft);
+    return `<button class="qa${inside ? ' inside' : ''}" data-act="qadd" data-side="${side}" aria-label="${QUICK_LABEL[side]}" title="${QUICK_LABEL[side]}${QUICK_KEY[side] || ''}"
       style="left:${x}px;top:${y}px">${svg('plus', 12)}</button>`;
   }).join('');
 }
@@ -7329,7 +7352,22 @@ let modalMotionVersion = 0;
    A layer that has started its exit already ignores the pointer, so it counts as closed:
    otherwise the workspace stays inert through the fade and a click there (Undo, Redo) is lost. */
 const layerOpen = el => !el.hidden && !el.hasAttribute('data-pc-motion-closing');
+/* The rail item whose dialog is open, and the title it opened with: another dialog that
+   replaces it in #modal must not inherit the highlight. */
+let railDialog = null;
+function syncRailDialog() {
+  const mask = $('#modal');
+  const current = railDialog && layerOpen(mask) && !mask.hasAttribute('data-pc-motion-closing')
+    && $('#mTitle').textContent === railDialog.title ? railDialog.button : null;
+  if (!current) railDialog = null;
+  $$('#leftRail button').forEach(b => {
+    b.classList.toggle('rail-dialog', b === current);
+    if (b === current) b.setAttribute('aria-current', 'true');
+    else b.removeAttribute('aria-current');
+  });
+}
 function syncDialogLayers() {
+  syncRailDialog();
   const modalOpen = layerOpen($('#modal'));
   const askOpen = layerOpen($('#ask'));
   const app = $('#app');
@@ -8081,7 +8119,7 @@ function projectModal() {
     const sections = [
       ['general', 'General', ['mName', 'mMax', 'mLang', 'mBase', 'mFavBox', 'mOgBox']],
       ['typography', 'Typography', ['mFontBox', 'mHeadBox', 'mSize', 'mStyles']],
-      ['colors', 'Colors', ['mColors']],
+      ['colors', 'Colours', ['mColors']],
       ['classes', 'Style classes', ['mClasses']],
       ['code', 'Custom code', ['mCss', 'mHeadHtml']],
       ['advanced', 'Advanced', ['mSelfHost']]
@@ -8948,7 +8986,14 @@ function bindTop() {
     closePages();
     if (b.dataset.t) document.body.classList.remove('cms-open');
     const dialog = { media: mediaModal, project: projectModal, account: accountDialog }[b.dataset.act];
-    if (dialog) { dialog(); return; }
+    if (dialog) {
+      dialog();
+      if (b.dataset.act !== 'account' && layerOpen($('#modal'))) {
+        railDialog = {button: b, title: $('#mTitle').textContent};
+        syncRailDialog();
+      }
+      return;
+    }
     if (b.dataset.t === 'pages') { openPages(); return; }
     /* A second press on the active rail item dismisses the narrow drawer. Desktop
        keeps the stable workbench behavior. */
