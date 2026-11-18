@@ -529,6 +529,9 @@ test("a site that was never published says so and never links to its empty addre
   a.match(overview, /<h2>Not published yet<\/h2>/);
   a.match(overview, new RegExp(`href="/edit/${id}">Open the builder</a>`));
 
+  a.doesNotMatch(overview, /<a class="pc-manage-url"/, "the header address is text too");
+  a.doesNotMatch(overview, />View site<\/a>/, "the header has no View site link to a 404");
+  a.match(overview, /d\.readyState==='complete'&&d\.URL!=='about:blank'\)ready\(\)/, "a preview that loaded before the script ran is shown");
   const settings = await (await request(`/sites/${id}/settings`)).text();
   a.equal(settings.includes("Last published"), false);
 });
