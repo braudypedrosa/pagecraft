@@ -10,8 +10,8 @@
   "afterDeleteCount": 1,
   "sitePublished": false,
   "imageReplacement": {
-    "oldSrc": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/a2e1f63c1dcac-80362e904e74447f.webp?token=REDACTED",
-    "newSrc": "https://pwgwvicrdbjiecjxiyvl.supabase.co/storage/v1/object/sign/pagecraft-assets/d75d44c4-00c2-4bdb-8045-63330758bf0e/8d74fb8c-dcca-4bfd-af97-c845c553d2b1/af136e2847f89-9a10433b40411b67.webp?token=REDACTED",
+    "oldSrc": "https://example.invalid/redacted-signed-media",
+    "newSrc": "https://example.invalid/redacted-signed-media",
     "changed": true
   },
   "redactionNote": "Signed media URL token values removed. Paths and native-edit verification fields retained."

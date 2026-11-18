@@ -7,3 +7,4 @@
 - Temporary user-approved setup (2026-09-09): staging and production share the Pagecraft Supabase project, accounts and site records. Edits, deletions, imports and schema changes affect both. Keep publication directories and signing configuration separate; staging background queue workers must remain disabled. Use identifiable test content. Revisit database isolation before customer launch.
 - Local uncommitted edits are not deployed. Do not describe them as available on staging.
 - Preserve released template versions and their package hashes. Add a new version when published template content changes.
+- Before committing QA evidence, redact signed media URLs and their query strings from captures. Keep raw captures containing credentials outside Git.
