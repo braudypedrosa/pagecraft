@@ -9,6 +9,7 @@ const OPS = new Set([
   "plan.recompute",
   "plan.grant",
   "plan.revokeGrant",
+  "plan.recomputeStale",
 ]);
 
 export const isPlanOp = (op: string) => OPS.has(op);
@@ -52,7 +53,7 @@ const subscriptionWire = (row: Row) => ({
 /* Recomputes `users.plan` from grants and subscriptions while holding the user row lock, so
    two writers (a webhook and a grant) cannot interleave and leave a stale cached plan. */
 // deno-lint-ignore no-explicit-any
-async function recompute(transaction: any, userId: string, now = new Date()) {
+export async function recompute(transaction: any, userId: string, now = new Date()) {
   const user = (await transaction`
     select id, plan, plan_source from users where id = ${userId} for update
   `)[0] as Row | undefined;
@@ -161,6 +162,18 @@ export async function dispatchPlan(
       `;
       return { revoked: revoked.length > 0, plan: await recompute(transaction, userId) };
     });
+  }
+
+  if (op === "plan.recomputeStale") {
+    /* Grants expire and past-due grace runs out without any event arriving, so a periodic job
+       re-derives every paid account. Each account is its own short transaction. */
+    const rows = await sql<Row[]>`select id from users where plan <> 'free' order by id limit 1000`;
+    let changed = 0;
+    for (const row of rows) {
+      const result = await sql.begin((transaction) => recompute(transaction, text(row.id)));
+      if (result.changed) changed++;
+    }
+    return { checked: rows.length, changed };
   }
 
   return refuse("unknown gateway operation", "UNKNOWN_OPERATION");

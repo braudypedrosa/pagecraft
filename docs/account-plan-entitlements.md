@@ -83,3 +83,34 @@ level security enabled and no client-role access.
   the current snapshot. Grants are recorded with `granted_by = founder:<auth user id>`.
 - Free is never granted; it is what an account falls back to. Its limits are unchanged.
 - Deploy order: apply both migrations, redeploy `pagecraft-db`, then deploy the Reports app.
+
+## Paddle checkout and webhook (2026-11-19)
+
+Billing is off unless the app has both the database gateway and Paddle settings. Free is unchanged.
+
+| Setting | Where | Notes |
+| --- | --- | --- |
+| `PADDLE_ENVIRONMENT` | app env | `sandbox` (default) or `live` |
+| `PADDLE_API_KEY` | app env, secret | creates checkout transactions |
+| `PADDLE_WEBHOOK_SECRET` | app env, secret | from the Paddle notification destination |
+| `PADDLE_CLIENT_TOKEN` | app env | public client-side token (`test_…` for sandbox) |
+| `PADDLE_PRICES` | app env | `launch:monthly=pri_…,launch:yearly=pri_…,studio:monthly=pri_…` |
+
+- **Checkout:** `/account/plans` lists only plans with a configured price. Choosing one makes the
+  server create a Paddle transaction whose `custom_data.pagecraft_user_id` is the signed-in
+  account, then opens it with Paddle.js on `/account/plans/checkout`. The browser never chooses
+  the account or the price ID. An account with a live subscription can't start a second one.
+  In Paddle, set the default payment link to `https://<app host>/account/plans/checkout` (and,
+  for live, approve that domain).
+- **Webhook:** point a Paddle notification destination at `POST /billing/paddle/webhook` with
+  the `subscription.*` events. The raw body is checked against `Paddle-Signature` (5 minute
+  tolerance). Prices map to plans only through `PADDLE_PRICES`.
+- **Gateway `billing.applySubscription`:** one transaction logs the event (duplicates are
+  ignored), rejects older events than the last applied one, keeps a subscription and a Paddle
+  customer with the account that first owned them, mirrors the subscription, recomputes
+  `users.plan`, and moves the founder CRM contact to Customer when the plan becomes paid.
+  Refusals are stored on `billing_events.error` and reported to the server error log.
+- **`plan.recomputeStale`:** run hourly by each app with background workers on, so expired
+  grants and past-due accounts past the 7-day grace drop back to their correct plan.
+- Plan upgrades, downgrades and cancellation in the app are not built yet. Paddle's receipt
+  emails link to its own subscription management.
