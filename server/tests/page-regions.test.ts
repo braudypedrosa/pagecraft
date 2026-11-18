@@ -134,13 +134,31 @@ test('portable page packages materialize selected effective regions without sour
     .toThrow(/Upgrade Pagecraft|newer/);
 });
 
-test('portable site and Connected WordPress v1 fail closed for every explicit region mode', () => {
+test('portable sites preserve explicit regions while Connected WordPress v1 fails closed', () => {
   for (const override of [null, [], [Core.N('heading', { text: 'Page header' })]]) {
     const doc = blankDoc('Workshop boundary'); doc.pages[0].header = override;
-    expect(() => createSitePackage({ document: doc, provenance })).toThrow(/Portable package v1 cannot carry per-page/);
+    const packed = validatePortablePackage(createSitePackage({ document: doc, provenance }).bytes);
+    expect(packed.manifest.schemaVersion).toBe(16);
+    expect(packed.manifest.rendererRevision).toBe('pagecraft-renderer-5');
+    expect(packed.files.has('compiled/_shared.html')).toBe(true);
+    expect(packed.document.pages[0].header).toEqual(override);
     expect(() => buildReleaseArtifact({ releaseId: 'workshop-release', siteId: 'workshop-regions', sourceVersion: 1,
       document: doc, files: renderSite(doc).files })).toThrow(/Connected WordPress release v1 does not support per-page/);
   }
+});
+
+test('whole-site archive compiles the shared defaults even when every page overrides them', () => {
+  const doc = fixture();
+  doc.pages[0].header = null;
+  doc.pages[0].footer = [];
+  const packed = validatePortablePackage(createSitePackage({ document: doc, provenance,
+    assets: [asset('shared-photo'), asset('custom-photo')] }).bytes);
+  const html = (path: string) => new TextDecoder().decode(packed.files.get(path)!);
+  expect(html('compiled/_shared.html')).toContain('Shared workshop header');
+  expect(html('compiled/_shared.html')).toContain('Shared workshop footer');
+  expect(html('compiled/index.html')).not.toContain('Shared workshop header');
+  expect(html('compiled/special.html')).toContain('Custom workshop header');
+  expect(html('compiled/special.html')).not.toContain('Shared workshop footer');
 });
 
 test('inherited-only schema-16 sites retain the schema-14 portable and Connected v1 contracts without changing source', () => {

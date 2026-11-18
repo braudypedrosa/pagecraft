@@ -85,7 +85,9 @@ test('schema-16 handoffs retain editable tabs at schema 15 and flatten only page
   const source = validatePortablePackage(site.bytes).document;
   a.equal(source.pages[0].tree[0].children[0].children[0].props.text, 'Workshop panel details');
   doc.pages[0].header = [tabs]; doc.pages[0].tree = []; doc.pages[0].footer = null;
-  a.throws(() => createSitePackage({ document: doc, provenance }), /cannot carry per-page/);
+  const regional = validatePortablePackage(createSitePackage({ document: doc, provenance }).bytes);
+  a.equal(regional.manifest.schemaVersion, 16);
+  a.deepEqual(regional.document.pages[0].header, doc.pages[0].header);
   const before = structuredClone(doc);
   const page = createPagePackage({ document: doc, pageId: doc.pages[0].id, provenance });
   a.equal(page.manifest.schemaVersion, 15);

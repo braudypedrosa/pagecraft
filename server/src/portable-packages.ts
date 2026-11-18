@@ -30,6 +30,8 @@ const DEPENDENCIES_PATH = 'source/dependencies.json' as const;
 const HASH = /^[a-f0-9]{64}$/;
 // Preserve the source marker and legacy runtime for byte-identical schema-14 archives.
 const LEGACY_TEXT_TABS_SCHEMA = 14;
+const PORTABLE_REGIONS_RENDERER = 'pagecraft-renderer-5';
+const SHARED_REGIONS_PATH = 'compiled/_shared.html';
 
 interface PackageContent {
   path: string;
@@ -200,11 +202,8 @@ const packageDocumentForPage = (doc: Doc, pageId: string): Doc => {
   return selected;
 };
 
-const assertPortableRegions = (doc: Doc) => {
-  if (doc.pages.some(page => page.header !== undefined || page.footer !== undefined)) {
-    throw new Error('Portable package v1 cannot carry per-page header or footer overrides. Export one page as a portable page package, or keep the lossless native project JSON.');
-  }
-};
+const hasPortableRegionOverrides = (doc: Doc) =>
+  doc.pages.some(page => page.header !== undefined || page.footer !== undefined);
 
 function packageAssets(doc: Doc, input: readonly Asset[]) {
   const wanted = assetReferences(doc);
@@ -237,7 +236,7 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   validateNativeTabRelations(rawDocument);
   const adopted = adoptHostDocument(rawDocument as never);
   const document = kind === 'page' ? packageDocumentForPage(adopted, String(pageId || '')) : adopted;
-  assertPortableRegions(document);
+  const regionOverrides = hasPortableRegionOverrides(document);
   if (![14, 15, 16, 17].includes(document.schemaVersion)) {
     throw new Error('Portable compatibility requires a reviewed schema-14, schema-15, schema-16 or schema-17 document. Upgrade the exporter before converting a newer project.');
   }
@@ -247,14 +246,14 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   const richTabs = documentHasRichTabs(document);
   // Schema 14/15 keep their authored contracts. Schema 16 keeps its existing
   // minimum-compatible output; schema 17 selects renderer 4 only for accordions.
-  const preserveSourceSchema = rawSchema === 15 || (rawSchema === 14 && !richTabs);
+  const preserveSourceSchema = !regionOverrides && (rawSchema === 15 || (rawSchema === 14 && !richTabs));
   const packageDocument = structuredClone(document) as unknown as Record<string, unknown>;
   const renderDocument = structuredClone(document);
-  // Editable panel children need schema 15 / renderer 3. Only a document without that
-  // capability may use the legacy receiver, after its page-owned regions were flattened.
+  // Region overrides need schema 16. Single-page exports materialize their effective shell.
   const packageSchemaVersion = preserveSourceSchema
     ? rawSchema as number
-    : rawSchema === 17 && documentHasAccordion(document) ? 17 : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
+    : rawSchema === 17 && documentHasAccordion(document) ? 17
+      : regionOverrides ? 16 : richTabs ? 15 : LEGACY_TEXT_TABS_SCHEMA;
   packageDocument.schemaVersion = packageSchemaVersion;
   packageDocument.v = packageSchemaVersion;
   renderDocument.schemaVersion = packageSchemaVersion;
@@ -304,6 +303,15 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
       });
     }
   }
+  if (regionOverrides) {
+    const shared = structuredClone(renderDocument);
+    const home = shared.pages.find(page => page.slug === 'index') ?? shared.pages[0];
+    delete home.header;
+    delete home.footer;
+    const html = renderSite(shared, selectedAssets).files.get(home.slug + '.html');
+    if (!html) throw new Error('Portable package could not render its shared regions.');
+    content.push({ path: SHARED_REGIONS_PATH, role: 'compiled-support', mediaType: 'text/html; charset=utf-8', bytes: textBytes(html) });
+  }
   for (const asset of selectedAssets) {
     content.push({
       path: assetFile(asset), role: 'asset', mediaType: asset.type, bytes: new Uint8Array(asset.bytes),
@@ -323,7 +331,7 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
     kind,
     schemaVersion: packageSchemaVersion,
     rendererVersion: portableRendererVersionForSchema(packageSchemaVersion),
-    rendererRevision: portableRendererRevisionForSchema(packageSchemaVersion),
+    rendererRevision: regionOverrides ? PORTABLE_REGIONS_RENDERER : portableRendererRevisionForSchema(packageSchemaVersion),
     documentPath: DOCUMENT_PATH,
     provenancePath: PROVENANCE_PATH,
     dependenciesPath: DEPENDENCIES_PATH,
@@ -369,6 +377,9 @@ const validFileContract = (file: PortablePackageFileV1) => {
   if (file.path === DOCUMENT_PATH) return file.role === 'document' && file.mediaType === 'application/json';
   if (file.path === PROVENANCE_PATH) return file.role === 'provenance' && file.mediaType === 'application/json';
   if (file.path === DEPENDENCIES_PATH) return file.role === 'dependencies' && file.mediaType === 'application/json';
+  if (file.path === SHARED_REGIONS_PATH) {
+    return file.role === 'compiled-support' && file.mediaType === 'text/html; charset=utf-8';
+  }
   if (file.role === 'compiled-page') {
     return /^compiled\/(?!.*\/{2})[^\\]+\.html$/i.test(file.path)
       && file.mediaType === 'text/html; charset=utf-8';
@@ -407,7 +418,11 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   if (!Number.isInteger(manifest.schemaVersion) || manifest.schemaVersion < 1) {
     throw new Error('portable package schema version is invalid');
   }
-  if (!supportsPortableRendererContract(
+  const regionContract = manifest.rendererRevision === PORTABLE_REGIONS_RENDERER
+    && manifest.kind === 'site'
+    && manifest.schemaVersion >= 16 && manifest.schemaVersion <= SCHEMA
+    && manifest.rendererVersion === portableRendererVersionForSchema(manifest.schemaVersion);
+  if (!regionContract && !supportsPortableRendererContract(
     manifest.rendererVersion,
     manifest.rendererRevision,
     manifest.schemaVersion,
@@ -460,7 +475,10 @@ export function validatePortablePackage(archive: Uint8Array): PortablePackageVal
   }
   validateNativeTabRelations(rawDocument);
   const document = adoptHostDocument(rawDocument);
-  assertPortableRegions(document);
+  if (hasPortableRegionOverrides(document) !== regionContract
+    || manifest.files.some(file => file.path === SHARED_REGIONS_PATH) !== regionContract) {
+    throw new Error('Portable region overrides require the matching renderer and compiled shared regions.');
+  }
   const provenance = canonicalObject<PortablePackageProvenanceV1>(files.get(PROVENANCE_PATH)!, 'portable package provenance');
   validateProvenance(provenance);
   const dependencies = canonicalObject<PortablePackageDependenciesV1>(files.get(DEPENDENCIES_PATH)!, 'portable package dependencies');
