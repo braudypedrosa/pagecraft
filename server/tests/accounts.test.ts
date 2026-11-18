@@ -18,6 +18,7 @@ import {
 import type { AccountAuth, VerifiedIdentity } from "../src/account-auth.ts";
 import type { Context } from "hono";
 import { MemoryHostedPublicationStore } from "../src/publications.ts";
+import { MemorySitePreviewStore } from "../src/site-previews.ts";
 import { MemoryAssetStore, type AssetStore } from "../src/assets.ts";
 import {
   FileSiteTemplateStore,
@@ -127,6 +128,7 @@ const rig = (options: {
   plan?: "pro";
   /** Serve sites only through hosted publications, as Cloud staging and production do. */
   publications?: boolean;
+  sitePreviews?: MemorySitePreviewStore;
 } = {}) => {
   const store = new MemoryStore(),
     auth = options.plan ? new PlanAuthStore(options.plan) : new MemoryAuthStore(),
@@ -145,6 +147,7 @@ const rig = (options: {
     assets: options.assets,
     siteTemplates: options.siteTemplates,
     publications: options.publications ? new MemoryHostedPublicationStore() : undefined,
+    sitePreviews: options.sitePreviews,
   });
   const request = (path: string, init: RequestInit = {}) =>
     app.request(
@@ -469,6 +472,26 @@ test("Cloud saves reuse cached drafts but publishing revalidates before its atom
   a.equal(preparations, 1);
 });
 
+test("an unpublished site's overview shows its saved thumbnail instead of rendering the draft", async () => {
+  /* On staging the on-demand draft render took 44 s, so the overview timed out and said
+     "Preview unavailable" for a site whose dashboard card had a thumbnail all along. */
+  const previews = new MemorySitePreviewStore();
+  const { request, accountAuth, auth } = rig({ publications: true, sitePreviews: previews });
+  accountAuth.current = { authUserId: "auth-1", email: "thumb@example.test", name: "Thumb" };
+  await auth.ensureAuthUser("auth-1", "thumb@example.test", "Thumb");
+  const { id } = await (await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Thumbs", doc: doc() }),
+  })).json() as { id: string };
+  await previews.put(id, "draft-1", new Uint8Array([1, 2, 3]));
+  const overview = await (await request(`/sites/${id}`)).text();
+  a.match(overview, /class="pc-manage-preview is-ready has-thumb"/);
+  a.match(overview, new RegExp(`<img class="pc-manage-thumb" src="[^"]*${id}[^"]*draft-1[^"]*"`));
+  a.doesNotMatch(overview, /<iframe src=/);
+  a.match(overview, /Open the builder<\/span>/);
+});
+
 test("reaching the Free site limit offers a way to ask for more, not a dead end", async () => {
   const { request, accountAuth, auth } = rig();
   accountAuth.current = { authUserId: "auth-1", email: "one@example.test", name: "One" };
@@ -524,7 +547,8 @@ test("a site that was never published says so and never links to its empty addre
   a.doesNotMatch(overview, /available on its Pagecraft address/);
   a.match(overview, /This address goes live the first time you publish\./);
   a.doesNotMatch(overview, /data-copy-value=/, "no Copy link for the empty address");
-  a.match(overview, new RegExp(`<iframe src="/api/sites/${id}/dashboard-preview/index\\.html\\?v=1"`), "the preview shows the draft");
+  a.doesNotMatch(overview, /<iframe src=/, "no frame of the empty address, and no slow on-demand draft render");
+  a.match(overview, /Open the builder to see the draft/, "with no saved thumbnail yet it says where the draft is");
   a.doesNotMatch(overview, /Open live site/);
   a.match(overview, /<h2>Not published yet<\/h2>/);
   a.match(overview, new RegExp(`href="/edit/${id}">Open the builder</a>`));

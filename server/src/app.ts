@@ -2302,8 +2302,12 @@ export function createApp(o: Options) {
     const publishedRevision = early.value === undefined
       ? await revisionOf(site)
       : early.value;
+    /* An unpublished site shows the thumbnail the dashboard already saved: rendering the draft
+       again can take tens of seconds, longer than the overview waits before giving up. */
+    const cachedPreview = liveOnAddress(site) ? undefined : await sitePreviews.get(site.id);
     return c.html(siteOverviewPage(gate.user, {
       draftPreviewUrl: `/api/sites/${encodeURIComponent(site.id)}/dashboard-preview/index.html?v=${site.version}`,
+      previewUrl: cachedPreview ? previewUrl(site.id, cachedPreview.version) : undefined,
       id: site.id,
       name: site.name,
       slug: site.slug,

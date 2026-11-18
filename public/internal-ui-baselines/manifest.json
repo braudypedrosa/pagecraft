@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T12:32:24.590Z",
+  "capturedAt": "2026-11-18T12:45:43.860Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -130,7 +130,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "1b543ad6bb66b537698e06a8dccc838a62ae6b8dbf25cc747ab47796e37a001c",
+    "server/src/account-pages.ts": "264d254281fccae408c12d5b667d8c4dc27345035e8bd02b8a6f7fcf50793308",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
