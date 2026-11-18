@@ -119,4 +119,13 @@ export interface FounderCrmPageInput {
   previewLabel?: string;
   /** The System health section; null means it is not configured for this runtime. */
   systemHealth?: import('./system-health.ts').SystemHealthSnapshot | null;
+  /** Plan level of the open account. Undefined: plan changes are not configured. Null: unavailable. */
+  planStatus?: import('./plan-grants.ts').AccountPlanStatus | null;
+}
+
+/** What the founder console needs to give or remove a plan. */
+export interface CrmPlanManager {
+  status(userId: string): Promise<import('./plan-grants.ts').AccountPlanStatus>;
+  grant(input: import('./plan-grants.ts').PlanGrantInput): Promise<unknown>;
+  revoke(grantId: string, revokedBy: string): Promise<unknown>;
 }

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { chmod, lstat, mkdir, open, readFile, rename, rm } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { GatewayError, type PagecraftGateway } from './store-gateway.ts';
 import {
   CRM_SOURCES,
   CRM_STAGES,
@@ -203,5 +204,64 @@ export class FileFounderCrmStore implements CrmContactStore {
       await this.save(rows);
       return row;
     });
+  }
+}
+
+const GATEWAY_CODES: Record<string, CrmStoreErrorCode> = {
+  CRM_INVALID: 'invalid', CRM_CONFLICT: 'conflict', CRM_DUPLICATE: 'duplicate',
+};
+
+const fromGateway = (error: unknown): never => {
+  if (error instanceof CrmStoreError) throw error;
+  const code = error instanceof GatewayError && error.code ? GATEWAY_CODES[error.code] : undefined;
+  if (code) throw new CrmStoreError(code, error instanceof Error ? error.message : 'CRM request failed');
+  throw new CrmStoreError('unavailable', 'CRM data is unavailable');
+};
+
+/* Contacts in the database, through the server-keyed gateway. The gateway re-checks revisions,
+   account links and uniqueness under a table lock, so two Reports processes cannot race. When
+   `importFrom` names the old contacts file, its rows are copied once before the first read or
+   write; the file is then renamed to `<name>.imported` and kept as a backup. A failed import
+   leaves the file in place and is retried on the next request. */
+export class GatewayFounderCrmStore implements CrmContactStore {
+  private readonly gateway: PagecraftGateway;
+  private readonly importFrom?: string;
+  private imported: Promise<void> | null = null;
+
+  constructor(gateway: PagecraftGateway, options: { importFrom?: string } = {}) {
+    this.gateway = gateway;
+    this.importFrom = options.importFrom;
+  }
+
+  private ready() {
+    if (!this.importFrom) return Promise.resolve();
+    this.imported ??= this.importFile(this.importFrom).catch(error => {
+      this.imported = null;
+      throw error;
+    });
+    return this.imported;
+  }
+
+  private async importFile(filename: string) {
+    const rows = await readContacts(filename);
+    if (!rows.length) {
+      try { await lstat(filename); } catch { return; }
+    } else {
+      await this.gateway.call('crm.contacts.import', { contacts: rows }).catch(fromGateway);
+    }
+    await rename(filename, `${filename}.imported`).catch(() => {
+      throw new CrmStoreError('unavailable', 'CRM data is unavailable');
+    });
+  }
+
+  async list() {
+    await this.ready();
+    return this.gateway.call<CrmContact[]>('crm.contacts.list').catch(fromGateway);
+  }
+
+  async put(input: CrmContactInput) {
+    const valid = validateCrmContactInput(input);
+    await this.ready();
+    return this.gateway.call<CrmContact>('crm.contacts.put', { contact: valid }).catch(fromGateway);
   }
 }

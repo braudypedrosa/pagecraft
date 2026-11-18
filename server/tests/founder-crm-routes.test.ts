@@ -144,3 +144,56 @@ test('monthly budget writes return to the CRM costs screen preserving the viewin
   const csv=await (await r.request('/exports/budgets.csv?currency=PHP')).text();
   a.match(csv,/Other currency/); a.doesNotMatch(csv,/Hosting/);
 });
+
+test('founder gives and removes plans only for snapshot accounts, from the same origin', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pagecraft-crm-plans-')); roots.push(root);
+  let current: VerifiedIdentity | null = identity();
+  const grants: { id: string; plan: string; reason: string; revokedAt: string | null; expiresAt: string | null }[] = [];
+  const plans = {
+    status: vi.fn(async (userId: string) => ({
+      plan: (grants.find(g => !g.revokedAt)?.plan ?? 'free') as 'free', source: grants.some(g => !g.revokedAt) ? 'grant' as const : 'free' as const,
+      changedAt: null, subscriptions: [],
+      grants: grants.map(g => ({ ...g, userId, plan: g.plan as 'pro', grantedBy: 'founder', createdAt: '2026-10-01T00:00:00Z', revokedBy: null })),
+    })),
+    grant: vi.fn(async (input: { plan: string; reason: string; expiresAt?: string | null }) => {
+      grants.push({ id: `grant-${grants.length + 1}`, plan: input.plan, reason: input.reason, revokedAt: null, expiresAt: input.expiresAt ?? null });
+      return {};
+    }),
+    revoke: vi.fn(async (grantId: string) => { const g = grants.find(row => row.id === grantId); if (g) g.revokedAt = '2026-10-09T12:00:00Z'; return {}; }),
+  };
+  const app = createFounderReportsApp({host:'reports.test',origin:'http://reports.test',dataEnvironment:'staging',
+    accountAuth:{identity:async () => current} as unknown as AccountAuth,
+    billing:{ownerAuthUserIds:[OWNER],costs:new FileOwnerCostStore(join(root, 'costs.json')),now:() => new Date('2026-10-09T12:00:00Z')},
+    crm:{platform:{snapshot:async () => structuredClone(snapshot)},contacts:new FileFounderCrmStore(join(root, 'contacts.json')),plans},
+  });
+  const post = (fields: Record<string, string>, origin = 'http://reports.test') => app.request(new Request('http://reports.test/crm/plans', {
+    method:'POST', headers:{host:'reports.test',origin,'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(fields),
+  }));
+  const give = { action:'grant', accountId:ACCOUNT, plan:'studio', reason:'Design partner', range:'30d', tests:'include', returnSection:'customers' };
+
+  current = identity(OTHER);
+  a.equal((await post(give)).status, 403);
+  current = identity();
+  a.equal((await post(give, 'https://elsewhere.test')).status, 403);
+  a.equal((await post({ ...give, plan:'free' })).status, 422);
+  a.equal((await post({ ...give, reason:'  ' })).status, 422);
+  a.equal((await post({ ...give, expiresOn:'2020-01-01' })).status, 422);
+  a.equal((await post({ ...give, accountId:OTHER })).status, 422, 'an account outside the snapshot is refused');
+  a.equal(plans.grant.mock.calls.length, 0);
+
+  let response = await post({ ...give, expiresOn:'2099-06-30' });
+  a.equal(response.status, 303);
+  a.equal(response.headers.get('location'), `/customers?range=30d&tests=include&editAccount=${ACCOUNT}&message=plan_granted`);
+  a.deepEqual(plans.grant.mock.calls[0][0], { userId:ACCOUNT, plan:'studio', reason:'Design partner', grantedBy:`founder:${OWNER}`, expiresAt:'2099-06-30T23:59:59.999Z' });
+
+  const page = await (await app.request(new Request(`http://reports.test/customers?editAccount=${ACCOUNT}`, { headers:{host:'reports.test'} }))).text();
+  a.match(page, /Give plan/);
+  a.match(page, /Design partner/);
+  a.match(page, /name="grantId" value="grant-1"/);
+
+  a.equal((await post({ ...give, action:'revoke', grantId:'grant-404' })).status, 409);
+  response = await post({ ...give, action:'revoke', grantId:'grant-1' });
+  a.equal(response.status, 303);
+  a.match(response.headers.get('location') || '', /message=plan_revoked/);
+  a.deepEqual(plans.revoke.mock.calls, [['grant-1', `founder:${OWNER}`]]);
+});

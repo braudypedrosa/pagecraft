@@ -7,11 +7,13 @@
 import { afterAll, beforeAll, test, vi } from 'vitest';
 import a from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PGlite, type Transaction } from '@electric-sql/pglite';
 import { splitGatewayBlob } from '../src/gateway-blobs.ts';
 import { GatewayStore, PagecraftGateway } from '../src/store-gateway.ts';
+import { GatewayFounderCrmStore } from '../src/founder-crm-store.ts';
 import { FREE_PLAN, PRO_PLAN } from '../../supabase/functions/pagecraft-db/plan-entitlements.ts';
 
 type Query = (text: string, params: unknown[]) => Promise<{ rows: Record<string, unknown>[] }>;
@@ -791,7 +793,7 @@ test('plan grants refuse invalid input and unknown accounts', async () => {
 });
 
 test('billing and plan tables are inaccessible to client roles', async () => {
-  for (const table of ['plan_grants', 'billing_customers', 'billing_subscriptions', 'billing_events']) {
+  for (const table of ['plan_grants', 'billing_customers', 'billing_subscriptions', 'billing_events', 'crm_contacts']) {
     for (const role of ['anon', 'authenticated']) {
       const permissions = await db.query<{ allowed: boolean }>(`select has_table_privilege($1, $2, 'SELECT') as allowed`, [role, table]);
       a.equal(permissions.rows[0].allowed, false, `${role} cannot read ${table}`);
@@ -799,4 +801,60 @@ test('billing and plan tables are inaccessible to client roles', async () => {
     const security = await db.query<{ enabled: boolean }>(`select relrowsecurity as enabled from pg_class where oid=$1::regclass`, [table]);
     a.equal(security.rows[0].enabled, true);
   }
+});
+
+const CRM_ACCOUNT = randomUUID();
+test('CRM contacts keep the file store rules: revisions, one-time account link, uniqueness', async () => {
+  await db.query(`insert into users (id, email) values ($1, $2)`, [CRM_ACCOUNT, 'owner@crm.test']);
+  const crm = new GatewayFounderCrmStore(client());
+  const base = { accountId: null, name: 'Ada', email: 'Ada@Lead.test', company: 'Acme', stage: 'lead' as const,
+    source: 'referral' as const, notes: '', followUpOn: '2026-12-01', isTest: false };
+  const created = await crm.put(base);
+  a.equal(created.email, 'ada@lead.test');
+  a.equal(created.revision, 1);
+  a.equal(created.followUpOn, '2026-12-01');
+  a.match(created.id, /^[0-9a-f-]{36}$/);
+
+  const updated = await crm.put({ ...base, id: created.id, expectedRevision: 1, stage: 'contacted' });
+  a.equal(updated.revision, 2);
+  a.equal(updated.stage, 'contacted');
+  a.equal(updated.createdAt, created.createdAt);
+
+  await a.rejects(crm.put({ ...base, id: created.id, expectedRevision: 1 }), (error: any) => error.code === 'conflict');
+  await a.rejects(crm.put({ ...base, name: 'Twin' }), (error: any) => error.code === 'duplicate');
+  await a.rejects(crm.put({ ...base, id: randomUUID(), expectedRevision: 1 }), (error: any) => error.code === 'conflict');
+  await a.rejects(crm.put({ ...base, id: created.id, expectedRevision: 2, email: 'owner@crm.test', accountId: CRM_ACCOUNT }),
+    (error: any) => error.code === 'conflict' && /email does not match/.test(error.message));
+
+  const lead = await crm.put({ ...base, email: 'owner@crm.test', name: 'Owner' });
+  const linked = await crm.put({ ...base, id: lead.id, expectedRevision: 1, email: 'owner@crm.test', name: 'Owner', accountId: CRM_ACCOUNT });
+  a.equal(linked.accountId, CRM_ACCOUNT);
+  await a.rejects(crm.put({ ...base, id: lead.id, expectedRevision: 2, email: 'owner@crm.test', name: 'Owner', accountId: null }),
+    (error: any) => error.code === 'conflict' && /cannot be changed/.test(error.message));
+  await a.rejects(crm.put({ ...base, email: 'ghost@crm.test', accountId: randomUUID() }), (error: any) => error.code === 'invalid');
+
+  const listed = await crm.list();
+  a.deepEqual(listed.map(row => row.email), ['ada@lead.test', 'owner@crm.test']);
+  a.equal((await call('crm.contacts.put', { contact: { ...base, email: 'NOT-LOWER@x.test' } })).body.code, 'CRM_INVALID');
+});
+
+test('the contacts file is imported once and kept as a backup', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'crm-import-'));
+  const file = join(dir, 'contacts.json');
+  const id = randomUUID(), clash = randomUUID();
+  const row = (rowId: string, email: string, accountId: string | null) => ({
+    id: rowId, accountId, name: 'Imported', email, company: '', stage: 'qualified', source: 'direct', notes: 'kept',
+    followUpOn: null, isTest: true, createdAt: '2025-01-02T03:04:05.000Z', updatedAt: '2025-02-03T04:05:06.000Z', revision: 4,
+  });
+  writeFileSync(file, JSON.stringify([row(id, 'imported@crm.test', randomUUID()), row(clash, 'ada@lead.test', null)]), { mode: 0o600 });
+  const crm = new GatewayFounderCrmStore(client(), { importFrom: file });
+  const listed = await crm.list();
+  const imported = listed.find(contact => contact.id === id)!;
+  a.deepEqual({ ...imported }, { ...row(id, 'imported@crm.test', null) }, 'fields, timestamps and revision survive; a missing account link is dropped');
+  a.equal(listed.filter(contact => contact.email === 'ada@lead.test').length, 1, 'an existing email is skipped, not overwritten');
+  a.equal(existsSync(file), false);
+  a.equal(existsSync(`${file}.imported`), true);
+  await crm.list();
+  a.equal(await count(`select * from crm_contacts where id::text = $1`, [id]), 1);
+  rmSync(dir, { recursive: true, force: true });
 });

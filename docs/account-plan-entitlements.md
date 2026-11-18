@@ -67,3 +67,19 @@ Use `plan.grant` instead of editing `users.plan` by hand: a direct edit is overw
 the next recompute. `billing_customers`, `billing_subscriptions` and `billing_events` exist
 for the Paddle webhook (billing phase 3) and are not written yet. All four tables have row
 level security enabled and no client-role access.
+
+## Founder CRM in the database and "Give plan" (2026-11-19)
+
+- Founder CRM contacts move from `contacts.json` on the Reports host into the `crm_contacts`
+  table (migration `20261119010000_crm_contacts.sql`). Only the server-keyed `pagecraft-db`
+  gateway reads or writes it (`crm.contacts.list`, `crm.contacts.put`, `crm.contacts.import`).
+  The gateway re-checks revisions, the one-time account link and uniqueness under a table lock.
+- When `DATABASE_GATEWAY_URL` is configured, the Reports app uses the database store. On the
+  first CRM request it copies the old file once (ids, timestamps and revisions kept; rows whose
+  id, email or account already exist are skipped) and renames it to `contacts.json.imported`.
+- A customer linked to a Pagecraft account shows a **Plan** panel in the CRM detail view. The
+  founder can give Launch, Studio or Pro with a reason and optional end date, or remove a given
+  plan. `POST /crm/plans` is founder-only, same-origin, throttled, and only accepts accounts in
+  the current snapshot. Grants are recorded with `granted_by = founder:<auth user id>`.
+- Free is never granted; it is what an account falls back to. Its limits are unchanged.
+- Deploy order: apply both migrations, redeploy `pagecraft-db`, then deploy the Reports app.
