@@ -24,7 +24,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-control-padding:var(--pc-control-padding-y) var(--pc-control-padding-x);
   --pc-control-height:44px;
   --pc-control-compact:36px;
-  --pc-control-editor:40px;
+  --pc-control-editor:36px;
   --pc-control-row:32px;
   --pc-field-label-gap:8px;
   --pc-field-gap:16px;
@@ -64,7 +64,13 @@ export const UI_TOKENS_CSS = `:root{
   --pc-type-caption:400 var(--pc-text-caption)/1.45 var(--pc-font-label);
   --pc-type-table-label:600 var(--pc-text-label)/1.4 var(--pc-font-label);
   --pc-control-font:var(--pc-text-body);
-  --pc-control-radius:7px;
+  /* One corner scale. Controls and buttons share one radius so a field and the button
+     beside it match; smaller parts inside a control (chips, menu items, segment options,
+     swatches) use the inner radius; cards and panels the card radius; dialogs their own. */
+  --pc-control-radius:8px;
+  --pc-radius-inner:4px;
+  --pc-radius-card:12px;
+  --pc-radius-pill:999px;
   --pc-space-1:4px;
   --pc-space-2:8px;
   --pc-space-3:12px;

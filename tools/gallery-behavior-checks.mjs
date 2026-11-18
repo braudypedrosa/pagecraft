@@ -176,7 +176,7 @@ const CHECKS = [
       focus: document.activeElement?.textContent.trim() }));
     const layoutsPass = measurements.every(state => state.open && state.modal && state.headerInside && state.footerInside
       && state.footerPadding === 16 && Math.abs(state.actualBottomPadding - state.footerPadding) < 1
-      && state.inputHeights.length === 1 && state.inputHeights[0] === 44 && state.bodyScrollable && !state.horizontalOverflow);
+      && state.inputHeights.length === 1 && state.inputHeights[0] === (host === 'builder' ? 36 : 44) && state.bodyScrollable && !state.horizontalOverflow);
     return { passed: layoutsPass && !closed.open && closed.focus === 'Open long form dialog', detail: { measurements, closed } };
   }],
   ['Processing prevents duplicate activation', async (tab, base, host) => {

@@ -22,6 +22,7 @@ export const DIALOG_CSS = `
 .pc-dialog>.pc-dialog-form{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .pc-dialog>.pc-dialog-form>.pc-dialog-body{flex:1 1 auto}
 .pc-dialog .pc-dialog-field{display:grid;gap:var(--pc-field-label-gap);margin:var(--pc-field-gap) 0 0}
-.pc-dialog .pc-dialog-field input{height:var(--pc-control-height);min-height:var(--pc-control-height)}
+/* a dialog field matches the select beside it: the editor sets --h-ctl, Cloud pages fall back to their spacious height */
+.pc-dialog .pc-dialog-field input{height:var(--h-ctl,var(--pc-control-height));min-height:var(--h-ctl,var(--pc-control-height))}
 .pc-dialog .pc-dialog-description{margin:0;font:var(--pc-type-input);line-height:1.55}
 `;

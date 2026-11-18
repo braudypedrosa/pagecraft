@@ -6,7 +6,7 @@ export const WORKSPACE_CSS = `
 ${DIALOG_CSS}
 /* Shared menu and field-action contracts. Applies only to product chrome. */
 .pc-menu{--pc-menu-radius:7px;--pc-menu-item-radius:4px;padding:6px!important;border-radius:var(--pc-menu-radius)!important;row-gap:0}
-.pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:34px;margin:0;padding:var(--pc-control-padding);border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
+.pc-menu :is(a,button).pc-menu-item{box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:var(--pc-control-compact);margin:0;padding:var(--pc-control-padding);border:0;border-radius:var(--pc-menu-item-radius);background:transparent;color:var(--pc-text,var(--text));font:var(--pc-type-control);text-align:left;text-decoration:none;box-shadow:none;filter:none}
 .pc-menu :is(a,button).pc-menu-item:hover{background:var(--pc-hover-bg);filter:none}
 .pc-menu :is(a,button).pc-menu-item:focus-visible{background:var(--pc-focus-bg)}
 .pc-menu .pc-menu-item.danger{color:var(--pc-danger,var(--risk-fg))}
