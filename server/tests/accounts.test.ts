@@ -125,6 +125,8 @@ const rig = (options: {
   trustCloudflare?: boolean;
   /** Tests that need several owned sites for reasons unrelated to the Free allowance. */
   plan?: "pro";
+  /** Serve sites only through hosted publications, as Cloud staging and production do. */
+  publications?: boolean;
 } = {}) => {
   const store = new MemoryStore(),
     auth = options.plan ? new PlanAuthStore(options.plan) : new MemoryAuthStore(),
@@ -142,6 +144,7 @@ const rig = (options: {
     editorHtml: "<title>Builder</title>",
     assets: options.assets,
     siteTemplates: options.siteTemplates,
+    publications: options.publications ? new MemoryHostedPublicationStore() : undefined,
   });
   const request = (path: string, init: RequestInit = {}) =>
     app.request(
@@ -464,6 +467,48 @@ test("Cloud saves reuse cached drafts but publishing revalidates before its atom
   a.equal(atomicSaves, 1);
   a.equal(atomicPublishes, 1);
   a.equal(preparations, 1);
+});
+
+test("a site that was never published says so and never links to its empty address", async () => {
+  /* Found on staging: a new site is stored with published version 1, so the overview said
+     "Last published" and "available on its Pagecraft address", and View site, the card's
+     address, Copy public link and the overview preview all opened "No published site". */
+  const { request, accountAuth, auth } = rig({ publications: true });
+  accountAuth.current = { authUserId: "auth-1", email: "new@example.test", name: "New" };
+  await auth.ensureAuthUser("auth-1", "new@example.test", "New");
+  const created = await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Fresh", doc: doc() }),
+  });
+  a.equal(created.status, 201);
+  const { id } = await created.json() as { id: string };
+
+  const live = await request("/fresh/");
+  a.equal(live.status, 404, "nothing is served at the address yet");
+
+  const dashboard = await (await request("/")).text();
+  a.match(dashboard, /class="pc-site-state draft">Not published<\/div>/);
+  a.doesNotMatch(dashboard, /Draft changes/);
+  a.doesNotMatch(dashboard, /<a class="pc-site-url"/, "the address is text, not a link to a 404");
+  a.match(dashboard, /<span class="pc-site-url" title="This address goes live the first time you publish\.">admin\.test\/fresh<\/span>/);
+  a.doesNotMatch(dashboard, />Copy public link<\/button>/, "no Copy public link for an address that serves nothing");
+  a.doesNotMatch(dashboard, />View site<\/a>/);
+  a.match(dashboard, /<button class="pc-btn" type="button" disabled title="Publish from the builder to put this site online\.">View site<\/button>/);
+
+  const overview = await (await request(`/sites/${id}`)).text();
+  a.match(overview, /class="pc-manage-state draft">Not published<\/span>/);
+  a.match(overview, /<dt>Last published<\/dt><dd>Not published yet<\/dd>/);
+  a.doesNotMatch(overview, /available on its Pagecraft address/);
+  a.match(overview, /This address goes live the first time you publish\./);
+  a.doesNotMatch(overview, /data-copy-value=/, "no Copy link for the empty address");
+  a.match(overview, new RegExp(`<iframe src="/api/sites/${id}/dashboard-preview/index\\.html\\?v=1"`), "the preview shows the draft");
+  a.doesNotMatch(overview, /Open live site/);
+  a.match(overview, /<h2>Not published yet<\/h2>/);
+  a.match(overview, new RegExp(`href="/edit/${id}">Open the builder</a>`));
+
+  const settings = await (await request(`/sites/${id}/settings`)).text();
+  a.equal(settings.includes("Last published"), false);
 });
 
 test("dashboard renders searchable builder-style site cards and the owner quota", async () => {

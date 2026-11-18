@@ -422,6 +422,12 @@ function editorAssetEncoding(header = ''): 'br' | 'gzip' | 'identity' | null {
 
 export function createApp(o: Options) {
   const app = new Hono();
+  /* Whether anything is actually served at the site's address. `published_version` defaults to 1
+     for every new site, so on its own it says a site made a minute ago is published. Where the
+     host serves hosted publications, only a recorded publication puts a site on its address;
+     without that store every saved version is served, as before. */
+  const liveOnAddress = (site: { publishedPublicationId?: string | null }) =>
+    o.publications ? !!site.publishedPublicationId : true;
   // Split only the static source, before any account or document configuration is injected.
   // The canonical single-file editor remains available to offline and WordPress hosts.
   const hostedEditor = o.editorHtml ? prepareHostedEditor(o.editorHtml) : undefined;
@@ -2193,8 +2199,8 @@ export function createApp(o: Options) {
           previewVersion: previewVersion(site),
           previewUrl: cached ? previewUrl(site.id, cached.version) : undefined,
           cachedPreviewVersion: cached?.version,
-          published: !!site.publishedPublicationId &&
-            site.version === site.publishedVersion,
+          published: liveOnAddress(site) && site.version === site.publishedVersion,
+          live: liveOnAddress(site),
         }; })),
         await ownedSiteCount(user, mine),
         storage,
@@ -2297,16 +2303,18 @@ export function createApp(o: Options) {
       ? await revisionOf(site)
       : early.value;
     return c.html(siteOverviewPage(gate.user, {
+      draftPreviewUrl: `/api/sites/${encodeURIComponent(site.id)}/dashboard-preview/index.html?v=${site.version}`,
       id: site.id,
       name: site.name,
       slug: site.slug,
       role: gate.role,
       updatedAt: site.updatedAt,
       url: shareUrl(c, o, site),
-      published: site.version === site.publishedVersion,
+      published: liveOnAddress(site) && site.version === site.publishedVersion,
+      live: liveOnAddress(site),
       version: site.version,
       publishedVersion: site.publishedVersion,
-      publishedAt: publishedRevision?.createdAt,
+      publishedAt: liveOnAddress(site) ? publishedRevision?.createdAt : undefined,
       customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     }));
   });
@@ -2340,7 +2348,8 @@ export function createApp(o: Options) {
         role: gate.role,
         updatedAt: site.updatedAt,
         url: shareUrl(c, o, site),
-        published: site.version === site.publishedVersion,
+        published: liveOnAddress(site) && site.version === site.publishedVersion,
+      live: liveOnAddress(site),
         version: site.version,
         publishedVersion: site.publishedVersion,
       },
@@ -2612,7 +2621,8 @@ export function createApp(o: Options) {
       role: gate.role,
       updatedAt: site.updatedAt,
       url: shareUrl(c, o, site),
-      published: site.version === site.publishedVersion,
+      published: liveOnAddress(site) && site.version === site.publishedVersion,
+      live: liveOnAddress(site),
       version: site.version,
       publishedVersion: site.publishedVersion,
     }, {
@@ -2694,7 +2704,8 @@ export function createApp(o: Options) {
       role: gate.role,
       updatedAt: site.updatedAt,
       url: shareUrl(c, o, site),
-      published: site.version === site.publishedVersion,
+      published: liveOnAddress(site) && site.version === site.publishedVersion,
+      live: liveOnAddress(site),
       version: site.version,
       publishedVersion: site.publishedVersion,
     }, {
@@ -2912,8 +2923,9 @@ export function createApp(o: Options) {
     const publishedRevision = site.publishedVersion > 0 ? await o.store.revision(site.id, site.publishedVersion) : null;
     const overview = {
       id: site.id, name: site.name, slug: site.slug, role: gate.role, updatedAt: site.updatedAt, url: shareUrl(c, o, site),
-      published: site.version === site.publishedVersion, version: site.version, publishedVersion: site.publishedVersion,
-      publishedAt: publishedRevision?.createdAt, customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
+      published: liveOnAddress(site) && site.version === site.publishedVersion, live: liveOnAddress(site),
+      version: site.version, publishedVersion: site.publishedVersion,
+      publishedAt: liveOnAddress(site) ? publishedRevision?.createdAt : undefined, customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     };
     if (!o.analytics) return c.html(siteAnalyticsPage(gate.user, overview, { available: false, enabled: false, report: null, timeZone: "UTC", timeZones: [] }));
     const settings = await o.analytics.store.settings(site.id);
@@ -3003,10 +3015,11 @@ export function createApp(o: Options) {
       role: gate.role,
       updatedAt: site.updatedAt,
       url: shareUrl(c, o, site),
-      published: site.version === site.publishedVersion,
+      published: liveOnAddress(site) && site.version === site.publishedVersion,
+      live: liveOnAddress(site),
       version: site.version,
       publishedVersion: site.publishedVersion,
-      publishedAt: publishedRevision?.createdAt,
+      publishedAt: liveOnAddress(site) ? publishedRevision?.createdAt : undefined,
       customDomain: /\.invalid$/.test(site.host) ? undefined : site.host,
     }, { error: c.req.query("error"), message: c.req.query("message") }));
   });
