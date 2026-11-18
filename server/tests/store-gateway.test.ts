@@ -6,6 +6,7 @@ import a from "node:assert/strict";
 import {
   GatewayAssetStore,
   AUTH_USER_CACHE_MS,
+  MEMBERSHIP_CACHE_MS,
   EDITOR_SOURCE_CACHE_MS,
   SITE_CACHE_MS,
   GatewayAuthStore,
@@ -1467,4 +1468,59 @@ test("library images upload through the chunk protocol, and a full allowance is 
   full = true;
   await a.rejects(libraries.putAsset("lib-1", asset, { ownerId: "u1", limitBytes: 100 }), (error: unknown) =>
     error instanceof AssetQuotaError && error.usage.usedBytes === 99 && error.usage.limitBytes === 100);
+});
+
+test("site access is remembered briefly, only when granted, and forgotten by every membership change", async () => {
+  let clock = 1_000;
+  let role: string | null = "editor";
+  const { gateway, calls } = fakeGateway((call) => {
+    if (call.op === "auth.membership") return role ? { site_id: call.args.siteId, user_id: call.args.userId, role } : null;
+    if (call.op === "auth.grant") { role = String(call.args.role); return { site_id: call.args.siteId, user_id: call.args.userId, role }; }
+    if (call.op === "auth.changeMemberRole") { role = String(call.args.role); return { status: "ok" }; }
+    if (call.op === "auth.revoke") { role = null; return true; }
+    if (call.op === "auth.removeMember") { role = null; return { status: "ok" }; }
+    if (call.op === "auth.deleteAccount") { role = null; return { status: "deleted", authUserDeleted: true }; }
+    throw new Error(`unexpected ${call.op}`);
+  });
+  const auth = new GatewayAuthStore(gateway, () => clock);
+  const reads = () => calls.filter((c) => c.op === "auth.membership").length;
+
+  const first = await auth.membership("s1", "u1");
+  first!.role = "owner";
+  a.equal((await auth.membership("s1", "u1"))?.role, "editor", "callers get copies");
+  a.equal(reads(), 1, "repeat checks within the window reuse the answer");
+
+  clock += MEMBERSHIP_CACHE_MS + 1;
+  await auth.membership("s1", "u1");
+  a.equal(reads(), 2, "the cache expires");
+
+  for (const change of [
+    () => auth.changeMemberRole("s1", "u2", "content"),
+    () => auth.grant("s1", "u3", "reviewer"),
+  ]) {
+    role = "editor";
+    await auth.membership("s1", "u1");
+    const before = reads();
+    await change();
+    await auth.membership("s1", "u1");
+    a.equal(reads(), before + 1, "a change to anyone on the site forgets the site");
+  }
+
+  for (const remove of [
+    () => auth.revoke("s1", "u1"),
+    () => auth.removeMember("s1", "u1"),
+    () => auth.deleteAccount("u1"),
+  ]) {
+    role = "editor";
+    clock += MEMBERSHIP_CACHE_MS + 1;
+    a.equal((await auth.membership("s1", "u1"))?.role, "editor");
+    await remove();
+    a.equal(await auth.membership("s1", "u1"), null, "removed access is refused at once");
+  }
+
+  role = null;
+  clock += MEMBERSHIP_CACHE_MS + 1;
+  a.equal(await auth.membership("s9", "u1"), null);
+  role = "owner";
+  a.equal((await auth.membership("s9", "u1"))?.role, "owner", "no access is never cached, so new access works at once");
 });

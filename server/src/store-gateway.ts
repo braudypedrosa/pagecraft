@@ -1912,14 +1912,29 @@ export class GatewayHostedPublishPreparer
    memberships and authorization are never cached here. */
 export const AUTH_USER_CACHE_MS = 30_000;
 const AUTH_USER_CACHE_MAX = 1000;
+/* Site access is checked on nearly every request, and each check was a ~0.3 s gateway round
+   trip. Only granted access is remembered, so a new site or an accepted invitation is never
+   refused from cache. Every membership change made through this store forgets the site at
+   once; a change made by another server process takes effect here within this time. */
+export const MEMBERSHIP_CACHE_MS = 60_000;
+const MEMBERSHIP_CACHE_MAX = 2000;
 
 export class GatewayAuthStore implements AuthStore {
   private gateway: PagecraftGateway;
   private now: () => number;
   private identities = new Map<string, { until: number; key: string; user: User }>();
+  private memberships = new Map<string, { until: number; membership: Membership }>();
   constructor(gateway: PagecraftGateway, now: () => number = Date.now) {
     this.gateway = gateway;
     this.now = now;
+  }
+  private forgetMemberships(match: { siteId?: string; userId?: string }) {
+    for (const key of this.memberships.keys()) {
+      const [siteId, userId] = key.split("\n");
+      if ((match.siteId === undefined || match.siteId === siteId) && (match.userId === undefined || match.userId === userId)) {
+        this.memberships.delete(key);
+      }
+    }
   }
   private forgetUser(userId: string) {
     for (const [authUserId, entry] of this.identities) {
@@ -2041,11 +2056,21 @@ export class GatewayAuthStore implements AuthStore {
     await this.gateway.call("auth.dropSession", { digest });
   }
   async membership(siteId: string, userId: string) {
+    const key = `${siteId}\n${userId}`;
+    const hit = this.memberships.get(key);
+    if (hit && hit.until > this.now()) return { ...hit.membership };
+    this.memberships.delete(key);
     const row = await this.gateway.call<MembershipWire | null>(
       "auth.membership",
       { siteId, userId },
     );
-    return row ? toMembership(row) : null;
+    if (!row) return null;
+    const membership = toMembership(row);
+    if (this.memberships.size >= MEMBERSHIP_CACHE_MAX) {
+      this.memberships.delete(this.memberships.keys().next().value!);
+    }
+    this.memberships.set(key, { until: this.now() + MEMBERSHIP_CACHE_MS, membership });
+    return { ...membership };
   }
   async membershipsForUser(userId: string) {
     return (await this.gateway.call<MembershipWire[]>(
@@ -2054,13 +2079,18 @@ export class GatewayAuthStore implements AuthStore {
     )).map(toMembership);
   }
   async grant(siteId: string, userId: string, role: Role) {
-    return toMembership(
-      await this.gateway.call<MembershipWire>("auth.grant", {
-        siteId,
-        userId,
-        role,
-      }),
-    );
+    this.forgetMemberships({ siteId });
+    try {
+      return toMembership(
+        await this.gateway.call<MembershipWire>("auth.grant", {
+          siteId,
+          userId,
+          role,
+        }),
+      );
+    } finally {
+      this.forgetMemberships({ siteId });
+    }
   }
   async members(siteId: string) {
     return (await this.gateway.call<MembershipWire[]>("auth.members", {
@@ -2079,24 +2109,29 @@ export class GatewayAuthStore implements AuthStore {
   }
   async deleteAccount(userId: string) {
     const result = await this.gateway.call<AccountDeletionResult>("auth.deleteAccount", { userId });
-    if (result.status === "deleted") this.forgetUser(userId);
+    if (result.status === "deleted") { this.forgetUser(userId); this.forgetMemberships({ userId }); }
     return result;
   }
   revoke(siteId: string, userId: string) {
-    return this.gateway.call<boolean>("auth.revoke", { siteId, userId });
+    this.forgetMemberships({ siteId });
+    return this.gateway.call<boolean>("auth.revoke", { siteId, userId })
+      .finally(() => this.forgetMemberships({ siteId }));
   }
+  // A role change can move the actor too (an ownership transfer), so the whole site is forgotten.
   changeMemberRole(siteId: string, userId: string, role: Role) {
+    this.forgetMemberships({ siteId });
     return this.gateway.call<MemberChangeResult>("auth.changeMemberRole", {
       siteId,
       userId,
       role,
-    });
+    }).finally(() => this.forgetMemberships({ siteId }));
   }
   removeMember(siteId: string, userId: string) {
+    this.forgetMemberships({ siteId });
     return this.gateway.call<MemberRemovalResult>("auth.removeMember", {
       siteId,
       userId,
-    });
+    }).finally(() => this.forgetMemberships({ siteId }));
   }
   async provisionInvitation(input: {
     siteId: string;
