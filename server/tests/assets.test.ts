@@ -204,6 +204,25 @@ test('an image uploads, lists, and is served on the site at its export path', as
   a.deepEqual(new Uint8Array(await served.arrayBuffer()), PNG, 'the same bytes back');
 });
 
+test('dashboard preview images are read from the store once and may be kept by the browser', async () => {
+  const { upload, req, cookie, site, assets } = await rig();
+  const meta = await (await upload(PNG, 'Hero.png')).json() as { path: string };
+  let reads = 0;
+  const byPath = assets.byPath.bind(assets);
+  assets.byPath = async (siteId: string, path: string) => { reads++; return byPath(siteId, path); };
+  const url = `/api/sites/${site.id}/dashboard-preview/${meta.path}`;
+
+  a.notEqual((await req(url)).status, 200, 'still private: signed-out callers get nothing');
+  const first = await req(url, {}, cookie);
+  a.equal(first.status, 200);
+  a.match(first.headers.get('cache-control') || '', /^private, .*immutable/);
+  a.deepEqual(new Uint8Array(await first.arrayBuffer()), PNG);
+  const second = await req(url, {}, cookie);
+  a.deepEqual(new Uint8Array(await second.arrayBuffer()), PNG, 'the same bytes from memory');
+  a.equal(reads, 1, 'the slow store read happens once per image, not once per capture');
+  a.equal((await req(`/api/sites/${site.id}/dashboard-preview/assets/missing-a1.png`, {}, cookie)).status, 404);
+});
+
 test('SVG remains supported but is sandboxed when opened directly', async () => {
   const { app, upload } = await rig('content');
   const active = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script></svg>');

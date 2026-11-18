@@ -1,6 +1,68 @@
 /** Rasterize the inert saved homepage once, then let the host cache the
  * small image. No live frames, authored scripts, public-page requests or screenshot workers. */
-export async function captureSitePreview(doc, signal, baseUrl = doc.baseURI) {
+/**
+ * @param {Document} doc
+ * @param {AbortSignal} [signal]
+ * @param {string} [baseUrl]
+ * @param {(body: Element, css: string) => ({ images: Set<Element>, shown: Set<string> } | null)} [measure] replaces the layout step in tests
+ */
+export async function captureSitePreview(doc, signal, baseUrl = doc.baseURI, measure) {
+  // The thumbnail shows only the first desktop screen, so only images drawn there are
+  // fetched. Each draft image costs seconds on the host; a homepage has many below the fold.
+  const W = 1368, H = 855;
+  const URL_PATTERN = /url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi;
+  const FONT = /\.(woff2?|ttf|otf|eot)([?#]|$)/i;
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  // Lays out a copy with every resource neutralised (nothing is fetched, no script runs) and
+  // reports which <img> elements and CSS image URLs land on the first screen. Images without
+  // known dimensions collapse, which moves later content up: the error only ever adds images.
+  const measureFold = (body, css) => {
+    if (typeof document === 'undefined' || !document.body) return null;
+    const frame = document.createElement('iframe');
+    try {
+      const urls = [];
+      const neutral = text => String(text).replace(URL_PATTERN, (_m, _q, raw) => {
+        let i = urls.indexOf(raw); if (i < 0) i = urls.push(raw) - 1;
+        return `url("data:,pc${i}")`;
+      });
+      frame.setAttribute('sandbox', 'allow-same-origin'); frame.setAttribute('aria-hidden', 'true'); frame.tabIndex = -1;
+      frame.style.cssText = `position:fixed;left:-20000px;top:0;width:${W}px;height:${H}px;border:0;visibility:hidden;pointer-events:none`;
+      document.body.append(frame);
+      const fdoc = frame.contentDocument, view = frame.contentWindow;
+      if (!fdoc || !view || !fdoc.body) return null;
+      const copy = fdoc.importNode(body, true);
+      const originals = [body, ...body.querySelectorAll('*')], copies = [copy, ...copy.querySelectorAll('*')];
+      if (originals.length !== copies.length) return null;
+      copies.forEach(node => {
+        ['src', 'srcset', 'poster'].forEach(name => node.removeAttribute(name));
+        if (node.hasAttribute('style')) node.setAttribute('style', neutral(node.getAttribute('style')));
+      });
+      const style = fdoc.createElement('style');
+      style.textContent = neutral(css) + `\nhtml,body{width:${W}px!important;height:${H}px!important;margin:0!important;overflow:hidden!important}*,*::before,*::after{animation:none!important;transition:none!important}`;
+      fdoc.head.append(style);
+      fdoc.documentElement.replaceChild(copy, fdoc.body);
+      if (!copy.getBoundingClientRect().width) return null; // no layout engine (tests, detached views)
+      const images = new Set(), shown = new Set();
+      copies.forEach((node, i) => {
+        const r = node.getBoundingClientRect();
+        const across = r.left < W && r.right > 0 && r.top < H;
+        if (node.tagName === 'IMG') { if (across && r.bottom >= 0) images.add(originals[i]); return; }
+        const fold = across && r.bottom > 0 && r.width > 0 && r.height > 0;
+        for (const pseudo of [null, '::before', '::after']) {
+          const cs = view.getComputedStyle(node, pseudo);
+          const used = [cs.backgroundImage, cs.maskImage, cs.webkitMaskImage, cs.listStyleImage, cs.borderImageSource, cs.content].join(' ');
+          // A pseudo-element can be positioned anywhere around its box; count it when the box is near.
+          const near = pseudo ? across && r.bottom > -H : fold;
+          for (const m of used.matchAll(/data:,pc(\d+)/g)) if (near) shown.add(urls[Number(m[1])]);
+        }
+      });
+      return { images, shown };
+    } catch {
+      return null;
+    } finally {
+      frame.remove();
+    }
+  };
   const dataUrl = blob => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -27,11 +89,6 @@ export async function captureSitePreview(doc, signal, baseUrl = doc.baseURI) {
   clone.querySelectorAll('*').forEach(node => [...node.attributes].forEach(attr => {
     if (/^on/i.test(attr.name)) node.removeAttribute(attr.name);
   }));
-  const images = [...clone.querySelectorAll('img')];
-  await Promise.all(images.map(async image => {
-    image.setAttribute('src', await embed(image.getAttribute('src')));
-    image.removeAttribute('srcset'); image.removeAttribute('loading');
-  }));
   // Compiler styles include local font faces. Resolve linked font stylesheets too.
   const sheets = await Promise.all([...doc.querySelectorAll('style,link[rel="stylesheet"]')].map(async node => {
     if (node.tagName === 'STYLE') return { css: node.textContent || '', base: baseUrl };
@@ -39,11 +96,19 @@ export async function captureSitePreview(doc, signal, baseUrl = doc.baseURI) {
     if (!response.ok) throw new Error('Preview styles unavailable');
     return { css: await response.text(), base: new URL(node.getAttribute('href'), baseUrl).href };
   }));
+  const fold = (measure || measureFold)(clone, sheets.map(s => s.css).join('\n'));
+  const images = [...clone.querySelectorAll('img')];
+  await Promise.all(images.map(async image => {
+    const offscreen = fold && !fold.images.has(image);
+    image.setAttribute('src', offscreen ? BLANK : await embed(image.getAttribute('src')));
+    image.removeAttribute('srcset'); image.removeAttribute('loading');
+  }));
   const inlineUrls = async (css, base) => {
-    const urls = [...new Set([...css.matchAll(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi)].map(m => m[2]))];
+    const urls = [...new Set([...css.matchAll(URL_PATTERN)].map(m => m[2]))];
     await Promise.all(urls.map(async raw => {
       if (/^(data:|#)/i.test(raw)) return;
-      const data = await embed(new URL(raw, base).href);
+      // Fonts may shape first-screen text; other images are kept only when drawn there.
+      const data = fold && !fold.shown.has(raw) && !FONT.test(raw) ? BLANK : await embed(new URL(raw, base).href);
       css = css.split(raw).join(data);
     }));
     return css;

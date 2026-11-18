@@ -27,6 +27,28 @@ describe('dashboard image cache',()=>{
   await expect(captureSitePreview(dom.window.document,undefined,'https://staging.test/api/sites/qa/dashboard-preview/index.html?v=2')).rejects.toThrow('Preview asset unavailable');
   expect(fetch.mock.calls[0][0]).toBe('https://staging.test/api/sites/qa/dashboard-preview/assets/hero.webp');
  });
+ it('fetches only images drawn on the first screen, and fonts, never the rest of the page',async()=>{
+  const dom=new JSDOM(`<style>@font-face{font-family:x;src:url(assets/face.woff2)}.hero{background:url(assets/hero-bg.webp)}.far{background:url(assets/far-bg.webp)}</style>
+   <body><header><img id="logo" src="assets/logo.webp"></header><section class="hero"></section><section class="far" style="background-image:url('assets/inline-far.webp')"></section><img id="below" src="assets/below.webp"></body>`,{url:'https://staging.test/'});
+  windows.push(dom);
+  const fetched:string[]=[];
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>{fetched.push(String(url).replace('https://staging.test/api/sites/qa/dashboard-preview/',''));return {ok:true,blob:async()=>new Blob(['x'])};}));
+  vi.stubGlobal('FileReader',class{result='data:x';onload:any;readAsDataURL(){queueMicrotask(()=>this.onload());}});
+  const measure=vi.fn((body:Element,css:string)=>{
+   expect(css).toContain('hero-bg.webp');
+   return {images:new Set([body.querySelector('#logo')!]),shown:new Set(['assets/hero-bg.webp'])};
+  });
+  // jsdom cannot rasterise; the capture stops at the SVG step, after every fetch has been made.
+  await captureSitePreview(dom.window.document,undefined,'https://staging.test/api/sites/qa/dashboard-preview/index.html',measure).catch(()=>{});
+  expect(measure).toHaveBeenCalledOnce();
+  expect(fetched.sort()).toEqual(['assets/face.woff2','assets/hero-bg.webp','assets/logo.webp']);
+ });
+ it('falls back to every image when the page cannot be laid out',async()=>{
+  const dom=new JSDOM('<img src="assets/a.webp"><img src="assets/b.webp">',{url:'https://staging.test/'});windows.push(dom);
+  const fetch=vi.fn(async(_url:string)=>({ok:false}));vi.stubGlobal('fetch',fetch);
+  await expect(captureSitePreview(dom.window.document,undefined,'https://staging.test/x/index.html',()=>null)).rejects.toThrow('Preview asset unavailable');
+  expect(fetch.mock.calls.map(c=>c[0]).sort()).toEqual(['https://staging.test/x/assets/a.webp','https://staging.test/x/assets/b.webp']);
+ });
  it('renders matching cache without a page iframe, and unchanged focus checks do not regenerate it',async()=>{
   const {w,requests}=rig(); w.dispatchEvent(new w.Event('focus')); await new Promise(r=>setTimeout(r,5));
   expect(w.document.querySelectorAll('iframe')).toHaveLength(0);expect(w.capture).not.toHaveBeenCalled(); expect(requests).toEqual(['/api/sites?previews=1']);

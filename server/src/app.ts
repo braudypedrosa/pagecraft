@@ -507,7 +507,10 @@ export function createApp(o: Options) {
       /^\/internal\/components(?:\/|$)/.test(path) ||
       (path === "/mcp" || path.startsWith('/mcp/')) ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
-    const cachedThumbnail = c.req.method === "GET" && /^\/api\/sites\/[^/]+\/dashboard-thumbnail$/.test(path) &&
+    // Thumbnails and draft-preview images have version- or content-keyed URLs (an asset path
+    // never changes meaning), so their own private immutable header stands.
+    const cachedThumbnail = c.req.method === "GET" &&
+      /^\/api\/sites\/[^/]+\/(?:dashboard-thumbnail$|dashboard-preview\/assets\/)/.test(path) &&
       [200, 304].includes(c.res.status) && c.res.headers.get("cache-control")?.includes("immutable");
     if (privateRoute && !cachedThumbnail) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
@@ -3387,6 +3390,20 @@ export function createApp(o: Options) {
   });
 
   // A script-free saved homepage is loaded only when its thumbnail needs generating.
+  type PreviewAsset = Pick<Asset, "type" | "name" | "bytes">;
+  const previewAssets = new Map<string, PreviewAsset>();
+  let previewAssetBytes = 0;
+  const PREVIEW_ASSET_BUDGET = 48 * 1024 * 1024;
+  const rememberPreviewAsset = (key: string, asset: PreviewAsset) => {
+    if (asset.bytes.byteLength > PREVIEW_ASSET_BUDGET / 8) return;
+    previewAssets.set(key, asset);
+    previewAssetBytes += asset.bytes.byteLength;
+    for (const [oldest, kept] of previewAssets) {
+      if (previewAssetBytes <= PREVIEW_ASSET_BUDGET) break;
+      previewAssets.delete(oldest);
+      previewAssetBytes -= kept.bytes.byteLength;
+    }
+  };
 
   app.get("/api/sites/:id/dashboard-preview/*", async (c) => {
     const id = c.req.param("id");
@@ -3397,8 +3414,19 @@ export function createApp(o: Options) {
     const prefix = `/api/sites/${encodeURIComponent(id)}/dashboard-preview/`;
     const path = decodeURIComponent(new URL(c.req.url).pathname.slice(prefix.length));
     if (path.startsWith("assets/")) {
-      const asset = await o.assets?.byPath(id, path);
-      if (!asset) return c.notFound();
+      // Asset file names carry a content hash, so a path never changes meaning: the browser
+      // may keep it, and this process keeps recent bytes instead of asking the store again
+      // (each store read costs seconds through the gateway). Access is still checked above.
+      const key = `${id}\n${path}`;
+      let asset = previewAssets.get(key);
+      if (asset) { previewAssets.delete(key); previewAssets.set(key, asset); }
+      else {
+        const found = await o.assets?.byPath(id, path);
+        if (!found) return c.notFound();
+        asset = { type: found.type, name: found.name, bytes: found.bytes };
+        rememberPreviewAsset(key, asset);
+      }
+      c.header("cache-control", "private, max-age=31536000, immutable");
       return c.body(asset.bytes as unknown as ArrayBuffer, 200, assetHeaders(asset));
     }
     if (path !== "index.html") return c.notFound();
