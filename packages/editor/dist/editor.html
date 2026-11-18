@@ -36539,6 +36539,10 @@ function editComponent(cid) {
   else componentClose();
   render();
 }
+/* On a tablet the 1280px desktop frame fits at about a quarter of its size, too small to
+   edit, so the editor starts on the Tablet canvas there; the switcher still offers Desktop.
+   Only the starting point: resizing later never changes the canvas under someone's hands. */
+const startingDevice = dev => dev === 'desktop' && window.matchMedia?.('(max-width: 1024px)').matches ? 'tablet' : dev;
 function setDev(d) {
   state.ui.dev = d;
   $$('#devSeg button').forEach(b => {
@@ -38408,6 +38412,7 @@ HOOKS.note = msg => toast(msg);
   $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || IS_TEMPLATE_DRAFT || SRV.role !== 'owner' || !!SRV.editorSessionToken;
   $('#clientReviewBtn').addEventListener('click', clientReviewModal);
   renderPalette();
+  state.ui.dev = startingDevice(state.ui.dev);
   setDev(state.ui.dev);
   if (loadBlocked) stamp('Not saving', true);
   else stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);

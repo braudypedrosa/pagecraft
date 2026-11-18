@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T22:03:16.943Z",
+  "capturedAt": "2026-11-18T22:27:54.378Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "a4bed746e5fdbd13826a25dd8778d6966f706b7320f3a134bdf743755d8bc453",
+    "builder.html": "ff04a40b69e42637a2ed87aec39d57e083f04a6f8e8a246ac82817ab93e09c91",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
