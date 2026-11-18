@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-16T20:48:08.884Z",
+  "capturedAt": "2026-11-18T11:53:59.304Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -113,7 +113,7 @@
     "app/src/ui/Pages.tsx": "03c9777e12c672205af347da0b6af4b5f2837898368ffb1b1fd7dba5d23ac9c6",
     "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
-    "app/src/ui/inspector/ColorPop.tsx": "c099e8988045ddf2ea09cb2e671a227ef27dae8f3935560dac99eaeef48f91d5",
+    "app/src/ui/inspector/ColorPop.tsx": "62c5e8967ce4cc0ea0f7295cb97c6a59e2b858bf4e8ca72c7d3549ab335cbe89",
     "app/src/ui/inspector/Controls.tsx": "1487ee241a28ffc4db69eaab9b706268fbcf3725e94ea8e5c3edc3e8752b1b4b",
     "app/src/ui/inspector/Inspector.tsx": "6c06178a53613351b2cb8890754ff8685eb15e09a3447982953312e500006f60",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "390bccb7feea8b879695d8d0cd92a94c8543960943e317f201f3f77d81b7f67d",
+      "sha256": "d8a314d9d9b51753fbbdb48cf2efec467c8d602ae60dc17542688fa94d52dd44",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

@@ -87,3 +87,45 @@ test('gradient stop focus and blur keeps the gradient, and an edit commits throu
   assert.match(String(n.css.d['background-image']), /^linear-gradient\(90deg,/);
   assert.match(String(n.css.d['background-image']), /#abcdef/);
 });
+
+/* Typed the way a person types: one character at a time, each appended to what the field
+   shows. `#ff8` and `#ff88` are colours in their own right, and the field used to show the
+   parsed value back mid-word, so `#ff8800` ended as rgba(255, 255, 136, 0.5). */
+function typeByKey(input: HTMLInputElement, text: string) {
+  act(() => { input.focus(); input.dispatchEvent(new FocusEvent('focus')); input.select(); });
+  let first = true;
+  for (const ch of text) {
+    act(() => r.type(input, (first ? '' : input.value) + ch));
+    first = false;
+  }
+}
+
+test('a hex colour typed one character at a time is the colour that was typed', () => {
+  const n = linkedHeading();
+  const input = openPicker(n);
+
+  typeByKey(input, '#ff8800');
+  assert.equal(input.value, '#ff8800', 'the field shows what was typed, not a rewritten value');
+  act(() => { input.dispatchEvent(new FocusEvent('blur', { bubbles: true })); });
+  assert.equal(n.css.d.color, '#ff8800');
+  assert.equal(input.value, '#ff8800', 'after leaving, the field shows the saved colour');
+});
+
+test('a gradient colour typed one character at a time is the colour that was typed', () => {
+  const n = gradientHeading();
+  const input = openGradientPicker(n);
+
+  typeByKey(input, '#ff8800');
+  act(() => { input.dispatchEvent(new FocusEvent('blur', { bubbles: true })); });
+  assert.equal(n.css.d['background-image'], 'linear-gradient(90deg, #ff8800, #b7f34a)');
+});
+
+test('an unfinished value is dropped when the field is left', () => {
+  const n = linkedHeading();
+  const input = openPicker(n);
+
+  typeByKey(input, '#zz');
+  assert.equal(input.value, '#zz');
+  act(() => { input.dispatchEvent(new FocusEvent('blur', { bubbles: true })); });
+  assert.equal(n.css.d.color, C.cvar('ink'), 'nothing that parsed, so nothing changed');
+});
