@@ -603,6 +603,8 @@ const app = createApp({
   // Only when Cloudflare really fronts the origin; otherwise anyone can send CF-Connecting-IP.
   trustCloudflare: process.env.PAGECRAFT_TRUST_CLOUDFLARE === "1",
   cookieSecret: process.env.PAGECRAFT_COOKIE_SECRET || undefined,
+  // Shared by every process on a host even where no cookie secret is configured.
+  previewSigningSecret: process.env.PAGECRAFT_COOKIE_SECRET || process.env.DATABASE_GATEWAY_KEY || undefined,
   publications,
   hostedPublish,
   cloudMutations,

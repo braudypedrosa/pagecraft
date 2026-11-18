@@ -795,6 +795,65 @@ test('reviewed snapshot serves authenticated frozen files and publishes the same
   a.equal((await r.publications!.currentBySlug(r.site.slug))?.id, snapshotId);
 });
 
+test('snapshot previews link images through signed, cacheable URLs instead of inlining them', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  const text = new TextEncoder();
+  const photo = Uint8Array.from({ length: 4096 }, (_, i) => i % 251);
+  const snapshot = await r.publications!.create({ siteId: r.site.id, slug: r.site.slug, host: r.site.host, sourceVersion: 1, files: [
+    { path: 'index.html', mediaType: 'text/html', bytes: text.encode('<link rel="stylesheet" href="assets/site.css"><img src="assets/photo.webp" srcset="assets/photo.webp 1x"><div style="background:url(assets/photo.webp)"></div>') },
+    { path: 'about.html', mediaType: 'text/html', bytes: text.encode('<p>About</p>') },
+    { path: 'assets/photo.webp', mediaType: 'image/webp', bytes: photo },
+    { path: 'assets/site.css', mediaType: 'text/css', bytes: text.encode('body{background:url(photo.webp)}') },
+  ] });
+  const base = `/api/sites/${r.site.id}/publication-snapshots/${snapshot.id}/files/`;
+  const page = await r.admin(base, {}, cookie);
+  a.equal(page.status, 200);
+  a.match(page.headers.get('cache-control')!, /private, no-store/, 'pages are never cached');
+  const html = await page.text();
+  a.doesNotMatch(html, /data:image\/webp/, 'images are not inlined');
+  const links = [...html.matchAll(/http:\/\/admin\.test(\/api\/[^"\s)]+assets\/photo\.webp\?pcSig=\d+\.[\w-]+)/g)].map(match => match[1]);
+  a.ok(links.length >= 3, 'src, srcset and inline styles all use the signed link');
+  a.equal(new Set(links).size, 1, 'one stable URL per image, so the browser cache can reuse it');
+  const css = Buffer.from(html.match(/href="data:text\/css;base64,([^"]+)/)![1], 'base64').toString();
+  a.match(css, /url\(http:\/\/admin\.test\/api\/.+photo\.webp\?pcSig=/, 'stylesheets stay inline but link their images absolutely');
+
+  const image = await r.admin(links[0]);
+  a.equal(image.status, 200, 'the signed link works without cookies, as from the opaque sandbox');
+  a.deepEqual(new Uint8Array(await image.arrayBuffer()), photo);
+  a.match(image.headers.get('cache-control')!, /^private, max-age=\d+, immutable$/);
+  a.ok(Number(image.headers.get('cache-control')!.match(/max-age=(\d+)/)![1]) > 3600, 'valid past the next hour');
+
+  const signature = links[0].split('pcSig=')[1];
+  const [expires, mac] = signature.split('.');
+  const flipped = mac.slice(0, -1) + (mac.endsWith('A') ? 'B' : 'A');
+  a.equal((await r.admin(links[0].replace(signature, `${expires}.${flipped}`))).status, 401, 'a forged signature falls back to the cookie check');
+  a.equal((await r.admin(links[0].replace(signature, `${Number(expires) + 3600000}.${mac}`))).status, 401, 'the expiry is signed');
+  a.equal((await r.admin(`${base}about.html?pcSig=${signature}`)).status, 401, 'a signature is bound to its file');
+  a.equal((await r.admin(`${base}assets/site.css?pcSig=${signature}`)).status, 401);
+  a.equal((await r.admin(`${base}assets/photo.webp`)).status, 401, 'unsigned files still need a session');
+  const other = await r.publications!.create({ siteId: r.site.id, slug: r.site.slug, host: r.site.host, sourceVersion: 1, files: [
+    { path: 'index.html', mediaType: 'text/html', bytes: text.encode('x') },
+    { path: 'assets/photo.webp', mediaType: 'image/webp', bytes: photo },
+  ] });
+  a.equal((await r.admin(links[0].replace(snapshot.id, other.id))).status, 401, 'a signature is bound to its snapshot');
+});
+
+test('signed snapshot links expire', async () => {
+  const r = await rig('owner', true);
+  const { cookie } = await r.signIn();
+  const snapshot = await r.publications!.create({ siteId: r.site.id, slug: r.site.slug, host: r.site.host, sourceVersion: 1, files: [
+    { path: 'index.html', mediaType: 'text/html', bytes: new TextEncoder().encode('<img src="assets/p.png">') },
+    { path: 'assets/p.png', mediaType: 'image/png', bytes: Uint8Array.of(1, 2, 3) },
+  ] });
+  const html = await (await r.admin(`/api/sites/${r.site.id}/publication-snapshots/${snapshot.id}/files/`, {}, cookie)).text();
+  const link = html.match(/http:\/\/admin\.test(\/api\/[^"]+)/)![1];
+  a.equal((await r.admin(link)).status, 200);
+  const now = Date.now();
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(now + 3 * 60 * 60 * 1000);
+  try { a.equal((await r.admin(link)).status, 401); } finally { clock.mockRestore(); }
+});
+
 test('hosted snapshots route native inbox forms and preserve actionable form findings', async () => {
   const r = await rig('owner', true, undefined, true);
   const { cookie } = await r.signIn();
