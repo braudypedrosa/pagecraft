@@ -2574,11 +2574,13 @@ function loadPublicationFrame(frame, source, navigation = {}) {
   strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
   const status = strip.querySelector('span'), retry = strip.querySelector('button');
   const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
-  let active = true, settled = false;
+  let active = true, settled = false, timedOut = false;
   const cleanup = () => { active = false; clearTimeout(timer); window.removeEventListener('message', received); };
-  const finish = (text, canRetry) => {
-    if (!active || settled || !frame.isConnected) return;
-    settled = true;
+  /* The timeout is advice, not a verdict: a slow page that arrives later replaces it, so a
+     loaded preview never sits under "taking too long". */
+  const finish = (text, canRetry, timeout = false) => {
+    if (!active || (settled && !timedOut) || !frame.isConnected) return;
+    settled = true; timedOut = timeout;
     status.textContent = text; retry.hidden = !canRetry;
     frame.setAttribute('aria-busy', 'false'); clearTimeout(timer);
   };
@@ -2597,7 +2599,7 @@ function loadPublicationFrame(frame, source, navigation = {}) {
     if (event.data.status === 'ready') { finish('Page preview displayed.', false); strip.classList.add('ready'); }
     else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
   };
-  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
+  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true, true), 15000);
   window.addEventListener('message', received);
   publicationFrameCleanup.set(frame, cleanup);
   retry.addEventListener('click', () => loadPublicationFrame(frame, source, navigation));
