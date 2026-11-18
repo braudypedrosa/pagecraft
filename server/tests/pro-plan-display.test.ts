@@ -23,7 +23,7 @@ test('Free dashboard keeps its public allowance and disables creation at one own
 
   a.match(html, /1 of 1 owned sites · 2 MB of 100 MB media used/);
   a.match(html, /The Free plan includes 1 site in total, including drafts\. Your existing sites stay available/);
-  a.match(html, /<button class="pc-btn primary" type="button" disabled>Add new site<\/button>/);
+  a.match(html, /<button class="pc-btn primary" type="button" disabled aria-describedby="site-limit" title="You.ve used the 1 site on the Free plan\.">Add new site<\/button>/);
   a.match(html, /<h2>Site limit reached<\/h2>/);
   a.doesNotMatch(html, />Pro</);
   a.doesNotMatch(html, /Unlimited owned sites/);
@@ -41,7 +41,7 @@ test('Pro dashboard shows unlimited owned sites and never disables creation by s
   a.match(html, /<button class="pc-btn primary" type="button" data-create-open>Add new site<\/button>/);
   a.match(html, /<p>Unlimited owned sites<\/p>/);
   a.doesNotMatch(html, /Site limit reached/);
-  a.doesNotMatch(html, /disabled>Add new site/);
+  a.doesNotMatch(html, /disabled aria-describedby="site-limit"[^>]*>Add new site/);
   a.doesNotMatch(html, /aria-[^>]*(?:Infinity|NaN)/);
 });
 
@@ -91,7 +91,7 @@ test('unknown account plans fall back to the public Free display', () => {
   );
 
   a.match(html, /1 of 1 owned sites/);
-  a.match(html, /disabled>Add new site/);
+  a.match(html, /disabled aria-describedby="site-limit"[^>]*>Add new site/);
   a.doesNotMatch(html, /Unlimited owned sites/);
 });
 
@@ -103,7 +103,7 @@ test('Free accounts that already own more than one site keep them and see the li
     { usedBytes: 0, limitBytes: 100 * MB },
   );
   a.match(html, /3 of 1 owned sites/);
-  a.match(html, /disabled>Add new site/);
+  a.match(html, /disabled aria-describedby="site-limit"[^>]*>Add new site/);
   a.match(html, /<h2>Site limit reached<\/h2>/);
   a.match(html, /Your existing sites stay available to edit and publish/);
   a.doesNotMatch(html, /-\d+ sites? remaining/);

@@ -469,6 +469,28 @@ test("Cloud saves reuse cached drafts but publishing revalidates before its atom
   a.equal(preparations, 1);
 });
 
+test("reaching the Free site limit offers a way to ask for more, not a dead end", async () => {
+  const { request, accountAuth, auth } = rig();
+  accountAuth.current = { authUserId: "auth-1", email: "one@example.test", name: "One" };
+  await auth.ensureAuthUser("auth-1", "one@example.test", "One");
+  a.equal((await request("/api/sites", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Only", doc: doc() }),
+  })).status, 201);
+
+  const html = await (await request("/")).text();
+  a.match(html, /<h2>Site limit reached<\/h2>/);
+  a.match(html, /<button class="pc-btn primary" type="button" disabled aria-describedby="site-limit" title="You've used the 1 site on the Free plan\.">Add new site<\/button>/,
+    "the disabled button says why and points at the explanation");
+  a.match(html, /id="site-limit"/);
+  a.match(html, /<a class="pc-btn primary pc-limit-action" href="mailto:hello@braudyp\.dev\?subject=More%20Pagecraft%20sites">Ask for more sites<\/a>/);
+  a.match(html, /class="pc-limit-contact">hello@braudyp\.dev<\/p>/, "the address is readable without a mail app");
+
+  const account = await (await request("/account")).text();
+  a.match(account, />Ask for more sites<\/a>/);
+});
+
 test("a site that was never published says so and never links to its empty address", async () => {
   /* Found on staging: a new site is stored with published version 1, so the overview said
      "Last published" and "available on its Pagecraft address", and View site, the card's
@@ -2083,7 +2105,7 @@ test("a Free account that already owns three sites keeps all of them and is only
   a.match(html, /3 of 1 owned sites/);
   a.match(html, /<h2>Site limit reached<\/h2>/);
   a.match(html, /The Free plan includes 1 site in total, including drafts\. Your existing sites stay available to edit and publish\./);
-  a.match(html, /<button class="pc-btn primary" type="button" disabled>Add new site<\/button>/);
+  a.match(html, /<button class="pc-btn primary" type="button" disabled aria-describedby="site-limit" title="You.ve used the 1 site on the Free plan\.">Add new site<\/button>/);
   a.doesNotMatch(html, /<dialog class="[^"\n]*\bpc-create-modal\b/);
 
   const json = await request("/api/sites", {
