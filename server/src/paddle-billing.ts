@@ -179,7 +179,8 @@ export async function createCheckoutTransaction(
       body: JSON.stringify({
         items: [{ price_id: input.priceId, quantity: 1 }],
         custom_data: { pagecraft_user_id: input.userId },
-        checkout: { url: input.checkoutUrl },
+        // Sandbox uses the default payment link configured in Paddle.
+        checkout: config.environment === 'sandbox' ? undefined : { url: input.checkoutUrl },
       }),
       signal: AbortSignal.timeout(15_000),
     });

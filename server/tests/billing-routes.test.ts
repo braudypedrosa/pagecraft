@@ -119,7 +119,9 @@ test('checkout names the signed-in account and refuses a second subscription', a
   a.equal(response.status, 303);
   a.equal(response.headers.get('location'), 'https://app.test/account/plans/checkout?_ptxn=txn_01checkouttest01');
   const [, init] = (r.fetcher as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls[0];
-  a.deepEqual(JSON.parse(String(init.body)).items, [{ price_id: 'pri_01launchyearly001', quantity: 1 }]);
+  const payload = JSON.parse(String(init.body));
+  a.deepEqual(payload.items, [{ price_id: 'pri_01launchyearly001', quantity: 1 }]);
+  a.equal('checkout' in payload, false, 'sandbox uses the default payment link');
 
   const checkout = await (await r.app.request('/account/plans/checkout?_ptxn=txn_01checkouttest01')).text();
   a.match(checkout, /cdn\.paddle\.com\/paddle\/v2\/paddle\.js/);
