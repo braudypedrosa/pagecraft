@@ -29,6 +29,9 @@ import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from '
 import { ASSISTANT_SCOPES, assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
+import { supportPage, withSupportWidget } from './support-page.ts';
+import { registerSupportRoutes } from './support-routes.ts';
+import type { SupportTicketStore, SupportNotice } from './support-tickets.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
 import {
   isReviewDecision,
@@ -334,6 +337,7 @@ export interface Options {
   sendLink?: LinkSender;
   /** Review assignment, comment, and decision mail. Omitted when SMTP is unset. */
   sendNotice?: NoticeSender;
+  support?: { store: SupportTicketStore; notify?: (notice: SupportNotice) => Promise<void> };
   /** at most so many links per address per window. Absent means the default. */
   loginLimit?: { take(key: string): boolean };
   /** `Secure` on the session cookie. Off in tests and local http, on everywhere real. */
@@ -2203,7 +2207,7 @@ export function createApp(o: Options) {
         console.error('site template catalog unavailable', error);
         return [];
       })) : [];
-      return c.html(dashboardPage(
+      const dashboard = dashboardPage(
         user,
         await Promise.all(mine.map(async ({ site, role }) => {
           const cached = await sitePreviews.get(site.id);
@@ -2226,7 +2230,8 @@ export function createApp(o: Options) {
         c.req.query("error"),
         c.req.query("message"),
         pendingInvitations.length,
-      ));
+      );
+      return c.html(o.support ? withSupportWidget(dashboard) : dashboard);
     }
     if (!user) return c.html(signInPage());
 
@@ -2822,6 +2827,8 @@ export function createApp(o: Options) {
     }
     return c.redirect(`${base}?message=Review+updated.`, 303);
   });
+
+  if (o.support) registerSupportRoutes(app, { ...o.support, who, editorOrigin: o.editorOrigin, page: supportPage });
 
   app.get("/api/notifications/mini", async (c) => {
     const user = await who(c);

@@ -23,7 +23,9 @@ import { type AuthStore, MemoryAuthStore } from "./auth.ts";
 import { type AssetStore, MemoryAssetStore } from "./assets.ts";
 import { type LibraryStore, MemoryLibraryStore } from "./libraries.ts";
 import { GatewayCollaborationInvitationStore, MemoryCollaborationInvitationStore, PgCollaborationInvitationStore, type CollaborationInvitationStore } from "./collaboration-invitations.ts";
-import { mailRoles, smtpNoticeSender, smtpSender } from "./mail.ts";
+import { FileRecords } from "./record-files.ts";
+import { SupportTicketStore } from "./support-tickets.ts";
+import { mailRoles, smtpNoticeSender, smtpSender, smtpSupportSender } from "./mail.ts";
 import { type ConnectedStore, MemoryConnectedStore } from "./release-store.ts";
 import {
   keyFromRawPublic,
@@ -616,6 +618,10 @@ const app = createApp({
   billing,
   accountDeletions: new FileAccountDeletionLog(join(resolve(publicationRoot), ".account-deletions")),
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
+  support: {
+    store: new SupportTicketStore(new FileRecords(resolve(publicationRoot) + "-support")),
+    notify: noticeMail ? smtpSupportSender(noticeMail, EDITOR_HOST) : undefined,
+  },
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
   submissions: new FileSubmissionStore(join(resolve(publicationRoot), ".submissions")),
   reviews,
