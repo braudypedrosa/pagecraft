@@ -1,0 +1,690 @@
+{
+ "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32",
+ "template": "salt-house/1.0.1",
+ "runs": [
+  {
+   "template": "salt-house",
+   "site": "s1",
+   "startedAt": "2026-11-19T22:32:33.755Z",
+   "exercises": [
+    {
+     "check": "global-colors",
+     "pass": true,
+     "did": "Settings \u203a Colours: Body text #3c493f \u2192 #1f5f8b",
+     "observed": {
+      "elementsUsingToken": 45,
+      "elementsRepaintedOnCanvas": 45,
+      "savedInTokens": true
+     }
+    },
+    {
+     "check": "global-typography",
+     "pass": true,
+     "did": "Settings \u203a Typography: Heading font Outfit \u2192 Manrope; Body font Outfit \u2192 DM Sans; \"Section title\" 42px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Outfit",
+       "h2": "Outfit",
+       "body": "Outfit"
+      },
+      "after": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": {
+       "followed": [
+        47,
+        47,
+        47,
+        47,
+        47,
+        47,
+        47
+       ],
+       "ownSizeKept": []
+      },
+      "saved": {
+       "headFont": "'Manrope'",
+       "font": "'DM Sans'"
+      }
+     }
+    },
+    {
+     "check": "replace-images",
+     "pass": true,
+     "did": "Replaced salt-terrace-29 with bedroom.webp from the Media library; replaced the photo of component instance salt-home-instance-63",
+     "observed": {
+      "before": "af7ab16100334",
+      "after": {
+       "src": "http://127.0.0.1:4951/api/sites/s1/assets/abc025fc0dbc9",
+       "w": 1536,
+       "attrs": [
+        "1536",
+        "1024"
+       ]
+      },
+      "instance": {
+       "before": "af7ab16100334",
+       "picked": "cottage.webp",
+       "imageValues": [
+        [
+         "image",
+         "asset:a68d047be523e"
+        ]
+       ],
+       "recordedSizes": [
+        [
+         "@image-size:image",
+         "{\"src\":\"asset:a68d047be523e\",\"w\":1536,\"h\":1024}"
+        ]
+       ],
+       "rendered": {
+        "src": "a68d047be523e",
+        "loaded": true,
+        "natural": [
+         1536,
+         1024
+        ],
+        "attrs": [
+         "1536",
+         "1024"
+        ]
+       }
+      },
+      "recordedSizeMatchesNewPhoto": true
+     }
+    },
+    {
+     "check": "long-headings",
+     "pass": true,
+     "did": "H1 lengthened to 110 characters, checked in Mobile, Tablet and Desktop canvas modes",
+     "observed": {
+      "Mobile": {
+       "text": 110,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 7
+      },
+      "Tablet": {
+       "text": 110,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 12
+      },
+      "Desktop": {
+       "text": 110,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 7
+      }
+     }
+    },
+    {
+     "check": "duplicate-reorder-delete",
+     "pass": true,
+     "did": "Selected section salt-compare-your-stay-83; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+     "observed": {
+      "selected": [
+       "n4m6s911i"
+      ],
+      "start": 6,
+      "afterDuplicate": 7,
+      "movedOrderChanged": true,
+      "afterDelete": 6,
+      "restoredOrder": true,
+      "savedSections": 6
+     }
+    },
+    {
+     "check": "shared-and-instance-styles",
+     "pass": true,
+     "did": "Section title salt-text-61: instance size 31px (This element), then \"Update typography\" to share it with salt-text-69",
+     "observed": {
+      "before": [
+       47,
+       47
+      ],
+      "instanceOnly": [
+       31,
+       47
+      ],
+      "afterShared": [
+       31,
+       31
+      ],
+      "confirm": "Update typography everywhere?"
+     }
+    },
+    {
+     "check": "responsive-inspector",
+     "pass": true,
+     "did": "Mobile mode: H1 size 29px; back to Desktop",
+     "observed": {
+      "mobileCanvas": 29,
+      "desktopCanvas": 60,
+      "savedMobileOverride": "29px",
+      "savedDesktop": "60px"
+     }
+    },
+    {
+     "check": "save-reopen",
+     "pass": true,
+     "did": "Reloaded the editor after autosave (saved version 14)",
+     "observed": {
+      "savedVersion": 14,
+      "reopened": {
+       "h1": 110,
+       "blue": true
+      },
+      "status": "Draft ready"
+     }
+    },
+    {
+     "check": "media-and-links",
+     "pass": true,
+     "did": "Button salt-action-56: link page Coastal vacation rentals \u00b7 / \u2192 The Homes \u00b7 /homes; opened the Media library",
+     "observed": {
+      "hrefBefore": "#homes",
+      "hrefAfter": "homes.html",
+      "library": {
+       "count": "7 of 7 images",
+       "usage": true,
+       "upload": true
+      }
+     }
+    },
+    {
+     "check": "global-navigation-footer",
+     "pass": true,
+     "did": "Edit header: menu item \"The homes\" \u2192 \"The homes & more\"; checked on 3 pages",
+     "observed": {
+      "savedInSharedHeader": true,
+      "pages": [
+       {
+        "page": "index",
+        "shows": true
+       },
+       {
+        "page": "homes",
+        "shows": true
+       },
+       {
+        "page": "dune-house",
+        "shows": true
+       }
+      ],
+      "footerRegion": true
+     }
+    },
+    {
+     "check": "stress-content",
+     "pass": true,
+     "did": "Row salt-home-collection-65 (salt-property component cards): 2 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+     "observed": {
+      "1": {
+       "n": 1,
+       "rendered": 1,
+       "overflow": false,
+       "minWidth": 684,
+       "broken": 0
+      },
+      "3": {
+       "n": 3,
+       "rendered": 3,
+       "overflow": false,
+       "minWidth": 684,
+       "broken": 0
+      },
+      "start": 2,
+      "7-Desktop": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 684,
+       "broken": 0
+      },
+      "7-Tablet": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 369,
+       "broken": 0
+      },
+      "7-Mobile": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 374,
+       "broken": 0
+      },
+      "missingImage": {
+       "imgs": 1,
+       "broken": 0,
+       "height": 815,
+       "overflow": false
+      },
+      "longDescription": true,
+      "removedImage": true
+     }
+    },
+    {
+     "check": "publish-output",
+     "pass": true,
+     "did": "Publish \u203a preview \u203a Publish reviewed version (version 29)",
+     "observed": {
+      "publishState": "published",
+      "publishedVersion": 29,
+      "h1Length": 110,
+      "colourInCss": true,
+      "menuEditInHtml": true
+     }
+    },
+    {
+     "check": "form-behavior",
+     "pass": true,
+     "did": "Published plan-your-stay form filled with test data and submitted",
+     "observed": {
+      "form": {
+       "action": "http://localhost:4951/forms/s1/salt-stay-inquiry-209",
+       "method": "post",
+       "fields": [
+        {
+         "name": "name",
+         "type": "text",
+         "required": true,
+         "label": "Name *"
+        },
+        {
+         "name": "email",
+         "type": "email",
+         "required": true,
+         "label": "Email *"
+        },
+        {
+         "name": "stay",
+         "type": "textarea",
+         "required": true,
+         "label": "Home, dates and guests *"
+        },
+        {
+         "name": "_pc_trap",
+         "type": "text",
+         "required": false,
+         "label": "Leave empty"
+        },
+        {
+         "name": "_pc_request",
+         "type": "hidden",
+         "required": false,
+         "label": null
+        }
+       ]
+      },
+      "landed": {
+       "url": "http://localhost:4951/forms/thanks",
+       "h1": "Thank you",
+       "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+       "invalid": []
+      },
+      "storedInSubmissions": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "salt-text-54",
+    "image": "salt-terrace-29",
+    "instance": "salt-home-instance-63",
+    "button": "salt-action-56",
+    "sections": [
+     "salt-rental-opening-60",
+     "salt-homes-to-stay-in-68",
+     "salt-compare-your-stay-83",
+     "salt-stay-in-the-place-91",
+     "salt-arranging-your-holiday-51",
+     "salt-answers-before-arrival-97"
+    ],
+    "title": [
+     "salt-text-61",
+     "salt-text-69",
+     "salt-text-85",
+     "salt-text-35",
+     "salt-text-92"
+    ]
+   },
+   "publishedSlug": "salt-house-1-0-1-qa",
+   "finishedAt": "2026-11-19T22:34:33.610Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  }
+ ],
+ "final": [
+  {
+   "check": "global-colors",
+   "pass": true,
+   "did": "Settings \u203a Colours: Body text #3c493f \u2192 #1f5f8b",
+   "observed": {
+    "elementsUsingToken": 45,
+    "elementsRepaintedOnCanvas": 45,
+    "savedInTokens": true
+   }
+  },
+  {
+   "check": "global-typography",
+   "pass": true,
+   "did": "Settings \u203a Typography: Heading font Outfit \u2192 Manrope; Body font Outfit \u2192 DM Sans; \"Section title\" 42px \u2192 47px",
+   "observed": {
+    "before": {
+     "heading": "Outfit",
+     "h2": "Outfit",
+     "body": "Outfit"
+    },
+    "after": {
+     "heading": "Manrope",
+     "h2": "Manrope",
+     "body": "\"DM Sans\""
+    },
+    "headingFollowsHeadingFont": true,
+    "bodyFollowsBodyFont": true,
+    "sectionTitleSizes": {
+     "followed": [
+      47,
+      47,
+      47,
+      47,
+      47,
+      47,
+      47
+     ],
+     "ownSizeKept": []
+    },
+    "saved": {
+     "headFont": "'Manrope'",
+     "font": "'DM Sans'"
+    }
+   }
+  },
+  {
+   "check": "replace-images",
+   "pass": true,
+   "did": "Replaced salt-terrace-29 with bedroom.webp from the Media library; replaced the photo of component instance salt-home-instance-63",
+   "observed": {
+    "before": "af7ab16100334",
+    "after": {
+     "src": "http://127.0.0.1:4951/api/sites/s1/assets/abc025fc0dbc9",
+     "w": 1536,
+     "attrs": [
+      "1536",
+      "1024"
+     ]
+    },
+    "instance": {
+     "before": "af7ab16100334",
+     "picked": "cottage.webp",
+     "imageValues": [
+      [
+       "image",
+       "asset:a68d047be523e"
+      ]
+     ],
+     "recordedSizes": [
+      [
+       "@image-size:image",
+       "{\"src\":\"asset:a68d047be523e\",\"w\":1536,\"h\":1024}"
+      ]
+     ],
+     "rendered": {
+      "src": "a68d047be523e",
+      "loaded": true,
+      "natural": [
+       1536,
+       1024
+      ],
+      "attrs": [
+       "1536",
+       "1024"
+      ]
+     }
+    },
+    "recordedSizeMatchesNewPhoto": true
+   }
+  },
+  {
+   "check": "long-headings",
+   "pass": true,
+   "did": "H1 lengthened to 110 characters, checked in Mobile, Tablet and Desktop canvas modes",
+   "observed": {
+    "Mobile": {
+     "text": 110,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 7
+    },
+    "Tablet": {
+     "text": 110,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 12
+    },
+    "Desktop": {
+     "text": 110,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 7
+    }
+   }
+  },
+  {
+   "check": "duplicate-reorder-delete",
+   "pass": true,
+   "did": "Selected section salt-compare-your-stay-83; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+   "observed": {
+    "selected": [
+     "n4m6s911i"
+    ],
+    "start": 6,
+    "afterDuplicate": 7,
+    "movedOrderChanged": true,
+    "afterDelete": 6,
+    "restoredOrder": true,
+    "savedSections": 6
+   }
+  },
+  {
+   "check": "shared-and-instance-styles",
+   "pass": true,
+   "did": "Section title salt-text-61: instance size 31px (This element), then \"Update typography\" to share it with salt-text-69",
+   "observed": {
+    "before": [
+     47,
+     47
+    ],
+    "instanceOnly": [
+     31,
+     47
+    ],
+    "afterShared": [
+     31,
+     31
+    ],
+    "confirm": "Update typography everywhere?"
+   }
+  },
+  {
+   "check": "responsive-inspector",
+   "pass": true,
+   "did": "Mobile mode: H1 size 29px; back to Desktop",
+   "observed": {
+    "mobileCanvas": 29,
+    "desktopCanvas": 60,
+    "savedMobileOverride": "29px",
+    "savedDesktop": "60px"
+   }
+  },
+  {
+   "check": "save-reopen",
+   "pass": true,
+   "did": "Reloaded the editor after autosave (saved version 14)",
+   "observed": {
+    "savedVersion": 14,
+    "reopened": {
+     "h1": 110,
+     "blue": true
+    },
+    "status": "Draft ready"
+   }
+  },
+  {
+   "check": "publish-output",
+   "pass": true,
+   "did": "Publish \u203a preview \u203a Publish reviewed version (version 29)",
+   "observed": {
+    "publishState": "published",
+    "publishedVersion": 29,
+    "h1Length": 110,
+    "colourInCss": true,
+    "menuEditInHtml": true
+   }
+  },
+  {
+   "check": "media-and-links",
+   "pass": true,
+   "did": "Button salt-action-56: link page Coastal vacation rentals \u00b7 / \u2192 The Homes \u00b7 /homes; opened the Media library",
+   "observed": {
+    "hrefBefore": "#homes",
+    "hrefAfter": "homes.html",
+    "library": {
+     "count": "7 of 7 images",
+     "usage": true,
+     "upload": true
+    }
+   }
+  },
+  {
+   "check": "global-navigation-footer",
+   "pass": true,
+   "did": "Edit header: menu item \"The homes\" \u2192 \"The homes & more\"; checked on 3 pages",
+   "observed": {
+    "savedInSharedHeader": true,
+    "pages": [
+     {
+      "page": "index",
+      "shows": true
+     },
+     {
+      "page": "homes",
+      "shows": true
+     },
+     {
+      "page": "dune-house",
+      "shows": true
+     }
+    ],
+    "footerRegion": true
+   }
+  },
+  {
+   "check": "form-behavior",
+   "pass": true,
+   "did": "Published plan-your-stay form filled with test data and submitted",
+   "observed": {
+    "form": {
+     "action": "http://localhost:4951/forms/s1/salt-stay-inquiry-209",
+     "method": "post",
+     "fields": [
+      {
+       "name": "name",
+       "type": "text",
+       "required": true,
+       "label": "Name *"
+      },
+      {
+       "name": "email",
+       "type": "email",
+       "required": true,
+       "label": "Email *"
+      },
+      {
+       "name": "stay",
+       "type": "textarea",
+       "required": true,
+       "label": "Home, dates and guests *"
+      },
+      {
+       "name": "_pc_trap",
+       "type": "text",
+       "required": false,
+       "label": "Leave empty"
+      },
+      {
+       "name": "_pc_request",
+       "type": "hidden",
+       "required": false,
+       "label": null
+      }
+     ]
+    },
+    "landed": {
+     "url": "http://localhost:4951/forms/thanks",
+     "h1": "Thank you",
+     "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+     "invalid": []
+    },
+    "storedInSubmissions": true
+   }
+  },
+  {
+   "check": "stress-content",
+   "pass": true,
+   "did": "Row salt-home-collection-65 (salt-property component cards): 2 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+   "observed": {
+    "1": {
+     "n": 1,
+     "rendered": 1,
+     "overflow": false,
+     "minWidth": 684,
+     "broken": 0
+    },
+    "3": {
+     "n": 3,
+     "rendered": 3,
+     "overflow": false,
+     "minWidth": 684,
+     "broken": 0
+    },
+    "start": 2,
+    "7-Desktop": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 684,
+     "broken": 0
+    },
+    "7-Tablet": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 369,
+     "broken": 0
+    },
+    "7-Mobile": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 374,
+     "broken": 0
+    },
+    "missingImage": {
+     "imgs": 1,
+     "broken": 0,
+     "height": 815,
+     "overflow": false
+    },
+    "longDescription": true,
+    "removedImage": true
+   }
+  }
+ ]
+}

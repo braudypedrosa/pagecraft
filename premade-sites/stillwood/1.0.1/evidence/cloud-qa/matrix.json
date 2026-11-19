@@ -1,0 +1,2069 @@
+{
+ "slug": "stillwood-1-0-1-qa",
+ "chrome": "Chrome/156.0.8078.82",
+ "origin": "http://127.0.0.1:4951",
+ "pages": [
+  {
+   "page": "index",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 14,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 9936
+   },
+   "title": "Woodland cabin stays \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 37,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-390.jpg"
+  },
+  {
+   "page": "index",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 14,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 8453
+   },
+   "title": "Woodland cabin stays \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 39,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-768.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 14,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 8228
+   },
+   "title": "Woodland cabin stays \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 39,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1024.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 14,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 8264
+   },
+   "title": "Woodland cabin stays \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 40,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1440.jpg"
+  },
+  {
+   "page": "cabins",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/cabins",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3703
+   },
+   "title": "Find your cabin \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "cabins-390.jpg"
+  },
+  {
+   "page": "cabins",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/cabins",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2660
+   },
+   "title": "Find your cabin \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "cabins-768.jpg"
+  },
+  {
+   "page": "cabins",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/cabins",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2588
+   },
+   "title": "Find your cabin \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "cabins-1024.jpg"
+  },
+  {
+   "page": "cabins",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/cabins",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2588
+   },
+   "title": "Find your cabin \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "cabins-1440.jpg"
+  },
+  {
+   "page": "the-a-frame",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/the-a-frame",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4507
+   },
+   "title": "The A-frame \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 23,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "the-a-frame-390.jpg"
+  },
+  {
+   "page": "the-a-frame",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/the-a-frame",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3717
+   },
+   "title": "The A-frame \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "the-a-frame-768.jpg"
+  },
+  {
+   "page": "the-a-frame",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/the-a-frame",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3750
+   },
+   "title": "The A-frame \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "the-a-frame-1024.jpg"
+  },
+  {
+   "page": "the-a-frame",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/the-a-frame",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3476
+   },
+   "title": "The A-frame \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "the-a-frame-1440.jpg"
+  },
+  {
+   "page": "waterline",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/waterline",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4507
+   },
+   "title": "Waterline \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 23,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "waterline-390.jpg"
+  },
+  {
+   "page": "waterline",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/waterline",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3717
+   },
+   "title": "Waterline \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "waterline-768.jpg"
+  },
+  {
+   "page": "waterline",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/waterline",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3750
+   },
+   "title": "Waterline \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "waterline-1024.jpg"
+  },
+  {
+   "page": "waterline",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/waterline",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3476
+   },
+   "title": "Waterline \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "waterline-1440.jpg"
+  },
+  {
+   "page": "meadow-house",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/meadow-house",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4535
+   },
+   "title": "Meadow House \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 23,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "meadow-house-390.jpg"
+  },
+  {
+   "page": "meadow-house",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/meadow-house",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3717
+   },
+   "title": "Meadow House \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "meadow-house-768.jpg"
+  },
+  {
+   "page": "meadow-house",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/meadow-house",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3750
+   },
+   "title": "Meadow House \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "meadow-house-1024.jpg"
+  },
+  {
+   "page": "meadow-house",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/meadow-house",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 6,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3476
+   },
+   "title": "Meadow House \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 27,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "meadow-house-1440.jpg"
+  },
+  {
+   "page": "experiences",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/experiences",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4449
+   },
+   "title": "The slower days \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 17,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "experiences-390.jpg"
+  },
+  {
+   "page": "experiences",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/experiences",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3888
+   },
+   "title": "The slower days \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 20,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Go to carousel position 1 of 3",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "experiences-768.jpg"
+  },
+  {
+   "page": "experiences",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/experiences",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3790
+   },
+   "title": "The slower days \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 20,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Go to carousel position 1 of 3",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "experiences-1024.jpg"
+  },
+  {
+   "page": "experiences",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/experiences",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3854
+   },
+   "title": "The slower days \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 21,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Go to carousel position 1 of 4",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "experiences-1440.jpg"
+  },
+  {
+   "page": "field-guide",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/field-guide",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2976
+   },
+   "title": "Field guide \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "field-guide-390.jpg"
+  },
+  {
+   "page": "field-guide",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/field-guide",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3009
+   },
+   "title": "Field guide \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "field-guide-768.jpg"
+  },
+  {
+   "page": "field-guide",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/field-guide",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2986
+   },
+   "title": "Field guide \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "field-guide-1024.jpg"
+  },
+  {
+   "page": "field-guide",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/field-guide",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3066
+   },
+   "title": "Field guide \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "field-guide-1440.jpg"
+  },
+  {
+   "page": "our-story",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/our-story",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3131
+   },
+   "title": "Our story \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 12,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "our-story-390.jpg"
+  },
+  {
+   "page": "our-story",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/our-story",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3128
+   },
+   "title": "Our story \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "our-story-768.jpg"
+  },
+  {
+   "page": "our-story",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/our-story",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3039
+   },
+   "title": "Our story \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "our-story-1024.jpg"
+  },
+  {
+   "page": "our-story",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/our-story",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3036
+   },
+   "title": "Our story \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "our-story-1440.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3137
+   },
+   "title": "Plan your stay \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 24,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-390.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2726
+   },
+   "title": "Plan your stay \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 28,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-768.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2726
+   },
+   "title": "Plan your stay \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 28,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1024.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/stillwood-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "contain",
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 76,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2470
+   },
+   "title": "Plan your stay \u2014 Stillwood",
+   "lang": "en",
+   "keyboard": {
+    "stops": 28,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false,
+    "toggle": "Open calendar",
+    "opened": 4,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1440.jpg"
+  }
+ ],
+ "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd"
+}

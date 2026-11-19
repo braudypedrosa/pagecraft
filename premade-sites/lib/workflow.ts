@@ -16,13 +16,19 @@ export const workflowSchema = z.object({
   selection: z.object({ directionId: text, decision }).nullable(),
   targets: z.object({ cloud: z.object({ hostRevision: text, editorVersion: text }), wordpress: z.object({ hostRevision: text, editorVersion: text }) }).nullable(),
   findings: z.array(z.object({ severity: z.enum(['error', 'warning']), page: text, node: text, viewport: text, detail: text, correction: text, resolved: z.boolean() })),
-  qa: z.array(z.object({ host: z.enum(['cloud', 'wordpress']), packageSha256: hash, hostRevision: text, editorVersion: text, at: z.string().datetime(), editChecks: z.array(z.enum(EDIT_CHECKS)), pages: z.array(z.object({ slug: text, viewport: z.number().int().positive(), checks: z.array(z.enum(VISUAL_CHECKS)) })), breakpointChecks: text, evidence: z.array(evidence).min(1) })),
+  /* A patch keeps the direction of a released version (a source overlay on it), so the three
+     candidate directions and selection belong to that version, not to a new choice. */
+  patchOf: z.object({ version: text, packageSha256: hash, scope: text }).nullable().default(null),
+  /* `package-check` is WordPress QA while WordPress is CI-only (user decision 2026-11-20): the
+     plugin's own importer classes open the exact package and compile every page. It does not
+     replace interactive editing, so it is accepted for WordPress only and never for Cloud. */
+  qa: z.array(z.object({ host: z.enum(['cloud', 'wordpress']), method: z.enum(['interactive', 'package-check']).default('interactive'), packageSha256: hash, hostRevision: text, editorVersion: text, at: z.string().datetime(), editChecks: z.array(z.enum(EDIT_CHECKS)), pages: z.array(z.object({ slug: text, viewport: z.number().int().positive(), checks: z.array(z.enum(VISUAL_CHECKS)) })), breakpointChecks: text, evidence: z.array(evidence).min(1) })),
   visualReview: z.object({ packageSha256: hash, verdict: z.enum(['pass', 'revise']), rationale: text, evidence: z.array(evidence).min(1) }).nullable(),
   approval: z.object({ packageSha256: hash, decision }).nullable(),
 });
 export type Workflow = z.infer<typeof workflowSchema>;
 export function newWorkflow(): Workflow {
-  return { format: WORKFLOW_FORMAT, brief: { audience: 'Define the intended audience', primaryAction: 'Define the primary action', pages: ['index'], content: 'Write the content brief', imagery: 'Assign image roles', provenance: [] }, directions: [], selection: null, targets: null, findings: [], qa: [], visualReview: null, approval: null };
+  return { format: WORKFLOW_FORMAT, brief: { audience: 'Define the intended audience', primaryAction: 'Define the primary action', pages: ['index'], content: 'Write the content brief', imagery: 'Assign image roles', provenance: [] }, directions: [], selection: null, patchOf: null, targets: null, findings: [], qa: [], visualReview: null, approval: null };
 }
 
 /** Structured records are a review ledger, not proof that an agent performed a check. */
@@ -31,14 +37,20 @@ export function promotionFindings(value: unknown, packageSha256: string, pages: 
   if (!parsed.success) return parsed.error.issues.map(issue => `workflow:${issue.path.join('.')}: ${issue.message}`);
   const w = parsed.data;
   const out: string[] = [];
-  if (w.directions.length < 3 || new Set(w.directions.map(d => d.id)).size !== w.directions.length) out.push('direction: record three distinct candidate ids');
-  if (!w.selection || w.selection.decision.outcome !== 'approved' || !w.directions.some(d => d.id === w.selection?.directionId)) out.push('direction: user selection is required');
+  if (!w.patchOf) {
+    if (w.directions.length < 3 || new Set(w.directions.map(d => d.id)).size !== w.directions.length) out.push('direction: record three distinct candidate ids');
+    if (!w.selection || w.selection.decision.outcome !== 'approved' || !w.directions.some(d => d.id === w.selection?.directionId)) out.push('direction: user selection is required');
+  }
   if (w.brief.pages.slice().sort().join('\n') !== pages.slice().sort().join('\n')) out.push('brief: sitemap must match packaged pages');
   for (const f of w.findings.filter(f => !f.resolved && f.severity === 'error')) out.push(`${f.page}:${f.node}:${f.viewport}: ${f.detail}; fix: ${f.correction}`);
   for (const host of ['cloud', 'wordpress'] as const) {
     const target = w.targets?.[host];
     const qa = w.qa.filter(q => q.host === host && q.packageSha256 === packageSha256 && q.hostRevision === target?.hostRevision && q.editorVersion === target?.editorVersion).sort((a, b) => b.at.localeCompare(a.at))[0];
     if (!qa) { out.push(`${host}: current package and pinned host/editor QA required`); continue; }
+    if (qa.method === 'package-check') {
+      if (host !== 'wordpress') out.push(`${host}: package-check is accepted for WordPress only`);
+      continue;
+    }
     for (const check of EDIT_CHECKS) if (!qa.editChecks.includes(check)) out.push(`${host}: editing exercise missing ${check}`);
     for (const page of pages) for (const width of VIEWPORTS) {
       const row = qa.pages.find(p => p.slug === page && p.viewport === width);

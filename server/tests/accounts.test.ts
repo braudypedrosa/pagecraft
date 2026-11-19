@@ -647,7 +647,8 @@ test("dashboard create modal independently keeps only the latest template versio
   );
 
   a.match(html, /name="premadeTemplate" value="independent-studio@2\.0\.9" data-template-name="Northline · Creative Studio"/);
-  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4" data-template-name="Marea · Coastal Stays"/);
+  a.match(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.5" data-template-name="Marea · Coastal Stays"/);
+  a.doesNotMatch(html, /name="premadeTemplate" value="coastal-rentals@1\.0\.4"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.8"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@2\.0\.7"/);
   a.doesNotMatch(html, /name="premadeTemplate" value="independent-studio@1\.0\.0"/);

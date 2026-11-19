@@ -96,9 +96,668 @@
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4"
+    }
+  },
   "findings": [],
-  "qa": [],
-  "visualReview": null,
-  "approval": null
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T22:05:24Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "0c9ada55d9342a0658a81fd8e45b85cfc2480821023dc038e992e2edce2da97b"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    },
+    {
+      "host": "cloud",
+      "method": "interactive",
+      "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd",
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4",
+      "at": "2026-11-19T22:36:22Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "cabins",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "cabins",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "cabins",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "cabins",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "experiences",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "experiences",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "experiences",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "experiences",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "field-guide",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "field-guide",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "field-guide",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "field-guide",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "meadow-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "meadow-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "meadow-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "meadow-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "our-story",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "our-story",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "our-story",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "our-story",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "the-a-frame",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "the-a-frame",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "the-a-frame",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "the-a-frame",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "waterline",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "waterline",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "waterline",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "waterline",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Measured at 390, 768, 1024 and 1440 only (headless Chrome, unedited published site). Long headings and 1/3/7 cards were also checked in the editor's Mobile, Tablet and Desktop modes. Fragile in-between widths were not measured in this patch QA.",
+      "evidence": [
+        {
+          "path": "evidence/cloud-qa/REPORT.md",
+          "sha256": "909f4d052cc1a9882309a6714068bc3179092f23b5edc8616bd265ccc931e58e"
+        },
+        {
+          "path": "evidence/cloud-qa/matrix.json",
+          "sha256": "44c2c93e8bd56a34c4dd870cb65fb60e6b1630f951c3b6c599e9e47c02bcb3d8"
+        },
+        {
+          "path": "evidence/cloud-qa/editing-exercises.json",
+          "sha256": "963c79085b565f406967ff6b6d925ecf0d2c4bcedb38c7dbc7c3d8c49b22c73c"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-390.jpg",
+          "sha256": "90cf9eca84e31e250db483a727feb9a732cc314f4e9a1a04cc9d687dc1cdcd4b"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-768.jpg",
+          "sha256": "fb8d6e776d722f405e19f00087bf38918a70ef64a2eaa5e4fca7a59cc93d5ff0"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1024.jpg",
+          "sha256": "3987fe8bdac82940e09f5ff1fc7df807b302fc69c65fc73f16abcc9106d34b1a"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1440.jpg",
+          "sha256": "e06fe14dbc3ac25cd8747518263c2f3d100191b636faefda71ba22cd295485b2"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd",
+    "verdict": "pass",
+    "rationale": "Separate rendered pass on every page at 390/768/1024/1440 from full-page captures, with targeted full-resolution checks and a pixel comparison against the pre-fix package. See RENDERED-REVIEW.md for observations and scope. Agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "evidence/cloud-qa/RENDERED-REVIEW.md",
+        "sha256": "155ce2389aaa3cf460e6b233daf719ee2a884b0c403a1221d973c922af30b7ea"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-390.jpg",
+        "sha256": "90cf9eca84e31e250db483a727feb9a732cc314f4e9a1a04cc9d687dc1cdcd4b"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-1440.jpg",
+        "sha256": "e06fe14dbc3ac25cd8747518263c2f3d100191b636faefda71ba22cd295485b2"
+      }
+    ]
+  },
+  "approval": {
+    "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Approve all four",
+      "at": "2026-11-19T22:38:43Z",
+      "evidence": "Current conversation (20 Nov 2026): approval of the four exact packages listed by hash (stillwood 1.0.1 faf67f25, salt-house 1.0.1 0a2b4d74, architecture-studio 1.0.1 c8e4abe9, coastal-rentals 1.0.5 310ea0f6) after Cloud QA, the WordPress package check and screenshots, including the Salt House button fill change."
+    }
+  },
+  "patchOf": {
+    "version": "1.0.0",
+    "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+    "scope": "Search form split from stay inquiries, setup guidance, and recorded component photo sizes. Heading text styles follow the Heading font setting (quotes keep Georgia); the header logo loads eagerly."
+  }
 }

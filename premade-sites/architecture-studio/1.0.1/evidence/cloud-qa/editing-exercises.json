@@ -1,0 +1,760 @@
+{
+ "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+ "template": "architecture-studio/1.0.1",
+ "runs": [
+  {
+   "template": "architecture-studio",
+   "site": "s3",
+   "startedAt": "2026-11-19T22:11:43.511Z",
+   "exercises": [
+    {
+     "check": "global-colors",
+     "pass": true,
+     "did": "Settings \u203a Colours: Project surface #e9edf0 \u2192 #1f5f8b",
+     "observed": {
+      "elementsUsingToken": 2,
+      "elementsRepaintedOnCanvas": 2,
+      "savedInTokens": true
+     }
+    },
+    {
+     "check": "global-typography",
+     "pass": false,
+     "did": "Settings \u203a Typography: Heading font Custom \u2014 Arial \u2192 Manrope; Body font Custom \u2014 Arial \u2192 DM Sans; \"Section title\" 34px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Arial",
+       "h2": "Arial",
+       "body": "Arial"
+      },
+      "after": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": {
+       "followed": [
+        null,
+        47,
+        47
+       ],
+       "ownSizeKept": []
+      },
+      "saved": {
+       "headFont": "'Manrope'",
+       "font": "'DM Sans'"
+      }
+     }
+    },
+    {
+     "check": "replace-images",
+     "pass": true,
+     "did": "Replaced cg-courtyard-house-21 with reading-room.webp from the Media library; replaced the photo of component instance cg-project-instance-26",
+     "observed": {
+      "before": "abaf88ba7d561",
+      "after": {
+       "src": "http://127.0.0.1:4951/api/sites/s3/assets/a4b527e6250f9",
+       "w": 1536,
+       "attrs": [
+        "1536",
+        "1024"
+       ]
+      },
+      "instance": {
+       "before": "a4b527e6250f9",
+       "picked": "courtyard-house.webp",
+       "imageValues": [
+        [
+         "image",
+         "asset:abaf88ba7d561"
+        ]
+       ],
+       "recordedSizes": [
+        [
+         "@image-size:image",
+         "{\"src\":\"asset:abaf88ba7d561\",\"w\":1536,\"h\":1024}"
+        ]
+       ],
+       "rendered": {
+        "src": "abaf88ba7d561",
+        "loaded": true,
+        "natural": [
+         1536,
+         1024
+        ],
+        "attrs": [
+         "1536",
+         "1024"
+        ]
+       }
+      },
+      "recordedSizeMatchesNewPhoto": true
+     }
+    },
+    {
+     "check": "long-headings",
+     "pass": true,
+     "did": "H1 lengthened to 126 characters, checked in Mobile, Tablet and Desktop canvas modes",
+     "observed": {
+      "Mobile": {
+       "text": 124,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 8
+      },
+      "Tablet": {
+       "text": 124,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 9
+      },
+      "Desktop": {
+       "text": 124,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 9
+      }
+     }
+    },
+    {
+     "check": "duplicate-reorder-delete",
+     "pass": true,
+     "did": "Selected section cg-practice-30; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+     "observed": {
+      "selected": [
+       "n3ve1f1w0"
+      ],
+      "start": 4,
+      "afterDuplicate": 5,
+      "movedOrderChanged": true,
+      "afterDelete": 4,
+      "restoredOrder": true,
+      "savedSections": 4
+     }
+    },
+    {
+     "check": "shared-and-instance-styles",
+     "pass": true,
+     "did": "Section title cg-heading-28: instance size 31px (This element), then \"Update typography\" to share it with cg-heading-35",
+     "observed": {
+      "before": [
+       47,
+       47
+      ],
+      "instanceOnly": [
+       31,
+       47
+      ],
+      "afterShared": [
+       31,
+       31
+      ],
+      "confirm": "Update typography everywhere?"
+     }
+    },
+    {
+     "check": "responsive-inspector",
+     "pass": true,
+     "did": "Mobile mode: H1 size 29px; back to Desktop",
+     "observed": {
+      "mobileCanvas": 29,
+      "desktopCanvas": 48,
+      "savedMobileOverride": "29px",
+      "savedDesktop": null
+     }
+    },
+    {
+     "check": "save-reopen",
+     "pass": true,
+     "did": "Reloaded the editor after autosave (saved version 14)",
+     "observed": {
+      "savedVersion": 14,
+      "reopened": {
+       "h1": 124,
+       "blue": true
+      },
+      "status": "Draft ready"
+     }
+    },
+    {
+     "check": "media-and-links",
+     "pass": true,
+     "did": "Button cg-link-17: link page Project Detail \u00b7 /project-detail \u2192 Projects \u00b7 /projects; opened the Media library",
+     "observed": {
+      "hrefBefore": "project-detail.html",
+      "hrefAfter": "projects.html",
+      "library": {
+       "count": "2 of 2 images",
+       "usage": true,
+       "upload": true
+      }
+     }
+    },
+    {
+     "check": "global-navigation-footer",
+     "pass": true,
+     "did": "Edit header: menu item \"Projects\" \u2192 \"Projects & more\"; checked on 3 pages",
+     "observed": {
+      "savedInSharedHeader": true,
+      "pages": [
+       {
+        "page": "index",
+        "shows": true
+       },
+       {
+        "page": "projects",
+        "shows": true
+       },
+       {
+        "page": "project-detail",
+        "shows": true
+       }
+      ],
+      "footerRegion": true
+     }
+    },
+    {
+     "check": "stress-content",
+     "pass": true,
+     "did": "Row cg-projects-27 (project-record component cards): 1 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+     "observed": {
+      "1": {
+       "n": 1,
+       "rendered": 1,
+       "overflow": false,
+       "minWidth": 1200,
+       "broken": 0
+      },
+      "3": {
+       "n": 3,
+       "rendered": 3,
+       "overflow": false,
+       "minWidth": 1200,
+       "broken": 0
+      },
+      "start": 1,
+      "7-Desktop": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 1200,
+       "broken": 0
+      },
+      "7-Tablet": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 786,
+       "broken": 0
+      },
+      "7-Mobile": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 374,
+       "broken": 0
+      },
+      "missingImage": {
+       "imgs": 1,
+       "broken": 0,
+       "height": 390,
+       "overflow": false
+      },
+      "longDescription": true,
+      "removedImage": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "cg-heading-15",
+    "image": "cg-courtyard-house-21",
+    "instance": "cg-project-instance-26",
+    "button": "cg-link-17",
+    "sections": [
+     "cg-opening-25",
+     "cg-projects-27",
+     "cg-practice-30",
+     "cg-inquiry-link-38"
+    ],
+    "title": [
+     "cg-heading-28",
+     "cg-heading-35"
+    ]
+   },
+   "finishedAt": "2026-11-19T22:13:33.163Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  },
+  {
+   "template": "architecture-studio",
+   "site": "s3",
+   "startedAt": "2026-11-19T22:16:41.802Z",
+   "exercises": [
+    {
+     "check": "global-typography",
+     "pass": true,
+     "did": "Settings \u203a Typography: Heading font Manrope \u2192 DM Sans; Body font DM Sans \u2192 Manrope; \"Section title\" 31px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "after": {
+       "heading": "\"DM Sans\"",
+       "h2": "\"DM Sans\"",
+       "body": "Manrope"
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": {
+       "followed": [
+        47,
+        47,
+        47
+       ],
+       "ownSizeKept": []
+      },
+      "saved": {
+       "headFont": "'DM Sans'",
+       "font": "'Manrope'"
+      }
+     }
+    }
+   ],
+   "targets": {
+    "h1": "cg-heading-15",
+    "image": "cg-courtyard-house-21",
+    "instance": "cg-project-instance-26",
+    "button": "cg-link-17",
+    "sections": [
+     "cg-opening-25",
+     "cg-projects-27",
+     "cg-practice-30",
+     "cg-inquiry-link-38"
+    ],
+    "title": [
+     "cg-heading-28",
+     "cg-heading-35"
+    ]
+   },
+   "finishedAt": "2026-11-19T22:16:50.776Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  },
+  {
+   "template": "architecture-studio",
+   "site": "s3",
+   "startedAt": "2026-11-19T22:16:19.327Z",
+   "exercises": [
+    {
+     "check": "publish-output",
+     "pass": true,
+     "did": "Publish \u203a preview \u203a Publish reviewed version (version 30)",
+     "observed": {
+      "publishState": "published",
+      "publishedVersion": 30,
+      "h1Length": 124,
+      "colourInCss": true,
+      "menuEditInHtml": true
+     }
+    },
+    {
+     "check": "form-behavior",
+     "pass": true,
+     "did": "Published contact form filled with test data and submitted",
+     "observed": {
+      "form": {
+       "action": "http://localhost:4951/forms/s3/cg-inquiry-form-33",
+       "method": "post",
+       "fields": [
+        {
+         "name": "name",
+         "type": "text",
+         "required": true,
+         "label": "Name *"
+        },
+        {
+         "name": "email",
+         "type": "email",
+         "required": true,
+         "label": "Email *"
+        },
+        {
+         "name": "project",
+         "type": "textarea",
+         "required": true,
+         "label": "About the project *"
+        },
+        {
+         "name": "_pc_trap",
+         "type": "text",
+         "required": false,
+         "label": "Leave empty"
+        },
+        {
+         "name": "_pc_request",
+         "type": "hidden",
+         "required": false,
+         "label": null
+        }
+       ]
+      },
+      "landed": {
+       "url": "http://localhost:4951/forms/thanks",
+       "h1": "Thank you",
+       "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+       "invalid": []
+      },
+      "storedInSubmissions": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "cg-heading-15",
+    "image": "cg-courtyard-house-21",
+    "instance": "cg-project-instance-26",
+    "button": "cg-link-17",
+    "sections": [
+     "cg-opening-25",
+     "cg-projects-27",
+     "cg-practice-30",
+     "cg-inquiry-link-38"
+    ],
+    "title": [
+     "cg-heading-28",
+     "cg-heading-35"
+    ]
+   },
+   "publishedSlug": "common-ground-1-0-1-qa",
+   "finishedAt": "2026-11-19T22:16:33.429Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  }
+ ],
+ "final": [
+  {
+   "check": "global-colors",
+   "pass": true,
+   "did": "Settings \u203a Colours: Project surface #e9edf0 \u2192 #1f5f8b",
+   "observed": {
+    "elementsUsingToken": 2,
+    "elementsRepaintedOnCanvas": 2,
+    "savedInTokens": true
+   }
+  },
+  {
+   "check": "global-typography",
+   "pass": true,
+   "did": "Settings \u203a Typography: Heading font Manrope \u2192 DM Sans; Body font DM Sans \u2192 Manrope; \"Section title\" 31px \u2192 47px",
+   "observed": {
+    "before": {
+     "heading": "Manrope",
+     "h2": "Manrope",
+     "body": "\"DM Sans\""
+    },
+    "after": {
+     "heading": "\"DM Sans\"",
+     "h2": "\"DM Sans\"",
+     "body": "Manrope"
+    },
+    "headingFollowsHeadingFont": true,
+    "bodyFollowsBodyFont": true,
+    "sectionTitleSizes": {
+     "followed": [
+      47,
+      47,
+      47
+     ],
+     "ownSizeKept": []
+    },
+    "saved": {
+     "headFont": "'DM Sans'",
+     "font": "'Manrope'"
+    }
+   }
+  },
+  {
+   "check": "replace-images",
+   "pass": true,
+   "did": "Replaced cg-courtyard-house-21 with reading-room.webp from the Media library; replaced the photo of component instance cg-project-instance-26",
+   "observed": {
+    "before": "abaf88ba7d561",
+    "after": {
+     "src": "http://127.0.0.1:4951/api/sites/s3/assets/a4b527e6250f9",
+     "w": 1536,
+     "attrs": [
+      "1536",
+      "1024"
+     ]
+    },
+    "instance": {
+     "before": "a4b527e6250f9",
+     "picked": "courtyard-house.webp",
+     "imageValues": [
+      [
+       "image",
+       "asset:abaf88ba7d561"
+      ]
+     ],
+     "recordedSizes": [
+      [
+       "@image-size:image",
+       "{\"src\":\"asset:abaf88ba7d561\",\"w\":1536,\"h\":1024}"
+      ]
+     ],
+     "rendered": {
+      "src": "abaf88ba7d561",
+      "loaded": true,
+      "natural": [
+       1536,
+       1024
+      ],
+      "attrs": [
+       "1536",
+       "1024"
+      ]
+     }
+    },
+    "recordedSizeMatchesNewPhoto": true
+   }
+  },
+  {
+   "check": "long-headings",
+   "pass": true,
+   "did": "H1 lengthened to 126 characters, checked in Mobile, Tablet and Desktop canvas modes",
+   "observed": {
+    "Mobile": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 8
+    },
+    "Tablet": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 9
+    },
+    "Desktop": {
+     "text": 124,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 9
+    }
+   }
+  },
+  {
+   "check": "duplicate-reorder-delete",
+   "pass": true,
+   "did": "Selected section cg-practice-30; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+   "observed": {
+    "selected": [
+     "n3ve1f1w0"
+    ],
+    "start": 4,
+    "afterDuplicate": 5,
+    "movedOrderChanged": true,
+    "afterDelete": 4,
+    "restoredOrder": true,
+    "savedSections": 4
+   }
+  },
+  {
+   "check": "shared-and-instance-styles",
+   "pass": true,
+   "did": "Section title cg-heading-28: instance size 31px (This element), then \"Update typography\" to share it with cg-heading-35",
+   "observed": {
+    "before": [
+     47,
+     47
+    ],
+    "instanceOnly": [
+     31,
+     47
+    ],
+    "afterShared": [
+     31,
+     31
+    ],
+    "confirm": "Update typography everywhere?"
+   }
+  },
+  {
+   "check": "responsive-inspector",
+   "pass": true,
+   "did": "Mobile mode: H1 size 29px; back to Desktop",
+   "observed": {
+    "mobileCanvas": 29,
+    "desktopCanvas": 48,
+    "savedMobileOverride": "29px",
+    "savedDesktop": null
+   }
+  },
+  {
+   "check": "save-reopen",
+   "pass": true,
+   "did": "Reloaded the editor after autosave (saved version 14)",
+   "observed": {
+    "savedVersion": 14,
+    "reopened": {
+     "h1": 124,
+     "blue": true
+    },
+    "status": "Draft ready"
+   }
+  },
+  {
+   "check": "publish-output",
+   "pass": true,
+   "did": "Publish \u203a preview \u203a Publish reviewed version (version 30)",
+   "observed": {
+    "publishState": "published",
+    "publishedVersion": 30,
+    "h1Length": 124,
+    "colourInCss": true,
+    "menuEditInHtml": true
+   }
+  },
+  {
+   "check": "media-and-links",
+   "pass": true,
+   "did": "Button cg-link-17: link page Project Detail \u00b7 /project-detail \u2192 Projects \u00b7 /projects; opened the Media library",
+   "observed": {
+    "hrefBefore": "project-detail.html",
+    "hrefAfter": "projects.html",
+    "library": {
+     "count": "2 of 2 images",
+     "usage": true,
+     "upload": true
+    }
+   }
+  },
+  {
+   "check": "global-navigation-footer",
+   "pass": true,
+   "did": "Edit header: menu item \"Projects\" \u2192 \"Projects & more\"; checked on 3 pages",
+   "observed": {
+    "savedInSharedHeader": true,
+    "pages": [
+     {
+      "page": "index",
+      "shows": true
+     },
+     {
+      "page": "projects",
+      "shows": true
+     },
+     {
+      "page": "project-detail",
+      "shows": true
+     }
+    ],
+    "footerRegion": true
+   }
+  },
+  {
+   "check": "form-behavior",
+   "pass": true,
+   "did": "Published contact form filled with test data and submitted",
+   "observed": {
+    "form": {
+     "action": "http://localhost:4951/forms/s3/cg-inquiry-form-33",
+     "method": "post",
+     "fields": [
+      {
+       "name": "name",
+       "type": "text",
+       "required": true,
+       "label": "Name *"
+      },
+      {
+       "name": "email",
+       "type": "email",
+       "required": true,
+       "label": "Email *"
+      },
+      {
+       "name": "project",
+       "type": "textarea",
+       "required": true,
+       "label": "About the project *"
+      },
+      {
+       "name": "_pc_trap",
+       "type": "text",
+       "required": false,
+       "label": "Leave empty"
+      },
+      {
+       "name": "_pc_request",
+       "type": "hidden",
+       "required": false,
+       "label": null
+      }
+     ]
+    },
+    "landed": {
+     "url": "http://localhost:4951/forms/thanks",
+     "h1": "Thank you",
+     "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+     "invalid": []
+    },
+    "storedInSubmissions": true
+   }
+  },
+  {
+   "check": "stress-content",
+   "pass": true,
+   "did": "Row cg-projects-27 (project-record component cards): 1 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+   "observed": {
+    "1": {
+     "n": 1,
+     "rendered": 1,
+     "overflow": false,
+     "minWidth": 1200,
+     "broken": 0
+    },
+    "3": {
+     "n": 3,
+     "rendered": 3,
+     "overflow": false,
+     "minWidth": 1200,
+     "broken": 0
+    },
+    "start": 1,
+    "7-Desktop": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 1200,
+     "broken": 0
+    },
+    "7-Tablet": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 786,
+     "broken": 0
+    },
+    "7-Mobile": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 374,
+     "broken": 0
+    },
+    "missingImage": {
+     "imgs": 1,
+     "broken": 0,
+     "height": 390,
+     "overflow": false
+    },
+    "longDescription": true,
+    "removedImage": true
+   }
+  }
+ ]
+}

@@ -1,0 +1,1298 @@
+{
+ "slug": "common-ground-1-0-1-qa",
+ "chrome": "Chrome/156.0.8078.82",
+ "origin": "http://127.0.0.1:4951",
+ "pages": [
+  {
+   "page": "index",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2395
+   },
+   "title": "Common Ground \u2014 Homes and shared places",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-390.jpg"
+  },
+  {
+   "page": "index",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1701
+   },
+   "title": "Common Ground \u2014 Homes and shared places",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-768.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1701
+   },
+   "title": "Common Ground \u2014 Homes and shared places",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1024.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2255
+   },
+   "title": "Common Ground \u2014 Homes and shared places",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1440.jpg"
+  },
+  {
+   "page": "projects",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/projects",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2165
+   },
+   "title": "Project studies \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 6,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "projects-390.jpg"
+  },
+  {
+   "page": "projects",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/projects",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1586
+   },
+   "title": "Project studies \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "projects-768.jpg"
+  },
+  {
+   "page": "projects",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/projects",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1586
+   },
+   "title": "Project studies \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "projects-1024.jpg"
+  },
+  {
+   "page": "projects",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/projects",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1990
+   },
+   "title": "Project studies \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "projects-1440.jpg"
+  },
+  {
+   "page": "project-detail",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/project-detail",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2524
+   },
+   "title": "Courtyard house \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 6,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "project-detail-390.jpg"
+  },
+  {
+   "page": "project-detail",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/project-detail",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2249
+   },
+   "title": "Courtyard house \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "project-detail-768.jpg"
+  },
+  {
+   "page": "project-detail",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/project-detail",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2249
+   },
+   "title": "Courtyard house \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "project-detail-1024.jpg"
+  },
+  {
+   "page": "project-detail",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/project-detail",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2849
+   },
+   "title": "Courtyard house \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "project-detail-1440.jpg"
+  },
+  {
+   "page": "about",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2101
+   },
+   "title": "The practice \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 6,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-390.jpg"
+  },
+  {
+   "page": "about",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1683
+   },
+   "title": "The practice \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-768.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1683
+   },
+   "title": "The practice \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1024.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2131
+   },
+   "title": "The practice \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1440.jpg"
+  },
+  {
+   "page": "services",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2223
+   },
+   "title": "Ways to work together \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 5,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-390.jpg"
+  },
+  {
+   "page": "services",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1617
+   },
+   "title": "Ways to work together \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-768.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1493
+   },
+   "title": "Ways to work together \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1024.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1912
+   },
+   "title": "Ways to work together \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1440.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 36,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1519
+   },
+   "title": "Start a conversation \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-390.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1208
+   },
+   "title": "Start a conversation \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-768.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1208
+   },
+   "title": "Start a conversation \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1024.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/common-ground-1-0-1-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 0,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1528
+   },
+   "title": "Start a conversation \u2014 Common Ground",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1440.jpg"
+  }
+ ],
+ "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d"
+}

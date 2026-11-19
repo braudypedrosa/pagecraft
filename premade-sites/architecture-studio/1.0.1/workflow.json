@@ -28,9 +28,488 @@
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4"
+    }
+  },
   "findings": [],
-  "qa": [],
-  "visualReview": null,
-  "approval": null
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T19:30:44Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "5d6d14df61e2c75918b8aac217cc9df2c75a5f5ded886b2147031ab4a65871c7"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    },
+    {
+      "host": "cloud",
+      "method": "interactive",
+      "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4",
+      "at": "2026-11-19T22:36:22Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "project-detail",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "projects",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Measured at 390, 768, 1024 and 1440 only (headless Chrome, unedited published site). Long headings and 1/3/7 cards were also checked in the editor's Mobile, Tablet and Desktop modes. Fragile in-between widths were not measured in this patch QA.",
+      "evidence": [
+        {
+          "path": "evidence/cloud-qa/REPORT.md",
+          "sha256": "586d7d9bb7c2190a29f5c582ff75003bc5237dd8d4a074778d26700f09cda7f5"
+        },
+        {
+          "path": "evidence/cloud-qa/matrix.json",
+          "sha256": "c55df5489a7c061e4266b5b89369cc7828102a3fce9bde9751a0c4d4851b5da7"
+        },
+        {
+          "path": "evidence/cloud-qa/editing-exercises.json",
+          "sha256": "2c8cdabaeff7d018c0ed715af951f0d1a12b9a3ffd838265cbe52b87f2176118"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-390.jpg",
+          "sha256": "d24536a57d2c443555297206125b170d9116a25d57d6ccb920c5e28a5a239ee9"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-768.jpg",
+          "sha256": "efc3d673c2c96d40d3b2e955eeac5b2d812c09357fe55338052fc445736e1e88"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1024.jpg",
+          "sha256": "87bf83bbdc7ed26ed80b106fe5ada3caa93ab6e2649b8f9b46b944c9922c73ad"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1440.jpg",
+          "sha256": "5ef5cc5ea6f7d4d3c7b5bd99927841b808c8cdf1a46b32190697f45361d11c06"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+    "verdict": "pass",
+    "rationale": "Separate rendered pass on every page at 390/768/1024/1440 from full-page captures, with targeted full-resolution checks and a pixel comparison against the pre-fix package. See RENDERED-REVIEW.md for observations and scope. Agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "evidence/cloud-qa/RENDERED-REVIEW.md",
+        "sha256": "509ac884cd7184084cc1988fe64a454fc4cbc3dc0e94f9a1b4c591bd2890fea3"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-390.jpg",
+        "sha256": "d24536a57d2c443555297206125b170d9116a25d57d6ccb920c5e28a5a239ee9"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-1440.jpg",
+        "sha256": "5ef5cc5ea6f7d4d3c7b5bd99927841b808c8cdf1a46b32190697f45361d11c06"
+      }
+    ]
+  },
+  "approval": {
+    "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Approve all four",
+      "at": "2026-11-19T22:38:43Z",
+      "evidence": "Current conversation (20 Nov 2026): approval of the four exact packages listed by hash (stillwood 1.0.1 faf67f25, salt-house 1.0.1 0a2b4d74, architecture-studio 1.0.1 c8e4abe9, coastal-rentals 1.0.5 310ea0f6) after Cloud QA, the WordPress package check and screenshots, including the Salt House button fill change."
+    }
+  },
+  "patchOf": {
+    "version": "1.0.0",
+    "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+    "scope": "Tablet heading wrap, portable form guidance, and recorded component photo sizes."
+  }
 }
