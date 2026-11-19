@@ -115,3 +115,23 @@ test('Free accounts that already own more than one site keep them and see the li
   a.match(settings, /3 of 1 used/);
   a.match(settings, /aria-valuemax="1" aria-valuenow="3"><span style="width:100%">/);
 });
+
+test('Account settings link to the plans page only when paid plans can be bought', () => {
+  const data = { providers: ['email'], ownerCount: 1, storage: { usedBytes: 0, limitBytes: 100 * MB } };
+  const off = accountSettingsPage(user(), data, { tab: 'plan' });
+  a.doesNotMatch(off, /href="\/account\/plans"/);
+  const on = accountSettingsPage(user(), { ...data, paidPlans: true }, { tab: 'plan' });
+  a.match(on, /<a class="pc-btn primary" href="\/account\/plans">Upgrade plan<\/a>/);
+  a.doesNotMatch(on, /Paid plans are not available yet/);
+});
+
+test('Paid account settings show the paid plan allowances, not the Free copy', () => {
+  const html = accountSettingsPage(user('launch'), {
+    providers: ['email'], ownerCount: 2, storage: { usedBytes: 200 * MB, limitBytes: 1 * GB }, paidPlans: true,
+  }, { tab: 'plan' });
+  a.match(html, /Launch <span>current plan<\/span>/);
+  a.match(html, /<li>Up to 5 owned sites, drafts included<\/li>/);
+  a.match(html, /<li>1 GB optimized media storage<\/li>/);
+  a.doesNotMatch(html, /\$0 <span>|100 MB optimized/);
+  a.match(html, /href="\/account\/plans">Manage plan<\/a>/);
+});

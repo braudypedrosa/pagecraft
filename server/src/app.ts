@@ -1,5 +1,6 @@
 import { LiveReviewStore } from './live-reviews.ts';
 import { billingRoutes } from './billing-routes.ts';
+import { checkoutReady } from './paddle-billing.ts';
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { HTTPException } from "hono/http-exception";
 import type { ServerErrorLog } from "./system-health.ts";
@@ -1810,6 +1811,7 @@ export function createApp(o: Options) {
         ownerCount: await ownedSiteCount(user, mine, ownedCount),
         storage,
         deletion: deletion.view,
+        paidPlans: checkoutReady(o.billing?.config),
         wordpress: wordpress.map((credential) => ({
           id: credential.id,
           installationId: credential.installationId,

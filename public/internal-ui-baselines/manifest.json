@@ -1,45 +1,41 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T22:27:54.378Z",
+  "capturedAt": "2026-11-19T10:38:08.045Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
     "supported": true,
     "value": {
       "protocolVersion": "1.3",
-      "product": "Chrome/156.0.8078.82",
-      "revision": "@58d3ba996be0cba47b6bcd928490da32a0e0edaf",
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
-      "jsVersion": "15.6.75.27"
+      "product": "Chrome/153.0.8010.12",
+      "revision": "@971a7443b0c9b0a9b2860529b33331b76077ec62",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.4"
     }
   },
   "declaredBrowserVersion": {
-    "value": "Chrome/156.0.8078.82",
+    "value": "Chrome/153.0.8010.12",
     "verified": true
   },
   "captureEnvironment": {
     "runtime": {
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
-      "platform": "MacIntel",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "platform": "Linux x86_64",
       "userAgentData": {
         "supported": true,
         "value": {
           "brands": [
             {
-              "brand": "Not:A-Brand",
-              "version": "8"
-            },
-            {
               "brand": "Chromium",
-              "version": "156"
+              "version": "153"
             },
             {
-              "brand": "Google Chrome",
-              "version": "156"
+              "brand": "Not_A Brand",
+              "version": "8"
             }
           ],
           "mobile": false,
-          "platform": "macOS"
+          "platform": "Linux"
         }
       },
       "devicePixelRatio": 1,
@@ -130,7 +126,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "2f3f8d836c900b66d08ad41fa603db44092624ae1065552e181b4bc6237410dd",
+    "server/src/account-pages.ts": "02dd230c566a455c5bc12eccbecadb3bf1b64d4475b0d1c1d684bdc68b15411b",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -291,7 +287,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "38d6d56ee3f71d2a14a3f3c235a28367e88df2b2408c1691a81840d1b1eb370e",
+      "sha256": "4ef3e3c8394e4b0bf517bb29ee3281dda66a497dfcb8f42ef1d81c82dc99cdc8",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -328,7 +324,7 @@
       }
     },
     "cloud-fields-768.png": {
-      "sha256": "91b4250245d982c75a39e47e491045b07bda55d651135ebe5eb8ef824f849679",
+      "sha256": "17fe4a14c5ca6b4b1e5dc25d2201e852dc24f2e9daabde36e5cde534fc66ae8b",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -365,7 +361,7 @@
       }
     },
     "cloud-actions-1440.png": {
-      "sha256": "c8c4f23d2cdfc5d11fc996d251df29e6a7bf0ccfb102c4f2f4ad9beaa9325d86",
+      "sha256": "6676f41bd45aae0d025154275491e17774c3bf1ef827cc576b181085a22e1fc6",
       "width": 1440,
       "height": 959,
       "state": "Processing action, disabled and destructive actions",
@@ -402,7 +398,7 @@
       }
     },
     "cloud-actions-768.png": {
-      "sha256": "33e1def5db33a3d8c174a06e6a067faa1adf5313921a1863db2dcb0c2ac6bc98",
+      "sha256": "99de82c343cfcd211e02e2d99825e46a25e82a279821547302bb338225f89665",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions",
@@ -439,7 +435,7 @@
       }
     },
     "cloud-tables-1440.png": {
-      "sha256": "035aaa96eb268338f59143096a3ed115555030a9a089584246971625b832099b",
+      "sha256": "4fa30c7ba6feab3a6aee7e1cd4d8c0221e3c1acdfbc127ae8cb6e8df8824d5a5",
       "width": 1440,
       "height": 1102,
       "state": "First row hovered, second row neutral, empty result",
@@ -476,7 +472,7 @@
       }
     },
     "cloud-tables-768.png": {
-      "sha256": "4413939d4724a57e9576815a2f187ad77e2e14e8151eaee64b341ce3ffd64ad9",
+      "sha256": "6b2fdb43408d5a7e87e7020b192e1c704a38e45ac287db04a02393441a1e10ba",
       "width": 768,
       "height": 1168,
       "state": "First row hovered, second row neutral, empty result",
@@ -513,7 +509,7 @@
       }
     },
     "cloud-menus-1440.png": {
-      "sha256": "57d6d6daeb8d998375bd058115880363eb4bfc47518ea666c76af6d6f3b2ec92",
+      "sha256": "58b6fbeb8c3e674884885bf14e6c7306817c45ce3a2f609bac16b2194c8d3b4c",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -550,7 +546,7 @@
       }
     },
     "cloud-menus-768.png": {
-      "sha256": "ced891b3c0ebc12247633a83828ff5cb46f4315590c3849dfa33f6c2b7ad0e98",
+      "sha256": "912457f7f56853ac1d1f95484414803e16bcfc51ad74a987d7d75b467f534463",
       "width": 768,
       "height": 1016,
       "state": "Open picker, selected/disabled options and menu items",
@@ -587,7 +583,7 @@
       }
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "a4637db8c3bc71cfd36cb5e386db660155a6fb19152fe9de68c577c760cd9d31",
+      "sha256": "2fe85b34c32f5ce9d09d4f505fa84da4ba2071c436792f20ead247df51e25049",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -624,7 +620,7 @@
       }
     },
     "cloud-dialogs-768.png": {
-      "sha256": "6b4d18c9aae5923646c7b3145677dab2c12f157cbcc7e93ad6e37434e435dc89",
+      "sha256": "be752854c897a0f3ed9e07f127bf672fd9cdc7a04c14c56f1b739ae43e51b798",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -661,7 +657,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "c00549329367cab5299257ca9313a364b774fc19df3a102f1fd1e8385517bf0b",
+      "sha256": "42ef999aaecaebe8ad57e5f652a94f7082927052a3a97345ac0b4937bfda361d",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -698,7 +694,7 @@
       }
     },
     "cloud-feedback-768.png": {
-      "sha256": "b729650aa8e2805202f2d682e1d5871cb136cf84e4cace51e0f35961dcb9854a",
+      "sha256": "9c0acabc203c001a9b0abf13cd0d3027b7ea82fe4123c45926e79c94ec90ac0f",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -735,7 +731,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "83da92ace029b617b901bd0b5b5102f5df09028a209576e332ba05471e64f95a",
+      "sha256": "70b2d93b3b18456cdeb6edaae03b12908fdc08b172d7fa42aaebe41a72bc12ab",
       "width": 1440,
       "height": 1158,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -772,7 +768,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "f9c96374dfbb67ffb3ce928f23b7882ce5611e919c5ee4b339bcd3b657de970e",
+      "sha256": "6bb33e2978433063014ea405f56fca863c97b638ae10d40a1378581e625f8dd0",
       "width": 768,
       "height": 1875,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -809,7 +805,7 @@
       }
     },
     "builder-actions-1440.png": {
-      "sha256": "ca7d0f1699039e03688516363b953fb14f75b7bfda163a227160a14b4307e1ff",
+      "sha256": "e27c925b3aaab42787d57876af1c4e432f11d30ed35cd74ff0f9088164fc16b7",
       "width": 1440,
       "height": 1204,
       "state": "Processing action, disabled and destructive actions",
@@ -846,7 +842,7 @@
       }
     },
     "builder-actions-768.png": {
-      "sha256": "aae5e923ddf99ca7c67c6b03080f27d799c8e2d9abee86c2d44a5818c26fa912",
+      "sha256": "cb969d1b67391d63557a2ced8cbc75196c9e3f79b7e985c903d8c0d0d724d1ab",
       "width": 768,
       "height": 1259,
       "state": "Processing action, disabled and destructive actions",
@@ -883,7 +879,7 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "7da6d9078a8932175027ef3eb63ad733b7d9a1ee0250da642bf7db7f83a439df",
+      "sha256": "37621b29c41c3eadbd95089a65836c19be23a7bff23bfca04152c9ed621e5298",
       "width": 1440,
       "height": 1224,
       "state": "First row hovered, second row neutral, empty result",
@@ -920,7 +916,7 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "388e8c15e78bbc4c531d148c48db2ecdfbf90775e8ed50ffed27017072353eaf",
+      "sha256": "d0f6779dcd547d0611d5043f093ed21a0fe38372d53040f6042d72ed9d6272df",
       "width": 768,
       "height": 1280,
       "state": "First row hovered, second row neutral, empty result",
@@ -957,7 +953,7 @@
       }
     },
     "builder-menus-1440.png": {
-      "sha256": "b58372471742a19fb11dd40f38425f9c7fd3fe71ba2dfc245a9e6be4e31a1df1",
+      "sha256": "0a9f032bdc872aadb130470bab1eb0d893a843f12d2796944fe40f348d5690e7",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -994,7 +990,7 @@
       }
     },
     "builder-menus-768.png": {
-      "sha256": "eb2d4e9c4e50bb7afe1d36b24d73ccb68d33533912035686bb4da518d306a632",
+      "sha256": "1fbaad67ca15a676b7331a4422aff7063f6458c93d829cfe456124680bcf60f7",
       "width": 768,
       "height": 967,
       "state": "Open picker, selected/disabled options and menu items",
@@ -1031,7 +1027,7 @@
       }
     },
     "builder-dialogs-1440.png": {
-      "sha256": "888329f71a0f5358c2a76cbe7435f7f60ee0a24e6616747c354cb35bfc5c777e",
+      "sha256": "f0c68888707fb0a76ea0317fe4921dca8fcab150787b9336ffe3b4c1ba0d5952",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1068,7 +1064,7 @@
       }
     },
     "builder-dialogs-768.png": {
-      "sha256": "c6fb7a6d65902d0fa0ed1198ff980843035d9127362bf8ef526d4d1e0affd849",
+      "sha256": "ab54d66322c2b3033432fafa4632d9583d7852504aacf764db832976bc06184d",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1105,7 +1101,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "ea2fbbbb0dda568af59d1901d01448c009928840168e0447c4e591bfcc6b2cc4",
+      "sha256": "755d1a66be80a1d854b4ded6e1e1de7696454e50e34be7f4efb70c54486f598d",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1142,7 +1138,7 @@
       }
     },
     "builder-feedback-768.png": {
-      "sha256": "f24394a7ad7474b06475eb47c62c31a44b54237eb94f88a184fa8589f9b54cbc",
+      "sha256": "ba1bd172ee521d7599c5d5fc434e08b3b5f9f7bbbfd5d8a7eed65079f18edd0c",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
