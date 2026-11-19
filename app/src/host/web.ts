@@ -20,6 +20,9 @@ export interface WebHostOptions {
   userName?: string;
   document?: UnknownDocumentInput;
   version?: number;
+  /** The media list the server put in the page. The first `assets.list()` uses it instead of
+      a request; later calls (after uploads, or a reopen) always ask the server. */
+  assets?: unknown[];
   baseUrl?: string;
   fetch?: FetchLike;
   transport?: HostTransport;
@@ -87,6 +90,7 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
     ? { document: options.document, version: options.version || 1 }
     : undefined;
   const assetRoot = `${apiRoot}/assets`;
+  let preloadedAssets: unknown[] | null = Array.isArray(options.assets) ? options.assets : null;
   const asMedia = (row: any, size = 0): HostMedia => ({
     id: String(row.id), name: String(row.name || 'asset'), mimeType: String(row.mimeType || row.type || ''),
     url: String(row.url || `${assetRoot}/${encodeURIComponent(String(row.id))}`),
@@ -121,7 +125,13 @@ export function createWebHostAdapter(options: WebHostOptions): WebHostAdapter {
       ...(!options.templateDraft ? { async tag(id: string, tags: string[], version: number) {
         return asMedia((await transport.request<any>({method: 'PATCH', path: `${assetRoot}/${encodeURIComponent(id)}`, body: {tags, version}})).body);
       } } : {}),
-      async list() { return (await transport.request<any[]>({ path: assetRoot })).body.map(row => asMedia(row)); },
+      async list() {
+        if (preloadedAssets) {
+          const rows = preloadedAssets; preloadedAssets = null;
+          return rows.map(row => asMedia(row));
+        }
+        return (await transport.request<any[]>({ path: assetRoot })).body.map(row => asMedia(row));
+      },
       async download(id) {
         return (await transport.request<Blob>({ path: `${assetRoot}/${encodeURIComponent(id)}`, responseType: 'blob' })).body;
       },

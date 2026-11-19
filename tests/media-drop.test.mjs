@@ -47,13 +47,13 @@ test('multiple dropped images use one batch, reject duplicate drops, and redraw 
   const z=zone();drag(z,'dragenter');drag(z,'drop',[file('first.png'),file('second.png')]);
   expect(z.classList.contains('over')).toBe(false);
   expect(z.getAttribute('aria-busy')).toBe('true');
-  expect(d.querySelector('#mmUp').disabled).toBe(true);
+  expect(d.querySelector('[data-media-choose]').disabled).toBe(true);
   expect(drag(z,'dragover').dataTransfer.dropEffect).toBe('none');
   drag(z,'drop',[file('duplicate.png')]);expect(w.assetAdd).toHaveBeenCalledTimes(1);
   release();await vi.waitFor(()=>expect(w.assetAdd).toHaveBeenCalledTimes(2));release();
   await vi.waitFor(()=>expect(d.querySelectorAll('.mcard')).toHaveLength(2));
   expect(w.writeNow).toHaveBeenCalledTimes(2);
-  expect(d.querySelector('#mmUp').disabled).toBe(false);
+  expect(d.querySelector('[data-media-choose]').disabled).toBe(false);
   expect(d.querySelector('[data-tone=success]').textContent).toContain('2 images uploaded');
   expect(zone()).not.toBe(z);
   // A redraw owns a fresh listener set; dropping over a thumbnail uploads only once.
@@ -66,7 +66,7 @@ test('invalid files and empty directory drops show recoverable errors without up
   drag(zone(),'drop',[]);
   expect(d.querySelector('[data-tone=error]').textContent).toContain('Folders are not supported');
   drag(zone(),'drop',[file('notes.txt','text/plain')]);
-  await vi.waitFor(()=>expect(d.querySelector('#mmUp').disabled).toBe(false));
+  await vi.waitFor(()=>expect(d.querySelector('[data-media-choose]').disabled).toBe(false));
   expect(w.assetAdd).not.toHaveBeenCalled();
   expect(d.querySelector('#pc-notifications').textContent).toContain('Could not upload notes.txt');
   drag(zone(),'drop',[file('retry.png')]);
@@ -78,7 +78,7 @@ test('Upload chooses multiple images through the same path and canceled chooser 
   let chosen;
   const click=w.HTMLInputElement.prototype.click;
   w.HTMLInputElement.prototype.click=function(){chosen=this;};
-  d.querySelector('#mmUp').click();
+  d.querySelector('[data-media-view="upload"]').click();
   expect(chosen).toBeUndefined();
   d.querySelector('[data-media-choose]').click();
   expect(chosen.accept).toBe('image/*');expect(chosen.multiple).toBe(true);
@@ -143,7 +143,7 @@ test('a failed host upload returning no ID is reported and can be retried',async
   const {w,d,file,drag,zone}=await setup();w.assetAdd=vi.fn(async()=>null);
   drag(zone(),'drop',[file('failed.png')]);
   await vi.waitFor(()=>expect(d.querySelector('#pc-notifications').textContent).toContain('Could not upload failed.png'));
-  expect(d.querySelector('#mmUp').disabled).toBe(false);
+  expect(d.querySelector('[data-media-choose]').disabled).toBe(false);
 });
 
 test('upload refresh does not replay the open modal entrance',async()=>{
@@ -204,4 +204,36 @@ test('large libraries page results while searching all filenames and tags',async
  expect(d.querySelectorAll('.mcard')).toHaveLength(1);expect(d.querySelector('.mname').textContent).toBe('image-2999.png');expect(d.activeElement).toBe(search);
  d.querySelector('[data-media-select]').click();d.querySelector('.mcard').click();
  expect(d.activeElement).toBe(d.querySelector('.mcard'));expect(d.querySelector('[data-media-selected]').textContent).toBe('1 selected');
+});
+
+test('the footer says where a clicked image goes and has no second Upload button',async()=>{
+  const {w,d}=await setup();
+  const assets=w.eval('AS').mem;
+  assets.set('one',{id:'one',name:'Alpha.png',size:2048,w:1536,h:1024,url:'data:image/png;base64,AA=='});
+  w.mediaModal();
+  const foot=d.querySelector('#mFoot');
+  expect(foot.textContent).not.toContain('click an image to insert it');
+  const pageName=w.__CORE.page().name;
+  expect(foot.querySelector('[data-media-insert-hint]').textContent).toBe(`click an image to add it to ${pageName}`);
+  expect([...foot.querySelectorAll('button')].map(b=>b.textContent.trim())).not.toContain('Upload');
+  expect(d.querySelectorAll('#mBody [data-media-view]')).toHaveLength(2);
+  // Size and usage sit on separate lines, so "used 2×" is never cut to "used…".
+  const sub=[...d.querySelectorAll('.mcard .msub')].map(e=>e.textContent);
+  expect(sub).toEqual(['2 KB · 1536×1024','unused']);
+});
+
+test('the hint follows the selection to the element that will receive the image',async()=>{
+  const {w,d}=await setup();
+  w.eval('AS').mem.set('one',{id:'one',name:'Alpha.png',size:10,url:'data:image/png;base64,AA=='});
+  const core=w.__CORE;
+  const column=[];core.eachNode(core.tree(),n=>{if(n.type==='column')column.push(n);});
+  expect(column.length).toBeGreaterThan(0);
+  core.selSet([column[0].id]);
+  w.mediaModal();
+  const hint=d.querySelector('[data-media-insert-hint]').textContent;
+  expect(hint).toBe(`click an image to add it to ${core.nameOf(column[0])}`);
+  d.querySelector('.mcard').click();
+  const placed=core.locate(core.state.ui.sel);
+  expect(placed.node.type).toBe('image');
+  expect(placed.parent?.id).toBe(column[0].id);
 });

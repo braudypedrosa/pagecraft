@@ -311,6 +311,7 @@ __export(index_exports, {
   linkablePages: () => linkablePages,
   lint: () => lint,
   lintCounts: () => lintCounts,
+  lintGroups: () => lintGroups,
   listItems: () => listItems,
   listPageCount: () => listPageCount,
   locate: () => locate,
@@ -454,7 +455,9 @@ __export(index_exports, {
   styleAdd: () => styleAdd,
   styleClip: () => styleClip,
   styleClipClear: () => styleClipClear,
+  styleClipHide: () => styleClipHide,
   styleClipLoad: () => styleClipLoad,
+  styleClipOffered: () => styleClipOffered,
   styleDelete: () => styleDelete,
   stylePasteCheck: () => stylePasteCheck,
   styleSeen: () => styleSeen,
@@ -6454,7 +6457,16 @@ function lint() {
           ...context.repeatPath.length ? { repeatPath: context.repeatPath.map((item) => ({ ...item })) } : {},
           ...context.pagination ? { pagination: { ...context.pagination } } : {}
         };
-        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map(), target };
+        review = {
+          level,
+          code,
+          msg,
+          where: { ...scope, region, node: kindOf(node) },
+          nodeId,
+          items: /* @__PURE__ */ new Map(),
+          target,
+          ...context.cdef ? { component: { id: context.cdef.id, name: context.cdef.name } } : {}
+        };
         contextReviews.set(key, review);
       }
       if (context.col && context.item) {
@@ -6685,6 +6697,7 @@ function lint() {
       const shown = labels.slice(0, 3).join(", ");
       const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
       add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
+      if (review.component) out[out.length - 1].component = review.component;
     }
     dupIds.forEach((id) => add("error", "duplicate-id", `The anchor id \u201C${id}\u201D is used more than once on \u201C${pg2.name}\u201D.`, scope));
     const h1s = headings.filter((h) => h.level === 1);
@@ -6711,10 +6724,23 @@ function lint() {
   const rank = { error: 0, warn: 1 };
   return out.sort((a, b) => rank[a.level] - rank[b.level]);
 }
-var lintCounts = (findings) => ({
-  error: findings.filter((f) => f.level === "error").length,
-  warn: findings.filter((f) => f.level === "warn").length
-});
+function lintGroups(findings) {
+  const groups = /* @__PURE__ */ new Map();
+  for (const finding of findings) {
+    const key = [finding.level, finding.code, finding.msg, finding.where.slug ?? finding.where.page ?? ""].join("\0");
+    const group = groups.get(key);
+    if (group) group.push(finding);
+    else groups.set(key, [finding]);
+  }
+  return [...groups.values()];
+}
+var lintCounts = (findings) => {
+  const groups = lintGroups(findings);
+  return {
+    error: groups.filter((group) => group[0].level === "error").length,
+    warn: groups.filter((group) => group[0].level === "warn").length
+  };
+};
 var styleClip = { css: null, st: null, cls: null, ts: "", adv: "", from: "" };
 var styleClipSource = null;
 var styleClipClasses = [];
@@ -6823,6 +6849,13 @@ function styleClipClear() {
   styleClipSave();
 }
 styleClipLoad();
+var styleClipQuiet = null;
+function styleClipOffered() {
+  return !!styleClip.css && styleClip.css !== styleClipQuiet;
+}
+function styleClipHide() {
+  styleClipQuiet = styleClip.css;
+}
 try {
   if (typeof window !== "undefined" && window.addEventListener) {
     window.addEventListener("storage", (e) => {
@@ -7005,11 +7038,15 @@ function applyPastedStyle(id, prepared) {
 }
 function pasteStyles(id) {
   const prepared = preparedStylePaste();
-  return prepared ? applyPastedStyle(id, prepared) : false;
+  const done = prepared ? applyPastedStyle(id, prepared) : false;
+  if (done) styleClipHide();
+  return done;
 }
 function pasteStylesMany(ids) {
   const prepared = preparedStylePaste();
-  return prepared ? ids.filter((id) => applyPastedStyle(id, prepared)).length : 0;
+  const count = prepared ? ids.filter((id) => applyPastedStyle(id, prepared)).length : 0;
+  if (count) styleClipHide();
+  return count;
 }
 var TEXT_SLOTS = {
   heading: ["text"],
@@ -13209,6 +13246,7 @@ function proposalApply(changes, proposalId = "", options) {
   linkablePages,
   lint,
   lintCounts,
+  lintGroups,
   listItems,
   listPageCount,
   locate,
@@ -13352,7 +13390,9 @@ function proposalApply(changes, proposalId = "", options) {
   styleAdd,
   styleClip,
   styleClipClear,
+  styleClipHide,
   styleClipLoad,
+  styleClipOffered,
   styleDelete,
   stylePasteCheck,
   styleSeen,

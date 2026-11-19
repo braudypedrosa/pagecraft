@@ -3229,8 +3229,8 @@ export function createApp(o: Options) {
     }
 
     // These reads have no dependencies on one another. Keep authorization fresh,
-    // then overlap storage accounting and the WordPress link catalogue.
-    const [storage, wordpressContent, schedules] = await Promise.all([
+    // then overlap storage accounting, the WordPress link catalogue and the media list.
+    const [storage, wordpressContent, schedules, assets] = await Promise.all([
       timed("editor.storage", async () => {
         const mediaOwnerId = await storageOwner(id, gate.user, gate.role);
         const [usage, limitBytes] = await Promise.all([
@@ -3243,6 +3243,16 @@ export function createApp(o: Options) {
       // Local files beside the publication bytes; injected so opening Publish needs no request.
       timed("editor.schedules", () => o.schedules && gate.role === "owner"
         ? o.schedules.forSite(site.id).then(rows => rows.slice(0, 5)).catch(() => [])
+        : Promise.resolve([])),
+      /* The editor waited for its first paint on a second request for this list, which starts
+         only once the page has parsed: one more round trip on every open (about 0.3 s warm,
+         1.2 s cold). It is the same list GET /api/sites/:id/assets returns. On a failure the
+         field is left out and the editor asks for it as before. */
+      timed("editor.assets", () => o.assets
+        ? o.assets.list(site.id).then(rows => {
+          const referenced = documentAssetIds(site.doc);
+          return rows.filter(asset => !asset.retired || referenced.has(asset.id)).map(metaOf);
+        }).catch(() => undefined)
         : Promise.resolve([])),
     ]);
     const config = {
@@ -3267,6 +3277,7 @@ export function createApp(o: Options) {
       storage,
       doc: site.doc,
       wordpressContent,
+      ...(assets ? { assets } : {}),
     };
     // Fixed phase names expose route work alongside gateway spans without document metadata.
     return c.html(await timed("editor.shell", async () => inject(hostedEditor.html, config)));

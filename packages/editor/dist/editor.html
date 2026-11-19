@@ -8226,7 +8226,16 @@ function lint() {
           ...context.repeatPath.length ? { repeatPath: context.repeatPath.map((item) => ({ ...item })) } : {},
           ...context.pagination ? { pagination: { ...context.pagination } } : {}
         };
-        review = { level, code, msg, where: { ...scope, region, node: kindOf(node) }, nodeId, items: /* @__PURE__ */ new Map(), target };
+        review = {
+          level,
+          code,
+          msg,
+          where: { ...scope, region, node: kindOf(node) },
+          nodeId,
+          items: /* @__PURE__ */ new Map(),
+          target,
+          ...context.cdef ? { component: { id: context.cdef.id, name: context.cdef.name } } : {}
+        };
         contextReviews.set(key, review);
       }
       if (context.col && context.item) {
@@ -8457,6 +8466,7 @@ function lint() {
       const shown = labels.slice(0, 3).join(", ");
       const affected = labels.length ? ` Affected item${labels.length === 1 ? "" : "s"}: ${shown}${labels.length > 3 ? ` and ${labels.length - 3} more` : ""}.` : "";
       add(review.level, review.code, review.msg + affected, review.where, review.nodeId, review.target);
+      if (review.component) out[out.length - 1].component = review.component;
     }
     dupIds.forEach((id) => add("error", "duplicate-id", `The anchor id \u201C${id}\u201D is used more than once on \u201C${pg2.name}\u201D.`, scope));
     const h1s = headings.filter((h) => h.level === 1);
@@ -8483,10 +8493,23 @@ function lint() {
   const rank = { error: 0, warn: 1 };
   return out.sort((a, b) => rank[a.level] - rank[b.level]);
 }
-var lintCounts = (findings) => ({
-  error: findings.filter((f) => f.level === "error").length,
-  warn: findings.filter((f) => f.level === "warn").length
-});
+function lintGroups(findings) {
+  const groups = /* @__PURE__ */ new Map();
+  for (const finding of findings) {
+    const key = [finding.level, finding.code, finding.msg, finding.where.slug ?? finding.where.page ?? ""].join("\0");
+    const group = groups.get(key);
+    if (group) group.push(finding);
+    else groups.set(key, [finding]);
+  }
+  return [...groups.values()];
+}
+var lintCounts = (findings) => {
+  const groups = lintGroups(findings);
+  return {
+    error: groups.filter((group) => group[0].level === "error").length,
+    warn: groups.filter((group) => group[0].level === "warn").length
+  };
+};
 var styleClip = { css: null, st: null, cls: null, ts: "", adv: "", from: "" };
 var styleClipSource = null;
 var styleClipClasses = [];
@@ -8595,6 +8618,13 @@ function styleClipClear() {
   styleClipSave();
 }
 styleClipLoad();
+var styleClipQuiet = null;
+function styleClipOffered() {
+  return !!styleClip.css && styleClip.css !== styleClipQuiet;
+}
+function styleClipHide() {
+  styleClipQuiet = styleClip.css;
+}
 try {
   if (typeof window !== "undefined" && window.addEventListener) {
     window.addEventListener("storage", (e) => {
@@ -8777,11 +8807,15 @@ function applyPastedStyle(id, prepared) {
 }
 function pasteStyles(id) {
   const prepared = preparedStylePaste();
-  return prepared ? applyPastedStyle(id, prepared) : false;
+  const done = prepared ? applyPastedStyle(id, prepared) : false;
+  if (done) styleClipHide();
+  return done;
 }
 function pasteStylesMany(ids) {
   const prepared = preparedStylePaste();
-  return prepared ? ids.filter((id) => applyPastedStyle(id, prepared)).length : 0;
+  const count = prepared ? ids.filter((id) => applyPastedStyle(id, prepared)).length : 0;
+  if (count) styleClipHide();
+  return count;
 }
 var TEXT_SLOTS = {
   heading: ["text"],
@@ -14981,6 +15015,7 @@ var __CORE = {
   linkablePages,
   lint,
   lintCounts,
+  lintGroups,
   listItems,
   listPageCount,
   locate,
@@ -15124,7 +15159,9 @@ var __CORE = {
   styleAdd,
   styleClip,
   styleClipClear,
+  styleClipHide,
   styleClipLoad,
+  styleClipOffered,
   styleDelete,
   stylePasteCheck,
   styleSeen,
@@ -26467,7 +26504,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
   function ClipStrip() {
-    if (!C2.styleClip.css) return null;
+    if (!C2.styleClipOffered()) return null;
     const ids = C2.selIds(), many = ids.length > 1;
     const paste = () => {
       const check = C2.stylePasteCheck();
@@ -26504,12 +26541,26 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         {
           class: "x",
           title: "Forget it",
+          "aria-label": "Forget copied styles",
           onClick: () => {
             C2.styleClipClear();
             repaint("right");
             L2.toast("Style clipboard cleared");
           },
           children: /* @__PURE__ */ u2(Icon, { name: "trash", size: 11 })
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          class: "x",
+          title: "Hide (Paste stays on \u2318\u21E7V and the right-click menu)",
+          "aria-label": "Hide the Paste strip",
+          onClick: () => {
+            C2.styleClipHide();
+            repaint("right");
+          },
+          children: /* @__PURE__ */ u2(Icon, { name: "close", size: 11 })
         }
       )
     ] });
@@ -28212,6 +28263,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const findings = supplied ?? C2.lint();
     const counts = C2.lintCounts(findings);
     const [open, setOpen] = d2(defaultOpen || counts.error > 0);
+    const [step, setStep] = d2({});
     const listId = g2();
     const clean = !findings.length;
     const groups = /* @__PURE__ */ new Map();
@@ -28238,6 +28290,20 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       if (shown2) L2.select(f4.nodeId, { scroll: true });
       else L2.toast("That element is no longer shown on this page");
     };
+    const editComponent = (id) => {
+      L2.exitPreview();
+      if (!C2.findComponent(id)) {
+        L2.toast("That component is no longer in the project");
+        return;
+      }
+      L2.closeReviewSurface();
+      L2.editComponent(id);
+    };
+    const showNext = (key2, rows2) => {
+      const at = (step[key2] ?? 0) % rows2.length;
+      setStep({ ...step, [key2]: at + 1 });
+      goTo(rows2[at]);
+    };
     const summary = clean ? "No problems found" : [
       counts.error ? counts.error + (counts.error === 1 ? " problem" : " problems") : "",
       counts.warn ? counts.warn + (counts.warn === 1 ? " suggestion" : " suggestions") : ""
@@ -28254,6 +28320,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
       ] }),
       /* @__PURE__ */ u2("div", { id: listId, children: /* @__PURE__ */ u2(MotionPresence, { show: !clean && open, kind: "panel", children: orderedGroups.map((group) => {
         const totals = C2.lintCounts(group.rows);
+        const rows2 = C2.lintGroups(group.rows).sort((a3, b2) => Number(b2[0].level === "error") - Number(a3[0].level === "error"));
         const label = [
           totals.error ? `${totals.error} ${totals.error === 1 ? "problem" : "problems"}` : "",
           totals.warn ? `${totals.warn} ${totals.warn === 1 ? "suggestion" : "suggestions"}` : ""
@@ -28263,14 +28330,38 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             /* @__PURE__ */ u2("span", { class: "review-group-name", children: group.name }),
             /* @__PURE__ */ u2("span", { class: "review-count", children: label })
           ] }),
-          /* @__PURE__ */ u2("ul", { children: [...group.rows].sort((a3, b2) => Number(b2.level === "error") - Number(a3.level === "error")).map((f4, i3) => /* @__PURE__ */ u2("li", { children: [
-            /* @__PURE__ */ u2("span", { class: "review-level " + f4.level, children: f4.level === "error" ? "Problem" : "Suggestion" }),
-            /* @__PURE__ */ u2("span", { class: "msg", children: [
-              f4.msg,
-              f4.where.region || f4.where.node ? /* @__PURE__ */ u2("em", { children: [f4.where.region, f4.where.node].filter(Boolean).join(" \xB7 ") }) : null
-            ] }),
-            f4.target || f4.nodeId ? /* @__PURE__ */ u2("button", { type: "button", class: "go", onClick: () => goTo(f4), children: "Show me" }) : null
-          ] }, i3)) })
+          /* @__PURE__ */ u2("ul", { children: rows2.map((same, i3) => {
+            const f4 = same[0], key2 = group.key + "|" + i3, places = same.length;
+            const jumpable = same.filter((row) => row.target || row.nodeId);
+            const next = (step[key2] ?? 0) % Math.max(1, jumpable.length) + 1;
+            return /* @__PURE__ */ u2("li", { children: [
+              /* @__PURE__ */ u2("span", { class: "review-level " + f4.level, children: f4.level === "error" ? "Problem" : "Suggestion" }),
+              /* @__PURE__ */ u2("span", { class: "msg", children: [
+                f4.msg,
+                f4.where.region || f4.where.node || places > 1 ? /* @__PURE__ */ u2("em", { children: [
+                  f4.where.region,
+                  f4.where.node,
+                  places > 1 ? `${places} places` : ""
+                ].filter(Boolean).join(" \xB7 ") }) : null,
+                f4.component ? /* @__PURE__ */ u2("em", { class: "review-fix", children: [
+                  "Fix it once in the \u201C",
+                  f4.component.name,
+                  "\u201D component to fix every use."
+                ] }) : null
+              ] }),
+              f4.component ? /* @__PURE__ */ u2("button", { type: "button", class: "go", onClick: () => editComponent(f4.component.id), children: "Edit component" }) : null,
+              jumpable.length ? /* @__PURE__ */ u2(
+                "button",
+                {
+                  type: "button",
+                  class: "go",
+                  "aria-label": jumpable.length > 1 ? `Show place ${next} of ${jumpable.length}` : void 0,
+                  onClick: () => showNext(key2, jumpable),
+                  children: jumpable.length > 1 ? `Show me ${next}/${jumpable.length}` : "Show me"
+                }
+              ) : null
+            ] }, i3);
+          }) })
         ] }, group.key);
       }) }) })
     ] });
@@ -30772,6 +30863,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     };
     const initial = options.document ? { document: options.document, version: options.version || 1 } : void 0;
     const assetRoot = `${apiRoot}/assets`;
+    let preloadedAssets = Array.isArray(options.assets) ? options.assets : null;
     const asMedia = (row, size = 0) => ({
       id: String(row.id),
       name: String(row.name || "asset"),
@@ -30813,6 +30905,11 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           return asMedia((await transport.request({ method: "PATCH", path: `${assetRoot}/${encodeURIComponent(id)}`, body: { tags, version } })).body);
         } } : {},
         async list() {
+          if (preloadedAssets) {
+            const rows2 = preloadedAssets;
+            preloadedAssets = null;
+            return rows2.map((row) => asMedia(row));
+          }
           return (await transport.request({ path: assetRoot })).body.map((row) => asMedia(row));
         },
         async download(id) {
@@ -31379,6 +31476,7 @@ const HOST = WP ? PC_UI.createWordPressHostAdapter({
   userName: SRV.user && (SRV.user.name || SRV.user.email),
   document: SRV.doc,
   version: SRV.version,
+  assets: SRV.assets,
   fetch: fetch.bind(window)
 }) : null;
 
@@ -35593,7 +35691,7 @@ function mediaBrowserMarkup() {
 function wireMediaViews(root, takeFiles, state, multiple = true) {
   const show = view => {
     state.view = view;
-    const uploadAction = root.closest('.modal')?.querySelector('[data-media-upload], #mmUp');
+    const uploadAction = root.closest('.modal')?.querySelector('[data-media-upload]');
     if (uploadAction) uploadAction.hidden = view === 'upload';
     $('[data-media-library-view]', root).hidden = view !== 'library';
     $('[data-media-upload-view]', root).hidden = view !== 'upload';
@@ -35833,7 +35931,8 @@ function mediaCards(list, use, attr, selection = {}) {
     <button class="mcard" ${attr}="${a.id}" title="${esc(a.name)}" ${selection.selecting ? `aria-pressed="${selection.selected.has(a.id)}"` : ''}>
       <span class="mthumb"><img src="${a.url}" alt="" loading="lazy"></span>
       <span class="mname">${selection.selecting ? (selection.selected.has(a.id) ? '✓ ' : '○ ') : ''}${esc(a.name)}</span>
-      <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''} · ${assetUsageLabel(a.id, use)}</span>
+      <span class="msub">${kb(a.size)}${a.w ? ` · ${a.w}×${a.h}` : ''}</span>
+      <span class="msub">${assetUsageLabel(a.id, use)}</span>
     </button>
     <button class="btn" type="button" data-media-detail="${a.id}" aria-label="Details for ${esc(a.name)}">Details</button>
     ${IS_TEMPLATE_DRAFT ? '' : `<button class="mdel" type="button" data-del="${a.id}" title="${deleteDisabled ? esc(assetDeleteBlockedMessage(usage)) : 'Delete from the library'}"
@@ -35990,6 +36089,17 @@ function mediaApplyIntent(intent, target, assetId) {
   return made ? 'inserted' : 'does-not-fit';
 }
 
+/* Where a click in the library places a new image, in the user's words. Uses the same
+   smartTarget the insert does, so the hint and the result cannot disagree. */
+function mediaInsertHint() {
+  const [container] = smartTarget('image');
+  const mode = state.ui.mode;
+  const where = container ? nameOf(container)
+    : mode === 'component' ? (findComponent(state.ui.cedit)?.name || 'this component')
+      : mode === 'header' ? 'the header' : mode === 'footer' ? 'the footer' : page().name;
+  return `click an image to add it to ${where}`;
+}
+
 function mediaModal() {
   if (editing.on) exitEdit();
   const target = mediaSelectedImageTarget();
@@ -36006,24 +36116,23 @@ function mediaModal() {
         ? `${list.length} image${list.length === 1 ? '' : 's'} · ${kb(assetBytes())}`
         : IS_WORDPRESS ? 'Stored in the WordPress media library' : SRV ? 'Stored with this project' : 'Stored in this browser'}${target
           ? ` · <span data-media-target-status>Selected: ${esc(target.label)}</span>`
-          : list.length ? ' · click an image to insert it' : ''}</span>
+          : list.length ? ` · <span data-media-insert-hint>${esc(mediaInsertHint())}</span>` : ''}</span>
        ${target ? `<div class="media-view-switch" role="group" aria-label="Action for chosen image">
          <button type="button" class="btn" data-media-intent="replace" aria-pressed="${browserState.intent === 'replace'}" title="Replace only ${esc(target.label)}">Replace selected image</button>
          <button type="button" class="btn" data-media-intent="insert" aria-pressed="${browserState.intent === 'insert'}" title="Add a separate Image element">Insert new image</button>
        </div>` : ''}
        ${orphans && !IS_TEMPLATE_DRAFT ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
-       <button class="btn" id="mmUp">${svg('image', 13)} Upload</button>
        <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
 
-    const zone = $('.media-library-drop', $('#mBody')), upload = $('#mmUp');
+    // The Library|Upload tabs are the one way to the upload view; Choose files carries progress.
+    const zone = $('.media-library-drop', $('#mBody')), upload = $('[data-media-choose]', zone);
     const active = () => zone.isConnected && !$('#modal').hidden && !$('#modal').hasAttribute('inert');
     const takeFiles = files => {
       if (!active()) return;
       return mediaUploadFiles(files, () => { if (active()) draw(); }, upload, zone);
     };
     wireMediaDrop(zone, takeFiles);
-    const showView = wireMediaViews(zone, takeFiles, browserState);
-    upload.addEventListener('click', () => showView('upload'));
+    wireMediaViews(zone, takeFiles, browserState);
     $('#mmDone').addEventListener('click', closeModal);
     $$('[data-media-intent]', $('#mFoot')).forEach(button => button.addEventListener('click', () => {
       browserState.intent = button.dataset.mediaIntent;
