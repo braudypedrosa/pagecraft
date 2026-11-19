@@ -136,6 +136,27 @@ describe('publication preview failure feedback', () => {
     w.clearPublicationFrames(); dom.window.close();
   });
 
+  test('a preview that arrives after the timeout replaces the "taking too long" message', () => {
+    vi.useFakeTimers();
+    const { dom, w, doc } = fixture(async () => {});
+    const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');
+    wrapper.append(frame); doc.body.append(wrapper);
+    w.loadPublicationFrame(frame, '/api/sites/qa/publication-snapshots/reviewed-4/files/index.html', {pages:['index.html']});
+    const token = new URL(frame.src).searchParams.get('pcPreviewReady');
+    vi.advanceTimersByTime(15001);
+    const strip = wrapper.querySelector('.pc-preview-state');
+    expect(strip.textContent).toContain('Preview is taking too long');
+    expect(strip.querySelector('button').hidden).toBe(false);
+    w.dispatchEvent(new w.MessageEvent('message', {source:frame.contentWindow, data:{type:'pagecraft-preview-ready', token, status:'ready'}}));
+    expect(strip.textContent).toContain('Page preview displayed.');
+    expect(strip.querySelector('button').hidden).toBe(true);
+    expect(strip.classList.contains('ready')).toBe(true);
+    w.dispatchEvent(new w.MessageEvent('message', {source:frame.contentWindow, data:{type:'pagecraft-preview-ready', token, status:'degraded'}}));
+    expect(strip.textContent).toContain('Page preview displayed.');
+    vi.useRealTimers();
+    w.clearPublicationFrames(); dom.window.close();
+  });
+
   test('snapshot navigation stays gated by frame, token and exact page inventory after paint readiness', () => {
     const { dom, w, doc } = fixture(async () => {});
     const wrapper = doc.createElement('div'), frame = doc.createElement('iframe');

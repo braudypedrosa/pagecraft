@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-18T21:10:59.288Z",
+  "capturedAt": "2026-11-18T22:27:54.378Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -62,8 +62,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "31533d8dcff056ee1c820de6575b5fee1056b7100d569a619780d293ef773292",
+    "builder.html": "ff04a40b69e42637a2ed87aec39d57e083f04a6f8e8a246ac82817ab93e09c91",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -130,7 +130,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
     "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "aaec30f308da5aa7ee79ac47b1add5de1844db220038a00b5b74e3346e7d3b9c",
+    "server/src/account-pages.ts": "2f3f8d836c900b66d08ad41fa603db44092624ae1065552e181b4bc6237410dd",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -661,7 +661,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "2437857cc34579186fe6abbd05ecbe10ae2f10faf2778a7c4e9da15064cb59ef",
+      "sha256": "c00549329367cab5299257ca9313a364b774fc19df3a102f1fd1e8385517bf0b",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "cb755637b6411e6f41749f27aa81b3cbf6754516d3fa5448b802e583c799bf97",
+      "sha256": "ea2fbbbb0dda568af59d1901d01448c009928840168e0447c4e591bfcc6b2cc4",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

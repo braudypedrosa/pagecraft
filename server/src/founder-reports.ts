@@ -9,7 +9,7 @@ import type { AccountAuth, VerifiedIdentity } from './account-auth.ts';
 import { founderCrmPage, founderCrmSignInPage } from './founder-crm-page.ts';
 import { founderCrmQuery, founderCrmRoutes } from './founder-crm-routes.ts';
 import { loadFounderCrm } from './founder-crm-data.ts';
-import type { CrmContactStore, CrmPlatformSource } from './founder-crm-types.ts';
+import type { CrmContactStore, CrmPlanManager, CrmPlatformSource } from './founder-crm-types.ts';
 import { normalEmail, validEmail, type User } from './auth.ts';
 import { throttle } from './mail.ts';
 import { ownerBillingAccess, type OwnerBillingOptions } from './owner-billing.ts';
@@ -22,7 +22,7 @@ export interface FounderReportsAppOptions {
   origin: string;
   accountAuth: AccountAuth;
   billing: OwnerBillingOptions;
-  crm?: { platform?: CrmPlatformSource; contacts?: CrmContactStore };
+  crm?: { platform?: CrmPlatformSource; contacts?: CrmContactStore; plans?: CrmPlanManager };
   previewLabel?: string;
   appOrigin?: string;
   dataEnvironment: FounderReportsDataEnvironment;
@@ -129,7 +129,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   app.use('*', async (c, next) => {
     const path = new URL(c.req.url).pathname;
     const browserWrite = path === '/auth/sign-in' || path === '/auth/logout' ||
-      path === '/crm/contacts' || path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
+      path === '/crm/contacts' || path === '/crm/plans' || path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
     if (c.req.method === 'POST' && browserWrite && requestOrigin(c) !== origin.origin) {
       return c.json({ error: 'origin_not_allowed' }, 403);
     }
@@ -243,7 +243,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
       ? userFromIdentity(current) : null;
   };
   founderCrmRoutes(app, {
-    billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts,
+    billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts, plans: o.crm?.plans,
     identity, origin: origin.origin, dataEnvironment: o.dataEnvironment,
     previewLabel: o.previewLabel, systemHealth: o.systemHealth,
   });

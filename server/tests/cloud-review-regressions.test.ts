@@ -86,13 +86,51 @@ test('fresh unchanged publish still repairs an absent filesystem pointer',async(
   assert.equal((await r.publications.currentBySlug('review-site'))?.id,r.old.id);
 });
 
-test('identity uses one authoritative Auth request and rejects unverified or failed users', async () => {
-  const adapter = new SupabaseAccountAuth({url:'https://example.invalid',publishableKey:'test',secureCookies:false});
-  let calls=0, confirmed=true, failed=false;
-  Object.defineProperty(adapter,'client',{value:()=>({auth:{getUser:async()=>{
-    calls++; return {data:{user:{id:'user',email:'qa@example.test',email_confirmed_at:confirmed?'2026-09-10':null,user_metadata:{name:'QA'}}},error:failed?new Error('revoked'):null};
-  }}})});
-  assert.equal((await adapter.identity({} as Context))?.authUserId,'user'); assert.equal(calls,1);
-  confirmed=false; assert.equal(await adapter.identity({} as Context),null);
-  confirmed=true; failed=true; assert.equal(await adapter.identity({} as Context),null);
+/* A fake Auth client: getClaims stands for the local signature check, getUser for the network
+   round trip. `session` picks the session_id inside the verified token. */
+function authRig() {
+  let clock = 1_000_000;
+  const adapter = new SupabaseAccountAuth({url:'https://example.invalid',publishableKey:'test',secureCookies:false,now:()=>clock});
+  const s = {userCalls:0, claimCalls:0, confirmed:true, failed:false, invalid:false, session:'session-a', sub:'user', userId:'user'};
+  Object.defineProperty(adapter,'client',{value:()=>({auth:{
+    getClaims:async()=>{ s.claimCalls++; return s.invalid ? {data:null,error:new Error('bad signature')} : {data:{claims:{sub:s.sub,session_id:s.session}},error:null}; },
+    getUser:async()=>{ s.userCalls++; return {data:{user:{id:s.userId,email:'qa@example.test',email_confirmed_at:s.confirmed?'2026-09-10':null,user_metadata:{name:'QA'}}},error:s.failed?new Error('revoked'):null}; },
+    updateUser:async()=>({data:{user:{id:s.sub}},error:null}),
+    signOut:async()=>({error:null}),
+  }})});
+  return {adapter, s, advance:(ms:number)=>{clock+=ms;}};
+}
+
+test('identity rejects unverified, failed, mismatched or locally invalid sessions', async () => {
+  const {adapter, s} = authRig();
+  assert.equal((await adapter.identity({} as Context))?.authUserId,'user');
+  s.session='session-b'; s.confirmed=false; assert.equal(await adapter.identity({} as Context),null);
+  s.session='session-c'; s.confirmed=true; s.failed=true; assert.equal(await adapter.identity({} as Context),null);
+  s.session='session-d'; s.failed=false; s.userId='someone-else'; assert.equal(await adapter.identity({} as Context),null,'token subject must match the Auth user');
+  const before=s.userCalls; s.invalid=true;
+  assert.equal(await adapter.identity({} as Context),null);
+  assert.equal(s.userCalls,before,'an invalid token never reaches Auth');
+});
+
+test('a verified session asks Auth once per five minutes, not on every request', async () => {
+  const {adapter, s, advance} = authRig();
+  for (let i=0;i<6;i++) assert.equal((await adapter.identity({} as Context))?.email,'qa@example.test');
+  assert.equal(s.userCalls,1); assert.equal(s.claimCalls,6,'the token is still checked on every request');
+  advance(4*60*1000); await adapter.identity({} as Context); assert.equal(s.userCalls,1);
+  advance(61*1000); s.failed=true;
+  assert.equal(await adapter.identity({} as Context),null,'after the TTL a revoked session is refused');
+  assert.equal(s.userCalls,2);
+});
+
+test('sign-out and account changes on this server forget the cached session at once', async () => {
+  for (const action of ['signOut','signOutEverywhere','updatePassword','updateEmail','reset'] as const) {
+    const {adapter, s} = authRig();
+    await adapter.identity({} as Context); assert.equal(s.userCalls,1);
+    if (action==='updatePassword') await adapter.updatePassword({} as Context,{password:'new-test-password'});
+    else if (action==='updateEmail') await adapter.updateEmail({} as Context,{email:'new@example.test',redirectTo:'https://example.invalid'});
+    else if (action==='reset') await adapter.reset({} as Context,'new-test-password');
+    else await adapter[action]!({} as Context);
+    await adapter.identity({} as Context);
+    assert.equal(s.userCalls,2,`${action} must send the next request back to Auth`);
+  }
 });

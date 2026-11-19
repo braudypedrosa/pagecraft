@@ -189,6 +189,34 @@ async function strictFetch(
   }
 }
 
+/* Google Fonts file URLs are versioned: a URL always names the same bytes. Every publish and
+   preview used to download each file again, one after another. Validated files are kept per
+   fetcher (tests inject their own, so nothing leaks between them), within a byte budget. */
+const FONT_FILE_CACHE_BYTES = 16 * 1024 * 1024;
+const fontFileCaches = new WeakMap<typeof fetch, { files: Map<string, Uint8Array>; bytes: number }>();
+function keptFontFile(fetcher: typeof fetch, url: string) {
+  const cache = fontFileCaches.get(fetcher);
+  const bytes = cache?.files.get(url);
+  if (!cache || !bytes) return null;
+  cache.files.delete(url);
+  cache.files.set(url, bytes);
+  return bytes;
+}
+function keepFontFile(fetcher: typeof fetch, url: string, bytes: Uint8Array) {
+  let cache = fontFileCaches.get(fetcher);
+  if (!cache) fontFileCaches.set(fetcher, cache = { files: new Map(), bytes: 0 });
+  const prior = cache.files.get(url);
+  if (prior) cache.bytes -= prior.byteLength;
+  cache.files.delete(url);
+  cache.files.set(url, bytes);
+  cache.bytes += bytes.byteLength;
+  while (cache.bytes > FONT_FILE_CACHE_BYTES) {
+    const [oldest, value] = cache.files.entries().next().value as [string, Uint8Array];
+    cache.files.delete(oldest);
+    cache.bytes -= value.byteLength;
+  }
+}
+
 async function freezeCss(fetcher: typeof fetch, href: string) {
   const cssBytes = await strictFetch(
     fetcher, cssUrl(href), cssUrl, MAX_CSS_BYTES, new Set(['text/css']), 'font stylesheet'
@@ -235,17 +263,26 @@ async function freezeCss(fetcher: typeof fetch, href: string) {
 
   const frozen = new Map<string, { bytes: Uint8Array; digest: string }>();
   let total = 0;
-  for (const url of [...urls].sort(utf8ByteCompare)) {
+  const ordered = [...urls].sort(utf8ByteCompare);
+  // Fetched together; checked and recorded in the same sorted order as before.
+  const files = await Promise.all(ordered.map(async url => {
+    const kept = keptFontFile(fetcher, url);
+    if (kept) return kept;
     const bytes = await strictFetch(
       fetcher, fontUrl(url), fontUrl, MAX_FONT_BYTES, new Set(['font/woff2']), 'font file'
     );
     if (bytes.byteLength < 4 || new TextDecoder().decode(bytes.slice(0, 4)) !== 'wOF2') {
       throw new Error('Google Fonts returned a file without the WOFF2 signature');
     }
+    keepFontFile(fetcher, url, bytes);
+    return bytes;
+  }));
+  ordered.forEach((url, index) => {
+    const bytes = files[index];
     total += bytes.byteLength;
     if (total > MAX_TOTAL_FONT_BYTES) throw new Error('Google Fonts files exceed their total byte limit');
     frozen.set(url, { bytes, digest: hash(bytes) });
-  }
+  });
   css = fontFaceCss(faces, face => {
     const item = frozen.get(fontUrl(face.url).href);
     if (!item) throw new Error('Google Fonts stylesheet changed during freezing');

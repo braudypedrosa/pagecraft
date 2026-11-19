@@ -19,3 +19,14 @@ test('opaque previews embed frozen images and fonts without exposing source or r
   expect(html).toContain('href="about.html"');
   expect(html).toContain('src="https://external.test/image.png"');
 });
+
+test('preview images after the first two can be made lazy without overriding an authored loading choice', async () => {
+  const store = new MemoryHostedPublicationStore();
+  const publication = await store.create({ siteId:'qa',slug:'qa',host:'qa.test',sourceVersion:1,files:[
+    { path:'index.html',mediaType:'text/html',bytes:new TextEncoder().encode('page') },
+  ] });
+  const markup = '<img src="logo.png"><img src="hero.png"><img src="a.png"><IMG alt="b"><img loading="eager" src="c.png"><imgx src="d">';
+  const lazy = await publicationPreviewHtml(store,publication,'index.html',markup,{ lazyImages:true });
+  expect(lazy).toBe('<img src="logo.png"><img src="hero.png"><img loading="lazy" src="a.png"><img loading="lazy" alt="b"><img loading="eager" src="c.png"><imgx src="d">');
+  expect(await publicationPreviewHtml(store,publication,'index.html',markup)).toBe(markup);
+});

@@ -39,7 +39,20 @@ export interface SupabaseAccountAuthOptions {
   publishableKey: string;
   secureCookies: boolean;
   cookieName?: string;
+  /** How long a session's account details are trusted before Auth is asked again. */
+  identityTtlMs?: number;
+  now?: () => number;
 }
+
+/* Every signed-in request used to ask Supabase Auth who was calling: 0.3–0.7 s across the
+   Pacific, before the route did anything. The access token is an ES256 JWT, so its signature,
+   expiry and subject are checked here against the project's published key instead (cached by
+   auth-js for ten minutes). The account details the token does not carry — confirmed email,
+   providers, sign-in times — come from Auth once per session per TTL. A session ended
+   elsewhere (sign-out everywhere, a deleted account) therefore stops working here within the
+   TTL rather than at once; actions on this server forget the session immediately. */
+const IDENTITY_TTL_MS = 5 * 60 * 1000;
+const IDENTITY_CACHE_MAX = 2000;
 
 const verified = (user: User | null): VerifiedIdentity | null => {
   if (!user?.id || !user.email || !user.email_confirmed_at) return null;
@@ -59,7 +72,21 @@ const verified = (user: User | null): VerifiedIdentity | null => {
 
 export class SupabaseAccountAuth implements AccountAuth {
   private options: SupabaseAccountAuthOptions;
+  private identities = new Map<string, { until: number; identity: VerifiedIdentity }>();
   constructor(options: SupabaseAccountAuthOptions) { this.options = options; }
+
+  private now() { return (this.options.now || Date.now)(); }
+
+  /** Drop every cached session of this person, so the next request asks Auth again. */
+  private forget(authUserId: string | undefined) {
+    if (!authUserId) return;
+    for (const key of this.identities.keys()) if (key.startsWith(authUserId + '\n')) this.identities.delete(key);
+  }
+
+  private async sessionUser(c: Context): Promise<string | undefined> {
+    const { data } = await this.client(c).auth.getClaims().catch(() => ({ data: null }));
+    return typeof data?.claims?.sub === 'string' ? data.claims.sub : undefined;
+  }
 
   private client(c: Context): SupabaseClient {
     const incoming = getCookie(c);
@@ -86,10 +113,22 @@ export class SupabaseAccountAuth implements AccountAuth {
   }
 
   async identity(c: Context) {
-    // getUser verifies the session with Auth and supplies the current confirmed user.
-    // Calling getClaims first can duplicate this network verification on symmetric keys.
-    const { data, error } = await this.client(c).auth.getUser();
-    return error ? null : verified(data.user);
+    const client = this.client(c);
+    // Refreshes an expired session (writing the new cookies), then verifies the token locally.
+    const { data: checked, error: invalid } = await client.auth.getClaims();
+    const claims = checked?.claims;
+    if (invalid || typeof claims?.sub !== 'string' || typeof claims.session_id !== 'string') return null;
+    const key = `${claims.sub}\n${claims.session_id}`;
+    const hit = this.identities.get(key);
+    if (hit && hit.until > this.now()) return { ...hit.identity };
+    this.identities.delete(key);
+    // Once per session per TTL: Auth confirms the session is live and supplies the account.
+    const { data, error } = await client.auth.getUser();
+    const identity = error ? null : verified(data.user);
+    if (!identity || identity.authUserId !== claims.sub) return null;
+    if (this.identities.size >= IDENTITY_CACHE_MAX) this.identities.delete(this.identities.keys().next().value!);
+    this.identities.set(key, { until: this.now() + (this.options.identityTtlMs ?? IDENTITY_TTL_MS), identity });
+    return { ...identity };
   }
 
   async signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }) {
@@ -145,26 +184,30 @@ export class SupabaseAccountAuth implements AccountAuth {
   }
 
   async reset(c: Context, password: string) {
-    const { error } = await this.client(c).auth.updateUser({ password });
+    const { data, error } = await this.client(c).auth.updateUser({ password });
+    if (!error) this.forget(data?.user?.id);
     return !error;
   }
 
   async updateEmail(c: Context, input: { email: string; redirectTo: string }) {
-    const { error } = await this.client(c).auth.updateUser(
+    const { data, error } = await this.client(c).auth.updateUser(
       { email: input.email }, { emailRedirectTo: input.redirectTo }
     );
+    if (!error) this.forget(data?.user?.id);
     return !error;
   }
 
   async updatePassword(c: Context, input: { password: string; currentPassword?: string }) {
-    const { error } = await this.client(c).auth.updateUser({
+    const { data, error } = await this.client(c).auth.updateUser({
       password: input.password,
       ...(input.currentPassword ? { current_password: input.currentPassword } : {})
     });
+    if (!error) this.forget(data?.user?.id);
     return !error;
   }
 
   async signOut(c: Context) {
+    this.forget(await this.sessionUser(c));
     await this.client(c).auth.signOut({ scope: 'local' });
   }
 
@@ -183,6 +226,7 @@ export class SupabaseAccountAuth implements AccountAuth {
   }
 
   async signOutEverywhere(c: Context) {
+    this.forget(await this.sessionUser(c));
     await this.client(c).auth.signOut({ scope: 'global' });
   }
 }

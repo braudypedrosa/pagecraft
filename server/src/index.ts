@@ -53,6 +53,8 @@ import { TemplateAuthorGrants } from './template-authoring-grants.ts';
 import { stagingProposalGatewayUrl } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
 import { FileAccountDeletionLog, FileServerErrorLog, installCrashRecorder } from "./system-health.ts";
+import { GatewayBillingLedger, paddleBillingConfig } from "./paddle-billing.ts";
+import { GatewayPlanGrants } from "./plan-grants.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
@@ -94,6 +96,8 @@ async function pickStores(): Promise<{
   manualImports?: ManualImportReadFastPath;
   libraries?: LibraryStore;
   collaborationInvitations: CollaborationInvitationStore;
+  /** The database gateway, when the stores use one. Billing needs it. */
+  gateway?: import('./store-gateway.ts').PagecraftGateway;
 }> {
   const gatewayUrl = process.env.DATABASE_GATEWAY_URL;
   const gatewayKey = process.env.DATABASE_GATEWAY_KEY;
@@ -142,6 +146,7 @@ async function pickStores(): Promise<{
       manualImports: new GatewayManualImportReader(gateway),
       libraries: new GatewayLibraryStore(gateway),
       collaborationInvitations: new GatewayCollaborationInvitationStore(gateway),
+      gateway,
     };
   }
   const url = process.env.DATABASE_URL;
@@ -197,6 +202,7 @@ const {
   manualImports,
   libraries,
   collaborationInvitations,
+  gateway: dataGateway,
 } = await pickStores();
 
 const production = process.env.NODE_ENV === "production";
@@ -576,8 +582,33 @@ if (process.env.NODE_ENV === "production" && !process.env.PAGECRAFT_COOKIE_SECRE
     "PAGECRAFT_COOKIE_SECRET is not set: recovery cookies use a per-process key. Set it in production.",
   );
 }
+
+/* Paddle billing needs the database gateway: plan changes happen only there. Without both, every
+   billing route stays off and Free remains the only plan anyone can reach on their own. */
+const paddle = paddleBillingConfig(process.env);
+if (paddle && !dataGateway) console.warn("Paddle is configured but DATABASE_GATEWAY_URL is not; billing stays off");
+const billing = paddle && dataGateway && editorOrigin ? {
+  config: paddle,
+  ledger: new GatewayBillingLedger(dataGateway),
+  plans: new GatewayPlanGrants(dataGateway),
+  editorOrigin,
+  report: (message: string) => {
+    console.error(message);
+    void serverErrors.record({ kind: "request", error: new Error(message), method: "POST", path: "/billing/paddle", status: 200 })
+      .catch(() => undefined);
+  },
+} : undefined;
+if (billing && backgroundWorkers) {
+  // Expired grants and lapsed past-due grace need no event to take effect.
+  const recomputePlans = () => billing.ledger.recomputeStale().catch((caught) =>
+    console.error("Plan recompute failed:", (caught as Error).message));
+  setInterval(recomputePlans, 60 * 60 * 1000).unref();
+  void recomputePlans();
+}
+
 const app = createApp({
   serverErrors,
+  billing,
   accountDeletions: new FileAccountDeletionLog(join(resolve(publicationRoot), ".account-deletions")),
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
   sitePreviews: new FileSitePreviewStore(join(resolve(publicationRoot), ".dashboard-previews")),
@@ -614,6 +645,8 @@ const app = createApp({
   // Only when Cloudflare really fronts the origin; otherwise anyone can send CF-Connecting-IP.
   trustCloudflare: process.env.PAGECRAFT_TRUST_CLOUDFLARE === "1",
   cookieSecret: process.env.PAGECRAFT_COOKIE_SECRET || undefined,
+  // Shared by every process on a host even where no cookie secret is configured.
+  previewSigningSecret: process.env.PAGECRAFT_COOKIE_SECRET || process.env.DATABASE_GATEWAY_KEY || undefined,
   publications,
   hostedPublish,
   cloudMutations,

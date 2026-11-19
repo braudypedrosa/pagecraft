@@ -43,7 +43,9 @@ function runtime(markup = '', options: {
     Object.defineProperty(img, 'complete', { value: options.complete ?? true });
     Object.defineProperty(img, 'naturalWidth', { value: options.broken ? 0 : 100 });
     Object.defineProperty(img, 'loading', { value: options.lazy || (options.mixed && img.getAttribute('loading') === 'lazy') ? 'lazy' : 'eager' });
-    img.getBoundingClientRect = () => ({ top: options.visibleRect ? 16 : 9999, bottom: options.visibleRect ? 58 : 10099, left: 0, right: 100 } as DOMRect);
+    // Unless a test places it, an eager image sits on the first screen and a lazy one below it.
+    const visible = options.visibleRect ?? !options.lazy;
+    img.getBoundingClientRect = () => ({ top: visible ? 16 : 9999, bottom: visible ? 58 : 10099, left: 0, right: 100 } as DOMRect);
     img.decode = () => options.decode || Promise.resolve();
   }
   const output = withPreviewReadiness('', token, options.navigation);
@@ -137,6 +139,22 @@ test('intersecting lazy image and non-lazy images both wait for loading', async 
   expect(eager.observers).toHaveLength(1);
   expect(eager.observers[0].disconnected).toBe(true);
   eager.dom.window.close();
+});
+
+test('an eager image below the first screen does not hold readiness, but one on it does', async () => {
+  const below = runtime('<img src="footer-photo.webp">', { complete: false, visibleRect: false });
+  await below.flush();
+  expect(below.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  below.dom.window.close();
+  // Geometry, not visibility: an eager image on the first screen still waits even when the
+  // observer would say nothing intersects (the frame scrolled out of the parent's view).
+  const above = runtime('<img src="hero.webp">', { complete: false, visibleRect: true, intersection: false });
+  await above.flush();
+  expect(above.messages).toEqual([]);
+  above.w.document.images[0].dispatchEvent(new above.w.Event('load'));
+  await above.flush();
+  expect(above.messages).toEqual([{ type: 'pagecraft-preview-ready', token, status: 'ready' }]);
+  above.dom.window.close();
 });
 
 test('deadline disconnects a lazy visibility observer that has not reported', async () => {

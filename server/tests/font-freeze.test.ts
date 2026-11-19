@@ -198,3 +198,29 @@ test('font freezing rejects redirect and dependency host escapes', async () => {
   }) as typeof fetch;
   await a.rejects(() => freezeGoogleFontStylesheets(files, hostile), /gstatic WOFF2/);
 });
+
+test('a fetcher downloads each versioned font file once, and caches nothing it rejected', async () => {
+  const source = new Map([['index.html', page('home')]]);
+  const calls: string[] = [];
+  const fetcher = fixtureFetch('kept-font', calls);
+  const first = await freezeGoogleFontStylesheets(source, fetcher);
+  const second = await freezeGoogleFontStylesheets(source, fetcher);
+  a.deepEqual([...second], [...first], 'a kept file freezes identically');
+  a.equal(calls.filter(url => url === fontHref).length, 1, 'the font file is fetched once per fetcher');
+  a.equal(calls.filter(url => url.startsWith('https://fonts.googleapis.com/')).length, 2, 'the stylesheet is still read each time');
+
+  const otherCalls: string[] = [];
+  await freezeGoogleFontStylesheets(source, fixtureFetch('kept-font', otherCalls));
+  a.equal(otherCalls.filter(url => url === fontHref).length, 1, 'another fetcher has its own cache');
+
+  const badCalls: string[] = [];
+  const bad = (async (input: string | URL | Request) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    badCalls.push(url.href);
+    if (url.hostname === 'fonts.googleapis.com') return new Response(css, { headers: { 'content-type': 'text/css' } });
+    return new Response(Buffer.from('nope'), { headers: { 'content-type': 'font/woff2' } });
+  }) as typeof fetch;
+  await a.rejects(freezeGoogleFontStylesheets(source, bad), /WOFF2 signature/);
+  await a.rejects(freezeGoogleFontStylesheets(source, bad), /WOFF2 signature/);
+  a.equal(badCalls.filter(url => url === fontHref).length, 2, 'a rejected file is fetched again, never kept');
+});

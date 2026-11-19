@@ -1,4 +1,5 @@
 import { LiveReviewStore } from './live-reviews.ts';
+import { billingRoutes } from './billing-routes.ts';
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { HTTPException } from "hono/http-exception";
 import type { ServerErrorLog } from "./system-health.ts";
@@ -11,7 +12,8 @@ import { withPreviewReadiness } from "./preview-readiness.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
 import { prepareHostedEditor } from './editor-assets.ts';
-import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
+import { requestTiming, newRequestTiming, timingHeader, timed, recordTiming } from './request-timing.ts';
+import { publishAssetReader } from './publish-assets.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
 import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
@@ -319,6 +321,8 @@ const oauthCredential = (
 export interface Options {
   /** Internal, authenticated UI reference; disabled unless the host explicitly opts in. */
   componentGallery?: boolean;
+  /** Paddle checkout and the signed subscription webhook. Absent: every billing route is off. */
+  billing?: import('./billing-routes.ts').BillingRouteOptions;
   store: Store;
   auth: AuthStore;
   /** where the images live. Absent means a site renders with placeholders. */
@@ -395,6 +399,9 @@ export interface Options {
   /** Signs short-lived account cookies. Absent means a per-process key, which is enough for
       one Node process; several processes behind one host need the same configured value. */
   cookieSecret?: string;
+  /** Signs cookie-free links to snapshot images. Must be the same in every process serving a
+   *  host; index.ts derives it from the cookie secret or the gateway key. */
+  previewSigningSecret?: string;
   /** Bounded, sanitized record of unhandled request errors (see system-health.ts). */
   serverErrors?: ServerErrorLog;
   /** Deleted accounts whose Auth identity still needs an administrator to remove it. */
@@ -516,10 +523,10 @@ export function createApp(o: Options) {
       /^\/internal\/components(?:\/|$)/.test(path) ||
       (path === "/mcp" || path.startsWith('/mcp/')) ||
       (path === "/" && isEditorHost(c.req.header("host"), o));
-    // Thumbnails and draft-preview images have version- or content-keyed URLs (an asset path
-    // never changes meaning), so their own private immutable header stands.
+    // Thumbnails, draft-preview images and signed snapshot images have version-, content- or
+    // snapshot-keyed URLs (they never change meaning), so their own private immutable header stands.
     const cachedThumbnail = c.req.method === "GET" &&
-      /^\/api\/sites\/[^/]+\/(?:dashboard-thumbnail$|dashboard-preview\/assets\/)/.test(path) &&
+      /^\/api\/sites\/[^/]+\/(?:dashboard-thumbnail$|dashboard-preview\/assets\/|publication-snapshots\/[^/]+\/files\/)/.test(path) &&
       [200, 304].includes(c.res.status) && c.res.headers.get("cache-control")?.includes("immutable");
     if (privateRoute && !cachedThumbnail) c.header("cache-control", "private, no-store");
     /* `secureCookies` is the production signal already passed by the entry point. Browsers
@@ -719,6 +726,8 @@ export function createApp(o: Options) {
     return renderSite(adopted, refs, formEndpoint, options);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
+  const readPublishAssets = publishAssetReader((siteId, assetId) =>
+    o.assets ? o.assets.get(siteId, assetId) : Promise.resolve(null));
   const assetBodiesOf = async (
     id: string,
     onlyIds?: ReadonlySet<string>,
@@ -727,12 +736,7 @@ export function createApp(o: Options) {
     if (!o.assets) return [] as Asset[];
     const selected = (knownMetadata || await o.assets.list(id))
       .filter((meta) => !onlyIds || onlyIds.has(meta.id));
-    const out: Asset[] = [];
-    for (const meta of selected) {
-      const asset = await o.assets.get(id, meta.id);
-      if (asset) out.push(asset);
-    }
-    return out;
+    return timed("publish.assets", () => readPublishAssets(id, selected));
   };
   const releaseAssetIds = (
     doc: Doc,
@@ -831,6 +835,8 @@ export function createApp(o: Options) {
     }
     return pending;
   };
+
+  if (o.billing) billingRoutes(app, o.billing, who);
 
   app.get('/internal/components', async c => {
     if (!o.componentGallery || !o.editorHtml) return c.notFound();
@@ -3525,34 +3531,70 @@ export function createApp(o: Options) {
     }
   });
 
+  /* The preview runs in an opaque sandbox, so its image requests carry no cookies. Instead of
+     inlining every image as base64 (a 6 MB page for nine photos), the page names each image by
+     a link signed for this site, snapshot and file, valid to the end of the next hour. A
+     snapshot never changes, so the browser keeps those images; the hour-aligned expiry keeps the
+     URL, and so the cache, stable across reloads. Pages themselves are never served this way. */
+  const SNAPSHOT_LINK_HOUR = 60 * 60 * 1000;
+  const snapshotLinkKey = createHash("sha256")
+    .update(`pagecraft-snapshot-file-v1\0${o.previewSigningSecret || o.cookieSecret || randomBytes(32).toString("hex")}`)
+    .digest();
+  const snapshotLinkSignature = (siteId: string, snapshotId: string, path: string, expires: number) =>
+    createHmac("sha256", snapshotLinkKey).update(`${siteId}\0${snapshotId}\0${path}\0${expires}`).digest("base64url");
+  const snapshotLinkExpiry = () => (Math.floor(Date.now() / SNAPSHOT_LINK_HOUR) + 2) * SNAPSHOT_LINK_HOUR;
+  const snapshotLinkValid = (siteId: string, snapshotId: string, path: string, presented: string | undefined) => {
+    const match = /^(\d{1,16})\.([A-Za-z0-9_-]{43})$/.exec(presented || "");
+    if (!match) return 0;
+    const expires = Number(match[1]);
+    if (!(expires > Date.now()) || expires > Date.now() + 3 * SNAPSHOT_LINK_HOUR) return 0;
+    const expected = Buffer.from(snapshotLinkSignature(siteId, snapshotId, path, expires));
+    const given = Buffer.from(match[2]);
+    return expected.length === given.length && timingSafeEqual(expected, given) ? expires : 0;
+  };
+  const SNAPSHOT_LINKED_MEDIA = /^(?:image|video|audio)\//;
+
   app.get("/api/sites/:id/publication-snapshots/:snapshot/files/*", async (c) => {
     const id = c.req.param("id");
-    const gate = await allowed(c, id, "admin");
-    if (!gate.ok) {
-      const member = await allowedMember(c, id);
-      if (!member.ok) return deny(c, member.status);
-      const assigned = await reviews.canViewSnapshot(
-        id, c.req.param("snapshot"), member.user.id, member.role,
-      );
-      if (!assigned) return deny(c, 404);
+    const path = resolvePath(new URL(c.req.url).pathname.split("/files/")[1] || "");
+    const linkExpires = snapshotLinkValid(id, c.req.param("snapshot"), path, c.req.query("pcSig"));
+    if (!linkExpires) {
+      const gate = await allowed(c, id, "admin");
+      if (!gate.ok) {
+        const member = await allowedMember(c, id);
+        if (!member.ok) return deny(c, member.status);
+        const assigned = await reviews.canViewSnapshot(
+          id, c.req.param("snapshot"), member.user.id, member.role,
+        );
+        if (!assigned) return deny(c, 404);
+      }
     }
     if (!o.publications) return deny(c, 404);
     const publication = await o.publications.byId(id, c.req.param("snapshot"));
     if (!publication) return deny(c, 404);
     const prefix = `api/sites/${encodeURIComponent(id)}/publication-snapshots/${publication.id}/files`;
-    const path = resolvePath(new URL(c.req.url).pathname.split("/files/")[1] || "");
     const record = publication.files.find(file => file.path === path);
     if (!record) return deny(c, 404);
+    if (linkExpires && !SNAPSHOT_LINKED_MEDIA.test(record.mediaType)) return deny(c, 404);
     const bytes = await o.publications.file(publication, path);
     if (!bytes) return c.text("Preview unavailable", 503);
-    c.header("Cache-Control", "private, no-store");
+    c.header("Cache-Control", linkExpires
+      ? `private, max-age=${Math.max(0, Math.floor((linkExpires - Date.now()) / 1000))}, immutable`
+      : "private, no-store");
     c.header("X-Robots-Tag", "noindex, nofollow");
     c.header("X-Content-Type-Options", "nosniff");
     c.header("Content-Type", record.mediaType);
     // Custom page code runs in an opaque sandbox, without access to editor APIs or forms.
     c.header("Content-Security-Policy", "sandbox allow-scripts; connect-src 'none'; form-action 'none'; frame-ancestors 'self'");
     if (record.mediaType.startsWith("text/html")) {
-      const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes));
+      const origin = new URL(o.editorOrigin || c.req.url).origin;
+      const expires = snapshotLinkExpiry();
+      const html = await publicationPreviewHtml(o.publications, publication, path, new TextDecoder().decode(bytes), {
+        link: (file, mediaType) => SNAPSHOT_LINKED_MEDIA.test(mediaType)
+          ? `${origin}/${prefix}/${file.split("/").map(encodeURIComponent).join("/")}?pcSig=${expires}.${snapshotLinkSignature(id, publication.id, file, expires)}`
+          : null,
+        lazyImages: true,
+      });
       // The opaque preview reports readiness and requests known-page navigation through its parent.
       // Existing snapshot CSP permits scripts; no nonce exception or sandbox relaxation is needed.
       return c.body(withPreviewReadiness(hostedHtml(html, path,
@@ -4009,7 +4051,9 @@ export function createApp(o: Options) {
       : { ...document, meta: { ...document.meta, baseUrl: publicAddress(c, site) } };
     let rendered: ReturnType<typeof render>;
     try {
+      const renderStart = performance.now();
       rendered = render(addressed, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '', { foundation: true });
+      recordTiming("publish.render", performance.now() - renderStart);
     } catch (error) {
       return c.json({
         error: "publication_compile_failed",
@@ -4036,10 +4080,10 @@ export function createApp(o: Options) {
     }
     try {
       if (releaseStylesheetLinks(rendered.files).length) {
-        rendered.files = await freezeGoogleFontStylesheets(
+        rendered.files = await timed("publish.fonts", () => freezeGoogleFontStylesheets(
           rendered.files,
           o.fontFetch || fetch,
-        );
+        ));
       }
     } catch (error) {
       const dependencyFailure = fontDependencyFailure(error);

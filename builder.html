@@ -136,7 +136,7 @@ input,select,textarea{font:inherit;color:inherit}
 #canvasPreviewState{position:absolute;bottom:12px;left:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px;z-index:5}
 #canvasPreviewState.is-ready{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;left:0;right:auto;bottom:0}
 .modebar .selectionCrumb{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;overflow-x:auto}
-.selectionCrumb button{flex-shrink:0;max-width:140px;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;border-radius:var(--r-sm);font-size:var(--fs-1);color:var(--text-2)}
+.selectionCrumb button{flex-shrink:0;max-width:140px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:4px 6px;border-radius:var(--r-sm);font-size:var(--fs-1);color:var(--text-2)}
 .selectionCrumb button:hover{background:var(--pc-hover-bg)}
 .selectionCrumb button[aria-current]{font-weight:600;color:var(--text)}
 
@@ -2574,11 +2574,13 @@ function loadPublicationFrame(frame, source, navigation = {}) {
   strip.innerHTML = '<span role="status">Loading page preview…</span><button type="button" class="btn tiny" hidden>Retry preview</button>';
   const status = strip.querySelector('span'), retry = strip.querySelector('button');
   const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
-  let active = true, settled = false;
+  let active = true, settled = false, timedOut = false;
   const cleanup = () => { active = false; clearTimeout(timer); window.removeEventListener('message', received); };
-  const finish = (text, canRetry) => {
-    if (!active || settled || !frame.isConnected) return;
-    settled = true;
+  /* The timeout is advice, not a verdict: a slow page that arrives later replaces it, so a
+     loaded preview never sits under "taking too long". */
+  const finish = (text, canRetry, timeout = false) => {
+    if (!active || (settled && !timedOut) || !frame.isConnected) return;
+    settled = true; timedOut = timeout;
     status.textContent = text; retry.hidden = !canRetry;
     frame.setAttribute('aria-busy', 'false'); clearTimeout(timer);
   };
@@ -2597,7 +2599,7 @@ function loadPublicationFrame(frame, source, navigation = {}) {
     if (event.data.status === 'ready') { finish('Page preview displayed.', false); strip.classList.add('ready'); }
     else if (event.data.status === 'degraded') finish('Some preview assets could not load. Check the page before publishing.', true);
   };
-  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true), 15000);
+  const timer = setTimeout(() => finish('Preview is taking too long. Retry to check this saved version.', true, true), 15000);
   window.addEventListener('message', received);
   publicationFrameCleanup.set(frame, cleanup);
   retry.addEventListener('click', () => loadPublicationFrame(frame, source, navigation));
@@ -7180,6 +7182,10 @@ function editComponent(cid) {
   else componentClose();
   render();
 }
+/* On a tablet the 1280px desktop frame fits at about a quarter of its size, too small to
+   edit, so the editor starts on the Tablet canvas there; the switcher still offers Desktop.
+   Only the starting point: resizing later never changes the canvas under someone's hands. */
+const startingDevice = dev => dev === 'desktop' && window.matchMedia?.('(max-width: 1024px)').matches ? 'tablet' : dev;
 function setDev(d) {
   state.ui.dev = d;
   $$('#devSeg button').forEach(b => {
@@ -9049,6 +9055,7 @@ HOOKS.note = msg => toast(msg);
   $('#clientReviewBtn').hidden = !SRV || IS_WORDPRESS || IS_TEMPLATE_DRAFT || SRV.role !== 'owner' || !!SRV.editorSessionToken;
   $('#clientReviewBtn').addEventListener('click', clientReviewModal);
   renderPalette();
+  state.ui.dev = startingDevice(state.ui.dev);
   setDev(state.ui.dev);
   if (loadBlocked) stamp('Not saving', true);
   else stamp(IS_WORDPRESS ? 'WordPress draft ready' : (SRV ? 'Draft ready' : 'Ready'), false);
