@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { Records } from './record-files.ts';
-import type { User } from './auth.ts';
+import { validEmail, type User } from './auth.ts';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -10,13 +10,44 @@ export type SupportNotice = {
   accountEmail: string; ticketId: string; subject: string; body: string; replyToken: string; messageId: string;
 };
 export type SupportNotify = (notice: SupportNotice) => Promise<void>;
+export type FounderReplyNotice = Omit<SupportNotice, 'replyToken'>;
+export type FounderReplyDelivery = {
+  notify: (notice: FounderReplyNotice) => Promise<void>;
+  resolveContact?: (ownerHash: string) => Promise<string | null>;
+};
 type Ticket = { id: string; owner: string; subject: string; replyToken: string };
 type CustomerInput = { requestId: string; body: string; subject?: string };
 type Message = { id: string; role: 'customer' | 'support'; body: string; createdAt: string };
+export type FounderSupportTicket = {
+  id: string; subject: string; updatedAt: string; latestMessageRole: Message['role']; accountEmail?: string;
+};
+export type FounderSupportThread = FounderSupportTicket & { messages: Message[] };
 type StoredMessage = Message & { trackUnread?: true };
+type PendingFounderReply = { accountEmail: string; message: StoredMessage };
 type UnreadReply = { ticketId: string; messageId: string };
 type Activity = { id: string; subject: string; updatedAt: string; latestMessageRole?: Message['role'] };
 type Attempt = { sequence: number; started: number; failed?: boolean };
+
+// Account mail is a bare deliverable mailbox. SMTP list and display-name syntax is not accepted.
+export function validSupportMailbox(value: unknown): value is string {
+  if (typeof value !== 'string' || value.trim() !== value || !validEmail(value)) return false;
+  const [local, domain] = value.split('@');
+  return local.split('.').every(atom => /^[A-Za-z0-9!#$%&'*+\/=?^_`{|}~-]+$/.test(atom)) &&
+    domain.split('.').every(label => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label));
+}
+
+function latestActivity(activity: Activity[]) {
+  const newest = new Map<string, Activity>();
+  for (const row of activity) {
+    const previous = newest.get(row.id);
+    if (!previous || previous.updatedAt < row.updatedAt) newest.set(row.id, row);
+    else if (previous.updatedAt === row.updatedAt && previous.latestMessageRole !== row.latestMessageRole) {
+      // The thread's message-id tiebreaker determines which author comes last in the same millisecond.
+      newest.set(row.id, { ...row, latestMessageRole: undefined });
+    }
+  }
+  return newest;
+}
 
 export class SupportError extends Error {
   readonly status: 400 | 404 | 409 | 503;
@@ -33,16 +64,7 @@ export class SupportTicketStore {
       this.records.list<Activity>(`accounts/${owner}/activity`), this.unreadReplies(owner),
     ]);
     const unreadTickets = new Set(unread.map(row => row.ticketId));
-    const newest = new Map<string, Activity>();
-    for (const row of activity) {
-      const previous = newest.get(row.id);
-      if (!previous || previous.updatedAt < row.updatedAt) newest.set(row.id, row);
-      else if (previous.updatedAt === row.updatedAt && previous.latestMessageRole !== row.latestMessageRole) {
-        // The thread's message-id tiebreaker determines which author comes last in the same millisecond.
-        newest.set(row.id, { ...row, latestMessageRole: undefined });
-      }
-    }
-    const ordered = [...newest.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    const ordered = [...latestActivity(activity).values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     return Promise.all(ordered.map(async row => ({
       ...row,
       ...(unreadTickets.has(row.id) ? { unread: true } : {}),
@@ -51,14 +73,101 @@ export class SupportTicketStore {
     })));
   }
 
-  private async owned(userId: string, id: string) {
+  private async findTicket(id: string) {
     const ticket = uuid.test(id) ? await this.records.read<Ticket>(`tickets/${id}.json`) : null;
-    if (!ticket || ticket.owner !== digest(userId)) throw new SupportError(404, 'Ticket not found.');
+    if (!ticket) throw new SupportError(404, 'Ticket not found.');
+    return ticket;
+  }
+
+  private async owned(userId: string, id: string) {
+    const ticket = await this.findTicket(id);
+    if (ticket.owner !== digest(userId)) throw new SupportError(404, 'Ticket not found.');
     return ticket;
   }
 
   async get(userId: string, id: string) {
     return this.thread(await this.owned(userId, id));
+  }
+
+  /** These operations run behind the founder reports authorization gate. Only public
+      ticket fields leave the store; reply tokens and internal owner keys stay on disk. */
+  async listForFounder(): Promise<FounderSupportTicket[]> {
+    const tickets = await this.records.list<Ticket>('tickets');
+    const byOwner = new Map<string, Ticket[]>();
+    for (const ticket of tickets) {
+      const group = byOwner.get(ticket.owner);
+      if (group) group.push(ticket);
+      else byOwner.set(ticket.owner, [ticket]);
+    }
+    const rows: FounderSupportTicket[] = [];
+    for (const [owner, group] of byOwner) {
+      const [activity, contact] = await Promise.all([
+        this.records.list<Activity>(`accounts/${owner}/activity`),
+        this.records.read<string>(`accounts/${owner}/contact.json`),
+      ]);
+      const newest = latestActivity(activity);
+      for (const ticket of group) {
+        const row = newest.get(ticket.id);
+        // Older tickets can have a timestamp-only index or a message written before its index.
+        const last = row?.latestMessageRole ? undefined : (await this.thread(ticket, [])).messages.at(-1);
+        const latestMessageRole = last?.role ?? row?.latestMessageRole;
+        const updatedAt = last?.createdAt ?? row?.updatedAt;
+        if (latestMessageRole && updatedAt) rows.push({ id: ticket.id, subject: ticket.subject, updatedAt,
+          latestMessageRole, ...(contact ? { accountEmail: contact } : {}) });
+      }
+    }
+    return rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));
+  }
+
+  async getForFounder(ticketId: string): Promise<FounderSupportThread> {
+    const ticket = await this.findTicket(ticketId);
+    const [thread, contact] = await Promise.all([
+      this.thread(ticket, []), this.records.read<string>(`accounts/${ticket.owner}/contact.json`),
+    ]);
+    const latestMessageRole = thread.messages.at(-1)?.role;
+    // A reservation for a failed or in-flight customer send is not a submitted ticket.
+    if (!latestMessageRole) throw new SupportError(404, 'Ticket not found.');
+    return { ...thread, latestMessageRole, ...(contact ? { accountEmail: contact } : {}) };
+  }
+
+  async replyAsFounder(ticketId: string, requestId: string, rawBody: string, delivery: FounderReplyDelivery): Promise<FounderSupportThread> {
+    if (typeof requestId !== 'string' || !uuid.test(requestId) || typeof rawBody !== 'string' ||
+        !rawBody.trim() || rawBody.trim().length > 8000) throw new SupportError(400, 'Enter a reply of up to 8,000 characters.');
+    const ticket = await this.findTicket(ticketId);
+    const body = rawBody.trim();
+    const key = `founder-${requestId.toLowerCase()}`;
+    const pending = `outgoing/${ticket.id}/${key}`;
+    const path = pending + '.json';
+    let reply = await this.records.read<PendingFounderReply>(path);
+    if (!reply) {
+      if (!(await this.records.list<Message>(`threads/${ticket.id}`)).length) throw new SupportError(404, 'Ticket not found.');
+      // Keep the original message identity if an earlier version wrote a portal reply without emailing it.
+      const existing = await this.records.read<StoredMessage>(`threads/${ticket.id}/${key}.json`);
+      if (existing && existing.body !== body) throw new SupportError(409, 'This reply request already has a different message.');
+      const contactPath = `accounts/${ticket.owner}/contact.json`;
+      let contact = await this.records.read<string>(contactPath);
+      if (contact === null && delivery.resolveContact) {
+        const resolved = await delivery.resolveContact(ticket.owner);
+        // A customer may have sent a new message while the trusted directory resolved the old ticket.
+        if (validSupportMailbox(resolved)) contact = await this.records.create(contactPath, resolved)
+          ? resolved : await this.records.read<string>(contactPath);
+      }
+      if (!validSupportMailbox(contact)) {
+        throw new SupportError(503, 'A customer email address could not be verified. Please retry later.');
+      }
+      const candidate: PendingFounderReply = { accountEmail: contact, message: existing ?? {
+        id: randomUUID(), role: 'support', body, createdAt: now(), trackUnread: true,
+      } };
+      reply = await this.records.create(path, candidate) ? candidate : (await this.records.read<PendingFounderReply>(path))!;
+    }
+    const { accountEmail, message } = reply;
+    if (message.body !== body) throw new SupportError(409, 'This reply request already has a different message.');
+    // Commit the acceptance receipt before publishing. An indexing retry needs no more mail.
+    await this.deliver(pending, pending + '.sent.json', true, () => delivery.notify({
+      accountEmail, ticketId: ticket.id, subject: ticket.subject, body, messageId: message.id,
+    }));
+    await this.recordReply(ticket, key, message);
+    return this.getForFounder(ticket.id);
   }
 
   private async thread(ticket: Ticket, knownUnread?: UnreadReply[]) {
@@ -146,14 +255,17 @@ export class SupportTicketStore {
     const message = await this.records.create(pending + '.json', draft) ? draft : (await this.records.read<Message>(pending + '.json'))!;
     if (message.body !== body) throw new SupportError(409, 'This send request already has a different message.');
     const visiblePath = `threads/${ticket.id}/${message.id}.json`;
-    if (!await this.records.read<Message>(visiblePath)) {
-      await this.deliver(ticket, user.email, message, pending, visiblePath, notify);
-    }
+    await this.deliver(pending, visiblePath, message, () => notify({
+      accountEmail: user.email, ticketId: ticket.id, subject: ticket.subject, body: message.body,
+      replyToken: ticket.replyToken, messageId: message.id,
+    }));
     await this.index(ticket, message);
+    await this.records.write(`accounts/${ticket.owner}/contact.json`, user.email);
     return this.thread(ticket);
   }
 
-  private async deliver(ticket: Ticket, accountEmail: string, message: Message, pending: string, visiblePath: string, notify: SupportNotify) {
+  private async deliver(pending: string, receiptPath: string, receipt: Message | true, notify: () => Promise<void>) {
+    if (await this.records.read(receiptPath)) return;
     const attempts = await this.records.list<Attempt>(pending);
     const last = attempts.sort((a, b) => b.sequence - a.sequence)[0];
     const busy = () => new SupportError(409, 'This message is still sending. Try again shortly.');
@@ -163,15 +275,14 @@ export class SupportTicketStore {
     const attempt = { sequence: (last?.sequence || 0) + 1, started: Date.now() };
     const path = `${pending}/${attempt.sequence}.json`;
     if (!await this.records.create(path, attempt)) throw busy();
-    if (await this.records.read<Message>(visiblePath)) return;
+    if (await this.records.read(receiptPath)) return;
     try {
-      await notify({ accountEmail, ticketId: ticket.id, subject: ticket.subject, body: message.body,
-        replyToken: ticket.replyToken, messageId: message.id });
+      await notify();
     } catch {
       await this.records.write(path, { ...attempt, failed: true });
       throw new SupportError(503, 'Email delivery could not be confirmed. Please retry your message.');
     }
-    await this.records.create(visiblePath, message);
+    await this.records.create(receiptPath, receipt);
   }
 
   /** Called only by the authenticated inbound mail handler. An inbound provider retry
@@ -184,11 +295,16 @@ export class SupportTicketStore {
     if (!ticket || ticket.replyToken !== replyToken) return false;
     const body = rawBody.trim();
     if (!inboundId || inboundId.length > 1024 || !body || body.length > 8000) throw new SupportError(400, 'Invalid reply.');
-    const path = `threads/${id}/reply-${digest(inboundId)}.json`;
-    const candidate: StoredMessage = { id: randomUUID(), role: 'support', body, createdAt: now(), trackUnread: true };
+    await this.recordReply(ticket, `reply-${digest(inboundId)}`, {
+      id: randomUUID(), role: 'support', body, createdAt: now(), trackUnread: true,
+    });
+    return true;
+  }
+
+  private async recordReply(ticket: Ticket, key: string, candidate: StoredMessage) {
+    const path = `threads/${ticket.id}/${key}.json`;
     const message = await this.records.create(path, candidate) ? candidate : (await this.records.read<StoredMessage>(path))!;
     if (message.trackUnread) await this.registerUnread(ticket, message.id);
     await this.index(ticket, message);
-    return true;
   }
 }

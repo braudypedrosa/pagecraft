@@ -25,6 +25,7 @@
    it was not asked for — nothing else, and no tracking of any kind. */
 import { createTransport, type Transporter } from 'nodemailer';
 import { LINK_TTL_MS, type LinkSender } from './auth.ts';
+import { validSupportMailbox, type FounderReplyNotice, type SupportNotice } from './support-tickets.ts';
 
 export interface MailConfig {
   host: string;
@@ -125,7 +126,7 @@ export function smtpSender(cfg: MailConfig, transport?: Transporter): LinkSender
 
 export function smtpSupportSender(cfg: MailConfig, domain: string, transport?: Transporter) {
   const tx = mailTransport(cfg, transport);
-  return async (notice: import('./support-tickets.ts').SupportNotice) => {
+  return async (notice: SupportNotice) => {
     await tx.sendMail({
       from: cfg.from,
       to: 'hello@braudyp.dev',
@@ -133,6 +134,32 @@ export function smtpSupportSender(cfg: MailConfig, domain: string, transport?: T
       subject: `[Pagecraft Support · ${notice.ticketId.slice(0, 8)}] ${notice.subject}`,
       text: `From: ${notice.accountEmail}\n\n${notice.body}\n\nReply to this email to respond in Pagecraft.`,
       messageId: `<${notice.messageId}@${domain}>`,
+    });
+  };
+}
+
+export function smtpFounderSupportSender(cfg: MailConfig, customerOrigin: string, transport?: Transporter) {
+  const tx = mailTransport(cfg, transport);
+  const origin = new URL(customerOrigin);
+  if (!['https:', 'http:'].includes(origin.protocol) || origin.username || origin.password) {
+    throw new Error('Invalid customer support origin.');
+  }
+  return async (notice: FounderReplyNotice) => {
+    const { accountEmail, ticketId, subject, body, messageId } = notice;
+    // Pass a single mailbox, even if an old saved address contains SMTP list syntax.
+    if (!validSupportMailbox(accountEmail)) {
+      throw new Error('A single customer email address is required.');
+    }
+    if (!/^[a-z0-9-]{1,80}$/i.test(messageId)) throw new Error('Invalid support message identifier.');
+    const ticketUrl = new URL('/account/support', origin);
+    ticketUrl.searchParams.set('ticket', ticketId);
+    await tx.sendMail({
+      from: cfg.from,
+      to: { name: '', address: accountEmail },
+      subject: `[Pagecraft Support · ${ticketId.slice(0, 8)}] ${subject.replace(/[\r\n]+/g, ' ')}`,
+      text: `${body}\n\nView or reply to your ticket in Pagecraft:\n${ticketUrl.href}`,
+      messageId: `<support-reply.${messageId}@${origin.hostname}>`,
+      headers: { 'Resend-Idempotency-Key': `support-reply/${origin.hostname}/${messageId}` },
     });
   };
 }

@@ -1,4 +1,4 @@
-import { isAbsolute, join } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { parseOwnerAuthUserIds } from './owner-billing.ts';
 
 /** Only these values may come from the protected reports runtime file. */
@@ -9,6 +9,8 @@ export const reportsConfigKeys = [
   'DATABASE_GATEWAY_URL', 'DATABASE_GATEWAY_KEY', 'DATABASE_GATEWAY_REGION',
   'REPORTS_DATA_GATEWAY_URL',
   'PADDLE_API_KEY', 'PADDLE_ENVIRONMENT',
+  'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM',
+  'PAGECRAFT_REPORTS_PRODUCTION_SUPPORT_ROOT', 'PAGECRAFT_REPORTS_STAGING_SUPPORT_ROOT',
   'PAGECRAFT_REPORTS_HEALTH_ROOT', 'PAGECRAFT_REPORTS_RELEASE_ROOT',
   'PAGECRAFT_DISK_WARN_FREE_BYTES', 'PAGECRAFT_DISK_WARN_USED_PERCENT',
 ] as const;
@@ -65,6 +67,14 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
   for (const [name, value] of [['PAGECRAFT_REPORTS_HEALTH_ROOT', healthRoot], ['PAGECRAFT_REPORTS_RELEASE_ROOT', releaseRoot]]) {
     if (value && !isAbsolute(value)) throw new Error(`${name} must be an absolute path`);
   }
+  const productionSupportRoot = env.PAGECRAFT_REPORTS_PRODUCTION_SUPPORT_ROOT?.trim();
+  const stagingSupportRoot = env.PAGECRAFT_REPORTS_STAGING_SUPPORT_ROOT?.trim();
+  for (const root of [productionSupportRoot, stagingSupportRoot]) {
+    if (root && !isAbsolute(root)) throw new Error('Support inboxes require an absolute private storage root');
+  }
+  if (productionSupportRoot && stagingSupportRoot && resolve(productionSupportRoot) === resolve(stagingSupportRoot)) {
+    throw new Error('Staging and production support inboxes require separate roots');
+  }
   const paddleEnvironment = env.PADDLE_ENVIRONMENT || 'sandbox';
   if (!['sandbox', 'live'].includes(paddleEnvironment)) throw new Error('PADDLE_ENVIRONMENT must be sandbox or live');
   return {
@@ -77,7 +87,7 @@ export function reportsRuntimeConfig(env: Record<string, string | undefined>) {
     reportsDataGatewayUrl,
     costsPath: join(storageRoot, 'costs.json'),
     contactsPath: join(storageRoot, 'contacts.json'),
-    healthRoot, releaseRoot,
+    healthRoot, releaseRoot, productionSupportRoot, stagingSupportRoot,
     paddle: env.PADDLE_API_KEY?.trim() ? {
       apiKey: env.PADDLE_API_KEY,
       environment: paddleEnvironment as 'sandbox' | 'live',

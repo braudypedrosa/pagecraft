@@ -1,7 +1,7 @@
 import type { OwnerBillingLoadResult } from './owner-billing.ts';
 
 export type CrmRange = '30d' | '90d' | '12m';
-export type CrmSection = 'overview' | 'customers' | 'pipeline' | 'revenue' | 'costs' | 'reports' | 'sources' | 'health';
+export type CrmSection = 'overview' | 'customers' | 'pipeline' | 'support' | 'revenue' | 'costs' | 'reports' | 'sources' | 'health';
 export const CRM_STAGES = ['lead', 'contacted', 'qualified', 'customer', 'archived'] as const;
 export const CRM_SOURCES = ['unknown', 'direct', 'referral', 'organic', 'social', 'paid', 'other'] as const;
 export type CrmStage = typeof CRM_STAGES[number];
@@ -104,8 +104,27 @@ export interface FounderCrmData {
   billing: Extract<OwnerBillingLoadResult, { status: 'ok' }>;
 }
 export interface FounderCrmQuery { range?: CrmRange; includeTests?: boolean }
+export interface CrmSupportTicket {
+  id: string;
+  subject: string;
+  updatedAt: string;
+  accountEmail?: string | null;
+  latestMessageRole?: 'customer' | 'support' | null;
+}
+export interface CrmSupportInbox {
+  environment: 'production' | 'staging';
+  sourceLabel: string;
+  state: 'available' | 'unavailable' | 'not_connected';
+  tickets: CrmSupportTicket[];
+  selected: (CrmSupportTicket & {
+    messages: { role: 'customer' | 'support'; body: string; createdAt: string }[];
+  }) | null;
+  requestId: string;
+  draftBody?: string;
+}
 export interface FounderCrmPageInput {
   section: CrmSection;
+  support?: CrmSupportInbox;
   dataEnvironment: 'staging' | 'production' | 'unconfigured';
   currencyCode?: string;
   error?: string;

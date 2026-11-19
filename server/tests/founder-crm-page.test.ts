@@ -3,8 +3,8 @@ import { test } from 'vitest';
 // @ts-expect-error jsdom has no bundled declarations in this workspace.
 import { JSDOM } from 'jsdom';
 import type { User } from '../src/auth.ts';
-import { founderCrmPage, founderCrmSignInPage } from '../src/founder-crm-page.ts';
-import type { FounderCrmData, FounderCrmPageInput } from '../src/founder-crm-types.ts';
+import { founderCrmPage, founderCrmSignInPage, founderCrmSupportPage, founderSupportUpdates } from '../src/founder-crm-page.ts';
+import type { CrmSupportInbox, FounderCrmData, FounderCrmPageInput } from '../src/founder-crm-types.ts';
 
 const founder: User = {
   id: 'founder-1', name: 'Braudy <Founder>', email: 'founder@example.test',
@@ -16,7 +16,7 @@ test('returning through browser history restores a usable submit form', async ()
   });
   try {
     const form = dom.window.document.querySelector('.detail-form')!;
-    const button = form.querySelector('button')!;
+    const button = form.querySelector('[data-submit-label]')!;
     const submit = () => new dom.window.Event('submit', { bubbles:true, cancelable:true });
     const first = submit(); form.dispatchEvent(first); a.equal(first.defaultPrevented,false);
     a.equal(button.hasAttribute('disabled'),false);
@@ -78,7 +78,14 @@ test('renders a standalone Founder CRM shell with preserved report controls', ()
   a.match(html, /data-environment="staging">Staging data/);
   a.match(html, /class="period-window">Period <time datetime="2026-09-10T00:00:00\.000Z">Sep 10, 2026<\/time>–<time datetime="2026-10-09T23:59:59\.999Z">Oct 9, 2026<\/time> UTC<\/span>/);
   a.doesNotMatch(html, /Open Pagecraft/);
-  a.doesNotMatch(html, /pc-founder-topbar|pc-workspace-head/);
+  const doc = new JSDOM(html).window.document;
+  const logo = doc.querySelector('.pc-topbar .pc-brand');
+  a.equal(logo.getAttribute('href'), '/overview?range=30d&tests=exclude&currency=USD');
+  a.equal(logo.getAttribute('aria-label'), 'Pagecraft HQ overview');
+  a.equal(doc.querySelector('.pc-topbar .pc-docname').textContent, 'Overview');
+  a.equal(doc.querySelector('.rail [aria-current=page]').textContent, 'Overview');
+  a.equal(doc.querySelector('.pc-topbar details summary').getAttribute('aria-label'), 'Account menu for '+founder.name);
+  a.equal(doc.querySelector('.pc-topbar details form').getAttribute('method'), 'post');
   a.doesNotMatch(html, /Local sample data/);
 });
 
@@ -460,6 +467,9 @@ test('sign-in page matches the standalone HQ brand and escapes challenge configu
   const html = founderCrmSignInPage({
     error: 'auth', dataEnvironment: 'production', challengeSiteKey: 'site-key-123',
   });
+  const doc = new JSDOM(html).window.document;
+  a.equal(doc.querySelector('.signin-wordmark').getAttribute('src'), '/brand/pagecraft-logo.svg');
+  a.equal(doc.getElementById(doc.querySelector('.signin-panel').getAttribute('aria-labelledby')).textContent, 'Sign in');
   a.match(html, /<title>Sign in — Pagecraft HQ<\/title>/);
   a.match(html, /Founder CRM/);
   a.match(html, /data-environment="production">Production data/);
@@ -469,4 +479,50 @@ test('sign-in page matches the standalone HQ brand and escapes challenge configu
   a.match(html, /class="cf-turnstile" data-sitekey="site-key-123" data-action="founder_sign_in"/);
   a.match(html, /We could not sign you in with those details/);
   a.doesNotMatch(html, /sign-up|Continue with Google|Open Pagecraft/i);
+});
+
+test('the founder inbox keeps support context separate and shares safe, composer-free refresh regions', () => {
+  const ticket = { id:'88229ace-1388-4029-ad26-8583197ac95a', subject:'A <title> question', accountEmail:'sam@example.test', updatedAt:'2026-11-19T08:00:00Z', latestMessageRole:'customer' as const };
+  const support: CrmSupportInbox = {
+    environment:'staging', sourceLabel: 'Staging support', state:'available', tickets:[ticket], requestId:'63c7257f-fef4-48f0-9a75-58b825acc969',
+    selected:{ ...ticket, messages:[{ role:'customer', body:'Hello <script>message()</script>', createdAt:ticket.updatedAt }] },
+    draftBody:'A reply </textarea><img src=x>',
+  };
+  const doc = new JSDOM(founderCrmSupportPage(founder, input({ section:'support', support, error:'Please retry.' }))).window.document;
+  a.equal(doc.querySelector('nav a[aria-current=page]')?.getAttribute('href'), '/support');
+  a.equal(doc.querySelector('.support-sources [aria-current]').textContent, 'Staging support');
+  a.equal(doc.querySelector('.support-sources [aria-current]').getAttribute('href'), '/support?environment=staging');
+  a.equal(doc.querySelector('.support-sources a').getAttribute('href'), '/support?environment=production');
+  a.equal(doc.querySelector('[name=range], [name=tests], .dataset-line, [data-report-environment]'), null);
+  a.equal(doc.querySelector('[data-support-inbox] a').getAttribute('href'), '/support?environment=staging&ticket='+ticket.id);
+  a.equal(doc.querySelector('[data-support-inbox]').dataset.supportRefresh, '/support?environment=staging&ticket='+ticket.id);
+  a.match(doc.querySelector('[data-support-inbox]').textContent, /sam@example.test.*Needs reply/);
+  a.equal(doc.querySelector('[data-support-thread] p').textContent, support.selected!.messages[0].body);
+  a.equal(doc.querySelector('[data-support-thread] script, [data-support-inbox] title, img'), null);
+  const form = doc.querySelector('.support-detail form');
+  a.equal(form.getAttribute('action'), '/support/'+ticket.id+'/replies?environment=staging');
+  a.equal(form.getAttribute('method'), 'post');
+  a.equal(form.querySelector('[name=requestId]').value, support.requestId);
+  a.equal(form.querySelector('textarea').value, support.draftBody);
+  a.match(doc.querySelector('[role=alert]').textContent, /Please retry/);
+  const updates = new JSDOM(founderSupportUpdates(support)).window.document;
+  for (const selector of ['[data-support-inbox]','[data-support-thread]']) {
+    a.equal(updates.querySelector(selector).outerHTML, doc.querySelector(selector).outerHTML);
+  }
+  a.equal(updates.querySelector('header,nav,form,textarea,input'), null);
+  const elsewhere = new JSDOM(founderCrmPage(founder, base(), input())).window.document;
+  a.equal(elsewhere.querySelector('nav a[href="/support"]').textContent, 'Support');
+});
+
+test('disconnected, unavailable, and empty support sources have distinct states', () => {
+  const render = (support?: CrmSupportInbox) => new JSDOM(founderCrmSupportPage(founder, input({section:'support', support}))).window.document;
+  const empty: CrmSupportInbox = {environment:'production',sourceLabel:'Production support',state:'available',tickets:[],selected:null,requestId:''};
+  a.match(render().querySelector('[data-support-inbox]').textContent, /not connected/);
+  a.equal(render().querySelector('.support-sources [aria-current]').getAttribute('href'), '/support?environment=production');
+  a.match(render(empty).querySelector('[data-support-inbox]').textContent, /No support tickets yet/);
+  a.equal(render(empty).querySelector('[data-support-inbox]').dataset.supportRefresh, '/support?environment=production');
+  const outage = render({...empty, state:'unavailable', draftBody:'A draft to keep.'});
+  a.match(outage.querySelector('[data-support-inbox]').textContent, /temporarily unavailable/);
+  a.equal(outage.querySelector('textarea[readonly]').value, 'A draft to keep.');
+  a.equal(outage.querySelector('.support-detail form'), null);
 });

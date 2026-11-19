@@ -1,11 +1,15 @@
 /* The founder console is a separate process. It does not boot the editor, create
-   profiles or schemas, drain queues, publish sites, or send customer messages. */
+   profiles or schemas, drain queues, publish sites, or run the customer mail service. */
+import { createHash } from 'node:crypto';
 import { serve } from '@hono/node-server';
 import { readFileSync, existsSync, lstatSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SupabaseAccountAuth } from './account-auth.ts';
 import { createFounderReportsApp } from './founder-reports.ts';
+import { FileRecords } from './record-files.ts';
+import { SupportTicketStore } from './support-tickets.ts';
+import { mailConfig, smtpFounderSupportSender } from './mail.ts';
 import { FileOwnerCostStore } from './owner-billing.ts';
 import { FileFounderCrmStore, GatewayFounderCrmStore } from './founder-crm-store.ts';
 import { GatewayPlanGrants } from './plan-grants.ts';
@@ -59,8 +63,29 @@ const systemHealth = config.healthRoot ? () => systemHealthSnapshot({
     { label: 'Founder reports', read: async () => deployment ? { commit: deployment.commit ?? null, branch: deployment.branch ?? null } : null },
   ],
 }) : undefined;
+const supportMail = mailConfig(env);
+async function legacySupportContact(ownerHash: string) {
+  // Legacy tickets store the digest of the Pagecraft profile ID. A CRM lead or a matching
+  // name is insufficient: only the exact profile in the shared Pagecraft directory qualifies.
+  if (!crmGateway) return null;
+  const { accounts } = await crmGateway.call<CrmPlatformSnapshot>('founder.snapshot');
+  return accounts.find(account => createHash('sha256').update(account.id).digest('hex') === ownerHash)?.email ?? null;
+}
+function supportInbox(root: string | undefined, customerOrigin: string) {
+  if (!root) return undefined;
+  const directory = lstatSync(root);
+  if (!directory.isDirectory() || (directory.mode & 0o077)) throw new Error('Support requires a private ticket directory');
+  return {
+    store: new SupportTicketStore(new FileRecords(root)),
+    delivery: supportMail ? { notify: smtpFounderSupportSender(supportMail, customerOrigin), resolveContact: legacySupportContact } : undefined,
+  };
+}
 const app = createFounderReportsApp({
   systemHealth,
+  support: {
+    production: supportInbox(config.productionSupportRoot, 'https://build.itspagecraft.com'),
+    staging: supportInbox(config.stagingSupportRoot, 'https://staging.itspagecraft.com'),
+  },
   brandRoot: join(repo, 'brand'),
   assetRoot: join(repo, 'server', 'public'),
   host: config.host, origin: config.origin, appOrigin: config.appOrigin,

@@ -1,4 +1,5 @@
 import a from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,6 +10,8 @@ import { founderCrmCsv } from '../src/founder-crm-routes.ts';
 import { FileFounderCrmStore } from '../src/founder-crm-store.ts';
 import type { CrmContactInput, CrmPlatformSnapshot } from '../src/founder-crm-types.ts';
 import { FileOwnerCostStore } from '../src/owner-billing.ts';
+import { MemoryRecords } from '../src/record-files.ts';
+import { SupportTicketStore, type SupportNotice } from '../src/support-tickets.ts';
 
 const OWNER = '123e4567-e89b-42d3-a456-426614174000';
 const OTHER = '123e4567-e89b-42d3-a456-426614174001';
@@ -23,20 +26,23 @@ const snapshot: CrmPlatformSnapshot = {
   accountTotal:1,siteTotal:1,coverage:'complete',
 };
 
-async function rig() {
+async function rig(support?: Partial<Record<'production' | 'staging', SupportTicketStore>>) {
   const root = await mkdtemp(join(tmpdir(), 'pagecraft-crm-routes-')); roots.push(root);
   let current: VerifiedIdentity | null = identity();
   const contacts = new FileFounderCrmStore(join(root, 'contacts.json'));
   const costs = new FileOwnerCostStore(join(root, 'costs.json'));
   const platform = { snapshot:vi.fn(async () => structuredClone(snapshot)) };
+  const customerMail = vi.fn(async (_notice: Omit<SupportNotice, 'replyToken'>) => {});
+  const inboxes = Object.fromEntries(Object.entries(support ?? {}).map(([source, store]) =>
+    [source, { store, delivery: { notify: customerMail } }]));
   const app = createFounderReportsApp({host:'reports.test',origin:'http://reports.test',dataEnvironment:'staging',
-    accountAuth:{identity:async () => current} as unknown as AccountAuth,
+    accountAuth:{identity:async () => current} as unknown as AccountAuth, support: inboxes,
     billing:{ownerAuthUserIds:[OWNER],costs,now:() => new Date('2026-10-09T12:00:00Z')},crm:{platform,contacts},
   });
   const request = (path:string, init:RequestInit = {}) => app.request(new Request('http://reports.test'+path, {...init,headers:{host:'reports.test',...init.headers}}));
   const post = (fields:Record<string,string>, headers:Record<string,string> = {}) => request('/crm/contacts', {method:'POST',headers:{origin:'http://reports.test','content-type':'application/x-www-form-urlencoded',...headers},body:new URLSearchParams(fields)});
   const fields = (patch:Record<string,string> = {}) => ({name:contact.name,email:contact.email,company:contact.company,stage:contact.stage,source:contact.source,notes:contact.notes,followUpOn:contact.followUpOn!,range:'90d',tests:'exclude',currency:'USD',returnSection:'pipeline',...patch});
-  return {root,contacts,costs,platform,request,post,fields,setIdentity:(value:VerifiedIdentity|null) => { current=value; }};
+  return {root,contacts,costs,platform,request,post,fields,customerMail,setIdentity:(value:VerifiedIdentity|null) => { current=value; }};
 }
 
 test('all CRM pages and exports gate identity before reading private sources', async () => {
@@ -196,4 +202,135 @@ test('founder gives and removes plans only for snapshot accounts, from the same 
   a.equal(response.status, 303);
   a.match(response.headers.get('location') || '', /message=plan_revoked/);
   a.deepEqual(plans.revoke.mock.calls, [['grant-1', `founder:${OWNER}`]]);
+});
+
+async function supportRig() {
+  const production = new SupportTicketStore(new MemoryRecords());
+  const staging = new SupportTicketStore(new MemoryRecords());
+  const r = await rig({ production, staging });
+  const person = { id: ACCOUNT, email: 'avery@example.test' };
+  const notify = vi.fn(async (_notice: SupportNotice) => {});
+  const live = await production.send(person, undefined, { requestId: randomUUID(), subject: 'Cover image', body: 'Can I replace the cover?' }, notify);
+  const staged = await staging.send(person, undefined, { requestId: randomUUID(), subject: 'Preview frame', body: 'Where is the preview?' }, notify);
+  const inbox = (environment?: string, ticket?: string) => {
+    const query = new URLSearchParams();
+    if (environment) query.set('environment', environment);
+    if (ticket) query.set('ticket', ticket);
+    return '/support?' + query;
+  };
+  const postReply = (id: string, environment: string | undefined, requestId: string, body: string, headers: Record<string, string> = {}) =>
+    r.request('/support/' + id + '/replies' + (environment ? '?environment=' + encodeURIComponent(environment) : ''), {
+      method: 'POST', headers: { origin: 'http://reports.test', 'content-type': 'application/x-www-form-urlencoded', ...headers },
+      body: new URLSearchParams({ requestId, body }),
+    });
+  return { ...r, production, staging, person, live, staged, notify, inbox, postReply };
+}
+
+test('founder inboxes preserve the source across the queue, thread, reply form and redirect independently of analytics', async () => {
+  const r = await supportRig();
+  r.platform.snapshot.mockRejectedValue(new Error('private analytics outage'));
+  const costReads = vi.spyOn(r.costs, 'list');
+  const contactReads = vi.spyOn(r.contacts, 'list');
+  const defaultPage = await r.request('/support');
+  a.equal(defaultPage.status, 200);
+  const defaultHtml = await defaultPage.text();
+  a.match(defaultHtml, /Cover image/); a.doesNotMatch(defaultHtml, /Preview frame/);
+
+  for (const [environment, store, ticket, other, token] of [
+    ['production', r.production, r.live, r.staged, r.notify.mock.calls[0][0].replyToken],
+    ['staging', r.staging, r.staged, r.live, r.notify.mock.calls[1][0].replyToken],
+  ] as const) {
+    await store.appendReply(token, 'support-email', 'Your reply from the inbox.');
+    const response = await r.request(r.inbox(environment));
+    a.equal(response.status, 200);
+    a.match(response.headers.get('cache-control') || '', /private.*no-store/);
+    const queue = await response.text();
+    a.ok(queue.includes(ticket.subject)); a.ok(!queue.includes(other.subject));
+    const links = [...queue.matchAll(/href="([^"]+)"/g)].map(m => new URL(m[1].replaceAll('&amp;', '&'), 'http://reports.test'));
+    const link = links.find(url => url.searchParams.get('ticket') === ticket.id);
+    a.ok(link); a.equal(link.searchParams.get('environment'), environment);
+    const detail = await (await r.request(link.pathname + link.search)).text();
+    a.ok(detail.includes(ticket.messages[0].body)); a.match(detail, /Your reply from the inbox\./);
+    a.ok(!detail.includes(other.id)); a.ok(!detail.includes(token));
+    const form = [...detail.matchAll(/action="([^"]+)"/g)].map(m => new URL(m[1].replaceAll('&amp;', '&'), 'http://reports.test'))
+      .find(url => url.pathname === '/support/' + ticket.id + '/replies');
+    a.ok(form); a.equal(form.searchParams.get('environment'), environment);
+    a.equal(await store.unreadCount(r.person.id), 1, 'founder viewing must preserve customer unread state');
+
+    const id = randomUUID();
+    const answer = 'Your dashboard reply for ' + ticket.subject + '.';
+    const sent = await r.postReply(ticket.id, environment, id, answer);
+    a.equal(sent.status, 303); a.match(sent.headers.get('cache-control') || '', /no-store/);
+    const location = new URL(sent.headers.get('location')!, 'http://reports.test');
+    a.equal(location.searchParams.get('ticket'), ticket.id); a.equal(location.searchParams.get('environment'), environment);
+    a.equal((await r.postReply(ticket.id, environment, id, answer)).status, 303);
+    const refreshed = await r.request(location.pathname + location.search, { headers: { accept: 'text/vnd.pagecraft.support+html' } });
+    a.ok((await refreshed.text()).includes(answer));
+    const customer = await store.get(r.person.id, ticket.id);
+    a.equal(customer.messages.filter(message => message.role === 'support' && message.body === answer && message.unread).length, 1);
+    await store.markRead(r.person.id, ticket.id, customer.messages.filter(m => m.unread).map(m => m.id));
+    await r.request(link.pathname + link.search);
+    a.equal(await store.unreadCount(r.person.id), 0);
+    a.equal((await r.request(r.inbox(environment, other.id))).status, 404);
+    a.equal((await r.postReply(other.id, environment, randomUUID(), 'Wrong inbox')).status, 404);
+  }
+  a.equal((await r.request(r.inbox(undefined, r.staged.id))).status, 404);
+  a.ok((await r.postReply(r.live.id, undefined, randomUUID(), 'Missing source')).status >= 400);
+  a.equal(r.platform.snapshot.mock.calls.length, 0); a.equal(costReads.mock.calls.length, 0); a.equal(contactReads.mock.calls.length, 0);
+  a.equal(r.notify.mock.calls.length, 2);
+  a.equal(r.customerMail.mock.calls.length, 2);
+  a.ok(r.customerMail.mock.calls.every(([notice]) => notice.accountEmail === r.person.email));
+});
+
+test('support routes authorize before reads or writes and reject invalid replies without adding messages', async () => {
+  const r = await supportRig(), id = randomUUID();
+  const reads = vi.spyOn(r.staging, 'listForFounder'), writes = vi.spyOn(r.staging, 'replyAsFounder');
+  for (const current of [null, identity(OTHER)]) {
+    r.setIdentity(current);
+    for (const accept of ['text/html','text/vnd.pagecraft.support+html']) {
+      const page = await r.request(r.inbox('staging', r.staged.id), { headers: { accept } });
+      a.equal(page.status, current ? 403 : 303); a.ok(!(await page.text()).includes(r.staged.subject));
+    }
+    a.equal((await r.postReply(r.staged.id, 'staging', id, 'Unsent message')).status, current ? 403 : 303);
+  }
+  r.setIdentity(identity());
+  const denied = await r.postReply(r.staged.id, 'staging', id, 'Unsent message', { origin: 'https://elsewhere.test', authorization: 'Bearer unused' });
+  a.equal(denied.status, 403); a.match(denied.headers.get('cache-control') || '', /no-store/);
+  a.equal(reads.mock.calls.length, 0); a.equal(writes.mock.calls.length, 0);
+  a.ok((await r.request(r.inbox('unknown'))).status >= 400);
+  for (const [environment, key, body, contentType] of [
+    ['unknown', id, 'Not sent', 'application/x-www-form-urlencoded'],
+    ['staging', 'invalid', 'Not sent', 'application/x-www-form-urlencoded'],
+    ['staging', id, '  ', 'application/x-www-form-urlencoded'],
+    ['staging', id, 'a'.repeat(8001), 'application/x-www-form-urlencoded'],
+    ['staging', id, 'Not sent', 'application/json'],
+  ]) a.ok((await r.postReply(r.staged.id, environment, key, body, { 'content-type': contentType })).status >= 400);
+  a.equal((await r.staging.get(r.person.id, r.staged.id)).messages.length, 1);
+  a.equal((await r.production.get(r.person.id, r.live.id)).messages.length, 1);
+});
+
+test('a failed founder submission preserves its escaped draft and request ID for a safe retry', async () => {
+  const r = await supportRig(), id = randomUUID(), answer = 'Please review <header> settings.';
+  vi.spyOn(r.staging, 'replyAsFounder').mockRejectedValueOnce(new Error('private storage detail'));
+  const failed = await r.postReply(r.staged.id, 'staging', id, answer);
+  a.equal(failed.status, 503);
+  const html = await failed.text();
+  a.match(html, /Please review &lt;header&gt; settings\./); a.ok(html.includes(id)); a.doesNotMatch(html, /private storage detail/);
+  a.ok(!html.includes(r.live.subject));
+  a.equal((await r.postReply(r.staged.id, 'staging', id, answer)).status, 303);
+  a.equal((await r.staging.get(r.person.id, r.staged.id)).messages.filter(message => message.body === answer).length, 1);
+});
+
+test('a disabled production inbox never falls through to an available staging store', async () => {
+  const staging = new SupportTicketStore(new MemoryRecords()), r = await rig({ staging });
+  const reads = vi.spyOn(staging, 'listForFounder');
+  for (const path of ['/support','/support?environment=production']) {
+    const response = await r.request(path);
+    a.match(await response.text(), /not connected|unavailable|not configured/i);
+  }
+  const response = await r.request('/support/' + randomUUID() + '/replies?environment=production', {
+    method: 'POST', headers: { origin: 'http://reports.test', 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ requestId: randomUUID(), body: 'Unavailable inbox.' }),
+  });
+  a.equal(response.status, 503); a.equal(reads.mock.calls.length, 0);
 });

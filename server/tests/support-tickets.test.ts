@@ -7,7 +7,7 @@ import { Hono } from 'hono';
 import { test, vi } from 'vitest';
 import { FileRecords, MemoryRecords } from '../src/record-files.ts';
 import { registerSupportRoutes } from '../src/support-routes.ts';
-import { SupportTicketStore, type SupportNotice } from '../src/support-tickets.ts';
+import { SupportTicketStore, type FounderReplyNotice, type SupportNotice } from '../src/support-tickets.ts';
 import type { User } from '../src/auth.ts';
 
 const sam = { id: 'member-1', name: 'Sam Carter', email: 'sam@example.test' };
@@ -231,4 +231,172 @@ test('unread routes protect account data and acknowledge explicit IDs without ou
   assert.deepEqual(await (await acknowledge(body)).json(), { count: 0 });
   assert.deepEqual(await (await acknowledge(body)).json(), { count: 0 });
   assert.equal(notify.mock.calls.length, 1);
+});
+
+test('founder lists submitted and legacy tickets across accounts without secrets or customer read receipts', async () => {
+  const records = new MemoryRecords(), store = new SupportTicketStore(records);
+  const notify = vi.fn(async (_n: SupportNotice) => {});
+  const first = await store.send(sam, undefined, input(), notify);
+  const second = await store.send(robin, undefined, input(), notify);
+  const legacy = randomUUID(), owner = createHash('sha256').update('older-member').digest('hex');
+  const legacyMessage = { id: randomUUID(), role: 'customer', body: 'Can I update this page?', createdAt: '2026-04-01T00:00:00Z' };
+  await records.create(`tickets/${legacy}.json`, { id: legacy, owner, subject: 'Page update', replyToken: 'unused-test-token' });
+  await records.create(`threads/${legacy}/${legacyMessage.id}.json`, legacyMessage);
+  const pending = randomUUID();
+  await records.create(`tickets/${pending}.json`, { id: pending, owner, subject: 'Unsent draft', replyToken: 'unused-test-token' });
+
+  const notice = notify.mock.calls[0][0];
+  await store.appendReply(notice.replyToken, 'first-answer', 'Open Publishing.');
+  assert.equal(await store.unreadCount(sam.id), 1);
+  const rows = await store.listForFounder();
+  assert.deepEqual(new Set(rows.map(row => row.id)), new Set([first.id, second.id, legacy]));
+  assert.equal(rows.find(row => row.id === first.id)?.accountEmail, sam.email);
+  assert.equal(rows.find(row => row.id === second.id)?.accountEmail, robin.email);
+  assert.deepEqual(rows.at(-1), { id: legacy, subject: 'Page update', updatedAt: legacyMessage.createdAt, latestMessageRole: 'customer' });
+  for (const row of rows) assert(Object.keys(row).every(key => ['id','subject','updatedAt','latestMessageRole','accountEmail'].includes(key)));
+  const detail = await store.getForFounder(first.id);
+  assert.equal(detail.latestMessageRole, detail.messages.at(-1)?.role);
+  assert.equal(rows.find(row => row.id === first.id)?.latestMessageRole, detail.latestMessageRole);
+  assert.equal(detail.messages.length, 2);
+  assert(!JSON.stringify(detail).includes(notice.replyToken));
+  assert(!detail.messages.some(row => 'unread' in row || 'trackUnread' in row));
+  assert.deepEqual((await store.getForFounder(legacy)).messages, [legacyMessage]);
+  assert.equal(await store.unreadCount(sam.id), 1);
+  await assert.rejects(store.getForFounder(pending), /not found/);
+  await assert.rejects(store.replyAsFounder(pending, randomUUID(), 'Hello', { notify: async () => {} }), /not found/);
+  await assert.rejects(store.getForFounder('../tickets'), /not found/);
+  await assert.rejects(store.get(robin.id, first.id), /not found/);
+  assert.deepEqual((await store.list(robin.id)).map(row => row.id), [second.id]);
+});
+
+test('founder replies are durable, idempotent and visible alongside simultaneous customer and email replies', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'founder-support-'));
+  try {
+    const store = new SupportTicketStore(new FileRecords(root)), worker = new SupportTicketStore(new FileRecords(root));
+    const notify = vi.fn(async (_n: SupportNotice) => {});
+    const ticket = await store.send(sam, undefined, input(), notify);
+    const requestId = randomUUID(), answer = 'Select Site settings.';
+    let release!: () => void, sending!: () => void;
+    const started = new Promise<void>(resolve => { sending = resolve; });
+    const accepted = new Promise<void>(resolve => { release = resolve; });
+    const delivery = { notify: vi.fn(async (_notice: FounderReplyNotice) => { sending(); await accepted; }) };
+    const first = store.replyAsFounder(ticket.id, requestId, answer, delivery);
+    await started;
+    await assert.rejects(worker.replyAsFounder(ticket.id, requestId, answer, delivery), /still sending/);
+    await Promise.all([
+      worker.appendReply(notify.mock.calls[0][0].replyToken, 'email-followup', 'Then enter the domain.'),
+      worker.send({ ...sam, email: 'sam.carter@example.test' }, ticket.id, { requestId: randomUUID(), body: 'I found it.' }, notify),
+    ]);
+    release();
+    const reply = await first;
+    const mail = delivery.notify.mock.calls[0][0];
+    assert.equal(mail.accountEmail, sam.email);
+    assert.equal(mail.messageId, reply.messages.find(m => m.body === answer)?.id);
+    assert.deepEqual(Object.keys(mail).sort(), ['accountEmail','body','messageId','subject','ticketId']);
+    assert(reply.messages.some(row => row.body === answer));
+    const detail = await store.getForFounder(ticket.id);
+    assert.equal(detail.accountEmail, 'sam.carter@example.test');
+    assert.equal(detail.messages.length, 4);
+    assert.equal(detail.messages.filter(row => row.body === answer && row.role === 'support').length, 1);
+    assert.equal(notify.mock.calls.length, 2);
+    await assert.rejects(store.replyAsFounder(ticket.id, requestId, 'Different content.', delivery), /different message/);
+    for (const [id, body] of [['invalid','Hello'],[randomUUID(),' '],[randomUUID(),'x'.repeat(8001)]]) {
+      await assert.rejects(store.replyAsFounder(ticket.id, id, body, delivery), /up to 8,000/);
+    }
+    const customerThread = await worker.get(sam.id, ticket.id);
+    const unseen = customerThread.messages.filter(row => row.unread);
+    assert.deepEqual(new Set(unseen.map(row => row.body)), new Set([answer,'Then enter the domain.']));
+    await worker.markRead(sam.id, ticket.id, unseen.map(row => row.id));
+    await store.replyAsFounder(ticket.id, requestId, answer, delivery);
+    assert.equal(delivery.notify.mock.calls.length, 1);
+    assert.equal(await store.unreadCount(sam.id), 0);
+    assert.equal((await store.getForFounder(ticket.id)).messages.length, 4);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('customer notification resolves legacy owners securely and retries a failed delivery with its original recipient and message ID', async () => {
+  const records = new MemoryRecords(), store = new SupportTicketStore(records);
+  const ticket = await store.send(sam, undefined, input(), async () => {});
+  const owner = createHash('sha256').update(sam.id).digest('hex');
+  await records.remove(`accounts/${owner}/contact.json`);
+  const requestId = randomUUID(), body = 'Your changes are saved.';
+  const resolveContact = vi.fn(async (_hash: string) => 'sam+studio@example.test');
+  const notify = vi.fn(async (_notice: FounderReplyNotice) => {}).mockRejectedValueOnce(new Error('mail temporarily unavailable'));
+  await assert.rejects(store.replyAsFounder(ticket.id, requestId, body, { notify, resolveContact }), /Email delivery could not be confirmed/);
+  assert.deepEqual(resolveContact.mock.calls, [[owner]]);
+  assert.equal((await store.getForFounder(ticket.id)).accountEmail, 'sam+studio@example.test');
+  assert.equal((await store.get(sam.id, ticket.id)).messages.length, 1);
+  assert.equal(await store.unreadCount(sam.id), 0);
+  const first = notify.mock.calls[0][0];
+  assert.equal(first.accountEmail, 'sam+studio@example.test');
+  await records.write(`accounts/${owner}/contact.json`, 'new@example.test');
+  const reloaded = new SupportTicketStore(records);
+  const delivered = await reloaded.replyAsFounder(ticket.id, requestId, body, { notify });
+  assert.deepEqual(notify.mock.calls[1][0], first);
+  assert.equal(delivered.messages.find(m => m.body === body)?.id, first.messageId);
+  assert.equal(await reloaded.unreadCount(sam.id), 1);
+  await reloaded.replyAsFounder(ticket.id, requestId, body, { notify });
+  assert.equal(notify.mock.calls.length, 2);
+});
+
+test('a founder reply cannot send to missing or malformed account contacts', async () => {
+  const records = new MemoryRecords(), store = new SupportTicketStore(records);
+  const ticket = await store.send(sam, undefined, input(), async () => {});
+  const owner = createHash('sha256').update(sam.id).digest('hex');
+  const notify = vi.fn(async (_n: FounderReplyNotice) => {});
+  for (const value of [null, 'Sam <sam@example.test>', 'a@example.test,b@example.test', 'team:sam@example.test;', 'a@-example.test', 'sam@example.test\r\n']) {
+    if (value === null) await records.remove(`accounts/${owner}/contact.json`);
+    else await records.write(`accounts/${owner}/contact.json`, value);
+    await assert.rejects(store.replyAsFounder(ticket.id, randomUUID(), 'Review complete.', { notify }), /email address could not be verified/);
+  }
+  assert.equal(notify.mock.calls.length, 0);
+  assert.equal((await store.get(sam.id, ticket.id)).messages.length, 1);
+});
+
+test('resolving an older ticket keeps the contact a customer confirmed during lookup', async () => {
+  const records = new MemoryRecords(), store = new SupportTicketStore(records);
+  const ticket = await store.send(sam, undefined, input(), async () => {});
+  const owner = createHash('sha256').update(sam.id).digest('hex');
+  await records.remove(`accounts/${owner}/contact.json`);
+  const notify = vi.fn(async (_notice: FounderReplyNotice) => {});
+  const currentEmail = 'sam.updated@example.test';
+  const detail = await store.replyAsFounder(ticket.id, randomUUID(), 'Your update is ready.', {
+    notify,
+    resolveContact: async () => {
+      await store.send({ ...sam, email: currentEmail }, ticket.id, input(), async () => {});
+      return 'sam.previous@example.test';
+    },
+  });
+  assert.equal(notify.mock.calls[0][0].accountEmail, currentEmail);
+  assert.equal(detail.accountEmail, currentEmail);
+});
+
+test('a publication retry after the email receipt reuses one delivery and reconciles a previously stored founder reply', async () => {
+  const records = new MemoryRecords(), store = new SupportTicketStore(records);
+  const ticket = await store.send(sam, undefined, input(), async () => {});
+  const requestId = randomUUID(), body = 'The preview is ready.';
+  const visiblePath = `threads/${ticket.id}/founder-${requestId}.json`;
+  const notify = vi.fn(async (_n: FounderReplyNotice) => {});
+  const create = records.create.bind(records);
+  let interrupt = true;
+  vi.spyOn(records, 'create').mockImplementation(async (path, row) => {
+    if (path === visiblePath && interrupt) { interrupt = false; throw new Error('disk interrupted'); }
+    return create(path, row);
+  });
+  await assert.rejects(store.replyAsFounder(ticket.id, requestId, body, { notify }), /disk interrupted/);
+  const before = await store.get(sam.id, ticket.id);
+  assert.equal(before.messages.length, 1);
+  const worker = new SupportTicketStore(records);
+  const repaired = await worker.replyAsFounder(ticket.id, requestId, body, { notify });
+  assert.equal(repaired.messages.filter(row => row.body === body).length, 1);
+  assert.equal(notify.mock.calls.length, 1);
+
+  const legacyRequest = randomUUID(), legacyMessage = { id: randomUUID(), role: 'support', body: 'Archived reply.', createdAt: '2026-10-10T10:00:00Z', trackUnread: true };
+  await create(`threads/${ticket.id}/founder-${legacyRequest}.json`, legacyMessage);
+  await assert.rejects(worker.replyAsFounder(ticket.id, legacyRequest, 'Other text.', { notify }), /different message/);
+  const legacy = await worker.replyAsFounder(ticket.id, legacyRequest, legacyMessage.body, { notify });
+  assert.equal(legacy.messages.filter(row => row.id === legacyMessage.id).length, 1);
+  assert.equal(notify.mock.calls[1][0].messageId, legacyMessage.id);
+  await store.replyAsFounder(ticket.id, legacyRequest, legacyMessage.body, { notify });
+  assert.equal(notify.mock.calls.length, 2);
 });

@@ -4,7 +4,7 @@
 
 **Pagecraft HQ** is a standalone private CRM intended for `https://reports.itspagecraft.com`. It has its own navigation, sign-in, styles, server entry point and private storage. The customer Pagecraft application exposes no CRM or financial routes and no founder navigation.
 
-The current dataset is **staging**, as explicitly selected by the founder. A reports deployment does not promote data to production. The reports process does not boot the editor, create Pagecraft profiles, initialize database schemas, run service/background workers, publish sites, provision paid subscriptions or send customer messages.
+The current dataset is **staging**, as explicitly selected by the founder. A reports deployment does not promote data to production. The reports process does not boot the editor, create Pagecraft profiles, initialize database schemas, run service/background workers, publish sites, provision paid subscriptions or run email workers.
 
 ## Screens and available data
 
@@ -17,6 +17,7 @@ The current dataset is **staging**, as explicitly selected by the founder. A rep
 | Costs | Private monthly cost budgets; exact currency amounts and edit/remove actions |
 | Reports | Metric definitions, site creation trend, manual source distribution and five CSV exports |
 | Sources | Availability, retrieval coverage and measurement gaps |
+| Support | Separate production and staging inboxes for reading customer tickets and replying as Pagecraft Support |
 
 CRM annotations never change a Pagecraft profile, plan, membership or paid entitlement. A manual lead with the same normalized email as an account is merged into the directory. The first verified account edit may attach that lead to its account; afterward the account link is immutable. Linked names and emails come from the verified platform snapshot. Conflicting revisions preserve the submitted draft and ask for a reload instead of silently overwriting a newer edit. Archive records by selecting the Archived stage.
 
@@ -86,6 +87,12 @@ CRM contacts and monthly cost budgets belong to the independent reports deployme
 
 Back up the private reports data directory independently of customer publication storage. Current limits are 2,000 CRM annotations/leads, a 2 MiB CRM file and 100 budget rows. Filesystem persistence suits the current single-process design. Multiple reports processes require shared transactions or cross-process locking before scaling.
 
+## Support inboxes
+
+Open **Support** in the founder navigation. Production is selected first. Switch to **Staging support** for test tickets. Each inbox reads its customer app’s private ticket directory. Set `PAGECRAFT_REPORTS_PRODUCTION_SUPPORT_ROOT` and `PAGECRAFT_REPORTS_STAGING_SUPPORT_ROOT` in the protected reports runtime to distinct absolute paths. Each is the corresponding app’s resolved publication root followed by `-support`. These settings are independent of the reporting dataset. Preserve the prior runtime file alongside the previous reports revision for rollback.
+
+A reply from the CRM emails the ticket owner and appears as Pagecraft Support in the customer’s widget and ticket page. The email includes the reply and a link to that environment’s ticket. Configure the existing transactional sender with SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS and MAIL_FROM in the private reports runtime. Legacy tickets identify owners by their exact Pagecraft profile ID digest in the shared account directory. If staging and production later split databases, update the legacy directory mapping before switching datasets. Replying from `hello@braudyp.dev` to the original ticket notification adds an entry to the same conversation. The customer’s unread badge counts tickets. Viewing a ticket in HQ preserves the customer’s unread status. A visible founder inbox refreshes every 15 seconds and preserves the reply draft.
+
 ## Routes
 
 These routes exist only in the reports process:
@@ -93,6 +100,8 @@ These routes exist only in the reports process:
 - `GET /` and `GET /owner/billing`: compatibility redirects to `/overview`.
 - `GET /overview`, `/customers`, `/pipeline`, `/revenue`, `/costs`, `/reports`, `/sources`: private CRM screens.
 - `GET /sign-in`, `POST /auth/sign-in`, `POST /auth/logout`: separate founder session.
+- `GET /support?environment=production|staging&ticket=<id>`: private Support inbox or selected conversation.
+- `POST /support/:id/replies?environment=production|staging`: founder reply in the selected inbox.
 - `GET /api/crm/summary`: private CRM/analytics JSON.
 - `POST /crm/contacts`: create/edit founder annotations or a manual lead.
 - `GET /exports/customers.csv`, `/pipeline.csv`, `/payments.csv`, `/budgets.csv`, `/metrics.csv`: private CSV exports under `/exports`.

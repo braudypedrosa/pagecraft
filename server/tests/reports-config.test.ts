@@ -39,3 +39,22 @@ test('reports runtime fails closed for mistaken domains, owners, data or insecur
     {REPORTS_DATA_GATEWAY_URL:'https://auth.example.test/read', DATABASE_GATEWAY_KEY:''},
   ]) a.throws(() => reportsRuntimeConfig({...env,...patch}));
 });
+
+test('support roots are independently optional and must resolve to separate absolute directories', () => {
+  const production = 'PAGECRAFT_REPORTS_PRODUCTION_SUPPORT_ROOT';
+  const staging = 'PAGECRAFT_REPORTS_STAGING_SUPPORT_ROOT';
+  a.ok(reportsConfigKeys.includes(production)); a.ok(reportsConfigKeys.includes(staging));
+  const disabled = reportsRuntimeConfig(env);
+  a.ok(!disabled.productionSupportRoot && !disabled.stagingSupportRoot);
+  for (const [key, other] of [[production, staging], [staging, production]]) {
+    a.throws(() => reportsRuntimeConfig({ ...env, [key]: '../private/support' }), /absolute/);
+    const config = reportsRuntimeConfig({ ...env, [key]: ' /private/support ', [other]: ' ' });
+    a.equal(key === production ? config.productionSupportRoot : config.stagingSupportRoot, '/private/support');
+    a.ok(!(key === production ? config.stagingSupportRoot : config.productionSupportRoot));
+  }
+  for (const duplicate of ['/private/support', '/private/tmp/../support/']) {
+    a.throws(() => reportsRuntimeConfig({ ...env, [production]: '/private/support', [staging]: duplicate }), /separate/);
+  }
+  const enabled = reportsRuntimeConfig({ ...env, [production]: '/private/live', [staging]: '/private/stage' });
+  a.equal(enabled.productionSupportRoot, '/private/live'); a.equal(enabled.stagingSupportRoot, '/private/stage');
+});

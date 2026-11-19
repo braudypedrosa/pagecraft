@@ -7,7 +7,7 @@ import { deleteCookie, getCookie } from 'hono/cookie';
 import { UI_FONT_FACES } from '../../shared/ui-fonts.js';
 import type { AccountAuth, VerifiedIdentity } from './account-auth.ts';
 import { founderCrmPage, founderCrmSignInPage } from './founder-crm-page.ts';
-import { founderCrmQuery, founderCrmRoutes } from './founder-crm-routes.ts';
+import { founderCrmQuery, founderCrmRoutes, type FounderCrmRouteOptions } from './founder-crm-routes.ts';
 import { loadFounderCrm } from './founder-crm-data.ts';
 import type { CrmContactStore, CrmPlanManager, CrmPlatformSource } from './founder-crm-types.ts';
 import { normalEmail, validEmail, type User } from './auth.ts';
@@ -22,6 +22,7 @@ export interface FounderReportsAppOptions {
   origin: string;
   accountAuth: AccountAuth;
   billing: OwnerBillingOptions;
+  support?: FounderCrmRouteOptions['support'];
   crm?: { platform?: CrmPlatformSource; contacts?: CrmContactStore; plans?: CrmPlanManager };
   previewLabel?: string;
   appOrigin?: string;
@@ -129,7 +130,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   app.use('*', async (c, next) => {
     const path = new URL(c.req.url).pathname;
     const browserWrite = path === '/auth/sign-in' || path === '/auth/logout' ||
-      path === '/crm/contacts' || path === '/crm/plans' || path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
+      /^\/support\/[^/]+\/replies\/?$/.test(path) || path === '/crm/contacts' || path === '/crm/plans' || path === '/owner/billing/costs' || /^\/owner\/billing\/costs\/[^/]+\/remove$/.test(path);
     if (c.req.method === 'POST' && browserWrite && requestOrigin(c) !== origin.origin) {
       return c.json({ error: 'origin_not_allowed' }, 403);
     }
@@ -244,7 +245,7 @@ export function createFounderReportsApp(o: FounderReportsAppOptions) {
   };
   founderCrmRoutes(app, {
     billing: o.billing, platform: o.crm?.platform, contacts: o.crm?.contacts, plans: o.crm?.plans,
-    identity, origin: origin.origin, dataEnvironment: o.dataEnvironment,
+    support: o.support, identity, origin: origin.origin, dataEnvironment: o.dataEnvironment,
     previewLabel: o.previewLabel, systemHealth: o.systemHealth,
   });
 

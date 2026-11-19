@@ -1,14 +1,16 @@
+import { randomUUID } from 'node:crypto';
 import type { Context, Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { VerifiedIdentity } from './account-auth.ts';
 import type { User } from './auth.ts';
 import { loadFounderCrm } from './founder-crm-data.ts';
-import { founderCrmPage } from './founder-crm-page.ts';
+import { founderCrmPage, founderCrmSupportPage, founderSupportUpdates } from './founder-crm-page.ts';
 import { CrmStoreError } from './founder-crm-store.ts';
 import type {
   CrmContactInput, CrmContactStore, CrmPlanManager, CrmPlatformSource, CrmRange, CrmSection,
   FounderCrmData, FounderCrmPageInput, FounderCrmQuery,
 } from './founder-crm-types.ts';
+import { SupportError, type FounderReplyDelivery, type SupportTicketStore } from './support-tickets.ts';
 import { throttle } from './mail.ts';
 import { isPaidPlan } from './plans.ts';
 import { GatewayError } from './store-gateway.ts';
@@ -18,6 +20,7 @@ export interface FounderCrmRouteOptions {
   billing: OwnerBillingOptions;
   platform?: CrmPlatformSource;
   contacts?: CrmContactStore;
+  support?: Partial<Record<'production' | 'staging', { store: SupportTicketStore; delivery?: FounderReplyDelivery }>>;
   /** Gives and removes plans through the database gateway. Absent: plan changes are hidden. */
   plans?: CrmPlanManager;
   identity(c: Context): Promise<VerifiedIdentity | null>;
@@ -133,6 +136,71 @@ export function founderCrmRoutes(app: Hono, o: FounderCrmRouteOptions) {
     if ('response' in granted) return granted.response;
     if (!reads.take(granted.identity.authUserId)) return c.text('Too many refreshes. Try again in a minute.', 429, { 'retry-after': '60' });
     try { return await render(c, granted.identity, section); } catch { return c.text('CRM data is unavailable. Try again.', 503); }
+  });
+  const supportEnvironment = (c: Context) => {
+    const value = c.req.query('environment') ?? 'production';
+    return value === 'production' || value === 'staging' ? value : null;
+  };
+  const renderSupport = async (c: Context, identity: VerifiedIdentity, environment: 'production' | 'staging',
+    ticketId?: string, draft?: { body: string; requestId: string; error: string; status: 400 | 404 | 409 | 503 }) => {
+    const store = o.support?.[environment]?.store;
+    const support: NonNullable<FounderCrmPageInput['support']> = {
+      environment, sourceLabel: environment === 'production' ? 'Production support' : 'Staging support',
+      state: store ? 'available' : 'not_connected', tickets: [], selected: null,
+      requestId: draft?.requestId || randomUUID(), draftBody: draft?.body,
+    };
+    let status: 200 | 400 | 404 | 409 | 503 = draft?.status ?? 200;
+    let error = draft?.error;
+    if (store) {
+      try {
+        support.tickets = await store.listForFounder();
+        if (ticketId) support.selected = await store.getForFounder(ticketId);
+      } catch (cause) {
+        if (cause instanceof SupportError && cause.status === 404) {
+          status = 404;
+          error = 'This ticket is unavailable in this inbox.';
+        } else {
+          support.state = 'unavailable';
+          status = 503;
+        }
+      }
+    }
+    if (c.req.header('accept') === 'text/vnd.pagecraft.support+html') {
+      return c.html(founderSupportUpdates(support), status);
+    }
+    return c.html(founderCrmSupportPage(identityUser(identity), {
+      section: 'support', dataEnvironment: o.dataEnvironment, support, error,
+      message: c.req.query('message') === 'reply_sent' ? 'Reply sent.' : undefined,
+    }), status);
+  };
+  app.get('/support', async c => {
+    const granted = await gate(c);
+    if ('response' in granted) return granted.response;
+    const environment = supportEnvironment(c);
+    if (!environment) return c.text('Choose the production or staging inbox.', 400);
+    if (!reads.take(granted.identity.authUserId)) return c.text('Try again in a minute.', 429, { 'retry-after': '60' });
+    return renderSupport(c, granted.identity, environment, c.req.query('ticket'));
+  });
+  app.post('/support/:id/replies', bodyLimit({ maxSize: 100 * 1024, onError: c => c.text('Reply too large.', 413) }), async c => {
+    const granted = await gate(c);
+    if ('response' in granted) return granted.response;
+    const environment = supportEnvironment(c);
+    if (!environment || !c.req.query('environment')) return c.text('Choose the production or staging inbox.', 400);
+    const inbox = o.support?.[environment];
+    if (!inbox) return c.text('This support inbox is unavailable.', 503);
+    if (!writes.take(granted.identity.authUserId)) return c.text('Too many replies. Try again in a minute.', 429, { 'retry-after': '60' });
+    if (!c.req.header('content-type')?.startsWith('application/x-www-form-urlencoded')) return c.text('Submit a reply using the form.', 415);
+    const fields = await c.req.parseBody();
+    const body = formField(fields, 'body'), requestId = formField(fields, 'requestId');
+    const id = c.req.param('id');
+    try {
+      if (!inbox.delivery) throw new SupportError(503, 'Customer email is unavailable. Retry your reply once email is connected.');
+      await inbox.store.replyAsFounder(id, requestId, body, inbox.delivery);
+    } catch (cause) {
+      const error = cause instanceof SupportError ? cause.message : 'Could not confirm delivery. Retry your reply.';
+      return renderSupport(c, granted.identity, environment, id, { requestId, body, error, status: cause instanceof SupportError ? cause.status : 503 });
+    }
+    return c.redirect('/support?' + new URLSearchParams({ environment, ticket: id, message: 'reply_sent' }), 303);
   });
   app.get('/api/crm/summary', async c => {
     const granted = await gate(c, true);

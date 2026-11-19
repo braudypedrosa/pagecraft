@@ -1,12 +1,13 @@
 import './styles.css';
 import { mountCrmCharts } from './charts.ts';
+import { mountSupportInbox } from './support.ts';
 import { mountCrmTables } from './tables.ts';
 
 /** Enhance private, server-rendered data without fetching it from another service. */
 export function mountFounderCrm(root: Document = document) {
   const cleanups: (() => void)[] = [];
   let failed = false;
-  for (const mount of [mountCrmCharts, mountCrmTables]) {
+  for (const mount of [mountCrmCharts, mountCrmTables, mountSupportInbox]) {
     try { cleanups.push(mount(root)); }
     catch {
       failed = true;
