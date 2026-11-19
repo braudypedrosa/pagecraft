@@ -39,7 +39,7 @@ test('curated site catalog exposes each immutable package', async () => {
   a.equal(validated.sha256, template.packageSha256);
   a.equal(validated.manifest.kind, 'site');
   a.equal(validated.dependencies.assets.length, 5);
-  a.equal(coastal.version, '1.0.4');
+  a.equal(coastal.version, '1.0.5');
   a.deepEqual(coastal.pages.map(page => page.slug), [
     'index', 'stays', 'stone-cove-house', 'pine-court-house', 'harbor-studio',
     'garden-casita', 'services', 'about', 'contact',

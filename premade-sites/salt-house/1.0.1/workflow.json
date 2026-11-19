@@ -522,7 +522,16 @@
       }
     ]
   },
-  "approval": null,
+  "approval": {
+    "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Approve all four",
+      "at": "2026-11-19T22:38:43Z",
+      "evidence": "Current conversation (20 Nov 2026): approval of the four exact packages listed by hash (stillwood 1.0.1 faf67f25, salt-house 1.0.1 0a2b4d74, architecture-studio 1.0.1 c8e4abe9, coastal-rentals 1.0.5 310ea0f6) after Cloud QA, the WordPress package check and screenshots, including the Salt House button fill change."
+    }
+  },
   "patchOf": {
     "version": "1.0.0",
     "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",

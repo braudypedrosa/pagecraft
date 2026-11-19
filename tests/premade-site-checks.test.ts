@@ -11,29 +11,19 @@ import { hiddenFactoryFill } from '../premade-sites/lib/filled-buttons';
    its line when that release is promoted. Anything not listed fails, so no template gains a
    new suggestion unnoticed. */
 const KNOWN: Record<string, string[]> = {
-  // Instances of “Cabin portrait” carry no recorded size for their chosen photo.
-  stillwood: ['no-dimensions', 'no-dimensions', 'no-dimensions', 'no-dimensions'],
-  // Instances of “Holiday home” carry no recorded size for their chosen photo.
-  'salt-house': ['no-dimensions', 'no-dimensions', 'no-dimensions'],
-  // Instance of “Project record” carries no recorded size for its chosen photo.
-  'architecture-studio': ['no-dimensions'],
-  // Muted text on sand is 4.48:1; the Stays hero image is lazy; Stays skips from H1 to H3.
-  'coastal-rentals': ['contrast', 'contrast', 'contrast', 'heading-skip', 'hero-image-lazy'],
+  // Stillwood's availability search is a GET form with no destination until the owner adds a
+  // booking provider; the template says so beside the form.
+  stillwood: ['form-no-action'],
+  'salt-house': [],
+  'architecture-studio': [],
+  'coastal-rentals': [],
   // Small red text on paper is 3.40:1. Fixing it changes the brand red: a design decision.
   'independent-studio': ['contrast'],
   'dental-clinic-a2': [],
 };
 
-/* The next draft of each template with known findings. Each must open clean, so promoting it
-   lets its KNOWN line above go. Stillwood 1.0.1 keeps one deliberate reminder: its home page
-   availability search is a GET form with no destination until the owner adds a booking
-   provider, and the draft says so beside the form. */
-const DRAFTS: Record<string, string[]> = {
-  'stillwood/1.0.1': ['form-no-action'],
-  'salt-house/1.0.1': [],
-  'architecture-studio/1.0.1': [],
-  'coastal-rentals/1.0.5': [],
-};
+/* Drafts of the next release of a template. Each must open clean apart from the listed reminders. */
+const DRAFTS: Record<string, string[]> = {};
 
 const catalog = JSON.parse(readFileSync('premade-sites/catalog.json', 'utf8')).templates as { id: string; version: string }[];
 const released = new Map<string, string>();
@@ -73,8 +63,9 @@ for (const [spec, expected] of Object.entries(DRAFTS)) {
 
 /* Settings › Typography › Heading font reaches every heading only when no heading text style
    names a font of its own (Cloud editing QA, 20 Nov 2026). */
-for (const spec of Object.keys(DRAFTS)) {
-  test(`draft ${spec} headings follow the Heading font setting`, async () => {
+const GUARDED = ['stillwood', 'salt-house', 'architecture-studio', 'coastal-rentals'];
+for (const spec of GUARDED.map(id => `${id}/${released.get(id)}`)) {
+  test(`${spec} headings follow the Heading font setting`, async () => {
     const document = await templateDocument(`premade-sites/${spec}`);
     const pinned = document.meta.tokens.text.filter((style: any) => /^h[1-6]$/.test(String(style.tag)) && style.css?.d?.['font-family']);
     expect(pinned.map((style: any) => `${style.id}: ${style.css.d['font-family']}`)).toEqual([]);
@@ -90,7 +81,7 @@ for (const spec of Object.keys(DRAFTS)) {
 
   /* A button filled with the factory brand colour must be solid, or its variant hides the fill
      (Salt House hero call to action, Cloud rendered review 20 Nov 2026). */
-  test(`draft ${spec} buttons show the fill they set`, async () => {
+  test(`${spec} buttons show the fill they set`, async () => {
     const document = await templateDocument(`premade-sites/${spec}`);
     const hidden: string[] = [];
     const walk = (nodes: any[] = []) => nodes.forEach(node => { if (hiddenFactoryFill(node)) hidden.push(node.id); walk(node.children); });
