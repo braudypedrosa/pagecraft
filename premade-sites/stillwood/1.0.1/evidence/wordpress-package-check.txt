@@ -1,4 +1,4 @@
-WordPress package check, 2026-11-19T19:30:44Z
+WordPress package check, 2026-11-19T22:05:24Z
 Decision: WordPress is CI-only; the user chose "Count CI for WordPress" on 2026-11-20.
 Method: tests/site-package.php generalised (wordpress-package-check.php beside this file,
 sha256 a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a). The Pagecraft Builder plugin's own importer classes
@@ -10,5 +10,5 @@ https://github.com/braudypedrosa/pagecraft-wordpress/actions/runs/44507865229
 This check ran locally on PHP 8.5.2.
 Not covered: installing in WordPress, the WordPress editor, publishing, menus or media import.
 
-Package sha256 65a84038801e6bffe43f6a0dd07e155222dcb2c605c454a06d852e0de56b4561
-PASS stillwood/1.0.1 sha256:65a84038801e6bffe43f6a0dd07e155222dcb2c605c454a06d852e0de56b4561 pages:9 (index, cabins, the-a-frame, waterline, meadow-house, experiences, field-guide, our-story, contact)
+Package sha256 faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd
+PASS stillwood/1.0.1 sha256:faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd pages:9 (index, cabins, the-a-frame, waterline, meadow-house, experiences, field-guide, our-story, contact)

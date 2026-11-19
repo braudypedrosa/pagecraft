@@ -1,0 +1,671 @@
+{
+ "packageSha256": "310ea0f65a3304804ded57f5789f1d3734ea25b625505b51249bc32a834bae47",
+ "template": "coastal-rentals/1.0.5",
+ "runs": [
+  {
+   "template": "coastal-rentals",
+   "site": "s1",
+   "startedAt": "2026-11-19T22:20:15.968Z",
+   "exercises": [
+    {
+     "check": "global-colors",
+     "pass": true,
+     "did": "Settings \u203a Colours: Body text #202823 \u2192 #1f5f8b",
+     "observed": {
+      "elementsUsingToken": 27,
+      "elementsRepaintedOnCanvas": 27,
+      "savedInTokens": true
+     }
+    },
+    {
+     "check": "global-typography",
+     "pass": true,
+     "did": "Settings \u203a Typography: Heading font Newsreader \u2192 Manrope; Body font Outfit \u2192 DM Sans; \"Section title\" 42px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Newsreader",
+       "h2": "Newsreader",
+       "body": "Outfit"
+      },
+      "after": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": {
+       "followed": [
+        47,
+        47,
+        47
+       ],
+       "ownSizeKept": [
+        [
+         "marea-node-0056",
+         52,
+         52
+        ],
+        [
+         "#4",
+         43,
+         43
+        ]
+       ]
+      },
+      "saved": {
+       "headFont": "'Manrope'",
+       "font": "'DM Sans'"
+      }
+     }
+    },
+    {
+     "check": "replace-images",
+     "pass": true,
+     "did": "Replaced marea-node-0024 with coastal-living-room.webp from the Media library; replaced the photo of component instance (none on home)",
+     "observed": {
+      "before": "a0ba5778b6b78",
+      "after": {
+       "src": "http://127.0.0.1:4951/api/sites/s1/assets/ae0b12b50b58e",
+       "w": 1536,
+       "attrs": [
+        "1536",
+        "1024"
+       ]
+      },
+      "instance": null,
+      "recordedSizeMatchesNewPhoto": true
+     }
+    },
+    {
+     "check": "long-headings",
+     "pass": true,
+     "did": "H1 lengthened to 148 characters, checked in Mobile, Tablet and Desktop canvas modes",
+     "observed": {
+      "Mobile": {
+       "text": 148,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 10
+      },
+      "Tablet": {
+       "text": 148,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 10
+      },
+      "Desktop": {
+       "text": 148,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 10
+      }
+     }
+    },
+    {
+     "check": "duplicate-reorder-delete",
+     "pass": true,
+     "did": "Selected section marea-node-0051; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+     "observed": {
+      "selected": [
+       "n46fy0182"
+      ],
+      "start": 5,
+      "afterDuplicate": 6,
+      "movedOrderChanged": true,
+      "afterDelete": 5,
+      "restoredOrder": true,
+      "savedSections": 5
+     }
+    },
+    {
+     "check": "shared-and-instance-styles",
+     "pass": true,
+     "did": "Section title marea-node-0020: instance size 31px (This element), then \"Update typography\" to share it with marea-node-0061",
+     "observed": {
+      "before": [
+       47,
+       47
+      ],
+      "instanceOnly": [
+       31,
+       47
+      ],
+      "afterShared": [
+       31,
+       31
+      ],
+      "confirm": "Update typography everywhere?"
+     }
+    },
+    {
+     "check": "responsive-inspector",
+     "pass": true,
+     "did": "Mobile mode: H1 size 29px; back to Desktop",
+     "observed": {
+      "mobileCanvas": 29,
+      "desktopCanvas": 72,
+      "savedMobileOverride": "29px",
+      "savedDesktop": "clamp(50px,5.5vw,72px)"
+     }
+    },
+    {
+     "check": "save-reopen",
+     "pass": true,
+     "did": "Reloaded the editor after autosave (saved version 13)",
+     "observed": {
+      "savedVersion": 13,
+      "reopened": {
+       "h1": 148,
+       "blue": true
+      },
+      "status": "Draft ready"
+     }
+    },
+    {
+     "check": "media-and-links",
+     "pass": true,
+     "did": "Button marea-node-0015: link page Stays \u00b7 /stays \u2192 Stone Cove House \u00b7 /stone-cove-house; opened the Media library",
+     "observed": {
+      "hrefBefore": "stays.html",
+      "hrefAfter": "stone-cove-house.html",
+      "library": {
+       "count": "7 of 7 images",
+       "usage": true,
+       "upload": true
+      }
+     }
+    },
+    {
+     "check": "global-navigation-footer",
+     "pass": true,
+     "did": "Edit header: menu item \"Stays\" \u2192 \"Stays & more\"; checked on 3 pages",
+     "observed": {
+      "savedInSharedHeader": true,
+      "pages": [
+       {
+        "page": "index",
+        "shows": true
+       },
+       {
+        "page": "stays",
+        "shows": true
+       },
+       {
+        "page": "stone-cove-house",
+        "shows": true
+       }
+      ],
+      "footerRegion": true
+     }
+    },
+    {
+     "check": "stress-content",
+     "pass": true,
+     "did": "Row marea-node-0022 (photo cards): 4 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+     "observed": {
+      "1": {
+       "n": 1,
+       "rendered": 1,
+       "overflow": false,
+       "minWidth": 591,
+       "broken": 0
+      },
+      "3": {
+       "n": 3,
+       "rendered": 3,
+       "overflow": false,
+       "minWidth": 591,
+       "broken": 0
+      },
+      "start": 4,
+      "7-Desktop": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 591,
+       "broken": 0
+      },
+      "7-Tablet": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 384,
+       "broken": 0
+      },
+      "7-Mobile": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 378,
+       "broken": 0
+      },
+      "missingImage": {
+       "imgs": 1,
+       "broken": 0,
+       "height": 537,
+       "overflow": false
+      },
+      "longDescription": false,
+      "removedImage": true
+     }
+    },
+    {
+     "check": "publish-output",
+     "pass": true,
+     "did": "Publish \u203a preview \u203a Publish reviewed version (version 25)",
+     "observed": {
+      "publishState": "published",
+      "publishedVersion": 25,
+      "h1Length": 148,
+      "colourInCss": true,
+      "menuEditInHtml": true
+     }
+    },
+    {
+     "check": "form-behavior",
+     "pass": true,
+     "did": "Published contact form filled with test data and submitted",
+     "observed": {
+      "form": {
+       "action": "http://localhost:4951/forms/s1/marea-node-0425",
+       "method": "post",
+       "fields": [
+        {
+         "name": "name",
+         "type": "text",
+         "required": true,
+         "label": "Name *"
+        },
+        {
+         "name": "email",
+         "type": "email",
+         "required": true,
+         "label": "Email *"
+        },
+        {
+         "name": "stay",
+         "type": "select-one",
+         "required": true,
+         "label": "Stay *"
+        },
+        {
+         "name": "dates",
+         "type": "text",
+         "required": false,
+         "label": "Dates or timing"
+        },
+        {
+         "name": "message",
+         "type": "textarea",
+         "required": true,
+         "label": "What would help? *"
+        },
+        {
+         "name": "_pc_trap",
+         "type": "text",
+         "required": false,
+         "label": "Leave empty"
+        },
+        {
+         "name": "_pc_request",
+         "type": "hidden",
+         "required": false,
+         "label": null
+        }
+       ]
+      },
+      "landed": {
+       "url": "http://localhost:4951/forms/thanks",
+       "h1": "Thank you",
+       "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+       "invalid": []
+      },
+      "storedInSubmissions": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "marea-node-0011",
+    "image": "marea-node-0024",
+    "button": "marea-node-0015",
+    "sections": [
+     "marea-node-0009",
+     "marea-node-0018",
+     "marea-node-0051",
+     "marea-node-0059",
+     "marea-node-0076"
+    ],
+    "title": [
+     "marea-node-0020",
+     "marea-node-0056",
+     "marea-node-0061",
+     "marea-node-0079"
+    ]
+   },
+   "publishedSlug": "marea-1-0-5-qa",
+   "finishedAt": "2026-11-19T22:22:28.749Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  }
+ ],
+ "final": [
+  {
+   "check": "global-colors",
+   "pass": true,
+   "did": "Settings \u203a Colours: Body text #202823 \u2192 #1f5f8b",
+   "observed": {
+    "elementsUsingToken": 27,
+    "elementsRepaintedOnCanvas": 27,
+    "savedInTokens": true
+   }
+  },
+  {
+   "check": "global-typography",
+   "pass": true,
+   "did": "Settings \u203a Typography: Heading font Newsreader \u2192 Manrope; Body font Outfit \u2192 DM Sans; \"Section title\" 42px \u2192 47px",
+   "observed": {
+    "before": {
+     "heading": "Newsreader",
+     "h2": "Newsreader",
+     "body": "Outfit"
+    },
+    "after": {
+     "heading": "Manrope",
+     "h2": "Manrope",
+     "body": "\"DM Sans\""
+    },
+    "headingFollowsHeadingFont": true,
+    "bodyFollowsBodyFont": true,
+    "sectionTitleSizes": {
+     "followed": [
+      47,
+      47,
+      47
+     ],
+     "ownSizeKept": [
+      [
+       "marea-node-0056",
+       52,
+       52
+      ],
+      [
+       "#4",
+       43,
+       43
+      ]
+     ]
+    },
+    "saved": {
+     "headFont": "'Manrope'",
+     "font": "'DM Sans'"
+    }
+   }
+  },
+  {
+   "check": "replace-images",
+   "pass": true,
+   "did": "Replaced marea-node-0024 with coastal-living-room.webp from the Media library; replaced the photo of component instance (none on home)",
+   "observed": {
+    "before": "a0ba5778b6b78",
+    "after": {
+     "src": "http://127.0.0.1:4951/api/sites/s1/assets/ae0b12b50b58e",
+     "w": 1536,
+     "attrs": [
+      "1536",
+      "1024"
+     ]
+    },
+    "instance": null,
+    "recordedSizeMatchesNewPhoto": true
+   }
+  },
+  {
+   "check": "long-headings",
+   "pass": true,
+   "did": "H1 lengthened to 148 characters, checked in Mobile, Tablet and Desktop canvas modes",
+   "observed": {
+    "Mobile": {
+     "text": 148,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 10
+    },
+    "Tablet": {
+     "text": 148,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 10
+    },
+    "Desktop": {
+     "text": 148,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 10
+    }
+   }
+  },
+  {
+   "check": "duplicate-reorder-delete",
+   "pass": true,
+   "did": "Selected section marea-node-0051; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+   "observed": {
+    "selected": [
+     "n46fy0182"
+    ],
+    "start": 5,
+    "afterDuplicate": 6,
+    "movedOrderChanged": true,
+    "afterDelete": 5,
+    "restoredOrder": true,
+    "savedSections": 5
+   }
+  },
+  {
+   "check": "shared-and-instance-styles",
+   "pass": true,
+   "did": "Section title marea-node-0020: instance size 31px (This element), then \"Update typography\" to share it with marea-node-0061",
+   "observed": {
+    "before": [
+     47,
+     47
+    ],
+    "instanceOnly": [
+     31,
+     47
+    ],
+    "afterShared": [
+     31,
+     31
+    ],
+    "confirm": "Update typography everywhere?"
+   }
+  },
+  {
+   "check": "responsive-inspector",
+   "pass": true,
+   "did": "Mobile mode: H1 size 29px; back to Desktop",
+   "observed": {
+    "mobileCanvas": 29,
+    "desktopCanvas": 72,
+    "savedMobileOverride": "29px",
+    "savedDesktop": "clamp(50px,5.5vw,72px)"
+   }
+  },
+  {
+   "check": "save-reopen",
+   "pass": true,
+   "did": "Reloaded the editor after autosave (saved version 13)",
+   "observed": {
+    "savedVersion": 13,
+    "reopened": {
+     "h1": 148,
+     "blue": true
+    },
+    "status": "Draft ready"
+   }
+  },
+  {
+   "check": "publish-output",
+   "pass": true,
+   "did": "Publish \u203a preview \u203a Publish reviewed version (version 25)",
+   "observed": {
+    "publishState": "published",
+    "publishedVersion": 25,
+    "h1Length": 148,
+    "colourInCss": true,
+    "menuEditInHtml": true
+   }
+  },
+  {
+   "check": "media-and-links",
+   "pass": true,
+   "did": "Button marea-node-0015: link page Stays \u00b7 /stays \u2192 Stone Cove House \u00b7 /stone-cove-house; opened the Media library",
+   "observed": {
+    "hrefBefore": "stays.html",
+    "hrefAfter": "stone-cove-house.html",
+    "library": {
+     "count": "7 of 7 images",
+     "usage": true,
+     "upload": true
+    }
+   }
+  },
+  {
+   "check": "global-navigation-footer",
+   "pass": true,
+   "did": "Edit header: menu item \"Stays\" \u2192 \"Stays & more\"; checked on 3 pages",
+   "observed": {
+    "savedInSharedHeader": true,
+    "pages": [
+     {
+      "page": "index",
+      "shows": true
+     },
+     {
+      "page": "stays",
+      "shows": true
+     },
+     {
+      "page": "stone-cove-house",
+      "shows": true
+     }
+    ],
+    "footerRegion": true
+   }
+  },
+  {
+   "check": "form-behavior",
+   "pass": true,
+   "did": "Published contact form filled with test data and submitted",
+   "observed": {
+    "form": {
+     "action": "http://localhost:4951/forms/s1/marea-node-0425",
+     "method": "post",
+     "fields": [
+      {
+       "name": "name",
+       "type": "text",
+       "required": true,
+       "label": "Name *"
+      },
+      {
+       "name": "email",
+       "type": "email",
+       "required": true,
+       "label": "Email *"
+      },
+      {
+       "name": "stay",
+       "type": "select-one",
+       "required": true,
+       "label": "Stay *"
+      },
+      {
+       "name": "dates",
+       "type": "text",
+       "required": false,
+       "label": "Dates or timing"
+      },
+      {
+       "name": "message",
+       "type": "textarea",
+       "required": true,
+       "label": "What would help? *"
+      },
+      {
+       "name": "_pc_trap",
+       "type": "text",
+       "required": false,
+       "label": "Leave empty"
+      },
+      {
+       "name": "_pc_request",
+       "type": "hidden",
+       "required": false,
+       "label": null
+      }
+     ]
+    },
+    "landed": {
+     "url": "http://localhost:4951/forms/thanks",
+     "h1": "Thank you",
+     "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+     "invalid": []
+    },
+    "storedInSubmissions": true
+   }
+  },
+  {
+   "check": "stress-content",
+   "pass": true,
+   "did": "Row marea-node-0022 (photo cards): 4 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+   "observed": {
+    "1": {
+     "n": 1,
+     "rendered": 1,
+     "overflow": false,
+     "minWidth": 591,
+     "broken": 0
+    },
+    "3": {
+     "n": 3,
+     "rendered": 3,
+     "overflow": false,
+     "minWidth": 591,
+     "broken": 0
+    },
+    "start": 4,
+    "7-Desktop": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 591,
+     "broken": 0
+    },
+    "7-Tablet": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 384,
+     "broken": 0
+    },
+    "7-Mobile": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 378,
+     "broken": 0
+    },
+    "missingImage": {
+     "imgs": 1,
+     "broken": 0,
+     "height": 537,
+     "overflow": false
+    },
+    "longDescription": false,
+    "removedImage": true
+   }
+  }
+ ]
+}

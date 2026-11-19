@@ -1,0 +1,932 @@
+{
+ "packageSha256": "faf67f255a04ea3144acf1b439e33a021e5e6eaa2416b6c2b2238efef6b709dd",
+ "template": "stillwood/1.0.1",
+ "runs": [
+  {
+   "template": "stillwood",
+   "site": "s2",
+   "startedAt": "2026-11-19T22:09:09.000Z",
+   "exercises": [
+    {
+     "check": "global-colors",
+     "pass": true,
+     "did": "Settings \u203a Colours: text #425046 \u2192 #1f5f8b",
+     "observed": {
+      "elementsUsingToken": 123,
+      "elementsRepaintedOnCanvas": 123,
+      "savedInTokens": true
+     }
+    },
+    {
+     "check": "global-typography",
+     "pass": false,
+     "did": "Settings \u203a Typography: Heading font Custom \u2014 Georgia \u2192 Manrope; Body font Custom \u2014 Arial \u2192 DM Sans; \"Section title\" 48px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Georgia",
+       "h2": "Georgia",
+       "body": "Arial"
+      },
+      "after": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": [
+       47,
+       47,
+       47,
+       47,
+       47,
+       47,
+       47,
+       47,
+       36,
+       36,
+       36,
+       36,
+       47,
+       47
+      ],
+      "saved": {
+       "headFont": "'Manrope'",
+       "font": "'DM Sans'"
+      }
+     }
+    },
+    {
+     "check": "replace-images",
+     "pass": true,
+     "did": "Replaced stillwood-photo-interior-75 with bedroom.webp from the Media library; replaced the photo of component instance stillwood-cabin-instance-64",
+     "observed": {
+      "before": "aeed7a7152b90",
+      "after": {
+       "src": "http://127.0.0.1:4951/api/sites/s2/assets/a4bc0ac4bbdca",
+       "w": 1536,
+       "attrs": [
+        "1536",
+        "1024"
+       ]
+      },
+      "instance": {
+       "before": "a4bc0ac4bbdca",
+       "picked": "dining.webp",
+       "imageValues": [
+        [
+         "image",
+         "asset:acfdc10a463c5"
+        ]
+       ],
+       "recordedSizes": [
+        [
+         "@image-size:image",
+         "{\"src\":\"asset:acfdc10a463c5\",\"w\":1536,\"h\":1024}"
+        ]
+       ],
+       "rendered": {
+        "src": "acfdc10a463c5",
+        "loaded": true,
+        "natural": [
+         1536,
+         1024
+        ],
+        "attrs": [
+         "1536",
+         "1024"
+        ]
+       }
+      },
+      "recordedSizeMatchesNewPhoto": true
+     }
+    },
+    {
+     "check": "long-headings",
+     "pass": true,
+     "did": "H1 lengthened to 160 characters, checked in Mobile, Tablet and Desktop canvas modes",
+     "observed": {
+      "Mobile": {
+       "text": 158,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 9
+      },
+      "Tablet": {
+       "text": 158,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 7
+      },
+      "Desktop": {
+       "text": 158,
+       "overflow": false,
+       "docOverflow": false,
+       "lines": 8
+      }
+     }
+    },
+    {
+     "check": "duplicate-reorder-delete",
+     "pass": true,
+     "did": "Selected section stillwood-welcome-460; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+     "observed": {
+      "selected": [
+       "n3s3ea13q"
+      ],
+      "start": 12,
+      "afterDuplicate": 13,
+      "movedOrderChanged": true,
+      "afterDelete": 12,
+      "restoredOrder": true,
+      "savedSections": 12
+     }
+    },
+    {
+     "check": "shared-and-instance-styles",
+     "pass": true,
+     "did": "Section title stillwood-text-457: instance size 31px (This element), then \"Update typography\" to share it with stillwood-text-59",
+     "observed": {
+      "before": [
+       47,
+       47
+      ],
+      "instanceOnly": [
+       31,
+       47
+      ],
+      "afterShared": [
+       31,
+       31
+      ],
+      "confirm": "Update typography everywhere?"
+     }
+    },
+    {
+     "check": "responsive-inspector",
+     "pass": true,
+     "did": "Mobile mode: H1 size 29px; back to Desktop",
+     "observed": {
+      "mobileCanvas": 29,
+      "desktopCanvas": 76,
+      "savedMobileOverride": "29px",
+      "savedDesktop": null
+     }
+    },
+    {
+     "check": "save-reopen",
+     "pass": true,
+     "did": "Reloaded the editor after autosave (saved version 14)",
+     "observed": {
+      "savedVersion": 14,
+      "reopened": {
+       "h1": 158,
+       "blue": true
+      },
+      "status": "Draft ready"
+     }
+    },
+    {
+     "check": "media-and-links",
+     "pass": true,
+     "did": "Button stillwood-button-44: link page Find your cabin \u00b7 /cabins \u2192 The A-frame \u00b7 /the-a-frame; opened the Media library",
+     "observed": {
+      "hrefBefore": "cabins.html",
+      "hrefAfter": "the-a-frame.html",
+      "library": {
+       "count": "15 of 15 images",
+       "usage": true,
+       "upload": true
+      }
+     }
+    },
+    {
+     "check": "global-navigation-footer",
+     "pass": true,
+     "did": "Edit header: menu item \"The cabins\" \u2192 \"The cabins & more\"; checked on 3 pages",
+     "observed": {
+      "savedInSharedHeader": true,
+      "pages": [
+       {
+        "page": "index",
+        "shows": true
+       },
+       {
+        "page": "cabins",
+        "shows": true
+       },
+       {
+        "page": "the-a-frame",
+        "shows": true
+       }
+      ],
+      "footerRegion": true
+     }
+    },
+    {
+     "check": "stress-content",
+     "pass": true,
+     "did": "Row stillwood-cabins-67 (stillwood-cabin component cards): 3 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+     "observed": {
+      "1": {
+       "n": 1,
+       "rendered": 1,
+       "overflow": false,
+       "minWidth": 599,
+       "broken": 0
+      },
+      "3": {
+       "n": 3,
+       "rendered": 3,
+       "overflow": false,
+       "minWidth": 599,
+       "broken": 0
+      },
+      "start": 3,
+      "7-Desktop": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 599,
+       "broken": 0
+      },
+      "7-Tablet": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 365,
+       "broken": 0
+      },
+      "7-Mobile": {
+       "n": 7,
+       "rendered": 7,
+       "overflow": false,
+       "minWidth": 340,
+       "broken": 0
+      },
+      "missingImage": {
+       "imgs": 1,
+       "broken": 0,
+       "height": 710,
+       "overflow": false
+      },
+      "longDescription": true,
+      "removedImage": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "stillwood-text-42",
+    "image": "stillwood-photo-interior-75",
+    "instance": "stillwood-cabin-instance-64",
+    "button": "stillwood-button-44",
+    "sections": [
+     "stillwood-hero-50",
+     "stillwood-search-52",
+     "stillwood-welcome-460",
+     "stillwood-cabins-69",
+     "stillwood-indoor-days-77",
+     "stillwood-choose-your-stay-486",
+     "stillwood-weekend-notes-503",
+     "stillwood-field-notes-512",
+     "stillwood-comforts-535",
+     "stillwood-guest-stories-176",
+     "stillwood-our-way-544",
+     "stillwood-practical-197"
+    ],
+    "title": [
+     "stillwood-text-457",
+     "stillwood-text-59",
+     "stillwood-text-71",
+     "stillwood-text-461",
+     "stillwood-text-488",
+     "stillwood-text-504",
+     "stillwood-text-513",
+     "stillwood-text-160",
+     "stillwood-quote-163",
+     "stillwood-quote-166",
+     "stillwood-quote-169",
+     "stillwood-quote-172",
+     "stillwood-text-536",
+     "stillwood-text-184"
+    ]
+   },
+   "finishedAt": "2026-11-19T22:10:58.724Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  },
+  {
+   "template": "stillwood",
+   "site": "s2",
+   "startedAt": "2026-11-19T22:11:23.274Z",
+   "exercises": [
+    {
+     "check": "global-typography",
+     "pass": true,
+     "did": "Settings \u203a Typography: Heading font Manrope \u2192 DM Sans; Body font DM Sans \u2192 Manrope; \"Section title\" 31px \u2192 47px",
+     "observed": {
+      "before": {
+       "heading": "Manrope",
+       "h2": "Manrope",
+       "body": "\"DM Sans\""
+      },
+      "after": {
+       "heading": "\"DM Sans\"",
+       "h2": "\"DM Sans\"",
+       "body": "Manrope"
+      },
+      "headingFollowsHeadingFont": true,
+      "bodyFollowsBodyFont": true,
+      "sectionTitleSizes": {
+       "followed": [
+        47,
+        47,
+        47,
+        47,
+        47,
+        47,
+        47,
+        47,
+        47,
+        47
+       ],
+       "ownSizeKept": [
+        [
+         "stillwood-quote-163",
+         36,
+         36
+        ],
+        [
+         "stillwood-quote-166",
+         36,
+         36
+        ],
+        [
+         "stillwood-quote-169",
+         36,
+         36
+        ],
+        [
+         "stillwood-quote-172",
+         36,
+         36
+        ]
+       ]
+      },
+      "saved": {
+       "headFont": "'DM Sans'",
+       "font": "'Manrope'"
+      }
+     }
+    }
+   ],
+   "targets": {
+    "h1": "stillwood-text-42",
+    "image": "stillwood-photo-interior-75",
+    "instance": "stillwood-cabin-instance-64",
+    "button": "stillwood-button-44",
+    "sections": [
+     "stillwood-hero-50",
+     "stillwood-search-52",
+     "stillwood-welcome-460",
+     "stillwood-cabins-69",
+     "stillwood-indoor-days-77",
+     "stillwood-choose-your-stay-486",
+     "stillwood-weekend-notes-503",
+     "stillwood-field-notes-512",
+     "stillwood-comforts-535",
+     "stillwood-guest-stories-176",
+     "stillwood-our-way-544",
+     "stillwood-practical-197"
+    ],
+    "title": [
+     "stillwood-text-457",
+     "stillwood-text-59",
+     "stillwood-text-71",
+     "stillwood-text-461",
+     "stillwood-text-488",
+     "stillwood-text-504",
+     "stillwood-text-513",
+     "stillwood-text-160",
+     "stillwood-quote-163",
+     "stillwood-quote-166",
+     "stillwood-quote-169",
+     "stillwood-quote-172",
+     "stillwood-text-536",
+     "stillwood-text-184"
+    ]
+   },
+   "finishedAt": "2026-11-19T22:11:32.348Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  },
+  {
+   "template": "stillwood",
+   "site": "s2",
+   "startedAt": "2026-11-19T22:16:03.730Z",
+   "exercises": [
+    {
+     "check": "publish-output",
+     "pass": true,
+     "did": "Publish \u203a preview \u203a Publish reviewed version (version 31)",
+     "observed": {
+      "publishState": "published",
+      "publishedVersion": 31,
+      "h1Length": 158,
+      "colourInCss": true,
+      "menuEditInHtml": true
+     }
+    },
+    {
+     "check": "form-behavior",
+     "pass": true,
+     "did": "Published contact form filled with test data and submitted",
+     "observed": {
+      "form": {
+       "action": "http://localhost:4951/forms/s2/stillwood-stay-form-438",
+       "method": "post",
+       "fields": [
+        {
+         "name": "arrival",
+         "type": "text",
+         "required": true,
+         "label": "Arrival *"
+        },
+        {
+         "name": "departure",
+         "type": "text",
+         "required": true,
+         "label": "Departure *"
+        },
+        {
+         "name": "guests",
+         "type": "select-one",
+         "required": true,
+         "label": "Guests *"
+        },
+        {
+         "name": "name",
+         "type": "text",
+         "required": true,
+         "label": "Your name *"
+        },
+        {
+         "name": "email",
+         "type": "email",
+         "required": true,
+         "label": "Email *"
+        },
+        {
+         "name": "cabin",
+         "type": "select-one",
+         "required": false,
+         "label": "Cabin"
+        },
+        {
+         "name": "message",
+         "type": "textarea",
+         "required": false,
+         "label": "Anything we should know?"
+        },
+        {
+         "name": "_pc_trap",
+         "type": "text",
+         "required": false,
+         "label": "Leave empty"
+        },
+        {
+         "name": "_pc_request",
+         "type": "hidden",
+         "required": false,
+         "label": null
+        }
+       ]
+      },
+      "landed": {
+       "url": "http://localhost:4951/forms/thanks",
+       "h1": "Thank you",
+       "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+       "invalid": []
+      },
+      "storedInSubmissions": true
+     }
+    }
+   ],
+   "targets": {
+    "h1": "stillwood-text-42",
+    "image": "stillwood-photo-interior-75",
+    "instance": "stillwood-cabin-instance-64",
+    "button": "stillwood-button-44",
+    "sections": [
+     "stillwood-hero-50",
+     "stillwood-search-52",
+     "stillwood-welcome-460",
+     "stillwood-cabins-69",
+     "stillwood-indoor-days-77",
+     "stillwood-choose-your-stay-486",
+     "stillwood-weekend-notes-503",
+     "stillwood-field-notes-512",
+     "stillwood-comforts-535",
+     "stillwood-guest-stories-176",
+     "stillwood-our-way-544",
+     "stillwood-practical-197"
+    ],
+    "title": [
+     "stillwood-text-457",
+     "stillwood-text-59",
+     "stillwood-text-71",
+     "stillwood-text-461",
+     "stillwood-text-488",
+     "stillwood-text-504",
+     "stillwood-text-513",
+     "stillwood-text-160",
+     "stillwood-quote-163",
+     "stillwood-quote-166",
+     "stillwood-quote-169",
+     "stillwood-quote-172",
+     "stillwood-text-536",
+     "stillwood-text-184"
+    ]
+   },
+   "publishedSlug": "stillwood-1-0-1-qa",
+   "finishedAt": "2026-11-19T22:16:18.933Z",
+   "chrome": "Chrome/156.0.8078.82",
+   "consoleErrors": []
+  }
+ ],
+ "final": [
+  {
+   "check": "global-colors",
+   "pass": true,
+   "did": "Settings \u203a Colours: text #425046 \u2192 #1f5f8b",
+   "observed": {
+    "elementsUsingToken": 123,
+    "elementsRepaintedOnCanvas": 123,
+    "savedInTokens": true
+   }
+  },
+  {
+   "check": "global-typography",
+   "pass": true,
+   "did": "Settings \u203a Typography: Heading font Manrope \u2192 DM Sans; Body font DM Sans \u2192 Manrope; \"Section title\" 31px \u2192 47px",
+   "observed": {
+    "before": {
+     "heading": "Manrope",
+     "h2": "Manrope",
+     "body": "\"DM Sans\""
+    },
+    "after": {
+     "heading": "\"DM Sans\"",
+     "h2": "\"DM Sans\"",
+     "body": "Manrope"
+    },
+    "headingFollowsHeadingFont": true,
+    "bodyFollowsBodyFont": true,
+    "sectionTitleSizes": {
+     "followed": [
+      47,
+      47,
+      47,
+      47,
+      47,
+      47,
+      47,
+      47,
+      47,
+      47
+     ],
+     "ownSizeKept": [
+      [
+       "stillwood-quote-163",
+       36,
+       36
+      ],
+      [
+       "stillwood-quote-166",
+       36,
+       36
+      ],
+      [
+       "stillwood-quote-169",
+       36,
+       36
+      ],
+      [
+       "stillwood-quote-172",
+       36,
+       36
+      ]
+     ]
+    },
+    "saved": {
+     "headFont": "'DM Sans'",
+     "font": "'Manrope'"
+    }
+   }
+  },
+  {
+   "check": "replace-images",
+   "pass": true,
+   "did": "Replaced stillwood-photo-interior-75 with bedroom.webp from the Media library; replaced the photo of component instance stillwood-cabin-instance-64",
+   "observed": {
+    "before": "aeed7a7152b90",
+    "after": {
+     "src": "http://127.0.0.1:4951/api/sites/s2/assets/a4bc0ac4bbdca",
+     "w": 1536,
+     "attrs": [
+      "1536",
+      "1024"
+     ]
+    },
+    "instance": {
+     "before": "a4bc0ac4bbdca",
+     "picked": "dining.webp",
+     "imageValues": [
+      [
+       "image",
+       "asset:acfdc10a463c5"
+      ]
+     ],
+     "recordedSizes": [
+      [
+       "@image-size:image",
+       "{\"src\":\"asset:acfdc10a463c5\",\"w\":1536,\"h\":1024}"
+      ]
+     ],
+     "rendered": {
+      "src": "acfdc10a463c5",
+      "loaded": true,
+      "natural": [
+       1536,
+       1024
+      ],
+      "attrs": [
+       "1536",
+       "1024"
+      ]
+     }
+    },
+    "recordedSizeMatchesNewPhoto": true
+   }
+  },
+  {
+   "check": "long-headings",
+   "pass": true,
+   "did": "H1 lengthened to 160 characters, checked in Mobile, Tablet and Desktop canvas modes",
+   "observed": {
+    "Mobile": {
+     "text": 158,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 9
+    },
+    "Tablet": {
+     "text": 158,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 7
+    },
+    "Desktop": {
+     "text": 158,
+     "overflow": false,
+     "docOverflow": false,
+     "lines": 8
+    }
+   }
+  },
+  {
+   "check": "duplicate-reorder-delete",
+   "pass": true,
+   "did": "Selected section stillwood-welcome-460; \u2318D duplicate, \u21e7\u2191 move up, \u232b delete the copy",
+   "observed": {
+    "selected": [
+     "n3s3ea13q"
+    ],
+    "start": 12,
+    "afterDuplicate": 13,
+    "movedOrderChanged": true,
+    "afterDelete": 12,
+    "restoredOrder": true,
+    "savedSections": 12
+   }
+  },
+  {
+   "check": "shared-and-instance-styles",
+   "pass": true,
+   "did": "Section title stillwood-text-457: instance size 31px (This element), then \"Update typography\" to share it with stillwood-text-59",
+   "observed": {
+    "before": [
+     47,
+     47
+    ],
+    "instanceOnly": [
+     31,
+     47
+    ],
+    "afterShared": [
+     31,
+     31
+    ],
+    "confirm": "Update typography everywhere?"
+   }
+  },
+  {
+   "check": "responsive-inspector",
+   "pass": true,
+   "did": "Mobile mode: H1 size 29px; back to Desktop",
+   "observed": {
+    "mobileCanvas": 29,
+    "desktopCanvas": 76,
+    "savedMobileOverride": "29px",
+    "savedDesktop": null
+   }
+  },
+  {
+   "check": "save-reopen",
+   "pass": true,
+   "did": "Reloaded the editor after autosave (saved version 14)",
+   "observed": {
+    "savedVersion": 14,
+    "reopened": {
+     "h1": 158,
+     "blue": true
+    },
+    "status": "Draft ready"
+   }
+  },
+  {
+   "check": "publish-output",
+   "pass": true,
+   "did": "Publish \u203a preview \u203a Publish reviewed version (version 31)",
+   "observed": {
+    "publishState": "published",
+    "publishedVersion": 31,
+    "h1Length": 158,
+    "colourInCss": true,
+    "menuEditInHtml": true
+   }
+  },
+  {
+   "check": "media-and-links",
+   "pass": true,
+   "did": "Button stillwood-button-44: link page Find your cabin \u00b7 /cabins \u2192 The A-frame \u00b7 /the-a-frame; opened the Media library",
+   "observed": {
+    "hrefBefore": "cabins.html",
+    "hrefAfter": "the-a-frame.html",
+    "library": {
+     "count": "15 of 15 images",
+     "usage": true,
+     "upload": true
+    }
+   }
+  },
+  {
+   "check": "global-navigation-footer",
+   "pass": true,
+   "did": "Edit header: menu item \"The cabins\" \u2192 \"The cabins & more\"; checked on 3 pages",
+   "observed": {
+    "savedInSharedHeader": true,
+    "pages": [
+     {
+      "page": "index",
+      "shows": true
+     },
+     {
+      "page": "cabins",
+      "shows": true
+     },
+     {
+      "page": "the-a-frame",
+      "shows": true
+     }
+    ],
+    "footerRegion": true
+   }
+  },
+  {
+   "check": "form-behavior",
+   "pass": true,
+   "did": "Published contact form filled with test data and submitted",
+   "observed": {
+    "form": {
+     "action": "http://localhost:4951/forms/s2/stillwood-stay-form-438",
+     "method": "post",
+     "fields": [
+      {
+       "name": "arrival",
+       "type": "text",
+       "required": true,
+       "label": "Arrival *"
+      },
+      {
+       "name": "departure",
+       "type": "text",
+       "required": true,
+       "label": "Departure *"
+      },
+      {
+       "name": "guests",
+       "type": "select-one",
+       "required": true,
+       "label": "Guests *"
+      },
+      {
+       "name": "name",
+       "type": "text",
+       "required": true,
+       "label": "Your name *"
+      },
+      {
+       "name": "email",
+       "type": "email",
+       "required": true,
+       "label": "Email *"
+      },
+      {
+       "name": "cabin",
+       "type": "select-one",
+       "required": false,
+       "label": "Cabin"
+      },
+      {
+       "name": "message",
+       "type": "textarea",
+       "required": false,
+       "label": "Anything we should know?"
+      },
+      {
+       "name": "_pc_trap",
+       "type": "text",
+       "required": false,
+       "label": "Leave empty"
+      },
+      {
+       "name": "_pc_request",
+       "type": "hidden",
+       "required": false,
+       "label": null
+      }
+     ]
+    },
+    "landed": {
+     "url": "http://localhost:4951/forms/thanks",
+     "h1": "Thank you",
+     "text": "Thank you\n\nYour submission has been received.\n\nBack to site",
+     "invalid": []
+    },
+    "storedInSubmissions": true
+   }
+  },
+  {
+   "check": "stress-content",
+   "pass": true,
+   "did": "Row stillwood-cabins-67 (stillwood-cabin component cards): 3 \u2192 7 (checked in three modes) \u2192 3 \u2192 1; tripled the remaining card's description; removed its optional image",
+   "observed": {
+    "1": {
+     "n": 1,
+     "rendered": 1,
+     "overflow": false,
+     "minWidth": 599,
+     "broken": 0
+    },
+    "3": {
+     "n": 3,
+     "rendered": 3,
+     "overflow": false,
+     "minWidth": 599,
+     "broken": 0
+    },
+    "start": 3,
+    "7-Desktop": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 599,
+     "broken": 0
+    },
+    "7-Tablet": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 365,
+     "broken": 0
+    },
+    "7-Mobile": {
+     "n": 7,
+     "rendered": 7,
+     "overflow": false,
+     "minWidth": 340,
+     "broken": 0
+    },
+    "missingImage": {
+     "imgs": 1,
+     "broken": 0,
+     "height": 710,
+     "overflow": false
+    },
+    "longDescription": true,
+    "removedImage": true
+   }
+  }
+ ]
+}

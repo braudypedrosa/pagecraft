@@ -1,6 +1,7 @@
 import * as Core from '../../../app/src/core/index.ts';
 import type { Doc, Node } from '../../../app/src/core/types.ts';
 import { recordInstanceImageSizes } from '../../lib/instance-image-sizes.ts';
+import { followHeadingFont } from '../../lib/heading-font.ts';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -43,5 +44,12 @@ export async function buildTemplateDocument(): Promise<Doc> {
   if (!searchFound || !contactGuidanceFound) throw new Error('Stillwood search or contact correction target is missing');
   // Record each component photo's size so instances publish width/height (C1, 20 Nov).
   if (!recordInstanceImageSizes(document)) throw new Error('No component photo sizes were recorded');
+  // Headings follow the Heading font setting (Cloud editing QA, 20 Nov); quotes keep Georgia.
+  const headings = followHeadingFont(document);
+  if (headings.styles.length !== 3 || headings.headings.length || headings.kept.length !== 8) throw new Error(`Unexpected heading font change: ${JSON.stringify(headings)}`);
+  // The header logo is always in the first screen, so it loads eagerly (Cloud QA matrix, 20 Nov).
+  const logo = document.header.flatMap(function all(node: Node): Node[] { return [node, ...(node.children || []).flatMap(all)]; }).find(node => node.id === 'stillwood-logo-10');
+  if (!logo) throw new Error('Stillwood header logo is missing');
+  logo.props.lazy = 0;
   return document;
 }

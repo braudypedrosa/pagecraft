@@ -1,5 +1,7 @@
 import type { Doc, Node } from '../../../app/src/core/types.ts';
 import { recordInstanceImageSizes } from '../../lib/instance-image-sizes.ts';
+import { followHeadingFont } from '../../lib/heading-font.ts';
+import { solidFilledButtons } from '../../lib/filled-buttons.ts';
 import { buildTemplateDocument as predecessor } from '../1.0.0/source.ts';
 
 /** Preserve the coastal composition while correcting contrast, wrapping, and setup guidance. */
@@ -51,5 +53,11 @@ export function buildTemplateDocument(): Doc {
   if (!inquiryFaqFound) throw new Error('Salt House inquiry FAQ is missing');
   // Record each component photo's size so instances publish width/height (C1, 20 Nov).
   if (!recordInstanceImageSizes(document)) throw new Error('No component photo sizes were recorded');
+  // Headings follow the Heading font setting (Cloud editing QA, 20 Nov).
+  const headings = followHeadingFont(document);
+  if (headings.styles.length !== 4 || headings.headings.length || headings.kept.length) throw new Error(`Unexpected heading font change: ${JSON.stringify(headings)}`);
+  // Terracotta buttons were built as outlines, so their fill never showed (Cloud rendered review, 20 Nov).
+  const filled = solidFilledButtons(document);
+  if (filled.length !== 4) throw new Error(`Expected four filled buttons, found ${JSON.stringify(filled)}`);
   return document;
 }

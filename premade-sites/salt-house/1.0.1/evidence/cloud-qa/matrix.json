@@ -1,0 +1,1340 @@
+{
+ "slug": "salt-house-1-0-1-qa",
+ "chrome": "Chrome/156.0.8078.82",
+ "origin": "http://127.0.0.1:4951",
+ "pages": [
+  {
+   "page": "index",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 5746
+   },
+   "title": "Coastal vacation rentals \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-390.jpg"
+  },
+  {
+   "page": "index",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3903
+   },
+   "title": "Coastal vacation rentals \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 20,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "Which home is right for my group?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-768.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3712
+   },
+   "title": "Coastal vacation rentals \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 20,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "Which home is right for my group?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1024.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 7,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4050
+   },
+   "title": "Coastal vacation rentals \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 20,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "Which home is right for my group?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1440.jpg"
+  },
+  {
+   "page": "homes",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/homes",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2534
+   },
+   "title": "The Homes \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "homes-390.jpg"
+  },
+  {
+   "page": "homes",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/homes",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1842
+   },
+   "title": "The Homes \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "homes-768.jpg"
+  },
+  {
+   "page": "homes",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/homes",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1842
+   },
+   "title": "The Homes \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "homes-1024.jpg"
+  },
+  {
+   "page": "homes",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/homes",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1807
+   },
+   "title": "The Homes \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "homes-1440.jpg"
+  },
+  {
+   "page": "dune-house",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/dune-house",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3518
+   },
+   "title": "Dune House \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "dune-house-390.jpg"
+  },
+  {
+   "page": "dune-house",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/dune-house",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2995
+   },
+   "title": "Dune House \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "dune-house-768.jpg"
+  },
+  {
+   "page": "dune-house",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/dune-house",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2920
+   },
+   "title": "Dune House \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "dune-house-1024.jpg"
+  },
+  {
+   "page": "dune-house",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/dune-house",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3008
+   },
+   "title": "Dune House \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "dune-house-1440.jpg"
+  },
+  {
+   "page": "blue-shutter-cottage",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/blue-shutter-cottage",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3535
+   },
+   "title": "Blue Shutter Cottage \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "blue-shutter-cottage-390.jpg"
+  },
+  {
+   "page": "blue-shutter-cottage",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/blue-shutter-cottage",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2995
+   },
+   "title": "Blue Shutter Cottage \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "blue-shutter-cottage-768.jpg"
+  },
+  {
+   "page": "blue-shutter-cottage",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/blue-shutter-cottage",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2920
+   },
+   "title": "Blue Shutter Cottage \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "blue-shutter-cottage-1024.jpg"
+  },
+  {
+   "page": "blue-shutter-cottage",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/blue-shutter-cottage",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3008
+   },
+   "title": "Blue Shutter Cottage \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "blue-shutter-cottage-1440.jpg"
+  },
+  {
+   "page": "coast",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/coast",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2600
+   },
+   "title": "The Coast \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 7,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "coast-390.jpg"
+  },
+  {
+   "page": "coast",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/coast",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2244
+   },
+   "title": "The Coast \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "coast-768.jpg"
+  },
+  {
+   "page": "coast",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/coast",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2163
+   },
+   "title": "The Coast \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "coast-1024.jpg"
+  },
+  {
+   "page": "coast",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/coast",
+   "textFloor": {
+    "minFont": 16,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2572
+   },
+   "title": "The Coast \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "coast-1440.jpg"
+  },
+  {
+   "page": "plan-your-stay",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/plan-your-stay",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2304
+   },
+   "title": "Plan Your Stay \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 3,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 3,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "plan-your-stay-390.jpg"
+  },
+  {
+   "page": "plan-your-stay",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/plan-your-stay",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1839
+   },
+   "title": "Plan Your Stay \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "How do I check dates and prices?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "plan-your-stay-768.jpg"
+  },
+  {
+   "page": "plan-your-stay",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/plan-your-stay",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 58,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1712
+   },
+   "title": "Plan Your Stay \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "How do I check dates and prices?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "plan-your-stay-1024.jpg"
+  },
+  {
+   "page": "plan-your-stay",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/salt-house-1-0-1-qa/plan-your-stay",
+   "textFloor": {
+    "minFont": 14.76,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1854
+   },
+   "title": "Plan Your Stay \u2014 Salt House",
+   "lang": "en",
+   "keyboard": {
+    "stops": 16,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 3,
+    "links": 3,
+    "collapsed": false,
+    "toggle": "How do I check dates and prices?",
+    "opened": 3,
+    "expanded": "false"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "plan-your-stay-1440.jpg"
+  }
+ ],
+ "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32"
+}

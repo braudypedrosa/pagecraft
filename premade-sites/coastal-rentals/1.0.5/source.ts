@@ -1,5 +1,6 @@
 import type { Doc, Node } from '../../../app/src/core/types.ts';
 import { buildTemplateDocument as buildV104 } from '../1.0.4/source.ts';
+import { followHeadingFont } from '../../lib/heading-font.ts';
 
 const walk = (nodes: Node[], visit: (node: Node) => void) => {
   for (const node of nodes) {
@@ -60,5 +61,8 @@ export function buildTemplateDocument(): Doc {
     }
   });
   if (setupCount !== 2) throw new Error('Marea form guidance correction target is missing');
+  // Headings follow the Heading font setting (Cloud editing QA, 20 Nov).
+  const headings = followHeadingFont(document);
+  if (headings.styles.length !== 2 || headings.kept.length || headings.headings.length !== 33) throw new Error(`Unexpected heading font change: ${JSON.stringify(headings)}`);
   return document;
 }

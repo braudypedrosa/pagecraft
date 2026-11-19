@@ -1,0 +1,1979 @@
+{
+ "slug": "marea-1-0-5-qa",
+ "chrome": "Chrome/156.0.8078.82",
+ "origin": "http://127.0.0.1:4951",
+ "pages": [
+  {
+   "page": "index",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 43,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 5823
+   },
+   "title": "Marea \u2014 A quieter way to stay by the coast",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-390.jpg"
+  },
+  {
+   "page": "index",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 50,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4483
+   },
+   "title": "Marea \u2014 A quieter way to stay by the coast",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-768.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 56.32,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4409
+   },
+   "title": "Marea \u2014 A quieter way to stay by the coast",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1024.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4571
+   },
+   "title": "Marea \u2014 A quieter way to stay by the coast",
+   "lang": "en",
+   "keyboard": {
+    "stops": 18,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1440.jpg"
+  },
+  {
+   "page": "stays",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stays",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 1,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4229
+   },
+   "title": "The stays \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stays-390.jpg"
+  },
+  {
+   "page": "stays",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stays",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 1,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3034
+   },
+   "title": "The stays \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stays-768.jpg"
+  },
+  {
+   "page": "stays",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stays",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 1,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2940
+   },
+   "title": "The stays \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stays-1024.jpg"
+  },
+  {
+   "page": "stays",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stays",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 4,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 1,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3068
+   },
+   "title": "The stays \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 15,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stays-1440.jpg"
+  },
+  {
+   "page": "stone-cove-house",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stone-cove-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3873
+   },
+   "title": "Stone Cove House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stone-cove-house-390.jpg"
+  },
+  {
+   "page": "stone-cove-house",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stone-cove-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3361
+   },
+   "title": "Stone Cove House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stone-cove-house-768.jpg"
+  },
+  {
+   "page": "stone-cove-house",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stone-cove-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3258
+   },
+   "title": "Stone Cove House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stone-cove-house-1024.jpg"
+  },
+  {
+   "page": "stone-cove-house",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/stone-cove-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3407
+   },
+   "title": "Stone Cove House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "stone-cove-house-1440.jpg"
+  },
+  {
+   "page": "pine-court-house",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/pine-court-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3873
+   },
+   "title": "Pine Court House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "pine-court-house-390.jpg"
+  },
+  {
+   "page": "pine-court-house",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/pine-court-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3361
+   },
+   "title": "Pine Court House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "pine-court-house-768.jpg"
+  },
+  {
+   "page": "pine-court-house",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/pine-court-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3258
+   },
+   "title": "Pine Court House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "pine-court-house-1024.jpg"
+  },
+  {
+   "page": "pine-court-house",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/pine-court-house",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3407
+   },
+   "title": "Pine Court House \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "pine-court-house-1440.jpg"
+  },
+  {
+   "page": "harbor-studio",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/harbor-studio",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3832
+   },
+   "title": "Harbor Studio \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "harbor-studio-390.jpg"
+  },
+  {
+   "page": "harbor-studio",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/harbor-studio",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3361
+   },
+   "title": "Harbor Studio \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "harbor-studio-768.jpg"
+  },
+  {
+   "page": "harbor-studio",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/harbor-studio",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3258
+   },
+   "title": "Harbor Studio \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "harbor-studio-1024.jpg"
+  },
+  {
+   "page": "harbor-studio",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/harbor-studio",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3407
+   },
+   "title": "Harbor Studio \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "harbor-studio-1440.jpg"
+  },
+  {
+   "page": "garden-casita",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/garden-casita",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3832
+   },
+   "title": "Garden Casita \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "garden-casita-390.jpg"
+  },
+  {
+   "page": "garden-casita",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/garden-casita",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3361
+   },
+   "title": "Garden Casita \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "garden-casita-768.jpg"
+  },
+  {
+   "page": "garden-casita",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/garden-casita",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3258
+   },
+   "title": "Garden Casita \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "garden-casita-1024.jpg"
+  },
+  {
+   "page": "garden-casita",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/garden-casita",
+   "textFloor": {
+    "minFont": 13,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3407
+   },
+   "title": "Garden Casita \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "garden-casita-1440.jpg"
+  },
+  {
+   "page": "services",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3324
+   },
+   "title": "Guest services \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 10,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-390.jpg"
+  },
+  {
+   "page": "services",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3031
+   },
+   "title": "Guest services \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-768.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2986
+   },
+   "title": "Guest services \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1024.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3192
+   },
+   "title": "Guest services \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 14,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1440.jpg"
+  },
+  {
+   "page": "about",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3247
+   },
+   "title": "About \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 7,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-390.jpg"
+  },
+  {
+   "page": "about",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2716
+   },
+   "title": "About \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-768.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2553
+   },
+   "title": "About \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1024.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2697
+   },
+   "title": "About \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 11,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1440.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2625
+   },
+   "title": "Plan a stay \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-390.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 48,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2012
+   },
+   "title": "Plan a stay \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 17,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-768.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51.2,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1879
+   },
+   "title": "Plan a stay \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 17,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1024.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/marea-1-0-5-qa/contact",
+   "textFloor": {
+    "minFont": 12.3,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2025
+   },
+   "title": "Plan a stay \u2014 Marea",
+   "lang": "en",
+   "keyboard": {
+    "stops": 17,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": false,
+    "linksVisible": 4,
+    "links": 4,
+    "collapsed": false
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1440.jpg"
+  }
+ ],
+ "packageSha256": "310ea0f65a3304804ded57f5789f1d3734ea25b625505b51249bc32a834bae47"
+}

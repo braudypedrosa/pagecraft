@@ -59,8 +59,8 @@
       "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
     },
     "cloud": {
-      "hostRevision": "pending",
-      "editorVersion": "pending"
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4"
     }
   },
   "findings": [],
@@ -68,30 +68,464 @@
     {
       "host": "wordpress",
       "method": "package-check",
-      "packageSha256": "7edced107456cdc93d79f2380e82f236c22b141cb4b804234e68aa5e1bc0f650",
+      "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32",
       "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
       "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
-      "at": "2026-11-19T19:30:44Z",
+      "at": "2026-11-19T22:30:36Z",
       "editChecks": [],
       "pages": [],
       "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
       "evidence": [
         {
           "path": "evidence/wordpress-package-check.txt",
-          "sha256": "25e0582d4234920bf938b80319d8ca15adabe358c3a875ac18e7745489286d6e"
+          "sha256": "b9c70bcb8da8621a7a89476a0998160cda970ebecee9e9e07fe9bdb4ed283f98"
         },
         {
           "path": "evidence/wordpress-package-check.php",
           "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
         }
       ]
+    },
+    {
+      "host": "cloud",
+      "method": "interactive",
+      "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32",
+      "hostRevision": "pagecraft@8ad97d6c local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:3764775adaec36edb65b804974fb1b3fd75f9737a24c522fde616690846ffbb4",
+      "at": "2026-11-19T22:36:22Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "blue-shutter-cottage",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "coast",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "dune-house",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "homes",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "plan-your-stay",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Measured at 390, 768, 1024 and 1440 only (headless Chrome, unedited published site). Long headings and 1/3/7 cards were also checked in the editor's Mobile, Tablet and Desktop modes. Fragile in-between widths were not measured in this patch QA.",
+      "evidence": [
+        {
+          "path": "evidence/cloud-qa/REPORT.md",
+          "sha256": "adb9c31d9596f952b5140b9cb2458062ced1e057b3f4369e1556eea45dafe59e"
+        },
+        {
+          "path": "evidence/cloud-qa/matrix.json",
+          "sha256": "6cab49b7386b773da05d4bc96ed8857b4ff684eb07f0bac3f7bd487bfd1ecf13"
+        },
+        {
+          "path": "evidence/cloud-qa/editing-exercises.json",
+          "sha256": "d20f61d25b86aad4629e0243ee974e12d469b546a01f96f1e5e37559b2a2a7b3"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-390.jpg",
+          "sha256": "2ac49d3351486e2c1cabcd3638b297e99b89afbf9399f1c6f899f24227a30084"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-768.jpg",
+          "sha256": "621fbea24dd7561d9710dbb9d1f7b72a00c564ad1a180fc111a5b65979ac6add"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1024.jpg",
+          "sha256": "8815bee22ee99cd9757d01cd59ead6d5c478698273b7a4b711450dda60931e42"
+        },
+        {
+          "path": "evidence/cloud-qa/pages-1440.jpg",
+          "sha256": "a20505fd46c563d9a28ad15a63238da32453f5b3fe3da3fb5ae8847d8fe49d07"
+        }
+      ]
     }
   ],
-  "visualReview": null,
+  "visualReview": {
+    "packageSha256": "0a2b4d746268f9d56fcfa7fad737ecef3abc8fa173782c4319dd8a84d679fe32",
+    "verdict": "pass",
+    "rationale": "Separate rendered pass on every page at 390/768/1024/1440 from full-page captures, with targeted full-resolution checks and a pixel comparison against the pre-fix package. See RENDERED-REVIEW.md for observations and scope. Agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "evidence/cloud-qa/RENDERED-REVIEW.md",
+        "sha256": "243ddf57758b6aa7eb8ed36f08f5f1000f2978e19fcb4b0fc8f82194ec4199aa"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-390.jpg",
+        "sha256": "2ac49d3351486e2c1cabcd3638b297e99b89afbf9399f1c6f899f24227a30084"
+      },
+      {
+        "path": "evidence/cloud-qa/pages-1440.jpg",
+        "sha256": "a20505fd46c563d9a28ad15a63238da32453f5b3fe3da3fb5ae8847d8fe49d07"
+      }
+    ]
+  },
   "approval": null,
   "patchOf": {
     "version": "1.0.0",
     "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
-    "scope": "Contrast, wrapping and setup-guidance corrections, and recorded component photo sizes."
+    "scope": "Contrast, wrapping and setup-guidance corrections, and recorded component photo sizes. Heading text styles follow the Heading font setting. Terracotta buttons built as outlines are solid, so their fill shows."
   }
 }
