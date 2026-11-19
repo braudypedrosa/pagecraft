@@ -6,7 +6,7 @@ export interface PublicationPreviewOptions {
    *  that had to be rebuilt and re-sent on every look. Fonts and stylesheets stay inline:
    *  fonts from an opaque origin would also need CORS, and they are small. */
   link?: (path: string, mediaType: string) => string | null;
-  /** Mark images without a loading attribute lazy. A published page may fetch every photo at
+  /** Mark images without a loading attribute lazy, after the first two. A published page may fetch every photo at
    *  once; over a slow host link the first screen then finishes last. Lazy images in or near
    *  view still load at once, so what the preview shows is unchanged. */
   lazyImages?: boolean;
@@ -50,7 +50,12 @@ export async function publicationPreviewHtml(store: HostedPublicationStore, publ
   };
   const css = (text: string, from: string) => text.replace(/url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/gi,
     (_match, _quote, raw) => `url(${resource(raw, from)})`);
-  const page = options.lazyImages ? html.replace(/<img\b(?![^>]*\bloading\s*=)/gi, '<img loading="lazy"') : html;
+  // The first two images (usually the logo and the hero) keep their authored loading, so the
+  // first screen loads even while the preview frame is scrolled out of the dialog's view.
+  let seen = 0;
+  const page = options.lazyImages
+    ? html.replace(/<img\b(?![^>]*\bloading\s*=)/gi, tag => (seen++ < 2 ? tag : '<img loading="lazy"'))
+    : html;
   return css(page, path).replace(/\b(src|href|poster|srcset)=(['"])(.*?)\2/gi, (match, attribute, quote, raw) => {
     if (/\bdata:/i.test(raw)) return match;
     const value = attribute.toLowerCase() === 'srcset'

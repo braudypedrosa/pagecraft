@@ -801,7 +801,7 @@ test('snapshot previews link images through signed, cacheable URLs instead of in
   const text = new TextEncoder();
   const photo = Uint8Array.from({ length: 4096 }, (_, i) => i % 251);
   const snapshot = await r.publications!.create({ siteId: r.site.id, slug: r.site.slug, host: r.site.host, sourceVersion: 1, files: [
-    { path: 'index.html', mediaType: 'text/html', bytes: text.encode('<link rel="stylesheet" href="assets/site.css"><img src="assets/photo.webp" srcset="assets/photo.webp 1x"><div style="background:url(assets/photo.webp)"></div>') },
+    { path: 'index.html', mediaType: 'text/html', bytes: text.encode('<link rel="stylesheet" href="assets/site.css"><img src="assets/photo.webp" srcset="assets/photo.webp 1x"><img src="assets/photo.webp"><img src="assets/photo.webp"><div style="background:url(assets/photo.webp)"></div>') },
     { path: 'about.html', mediaType: 'text/html', bytes: text.encode('<p>About</p>') },
     { path: 'assets/photo.webp', mediaType: 'image/webp', bytes: photo },
     { path: 'assets/site.css', mediaType: 'text/css', bytes: text.encode('body{background:url(photo.webp)}') },
