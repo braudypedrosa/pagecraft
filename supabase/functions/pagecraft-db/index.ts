@@ -71,6 +71,65 @@ const assetStoragePath = (
     type === "image/svg+xml" ? "svg" : "webp"
   }`;
 
+/* Media uploads write their file to Storage before they take the owner's row lock, and hold
+   the lock only for the quota check and the row. Holding it across the Storage call made one
+   account's uploads run one at a time, with its site creation and sign-in waiting behind them
+   (48 s at worst). A file written early that ends up with no row is removed under that same
+   lock, and only when no row claims it, so a concurrent upload of the same file never loses it.
+
+   Returns whether this call wrote the file: an existing file may belong to a live asset. */
+async function writeAssetFile(
+  path: string,
+  bytes: Uint8Array,
+  type: string,
+  label: string,
+): Promise<boolean> {
+  const stored = await storage.from(ASSET_BUCKET).upload(path, bytes, {
+    contentType: type,
+    cacheControl: "31536000",
+    upsert: false,
+  });
+  if (stored.error && stored.error.message !== "The resource already exists") {
+    throw new Error(`${label} could not be written: ${stored.error.message}`);
+  }
+  return !stored.error;
+}
+
+async function releaseAssetFile(ownerId: string, path: string) {
+  try {
+    await sql.begin(async (transaction) => {
+      await transaction`select id from users where id = ${ownerId} for update`;
+      const claimed = await transaction`
+        select 1 from assets where storage_path = ${path}
+        union all
+        select 1 from library_assets where storage_path = ${path}
+        limit 1
+      `;
+      if (!claimed.length) await storage.from(ASSET_BUCKET).remove([path]);
+    });
+  } catch (error) {
+    console.error("could not release an unclaimed asset file", error);
+  }
+}
+
+function storedBlobChunks(
+  rows: Record<string, unknown>[],
+): StoredGatewayBlobChunkV1[] {
+  return rows.map((stored) => {
+    if (!(stored.content instanceof Uint8Array)) {
+      throw new Error(
+        "database returned a gateway blob chunk in an unknown binary format",
+      );
+    }
+    return {
+      index: Number(stored.chunk_index),
+      bytes: Number(stored.bytes),
+      hash: String(stored.chunk_hash),
+      content: stored.content,
+    };
+  });
+}
+
 const MAX_BODY = 16 * 1024 * 1024;
 const MAX_PROPOSAL_ASSET_IDS = 10_000; // The assistant request element cap.
 const json = (data: unknown, status = 200) =>
@@ -2402,27 +2461,22 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           code: "INVALID_ASSET_BLOB",
         });
       }
-      let uploadedPath = "";
-      let replacedPath = "";
-      try {
-        const saved = await sql.begin(async (transaction) => {
-          /* Connection revocation takes the same row lock. This makes finalization linearizable:
-           a request may upload disposable chunks before revocation, but it cannot create or
-           replace a durable asset after Disconnect has committed. */
-          let connectionOwnerId = "";
-          if (connected) {
-            const guard = one(
-              await transaction<Record<string, unknown>[]>`
-            select id, created_by from wordpress_connections
-            where id = ${connectionId} and site_id = ${siteId}
-              and status = 'active' and access_token_expires_at > now()
-            for update
-          `,
-            );
-            if (!guard) return null;
-            connectionOwnerId = text(guard.created_by);
-          }
-          const ownerId = connected ? connectionOwnerId : requestedOwnerId ||
+      const isExactRetry = async (prior: Record<string, unknown>) =>
+        prior.name === name && prior.type === type &&
+        Number(prior.w) === w && Number(prior.h) === h &&
+        Number(
+            prior.stored_bytes ||
+              (prior.bytes instanceof Uint8Array ? prior.bytes.byteLength : 0),
+          ) === blob.bytes &&
+        (text(prior.content_hash) === contentHash ||
+          (!prior.content_hash && prior.bytes instanceof Uint8Array &&
+            await hexSha256(prior.bytes) === blob.hash));
+      const resolveOwner = async (
+        transaction: typeof sql,
+        lock: boolean,
+      ): Promise<string | null> => {
+        if (!connected) {
+          return requestedOwnerId ||
             text(
               one(
                 await transaction<Record<string, unknown>[]>`
@@ -2431,29 +2485,99 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             `,
               )?.user_id,
             );
-          if (!ownerId) {
-            throw Object.assign(
-              new Error("site storage owner does not exist"),
-              {
-                status: 409,
-                code: "STORAGE_OWNER_MISSING",
-              },
-            );
-          }
+        }
+        const guard = one(
+          lock
+            ? await transaction<Record<string, unknown>[]>`
+            select id, created_by from wordpress_connections
+            where id = ${connectionId} and site_id = ${siteId}
+              and status = 'active' and access_token_expires_at > now()
+            for update
+          `
+            : await transaction<Record<string, unknown>[]>`
+            select id, created_by from wordpress_connections
+            where id = ${connectionId} and site_id = ${siteId}
+              and status = 'active' and access_token_expires_at > now()
+          `,
+        );
+        return guard ? text(guard.created_by) : null;
+      };
+      const ownerMissing = () =>
+        Object.assign(new Error("site storage owner does not exist"), {
+          status: 409,
+          code: "STORAGE_OWNER_MISSING",
+        });
+
+      /* 1. Without the owner lock: read the staged bytes and write the file. */
+      const staged = await sql.begin(async (transaction) => {
+        const ownerId = await resolveOwner(transaction as typeof sql, false);
+        if (ownerId === null) return null;
+        if (!ownerId) throw ownerMissing();
+        const prior = one(
+          await transaction<Record<string, unknown>[]>`
+          select site_id, name, type, w, h, bytes, stored_bytes, content_hash
+          from assets where id = ${id} limit 1
+        `,
+        );
+        // An exact retry keeps its row and file; the locked step below returns it.
+        if (prior && prior.site_id === siteId && await isExactRetry(prior)) {
+          return { ownerId, bytes: null };
+        }
+        const upload = one(
+          await transaction<Record<string, unknown>[]>`
+          select * from gateway_blob_uploads where hash = ${blob.hash} for share
+        `,
+        );
+        if (
+          !upload || Number(upload.bytes) !== blob.bytes ||
+          Number(upload.chunk_bytes) !== blob.chunkBytes ||
+          Number(upload.chunk_count) !== blob.chunkCount
+        ) {
+          throw Object.assign(
+            new Error("asset blob upload is missing or incomplete"),
+            { status: 409, code: "ASSET_BLOB_UNAVAILABLE" },
+          );
+        }
+        const storedRows = await transaction<Record<string, unknown>[]>`
+          select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
+          where blob_hash = ${blob.hash} order by chunk_index
+        `;
+        return {
+          ownerId,
+          bytes: await assembleStoredGatewayBlob(
+            blob,
+            storedBlobChunks(storedRows),
+          ),
+        };
+      });
+      if (!staged) return null;
+      const bytes = staged.bytes;
+      // Files this call wrote, by owner; each is released unless the saved row claims it.
+      const written = new Map<string, string>();
+      if (bytes) {
+        const path = assetStoragePath(staged.ownerId, siteId, id, blob.hash, type);
+        if (await writeAssetFile(path, bytes, type, "stored asset")) {
+          written.set(path, staged.ownerId);
+        }
+      }
+
+      /* 2. Under the owner lock: quota, then the row. No Storage call here unless the file
+         this row needs is missing (another upload's failure released it in between). */
+      let replacedPath = "";
+      try {
+        const saved = await sql.begin(async (transaction) => {
+          /* Connection revocation takes the same row lock. This makes finalization linearizable:
+           a request may upload disposable files before revocation, but it cannot create or
+           replace a durable asset after Disconnect has committed. */
+          const ownerId = await resolveOwner(transaction as typeof sql, true);
+          if (ownerId === null) return null;
+          if (!ownerId) throw ownerMissing();
           const owner = one(
             await transaction<Record<string, unknown>[]>`
           select id, plan from users where id = ${ownerId} for update
         `,
           );
-          if (!owner) {
-            throw Object.assign(
-              new Error("site storage owner does not exist"),
-              {
-                status: 409,
-                code: "STORAGE_OWNER_MISSING",
-              },
-            );
-          }
+          if (!owner) throw ownerMissing();
           const planStorageBytes = accountEntitlements(text(owner.id), text(owner.plan)).storageBytes;
           const limitBytes = requestedLimitBytes === null
             ? planStorageBytes
@@ -2472,18 +2596,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             );
           }
           if (prior) {
-            const exactRetry = prior.name === name && prior.type === type &&
-              Number(prior.w) === w && Number(prior.h) === h &&
-              Number(
-                  prior.stored_bytes ||
-                    (prior.bytes instanceof Uint8Array
-                      ? prior.bytes.byteLength
-                      : 0),
-                ) === blob.bytes &&
-              (text(prior.content_hash) === contentHash ||
-                (!prior.content_hash && prior.bytes instanceof Uint8Array &&
-                  await hexSha256(prior.bytes) === blob.hash));
-            if (exactRetry) {
+            if (await isExactRetry(prior)) {
               return {
                 id: prior.id,
                 site_id: prior.site_id,
@@ -2501,41 +2614,13 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             }
             if (connected) return null;
           }
-          const upload = one(
-            await transaction<Record<string, unknown>[]>`
-          select * from gateway_blob_uploads where hash = ${blob.hash} for share
-        `,
-          );
-          if (
-            !upload || Number(upload.bytes) !== blob.bytes ||
-            Number(upload.chunk_bytes) !== blob.chunkBytes ||
-            Number(upload.chunk_count) !== blob.chunkCount
-          ) {
+          if (!bytes) {
+            // The exact retry seen before the lock was replaced meanwhile; the caller retries.
             throw Object.assign(
-              new Error("asset blob upload is missing or incomplete"),
+              new Error("asset changed during upload; retry"),
               { status: 409, code: "ASSET_BLOB_UNAVAILABLE" },
             );
           }
-          const storedRows = await transaction<Record<string, unknown>[]>`
-          select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
-          where blob_hash = ${blob.hash} order by chunk_index
-        `;
-          const storedChunks: StoredGatewayBlobChunkV1[] = storedRows.map(
-            (stored) => {
-              if (!(stored.content instanceof Uint8Array)) {
-                throw new Error(
-                  "database returned a gateway blob chunk in an unknown binary format",
-                );
-              }
-              return {
-                index: Number(stored.chunk_index),
-                bytes: Number(stored.bytes),
-                hash: String(stored.chunk_hash),
-                content: stored.content,
-              };
-            },
-          );
-          const bytes = await assembleStoredGatewayBlob(blob, storedChunks);
           const usedRow = one(
             await transaction<Record<string, unknown>[]>`
           select (coalesce((select sum(stored_bytes) from assets where owner_id = ${ownerId}), 0)
@@ -2566,26 +2651,14 @@ async function dispatch(op: string, args: Record<string, unknown>) {
             prior?.storage_path && text(prior.storage_path) !== path
               ? text(prior.storage_path)
               : "";
-          const stored = await storage.from(ASSET_BUCKET).upload(
-            path,
-            bytes,
-            {
-              contentType: type,
-              cacheControl: "31536000",
-              upsert: false,
-            },
-          );
-          if (
-            stored.error &&
-            stored.error.message !== "The resource already exists"
-          ) {
-            throw new Error(
-              `stored asset could not be written: ${stored.error.message}`,
-            );
+          /* A file this call did not write is safe when this asset's own row holds it (the row
+             is locked). Otherwise it may be another upload's that is about to be released, so
+             make sure it is there, still under the lock that release takes. */
+          if (!written.has(path) && text(prior?.storage_path) !== path) {
+            if (await writeAssetFile(path, bytes, type, "stored asset")) {
+              written.set(path, ownerId);
+            }
           }
-          /* A file that already existed may be a live asset's; only one this call wrote is
-             this call's to remove if the transaction then fails. */
-          if (!stored.error) uploadedPath = path;
           const row = connected
             ? one(
               await transaction<Record<string, unknown>[]>`
@@ -2631,8 +2704,8 @@ async function dispatch(op: string, args: Record<string, unknown>) {
            abandoned staging rows without touching durable assets. */
           return row;
         });
-        // Committed: the row owns the file now, whatever happens below.
-        uploadedPath = "";
+        // Committed: the row owns its file now, whatever happens below.
+        written.delete(text(saved?.storage_path));
         if (replacedPath) {
           const removed = await storage.from(ASSET_BUCKET).remove([
             replacedPath,
@@ -2642,13 +2715,10 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           }
         }
         return saved;
-      } catch (error) {
-        if (uploadedPath) {
-          await storage.from(ASSET_BUCKET).remove([uploadedPath]).catch(() =>
-            undefined
-          );
+      } finally {
+        for (const [path, ownerId] of written) {
+          await releaseAssetFile(ownerId, path);
         }
-        throw error;
       }
     }
     case "asset.usage": {
@@ -2846,9 +2916,50 @@ async function dispatch(op: string, args: Record<string, unknown>) {
       const path = `libraries/${libraryId}/${id}.${
         type === "image/svg+xml" ? "svg" : "webp"
       }`;
-      let uploaded = false;
+      const libraryMissing = () =>
+        Object.assign(new Error("library not found"), {
+          status: 404,
+          code: "LIBRARY_NOT_FOUND",
+        });
+
+      /* 1. Without the owner lock: check the library, read the staged bytes, write the file. */
+      const bytes = await sql.begin(async (transaction) => {
+        const library = one(
+          await transaction`
+          select owner_id from libraries where id = ${libraryId}::uuid
+        `,
+        );
+        if (!library || text(library.owner_id) !== ownerId) {
+          throw libraryMissing();
+        }
+        const existing = one(
+          await transaction`
+          select id from library_assets where library_id = ${libraryId}::uuid and id = ${id}
+        `,
+        );
+        if (existing) return null;
+        const storedRows = await transaction<Record<string, unknown>[]>`
+          select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
+          where blob_hash = ${blob.hash} order by chunk_index
+        `;
+        const assembled = await assembleStoredGatewayBlob(
+          blob,
+          storedBlobChunks(storedRows),
+        );
+        if ((await hexSha256(assembled)) !== id) {
+          throw Object.assign(
+            new Error("library asset id must be the image's sha256"),
+            { status: 400, code: "INVALID_LIBRARY_ASSET" },
+          );
+        }
+        return assembled;
+      });
+      if (!bytes) return { id };
+      let written = await writeAssetFile(path, bytes, type, "library asset");
+
+      /* 2. Under the owner lock: quota, then the row. */
       try {
-        return await sql.begin(async (transaction) => {
+        const saved = await sql.begin(async (transaction) => {
           /* The quota is shared with site media, whose uploads fence on the owner's row. Take
              that row first here too, the same order as site uploads, so neither can deadlock
              and two uploads cannot both fit into the last free bytes. */
@@ -2873,10 +2984,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           `,
           );
           if (!library || text(library.owner_id) !== ownerId) {
-            throw Object.assign(new Error("library not found"), {
-              status: 404,
-              code: "LIBRARY_NOT_FOUND",
-            });
+            throw libraryMissing();
           }
           const existing = one(
             await transaction`
@@ -2884,32 +2992,6 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           `,
           );
           if (existing) return { id };
-          const storedRows = await transaction<Record<string, unknown>[]>`
-            select chunk_index, bytes, chunk_hash, content from gateway_blob_chunks
-            where blob_hash = ${blob.hash} order by chunk_index
-          `;
-          const bytes = await assembleStoredGatewayBlob(
-            blob,
-            storedRows.map((stored) => {
-              if (!(stored.content instanceof Uint8Array)) {
-                throw new Error(
-                  "database returned a gateway blob chunk in an unknown binary format",
-                );
-              }
-              return {
-                index: Number(stored.chunk_index),
-                bytes: Number(stored.bytes),
-                hash: String(stored.chunk_hash),
-                content: stored.content,
-              };
-            }),
-          );
-          if ((await hexSha256(bytes)) !== id) {
-            throw Object.assign(
-              new Error("library asset id must be the image's sha256"),
-              { status: 400, code: "INVALID_LIBRARY_ASSET" },
-            );
-          }
           const usedRow = one(
             await transaction<Record<string, unknown>[]>`
             select (coalesce((select sum(stored_bytes) from assets where owner_id = ${ownerId}), 0)
@@ -2924,20 +3006,11 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               { status: 409, code: "STORAGE_LIMIT", usedBytes, limitBytes },
             );
           }
-          const stored = await storage.from(ASSET_BUCKET).upload(path, bytes, {
-            contentType: type,
-            cacheControl: "31536000",
-            upsert: false,
-          });
-          if (
-            stored.error &&
-            stored.error.message !== "The resource already exists"
-          ) {
-            throw new Error(
-              `library asset could not be written: ${stored.error.message}`,
-            );
+          /* No row holds this file yet, so one this call did not write may be another upload's
+             that is about to be released. Make sure it is there, under the lock release takes. */
+          if (!written) {
+            written = await writeAssetFile(path, bytes, type, "library asset");
           }
-          uploaded = !stored.error;
           await transaction`
             insert into library_assets (library_id, id, name, type, w, h, storage_path, stored_bytes)
             values (${libraryId}::uuid, ${id}, ${text(args.name)}, ${type}, ${
@@ -2948,13 +3021,12 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           `;
           return { id };
         });
-      } catch (error) {
-        if (uploaded) {
-          await storage.from(ASSET_BUCKET).remove([path]).catch(() =>
-            undefined
-          );
-        }
-        throw error;
+        // Committed: a row for this id holds this path (same id, same bytes, same file).
+        written = false;
+        return saved;
+      } finally {
+        // Kept anyway if a concurrent upload's row claims the file.
+        if (written) await releaseAssetFile(ownerId, path);
       }
     }
     case "asset.tag": {
