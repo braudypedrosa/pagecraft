@@ -90,3 +90,86 @@ test('widget retries the same request and the full page continues the same threa
     widget.window.close();
   }
 });
+
+test('unread tickets stay counted until their replies are displayed in the widget or full page', async () => {
+  const unread = new Set(['first', 'second']);
+  const acknowledged: string[] = [];
+  const user = { id: 'member-two', name: 'River Hayes', email: 'river@example.test' };
+  const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+  let releaseTicket: (() => void) | undefined;
+  let holdTicket = false;
+  const open = (widget: boolean, url: string) => {
+    const dom = new JSDOM(widget ? withSupportWidget(dashboardPage(user, [], 0, { usedBytes: 0, limitBytes: 1024 })) : supportPage(user),
+      { url, pretendToBeVisual: true, runScripts: 'outside-only' });
+    dom.window.fetch = async (path: string, options: RequestInit) => {
+      if (path === '/api/support/unread') return Response.json({ count: unread.size });
+      const ids = ['first', 'second'];
+      const summary = (id: string) => ({
+        id, subject: 'Ticket ' + id, updatedAt: '2026-11-19T10:00:00Z', latestMessageRole: 'support', unread: unread.has(id)
+      });
+      if (path === '/api/support/tickets') return Response.json({ tickets: ids.map(summary) });
+      const id = path.split('/')[4];
+      assert.ok(ids.includes(id));
+      if (path.endsWith('/read')) {
+        assert.equal(options.method, 'POST');
+        assert.deepEqual(JSON.parse(String(options.body)), { messageIds: ['reply-' + id] });
+        unread.delete(id);
+        acknowledged.push(id);
+        return Response.json({ count: unread.size });
+      }
+      if (holdTicket) await new Promise<void>(resolve => { releaseTicket = resolve; });
+      return Response.json({ ticket: { ...summary(id), messages: [{
+        id: 'reply-' + id, role: 'support', body: 'Your update is ready.', createdAt: '2026-11-19T10:00:00Z', unread: unread.has(id)
+      }] } });
+    };
+    dom.window.eval(dom.window.document.querySelector('[data-support]').nextElementSibling.textContent);
+    return dom;
+  };
+  const widget = open(true, 'https://app.example.test/');
+  let page;
+  try {
+    const doc = widget.window.document;
+    const badge = doc.querySelector('[data-unread-count]'), launch = doc.querySelector('[data-launch]');
+    await settle();
+    assert.equal(badge.hidden, false);
+    assert.equal(badge.textContent, '2');
+    assert.equal(launch.getAttribute('aria-label'), 'Support chat, 2 unread tickets');
+    launch.click();
+    await settle();
+    assert.equal(doc.querySelectorAll('[data-list] a').length, 2);
+    assert.deepEqual(acknowledged, []);
+    holdTicket = true;
+    doc.querySelector('[data-list] a').click();
+    doc.querySelector('[data-close]').click();
+    releaseTicket!();
+    await settle();
+    assert.deepEqual(acknowledged, []);
+    holdTicket = false;
+    launch.click();
+    await settle();
+    doc.querySelector('[data-list] a').click();
+    await settle();
+    assert.deepEqual(acknowledged, ['first']);
+    assert.equal(badge.textContent, '1');
+    assert.equal(launch.getAttribute('aria-label'), 'Support chat, 1 unread ticket');
+
+    page = open(false, 'https://app.example.test/account/support?ticket=second');
+    await settle();
+    assert.deepEqual(acknowledged, ['first', 'second']);
+    doc.querySelector('[data-close]').click();
+    doc.dispatchEvent(new widget.window.Event('visibilitychange'));
+    await settle();
+    assert.equal(badge.hidden, true);
+    assert.equal(launch.getAttribute('aria-label'), 'Support chat');
+
+    unread.add('first');
+    doc.dispatchEvent(new widget.window.Event('visibilitychange'));
+    await settle();
+    assert.equal(badge.hidden, false);
+    assert.equal(badge.textContent, '1');
+    assert.deepEqual(acknowledged, ['first', 'second']);
+  } finally {
+    widget.window.close();
+    page?.window.close();
+  }
+});

@@ -13,6 +13,8 @@ export type SupportNotify = (notice: SupportNotice) => Promise<void>;
 type Ticket = { id: string; owner: string; subject: string; replyToken: string };
 type CustomerInput = { requestId: string; body: string; subject?: string };
 type Message = { id: string; role: 'customer' | 'support'; body: string; createdAt: string };
+type StoredMessage = Message & { trackUnread?: true };
+type UnreadReply = { ticketId: string; messageId: string };
 type Activity = { id: string; subject: string; updatedAt: string; latestMessageRole?: Message['role'] };
 type Attempt = { sequence: number; started: number; failed?: boolean };
 
@@ -26,7 +28,11 @@ export class SupportTicketStore {
   constructor(records: Records) { this.records = records; }
 
   async list(userId: string) {
-    const activity = await this.records.list<Activity>(`accounts/${digest(userId)}/activity`);
+    const owner = digest(userId);
+    const [activity, unread] = await Promise.all([
+      this.records.list<Activity>(`accounts/${owner}/activity`), this.unreadReplies(owner),
+    ]);
+    const unreadTickets = new Set(unread.map(row => row.ticketId));
     const newest = new Map<string, Activity>();
     for (const row of activity) {
       const previous = newest.get(row.id);
@@ -39,8 +45,9 @@ export class SupportTicketStore {
     const ordered = [...newest.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     return Promise.all(ordered.map(async row => ({
       ...row,
+      ...(unreadTickets.has(row.id) ? { unread: true } : {}),
       // Older activity records only contain the timestamp, but their messages already contain the author.
-      latestMessageRole: row.latestMessageRole ?? (await this.get(userId, row.id)).messages.at(-1)?.role ?? null
+      latestMessageRole: row.latestMessageRole ?? (await this.thread(await this.owned(userId, row.id), unread)).messages.at(-1)?.role ?? null
     })));
   }
 
@@ -54,10 +61,54 @@ export class SupportTicketStore {
     return this.thread(await this.owned(userId, id));
   }
 
-  private async thread(ticket: Ticket) {
-    const messages = await this.records.list<Message>(`threads/${ticket.id}`);
+  private async thread(ticket: Ticket, knownUnread?: UnreadReply[]) {
+    const [stored, unread] = await Promise.all([
+      this.records.list<StoredMessage>(`threads/${ticket.id}`), knownUnread ?? this.unreadReplies(ticket.owner),
+    ]);
+    const unseen = new Set(unread.filter(row => row.ticketId === ticket.id).map(row => row.messageId));
+    const messages = stored.map(({ id, role, body, createdAt }) => ({
+      id, role, body, createdAt, ...(unseen.has(id) ? { unread: true } : {}),
+    }));
     messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
     return { id: ticket.id, subject: ticket.subject, updatedAt: messages.at(-1)?.createdAt || '', messages };
+  }
+
+  // Only outstanding replies live in this index. The receipt wins even if an inbound worker
+  // died between recreating an index entry on retry and observing a simultaneous acknowledgement.
+  private async unreadReplies(owner: string) {
+    const rows = await this.records.list<UnreadReply>(`accounts/${owner}/unread`);
+    const active = await Promise.all(rows.map(async row =>
+      await this.records.read(`read/${row.ticketId}/${row.messageId}.json`) ? null : row));
+    return active.filter(row => row !== null);
+  }
+
+  async unreadCount(userId: string) {
+    const unread = await this.unreadReplies(digest(userId));
+    return new Set(unread.map(row => row.ticketId)).size;
+  }
+
+  async markRead(userId: string, ticketId: string, ids: unknown) {
+    const ticket = await this.owned(userId, ticketId);
+    if (!Array.isArray(ids) || !ids.length || ids.length > 100 ||
+        !ids.every(id => typeof id === 'string' && uuid.test(id))) {
+      throw new SupportError(400, 'Supply between one and 100 reply IDs.');
+    }
+    await Promise.all([...new Set<string>(ids)].map(async id => {
+      const messageId = id.toLowerCase();
+      const path = `accounts/${ticket.owner}/unread/${ticket.id}-${messageId}.json`;
+      if (!await this.records.read(path)) return;
+      await this.records.create(`read/${ticket.id}/${messageId}.json`, true);
+      await this.records.remove(path);
+    }));
+    return this.unreadCount(userId);
+  }
+
+  private async registerUnread(ticket: Ticket, messageId: string) {
+    const receipt = `read/${ticket.id}/${messageId}.json`;
+    if (await this.records.read(receipt)) return;
+    const path = `accounts/${ticket.owner}/unread/${ticket.id}-${messageId}.json`;
+    await this.records.create(path, { ticketId: ticket.id, messageId } satisfies UnreadReply);
+    if (await this.records.read(receipt)) await this.records.remove(path);
   }
 
   private async index(ticket: Ticket, message: Message) {
@@ -134,8 +185,9 @@ export class SupportTicketStore {
     const body = rawBody.trim();
     if (!inboundId || inboundId.length > 1024 || !body || body.length > 8000) throw new SupportError(400, 'Invalid reply.');
     const path = `threads/${id}/reply-${digest(inboundId)}.json`;
-    const candidate: Message = { id: randomUUID(), role: 'support', body, createdAt: now() };
-    const message = await this.records.create(path, candidate) ? candidate : (await this.records.read<Message>(path))!;
+    const candidate: StoredMessage = { id: randomUUID(), role: 'support', body, createdAt: now(), trackUnread: true };
+    const message = await this.records.create(path, candidate) ? candidate : (await this.records.read<StoredMessage>(path))!;
+    if (message.trackUnread) await this.registerUnread(ticket, message.id);
     await this.index(ticket, message);
     return true;
   }

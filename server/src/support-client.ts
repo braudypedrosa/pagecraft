@@ -1,11 +1,13 @@
-type Summary = { id: string; subject: string; updatedAt: string; latestMessageRole: 'customer' | 'support' | null };
-type Ticket = Omit<Summary, 'latestMessageRole'> & { messages: { id: string; role: 'customer' | 'support'; body: string; createdAt: string }[] };
+type Summary = { id: string; subject: string; updatedAt: string; latestMessageRole: 'customer' | 'support' | null; unread?: boolean };
+type Ticket = Pick<Summary, 'id' | 'subject' | 'updatedAt'> & { messages: { id: string; role: 'customer' | 'support'; body: string; createdAt: string; unread?: boolean }[] };
 
 /** Serialized into both support surfaces. User-provided strings only reach text nodes. */
 export function supportClient() {
   const root = document.querySelector<HTMLElement>('[data-support]')!;
   const el = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
   const launcher = root.querySelector<HTMLButtonElement>('[data-launch]');
+  const badge = root.querySelector<HTMLElement>('[data-unread-count]');
+  const readChanges = typeof BroadcastChannel === 'function' ? new BroadcastChannel('pagecraft-support-read') : null;
   const panel = el<HTMLElement>('[role=dialog]');
   const title = el<HTMLElement>('[data-title]');
   const status = el<HTMLElement>('[data-status]');
@@ -30,6 +32,9 @@ export function supportClient() {
   let refreshing = false;
   let lastMessage = '';
   let renderedList = '';
+  let badgeRevision = 0;
+  let loadingBadge = false;
+  const acknowledging = new Set<string>();
 
   function announcement(text: string, error = false) {
     status.textContent = text;
@@ -74,6 +79,45 @@ export function supportClient() {
     return response.json();
   }
 
+  function setBadge(count: number) {
+    if (!launcher || !badge || !Number.isInteger(count) || count < 0) return;
+    badgeRevision++;
+    badge.hidden = count === 0;
+    badge.textContent = count > 99 ? '99+' : String(count);
+    launcher.setAttribute('aria-label', count
+      ? 'Support chat, ' + count + ' unread ' + (count === 1 ? 'ticket' : 'tickets')
+      : 'Support chat');
+  }
+
+  async function refreshBadge() {
+    if (!launcher || document.hidden || loadingBadge) return;
+    loadingBadge = true;
+    const start = badgeRevision;
+    try {
+      const { count } = await request('/api/support/unread');
+      if (start === badgeRevision) setBadge(count);
+    } catch { /* Keep the last confirmed count and retry on the next poll. */ }
+    finally { loadingBadge = false; }
+  }
+
+  async function acknowledge(ticket: Ticket) {
+    if (document.hidden || selected !== ticket.id || (launcher && panel.hidden) || acknowledging.has(ticket.id)) return;
+    const ids = ticket.messages.filter(item => item.role === 'support' && item.unread).map(item => item.id);
+    if (!ids.length) return;
+    acknowledging.add(ticket.id);
+    try {
+      for (let i = 0; i < ids.length; i += 100) {
+        const { count } = await request(api + '/' + encodeURIComponent(ticket.id) + '/read', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messageIds: ids.slice(i, i + 100) })
+        });
+        setBadge(count);
+      }
+      readChanges?.postMessage(null);
+    } catch { /* A later visible thread refresh retries any unacknowledged replies. */ }
+    finally { acknowledging.delete(ticket.id); }
+  }
+
   function readableError(error: unknown) {
     return error instanceof TypeError ? 'Connection interrupted. Please try again.' :
       error instanceof Error ? error.message : 'Unable to load this conversation.';
@@ -90,7 +134,7 @@ export function supportClient() {
     title.textContent = ticket.subject;
     const latest = ticket.messages.at(-1)?.id || '';
     const nearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 36;
-    if (latest !== lastMessage) {
+    if (latest !== lastMessage || thread.children.length !== ticket.messages.length) {
       const rows = ticket.messages.map(item => {
         const row = document.createElement('li');
         const meta = document.createElement('div');
@@ -109,6 +153,7 @@ export function supportClient() {
     form.hidden = false;
     if (latest !== lastMessage && (nearBottom || !lastMessage)) thread.scrollTop = thread.scrollHeight;
     lastMessage = latest;
+    void acknowledge(ticket);
   }
 
   async function loadTicket(id: string) {
@@ -127,6 +172,7 @@ export function supportClient() {
   }
 
   function displayList(tickets: Summary[]) {
+    setBadge(tickets.filter(ticket => ticket.unread).length);
     const signature = JSON.stringify(tickets);
     if (signature === renderedList) return;
     renderedList = signature;
@@ -139,6 +185,13 @@ export function supportClient() {
       label.className = 'pc-support-subject';
       const subject = document.createElement('strong');
       subject.textContent = ticket.subject;
+      if (ticket.unread) {
+        const dot = document.createElement('span');
+        dot.className = 'pc-support-unread-dot';
+        dot.setAttribute('role', 'img');
+        dot.setAttribute('aria-label', 'Unread support reply');
+        label.append(dot);
+      }
       label.append(subject);
       if (ticket.latestMessageRole === 'support') {
         const tag = document.createElement('span');
@@ -176,7 +229,8 @@ export function supportClient() {
       const result = await request(api);
       if (start !== revision) return;
       const tickets: Summary[] = result.tickets;
-      if (openLatest) {
+      if (openLatest && !tickets.some(ticket => ticket.unread)) {
+        setBadge(0);
         if (tickets.length) await loadTicket(tickets[0].id);
         else show('new');
         return;
@@ -234,7 +288,9 @@ export function supportClient() {
   });
 
   async function refresh() {
-    if (refreshing || busy || view === 'new' || document.hidden || (launcher && panel.hidden)) return;
+    if (document.hidden) return;
+    if (launcher && (panel.hidden || view !== 'list')) void refreshBadge();
+    if (refreshing || busy || view === 'new' || (launcher && panel.hidden)) return;
     const start = revision;
     refreshing = true;
     try {
@@ -253,6 +309,7 @@ export function supportClient() {
   }
 
   if (launcher) {
+    void refreshBadge();
     const closePanel = () => {
       panel.hidden = true;
       launcher.setAttribute('aria-expanded', 'false');
@@ -263,7 +320,7 @@ export function supportClient() {
       panel.hidden = false;
       launcher.setAttribute('aria-expanded', 'true');
       title.focus();
-      if (!initialized) { initialized = true; void loadList(true); }
+      if (!initialized || (badge && !badge.hidden)) { initialized = true; void loadList(true); }
       else void refresh();
     });
     el('[data-close]').addEventListener('click', closePanel);
@@ -276,5 +333,6 @@ export function supportClient() {
     else void loadList();
   }
   document.addEventListener('visibilitychange', refresh);
+  readChanges?.addEventListener('message', () => void refresh());
   window.setInterval(refresh, 10000);
 }
