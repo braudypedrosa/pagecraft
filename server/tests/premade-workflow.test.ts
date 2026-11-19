@@ -13,7 +13,7 @@ function approved(packageSha256 = sha): Workflow {
   w.directions = ['a', 'b', 'c'].map(id => ({ id, thesis: 'Fixture direction', fingerprint: { header: id, hero: id, textAnchor: id, inventory: id, cta: id, footer: id }, comparison: 'Fixture comparison', sections: [0, 1].map(() => ({ purpose: 'Browse work', archetype: 'HE02', composition: 'Framed stage', typography: 'Headline', imagery: 'Project', action: 'Open project' })) }));
   w.selection = { directionId: 'a', decision };
   w.targets = { cloud: { hostRevision: 'cloud-sha', editorVersion: '1.0' }, wordpress: { hostRevision: 'wp-sha', editorVersion: '1.0' } };
-  w.qa = (['cloud', 'wordpress'] as const).map(host => ({ host, packageSha256, ...w.targets![host], at: decision.at, editChecks: [...EDIT_CHECKS], pages: VIEWPORTS.map(viewport => ({ slug: 'index', viewport, checks: [...VISUAL_CHECKS] })), breakpointChecks: 'Checked both sides of 760 and 1024', evidence: [{ path: 'evidence.txt', sha256: sha }] }));
+  w.qa = (['cloud', 'wordpress'] as const).map(host => ({ host, method: 'interactive' as const, packageSha256, ...w.targets![host], at: decision.at, editChecks: [...EDIT_CHECKS], pages: VIEWPORTS.map(viewport => ({ slug: 'index', viewport, checks: [...VISUAL_CHECKS] })), breakpointChecks: 'Checked both sides of 760 and 1024', evidence: [{ path: 'evidence.txt', sha256: sha }] }));
   w.visualReview = { packageSha256, verdict: 'pass', rationale: 'Test fixture only', evidence: [{ path: 'evidence.txt', sha256: sha }] };
   w.approval = { packageSha256, decision };
   return w;
@@ -23,6 +23,26 @@ test('release gates require both hosts, all viewports and edits, user selection 
   const w = approved(); w.qa[0].pages.pop(); w.qa[1].editChecks.pop(); w.selection = null; w.approval = null;
   const findings = promotionFindings(w, sha, ['index']).join('\n');
   for (const expected of ['cloud:index:1440', 'wordpress: editing exercise', 'direction:', 'approval:']) a.match(findings, new RegExp(expected));
+});
+test('a patch of a released version keeps its direction; Cloud QA and approval still apply', () => {
+  const w = approved(); w.directions = []; w.selection = null;
+  a.match(promotionFindings(w, sha, ['index']).join('\n'), /direction: record three/);
+  w.patchOf = { version: '1.0.0', packageSha256: 'c'.repeat(64), scope: 'Component photo sizes only' };
+  a.deepEqual(promotionFindings(w, sha, ['index']), []);
+  w.approval = null; w.qa = w.qa.filter(q => q.host !== 'cloud');
+  const findings = promotionFindings(w, sha, ['index']).join('\n');
+  a.match(findings, /cloud: current package/); a.match(findings, /approval:/);
+});
+test('WordPress package-check replaces its editing matrix; Cloud never accepts it', () => {
+  const w = approved();
+  const wp = w.qa.find(q => q.host === 'wordpress')!;
+  Object.assign(wp, { method: 'package-check', editChecks: [], pages: [] });
+  a.deepEqual(promotionFindings(w, sha, ['index']), []);
+  wp.packageSha256 = 'b'.repeat(64);
+  a.match(promotionFindings(w, sha, ['index']).join('\n'), /wordpress: current package/);
+  wp.packageSha256 = sha;
+  Object.assign(w.qa.find(q => q.host === 'cloud')!, { method: 'package-check', editChecks: [], pages: [] });
+  a.match(promotionFindings(w, sha, ['index']).join('\n'), /cloud: package-check is accepted for WordPress only/);
 });
 test('package and host changes invalidate evidence; unresolved findings remain actionable', () => {
   const w = approved();

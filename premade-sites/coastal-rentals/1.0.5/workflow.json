@@ -20,9 +20,45 @@
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pending",
+      "editorVersion": "pending"
+    }
+  },
   "findings": [],
-  "qa": [],
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "42cd9bb63a7b15546ade4bf9e8ca15eceebc6d4b16e14a61bfc652e0991d5620",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T19:30:44Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "8b8bb2d3b0c2d189cd255ff5551425856e0e623de9a9dc59afb47b628ffa1bc3"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    }
+  ],
   "visualReview": null,
-  "approval": null
+  "approval": null,
+  "patchOf": {
+    "version": "1.0.4",
+    "packageSha256": "1e4a5ac1dd1d738e600101395c6de678695938acd8d9f75a5b55d0b2f6d61f3c",
+    "scope": "Muted-text contrast, eager hero image, heading order and setup-guidance corrections."
+  }
 }

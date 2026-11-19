@@ -28,9 +28,45 @@
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pending",
+      "editorVersion": "pending"
+    }
+  },
   "findings": [],
-  "qa": [],
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "c8e4abe968f22425da0b49d549f6ddcc56b4ef51f4c8b01e738a3aa565053c1d",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T19:30:44Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "5d6d14df61e2c75918b8aac217cc9df2c75a5f5ded886b2147031ab4a65871c7"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    }
+  ],
   "visualReview": null,
-  "approval": null
+  "approval": null,
+  "patchOf": {
+    "version": "1.0.0",
+    "packageSha256": "3758e6d470cb6caa07a3fde9bcb3f7b99f458c9e329054581e941499fd90d255",
+    "scope": "Tablet heading wrap, portable form guidance, and recorded component photo sizes."
+  }
 }

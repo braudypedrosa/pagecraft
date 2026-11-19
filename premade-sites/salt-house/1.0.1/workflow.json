@@ -36,26 +36,62 @@
       },
       {
         "asset": "cove",
-      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-bde2d468-156e-4ad1-8818-b61f6bb06ae4.png; source PNG SHA-256 fbe8c5efbf90388774109e72bf4ab9c79fd9156e1d4965b24362daca8d71e637",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-bde2d468-156e-4ad1-8818-b61f6bb06ae4.png; source PNG SHA-256 fbe8c5efbf90388774109e72bf4ab9c79fd9156e1d4965b24362daca8d71e637",
         "license": "AI-generated fictional demonstration scene, not a real property."
       },
       {
         "asset": "lunch",
-      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-56632be5-6a68-44e4-9cc1-7458c79801b1.png; source PNG SHA-256 93b5fa2a8c34baa6eeb71a8ffab9d828f996bbdd975d7b868709cc7db163713e",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-56632be5-6a68-44e4-9cc1-7458c79801b1.png; source PNG SHA-256 93b5fa2a8c34baa6eeb71a8ffab9d828f996bbdd975d7b868709cc7db163713e",
         "license": "AI-generated fictional demonstration scene, not a real property."
       },
       {
         "asset": "evening",
-      "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-fdb69029-dba5-457d-94f8-82417032e980.png; source PNG SHA-256 4d836a452773163b0f001566788013cc1bcffe39d0571baef34a25d5aea55437",
+        "source": "../1.0.0/ASSETS.json: OpenAI image generation in task 01a07abf-feba-7391-bf0e-1bd23d7add8e, exec-fdb69029-dba5-457d-94f8-82417032e980.png; source PNG SHA-256 4d836a452773163b0f001566788013cc1bcffe39d0571baef34a25d5aea55437",
         "license": "AI-generated fictional coastal scene."
       }
     ]
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pending",
+      "editorVersion": "pending"
+    }
+  },
   "findings": [],
-  "qa": [],
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "7edced107456cdc93d79f2380e82f236c22b141cb4b804234e68aa5e1bc0f650",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T19:30:44Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "25e0582d4234920bf938b80319d8ca15adabe358c3a875ac18e7745489286d6e"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    }
+  ],
   "visualReview": null,
-  "approval": null
+  "approval": null,
+  "patchOf": {
+    "version": "1.0.0",
+    "packageSha256": "9380ded44cea83b949a2dd3d0cd6f774ce8523b13f9d0adc6174a67f0a82f849",
+    "scope": "Contrast, wrapping and setup-guidance corrections, and recorded component photo sizes."
+  }
 }

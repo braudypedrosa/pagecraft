@@ -232,6 +232,14 @@ async function readiness(directory: string, output: Awaited<ReturnType<typeof ch
   if (parsed.success) {
     const w = parsed.data;
     const refs = [...w.qa.flatMap(q => q.evidence), ...(w.visualReview?.evidence || [])];
+    if (w.patchOf) {
+      const catalog = JSON.parse(await readFile(resolve(templateRoot, 'catalog.json'), 'utf8'));
+      const predecessor = catalog.templates?.find((item: { id?: string; version?: string }) =>
+        item.id === output.config.id && item.version === w.patchOf!.version);
+      if (!predecessor || predecessor.packageSha256 !== w.patchOf.packageSha256) {
+        findings.push(`patch: ${output.config.id}@${w.patchOf.version} is not a released version with that package`);
+      }
+    }
     for (const ref of refs) {
       const evidencePath = resolve(directory, ref.path);
       if (!inside(directory, evidencePath)) { findings.push(`evidence:${ref.path}: outside template directory`); continue; }

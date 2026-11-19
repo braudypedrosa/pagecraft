@@ -96,9 +96,45 @@
   },
   "directions": [],
   "selection": null,
-  "targets": null,
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pending",
+      "editorVersion": "pending"
+    }
+  },
   "findings": [],
-  "qa": [],
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "65a84038801e6bffe43f6a0dd07e155222dcb2c605c454a06d852e0de56b4561",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-19T19:30:44Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "48176a971b7aec90a82631c21f5715da4efd753ddbbc058589c4d00fdecdc817"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    }
+  ],
   "visualReview": null,
-  "approval": null
+  "approval": null,
+  "patchOf": {
+    "version": "1.0.0",
+    "packageSha256": "53afccfbeb4a772ebe2c4e2c7e3aa15f96d07168e69c6f6fbe2812162bccfad3",
+    "scope": "Search form split from stay inquiries, setup guidance, and recorded component photo sizes."
+  }
 }
