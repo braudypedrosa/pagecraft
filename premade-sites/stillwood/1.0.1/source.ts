@@ -1,5 +1,6 @@
 import * as Core from '../../../app/src/core/index.ts';
 import type { Doc, Node } from '../../../app/src/core/types.ts';
+import { recordInstanceImageSizes } from '../../lib/instance-image-sizes.ts';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -40,5 +41,7 @@ export async function buildTemplateDocument(): Promise<Doc> {
   };
   for (const page of document.pages) walk(page.tree, page.slug === 'index');
   if (!searchFound || !contactGuidanceFound) throw new Error('Stillwood search or contact correction target is missing');
+  // Record each component photo's size so instances publish width/height (C1, 20 Nov).
+  if (!recordInstanceImageSizes(document)) throw new Error('No component photo sizes were recorded');
   return document;
 }

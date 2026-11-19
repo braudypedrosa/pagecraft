@@ -1,4 +1,5 @@
 import type { Doc, Node } from '../../../app/src/core/types.ts';
+import { recordInstanceImageSizes } from '../../lib/instance-image-sizes.ts';
 import { buildTemplateDocument as predecessor } from '../1.0.0/source.ts';
 
 /** Preserve Common Ground while improving tablet wrapping and portable form guidance. */
@@ -21,5 +22,7 @@ export function buildTemplateDocument(): Doc {
   };
   for (const page of document.pages) walk(page.tree, page.slug === 'index');
   if (!headingFound || !setupFound) throw new Error('Common Ground usability correction target is missing');
+  // Record each component photo's size so instances publish width/height (C1, 20 Nov).
+  if (!recordInstanceImageSizes(document)) throw new Error('No component photo sizes were recorded');
   return document;
 }
