@@ -72,12 +72,16 @@ TURNSTILE_SITE_KEY=<site-key>
 Optional:
 
 ```text
-PAGECRAFT_TRUST_CLOUDFLARE=1   # only when Cloudflare really fronts the origin
+PAGECRAFT_TRUST_CLOUDFLARE=1   # set in production: Cloudflare fronts build.itspagecraft.com
 PAGECRAFT_COOKIE_SECRET=<random 32+ bytes>   # needed when more than one Node process serves a host
 ```
 
-Without `PAGECRAFT_TRUST_CLOUDFLARE`, `CF-Connecting-IP` is ignored and rate limits key on the
-leftmost `X-Forwarded-For` (LiteSpeed replaces it with the real client), then the socket peer.
+Rate limits key on the rightmost `X-Forwarded-For` entry, the hop the proxy wrote, then the
+socket peer. Never the leftmost: Cloudflare appends to whatever the caller sent, so the left of
+the list is caller-controlled. With `PAGECRAFT_TRUST_CLOUDFLARE=1`, `CF-Connecting-IP` is used
+instead, but only when that rightmost hop is a published Cloudflare edge address, so a caller who
+reaches the origin directly cannot choose it. Behind Cloudflare without the flag, every visitor
+would share their Cloudflare edge's limit, so keep it set in production.
 Without `PAGECRAFT_COOKIE_SECRET`, each process signs the short recovery cookie with its own
 random key, so a reset started on one process and finished on another (or across a restart)
 sends the person to Account settings, where the current password is required.

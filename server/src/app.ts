@@ -206,6 +206,7 @@ import {
   CUSTOM_SELECT_BOOT_SCRIPT,
   CUSTOM_SELECT_CSS,
 } from "../../shared/custom-select.js";
+import { requestSourceFrom } from "./request-source.ts";
 
 export const SESSION_COOKIE = "pc_session";
 
@@ -441,16 +442,15 @@ export function createApp(o: Options) {
   const invitations = o.collaborationInvitations || new MemoryCollaborationInvitationStore(o.store, o.auth, o.libraries);
   const sitePreviews = o.sitePreviews || new MemorySitePreviewStore();
   const optimizeAsset = o.optimizeAsset || optimizeImage;
-  /* The address every per-source limit keys on. Nothing sits in front of the origin unless
-     `trustCloudflare` says so, and without Cloudflare its header is whatever the caller typed.
-     LiteSpeed replaces `X-Forwarded-For` with the real client, so its leftmost entry is next;
-     a direct connection has only its socket peer (LiteSpeed's Unix socket has none). */
+  /* The address every per-source limit keys on. See `request-source.ts` for which hops are
+     believed and why the leftmost `X-Forwarded-For` entry never is. */
   const requestSource = (c: Context) =>
-    (o.trustCloudflare && c.req.header("cf-connecting-ip")) ||
-    (c.req.header("x-forwarded-for") || "").split(",")[0].trim() ||
-    (c.env as { incoming?: IncomingMessage } | undefined)?.incoming?.socket
-      ?.remoteAddress ||
-    "unknown";
+    requestSourceFrom({
+      forwardedFor: c.req.header("x-forwarded-for"),
+      cfConnectingIp: c.req.header("cf-connecting-ip"),
+      socketAddress: (c.env as { incoming?: IncomingMessage } | undefined)?.incoming?.socket
+        ?.remoteAddress,
+    }, o.trustCloudflare);
   /* Invitations can send transactional email and create pending access records. These limits
      are deliberately independent: rotating addresses must not evade the source/account limit,
      while rotating callers must not mail-bomb one recipient. The short recipient cooldown
