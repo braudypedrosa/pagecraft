@@ -4073,13 +4073,22 @@ function lint() {
       if (n.type === 'nav') {
         const labels = new Set([slugify(pg.name), slugify(pg.title), slugify(pg.slug)]);
         if (isFront(pg)) labels.add('home');
+        /* "The cabins" on the page named "Find your cabin" (slug `cabins`) names this page; it
+           is the menu's current item, not a broken journey. A label that shares a meaningful
+           word with the page's name, title or slug counts as naming it. Filler words do not,
+           so "Work" pointing at the top of Home is still reported. */
+        const FILLER = new Set(['the', 'our', 'your', 'a', 'an', 'and', 'of', 'to', 'for', 'in', 'on', 'at', 'with', 'page']);
+        const words = (value: unknown) => slugify(String(value || '')).split('-').filter(word => word && !FILLER.has(word));
+        const pageWords = new Set([pg.name, pg.title, pg.slug].flatMap(words));
+        const namesPage = (label: unknown) => labels.has(slugify(String(label || '')))
+          || words(label).some(word => pageWords.has(word));
         ((n.props.items as NavItem[]) || []).forEach(it => {
           const h = String(it && it.href || '').trim();
           const destination = projectLinkTarget(h, here);
           /* A menu label promises a destination. “Work” pointing to the top of Home is a
              working URL and still a broken journey, so the ordinary dead-link check cannot
              catch it. A genuine Home item is intentionally allowed. */
-          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ''))) {
+          if (destination && destination.target === here && !destination.frag && !namesPage(it && it.label)) {
             add('warn', 'nav-page-top', `“${String(it && it.label || 'A menu item')}” in the ${region} links to the top of “${pg.name}”. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
@@ -4273,8 +4282,29 @@ function lint() {
         let bg = (n.css.d || {})['background-color'] || '';
         const ts = findStyle(n.props.ts);
         if (!bg && ts) bg = (ts.css.d || {})['background-color'] || '';
-        for (let i = chain.length - 1; i >= 0 && !bg; i--) bg = (chain[i].css.d || {})['background-color'] || '';
-        if (!bg) bg = (findColor('bg') || {}).value || '';
+        /* Text over a photograph is measured against whatever the photo and its shade paint,
+           which no colour in the document describes. Salt House's white headings sit on a
+           photo under a 72% dark shade and were reported at 1.11:1 against the page colour.
+           When the nearest thing behind the text is an image layer — a background image, or
+           an absolutely positioned image, video or filled box beside the text's branch — the
+           ratio is unknown, so the check stays quiet rather than guessing. */
+        const layered = (holder: PcNode, branch: PcNode) => {
+          const d = holder.css.d || {};
+          if (d['background-image'] && d['background-image'] !== 'none') return true;
+          return (holder.children || []).some(layer => {
+            if (layer === branch) return false;
+            const ld = layer.css.d || {};
+            if (!/^(absolute|fixed)$/.test(String(ld.position || ''))) return false;
+            return layer.type === 'image' || layer.type === 'video'
+              || !!ld['background-color'] || !!(ld['background-image'] && ld['background-image'] !== 'none');
+          });
+        };
+        let overImage = false;
+        for (let i = chain.length - 1; i >= 0 && !bg; i--) {
+          if (layered(chain[i], i === chain.length - 1 ? n : chain[i + 1])) { overImage = true; break; }
+          bg = (chain[i].css.d || {})['background-color'] || '';
+        }
+        if (!bg && !overImage) bg = (findColor('bg') || {}).value || '';
         const ratio = fg && bg ? contrast(fg, bg) : null;
         if (ratio) {
           const size = parseFloat(effective(n, 'font-size', chain)) || 16;

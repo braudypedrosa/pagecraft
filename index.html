@@ -8012,10 +8012,14 @@ function lint() {
       if (n.type === "nav") {
         const labels = /* @__PURE__ */ new Set([slugify(pg2.name), slugify(pg2.title), slugify(pg2.slug)]);
         if (isFront(pg2)) labels.add("home");
+        const FILLER = /* @__PURE__ */ new Set(["the", "our", "your", "a", "an", "and", "of", "to", "for", "in", "on", "at", "with", "page"]);
+        const words = (value) => slugify(String(value || "")).split("-").filter((word) => word && !FILLER.has(word));
+        const pageWords = new Set([pg2.name, pg2.title, pg2.slug].flatMap(words));
+        const namesPage = (label) => labels.has(slugify(String(label || ""))) || words(label).some((word) => pageWords.has(word));
         (n.props.items || []).forEach((it) => {
           const h = String(it && it.href || "").trim();
           const destination = projectLinkTarget(h, here);
-          if (destination && destination.target === here && !destination.frag && !labels.has(slugify(it && it.label || ""))) {
+          if (destination && destination.target === here && !destination.frag && !namesPage(it && it.label)) {
             add("warn", "nav-page-top", `\u201C${String(it && it.label || "A menu item")}\u201D in the ${region} links to the top of \u201C${pg2.name}\u201D. Choose a section or a page that matches the label.`, w, n.id);
           }
         });
@@ -8181,8 +8185,25 @@ function lint() {
         let bg = (n.css.d || {})["background-color"] || "";
         const ts = findStyle(n.props.ts);
         if (!bg && ts) bg = (ts.css.d || {})["background-color"] || "";
-        for (let i = chain.length - 1; i >= 0 && !bg; i--) bg = (chain[i].css.d || {})["background-color"] || "";
-        if (!bg) bg = (findColor("bg") || {}).value || "";
+        const layered = (holder, branch) => {
+          const d = holder.css.d || {};
+          if (d["background-image"] && d["background-image"] !== "none") return true;
+          return (holder.children || []).some((layer) => {
+            if (layer === branch) return false;
+            const ld = layer.css.d || {};
+            if (!/^(absolute|fixed)$/.test(String(ld.position || ""))) return false;
+            return layer.type === "image" || layer.type === "video" || !!ld["background-color"] || !!(ld["background-image"] && ld["background-image"] !== "none");
+          });
+        };
+        let overImage = false;
+        for (let i = chain.length - 1; i >= 0 && !bg; i--) {
+          if (layered(chain[i], i === chain.length - 1 ? n : chain[i + 1])) {
+            overImage = true;
+            break;
+          }
+          bg = (chain[i].css.d || {})["background-color"] || "";
+        }
+        if (!bg && !overImage) bg = (findColor("bg") || {}).value || "";
         const ratio = fg && bg ? contrast(fg, bg) : null;
         if (ratio) {
           const size = parseFloat(effective(n, "font-size", chain)) || 16;
