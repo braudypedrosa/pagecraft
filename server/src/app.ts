@@ -11,7 +11,8 @@ import { withPreviewReadiness } from "./preview-readiness.ts";
 import { publicationChanges } from "./publication-changes.ts";
 import { componentGalleryPage, galleryBaselineName } from './component-gallery.ts';
 import { prepareHostedEditor } from './editor-assets.ts';
-import { requestTiming, newRequestTiming, timingHeader, timed } from './request-timing.ts';
+import { requestTiming, newRequestTiming, timingHeader, timed, recordTiming } from './request-timing.ts';
+import { publishAssetReader } from './publish-assets.ts';
 import { MemorySitePreviewStore, previewVersion, previewUrl, type SitePreviewStore } from './site-previews.ts';
 import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
 import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
@@ -703,6 +704,8 @@ export function createApp(o: Options) {
     return renderSite(adopted, refs, formEndpoint, options);
   };
   const assetsOf = async (id: string) => o.assets ? o.assets.list(id) : [];
+  const readPublishAssets = publishAssetReader((siteId, assetId) =>
+    o.assets ? o.assets.get(siteId, assetId) : Promise.resolve(null));
   const assetBodiesOf = async (
     id: string,
     onlyIds?: ReadonlySet<string>,
@@ -711,12 +714,7 @@ export function createApp(o: Options) {
     if (!o.assets) return [] as Asset[];
     const selected = (knownMetadata || await o.assets.list(id))
       .filter((meta) => !onlyIds || onlyIds.has(meta.id));
-    const out: Asset[] = [];
-    for (const meta of selected) {
-      const asset = await o.assets.get(id, meta.id);
-      if (asset) out.push(asset);
-    }
-    return out;
+    return timed("publish.assets", () => readPublishAssets(id, selected));
   };
   const releaseAssetIds = (
     doc: Doc,
@@ -4029,7 +4027,9 @@ export function createApp(o: Options) {
       : { ...document, meta: { ...document.meta, baseUrl: publicAddress(c, site) } };
     let rendered: ReturnType<typeof render>;
     try {
+      const renderStart = performance.now();
       rendered = render(addressed, metadata, o.submissions ? new URL('/forms/' + encodeURIComponent(id), o.editorOrigin || c.req.url).href : '', { foundation: true });
+      recordTiming("publish.render", performance.now() - renderStart);
     } catch (error) {
       return c.json({
         error: "publication_compile_failed",
@@ -4056,10 +4056,10 @@ export function createApp(o: Options) {
     }
     try {
       if (releaseStylesheetLinks(rendered.files).length) {
-        rendered.files = await freezeGoogleFontStylesheets(
+        rendered.files = await timed("publish.fonts", () => freezeGoogleFontStylesheets(
           rendered.files,
           o.fontFetch || fetch,
-        );
+        ));
       }
     } catch (error) {
       const dependencyFailure = fontDependencyFailure(error);
