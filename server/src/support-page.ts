@@ -60,6 +60,8 @@ const styles = `<style>
 .pc-support-page .pc-support-thread p{max-width:76ch}
 .pc-support-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
 .pc-support-meta strong{font:var(--pc-type-control)}
+.pc-support-staff-author{display:inline-flex;align-items:center;gap:6px;color:#315f15}
+.pc-support-staff-author span{padding:2px 7px;border-radius:999px;background:var(--pc-selection-bg);font-size:12px;line-height:1.4}
 .pc-support-thread p{margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
 .pc-support-form{padding:16px 18px;display:grid;gap:8px;border-top:1px solid var(--pc-line);min-height:0;overflow:auto}
 .pc-support-form label{font:var(--pc-type-control)}

@@ -140,7 +140,14 @@ export function supportClient() {
         const meta = document.createElement('div');
         meta.className = 'pc-support-meta';
         const who = document.createElement('strong');
-        who.textContent = item.role === 'support' ? 'Pagecraft Support' : 'You';
+        if (item.role === 'support') {
+          who.className = 'pc-support-staff-author';
+          const badge = document.createElement('span');
+          badge.textContent = 'Admin';
+          who.append('Pagecraft Support ', badge);
+        } else {
+          who.textContent = 'You';
+        }
         meta.append(who, timestamp(item.createdAt));
         const body = document.createElement('p');
         body.textContent = item.body;
