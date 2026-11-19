@@ -23,7 +23,9 @@ const styles = `<style>
 .pc-support-launch svg{color:var(--pc-green)}
 .pc-support-panel{position:fixed;right:max(24px,env(safe-area-inset-right));bottom:max(80px,calc(env(safe-area-inset-bottom) + 56px));width:min(380px,calc(100vw - 32px));max-height:min(570px,calc(100dvh - 100px));display:flex;flex-direction:column;z-index:46;overflow:hidden;border:1px solid var(--pc-line-2);border-radius:var(--pc-radius-card,10px);background:var(--pc-panel);box-shadow:0 12px 48px #11131126}
 .pc-support-bar{display:flex;align-items:center;gap:6px;background:var(--pc-ink);color:white;padding:9px 12px 9px 18px}
-.pc-support-bar strong{flex:1;color:inherit;font:var(--pc-type-control)}
+.pc-support-heading{display:grid;gap:2px;flex:1;min-width:0}
+.pc-support-heading strong{color:inherit;font:var(--pc-type-control)}
+.pc-support-heading small{color:#d5d9d5;font:var(--pc-type-description)}
 .pc-support .pc-support-icon{display:inline-grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;background:transparent;border:0;color:inherit;border-radius:var(--pc-control-radius)}
 .pc-support .pc-support-icon:hover{background:#ffffff20}
 .pc-support-content{display:flex;flex-direction:column;min-height:0;min-width:0}
@@ -77,7 +79,7 @@ export function supportView(widget: boolean) {
   </div>`;
   return `${styles}<div class="pc-support pc-support-${widget ? 'widget' : 'page'}" data-support>
     ${widget ? `<button class="pc-btn pc-support-launch" type="button" aria-controls="pc-support-panel" aria-expanded="false" aria-label="Support chat" data-launch>${chat} Support</button>
-    <section class="pc-support-panel" id="pc-support-panel" role="dialog" aria-label="Pagecraft Support" hidden><div class="pc-support-bar"><strong>Pagecraft Support</strong><a class="pc-support-icon" href="/account/support" data-expand title="Open Support page" aria-label="Open Support page">${expand}</a><button class="pc-support-icon" data-close title="Close support chat" aria-label="Close support chat" type="button">${close}</button></div>${content}</section>` : content}
+    <section class="pc-support-panel" id="pc-support-panel" role="dialog" aria-label="Pagecraft Support" hidden><div class="pc-support-bar"><div class="pc-support-heading"><strong>Pagecraft Support</strong><small>Typically replies within 12 hours.</small></div><a class="pc-support-icon" href="/account/support" data-expand title="Open Support page" aria-label="Open Support page">${expand}</a><button class="pc-support-icon" data-close title="Close support chat" aria-label="Close support chat" type="button">${close}</button></div>${content}</section>` : content}
   </div><script>(${supportClient.toString()})();</script>`;
 }
 
