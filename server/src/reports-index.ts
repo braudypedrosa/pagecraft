@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { SupabaseAccountAuth } from './account-auth.ts';
 import { createFounderReportsApp } from './founder-reports.ts';
 import { FileOwnerCostStore } from './owner-billing.ts';
-import { FileFounderCrmStore } from './founder-crm-store.ts';
+import { FileFounderCrmStore, GatewayFounderCrmStore } from './founder-crm-store.ts';
+import { GatewayPlanGrants } from './plan-grants.ts';
 import type { CrmPlatformSnapshot } from './founder-crm-types.ts';
 import { reportsConfigKeys, reportsRuntimeConfig } from './reports-config.ts';
 import { PagecraftGateway, GatewayStore } from './store-gateway.ts';
@@ -35,9 +36,10 @@ const accountAuth = new SupabaseAccountAuth({
   url: config.supabaseUrl, publishableKey: config.publishableKey,
   secureCookies: config.secure, cookieName: 'pc_reports_auth',
 });
-const store = config.gatewayUrl && config.gatewayKey
-  ? new GatewayStore(new PagecraftGateway(config.gatewayUrl, config.gatewayKey, fetch, config.gatewayRegion))
+const dataGateway = config.gatewayUrl && config.gatewayKey
+  ? new PagecraftGateway(config.gatewayUrl, config.gatewayKey, fetch, config.gatewayRegion)
   : undefined;
+const store = dataGateway ? new GatewayStore(dataGateway) : undefined;
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const crmGateway = config.reportsDataGatewayUrl && config.gatewayKey
   ? new PagecraftGateway(config.reportsDataGatewayUrl, config.gatewayKey, fetch, config.gatewayRegion) : undefined;
@@ -65,7 +67,11 @@ const app = createFounderReportsApp({
   dataEnvironment: config.dataEnvironment, challengeSiteKey: config.challengeSiteKey,
   accountAuth,
   crm: {
-    contacts: new FileFounderCrmStore(config.contactsPath),
+    // With a database gateway, contacts live in the database; the old file is imported once.
+    contacts: dataGateway
+      ? new GatewayFounderCrmStore(dataGateway, { importFrom: config.contactsPath })
+      : new FileFounderCrmStore(config.contactsPath),
+    plans: dataGateway ? new GatewayPlanGrants(dataGateway) : undefined,
     platform: crmGateway ? { snapshot: () => crmGateway.call<CrmPlatformSnapshot>('founder.snapshot') } : undefined,
   },
   billing: {

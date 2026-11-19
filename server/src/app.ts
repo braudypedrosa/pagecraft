@@ -1,4 +1,5 @@
 import { LiveReviewStore } from './live-reviews.ts';
+import { billingRoutes } from './billing-routes.ts';
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { HTTPException } from "hono/http-exception";
 import type { ServerErrorLog } from "./system-health.ts";
@@ -314,6 +315,8 @@ const oauthCredential = (
 export interface Options {
   /** Internal, authenticated UI reference; disabled unless the host explicitly opts in. */
   componentGallery?: boolean;
+  /** Paddle checkout and the signed subscription webhook. Absent: every billing route is off. */
+  billing?: import('./billing-routes.ts').BillingRouteOptions;
   store: Store;
   auth: AuthStore;
   /** where the images live. Absent means a site renders with placeholders. */
@@ -813,6 +816,8 @@ export function createApp(o: Options) {
     }
     return pending;
   };
+
+  if (o.billing) billingRoutes(app, o.billing, who);
 
   app.get('/internal/components', async c => {
     if (!o.componentGallery || !o.editorHtml) return c.notFound();

@@ -6,16 +6,20 @@ import { loadFounderCrm } from './founder-crm-data.ts';
 import { founderCrmPage } from './founder-crm-page.ts';
 import { CrmStoreError } from './founder-crm-store.ts';
 import type {
-  CrmContactInput, CrmContactStore, CrmPlatformSource, CrmRange, CrmSection,
+  CrmContactInput, CrmContactStore, CrmPlanManager, CrmPlatformSource, CrmRange, CrmSection,
   FounderCrmData, FounderCrmPageInput, FounderCrmQuery,
 } from './founder-crm-types.ts';
 import { throttle } from './mail.ts';
+import { isPaidPlan } from './plans.ts';
+import { GatewayError } from './store-gateway.ts';
 import { ownerBillingAccess, type OwnerBillingOptions } from './owner-billing.ts';
 
 export interface FounderCrmRouteOptions {
   billing: OwnerBillingOptions;
   platform?: CrmPlatformSource;
   contacts?: CrmContactStore;
+  /** Gives and removes plans through the database gateway. Absent: plan changes are hidden. */
+  plans?: CrmPlanManager;
   identity(c: Context): Promise<VerifiedIdentity | null>;
   origin: string;
   dataEnvironment: FounderCrmPageInput['dataEnvironment'];
@@ -97,19 +101,31 @@ export function founderCrmRoutes(app: Hono, o: FounderCrmRouteOptions) {
     previewLabel: o.previewLabel,
     editContactId: c.req.query('editContact'), editAccountId: c.req.query('editAccount'),
     ...(c.req.query('new') === '1' ? { draftContact: {} } : {}),
-    message: c.req.query('message') === 'contact_saved' ? 'Contact saved.' : undefined,
+    message: ({ contact_saved: 'Contact saved.', plan_granted: 'Plan given.', plan_revoked: 'Plan removed.' } as Record<string, string>)[c.req.query('message') || ''],
     costInput: {
       costsEnabled: !!o.billing.costs, editCostId: c.req.query('edit'),
       message: ['saved', 'removed'].includes(c.req.query('message') || '') ? c.req.query('message') : undefined,
     },
   });
+  /* The open record's account, if it is linked to one. Only accounts in the current snapshot
+     qualify, so the panel never shows for an id typed into the address bar. */
+  const planStatusFor = async (data: FounderCrmData, page: FounderCrmPageInput) => {
+    if (!o.plans || (page.section !== 'customers' && page.section !== 'pipeline')) return undefined;
+    const found = page.editAccountId
+      ? data.customers.find(row => row.accountId === page.editAccountId)
+      : page.editContactId ? data.customers.find(row => row.contactId === page.editContactId || row.id === page.editContactId) : undefined;
+    if (!found?.accountId) return undefined;
+    try { return await o.plans.status(found.accountId); } catch { return null; }
+  };
   const render = async (c: Context, current: VerifiedIdentity, section: CrmSection, extra: Partial<FounderCrmPageInput> = {}, status: 200 | 422 | 409 | 503 = 200, query = founderCrmQuery(c)) => {
     const [data, systemHealth] = await Promise.all([
       load(current, query),
       section === 'health' && o.systemHealth ? o.systemHealth().catch(() => null) : Promise.resolve(null),
     ]);
     if ('status' in data) return c.text('CRM data is unavailable. Try again.', 503);
-    return c.html(founderCrmPage(identityUser(current), data, { ...input(c, section), systemHealth, ...extra }), status);
+    const pageInput = { ...input(c, section), systemHealth, ...extra };
+    const planStatus = await planStatusFor(data, pageInput);
+    return c.html(founderCrmPage(identityUser(current), data, { ...pageInput, ...(planStatus === undefined ? {} : { planStatus }) }), status);
   };
 
   for (const section of sections) app.get('/' + section, async c => {
@@ -191,6 +207,64 @@ export function founderCrmRoutes(app: Hono, o: FounderCrmRouteOptions) {
       const message = known ? error.message : 'Contact storage is unavailable. Your details were not saved.';
       try { return await render(c, granted.identity, section, { draftContact: draft, error: message, currencyCode: currency(field('currency')) }, status, query); }
       catch { return c.text(message, status); }
+    }
+  });
+  app.post('/crm/plans', bodyLimit({ maxSize: 4 * 1024, onError: c => c.text('Request too large.', 413) }), async c => {
+    const granted = await gate(c);
+    if ('response' in granted) return granted.response;
+    let source = c.req.header('origin') || '';
+    if (!source) try { source = new URL(c.req.header('referer') || '').origin; } catch { /* Fail closed. */ }
+    if (source !== o.origin) return c.json({ error: 'origin_not_allowed' }, 403);
+    if (!writes.take(granted.identity.authUserId)) return c.text('Too many changes. Try again in a minute.', 429, { 'retry-after': '60' });
+    if (!o.plans) return c.text('Plan changes are not available here.', 503);
+    if (!c.req.header('content-type')?.startsWith('application/x-www-form-urlencoded')) return c.text('Submit plan changes using the form.', 415);
+    const body = await c.req.parseBody();
+    const field = (key: string) => formField(body, key);
+    const section: CrmSection = field('returnSection') === 'pipeline' ? 'pipeline' : 'customers';
+    const range: CrmRange = field('range') === '90d' || field('range') === '12m' ? field('range') as CrmRange : '30d';
+    const query: FounderCrmQuery = { range, includeTests: field('tests') !== 'exclude' };
+    const accountId = field('accountId');
+    const actor = `founder:${granted.identity.authUserId}`;
+    const fail = async (message: string, status: 409 | 422 | 503) => {
+      try { return await render(c, granted.identity, section, { editAccountId: accountId, error: message, currencyCode: currency(field('currency')) }, status, query); }
+      catch { return c.text(message, status); }
+    };
+    try {
+      // Only an account in the current snapshot can be changed, and only the grant it owns.
+      const current = await load(granted.identity, { range, includeTests: true });
+      if ('status' in current || current.platform.state !== 'available') return await fail('The account data source is unavailable. Nothing was changed.', 503);
+      if (!accountId || !current.platform.snapshot?.accounts.some(row => row.id === accountId)) return await fail('That account is unavailable. Reload the customer list.', 422);
+      let message: 'plan_granted' | 'plan_revoked';
+      if (field('action') === 'grant') {
+        const plan = field('plan');
+        const reason = field('reason').trim();
+        if (!isPaidPlan(plan)) return await fail('Choose Launch, Studio or Pro.', 422);
+        if (!reason || reason.length > 200) return await fail('Enter a reason of up to 200 characters.', 422);
+        const until = field('expiresOn');
+        let expiresAt: string | null = null;
+        if (until) {
+          const end = /^\d{4}-\d{2}-\d{2}$/.test(until) ? Date.parse(`${until}T23:59:59.999Z`) : NaN;
+          if (!Number.isFinite(end) || end <= Date.now()) return await fail('Choose an end date in the future, or leave it empty.', 422);
+          expiresAt = new Date(end).toISOString();
+        }
+        await o.plans.grant({ userId: accountId, plan, reason, grantedBy: actor, expiresAt });
+        message = 'plan_granted';
+      } else if (field('action') === 'revoke') {
+        const grantId = field('grantId');
+        const status = await o.plans.status(accountId);
+        if (!status.grants.some(grant => grant.id === grantId && !grant.revokedAt)) return await fail('That plan was already removed. Reload and try again.', 409);
+        await o.plans.revoke(grantId, actor);
+        message = 'plan_revoked';
+      } else {
+        return await fail('Choose a plan change.', 422);
+      }
+      const params = new URLSearchParams({ range, tests: query.includeTests ? 'include' : 'exclude', editAccount: accountId, message });
+      const code = currency(field('currency'));
+      if (code) params.set('currency', code);
+      return c.redirect('/' + section + '?' + params, 303);
+    } catch (error) {
+      const known = error instanceof GatewayError && error.status !== undefined && error.status < 500;
+      return await fail(known ? error.message : 'The plan service is unavailable. Nothing was changed.', known ? 422 : 503);
     }
   });
 }
