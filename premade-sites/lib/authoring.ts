@@ -1,5 +1,6 @@
 import * as Core from '../../app/src/core/index.ts';
 import type { Bp, Doc, Node } from '../../app/src/core/types.ts';
+import { hiddenFactoryFill } from './filled-buttons.ts';
 
 export const TEMPLATE_SOURCE_FORMAT = 'pagecraft.site-template-source.v1' as const;
 export type CustomCssPolicy = 'native-only' | 'reviewed-exception';
@@ -182,6 +183,9 @@ export function validateTemplateDocument(document: Doc, config: TemplateSourceCo
     if (String(node.adv?.css || '').trim() && config.customCssPolicy === 'native-only') {
       findings.push(`${node.id}:advanced-css-is-not-builder-native`);
     }
+    // A source sets CSS without the editor's authored mark, so an outline/ghost/link button
+    // filled with the factory brand colour publishes with no fill (Salt House 1.0.0).
+    if (hiddenFactoryFill(node)) findings.push(`${node.id}:button-fill-hidden-by-variant`);
   }
   if (String(document.meta?.css || '').trim() && config.customCssPolicy === 'native-only') {
     findings.push('document:custom-css-is-not-builder-native');

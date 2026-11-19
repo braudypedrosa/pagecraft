@@ -12,9 +12,11 @@ import type { Doc, Node } from '../../app/src/core/types.ts';
    render (the compiler bridges any value that differs from the default) and are left alone. */
 export const FACTORY_FILL = 'var(--c-brand)';
 const AUTHORED = '--pc-authored-button-';
+const TRANSPARENT_VARIANTS = new Set(['outline', 'ghost', 'link']);
 
 export function hiddenFactoryFill(node: Node): boolean {
-  if (node.type !== 'button' || String(node.props?.variant || 'solid') === 'solid') return false;
+  // Only these variants draw no fill; any other name (solid, primary) renders as solid.
+  if (node.type !== 'button' || !TRANSPARENT_VARIANTS.has(String(node.props?.variant || ''))) return false;
   const d = node.css?.d || {};
   const fill = String(d['background-color'] ?? d.background ?? '').replace(/\s+/g, '');
   return fill === FACTORY_FILL && d[AUTHORED + 'background-color'] !== '1' && d[AUTHORED + 'background'] !== '1';

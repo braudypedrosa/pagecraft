@@ -1045,7 +1045,12 @@ select.ctl{
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .tg:hover{background:var(--lift-bg);border-color:var(--lift-line)}
-.tg.on{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
+/* A styling target is one choice among several (this element or a class), so it reads as a
+   radio row: a ring that fills on the chosen target, with the selection tint other choices use.
+   It was a solid black bar that looked like a heading (I5). */
+.tg::before{content:"";flex:0 0 auto;width:10px;height:10px;margin-right:8px;border-radius:50%;border:1.5px solid var(--text-3);box-sizing:border-box}
+.tg.on{background:var(--pc-selection-bg);border-color:var(--ink);color:var(--text);font-weight:600}
+.tg.on::before{border:3px solid var(--ink);background:var(--green)}
 .tgrow small{font-family:var(--label);font-size:var(--fs-1);color:var(--text-3);flex:0 0 auto}
 .tgx:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .lay{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-top:var(--gap-1)}
@@ -1063,6 +1068,16 @@ select.ctl{
 .tok.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--green)}
 .tok.add{display:grid;place-items:center;background:var(--field);color:var(--text-3);border-style:dashed}
 .tok.add:hover{color:var(--text);border-color:var(--text-3)}
+/* Colour tokens are named, so two dark greens can be told apart without hovering (I8). */
+.toks.named{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-1) var(--sp-3)}
+.tokname{display:flex;align-items:center;gap:6px;min-width:0;height:24px;padding:0 6px 0 2px;border:1px solid transparent;border-radius:var(--r-sm);background:none;cursor:pointer;text-align:left;font-size:var(--fs-1);color:var(--text-2)}
+.tokname:hover{background:var(--lift-bg);color:var(--text)}
+.tokname .tok{flex:0 0 auto;width:18px;height:18px;pointer-events:none}
+.tokname:hover .tok{transform:none}
+.tokname span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tokname.on{border-color:var(--ink);background:var(--pc-selection-bg);color:var(--text);font-weight:600}
+.tokname.on .tok{box-shadow:none}
+.tokname.add{color:var(--text-3)}
 /* A colour field looks the same whether it holds a literal or a token: same
    chrome as `.clr .hex`, down to the padding and border, so a column of colour
    fields reads as one control in two states. The linked state used to be a solid
@@ -16224,8 +16239,7 @@ var PC_UI = (() => {
     if (!feedback || window.__pcAccountActions) return;
     window.__pcAccountActions = true;
     const native = /* @__PURE__ */ new WeakMap(), active = /* @__PURE__ */ new Set();
-    const label = (form) => {
-      const path = new URL(form.action, location.href).pathname;
+    const label = (path) => {
       if (/delete|remove/.test(path)) return "Deleting\u2026";
       if (/invite/.test(path)) return "Sending invitation\u2026";
       if (/login|^\/auth\/sign-in$/.test(path)) return "Signing in\u2026";
@@ -16238,10 +16252,15 @@ var PC_UI = (() => {
     document.addEventListener("submit", async (event) => {
       const form = event.target;
       if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method.toLowerCase() !== "post") return;
-      const url = new URL(form.action, location.href);
+      const url = new URL(form.getAttribute("action") || location.href, document.baseURI);
       if (url.origin !== location.origin) return;
       const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
-      if (url.pathname === "/auth/google" || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
+      const billingProgress = {
+        "/account/plans/review": "Preparing review\u2026",
+        "/account/plans/confirm": "Applying change\u2026",
+        "/account/plans/checkout": "Opening checkout\u2026"
+      }[url.pathname];
+      if (billingProgress || url.pathname === "/auth/google" || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
         if (native.has(form)) {
           event.preventDefault();
           return;
@@ -16254,7 +16273,7 @@ var PC_UI = (() => {
           choice.value = event.submitter.value;
           form.append(choice);
         }
-        const action2 = feedback.begin(button, url.pathname === "/auth/google" ? "Opening Google sign-in\u2026" : "Processing your choice\u2026");
+        const action2 = feedback.begin(button, billingProgress || (url.pathname === "/auth/google" ? "Opening Google sign-in\u2026" : "Processing your choice\u2026"));
         native.set(form, { restore: () => {
           action2?.cancel();
           choice?.remove();
@@ -16266,7 +16285,7 @@ var PC_UI = (() => {
       if (native.has(form)) return;
       const data = new FormData(form);
       if (event.submitter?.name) data.append(event.submitter.name, event.submitter.value);
-      const action = feedback.begin(button, label(form));
+      const action = feedback.begin(button, label(url.pathname));
       if (!action) return;
       const controls = [...form.querySelectorAll("input,select,textarea,button")].filter((control) => control !== button).map((control) => [control, control.disabled]);
       const restore = () => {
@@ -25315,18 +25334,26 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         ] })
       ] }),
       showInvalid ? /* @__PURE__ */ u2("div", { class: "note", id: errorId, role: "alert", children: "Enter a valid colour." }) : null,
-      /* @__PURE__ */ u2("div", { class: "toks", children: [
+      /* @__PURE__ */ u2("div", { class: "toks named", children: [
         C2.colors().map((t3) => /* @__PURE__ */ u2(
           "button",
           {
-            class: "tok" + (tok && tok.id === t3.id ? " on" : ""),
+            type: "button",
+            class: "tokname" + (tok && tok.id === t3.id ? " on" : ""),
             title: t3.name,
-            style: { background: t3.value },
-            onClick: () => hardColour(C2.cvar(t3.id))
+            "aria-pressed": tok && tok.id === t3.id ? "true" : "false",
+            onClick: () => hardColour(C2.cvar(t3.id)),
+            children: [
+              /* @__PURE__ */ u2("i", { class: "tok", style: { background: t3.value }, "aria-hidden": "true" }),
+              /* @__PURE__ */ u2("span", { children: t3.name })
+            ]
           },
           t3.id
         )),
-        /* @__PURE__ */ u2("button", { class: "tok add", title: "Save this colour as a new token", onClick: addToken, children: /* @__PURE__ */ u2(Icon, { name: "plus", size: 10 }) })
+        /* @__PURE__ */ u2("button", { type: "button", class: "tokname add", title: "Save this colour as a new token", onClick: addToken, children: [
+          /* @__PURE__ */ u2("i", { class: "tok add", "aria-hidden": "true", children: /* @__PURE__ */ u2(Icon, { name: "plus", size: 10 }) }),
+          /* @__PURE__ */ u2("span", { children: "New colour" })
+        ] })
       ] })
     ] });
   }

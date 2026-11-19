@@ -464,13 +464,15 @@ function ColorCtl({ n, c }: P) {
         </>}
     </div>
     {showInvalid ? <div class="note" id={errorId} role="alert">Enter a valid colour.</div> : null}
-    <div class="toks">
+    <div class="toks named">
       {C.colors().map(t => (
-        <button key={t.id} class={'tok' + (tok && tok.id === t.id ? ' on' : '')} title={t.name}
-          style={{ background: t.value }} onClick={() => hardColour(C.cvar(t.id))} />
+        <button key={t.id} type="button" class={'tokname' + (tok && tok.id === t.id ? ' on' : '')} title={t.name}
+          aria-pressed={tok && tok.id === t.id ? 'true' : 'false'} onClick={() => hardColour(C.cvar(t.id))}>
+          <i class="tok" style={{ background: t.value }} aria-hidden="true" /><span>{t.name}</span>
+        </button>
       ))}
-      <button class="tok add" title="Save this colour as a new token" onClick={addToken}>
-        <Icon name="plus" size={10} />
+      <button type="button" class="tokname add" title="Save this colour as a new token" onClick={addToken}>
+        <i class="tok add" aria-hidden="true"><Icon name="plus" size={10} /></i><span>New colour</span>
       </button>
     </div>
   </Field>;
