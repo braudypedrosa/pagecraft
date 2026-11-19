@@ -29,6 +29,7 @@ const harness = vi.hoisted(() => ({
   files: new Map<string, Uint8Array>(),
   deletedAuthUsers: [] as string[],
   deleteUserError: null as null | { message: string },
+  afterUpload: null as null | ((path: string) => Promise<void> | void),
 }));
 
 vi.mock('jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts', () => ({}));
@@ -51,9 +52,15 @@ vi.mock('npm:@supabase/supabase-js@2.112.4', () => ({
     storage: {
       from: () => ({
         upload: async (path: string, bytes: Uint8Array) => {
-          if (harness.files.has(path)) return { data: null, error: { message: 'The resource already exists' } };
-          harness.files.set(path, bytes);
-          return { data: { path }, error: null };
+          harness.statements.push(`storage.upload ${path}`);
+          const existed = harness.files.has(path);
+          if (!existed) harness.files.set(path, bytes);
+          const after = harness.afterUpload;
+          harness.afterUpload = null;
+          await after?.(path);
+          return existed
+            ? { data: null, error: { message: 'The resource already exists' } }
+            : { data: { path }, error: null };
         },
         remove: async (paths: string[]) => {
           for (const path of paths) harness.files.delete(path);
@@ -905,4 +912,106 @@ test('Paddle subscription events apply once, in order, to the account their chec
   for (const bad of [{ plan: 'free' }, { environment: 'prod' }, { status: 'gone' }, { eventId: 'nope' }, { occurredAt: 'later' }]) {
     a.equal((await call('billing.applySubscription', event(bad))).status, 400, JSON.stringify(bad));
   }
+});
+
+test('media uploads write the file before taking the owner lock, so one account\'s uploads do not queue', async () => {
+  await siteWithOwner('unlocked-site', 'owner-unlocked');
+  const libraryId = randomUUID();
+  await operation('library.create', { id: libraryId, ownerId: 'owner-unlocked', name: 'Kit' });
+  const lockedBeforeUpload = () => {
+    const upload = harness.statements.findIndex(text => text.startsWith('storage.upload '));
+    const lock = harness.statements.findIndex(text => /from users where id = \$1 for update/.test(text));
+    a.ok(upload >= 0 && lock >= 0, harness.statements.join('\n'));
+    return lock < upload;
+  };
+
+  const siteBytes = webp(41);
+  harness.statements.length = 0;
+  const site = await call('asset.putBlob', { asset: {
+    id: 'unlocked-photo', siteId: 'unlocked-site', ownerId: 'owner-unlocked', name: 'Photo.webp',
+    type: 'image/webp', w: 8, h: 8, contentHash: hex(siteBytes), blob: await stage(siteBytes),
+  } });
+  a.equal(site.status, 200, JSON.stringify(site.body));
+  a.equal(lockedBeforeUpload(), false, 'site media is written to Storage before the owner lock');
+  a.ok(harness.files.has(String((site.body.data as { storage_path: string }).storage_path)));
+
+  const libraryBytes = webp(42);
+  harness.statements.length = 0;
+  const library = await call('library.asset.putBlob', {
+    libraryId, ownerId: 'owner-unlocked', id: hex(libraryBytes), name: 'kit.webp', type: 'image/webp',
+    w: 8, h: 8, blob: await stage(libraryBytes),
+  });
+  a.equal(library.status, 200, JSON.stringify(library.body));
+  a.equal(lockedBeforeUpload(), false, 'library media is written to Storage before the owner lock');
+  a.ok(harness.files.has(`libraries/${libraryId}/${hex(libraryBytes)}.webp`));
+  a.equal(harness.statements.filter(text => /from users where id = \$1 for update/.test(text)).length, 1,
+    'a successful upload takes the owner lock once');
+});
+
+test('an upload refused by the quota removes the file it wrote early', async () => {
+  await siteWithOwner('refused-site', 'owner-refused');
+  const libraryId = randomUUID();
+  await operation('library.create', { id: libraryId, ownerId: 'owner-refused', name: 'Kit' });
+  const before = new Set(harness.files.keys());
+  const siteBytes = webp(43);
+  const site = await call('asset.putBlob', { asset: {
+    id: 'refused-photo', siteId: 'refused-site', ownerId: 'owner-refused', name: 'Photo.webp',
+    type: 'image/webp', w: 8, h: 8, contentHash: hex(siteBytes), blob: await stage(siteBytes), limitBytes: 1,
+  } });
+  a.equal(site.status, 409);
+  a.equal(site.body.code, 'STORAGE_LIMIT');
+  const libraryBytes = webp(44);
+  const library = await call('library.asset.putBlob', {
+    libraryId, ownerId: 'owner-refused', id: hex(libraryBytes), name: 'kit.webp', type: 'image/webp',
+    w: 8, h: 8, blob: await stage(libraryBytes), limitBytes: 1,
+  });
+  a.equal(library.status, 409);
+  a.deepEqual([...harness.files.keys()].filter(path => !before.has(path)), [],
+    'no file is left behind without a row');
+});
+
+test('a file released by another upload between the two steps is written again under the lock', async () => {
+  await siteWithOwner('vanish-site', 'owner-vanish');
+  const bytes = webp(45);
+  const asset = {
+    id: 'vanish-photo', siteId: 'vanish-site', ownerId: 'owner-vanish', name: 'Photo.webp',
+    type: 'image/webp', w: 8, h: 8, contentHash: hex(bytes), blob: await stage(bytes),
+  };
+  const first = await call('asset.putBlob', { asset });
+  const path = String((first.body.data as { storage_path: string }).storage_path);
+  // The file is there but no row holds it, like a concurrent upload that is about to fail.
+  await db.query(`delete from assets where id = 'vanish-photo'`);
+  a.ok(harness.files.has(path));
+  harness.afterUpload = (uploaded) => { harness.files.delete(uploaded); };
+  const second = await call('asset.putBlob', { asset });
+  a.equal(second.status, 200, JSON.stringify(second.body));
+  a.ok(harness.files.has(path), 'the saved row has its file');
+  a.equal(await count(`select * from assets where storage_path = '${path}'`), 1);
+});
+
+test('a failed upload keeps a file that a concurrent upload\'s row claimed', async () => {
+  await siteWithOwner('claimed-site', 'owner-claimed');
+  const bytes = webp(46);
+  const asset = {
+    id: 'claimed-photo', siteId: 'claimed-site', ownerId: 'owner-claimed', name: 'Photo.webp',
+    type: 'image/webp', w: 8, h: 8, contentHash: hex(bytes), blob: await stage(bytes),
+  };
+  let path = '';
+  // Right after this call writes the file, another upload commits a row that points at it.
+  harness.afterUpload = async (uploaded) => {
+    path = uploaded;
+    await db.query(`insert into assets (id, site_id, name, type, w, h, owner_id, storage_path, stored_bytes)
+      values ('claimed-other', 'claimed-site', 'Other.webp', 'image/webp', 8, 8, 'owner-claimed', $1, $2)`,
+    [`${uploaded}.other`, bytes.byteLength]);
+    await db.query(`update assets set storage_path = $1 where id = 'claimed-other'`, [uploaded]);
+  };
+  harness.failWhen = /insert into assets/;
+  let failed;
+  try {
+    failed = await call('asset.putBlob', { asset });
+  } finally {
+    harness.failWhen = null;
+  }
+  a.equal(failed.status, 500);
+  a.ok(path && harness.files.has(path), 'the other row still has its file');
 });
