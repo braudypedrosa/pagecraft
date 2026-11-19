@@ -848,11 +848,13 @@ export function createApp(o: Options) {
   /* What the dashboard and plan show against the owned-site limit, counted the way creation
      counts it. Until the gateway knows `account.ownedSiteCount`, every owner row (the old,
      stricter count) is shown instead of failing the page. */
-  const ownedSiteCount = async (user: User, mine: { role: Role }[]) => {
-    const every = mine.filter((item) => item.role === "owner").length;
-    if (!o.ownedSites) return every;
-    return o.ownedSites.owned(user.id).catch(() => every);
-  };
+  /* Started alongside a page's other reads (it needs only the user); the site list is only the
+     fallback, so it no longer has to wait for that list. */
+  const startOwnedSiteCount = (user: User): Promise<number | null> =>
+    o.ownedSites ? o.ownedSites.owned(user.id).catch(() => null) : Promise.resolve(null);
+  const ownedSiteCount = async (
+    user: User, mine: { role: Role }[], started: Promise<number | null> = startOwnedSiteCount(user),
+  ) => (await started) ?? mine.filter((item) => item.role === "owner").length;
 
   const storageOwner = async (siteId: string, actor: User, role: Role) => {
     if (role === "owner") return actor.id;
@@ -1788,6 +1790,8 @@ export function createApp(o: Options) {
       const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
+      const ownedCount = startOwnedSiteCount(user);
+      const deletionCheck = startAccountDeletionCheck(user);
       const [mine, wordpress, storage] = await Promise.all([
         visibleSites(user),
         o.auth.manualImportsForOwner(user.id),
@@ -1795,11 +1799,11 @@ export function createApp(o: Options) {
           ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
           : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
       ]);
-      const deletion = await accountDeletionPlan(user, identity, mine);
+      const deletion = await accountDeletionPlan(user, identity, mine, deletionCheck);
       return c.html(accountSettingsPage(user, {
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
-        ownerCount: await ownedSiteCount(user, mine),
+        ownerCount: await ownedSiteCount(user, mine, ownedCount),
         storage,
         deletion: deletion.view,
         wordpress: wordpress.map((credential) => ({
@@ -1937,38 +1941,42 @@ export function createApp(o: Options) {
        sessions, owned libraries, library memberships, invitations and WordPress credentials. */
     const FRESH_SIGN_IN_MS = 15 * 60 * 1000;
     type DeletionSite = { id: string; name: string };
+    const startAccountDeletionCheck = (user: User) =>
+      o.auth.deleteAccount && o.auth.accountDeletionCheck
+        ? o.auth.accountDeletionCheck(user.id).then((state) => ({ state }), () => ({ state: null }))
+        : Promise.resolve(null);
     const accountDeletionPlan = async (
       user: User,
       identity: VerifiedIdentity,
       visible?: Awaited<ReturnType<typeof visibleSites>>,
+      startedCheck: ReturnType<typeof startAccountDeletionCheck> = startAccountDeletionCheck(user),
     ) => {
       const mine = visible || await visibleSites(user);
       const owned: DeletionSite[] = mine.filter((x) => x.role === "owner").map((x) => ({ id: x.site.id, name: x.site.name }));
       const collaborator: DeletionSite[] = mine.filter((x) => x.role !== "owner").map((x) => ({ id: x.site.id, name: x.site.name }));
       const blockers: AccountDeletionView["blockers"] = [];
       let available = !!(o.auth.deleteAccount && o.auth.accountDeletionCheck);
+      // Release checks are reads, so they run beside the deletion check and every owned site at
+      // once; they are only reported when deletion turns out to be available.
+      const releasedSites = available && o.connected
+        ? Promise.all(owned.map(async (site) =>
+          (await o.connected!.releasesForSite(site.id).catch(() => [])).length ? site.name : ""))
+        : Promise.resolve([] as string[]);
       if (available) {
-        try {
-          const state = await o.auth.accountDeletionCheck!(user.id);
-          if (state.status === "plan") blockers.push({ kind: "plan", plan: planEntitlements(user.plan).label });
-          else if (state.status === "shared_sites") blockers.push({ kind: "shared_sites", sites: state.sites.map((site) => site.name) });
-          else if (state.status === "retained_records") blockers.push({ kind: "retained" });
-          else if (state.status === "missing") available = false;
-        } catch {
-          // An older gateway rejects the unknown action: report unavailable, delete nothing.
-          available = false;
-        }
+        const checked = await startedCheck;
+        const state = checked?.state;
+        // An older gateway rejects the unknown action: report unavailable, delete nothing.
+        if (!state) available = false;
+        else if (state.status === "plan") blockers.push({ kind: "plan", plan: planEntitlements(user.plan).label });
+        else if (state.status === "shared_sites") blockers.push({ kind: "shared_sites", sites: state.sites.map((site) => site.name) });
+        else if (state.status === "retained_records") blockers.push({ kind: "retained" });
+        else if (state.status === "missing") available = false;
       }
       if (available && (user.plan || "free") !== "free" && !blockers.some((b) => b.kind === "plan")) {
         blockers.push({ kind: "plan", plan: planEntitlements(user.plan).label });
       }
-      if (available && o.connected) {
-        const released: string[] = [];
-        for (const site of owned) {
-          if ((await o.connected.releasesForSite(site.id).catch(() => [])).length) released.push(site.name);
-        }
-        if (released.length) blockers.push({ kind: "releases", sites: released });
-      }
+      const released = (await releasedSites).filter(Boolean);
+      if (available && released.length) blockers.push({ kind: "releases", sites: released });
       const providers = identity.providers || [];
       const passwordRequired = providers.includes("email");
       const lastSignIn = Date.parse(identity.lastSignInAt || "");
@@ -2179,6 +2187,7 @@ export function createApp(o: Options) {
     if (o.accountAuth) {
       if (!user) return c.redirect("/sign-in");
       /* Independent reads: the site list and the storage meter used to wait for each other. */
+      const ownedCount = startOwnedSiteCount(user);
       const [visible, storage, pendingInvitations] = await Promise.all([
         visibleSites(user),
         o.assets
@@ -2211,7 +2220,7 @@ export function createApp(o: Options) {
           published: liveOnAddress(site) && site.version === site.publishedVersion,
           live: liveOnAddress(site),
         }; })),
-        await ownedSiteCount(user, mine),
+        await ownedSiteCount(user, mine, ownedCount),
         storage,
         templates,
         c.req.query("error"),
