@@ -52,8 +52,7 @@ test('Free account settings keep the Free plan details and finite owned-sites me
     storage: { usedBytes: 25 * MB, limitBytes: 100 * MB },
   }, { tab: 'plan' });
 
-  a.match(html, /<span class="pc-plan-badge">Free<\/span>/);
-  a.match(html, /\$0 <span>current plan<\/span>/);
+  a.match(html, /<h3 class="pc-plan-name">Current Plan: Free<\/h3>/);
   a.match(html, /0 of 1 used/);
   a.match(html, /aria-label="Owned sites used"[^>]*aria-valuemax="1"[^>]*aria-valuenow="0"/);
   a.match(html, /<li>1 owned site, drafts included<\/li>/);
@@ -70,8 +69,7 @@ test('Pro account settings show private complimentary allowances without an unli
     storage: { usedBytes: 1.5 * GB, limitBytes: 5 * GB },
   }, { tab: 'plan' });
 
-  a.match(html, /<span class="pc-plan-badge">Pro<\/span>/);
-  a.match(html, /Complimentary <span>private plan<\/span>/);
+  a.match(html, /<h3 class="pc-plan-name">Current Plan: Pro<\/h3>/);
   a.match(html, /42 used · Unlimited/);
   a.match(html, /Unlimited owned sites/);
   a.match(html, /5 GB optimized media storage/);
@@ -113,7 +111,7 @@ test('Free accounts that already own more than one site keep them and see the li
     storage: { usedBytes: 0, limitBytes: 100 * MB },
   }, { tab: 'plan' });
   a.match(settings, /3 of 1 used/);
-  a.match(settings, /aria-valuemax="1" aria-valuenow="3"><span style="width:100%">/);
+  a.match(settings, /aria-valuemax="1" aria-valuenow="1" aria-valuetext="3 of 1 owned sites used"><span style="width:100%">/);
 });
 
 test('Account settings link to the plans page only when paid plans can be bought', () => {
@@ -129,7 +127,7 @@ test('Paid account settings show the paid plan allowances, not the Free copy', (
   const html = accountSettingsPage(user('launch'), {
     providers: ['email'], ownerCount: 2, storage: { usedBytes: 200 * MB, limitBytes: 1 * GB }, paidPlans: true,
   }, { tab: 'plan' });
-  a.match(html, /Launch <span>current plan<\/span>/);
+  a.match(html, /<h3 class="pc-plan-name">Current Plan: Launch<\/h3>/);
   a.match(html, /<li>Up to 5 owned sites, drafts included<\/li>/);
   a.match(html, /<li>1 GB optimized media storage<\/li>/);
   a.doesNotMatch(html, /\$0 <span>|100 MB optimized/);

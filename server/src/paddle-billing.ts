@@ -201,3 +201,89 @@ export async function createCheckoutTransaction(
   }
   return { transactionId, checkoutUrl: url.toString() };
 }
+
+interface PaddleSubscription {
+  id: string;
+  status: string;
+  updated_at: string;
+  items: { price: { id: string }; quantity: number }[];
+  custom_data: { pagecraft_user_id?: string } | null;
+  scheduled_change: { action: string; effective_at: string } | null;
+  current_billing_period: { ends_at: string } | null;
+}
+
+interface PaddlePreview {
+  update_summary: { result: { action: 'charge' | 'credit'; amount: string; currency_code: string } } | null;
+  next_billed_at: string | null;
+  next_transaction: { billing_period: { starts_at: string }; details: { totals: { grand_total: string; currency_code: string } } } | null;
+}
+
+/** The ID is resolved from the signed-in customer's subscription mirror. */
+async function requestPaddleSubscription<T extends PaddleSubscription | PaddlePreview>(
+  config: PaddleBillingConfig, id: string, method: 'GET' | 'POST' | 'PATCH',
+  suffix: '' | '/cancel' | '/preview', body: object | undefined, fetcher: typeof fetch = fetch,
+): Promise<T> {
+  if (!config.apiKey || !/^sub_[a-z0-9]{10,40}$/.test(id)) throw new Error('Invalid subscription configuration');
+  const response = await fetcher(`${API_ORIGINS[config.environment]}/subscriptions/${id}${suffix}`, {
+    method, headers: { authorization: `Bearer ${config.apiKey}`, 'content-type': 'application/json' },
+    signal: AbortSignal.timeout(30_000), body: body && JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    const code = error?.error?.code;
+    throw new Error(`Paddle subscription request failed (${response.status}${typeof code === 'string' && /^[a-z_]{1,100}$/.test(code) ? ': ' + code : ''})`);
+  }
+  const result = await response.json();
+  if (!result?.data) throw new Error('Paddle subscription response is incomplete');
+  return result.data as T;
+}
+
+export const getPaddleSubscription = (config: PaddleBillingConfig, id: string, fetcher?: typeof fetch) =>
+  requestPaddleSubscription<PaddleSubscription>(config, id, 'GET', '', undefined, fetcher);
+
+export const applyPaddleChange = (config: PaddleBillingConfig, id: string, cancel: boolean, body: object, fetcher?: typeof fetch) =>
+  requestPaddleSubscription<PaddleSubscription>(config, id, cancel ? 'POST' : 'PATCH', cancel ? '/cancel' : '', body, fetcher);
+
+const formatAmount = (minor: string, currency: string) => {
+  if (!/^-?\d+$/.test(minor) || !Number.isSafeInteger(Number(minor)) || !/^[A-Z]{3}$/.test(currency)) {
+    throw new Error('Paddle returned an invalid amount');
+  }
+  const format = new Intl.NumberFormat('en-US', { style: 'currency', currency, currencyDisplay: 'code' });
+  const digits = format.resolvedOptions().maximumFractionDigits ?? 2;
+  return format.format(Math.abs(Number(minor)) / 10 ** digits);
+};
+
+export async function previewPaddleChange(config: PaddleBillingConfig, id: string, change: object, fetcher?: typeof fetch) {
+  const preview = await requestPaddleSubscription<PaddlePreview>(config, id, 'PATCH', '/preview', change, fetcher);
+  const result = preview.update_summary?.result;
+  if (!result || !['credit', 'charge'].includes(result.action)) throw new Error('Paddle returned no proration result');
+  const amount = formatAmount(result.amount, result.currency_code);
+  const next = preview.next_transaction;
+  const total = next?.details.totals;
+  return {
+    immediate: Number(result.amount) === 0 ? 'No charge' : `${amount} ${result.action}`,
+    nextCharge: total ? formatAmount(total.grand_total, total.currency_code) : undefined,
+    effectiveDate: preview.next_billed_at ?? next?.billing_period.starts_at,
+  };
+}
+
+/** Standard unit prices for the comparison. Checkout calculates location prices and tax. */
+export async function fetchCatalogAmounts(config: PaddleBillingConfig, fetcher: typeof fetch = fetch) {
+  const url = new URL('/prices', API_ORIGINS[config.environment]);
+  url.searchParams.set('id', config.prices.map(price => price.priceId).join(','));
+  const response = await fetcher(url, {
+    headers: { authorization: `Bearer ${config.apiKey}` }, signal: AbortSignal.timeout(3000),
+  });
+  if (!response.ok) throw new Error(`Paddle prices unavailable (${response.status})`);
+  const { data } = await response.json();
+  if (!Array.isArray(data)) throw new Error('Paddle price response is incomplete');
+  const amounts = new Map<string, string>();
+  for (const row of data) {
+    const expected = config.prices.find(price => price.priceId === row?.id);
+    if (!expected || row.status !== 'active' || row.billing_cycle?.frequency !== 1 ||
+        row.billing_cycle.interval !== (expected.interval === 'monthly' ? 'month' : 'year') ||
+        row.quantity?.minimum !== 1 || !/^\d+$/.test(row.unit_price?.amount)) continue;
+    amounts.set(expected.priceId, formatAmount(row.unit_price.amount, row.unit_price.currency_code));
+  }
+  return amounts;
+}

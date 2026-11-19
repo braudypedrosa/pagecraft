@@ -96,7 +96,7 @@ Billing is off unless the app has both the database gateway and Paddle settings.
 | Setting | Where | Notes |
 | --- | --- | --- |
 | `PADDLE_ENVIRONMENT` | app env | `sandbox` (default) or `live` |
-| `PADDLE_API_KEY` | app env, secret | creates checkout transactions |
+| `PADDLE_API_KEY` | app env, secret | creates checkout transactions and manages subscriptions. Catalog and subscription operations use `price.read` and `subscription.write` |
 | `PADDLE_WEBHOOK_SECRET` | app env, secret | from the Paddle notification destination |
 | `PADDLE_CLIENT_TOKEN` | app env | public client-side token (`test_…` for sandbox) |
 | `PADDLE_PRICES` | app env | `launch:monthly=pri_…,launch:yearly=pri_…,studio:monthly=pri_…` |
@@ -117,5 +117,10 @@ Billing is off unless the app has both the database gateway and Paddle settings.
   Refusals are stored on `billing_events.error` and reported to the server error log.
 - **`plan.recomputeStale`:** run hourly by each app with background workers on, so expired
   grants and past-due accounts past the 7-day grace drop back to their correct plan.
-- Plan upgrades, downgrades and cancellation in the app are not built yet. Paddle's receipt
-  emails link to its own subscription management.
+- **Plan changes:** Account settings links to the Plans page, which shows configured catalog
+  prices. A paid customer reviews Paddle’s prorated charge or credit and confirms the change
+  to the existing subscription. Paid changes take effect immediately. Signed Paddle events
+  update account allowances. Existing sites and media remain accessible when limits fall.
+- **Renewal:** Moving to Free or turning off auto-renew schedules cancellation at the end of
+  the paid period. The customer can turn auto-renew back on before that date. Separate
+  grants and unrestricted account access keep their existing entitlement rules.

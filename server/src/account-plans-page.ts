@@ -1,12 +1,6 @@
-import { cloudHeader, CLOUD_HEADER_CSS } from './cloud-header.ts';
-import { UI_FONTS_CSS } from '../../shared/ui-fonts.js';
-import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
-import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
-import { planEntitlements, type AccountPlan } from './plans.ts';
-
-/* The plans and checkout pages. They use the same light workbench look as Account settings
-   (dark top bar, light workspace, Pagecraft tokens) but keep their own markup here, so the
-   gated account-pages.ts and its UI baselines stay untouched. */
+import { accountBillingShell } from './account-pages.ts';
+import type { User } from './auth.ts';
+import { PLAN_RANK, planEntitlements, type AccountPlan } from './plans.ts';
 
 const esc = (value: unknown) => String(value ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -14,7 +8,6 @@ const label = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 const size = (bytes: number) => bytes >= 1024 ** 3 ? `${bytes / 1024 ** 3} GB` : `${Math.round(bytes / 1024 ** 2)} MB`;
 const sites = (count: number | null) => count === null ? 'Unlimited sites' : `${count} site${count === 1 ? '' : 's'}`;
 
-const checkIcon = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 8.5 3 3 6-7"/></svg>';
 const backIcon = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4 5.5 8l4 4"/></svg>';
 
 const TAGLINES: Record<string, string> = {
@@ -25,150 +18,212 @@ const TAGLINES: Record<string, string> = {
 };
 
 const CSS = `
-${UI_FONTS_CSS}
-${CLOUD_HEADER_CSS}
-${UI_TOKENS_CSS}
-${UI_FOCUS_CSS}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--pc-surface-subtle);color:#171a17;font-family:Manrope,Inter,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}button,input,select{font:inherit}
-.pc-plans-app{--pc-text:#171a17;--pc-text-2:#6f7771;--pc-line:var(--pc-border);--pc-line-2:var(--pc-border-strong);--pc-green:#b7f34a;--pc-green-hi:#c5fa63;--pc-on-green:#111311;--pc-panel:#fff;min-height:100vh;display:flex;flex-direction:column}
-.pc-plans-content{width:min(100%,1180px);margin:0 auto;padding:clamp(28px,5vw,56px) clamp(16px,5vw,72px) 72px}
-.pc-plans-back{display:inline-flex;align-items:center;gap:6px;margin:0 0 18px;color:var(--pc-text-2);font:500 .78rem/1.4 "DM Sans",system-ui,sans-serif;text-decoration:none}
-.pc-plans-back:hover{color:var(--pc-text)}
-.pc-plans-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:24px;border-bottom:1px solid var(--pc-line)}
-.pc-plans-head h1{margin:0 0 8px;font-size:clamp(1.8rem,3.3vw,2.5rem);line-height:1;letter-spacing:-.04em}
-.pc-plans-head p{margin:0;max-width:60ch;color:var(--pc-text-2);font-size:.9rem;line-height:1.5}
-.pc-plan-badge{display:inline-flex;align-items:center;min-height:28px;padding:0 11px;border-radius:999px;background:var(--pc-green);color:var(--pc-on-green);font:700 .72rem/1 "DM Sans",system-ui,sans-serif}
-.pc-plans-notice{margin:24px 0 0;padding:11px 13px;border:1px solid #b9d791;border-radius:var(--pc-control-radius);background:#edf4e3;color:#263d20;font-size:.84rem;line-height:1.5}
-.pc-plans-notice.error{border-color:#b45b53;background:#fff0ed;color:#6f201b}
-.pc-plans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:28px}
-.pc-plan-card{display:flex;flex-direction:column;margin:0;padding:22px;border:1px solid var(--pc-line);border-radius:var(--pc-radius-card);background:var(--pc-panel)}
-.pc-plan-card.is-current{border-color:var(--pc-text);box-shadow:inset 0 0 0 1px var(--pc-text)}
-.pc-plan-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px}
-.pc-plan-card h2{margin:0;font-size:1.12rem;letter-spacing:-.02em;line-height:1.3}
-.pc-plan-card-tagline{margin:6px 0 0;color:var(--pc-text-2);font-size:.8rem;line-height:1.5}
-.pc-plan-card-limits{display:grid;gap:2px;margin:20px 0 0;padding:16px 0;border-top:1px solid var(--pc-line);border-bottom:1px solid var(--pc-line)}
-.pc-plan-card-limits strong{font-size:1.35rem;letter-spacing:-.03em;line-height:1.2}
-.pc-plan-card-limits span{color:var(--pc-text-2);font:400 .8rem/1.5 "DM Sans",system-ui,sans-serif}
-.pc-plan-card ul{display:grid;gap:10px;margin:16px 0 0;padding:0;list-style:none;font:400 .8rem/1.45 "DM Sans",system-ui,sans-serif}
-.pc-plan-card li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:start}
-.pc-plan-card li svg{margin-top:1px;color:#4f7f16}
-.pc-plan-card-action{display:grid;gap:12px;margin-top:auto;padding-top:22px}
-.pc-interval{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:0;padding:4px;border:1px solid var(--pc-line);border-radius:var(--pc-control-radius);background:var(--pc-surface-muted)}
-.pc-interval legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-.pc-interval label{position:relative;display:grid;place-items:center;min-height:32px;border-radius:6px;color:var(--pc-text-2);font:600 .76rem/1 "DM Sans",system-ui,sans-serif;cursor:pointer}
-.pc-interval input{position:absolute;opacity:0;pointer-events:none}
-.pc-interval label:has(input:checked){background:var(--pc-panel);color:var(--pc-text);box-shadow:0 1px 2px rgba(17,19,17,.08),0 0 0 1px var(--pc-line)}
+.pc-plans-body{display:grid;gap:var(--pc-space-6);max-width:1180px}
+.pc-plans-body h2,.pc-plans-body h3{margin:0;font-size:var(--pc-section-title)}
+.pc-plans-back{display:inline-flex;align-items:center;gap:var(--pc-space-1);margin-bottom:var(--pc-space-2);color:var(--pc-text-2);font:var(--pc-type-label);text-underline-offset:3px}
+.pc-plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:var(--pc-space-4);margin-top:var(--pc-space-4)}
+.pc-plan-card{display:flex;flex-direction:column;min-width:0;padding:var(--pc-space-5);border:1px solid var(--pc-line);border-radius:var(--pc-radius-card);background:var(--pc-panel)}
+.pc-plan-card.is-current{border-color:var(--pc-text)}
+.pc-plan-card-head,.pc-plans-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--pc-action-gap)}
+.pc-plan-card-head{justify-content:space-between;min-height:28px}
+.pc-plan-current{padding:3px 9px;border-radius:var(--pc-radius-pill);background:var(--pc-selection-bg);color:var(--pc-selection-text);font:var(--pc-type-table-label)}
+.pc-plan-card p{margin:var(--pc-space-1) 0 0;font:var(--pc-type-description)}
+.pc-plan-card-limits{display:grid;gap:var(--pc-space-1);margin-top:var(--pc-space-4);padding-top:var(--pc-space-4);border-top:1px solid var(--pc-line)}
+.pc-plan-card-limits strong{font-size:var(--pc-text-section)}
+.pc-plan-card-limits span{font:var(--pc-type-label);color:var(--pc-text-2)}
+.pc-plan-prices{display:grid;gap:var(--pc-space-1);margin:var(--pc-space-3) 0 0}
+.pc-plan-prices div{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:var(--pc-space-2)}
+.pc-plan-prices dt{color:var(--pc-text-2);font:var(--pc-type-label)}
+.pc-plan-prices dd{margin:0;font:var(--pc-type-control);font-variant-numeric:tabular-nums}
+.pc-plan-card-action{display:grid;gap:var(--pc-space-2);margin:auto 0 0;padding-top:var(--pc-space-5)}
+.pc-plan-card-action .pc-btn{width:100%;min-width:0}
+.pc-interval{display:flex;gap:var(--pc-space-1);margin:0;padding:3px;min-width:0;border:1px solid var(--pc-line);border-radius:var(--pc-control-radius);background:var(--pc-surface-muted)}
+.pc-interval label{position:relative;display:grid;place-items:center;flex:1;min-height:var(--pc-control-compact);border-radius:var(--pc-radius-inner);color:var(--pc-text-2);font:var(--pc-type-label);cursor:pointer}
+.pc-interval label:has(input:checked){background:var(--pc-panel);color:var(--pc-text);box-shadow:0 0 0 1px var(--pc-line-2)}
 .pc-interval label:has(input:focus-visible){outline:2px solid var(--pc-text);outline-offset:1px}
-.pc-plan-single{display:grid;place-items:center;min-height:42px;color:var(--pc-text-2);font:500 .76rem/1.4 "DM Sans",system-ui,sans-serif}
-.pc-plans-btn{width:100%;min-height:var(--pc-control-height);display:inline-flex;align-items:center;justify-content:center;padding:var(--pc-control-padding);border:1px solid var(--pc-line-2);border-radius:var(--pc-control-radius);background:var(--pc-panel);color:var(--pc-text);font-size:var(--pc-control-font,.875rem);font-weight:600;text-decoration:none;cursor:pointer}
-.pc-plans-btn.primary{border-color:var(--pc-green);background:var(--pc-green);color:var(--pc-on-green)}
-.pc-plans-btn.primary:hover{background:var(--pc-green-hi);border-color:var(--pc-green-hi)}
-.pc-plans-btn[aria-disabled="true"]{background:var(--pc-surface-muted);color:var(--pc-text-2);cursor:default}
-.pc-plans-subscription{margin-top:28px;padding:22px;border:1px solid var(--pc-line);border-radius:var(--pc-radius-card);background:var(--pc-panel)}
-.pc-plans-subscription h2{margin:0 0 4px;font-size:1.12rem;letter-spacing:-.02em}
-.pc-plans-subscription>p{margin:0;color:var(--pc-text-2);font-size:.8rem;line-height:1.5}
-.pc-plans-subscription dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0 0;padding-top:18px;border-top:1px solid var(--pc-line)}
-.pc-plans-subscription dt{color:var(--pc-text-2);font:500 .72rem/1.4 "DM Sans",system-ui,sans-serif}
-.pc-plans-subscription dd{margin:4px 0 0;font-size:.9rem;font-weight:600}
-.pc-plans-foot{margin:28px 0 0;padding-top:20px;border-top:1px solid var(--pc-line);color:var(--pc-text-2);font:400 .78rem/1.6 "DM Sans",system-ui,sans-serif}
-.pc-plans-foot a{text-underline-offset:3px}
-.pc-checkout{width:min(100%,520px);margin:clamp(40px,10vh,96px) auto 0;padding:28px;border:1px solid var(--pc-line);border-radius:var(--pc-radius-card);background:var(--pc-panel);text-align:center}
-.pc-checkout h1{margin:0 0 8px;font-size:1.4rem;letter-spacing:-.03em}
-.pc-checkout p{margin:0;color:var(--pc-text-2);font-size:.86rem;line-height:1.55}
-.pc-checkout .pc-plans-btn{width:auto;margin-top:20px;padding-inline:16px}
-.pc-checkout-spinner{width:28px;height:28px;margin:0 auto 18px;border:3px solid var(--pc-line);border-top-color:#4f7f16;border-radius:50%;animation:pc-spin 0.9s linear infinite}
-@keyframes pc-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.pc-checkout-spinner{animation:none}}
-@media(max-width:640px){.pc-plans-head{flex-direction:column;align-items:flex-start}.pc-plan-card{padding:18px}}
+.pc-plan-single{font:var(--pc-type-label);color:var(--pc-text-2)}
+.pc-plans-summary{border-bottom:1px solid var(--pc-line);padding-bottom:var(--pc-space-5)}
+.pc-plans-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:var(--pc-space-4);margin:var(--pc-space-3) 0 0}
+.pc-plans-facts dt{color:var(--pc-text-2);font:var(--pc-type-label)}
+.pc-plans-facts dd{margin:var(--pc-space-1) 0 0;font:var(--pc-type-control);overflow-wrap:anywhere}
+.pc-plans-summary .pc-plans-actions{margin-top:var(--pc-space-4)}
+.pc-plans-section-copy,.pc-plans-note{margin:var(--pc-space-2) 0 0;font:var(--pc-type-description)}
+.pc-plans-note a{text-underline-offset:3px}
+.pc-plans-review{max-width:760px}
+.pc-plans-review .pc-plans-actions{margin-top:var(--pc-space-5)}
+.pc-plans-body .notice,.pc-plans-actions form{margin:0}
+@media(max-width:600px){.pc-plan-card{padding:var(--pc-space-4)}.pc-plans-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.pc-plans-facts>div:has(time){grid-column:1/-1}.pc-interval label{min-height:var(--pc-control-height)}}
 `;
 
-const page = (title: string, content: string, scripts = '') => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light"><link rel="icon" type="image/svg+xml" href="/brand/pagecraft-favicon.svg"><title>${esc(title)} — Pagecraft</title>
-<style>${CSS}</style></head><body><main class="pc-plans-app">${cloudHeader('Account', '')}${content}</main>${scripts}</body></html>`;
+const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-export interface PlanOffer { plan: AccountPlan; intervals: ('monthly' | 'yearly')[] }
-export interface PlanSubscriptionView { plan: string; status: string; scheduledChange: string | null; currentPeriodEnd: string | null }
+function billingDate(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? '' : `<time datetime="${esc(value)}">${dateFormat.format(date)}</time>`;
+}
 
+function billingPage(user: User, title: string, description: string, content: string, backToPlans = false, scripts = '') {
+  const back = backToPlans ? ['/account/plans', 'Plans'] : ['/account?tab=plan', 'Plan &amp; billing'];
+  return accountBillingShell(user, title, `<div class="pc-content">
+<header class="pc-workspace-head"><div><a class="pc-plans-back" href="${back[0]}">${backIcon}${back[1]}</a><h1>${esc(title)}</h1><p>${esc(description)}</p></div></header>
+<div class="pc-plans-body">${content}</div></div>`, CSS, scripts);
+}
+
+type Interval = 'monthly' | 'yearly';
+export interface PlanOffer { plan: AccountPlan; intervals: Interval[]; prices?: Partial<Record<Interval, string>> }
+export interface PlanSubscriptionView {
+  plan: string;
+  status: string;
+  scheduledChange: string | null;
+  currentPeriodEnd: string | null;
+  interval?: Interval;
+  manageable?: boolean;
+}
+export interface PlanReview {
+  action: 'change' | 'cancel' | 'renew';
+  plan: string;
+  interval?: Interval;
+  immediate?: string;
+  nextCharge?: string;
+  effectiveDate?: string;
+  token: string;
+}
 export interface PlansPageInput {
+  user: User;
   current: AccountPlan;
   unrestricted?: boolean;
-  /** Paid plans that can be bought now; empty when checkout is off. */
   offers: PlanOffer[];
-  /** False when billing is not configured at all. */
   checkoutReady: boolean;
   subscriptions: PlanSubscriptionView[];
   supportEmail: string;
   notice?: { error?: string; message?: string };
+  review?: PlanReview;
 }
 
-const FEATURES = [
-  'Drafts count toward your sites',
-  'Media storage shared across your sites',
-  'Sites you collaborate on never count',
-];
+function renewalForm(action: 'cancel' | 'renew', text: string) {
+  return `<form method="post" action="/account/plans/review"><input type="hidden" name="action" value="${action}"><button class="pc-btn" type="submit">${text}</button></form>`;
+}
 
-const card = (plan: AccountPlan, current: AccountPlan, action: string) => {
-  const limits = planEntitlements(plan);
-  const isCurrent = plan === current;
-  return `<div class="pc-plan-card-head"><h2>${esc(limits.label)}</h2>${isCurrent ? '<span class="pc-plan-badge">Current plan</span>' : ''}</div>
-<p class="pc-plan-card-tagline">${esc(TAGLINES[plan] ?? '')}</p>
-<div class="pc-plan-card-limits"><strong>${esc(sites(limits.ownedSites))}</strong><span>${esc(size(limits.storageBytes))} of media storage</span></div>
-<ul>${FEATURES.map(item => `<li>${checkIcon}<span>${esc(item)}</span></li>`).join('')}</ul>
-<div class="pc-plan-card-action">${action}</div>`;
-};
+function subscriptionSummary(input: PlansPageInput) {
+  if (!input.subscriptions.length) return '';
+  const rows = input.subscriptions.map(row => {
+    const ends = row.scheduledChange === 'cancel';
+    const renewing = ['active', 'trialing'].includes(row.status) && !row.scheduledChange;
+    const date = billingDate(row.currentPeriodEnd);
+    const action = row.manageable && (ends || renewing)
+      ? renewalForm(ends ? 'renew' : 'cancel', ends ? 'Turn on auto-renew' : 'Turn off auto-renew')
+      : '';
+    return `<dl class="pc-plans-facts"><div><dt>Plan</dt><dd>${esc(label(row.plan))}</dd></div>
+<div><dt>Status</dt><dd>${esc(label(row.status.replaceAll('_', ' ')))}</dd></div>
+${row.interval ? `<div><dt>Billing</dt><dd>${esc(label(row.interval))}</dd></div>` : ''}
+${ends || renewing ? `<div><dt>Auto-renew</dt><dd>${ends ? 'Off' : 'On'}</dd></div>` : ''}
+${date ? `<div><dt>${ends ? 'Ends' : renewing ? 'Renews' : 'Period ends'}</dt><dd>${date}</dd></div>` : ''}</dl>
+${action ? `<div class="pc-plans-actions">${action}</div><p class="pc-plans-note">${ends ? 'You can restart automatic billing before the subscription ends.' : 'Turning off auto-renew cancels the subscription at the end of the paid period.'}</p>` : ''}`;
+  }).join('');
+  const help = input.subscriptions.some(row => !row.manageable)
+    ? `<p class="pc-plans-note">For help with this subscription, <a href="mailto:${esc(input.supportEmail)}">contact support</a>.</p>` : '';
+  return `<section class="pc-plans-summary" aria-labelledby="plans-subscription"><h2 id="plans-subscription">Your subscription</h2>${rows}${help}</section>`;
+}
 
-export function accountPlansPage(input: PlansPageInput) {
-  const { current, offers, subscriptions } = input;
-  const notice = input.notice?.error
-    ? `<p class="pc-plans-notice error" role="alert">${esc(input.notice.error)}</p>`
-    : input.notice?.message ? `<p class="pc-plans-notice" role="status">${esc(input.notice.message)}</p>` : '';
+function intervalFields(intervals: Interval[], plan: string, preferred?: Interval) {
+  if (intervals.length === 1) return `<input type="hidden" name="interval" value="${intervals[0]}"><span class="pc-plan-single">Billed ${intervals[0]}</span>`;
+  const selected = preferred && intervals.includes(preferred) ? preferred : intervals[0];
+  return `<fieldset class="pc-interval"><legend class="sr-only">Billing for ${esc(plan)}</legend>${intervals.map(value =>
+    `<label><input class="sr-only" type="radio" name="interval" value="${value}"${selected === value ? ' checked' : ''}>${label(value)}</label>`).join('')}</fieldset>`;
+}
 
-  const subscription = subscriptions.length ? `<section class="pc-plans-subscription" aria-labelledby="plans-subscription">
-<h2 id="plans-subscription">Your subscription</h2>
-<p>To change or cancel, use the link in your Paddle receipt email, or write to <a href="mailto:${esc(input.supportEmail)}">${esc(input.supportEmail)}</a>.</p>
-${subscriptions.map(row => `<dl><div><dt>Plan</dt><dd>${esc(label(row.plan))}</dd></div><div><dt>Status</dt><dd>${esc(label(row.status.replace('_', ' ')))}${row.scheduledChange === 'cancel' ? ', ends at period end' : ''}</dd></div>${row.currentPeriodEnd ? `<div><dt>${row.scheduledChange === 'cancel' ? 'Ends' : 'Renews'}</dt><dd>${esc(row.currentPeriodEnd.slice(0, 10))}</dd></div>` : ''}</dl>`).join('')}
-</section>` : '';
-
-  if (input.unrestricted) {
-    return page('Plans', `<div class="pc-plans-content"><a class="pc-plans-back" href="/account?tab=plan">${backIcon}Account settings</a>
-<header class="pc-plans-head"><div><h1>Unrestricted</h1><p>Your account has unlimited sites and media storage.</p></div></header>
-${subscription}</div>`);
+function cardAction(plan: AccountPlan, input: PlansPageInput, offer?: PlanOffer) {
+  const sub = input.subscriptions.length === 1 ? input.subscriptions[0] : undefined;
+  if (plan === 'free') {
+    if (sub?.manageable && !sub.scheduledChange && sub.plan === input.current) return renewalForm('cancel', 'Downgrade to Free');
+    return '';
   }
 
-  const freeAction = current === 'free'
-    ? '<span class="pc-plans-btn" aria-disabled="true">Your current plan</span>'
-    : '<span class="pc-plans-btn" aria-disabled="true">Always free</span>';
-  const offerCards = offers.map(offer => {
-    const id = `interval-${offer.plan}`;
-    const interval = offer.intervals.length > 1
-      ? `<fieldset class="pc-interval"><legend>Billing for ${esc(label(offer.plan))}</legend>${offer.intervals.map((value, index) => `<label><input type="radio" name="interval" value="${value}" id="${id}-${value}"${index === 0 ? ' checked' : ''}>${value === 'monthly' ? 'Monthly' : 'Yearly'}</label>`).join('')}</fieldset>`
-      : `<input type="hidden" name="interval" value="${offer.intervals[0]}"><span class="pc-plan-single">Billed ${offer.intervals[0] === 'monthly' ? 'monthly' : 'yearly'}</span>`;
-    return `<form method="post" action="/account/plans/checkout" class="pc-plan-card${offer.plan === current ? ' is-current' : ''}"><input type="hidden" name="plan" value="${esc(offer.plan)}">${card(offer.plan, current, `${interval}<button type="submit" class="pc-plans-btn primary">Choose ${esc(label(offer.plan))}</button>`)}</form>`;
-  }).join('');
-  const currentPaidCard = current !== 'free' && !offers.some(offer => offer.plan === current)
-    ? `<div class="pc-plan-card is-current">${card(current, current, '<span class="pc-plans-btn" aria-disabled="true">Your current plan</span>')}</div>`
-    : '';
-  const grid = `<div class="pc-plans-grid"><div class="pc-plan-card${current === 'free' ? ' is-current' : ''}">${card('free', current, freeAction)}</div>${currentPaidCard}${offerCards}</div>`;
+  if (!offer || !offer.intervals.length || (input.subscriptions.length && (!sub?.manageable || sub.scheduledChange))) return '';
+  const subscribed = sub?.plan === plan;
+  const hasGrant = !sub && input.current !== 'free';
+  if (hasGrant && PLAN_RANK[plan] <= PLAN_RANK[input.current]) return '';
+  const intervals = subscribed ? offer.intervals.filter(value => sub.interval && value !== sub.interval) : offer.intervals;
+  if (!intervals.length) return '';
 
-  const foot = !input.checkoutReady
-    ? `Paid plans are not available yet. Free stays free. Need more room now? Write to <a href="mailto:${esc(input.supportEmail)}">${esc(input.supportEmail)}</a>.`
-    : subscriptions.length
-      ? 'Each account has one subscription. Plan changes go through support for now.'
-      : 'Payments are handled by Paddle, our payment provider. You see the price and any tax in checkout before you pay. Free stays free.';
-
-  const content = `<div class="pc-plans-content"><a class="pc-plans-back" href="/account?tab=plan">${backIcon}Account settings</a>
-<header class="pc-plans-head"><div><h1>Plans</h1><p>Every plan includes the full editor, publishing and collaboration. Paid plans add more sites and media storage.</p></div></header>
-${notice}${subscription}${grid}<p class="pc-plans-foot">${foot}</p></div>`;
-  return page('Plans', content);
+  const downgrade = PLAN_RANK[plan] < PLAN_RANK[planEntitlements(sub?.plan ?? input.current).id];
+  const text = subscribed ? `Switch to ${intervals[0]} billing` : `${downgrade ? 'Downgrade' : 'Upgrade'} to ${label(plan)}`;
+  return `<form class="pc-plan-card-action" method="post" action="/account/plans/${sub ? 'review' : 'checkout'}">
+${sub ? '<input type="hidden" name="action" value="change">' : ''}<input type="hidden" name="plan" value="${esc(plan)}">
+${subscribed ? `<input type="hidden" name="interval" value="${intervals[0]}">` : intervalFields(intervals, label(plan), sub?.interval)}
+<button class="pc-btn${subscribed || downgrade ? '' : ' primary'}" type="submit">${esc(text)}</button></form>`;
 }
 
-export function accountCheckoutPage(settings: { token: string; sandbox: boolean }) {
-  const json = JSON.stringify(settings).replace(/</g, '\\u003c');
-  const content = `<div class="pc-plans-content"><section class="pc-checkout" aria-labelledby="checkout-title"><div class="pc-checkout-spinner" aria-hidden="true"></div><h1 id="checkout-title">Opening secure checkout</h1><p>Paddle, our payment provider, opens checkout on this page. If nothing appears in a few seconds, return to plans and try again.</p><a class="pc-plans-btn" href="/account/plans">Back to plans</a></section></div>`;
+function planCard(plan: AccountPlan, input: PlansPageInput) {
+  const limits = planEntitlements(plan);
+  const current = plan === input.current;
+  const offer = input.offers.find(item => item.plan === plan);
+  const prices = plan === 'free' ? '<div><dt>Price</dt><dd>$0</dd></div>' : offer?.intervals.map(interval =>
+    offer.prices?.[interval] ? `<div><dt>${label(interval)}</dt><dd>${esc(offer.prices[interval])}</dd></div>` : '').join('');
+  const action = cardAction(plan, input, offer);
+  return `<article class="pc-plan-card${current ? ' is-current' : ''}" aria-labelledby="plan-${plan}">
+<div class="pc-plan-card-head"><h3 id="plan-${plan}">${esc(limits.label)}</h3>${current ? '<span class="pc-plan-current">Current plan</span>' : ''}</div>
+<p>${esc(TAGLINES[plan])}</p><div class="pc-plan-card-limits"><strong>${esc(sites(limits.ownedSites))}</strong><span>${esc(size(limits.storageBytes))} of media storage</span></div>
+${prices ? `<dl class="pc-plan-prices">${prices}</dl>` : ''}
+${plan === 'free' && action ? `<div class="pc-plan-card-action">${action}</div>` : action}</article>`;
+}
+
+function reviewChange(input: PlansPageInput, review: PlanReview) {
+  const plan = esc(label(review.plan));
+  const date = billingDate(review.effectiveDate);
+  let title: string, description: string, confirm: string, details: string;
+  if (review.action === 'change') {
+    title = 'Review plan change';
+    description = 'Check the billing adjustment before switching plans.';
+    confirm = 'Confirm plan change';
+    const limits = planEntitlements(review.plan);
+    details = `<h2>${plan}${review.interval ? ` · ${label(review.interval)}` : ''}</h2>
+<p class="pc-plans-section-copy">The subscription changes immediately. This plan includes ${esc(sites(limits.ownedSites).toLowerCase())} and ${esc(size(limits.storageBytes))} of media storage. Existing sites and media stay in your account.</p>
+<dl class="pc-plans-facts">${review.immediate ? `<div><dt>Prorated adjustment</dt><dd>${esc(review.immediate)}</dd></div>` : ''}
+${review.nextCharge ? `<div><dt>Next charge</dt><dd>${esc(review.nextCharge)}</dd></div>` : ''}
+${date ? `<div><dt>Next billing date</dt><dd>${date}</dd></div>` : ''}</dl>`;
+  } else if (review.action === 'cancel') {
+    title = 'Cancel subscription';
+    description = 'Turning off auto-renew cancels your subscription at the end of this billing period.';
+    confirm = 'Confirm cancellation';
+    details = `<h2>Keep ${plan} until ${date || 'the end of this billing period'}</h2>
+<p class="pc-plans-section-copy">${input.unrestricted ? 'Your account keeps unrestricted access.' : 'Your existing sites and media stay in your account.'} You can turn auto-renew back on before the subscription ends.</p>`;
+  } else {
+    title = 'Turn on auto-renew';
+    description = 'Resume automatic billing for your subscription.';
+    confirm = 'Confirm auto-renew';
+    details = `<h2>Keep ${plan}</h2><p class="pc-plans-section-copy">Your subscription will renew ${date ? `on ${date}` : 'at the end of this billing period'}.</p>`;
+  }
+  const content = `<section class="pc-plans-review">${details}<form class="pc-plans-actions" method="post" action="/account/plans/confirm">
+<input type="hidden" name="token" value="${esc(review.token)}"><button type="submit" class="pc-btn${review.action === 'cancel' ? ' danger' : ' primary'}">${confirm}</button>
+<a class="pc-btn" href="/account/plans">Back to plans</a></form></section>`;
+  return billingPage(input.user, title, description, content, true);
+}
+
+export function accountPlansPage(input: PlansPageInput) {
+  if (input.review) return reviewChange(input, input.review);
+  const notice = input.notice?.error ? `<div class="notice error" role="alert">${esc(input.notice.error)}</div>`
+    : input.notice?.message ? `<div class="notice" role="status">${esc(input.notice.message)}</div>` : '';
+  const subscription = subscriptionSummary(input);
+  if (input.unrestricted) return billingPage(input.user, 'Unrestricted', 'Your account has unlimited sites and media storage.', notice + subscription);
+
+  const plans = [...new Set<AccountPlan>(['free', input.current, ...input.offers.map(offer => offer.plan)])].sort((a, b) => PLAN_RANK[a] - PLAN_RANK[b]);
+  const comparison = `<section aria-labelledby="plans-compare"><h2 id="plans-compare">Compare plans</h2>
+<p class="pc-plans-section-copy">Drafts count toward your site limit. Storage is shared across your sites. Sites you collaborate on are excluded.</p>
+<div class="pc-plans-grid">${plans.map(plan => planCard(plan, input)).join('')}</div>
+${input.offers.length ? `<p class="pc-plans-note">${input.subscriptions.length ? 'Review your total, including any tax and prorated adjustment, before confirming a plan change.' : 'Paddle shows your total, including any tax, in checkout.'}</p>` : ''}</section>`;
+  const foot = !input.checkoutReady
+    ? `Paid plans are unavailable right now. <a href="mailto:${esc(input.supportEmail)}">Contact support</a> for help.`
+    : '';
+  return billingPage(input.user, 'Plans', 'Every plan includes the full editor, publishing and collaboration. Paid plans add more sites and media storage.',
+    notice + subscription + comparison + (foot ? `<p class="pc-plans-note">${foot}</p>` : ''));
+}
+
+export function accountCheckoutPage(settings: { token: string; sandbox: boolean; user: User }) {
+  const json = JSON.stringify({ token: settings.token, sandbox: settings.sandbox }).replace(/</g, '\\u003c');
+  const content = '<div class="pc-plans-actions"><a class="pc-btn" href="/account/plans">Back to plans</a></div>';
   const scripts = `<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <script>(()=>{const s=${json};if(!window.Paddle)return;if(s.sandbox)Paddle.Environment.set('sandbox');Paddle.Initialize({token:s.token,eventCallback:e=>{if(e.name==='checkout.completed')location.href='/account/plans?message=checkout_complete';if(e.name==='checkout.closed')location.href='/account/plans?message=checkout_closed';}});})();</script>`;
-  return page('Checkout', content, scripts);
+  return billingPage(settings.user, 'Opening secure checkout', 'Paddle opens checkout on this page. If it does not appear, return to plans and try again.', content, true, scripts);
 }

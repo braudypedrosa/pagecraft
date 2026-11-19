@@ -1339,7 +1339,7 @@ test("account settings shows profile, security, providers, and real free-plan us
   a.match(html, /action="\/account\/password"/);
   a.match(html, /Current password/);
   a.match(html, /Plan &amp; billing/);
-  a.match(html, /<span class="pc-plan-badge">Free<\/span>/);
+  a.match(html, /<h3 class="pc-plan-name">Current Plan: Free<\/h3>/);
   a.match(html, /0 of 1 used/);
   a.match(html, /1 owned site, drafts included/);
   a.match(html, /0 KB of 100 MB/);
