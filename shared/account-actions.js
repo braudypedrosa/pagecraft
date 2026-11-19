@@ -34,8 +34,7 @@ export function installAccountActions() {
   if (!feedback || window.__pcAccountActions) return;
   window.__pcAccountActions = true;
   const native = new WeakMap(), active = new Set();
-  const label = form => {
-    const path = new URL(form.action, location.href).pathname;
+  const label = path => {
     if (/delete|remove/.test(path)) return 'Deleting…';
     if (/invite/.test(path)) return 'Sending invitation…';
     if (/login|^\/auth\/sign-in$/.test(path)) return 'Signing in…';
@@ -48,16 +47,21 @@ export function installAccountActions() {
   document.addEventListener('submit', async event => {
     const form = event.target;
     if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post') return;
-    const url = new URL(form.action, location.href);
+    const url = new URL(form.getAttribute('action') || location.href, document.baseURI);
     if (url.origin !== location.origin) return;
     const button = event.submitter || form.querySelector('button[type="submit"],button:not([type]),input[type="submit"]');
-    // OAuth needs a real cross-origin navigation, not fetch following its redirect.
-    if (url.pathname === '/auth/google' || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
+    // OAuth and billing return a destination page, including reviews rendered by the POST itself.
+    const billingProgress = {
+      '/account/plans/review': 'Preparing review…',
+      '/account/plans/confirm': 'Applying change…',
+      '/account/plans/checkout': 'Opening checkout…',
+    }[url.pathname];
+    if (billingProgress || url.pathname === '/auth/google' || /^\/(v1\/(oauth|wordpress-import)|oauth\/assistants)\/authorize$/.test(url.pathname)) {
       if(native.has(form)){event.preventDefault();return;}
       // A disabled native submitter is omitted from the request. Preserve its choice.
       let choice;
       if(event.submitter?.name){choice=document.createElement('input');choice.type='hidden';choice.name=event.submitter.name;choice.value=event.submitter.value;form.append(choice);}
-      const action=feedback.begin(button, url.pathname==='/auth/google'?'Opening Google sign-in…':'Processing your choice…');
+      const action=feedback.begin(button, billingProgress || (url.pathname==='/auth/google'?'Opening Google sign-in…':'Processing your choice…'));
       native.set(form,{restore:()=>{action?.cancel();choice?.remove();native.delete(form);}});
       return;
     }
@@ -65,7 +69,7 @@ export function installAccountActions() {
     if (native.has(form)) return;
     const data = new FormData(form);
     if(event.submitter?.name) data.append(event.submitter.name,event.submitter.value);
-    const action=feedback.begin(button,label(form));
+    const action=feedback.begin(button,label(url.pathname));
     if(!action)return;
     const controls=[...form.querySelectorAll('input,select,textarea,button')].filter(control=>control!==button).map(control=>[control,control.disabled]);
     const restore=()=>{action.cancel();controls.forEach(([control,disabled])=>control.disabled=disabled);native.delete(form);active.delete(form);form.removeAttribute('aria-busy');};

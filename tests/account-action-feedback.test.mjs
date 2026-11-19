@@ -25,6 +25,17 @@ function setup(body = '<form method="post" action="/account/profile"><input name
 function response(html, url, status = 200) {
   return { ok: status < 400, status, url, text: async () => html };
 }
+test.each(['review', 'confirm', 'checkout'])('billing %s navigates with the original POST and blocks a double submit', step => {
+  const { w, form, button, submit } = setup(`<form action="/account/plans/${step}" method="post"><input type="hidden" name="action" value="change"><button type="submit">Continue</button></form>`);
+  // Browsers expose named form fields as properties, including one named "action".
+  Object.defineProperty(form, 'action', { value: form.elements.namedItem('action') });
+  w.fetch = vi.fn();
+  expect(submit()).toBe(true);
+  expect(button.disabled).toBe(true);
+  expect(new w.FormData(form).get('action')).toBe('change');
+  expect(submit()).toBe(false);
+  expect(w.fetch).not.toHaveBeenCalled();
+});
 test("native POST waits for acknowledgement, prevents repeats, preserves input and restores a retry after failure", async () => {
   const { w, form, button, submit } = setup();
   let reject;
