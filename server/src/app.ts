@@ -479,7 +479,7 @@ export function createApp(o: Options) {
     const trace = newRequestTiming();
     await requestTiming.run(trace, next);
     const editorTiming = isEditorHost(c.req.header('host'), o) &&
-      /^\/(edit|api|sites)(\/|$)/.test(new URL(c.req.url).pathname);
+      /^\/(edit|api|sites|account|notifications)?(\/|$)/.test(new URL(c.req.url).pathname);
     const publicationTiming = trace.spans.some((span) =>
       span.name.startsWith('publication.')
     );
