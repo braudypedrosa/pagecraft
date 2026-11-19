@@ -812,6 +812,7 @@ test('snapshot previews link images through signed, cacheable URLs instead of in
   a.match(page.headers.get('cache-control')!, /private, no-store/, 'pages are never cached');
   const html = await page.text();
   a.doesNotMatch(html, /data:image\/webp/, 'images are not inlined');
+  a.match(html, /<img loading="lazy" src="http:\/\/admin\.test\/api\//, 'photos below the first screen do not compete with it');
   const links = [...html.matchAll(/http:\/\/admin\.test(\/api\/[^"\s)]+assets\/photo\.webp\?pcSig=\d+\.[\w-]+)/g)].map(match => match[1]);
   a.ok(links.length >= 3, 'src, srcset and inline styles all use the signed link');
   a.equal(new Set(links).size, 1, 'one stable URL per image, so the browser cache can reuse it');

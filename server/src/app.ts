@@ -3571,6 +3571,7 @@ export function createApp(o: Options) {
         link: (file, mediaType) => SNAPSHOT_LINKED_MEDIA.test(mediaType)
           ? `${origin}/${prefix}/${file.split("/").map(encodeURIComponent).join("/")}?pcSig=${expires}.${snapshotLinkSignature(id, publication.id, file, expires)}`
           : null,
+        lazyImages: true,
       });
       // The opaque preview reports readiness and requests known-page navigation through its parent.
       // Existing snapshot CSP permits scripts; no nonce exception or sandbox relaxation is needed.
