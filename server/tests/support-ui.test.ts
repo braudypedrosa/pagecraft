@@ -64,7 +64,15 @@ test('widget retries the same request and the full page continues the same threa
     assert.equal(link, 'https://app.example.test/account/support?ticket=ticket-one');
     page = open(false, link);
     await tick();
-    assert.equal(page.window.document.querySelector('[data-thread] li:last-child strong').textContent, 'Pagecraft Support');
+    doc.dispatchEvent(new widget.window.Event('visibilitychange'));
+    await tick();
+    for (const surface of [widget, page]) {
+      const senders = surface.window.document.querySelectorAll('[data-thread] strong');
+      assert.equal(senders[0].textContent, 'You');
+      assert.equal(senders[0].classList.contains('pc-support-staff-author'), false);
+      assert.equal(senders[1].textContent, 'Pagecraft Support Admin');
+      assert.equal(senders[1].classList.contains('pc-support-staff-author'), true);
+    }
     assert.equal(page.window.document.querySelector('[data-thread] li:last-child p').textContent, reply);
 
     for (const surface of [widget, page]) {
