@@ -24,6 +24,21 @@ production keep separate logs because their publication roots are separate.
 Errors that a route catches and turns into its own 4xx/5xx answer are not "unhandled" and
 are not recorded; they continue to go to the application log only.
 
+## Error alert emails
+
+Set `PAGECRAFT_ALERT_EMAIL` to an address and the server emails a short digest when new
+entries appear in the error log (`server/src/error-alerts.ts`). It uses the existing
+`SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`/`MAIL_FROM` settings and is off when either is missing.
+
+- At most one email per hour per environment. Errors during that hour are included in the
+  next email, not dropped. A failed send is retried on the next check.
+- Checks run 30 seconds after start (so a crash that restarted the process is reported),
+  every 5 minutes, and one minute after a new error.
+- The first check after install records the current log position; older entries are not
+  emailed. State is `<publication root>/.system-health/alert-state.json`.
+- The email holds the same sanitized fields as the log: no cookies, bodies, addresses or
+  stack traces. The subject names the host (`EDITOR_HOST`) so staging and production differ.
+
 ## Uptime
 
 `.github/workflows/uptime.yml` runs `tools/uptime-check.mjs` every 10 minutes. It requests
@@ -36,6 +51,11 @@ GitHub runs schedules only from the default branch, which is `production`. The s
 starts only after this workflow is promoted to production; until then it can be run by hand
 with **Run workflow** (`workflow_dispatch`). GitHub may delay scheduled runs and disables
 them after 60 days without repository activity.
+
+In practice GitHub delays and skips this schedule heavily: after promotion on 18 November 2026
+the `*/10` schedule ran once in about 15 hours. Treat the workflow as a backstop and add a
+free external monitor (for example UptimeRobot or Better Stack, 5-minute checks with email
+alerts) on `https://build.itspagecraft.com/__deployment`.
 
 ## Disk space
 

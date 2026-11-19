@@ -10,6 +10,10 @@ permissions:
 
 jobs:
   backup:
+    if: github.ref == 'refs/heads/production'
+    environment:
+      name: production
+      deployment: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

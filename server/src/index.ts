@@ -52,7 +52,8 @@ import { TemplateDraftStore } from './template-draft-store.ts';
 import { TemplateAuthorGrants } from './template-authoring-grants.ts';
 import { stagingProposalGatewayUrl } from "./staging-environment.ts";
 import { recordTiming } from "./request-timing.ts";
-import { FileAccountDeletionLog, FileServerErrorLog, installCrashRecorder } from "./system-health.ts";
+import { FileAccountDeletionLog, FileServerErrorLog, installCrashRecorder, type ServerErrorLog } from "./system-health.ts";
+import { startErrorAlerts } from "./error-alerts.ts";
 import { GatewayBillingLedger, paddleBillingConfig } from "./paddle-billing.ts";
 import { GatewayPlanGrants } from "./plan-grants.ts";
 
@@ -546,6 +547,21 @@ if (noticeMail) {
 const reviews = new FilePublicationReviewStore(publicationRoot);
 const schedules = new FilePublicationScheduleStore(publicationRoot);
 const sendNotice = noticeMail ? smtpNoticeSender(noticeMail) : undefined;
+/* New server errors are emailed to PAGECRAFT_ALERT_EMAIL through the same SMTP settings, at most
+   once an hour (see error-alerts.ts). Off when either is missing. */
+const alertEmail = (process.env.PAGECRAFT_ALERT_EMAIL || "").trim();
+let alertingServerErrors: ServerErrorLog = serverErrors;
+if (alertEmail && noticeMail) {
+  alertingServerErrors = startErrorAlerts(serverErrors, {
+    send: smtpNoticeSender(noticeMail),
+    to: alertEmail,
+    statePath: join(resolve(publicationRoot), ".system-health", "alert-state.json"),
+    environment: EDITOR_HOST,
+  }).log;
+  console.log("alerts   new server errors are emailed (at most hourly)");
+} else if (alertEmail) {
+  console.warn("PAGECRAFT_ALERT_EMAIL is set but SMTP is not configured: error alert emails are off.");
+}
 const editorOrigin = process.env.EDITOR_ORIGIN ||
   (process.env.NODE_ENV === "production" ? `https://${EDITOR_HOST}` : undefined);
 const scheduleRunnerKey = process.env.PAGECRAFT_SCHEDULE_RUNNER_KEY || undefined;
@@ -596,7 +612,7 @@ if (billing && backgroundWorkers) {
 }
 
 const app = createApp({
-  serverErrors,
+  serverErrors: alertingServerErrors,
   billing,
   accountDeletions: new FileAccountDeletionLog(join(resolve(publicationRoot), ".account-deletions")),
   componentGallery: EDITOR_HOST === "staging.itspagecraft.com" || process.env.NODE_ENV !== "production",
