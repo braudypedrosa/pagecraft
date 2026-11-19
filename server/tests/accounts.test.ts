@@ -1814,7 +1814,7 @@ const posted = (body: Record<string, string>, headers: Record<string, string> = 
   body: new URLSearchParams(body),
 });
 
-test("a spoofed CF-Connecting-IP is ignored unless Cloudflare is trusted, and X-Forwarded-For is used", async () => {
+test("rate limits key on the hop the proxy wrote, not on addresses the caller typed", async () => {
   /* The sign-in source limit is 30 per 15 minutes. Each attempt uses a new address, so only
      the source limit can refuse one. */
   const attempts = async (
@@ -1833,22 +1833,35 @@ test("a spoofed CF-Connecting-IP is ignored unless Cloudflare is trusted, and X-
     }
     return locations;
   };
+  const limited = [...Array(30).fill("/"), "/sign-in?error=auth&next=%2F"];
+
   const untrusted = rig();
   const spoofed = await attempts(untrusted.request, (i) => ({
     "x-forwarded-for": "203.0.113.7",
     "cf-connecting-ip": `198.51.100.${i}`,
   }));
-  a.deepEqual(spoofed.slice(0, 30), Array(30).fill("/"));
-  a.equal(spoofed[30], "/sign-in?error=auth&next=%2F", "a new CF-Connecting-IP does not reset the limit");
-  const elsewhere = await attempts(untrusted.request, () => ({ "x-forwarded-for": "203.0.113.8, 10.0.0.1" }), 1);
-  a.deepEqual(elsewhere, ["/"], "the leftmost X-Forwarded-For is the source");
+  a.deepEqual(spoofed, limited, "a new CF-Connecting-IP does not reset the limit");
+
+  /* Cloudflare and LiteSpeed append after whatever the caller sent, so the caller owns the
+     left of the list and the proxy owns the right. */
+  const rotated = await attempts(untrusted.request, (i) => ({
+    "x-forwarded-for": `198.51.100.${i}, 203.0.113.8`,
+  }));
+  a.deepEqual(rotated, limited, "a new leftmost X-Forwarded-For does not reset the limit");
 
   const trusted = rig({ trustCloudflare: true });
   const viaCloudflare = await attempts(trusted.request, (i) => ({
-    "x-forwarded-for": "203.0.113.7",
+    "x-forwarded-for": `192.0.2.50, 162.158.1.${i % 2 + 1}`,
     "cf-connecting-ip": `198.51.100.${i}`,
   }));
-  a.deepEqual(viaCloudflare, Array(31).fill("/"), "behind Cloudflare its header is the client");
+  a.deepEqual(viaCloudflare, Array(31).fill("/"), "from a Cloudflare edge its header is the client");
+
+  /* The origin address is public: a caller who skips Cloudflare can send any CF-Connecting-IP. */
+  const aroundCloudflare = await attempts(trusted.request, (i) => ({
+    "x-forwarded-for": "203.0.113.9",
+    "cf-connecting-ip": `198.51.100.${i}`,
+  }));
+  a.deepEqual(aroundCloudflare, limited, "CF-Connecting-IP from a non-Cloudflare peer is ignored");
 
   /* No proxy header at all: the socket peer. */
   const direct = rig();

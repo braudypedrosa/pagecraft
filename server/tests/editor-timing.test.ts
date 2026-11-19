@@ -55,3 +55,20 @@ test('denied editor requests report only completed gate/document work and never 
   assert.doesNotMatch(revoked.headers.get('server-timing') || '', /editor\.(shell|storage|wordpress|schedules)/);
   assert.doesNotMatch(await revoked.text(), /window.PC_SERVER=/);
 });
+
+test('the dashboard and account pages report server timing; other paths and published hosts do not', async () => {
+  const f = await fixture();
+  const app = createApp({ auth: f.auth, store: new MemoryStore(), editorHtml: '<html></html>', editorHost: 'admin.test' });
+  const request = (path: string, host = 'admin.test') => app.request(`http://${host}${path}`, {
+    headers: { host, cookie: `pc_session=${f.token}` },
+  });
+  for (const path of ['/', '/account', '/notifications']) {
+    const header = (await request(path)).headers.get('server-timing') || '';
+    assert.match(header, /server;dur=[\d.]+/, path);
+    for (const secret of [f.user.id, f.user.email, f.token]) assert.equal(header.includes(secret), false, `${path} ${secret}`);
+  }
+  for (const path of ['/qa-site/', '/accounting', '/sign-in']) {
+    assert.equal((await request(path)).headers.get('server-timing'), null, path);
+  }
+  assert.equal((await request('/', 'published.test')).headers.get('server-timing'), null, 'published hosts stay quiet');
+});

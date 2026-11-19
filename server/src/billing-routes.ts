@@ -1,6 +1,6 @@
 import type { Context, Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
-import { accountEntryPage } from './account-pages.ts';
+import { accountCheckoutPage, accountPlansPage } from './account-plans-page.ts';
 import type { User } from './auth.ts';
 import { throttle } from './mail.ts';
 import {
@@ -8,7 +8,7 @@ import {
   PaddleCheckoutError, type BillingInterval, type BillingLedger, type PaddleBillingConfig,
 } from './paddle-billing.ts';
 import type { AccountPlanStatus } from './plan-grants.ts';
-import { planEntitlements, type PaidPlan } from './plans.ts';
+import type { PaidPlan } from './plans.ts';
 import { GatewayError } from './store-gateway.ts';
 
 export interface BillingRouteOptions {
@@ -21,10 +21,6 @@ export interface BillingRouteOptions {
   report?: (message: string) => void;
 }
 
-const esc = (value: unknown) => String(value ?? '')
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-const label = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
-const gb = (bytes: number) => bytes >= 1024 ** 3 ? `${bytes / 1024 ** 3} GB` : `${Math.round(bytes / 1024 ** 2)} MB`;
 const LIVE_STATUSES = new Set(['active', 'trialing', 'past_due', 'paused']);
 const MESSAGES: Record<string, string> = {
   checkout_complete: 'Thanks. Your plan updates as soon as Paddle confirms the payment, usually within a minute.',
@@ -65,20 +61,15 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
 
   const plansPage = (user: User, status: AccountPlanStatus | null, notice?: { error?: string; message?: string }) => {
     const live = status?.subscriptions.filter(row => row.environment === o.config.environment && LIVE_STATUSES.has(row.status)) ?? [];
-    const current = status ? planEntitlements(status.plan) : planEntitlements(user.plan);
-    const feedback = notice?.error
-      ? `<p class="notice error" role="alert">${esc(notice.error)}</p>`
-      : notice?.message ? `<p class="notice" role="status">${esc(notice.message)}</p>` : '';
-    const subscriptions = live.map(row => `<li><strong>${esc(label(row.plan))}</strong> · ${esc(label(row.status.replace('_', ' ')))}${row.scheduledChange === 'cancel' ? ' · ends at the end of this period' : ''}${row.currentPeriodEnd ? ` · renews or ends ${esc(row.currentPeriodEnd.slice(0, 10))}` : ''}</li>`).join('');
     const ready = checkoutReady(o.config);
-    const choices = ready && !live.length ? offers().map(offer => {
-      const limits = planEntitlements(offer.plan);
-      return `<form method="post" action="/account/plans/checkout" class="plan-offer"><h2>${esc(label(offer.plan))}</h2><p>${limits.ownedSites === null ? 'Unlimited' : limits.ownedSites} sites · ${gb(limits.storageBytes)} of media</p><input type="hidden" name="plan" value="${esc(offer.plan)}">${offer.intervals.length > 1
-        ? `<label>Billing<select name="interval">${offer.intervals.map(price => `<option value="${price.interval}">${price.interval === 'monthly' ? 'Monthly' : 'Yearly'}</option>`).join('')}</select></label>`
-        : `<input type="hidden" name="interval" value="${offer.intervals[0].interval}">`}<button type="submit" class="button primary">Choose ${esc(label(offer.plan))}</button></form>`;
-    }).join('') : '';
-    const body = `<h1>Your plan</h1>${feedback}<p><strong>${esc(current.label)}</strong>: ${current.ownedSites === null ? 'unlimited' : current.ownedSites} site${current.ownedSites === 1 ? '' : 's'}, ${gb(current.storageBytes)} of media.</p>${subscriptions ? `<ul>${subscriptions}</ul><p>To change or cancel, use the link in your Paddle receipt email, or write to hello@braudyp.dev.</p>` : ''}${choices || (!ready ? '<p>Paid plans are not available yet. Free stays free.</p>' : '')}<p><a href="/account?tab=plan">Back to account</a></p>`;
-    return accountEntryPage('Plans', body);
+    return accountPlansPage({
+      current: status?.plan ?? user.plan ?? 'free',
+      offers: ready && !live.length ? offers().map(offer => ({ plan: offer.plan, intervals: offer.intervals.map(price => price.interval) })) : [],
+      checkoutReady: ready,
+      subscriptions: live,
+      supportEmail: 'hello@braudyp.dev',
+      notice,
+    });
   };
 
   app.get('/account/plans', async c => {
@@ -121,11 +112,7 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
     if (!user) return c.redirect('/sign-in?next=%2Faccount%2Fplans');
     const transaction = c.req.query('_ptxn') || '';
     if (!checkoutReady(o.config) || !/^txn_[a-z0-9]{10,40}$/.test(transaction)) return c.redirect('/account/plans');
-    const settings = JSON.stringify({ token: o.config.clientToken, sandbox: o.config.environment === 'sandbox' }).replace(/</g, '\\u003c');
-    const body = `<h1>Checkout</h1><p>Paddle, our payment provider, opens a secure checkout here. If nothing appears, <a href="/account/plans">return to plans</a>.</p>
-<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script>(()=>{const s=${settings};if(!window.Paddle)return;if(s.sandbox)Paddle.Environment.set('sandbox');Paddle.Initialize({token:s.token,eventCallback:e=>{if(e.name==='checkout.completed')location.href='/account/plans?message=checkout_complete';if(e.name==='checkout.closed')location.href='/account/plans?message=checkout_closed';}});})();</script>`;
     c.header('cache-control', 'private, no-store');
-    return c.html(accountEntryPage('Checkout', body));
+    return c.html(accountCheckoutPage({ token: o.config.clientToken!, sandbox: o.config.environment === 'sandbox' }));
   });
 }

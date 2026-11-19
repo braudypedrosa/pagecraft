@@ -327,3 +327,27 @@ test('Postgres deletes the profile with its cascades only after owned sites are 
     a.deepEqual(await auth.deleteAccount(user.id), { status: 'missing' });
   } finally { await db.close(); }
 });
+
+test('release checks run for every owned site at once, and never show when deletion is unavailable', async () => {
+  let active = 0, peak = 0;
+  const releasedIds = new Set<string>();
+  const connected = { releasesForSite: async (id: string) => {
+    active++; peak = Math.max(peak, active);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    active--;
+    return releasedIds.has(id) ? [{ id: 'release-1' }] : [];
+  } };
+  const r = await rig({ connected });
+  releasedIds.add((await r.make('Released One', r.user.id)).id);
+  releasedIds.add((await r.make('Released Two', r.user.id)).id);
+  const page = await html(await r.request('/account?tab=security'));
+  a.match(page, /<li>Released One<\/li>/);
+  a.match(page, /<li>Released Two<\/li>/);
+  a.equal(peak, 2, 'the owned sites are checked together, not one after another');
+
+  const old = await rig({ connected, auth: new OldGatewayAuth() });
+  releasedIds.add((await old.make('Released Elsewhere', old.user.id)).id);
+  const unavailable = await html(await old.request('/account?tab=security'));
+  a.match(unavailable, /Self-serve deletion is not available yet/);
+  a.doesNotMatch(unavailable, /signed WordPress releases/);
+});
