@@ -6,7 +6,7 @@ import { dispatchPlan, isPlanOp } from "./plan-grants.ts";
 import { dispatchBilling, isBillingOp } from "./billing.ts";
 import { dispatchCrm, isCrmOp } from "./crm-contacts.ts";
 import { exchangeManualImportRefresh } from "./manual-import-refresh.ts";
-import { planEntitlements } from "./plan-entitlements.ts";
+import { accountEntitlements } from "./plan-entitlements.ts";
 import {
   assembleStoredGatewayBlob,
   GATEWAY_ASSET_BLOB_MAX_BYTES,
@@ -422,7 +422,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
           select id, plan from users where id = ${ownerId} for update
         `;
         if (!owner[0]) return { status: "missing" };
-        const ownedSites = planEntitlements(text(owner[0].plan)).ownedSites;
+        const ownedSites = accountEntitlements(text(owner[0].id), text(owner[0].plan)).ownedSites;
         const owned = await transaction<{ count: number }[]>`
           select count(*)::integer as count from site_users membership
           where membership.user_id = ${ownerId} and membership.role = 'owner'
@@ -2454,7 +2454,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               },
             );
           }
-          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const planStorageBytes = accountEntitlements(text(owner.id), text(owner.plan)).storageBytes;
           const limitBytes = requestedLimitBytes === null
             ? planStorageBytes
             : Math.min(requestedLimitBytes, planStorageBytes);
@@ -2863,7 +2863,7 @@ async function dispatch(op: string, args: Record<string, unknown>) {
               code: "LIBRARY_NOT_FOUND",
             });
           }
-          const planStorageBytes = planEntitlements(text(owner.plan)).storageBytes;
+          const planStorageBytes = accountEntitlements(text(owner.id), text(owner.plan)).storageBytes;
           const limitBytes = requestedLimitBytes === null
             ? planStorageBytes
             : Math.min(requestedLimitBytes, planStorageBytes);

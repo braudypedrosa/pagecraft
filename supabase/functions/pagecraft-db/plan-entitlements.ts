@@ -73,6 +73,20 @@ export function planEntitlements(plan?: string | null): PlanEntitlements {
   return plan && Object.hasOwn(CATALOG, plan) ? CATALOG[plan as AccountPlan] : FREE_PLAN;
 }
 
+// Internal Pagecraft user ID. Auth identities, email aliases and paid-plan records can change.
+export function isPlanExemptAccount(accountId?: string | null): boolean {
+  return accountId === "328a15d0-0837-4881-8b47-38d316c03f95";
+}
+
+const unrestricted = Object.freeze({
+  id: "unrestricted", label: "Unrestricted", ownedSites: null,
+  storageBytes: Number.MAX_SAFE_INTEGER, public: false,
+});
+
+export function accountEntitlements(accountId: string | null | undefined, plan?: string | null) {
+  return isPlanExemptAccount(accountId) ? unrestricted : planEntitlements(plan);
+}
+
 /** Days a past-due subscription keeps its plan while Paddle retries the payment. */
 export const PAST_DUE_GRACE_DAYS = 7;
 

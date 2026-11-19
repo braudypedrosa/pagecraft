@@ -3,7 +3,7 @@ import type { AccountPlan, AuthStore } from './auth.ts';
 import { slugFrom, validSlug, type Site, type Store } from './store.ts';
 import type { Queryable } from './store-pg.ts';
 import type { PagecraftGateway } from './store-gateway.ts';
-import { FREE_PLAN, planEntitlements } from './plans.ts';
+import { FREE_PLAN, accountEntitlements } from './plans.ts';
 
 export const OWNED_SITE_LIMIT = FREE_PLAN.ownedSites;
 export type CreateOwnedResult =
@@ -42,7 +42,7 @@ export class MemoryOwnedSiteStore implements OwnedSiteStore {
     try {
       const owner = await this.auth.userById(input.ownerId);
       if (!owner) return { ok: false, reason: 'profile_missing' } as const;
-      const limit = planEntitlements(owner.plan).ownedSites;
+      const limit = accountEntitlements(owner.id, owner.plan).ownedSites;
       if (limit !== null && await this.owned(input.ownerId) >= limit) {
         return { ok: false, reason: 'site_limit_reached' } as const;
       }
@@ -103,7 +103,7 @@ export class PgOwnedSiteStore implements OwnedSiteStore {
           return { ok: false, reason: 'profile_missing' } as const;
         }
         const count = await client.query<{ count: number }>(OWNED_COUNT_SQL, [input.ownerId]);
-        const limit = planEntitlements(owner.rows[0].plan).ownedSites;
+        const limit = accountEntitlements(owner.rows[0].id, owner.rows[0].plan).ownedSites;
         if (limit !== null && Number(count.rows[0]?.count || 0) >= limit) {
           await client.query('rollback');
           return { ok: false, reason: 'site_limit_reached' } as const;

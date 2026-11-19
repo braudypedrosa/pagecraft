@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -35,7 +35,25 @@ test('tickets stay with the account, and only the opaque reply address can appen
   assert.equal(next.messages.find(row => row.body === 'Open Site settings.')!.role, 'support');
   assert.equal(notify.mock.calls[1][0].accountEmail, 'sam.carter@example.test');
   assert.equal(notify.mock.calls[1][0].replyToken, notice.replyToken);
-  assert.deepEqual(await store.list(sam.id), [{ id: one.id, subject: initial.subject, updatedAt: next.updatedAt }]);
+  assert.deepEqual(await store.list(sam.id), [{ id: one.id, subject: initial.subject, updatedAt: next.updatedAt, latestMessageRole: next.messages.at(-1)!.role }]);
+});
+
+test('existing tickets resolve the last author even with legacy timestamp-only activity or same-time replies', async () => {
+  const records = new MemoryRecords();
+  const store = new SupportTicketStore(records);
+  const owner = createHash('sha256').update(sam.id).digest('hex');
+  const id = randomUUID(), updatedAt = '2026-11-19T10:00:00.000Z';
+  const summary = { id, subject: 'Publishing schedule', updatedAt };
+  await records.write(`tickets/${id}.json`, { ...summary, owner });
+  const message = async (key: string, role: 'support' | 'customer', oldIndex: boolean) => {
+    await records.write(`threads/${id}/${key}.json`, { id: key, role, body: 'Schedule update.', createdAt: updatedAt });
+    await records.write(`accounts/${owner}/activity/${id}-${key}.json`, oldIndex ? summary : { ...summary, latestMessageRole: role });
+  };
+  await message('first', 'customer', true);
+  await message('second', 'support', true);
+  assert.deepEqual(await store.list(sam.id), [{ ...summary, latestMessageRole: 'support' }]);
+  await message('third', 'customer', false);
+  assert.deepEqual(await store.list(sam.id), [{ ...summary, latestMessageRole: 'customer' }]);
 });
 
 test('a failed send can retry after restart using the same message id and ticket; concurrent sends cannot double-notify', async () => {

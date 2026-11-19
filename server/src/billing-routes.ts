@@ -8,7 +8,7 @@ import {
   PaddleCheckoutError, type BillingInterval, type BillingLedger, type PaddleBillingConfig,
 } from './paddle-billing.ts';
 import type { AccountPlanStatus } from './plan-grants.ts';
-import type { PaidPlan } from './plans.ts';
+import { isPlanExemptAccount, type PaidPlan } from './plans.ts';
 import { GatewayError } from './store-gateway.ts';
 
 export interface BillingRouteOptions {
@@ -64,6 +64,7 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
     const ready = checkoutReady(o.config);
     return accountPlansPage({
       current: status?.plan ?? user.plan ?? 'free',
+      unrestricted: isPlanExemptAccount(user.id),
       offers: ready && !live.length ? offers().map(offer => ({ plan: offer.plan, intervals: offer.intervals.map(price => price.interval) })) : [],
       checkoutReady: ready,
       subscriptions: live,
@@ -82,6 +83,7 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
   app.post('/account/plans/checkout', bodyLimit({ maxSize: 4 * 1024, onError: c => c.text('Too large', 413) }), async c => {
     const user = await who(c);
     if (!user) return c.redirect('/sign-in?next=%2Faccount%2Fplans', 303);
+    if (isPlanExemptAccount(user.id)) return c.redirect('/account/plans', 303);
     if (!checkoutReady(o.config)) return c.text('Paid plans are not available yet.', 404);
     if (!checkouts.take(user.id)) return c.text('Too many checkout attempts. Try again in a few minutes.', 429, { 'retry-after': '900' });
     const body = await c.req.parseBody();
@@ -110,6 +112,7 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
   app.get('/account/plans/checkout', async c => {
     const user = await who(c);
     if (!user) return c.redirect('/sign-in?next=%2Faccount%2Fplans');
+    if (isPlanExemptAccount(user.id)) return c.redirect('/account/plans');
     const transaction = c.req.query('_ptxn') || '';
     if (!checkoutReady(o.config) || !/^txn_[a-z0-9]{10,40}$/.test(transaction)) return c.redirect('/account/plans');
     c.header('cache-control', 'private, no-store');

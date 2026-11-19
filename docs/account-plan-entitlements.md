@@ -12,6 +12,11 @@ Pro is complimentary. It has no checkout, public upgrade option, or payment obli
 a plan. Profile changes and verified identity linking preserve an existing assignment.
 The browser roles have no direct access to update the plan column.
 
+One verified Pagecraft account has unlimited owned sites and media storage. The app and
+gateway identify it by its immutable internal user ID through `accountEntitlements`.
+Its billing records keep their normal values. Account settings show Unrestricted and
+checkout is unavailable for this account.
+
 The canonical catalog is `supabase/functions/pagecraft-db/plan-entitlements.ts`, re-exported
 by `server/src/plans.ts`. The Node deployment bundles that one pure module; the gateway
 deployment includes it alongside the function entrypoint. Unknown values fail closed to
@@ -27,9 +32,9 @@ example, `3 of 1 owned sites` and the "Site limit reached" card, and the API ans
 Enforcement happens in two places that share this catalog: the Node app (memory and Postgres
 stores) and the `pagecraft-db` database gateway edge function (`account.createOwnedSite`).
 The gateway is deployed to Supabase separately; the Node deployment does not update it.
-Until the edge function is redeployed with the new catalog, gateway-backed environments keep
-enforcing the old allowance of 3. Because staging and production share one database and
-gateway, that redeploy affects both environments at once.
+During the shared database transition, staging uses `pagecraft-db-v5` for its main
+gateway and production uses `pagecraft-db-v3`. Keep quota updates in the gateway version
+used by the matching app release. The staging proposal route keeps its separate v4 gateway.
 
 An unlimited site allowance is represented by `null`, never `Infinity` or a large invented
 number. Site creation resolves the owner’s stored plan while holding the user row lock.

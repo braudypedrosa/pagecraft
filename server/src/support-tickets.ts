@@ -13,7 +13,7 @@ export type SupportNotify = (notice: SupportNotice) => Promise<void>;
 type Ticket = { id: string; owner: string; subject: string; replyToken: string };
 type CustomerInput = { requestId: string; body: string; subject?: string };
 type Message = { id: string; role: 'customer' | 'support'; body: string; createdAt: string };
-type Summary = { id: string; subject: string; updatedAt: string };
+type Activity = { id: string; subject: string; updatedAt: string; latestMessageRole?: Message['role'] };
 type Attempt = { sequence: number; started: number; failed?: boolean };
 
 export class SupportError extends Error {
@@ -25,13 +25,23 @@ export class SupportTicketStore {
   private records: Records;
   constructor(records: Records) { this.records = records; }
 
-  async list(userId: string): Promise<Summary[]> {
-    const activity = await this.records.list<Summary>(`accounts/${digest(userId)}/activity`);
-    const newest = new Map<string, Summary>();
+  async list(userId: string) {
+    const activity = await this.records.list<Activity>(`accounts/${digest(userId)}/activity`);
+    const newest = new Map<string, Activity>();
     for (const row of activity) {
-      if ((newest.get(row.id)?.updatedAt || '') < row.updatedAt) newest.set(row.id, row);
+      const previous = newest.get(row.id);
+      if (!previous || previous.updatedAt < row.updatedAt) newest.set(row.id, row);
+      else if (previous.updatedAt === row.updatedAt && previous.latestMessageRole !== row.latestMessageRole) {
+        // The thread's message-id tiebreaker determines which author comes last in the same millisecond.
+        newest.set(row.id, { ...row, latestMessageRole: undefined });
+      }
     }
-    return [...newest.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    const ordered = [...newest.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    return Promise.all(ordered.map(async row => ({
+      ...row,
+      // Older activity records only contain the timestamp, but their messages already contain the author.
+      latestMessageRole: row.latestMessageRole ?? (await this.get(userId, row.id)).messages.at(-1)?.role ?? null
+    })));
   }
 
   private async owned(userId: string, id: string) {
@@ -51,7 +61,7 @@ export class SupportTicketStore {
   }
 
   private async index(ticket: Ticket, message: Message) {
-    const summary: Summary = { id: ticket.id, subject: ticket.subject, updatedAt: message.createdAt };
+    const summary: Activity = { id: ticket.id, subject: ticket.subject, updatedAt: message.createdAt, latestMessageRole: message.role };
     // Immutable activity records keep simultaneous inbound and customer replies from
     // overwriting a newer timestamp, without rewriting the full conversation.
     await this.records.create(`accounts/${ticket.owner}/activity/${ticket.id}-${message.id}.json`, summary);

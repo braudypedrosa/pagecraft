@@ -27,7 +27,7 @@ const styles = `<style>
 .pc-support .pc-support-icon{display:inline-grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;background:transparent;border:0;color:inherit;border-radius:var(--pc-control-radius)}
 .pc-support .pc-support-icon:hover{background:#ffffff20}
 .pc-support-content{display:flex;flex-direction:column;min-height:0;min-width:0}
-.pc-support-page .pc-support-content{max-width:740px;border:1px solid var(--pc-line);border-radius:var(--pc-radius-card,10px);background:var(--pc-panel)}
+.pc-support-page .pc-support-content{width:100%;border:1px solid var(--pc-line);border-radius:var(--pc-radius-card,10px);background:var(--pc-panel)}
 .pc-support-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:12px 18px;border-bottom:1px solid var(--pc-line)}
 .pc-support-toolbar h2{font:var(--pc-type-control);margin:0;overflow-wrap:anywhere}
 .pc-support .pc-support-back{display:inline-flex;align-items:center;gap:6px;padding:4px 0;min-height:32px;color:var(--pc-ui-secondary);background:transparent;border:0;font:var(--pc-type-control)}
@@ -35,8 +35,17 @@ const styles = `<style>
 .pc-support .pc-support-new{height:34px;min-height:34px}
 .pc-support-list{list-style:none;margin:0;padding:0;overflow:auto}
 .pc-support-list li+li{border-top:1px solid var(--pc-line)}
-.pc-support-list a{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;text-decoration:none;color:var(--pc-text);font:var(--pc-type-control);overflow-wrap:anywhere}
-.pc-support-list a:hover{background:var(--pc-field)}
+.pc-support-columns,.pc-support-list a{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:16px;align-items:center}
+.pc-support-columns{padding:8px 18px;background:var(--pc-surface-subtle);border-bottom:1px solid var(--pc-line);font:var(--pc-type-description);font-weight:600;color:var(--pc-ui-secondary)}
+.pc-support-list a{padding:16px 18px;text-decoration:none;color:var(--pc-text);font:var(--pc-type-control);overflow-wrap:anywhere}
+.pc-support-list a:hover{background:var(--pc-hover-bg)}
+.pc-support-list a:focus-visible{outline-offset:-2px}
+.pc-support-subject{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.pc-support-subject strong{min-width:0;font-weight:600}
+.pc-support-replied{width:fit-content;border-radius:var(--pc-control-radius);padding:2px 8px;background:var(--pc-selection-bg);color:var(--pc-selection-text);font:var(--pc-type-description);font-weight:600}
+.pc-support-widget .pc-support-list a{grid-template-columns:1fr;gap:4px}
+.pc-support-widget .pc-support-list time::before{content:"Updated ";}
+.pc-support-columns span:last-child{text-align:right}
 .pc-support time{font:var(--pc-type-description);color:var(--pc-ui-secondary);white-space:nowrap}
 .pc-support-empty,.pc-support-status{margin:0;padding:16px 18px;font:var(--pc-type-description);color:var(--pc-ui-secondary)}
 .pc-support-status:empty{display:none}
@@ -44,6 +53,7 @@ const styles = `<style>
 .pc-support-thread{margin:0;padding:16px 18px;list-style:none;display:grid;gap:18px;overflow:auto;overscroll-behavior:contain}
 .pc-support-page .pc-support-thread{max-height:min(52svh,540px)}
 .pc-support-thread li{min-width:0}
+.pc-support-page .pc-support-thread p{max-width:76ch}
 .pc-support-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
 .pc-support-meta strong{font:var(--pc-type-control)}
 .pc-support-thread p{margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
@@ -51,7 +61,7 @@ const styles = `<style>
 .pc-support-form label{font:var(--pc-type-control)}
 .pc-support-form textarea{display:block;width:100%;min-height:68px;max-height:180px;resize:vertical;background:var(--pc-field);border:1px solid var(--pc-line-2);border-radius:var(--pc-control-radius);padding:10px 12px;font:inherit;color:var(--pc-text)}
 .pc-support-form button{justify-self:end}
-@media(max-width:600px){.pc-support-launch.pc-btn{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.pc-support-panel{right:12px;bottom:max(68px,calc(env(safe-area-inset-bottom) + 56px));width:calc(100vw - 24px);max-height:calc(100dvh - 84px)}}
+@media(max-width:600px){.pc-support-columns{display:none}.pc-support-list a{grid-template-columns:1fr;gap:4px}.pc-support-list time::before{content:"Updated ";}.pc-support-launch.pc-btn{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.pc-support-panel{right:12px;bottom:max(68px,calc(env(safe-area-inset-bottom) + 56px));width:calc(100vw - 24px);max-height:calc(100dvh - 84px)}}
 </style>`;
 
 /** The page and widget use the same ticket list, conversation and form. */
@@ -60,6 +70,7 @@ export function supportView(widget: boolean) {
     <div class="pc-support-toolbar"><h2 data-title tabindex="-1">Your tickets</h2><button class="pc-btn pc-support-new" data-new type="button">New ticket</button><button class="pc-support-back" data-back type="button" hidden>${back} All tickets</button></div>
     <p class="pc-support-status" data-status role="status"></p>
     <p class="pc-support-empty" data-empty hidden>No support tickets yet.</p>
+    <div class="pc-support-columns" data-columns aria-hidden="true" hidden><span>Ticket</span><span>Last updated</span></div>
     <ul class="pc-support-list" data-list aria-label="Support tickets"></ul>
     <ol class="pc-support-thread" data-thread aria-label="Conversation" hidden></ol>
     <form class="pc-support-form" data-form hidden><label for="pc-support-message">Message</label><textarea id="pc-support-message" name="message" rows="3" maxlength="8000" placeholder="How can we help?" required></textarea><button class="pc-btn primary" type="submit">Send message</button></form>

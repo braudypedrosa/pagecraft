@@ -83,7 +83,7 @@ import {
 import { contentOnly, formRoutingChanged } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle, type NoticeSender } from "./mail.ts";
-import { planEntitlements } from "./plans.ts";
+import { accountEntitlements, isPlanExemptAccount, planEntitlements } from "./plans.ts";
 import {
   ALLOWED,
   documentAssetIds,
@@ -871,7 +871,7 @@ export function createApp(o: Options) {
 
   // Shared-site uploads consume the storage owner's allowance, not the collaborator's.
   const storageLimitForOwner = async (ownerId: string, knownUser?: User) =>
-    planEntitlements((ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
+    accountEntitlements(ownerId, (ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
 
   /**
    * Who this person is to this site: one identity check and one membership lookup. `allowed`
@@ -1801,11 +1801,12 @@ export function createApp(o: Options) {
         visibleSites(user),
         o.auth.manualImportsForOwner(user.id),
         o.assets
-          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
-          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+          ? o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: accountEntitlements(user.id, user.plan).storageBytes },
       ]);
       const deletion = await accountDeletionPlan(user, identity, mine, deletionCheck);
       return c.html(accountSettingsPage(user, {
+        billingDetailsAvailable: !!o.billing,
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
         ownerCount: await ownedSiteCount(user, mine, ownedCount),
@@ -2086,18 +2087,20 @@ export function createApp(o: Options) {
       name: site.name,
       role,
     }));
+    const access = accountEntitlements(user.id, user.plan);
     const storage = o.assets
-      ? await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+      ? await o.assets.usage(user.id, access.storageBytes)
       : null;
     return c.json({
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        plan: user.plan || "free",
+        plan: isPlanExemptAccount(user.id) ? null : user.plan || "free",
+        ...(isPlanExemptAccount(user.id) && { planExempt: true }),
       },
       sites: mine,
-      storage,
+      storage: storage && { ...storage, limitBytes: isPlanExemptAccount(user.id) ? null : storage.limitBytes },
     });
   });
 
@@ -2197,8 +2200,8 @@ export function createApp(o: Options) {
       const [visible, storage, pendingInvitations] = await Promise.all([
         visibleSites(user),
         o.assets
-          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
-          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+          ? o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: accountEntitlements(user.id, user.plan).storageBytes },
         invitations.listForUser(user.id),
       ]);
       const mine = visible.sort((a, b) =>
@@ -3234,7 +3237,7 @@ export function createApp(o: Options) {
           o.assets && mediaOwnerId ? o.assets.usage(mediaOwnerId) : { usedBytes: 0 },
           mediaOwnerId ? storageLimitForOwner(mediaOwnerId, gate.user) : FREE_STORAGE_BYTES,
         ]);
-        return { usedBytes: usage.usedBytes, limitBytes };
+        return { usedBytes: usage.usedBytes, limitBytes: isPlanExemptAccount(mediaOwnerId) ? null : limitBytes };
       }),
       timed("editor.wordpress", () => wordpressContentForSite(site.id)),
       // Local files beside the publication bytes; injected so opening Publish needs no request.
@@ -3304,10 +3307,9 @@ export function createApp(o: Options) {
   app.get("/api/storage", async (c) => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    if (!o.assets) {
-      return c.json({ usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes });
-    }
-    return c.json(await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes));
+    const limitBytes = accountEntitlements(user.id, user.plan).storageBytes;
+    const usage = o.assets ? await o.assets.usage(user.id, limitBytes) : { usedBytes: 0, limitBytes };
+    return c.json({ ...usage, limitBytes: isPlanExemptAccount(user.id) ? null : limitBytes });
   });
 
   app.get("/api/sites/:id", async (c) => {
@@ -4385,8 +4387,8 @@ export function createApp(o: Options) {
             ? c.redirect("/?error=limit", 303)
             : c.json({
               error: "site_limit_reached",
-              limit: planEntitlements(user.plan).ownedSites,
-              detail: siteLimitDetail(planEntitlements(user.plan).ownedSites),
+              limit: accountEntitlements(user.id, user.plan).ownedSites,
+              detail: siteLimitDetail(accountEntitlements(user.id, user.plan).ownedSites),
             }, 409);
         }
         return htmlForm ? c.redirect("/?error=account", 303) : c.json({

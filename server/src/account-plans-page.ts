@@ -94,6 +94,7 @@ export interface PlanSubscriptionView { plan: string; status: string; scheduledC
 
 export interface PlansPageInput {
   current: AccountPlan;
+  unrestricted?: boolean;
   /** Paid plans that can be bought now; empty when checkout is off. */
   offers: PlanOffer[];
   /** False when billing is not configured at all. */
@@ -130,6 +131,12 @@ export function accountPlansPage(input: PlansPageInput) {
 <p>To change or cancel, use the link in your Paddle receipt email, or write to <a href="mailto:${esc(input.supportEmail)}">${esc(input.supportEmail)}</a>.</p>
 ${subscriptions.map(row => `<dl><div><dt>Plan</dt><dd>${esc(label(row.plan))}</dd></div><div><dt>Status</dt><dd>${esc(label(row.status.replace('_', ' ')))}${row.scheduledChange === 'cancel' ? ', ends at period end' : ''}</dd></div>${row.currentPeriodEnd ? `<div><dt>${row.scheduledChange === 'cancel' ? 'Ends' : 'Renews'}</dt><dd>${esc(row.currentPeriodEnd.slice(0, 10))}</dd></div>` : ''}</dl>`).join('')}
 </section>` : '';
+
+  if (input.unrestricted) {
+    return page('Plans', `<div class="pc-plans-content"><a class="pc-plans-back" href="/account?tab=plan">${backIcon}Account settings</a>
+<header class="pc-plans-head"><div><h1>Unrestricted</h1><p>Your account has unlimited sites and media storage.</p></div></header>
+${subscription}</div>`);
+  }
 
   const freeAction = current === 'free'
     ? '<span class="pc-plans-btn" aria-disabled="true">Your current plan</span>'

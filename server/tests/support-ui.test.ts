@@ -21,14 +21,16 @@ test('widget retries the same request and the full page continues the same threa
       if (requests.length === 1) return new Response(null, { status: 503 });
       return Response.json({ ticket });
     }
-    return url.endsWith('/ticket-one') ? Response.json({ ticket }) : Response.json({ tickets: [] });
+    const latest = ticket.messages.at(-1)!;
+    const summary = { id: ticket.id, subject: ticket.subject, updatedAt: latest.createdAt, latestMessageRole: latest.role };
+    return url.endsWith('/ticket-one') ? Response.json({ ticket }) : Response.json({ tickets: requests.length ? [summary] : [] });
   };
   const open = (widget: boolean, url: string) => {
     const user = { id: 'member-one', name: 'Morgan Hale', email: 'morgan@example.test' };
     const html = widget
       ? withSupportWidget(dashboardPage(user, [], 0, { usedBytes: 0, limitBytes: 1024 }, []))
       : supportPage(user);
-    const dom = new JSDOM(html, { runScripts: 'outside-only', url });
+    const dom = new JSDOM(html, { runScripts: 'outside-only', url, pretendToBeVisual: true });
     const support = dom.window.document.querySelector('main.dashboard-app [data-support]');
     assert.ok(support);
     dom.window.fetch = fetch;
@@ -64,6 +66,25 @@ test('widget retries the same request and the full page continues the same threa
     await tick();
     assert.equal(page.window.document.querySelector('[data-thread] li:last-child strong').textContent, 'Pagecraft Support');
     assert.equal(page.window.document.querySelector('[data-thread] li:last-child p').textContent, reply);
+
+    for (const surface of [widget, page]) {
+      surface.window.document.querySelector('[data-back]').click();
+      await tick();
+      const row = surface.window.document.querySelector('[data-list] a');
+      assert.equal(row.querySelector('strong').textContent, body);
+      assert.equal(row.querySelector('.pc-support-replied').textContent, 'Support replied');
+      assert.equal(row.querySelector('time').dateTime, '2026-11-19T08:15:00Z');
+    }
+    ticket.messages.push({ id: 'message-three', role: 'customer', body: 'Thank you.', createdAt: '2026-11-19T08:20:00Z' });
+    for (const surface of [widget, page]) {
+      const list = surface.window.document.querySelector('[data-list]');
+      list.querySelector('a').focus();
+      surface.window.document.dispatchEvent(new surface.window.Event('visibilitychange'));
+      await tick();
+      assert.equal(list.querySelector('.pc-support-replied'), null);
+      assert.equal(list.querySelector('time').dateTime, '2026-11-19T08:20:00Z');
+      assert.equal(surface.window.document.activeElement, list.querySelector('a'));
+    }
   } finally {
     page?.window.close();
     widget.window.close();

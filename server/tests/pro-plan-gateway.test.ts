@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "vitest";
 import {
+  accountEntitlements,
+  isPaidPlan,
   FREE_PLAN,
   planEntitlements,
   PRO_PLAN,
@@ -29,6 +31,20 @@ test("plan catalog keeps Pro hidden and defaults unknown plans to Free", () => {
   a.equal(planEntitlements("pro"), PRO_PLAN);
 });
 
+test("only the designated Pagecraft account receives runtime unrestricted entitlements", () => {
+  const owner = "328a15d0-0837-4881-8b47-38d316c03f95";
+  for (const plan of [null, "free", "pro"]) {
+    a.deepEqual(accountEntitlements(owner, plan), {
+      id: "unrestricted", label: "Unrestricted", ownedSites: null,
+      storageBytes: Number.MAX_SAFE_INTEGER, public: false,
+    });
+  }
+  a.equal(accountEntitlements(undefined, "pro"), PRO_PLAN);
+  a.equal(accountEntitlements(owner + "1", "unrestricted"), FREE_PLAN);
+  a.equal(planEntitlements("unrestricted"), FREE_PLAN);
+  a.equal(isPaidPlan("unrestricted"), false);
+});
+
 test("gateway reads plan while holding each quota owner row lock", () => {
   const source = readFileSync(
     join(
@@ -42,6 +58,8 @@ test("gateway reads plan while holding each quota owner row lock", () => {
   ) ?? [];
 
   a.equal(ownerLocks.length, 3, "site creation and both storage paths lock plan rows");
+  a.match(source, /accountEntitlements\(text\(owner\[0\]\.id\), text\(owner\[0\]\.plan\)\)\.ownedSites/);
+  a.equal(source.match(/accountEntitlements\(text\(owner\.id\), text\(owner\.plan\)\)\.storageBytes/g)?.length, 2);
   a.match(
     source,
     /ownedSites !== null && integer\(owned\[0\]\?\.count\) >= ownedSites/,

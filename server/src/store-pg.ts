@@ -17,7 +17,7 @@
    what has run — this one is safe to re-run only because every statement in it says
    `if not exists`. */
 import type { Doc } from '../../app/src/core/types.ts';
-import { planEntitlements } from './plans.ts';
+import { accountEntitlements } from './plans.ts';
 import {
   validSlug, slugFrom, type CmsWriteHead, type Site, type SiteRevision, type SiteRevisionMeta, type SaveResult, type Store,
   type ScheduledPublishInput, type ScheduledPublishResult
@@ -1766,7 +1766,7 @@ export class PgAssetStore implements AssetStore {
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [id, quota.ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        const limitBytes = Math.min(quota.limitBytes, accountEntitlements(owner.rows[0].id, owner.rows[0].plan).storageBytes);
         if (used - replacing + a.bytes.byteLength > limitBytes) {
           throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }
@@ -1821,7 +1821,7 @@ export class PgAssetStore implements AssetStore {
         const prior = await client.query<{ bytes: string }>(
           `select coalesce(stored_bytes,0)::text as bytes from assets where id = $1 and owner_id = $2`, [a.id, ownerId]);
         const used = Number(current.rows[0]?.used || 0), replacing = Number(prior.rows[0]?.bytes || 0);
-        const limitBytes = Math.min(quota.limitBytes, planEntitlements(owner.rows[0].plan).storageBytes);
+        const limitBytes = Math.min(quota.limitBytes, accountEntitlements(owner.rows[0].id, owner.rows[0].plan).storageBytes);
         if (used - replacing + a.bytes.byteLength > limitBytes) {
           throw new AssetQuotaError({ usedBytes: used, limitBytes });
         }

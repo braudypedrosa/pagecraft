@@ -1,5 +1,5 @@
-type Summary = { id: string; subject: string; updatedAt: string };
-type Ticket = Summary & { messages: { id: string; role: 'customer' | 'support'; body: string; createdAt: string }[] };
+type Summary = { id: string; subject: string; updatedAt: string; latestMessageRole: 'customer' | 'support' | null };
+type Ticket = Omit<Summary, 'latestMessageRole'> & { messages: { id: string; role: 'customer' | 'support'; body: string; createdAt: string }[] };
 
 /** Serialized into both support surfaces. User-provided strings only reach text nodes. */
 export function supportClient() {
@@ -11,6 +11,7 @@ export function supportClient() {
   const status = el<HTMLElement>('[data-status]');
   const empty = el<HTMLElement>('[data-empty]');
   const list = el<HTMLUListElement>('[data-list]');
+  const columns = el<HTMLElement>('[data-columns]');
   const thread = el<HTMLOListElement>('[data-thread]');
   const form = el<HTMLFormElement>('[data-form]');
   const message = el<HTMLTextAreaElement>('textarea');
@@ -28,6 +29,7 @@ export function supportClient() {
   let initialized = false;
   let refreshing = false;
   let lastMessage = '';
+  let renderedList = '';
 
   function announcement(text: string, error = false) {
     status.textContent = text;
@@ -40,6 +42,8 @@ export function supportClient() {
 
   function show(next: typeof view, id = '') {
     view = next;
+    columns.hidden = true;
+    renderedList = '';
     selected = id;
     revision++;
     lastMessage = '';
@@ -122,6 +126,46 @@ export function supportClient() {
     }
   }
 
+  function displayList(tickets: Summary[]) {
+    const signature = JSON.stringify(tickets);
+    if (signature === renderedList) return;
+    renderedList = signature;
+    const focused = list.contains(document.activeElement) ? document.activeElement : null;
+    const rows = tickets.map(ticket => {
+      const row = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = url(ticket.id);
+      const label = document.createElement('span');
+      label.className = 'pc-support-subject';
+      const subject = document.createElement('strong');
+      subject.textContent = ticket.subject;
+      label.append(subject);
+      if (ticket.latestMessageRole === 'support') {
+        const tag = document.createElement('span');
+        tag.className = 'pc-support-replied';
+        tag.textContent = 'Support replied';
+        label.append(tag);
+      }
+      const updated = timestamp(ticket.updatedAt);
+      updated.setAttribute('aria-label', 'Updated ' + updated.textContent);
+      link.append(label, updated);
+      link.addEventListener('click', event => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        void loadTicket(ticket.id);
+        title.focus();
+      });
+      row.append(link);
+      return row;
+    });
+    list.replaceChildren(...rows);
+    empty.hidden = Boolean(tickets.length);
+    columns.hidden = Boolean(launcher) || !tickets.length;
+    if (focused instanceof HTMLAnchorElement) {
+      Array.from(list.querySelectorAll('a')).find(link => link.href === focused.href)?.focus({ preventScroll: true });
+    }
+  }
+
   async function loadList(openLatest = false) {
     if (busy) return;
     show('list');
@@ -137,23 +181,7 @@ export function supportClient() {
         else show('new');
         return;
       }
-      const rows = tickets.map(ticket => {
-        const row = document.createElement('li');
-        const link = document.createElement('a');
-        link.href = url(ticket.id);
-        link.textContent = ticket.subject;
-        link.append(timestamp(ticket.updatedAt));
-        link.addEventListener('click', event => {
-          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-          event.preventDefault();
-          void loadTicket(ticket.id);
-          title.focus();
-        });
-        row.append(link);
-        return row;
-      });
-      list.replaceChildren(...rows);
-      empty.hidden = Boolean(tickets.length);
+      displayList(tickets);
       announcement('');
     } catch (error) {
       if (start === revision) {
@@ -206,12 +234,20 @@ export function supportClient() {
   });
 
   async function refresh() {
-    if (refreshing || busy || !selected || document.hidden || (launcher && panel.hidden)) return;
+    if (refreshing || busy || view === 'new' || document.hidden || (launcher && panel.hidden)) return;
     const start = revision;
     refreshing = true;
     try {
-      const { ticket } = await request(api + '/' + encodeURIComponent(selected));
-      if (start === revision) display(ticket);
+      if (view === 'list') {
+        const { tickets } = await request(api);
+        if (start === revision) {
+          displayList(tickets);
+          announcement('');
+        }
+      } else {
+        const { ticket } = await request(api + '/' + encodeURIComponent(selected));
+        if (start === revision) display(ticket);
+      }
     } catch { /* A transient refresh failure leaves the conversation and unsent draft available. */ }
     finally { refreshing = false; }
   }

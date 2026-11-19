@@ -22,7 +22,7 @@ const sign = (body: string, ts = Math.floor(Date.now() / 1000)) =>
 const user: User = { id: 'user-1', email: 'payer@example.test', name: 'Payer', plan: 'free' };
 const freeStatus = (): AccountPlanStatus => ({ plan: 'free', source: 'free', changedAt: null, grants: [], subscriptions: [] });
 
-function rig(overrides: { status?: () => AccountPlanStatus; fetcher?: typeof fetch } = {}) {
+function rig(overrides: { userId?: string; status?: () => AccountPlanStatus; fetcher?: typeof fetch } = {}) {
   const config = paddleBillingConfig(env)!;
   const applied: SubscriptionEventInput[] = [];
   const ledger = {
@@ -35,7 +35,7 @@ function rig(overrides: { status?: () => AccountPlanStatus; fetcher?: typeof fet
     a.deepEqual(body.custom_data, { pagecraft_user_id: 'user-1' });
     return Response.json({ data: { id: 'txn_01checkouttest01', checkout: { url: 'https://app.test/account/plans/checkout?_ptxn=txn_01checkouttest01' } } });
   }) as unknown as typeof fetch;
-  let current: User | null = user;
+  let current: User | null = { ...user, id: overrides.userId ?? user.id };
   const app = new Hono();
   billingRoutes(app, {
     config, ledger, editorOrigin: 'https://app.test', fetcher, report: message => reports.push(message),
@@ -144,6 +144,25 @@ test('checkout names the signed-in account and refuses a second subscription', a
   r.signOut();
   a.equal((await post({ plan: 'launch', interval: 'monthly' })).status, 303);
   a.match((await r.app.request('/account/plans')).headers.get('location') || '', /sign-in/);
+});
+
+test('an unrestricted account retains its subscription details and cannot start checkout', async () => {
+  const r = rig({ userId: '328a15d0-0837-4881-8b47-38d316c03f95', status: () => ({
+    ...freeStatus(), plan: 'launch', source: 'subscription', subscriptions: [{
+      id: 'sub_1', environment: 'sandbox', priceId: 'pri_01launchmonthly01', plan: 'launch', status: 'active',
+      statusChangedAt: null, currentPeriodEnd: '2026-12-19T00:00:00Z', scheduledChange: null,
+    }],
+  }) });
+  const html = await (await r.app.request('/account/plans')).text();
+  a.match(html, /<h1>Unrestricted<\/h1>/);
+  a.match(html, /<dd>Launch<\/dd>/);
+  a.match(html, /2026-12-19/);
+  a.doesNotMatch(html, /<form|Always free|Your current plan/);
+  const post = await r.app.request('/account/plans/checkout', { method: 'POST' });
+  a.equal(post.status, 303);
+  a.equal(post.headers.get('location'), '/account/plans');
+  a.equal((await r.app.request('/account/plans/checkout?_ptxn=txn_01checkouttest01')).headers.get('location'), '/account/plans');
+  a.equal((r.fetcher as unknown as { mock: { calls: unknown[] } }).mock.calls.length, 0);
 });
 
 test('the full app passes signed webhooks through without a browser origin', async () => {
