@@ -136,12 +136,14 @@ test("signed-in routes keep their gateway calls and sequential round trips bound
   const expected: Record<string, Record<string, [number, number]>> = {
     owner: {
       "/": [4, 3], "/api/sites": [3, 3], "/api/sites/:id": [3, 3],
-      "/sites/:id": [4, 3], "/edit/:id": [4, 4],
+      // The media list is read beside storage and WordPress: one more call, no extra trip,
+      // and the editor no longer makes its own request for it after the page loads.
+      "/sites/:id": [4, 3], "/edit/:id": [5, 4],
     },
     content: {
       "/": [4, 3], "/api/sites": [3, 3], "/api/sites/:id": [3, 3],
       // Resolve the owner's plan beside usage; this adds a call, not a sequential trip.
-      "/sites/:id": [4, 3], "/edit/:id": [6, 5],
+      "/sites/:id": [4, 3], "/edit/:id": [7, 5],
     },
     reviewer: {
       "/": [4, 3], "/api/sites": [3, 3], "/api/sites/:id": [3, 3],

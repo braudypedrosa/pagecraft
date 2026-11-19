@@ -129,7 +129,7 @@ function Head({ h }: { h: NonNullable<ReturnType<typeof C.locate>> }) {
 }
 
 function ClipStrip() {
-  if (!C.styleClip.css) return null;
+  if (!C.styleClipOffered()) return null;
   const ids = C.selIds(), many = ids.length > 1;
   const paste = () => {
     const check = C.stylePasteCheck();
@@ -146,9 +146,13 @@ function ClipStrip() {
         title={`Replace the styling of ${many ? 'all ' + ids.length : 'this element'} (⌘⇧V)`}>
         Paste{many ? ' to ' + ids.length : ''}
       </button>
-      <button class="x" title="Forget it"
+      <button class="x" title="Forget it" aria-label="Forget copied styles"
         onClick={() => { C.styleClipClear(); repaint('right'); L.toast('Style clipboard cleared'); }}>
         <Icon name="trash" size={11} />
+      </button>
+      <button class="x" title="Hide (Paste stays on ⌘⇧V and the right-click menu)" aria-label="Hide the Paste strip"
+        onClick={() => { C.styleClipHide(); repaint('right'); }}>
+        <Icon name="close" size={11} />
       </button>
     </div>
   );

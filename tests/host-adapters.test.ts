@@ -349,3 +349,18 @@ test('every host fails closed with an actionable error for a newer document sche
   });
   await a.rejects(wordpress.documents.load(), /Upgrade Pagecraft/);
 });
+
+test('web host uses the media list from the editor page once, then asks the server', async () => {
+  const paths: string[] = [];
+  const host = createWebHostAdapter({
+    siteId: 'site-1', role: 'owner',
+    assets: [{ id: 'a1', name: 'hero.png', type: 'image/png', w: 4, h: 3, storedBytes: 12 }],
+    fetch: async input => { paths.push(String(input)); return json([{ id: 'a2', name: 'later.png', type: 'image/png' }]); }
+  });
+  const first = await host.assets.list();
+  a.deepEqual(paths, [], 'opening the editor makes no list request');
+  a.deepEqual(first.map(m => [m.id, m.width, m.height, m.size]), [['a1', 4, 3, 12]]);
+  const second = await host.assets.list();
+  a.equal(paths.length, 1, 'a later refresh always goes to the server');
+  a.deepEqual(second.map(m => m.id), ['a2']);
+});

@@ -6,6 +6,7 @@ import { createApp } from '../src/app.ts';
 import { MemoryAuthStore, hashToken } from '../src/auth.ts';
 import { MemoryStore } from '../src/store.ts';
 import { blankDoc } from '../src/render.ts';
+import { MemoryAssetStore } from '../src/assets.ts';
 
 const editorHtml = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
 
@@ -98,4 +99,22 @@ test('only known static builder assets are public on the editor host; site autho
   assert.equal((await request('/brand/builder-assets/index.html')).status, 404);
   assert.ok(editorHtml.includes('data:font/ttf;base64,'), 'portable editor retains its embedded fonts');
   assert.equal(editorHtml.includes('/brand/builder-assets/'), false, 'portable editor stays self-contained');
+});
+
+test('the editor page carries the media list so opening it needs no second request', async () => {
+  const auth = new MemoryAuthStore(), store = new MemoryStore(), assets = new MemoryAssetStore();
+  const user = await auth.createUser('media-fixture@example.invalid', 'Media fixture');
+  await auth.putSession(hashToken('media-fixture-session'), user.id, Date.now() + 60000);
+  const site = await store.create({ name: 'Media fixture', host: 'media.example.invalid', doc: blankDoc('Media fixture') });
+  await auth.grant(site.id, user.id, 'owner');
+  const image = await assets.put({ siteId: site.id, name: 'hero.png', type: 'image/png', w: 4, h: 4, bytes: new Uint8Array([1, 2, 3]) });
+  const app = createApp({ store, auth, assets, editorHtml, editorHost: 'admin.test' });
+  const get = (path: string) => app.request(`http://admin.test${path}`,
+    { headers: { host: 'admin.test', cookie: 'pc_session=media-fixture-session' } });
+  const html = await (await get(`/edit/${site.id}`)).text();
+  const from = html.indexOf('window.PC_SERVER=') + 'window.PC_SERVER='.length;
+  const config = JSON.parse(html.slice(from, html.indexOf('</script>', from)).replace(/;\s*$/, ''));
+  const listed = await (await get(`/api/sites/${site.id}/assets`)).json();
+  assert.deepEqual(config.assets, listed, 'the page holds exactly what the list route returns');
+  assert.equal(config.assets[0].id, image.id);
 });

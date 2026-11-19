@@ -20,6 +20,8 @@ export function ReviewList({ defaultOpen = false, findings: supplied }: { defaul
   const findings = supplied ?? C.lint();
   const counts = C.lintCounts(findings);
   const [open, setOpen] = useState(defaultOpen || counts.error > 0);
+  /* Which place "Show me" visits next, per repeated finding. */
+  const [step, setStep] = useState<Record<string, number>>({});
   const listId = useId();
   const clean = !findings.length;
   const groups = new Map<string, { key: string; name: string; rows: Finding[] }>();
@@ -51,6 +53,19 @@ export function ReviewList({ defaultOpen = false, findings: supplied }: { defaul
     else L.toast('That element is no longer shown on this page');
   };
 
+  /* A finding inside a component is fixed in the component, once, for every use. */
+  const editComponent = (id: string) => {
+    L.exitPreview();
+    if (!C.findComponent(id)) { L.toast('That component is no longer in the project'); return; }
+    L.closeReviewSurface();
+    L.editComponent(id);
+  };
+  const showNext = (key: string, rows: Finding[]) => {
+    const at = (step[key] ?? 0) % rows.length;
+    setStep({ ...step, [key]: at + 1 });
+    goTo(rows[at]);
+  };
+
   const summary = clean ? 'No problems found' : [
     counts.error ? counts.error + (counts.error === 1 ? ' problem' : ' problems') : '',
     counts.warn ? counts.warn + (counts.warn === 1 ? ' suggestion' : ' suggestions') : ''
@@ -72,20 +87,34 @@ export function ReviewList({ defaultOpen = false, findings: supplied }: { defaul
         <MotionPresence show={!clean && open} kind="panel">
           {orderedGroups.map(group => {
             const totals = C.lintCounts(group.rows);
+            const rows = C.lintGroups(group.rows)
+              .sort((a, b) => Number(b[0].level === 'error') - Number(a[0].level === 'error'));
             const label = [totals.error ? `${totals.error} ${totals.error === 1 ? 'problem' : 'problems'}` : '',
               totals.warn ? `${totals.warn} ${totals.warn === 1 ? 'suggestion' : 'suggestions'}` : ''].filter(Boolean).join(' · ');
             return <details class="review-group" key={group.key} open={orderedGroups.length === 1 || totals.error > 0}>
               <summary><span class="review-group-name">{group.name}</span><span class="review-count">{label}</span></summary>
               <ul>
-                {[...group.rows].sort((a, b) => Number(b.level === 'error') - Number(a.level === 'error')).map((f, i) => (
-                  <li key={i}>
-                    <span class={'review-level ' + f.level}>{f.level === 'error' ? 'Problem' : 'Suggestion'}</span>
-                    <span class="msg">{f.msg}
-                      {f.where.region || f.where.node ? <em>{[f.where.region, f.where.node].filter(Boolean).join(' · ')}</em> : null}
-                    </span>
-                    {f.target || f.nodeId ? <button type="button" class="go" onClick={() => goTo(f)}>Show me</button> : null}
-                  </li>
-                ))}
+                {rows.map((same, i) => {
+                  const f = same[0], key = group.key + '|' + i, places = same.length;
+                  const jumpable = same.filter(row => row.target || row.nodeId);
+                  const next = ((step[key] ?? 0) % Math.max(1, jumpable.length)) + 1;
+                  return (
+                    <li key={i}>
+                      <span class={'review-level ' + f.level}>{f.level === 'error' ? 'Problem' : 'Suggestion'}</span>
+                      <span class="msg">{f.msg}
+                        {f.where.region || f.where.node || places > 1 ? <em>{[f.where.region, f.where.node,
+                          places > 1 ? `${places} places` : ''].filter(Boolean).join(' · ')}</em> : null}
+                        {f.component ? <em class="review-fix">Fix it once in the “{f.component.name}” component to fix every use.</em> : null}
+                      </span>
+                      {f.component ? <button type="button" class="go" onClick={() => editComponent(f.component!.id)}>Edit component</button> : null}
+                      {jumpable.length ? <button type="button" class="go"
+                        aria-label={jumpable.length > 1 ? `Show place ${next} of ${jumpable.length}` : undefined}
+                        onClick={() => showNext(key, jumpable)}>
+                        {jumpable.length > 1 ? `Show me ${next}/${jumpable.length}` : 'Show me'}
+                      </button> : null}
+                    </li>
+                  );
+                })}
               </ul>
             </details>;
           })}

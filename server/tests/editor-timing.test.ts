@@ -30,7 +30,7 @@ test('editor exposes fixed phases and independent per-request correlation withou
     assert.equal(response.headers.get('cache-control'), 'private, no-store');
     const header = response.headers.get('server-timing') || '';
     assert.deepEqual(names(header).map(match => match[1]).sort(), [
-      'editor.access', 'editor.document', 'editor.schedules', 'editor.shell', 'editor.storage', 'editor.wordpress',
+      'editor.access', 'editor.assets', 'editor.document', 'editor.schedules', 'editor.shell', 'editor.storage', 'editor.wordpress',
     ]);
     assert.match(header, /server;dur=[\d.]+/);
     for (const match of names(header)) {

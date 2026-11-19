@@ -892,6 +892,8 @@ export interface Finding {
   where: { page?: string; slug?: string; region?: string; node?: string };
   nodeId?: string;
   target?: FindingTarget;
+  /** Set when the finding comes from inside a component instance: fixing the definition fixes every use. */
+  component?: { id: string; name: string };
 }
 
 /* ---- find and replace ------------------------------------------------- */
