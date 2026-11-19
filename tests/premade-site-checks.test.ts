@@ -23,6 +23,17 @@ const KNOWN: Record<string, string[]> = {
   'dental-clinic-a2': [],
 };
 
+/* The next draft of each template with known findings. Each must open clean, so promoting it
+   lets its KNOWN line above go. Stillwood 1.0.1 keeps one deliberate reminder: its home page
+   availability search is a GET form with no destination until the owner adds a booking
+   provider, and the draft says so beside the form. */
+const DRAFTS: Record<string, string[]> = {
+  'stillwood/1.0.1': ['form-no-action'],
+  'salt-house/1.0.1': [],
+  'architecture-studio/1.0.1': [],
+  'coastal-rentals/1.0.5': [],
+};
+
 const catalog = JSON.parse(readFileSync('premade-sites/catalog.json', 'utf8')).templates as { id: string; version: string }[];
 const released = new Map<string, string>();
 for (const entry of catalog) released.set(entry.id, entry.version);
@@ -31,22 +42,33 @@ test('every released template is listed, so a new template starts with a clean S
   expect([...released.keys()].sort()).toEqual(Object.keys(KNOWN).sort());
 });
 
+async function cloudFindings(dir: string) {
+  const config = JSON.parse(readFileSync(`${dir}/template.config.json`, 'utf8'));
+  const source = config.sourceKind === 'document-json-v1'
+    ? JSON.parse(readFileSync(`${dir}/${config.source}`, 'utf8'))
+    : await (await import(pathToFileURL(`${process.cwd()}/${dir}/${config.source}`).href))[config.sourceExport]();
+  const before = core.cloudFormEndpoint;
+  core.setCloudFormEndpoint('https://cloud.example/forms/site');
+  try {
+    core.restore(source.doc || source.document || source);
+    return core.lintGroups(core.lint());
+  } finally {
+    core.setCloudFormEndpoint(before);
+  }
+}
+
+for (const [spec, expected] of Object.entries(DRAFTS)) {
+  test(`draft ${spec} opens in Cloud clean apart from deliberate reminders`, async () => {
+    const groups = await cloudFindings(`premade-sites/${spec}`);
+    expect(groups.filter(group => group[0].level === 'error').map(group => group[0].msg)).toEqual([]);
+    expect(groups.map(group => group[0].code).sort()).toEqual([...expected].sort());
+  }, 60_000);
+}
+
 for (const [id, version] of released) {
   test(`${id} ${version} opens in Cloud with only its known Site check findings`, async () => {
-    const dir = `premade-sites/${id}/${version}`;
-    const config = JSON.parse(readFileSync(`${dir}/template.config.json`, 'utf8'));
-    const source = config.sourceKind === 'document-json-v1'
-      ? JSON.parse(readFileSync(`${dir}/${config.source}`, 'utf8'))
-      : await (await import(pathToFileURL(`${process.cwd()}/${dir}/${config.source}`).href))[config.sourceExport]();
-    const before = core.cloudFormEndpoint;
-    core.setCloudFormEndpoint('https://cloud.example/forms/site');
-    try {
-      core.restore(source.doc || source.document || source);
-      const groups = core.lintGroups(core.lint());
-      expect(groups.filter(group => group[0].level === 'error').map(group => group[0].msg)).toEqual([]);
-      expect(groups.map(group => group[0].code).sort()).toEqual([...KNOWN[id]].sort());
-    } finally {
-      core.setCloudFormEndpoint(before);
-    }
+    const groups = await cloudFindings(`premade-sites/${id}/${version}`);
+    expect(groups.filter(group => group[0].level === 'error').map(group => group[0].msg)).toEqual([]);
+    expect(groups.map(group => group[0].code).sort()).toEqual([...KNOWN[id]].sort());
   }, 60_000);
 }

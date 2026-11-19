@@ -1,4 +1,5 @@
 import type { Doc, Node } from '../../../app/src/core/types.ts';
+import { recordInstanceImageSizes } from '../../lib/instance-image-sizes.ts';
 import { buildTemplateDocument as predecessor } from '../1.0.0/source.ts';
 
 /** Preserve the coastal composition while correcting contrast, wrapping, and setup guidance. */
@@ -48,5 +49,7 @@ export function buildTemplateDocument(): Doc {
   if (!homeLayoutFound) throw new Error('Salt House Home layout is missing');
   if (!inquiryCopyFound) throw new Error('Salt House inquiry setup copy is missing');
   if (!inquiryFaqFound) throw new Error('Salt House inquiry FAQ is missing');
+  // Record each component photo's size so instances publish width/height (C1, 20 Nov).
+  if (!recordInstanceImageSizes(document)) throw new Error('No component photo sizes were recorded');
   return document;
 }
