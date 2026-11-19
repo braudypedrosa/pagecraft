@@ -2,6 +2,9 @@ import "jsr:@supabase/functions-js@2.111.0/edge-runtime.d.ts";
 import postgres from "npm:postgres@3.4.7";
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { dispatchCollaboration, isCollaborationOp } from "./collaboration-invitations.ts";
+import { dispatchPlan, isPlanOp } from "./plan-grants.ts";
+import { dispatchBilling, isBillingOp } from "./billing.ts";
+import { dispatchCrm, isCrmOp } from "./crm-contacts.ts";
 import { exchangeManualImportRefresh } from "./manual-import-refresh.ts";
 import { planEntitlements } from "./plan-entitlements.ts";
 import {
@@ -296,6 +299,9 @@ async function authorised(request: Request) {
 
 async function dispatch(op: string, args: Record<string, unknown>) {
   if (isCollaborationOp(op)) return await dispatchCollaboration(sql, op, args);
+  if (isPlanOp(op)) return await dispatchPlan(sql, op, args);
+  if (isCrmOp(op)) return await dispatchCrm(sql, op, args);
+  if (isBillingOp(op)) return await dispatchBilling(sql, op, args);
   switch (op) {
     case "site.list":
       return await sql`select * from sites order by name`;
