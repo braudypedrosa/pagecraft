@@ -30,7 +30,7 @@ test('a missing brand token presents its accent fallback as a linked token and u
 
   assert.equal(r.$('.tokchip')?.textContent?.trim(), 'Cafe Terracotta');
   assert.equal(r.$('input.hex'), null, 'the linked semantic should not leak as a raw CSS value');
-  assert.ok(r.$('button.tok.on[title="Cafe Terracotta"]'), 'the fallback token should be selected in the palette');
+  assert.ok(r.$('button.tokname.on[title="Cafe Terracotta"]'), 'the fallback token should be selected in the palette');
   assert.equal(n.css.d['background-color'], C.cvar('brand'), 'presentation must preserve the stored semantic reference');
 
   act(() => r.click(r.$('button[title^="Unlink"]')));
@@ -46,7 +46,18 @@ test('a real brand token remains authoritative when accent also exists', () => {
   ]);
 
   assert.equal(r.$('.tokchip')?.textContent?.trim(), 'Cafe Brand');
-  assert.ok(r.$('button.tok.on[title="Cafe Brand"]'));
-  assert.equal(r.$('button.tok.on[title="Cafe Accent"]'), null);
+  assert.ok(r.$('button.tokname.on[title="Cafe Brand"]'));
+  assert.equal(r.$('button.tokname.on[title="Cafe Accent"]'), null);
   assert.equal(n.css.d['background-color'], C.cvar('brand'));
+});
+
+/* I8: every token in the palette shows its name, so two similar colours can be told apart. */
+test('the colour palette names each token', () => {
+  const n = C.N('heading', { level: 'h2', text: 'Named' });
+  C.state.pages[C.state.cur].tree = [n];
+  C.selSet([n.id]);
+  r.draw(() => <Ctl n={n} c={{ t: 'color', c: 'color', label: 'Colour' } as Control} />, 'right');
+  const names = [...document.querySelectorAll('.toks.named .tokname:not(.add) span')].map(e => e.textContent);
+  assert.deepEqual(names, C.colors().map(t => t.name));
+  assert.equal(r.$('.toks.named .tokname.add span')?.textContent, 'New colour');
 });

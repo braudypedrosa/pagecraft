@@ -493,7 +493,7 @@ test('picking a literal breaks the token link, and a token swatch restores it', 
   a.equal(n.css.d.color, '#ff0000', 'a literal replaces the reference');
   a.equal(C.isRef(n.css.d.color), false);
 
-  act(() => r.click(r.$('.toks .tok')));
+  act(() => r.click(r.$('.toks .tokname')));
   a.ok(C.isRef(n.css.d.color), 'and a token swatch links it again');
 });
 

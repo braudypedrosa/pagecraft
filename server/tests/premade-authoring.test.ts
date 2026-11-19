@@ -67,3 +67,22 @@ test('native contract also inspects reusable definitions and head HTML', () => {
   document.meta.headHtml = '<style>body{color:red}</style>';
   a.ok(validateTemplateDocument(document, config()).includes('document:head-html-is-not-builder-native'));
 });
+
+/* A template sets CSS without the editor's authored mark, so an outline, ghost or link button
+   filled with the factory brand colour publishes with no fill (Salt House 1.0.0's hero call to
+   action). The contract refuses it; solid-rendering variants and other fills pass. */
+test('template contract refuses a button whose fill its variant hides', () => {
+  const document = buildTemplateStarter('Example Studio');
+  const button = (id: string, variant: string, fill: string) => ({
+    id, type: 'button', props: { text: 'Find a home', link: '#', variant }, css: { d: { 'background-color': fill, color: '#fff' }, t: {}, m: {} },
+    hide: {}, cls: [], adv: { htmlId: '', cls: '', css: '' }, children: [],
+  });
+  document.pages[0].tree = [
+    button('hidden', 'outline', 'var(--c-brand)'),
+    button('ghosted', 'ghost', 'var(--c-brand)'),
+    button('solid', 'solid', 'var(--c-brand)'),
+    button('primary', 'primary', 'var(--c-brand)'),
+    button('tinted', 'outline', 'rgba(23,35,30,.18)'),
+  ] as never;
+  a.deepEqual(validateTemplateDocument(document, config()), ['hidden:button-fill-hidden-by-variant', 'ghosted:button-fill-hidden-by-variant']);
+});

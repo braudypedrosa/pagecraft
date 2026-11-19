@@ -32,7 +32,7 @@ test('a Hover click while the dialog closes does not change what the token saves
   C.selSet([n.id]);
   const answer = pendingName();
   r.draw(<Ctl n={n} c={colour} />);
-  act(() => r.click(r.$('button.tok.add')));
+  act(() => r.click(r.$('button.tokname.add')));
 
   /* the clicks a person makes before the dialog has finished leaving */
   C.state.ui.st = 'hover';
@@ -54,7 +54,7 @@ test('selecting another element meanwhile does not fan the link out to it', asyn
   C.selSet([n.id]);
   const answer = pendingName();
   r.draw(<Ctl n={n} c={colour} />);
-  act(() => r.click(r.$('button.tok.add')));
+  act(() => r.click(r.$('button.tokname.add')));
 
   C.selSet([n.id, other.id]);
   await act(async () => { answer('Forest'); });
@@ -74,12 +74,12 @@ test('cancelling, or deleting the element first, creates nothing', async () => {
   let answer = pendingName();
   r.draw(<Ctl n={n} c={colour} />);
   const before = C.colors().length;
-  act(() => r.click(r.$('button.tok.add')));
+  act(() => r.click(r.$('button.tokname.add')));
   await act(async () => { answer(null); });
   expect(C.colors().length).toBe(before);
 
   answer = pendingName();
-  act(() => r.click(r.$('button.tok.add')));
+  act(() => r.click(r.$('button.tokname.add')));
   C.delNode(n.id);
   await act(async () => { answer('Forest'); });
   expect(C.colors().length).toBe(before);

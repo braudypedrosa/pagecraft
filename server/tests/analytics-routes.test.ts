@@ -145,6 +145,11 @@ test('owners turn analytics on and off, read the numbers, download them and dele
   a.equal(off.status, 200);
   const offHtml = await off.text();
   a.match(offHtml, /Analytics is off/);
+  // S5: one reading column — what is counted, the button right after it, then what is not counted as a list.
+  const offState = offHtml.match(/<section class="pc-an-off">[^]*?<\/section>/)?.[0] ?? '';
+  a.ok(offState.indexOf('Turn on analytics') > offState.indexOf('Form submissions the site accepted'), 'the button follows what is counted');
+  a.ok(offState.indexOf('Turn on analytics') < offState.indexOf('<h3>Not counted</h3>'), 'and comes before what is not');
+  a.match(offState, /<li>Known bots<\/li>/);
   a.match(offHtml, /href="\/sites\/[^"]+\/analytics" aria-current="page"/, 'the rail marks the page');
   a.equal((await r.manage('/analytics', { cookie: r.editorCookie })).status, 403, 'owners only');
   a.equal((await r.manage('/analytics', { cookie: '' })).status, 302);
