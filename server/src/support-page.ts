@@ -21,6 +21,7 @@ const styles = `<style>
 .pc-support-launch.pc-btn{position:fixed;z-index:45;right:max(24px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));height:46px;padding:0 17px;gap:8px;background:var(--pc-ink);border-color:var(--pc-ink);color:white;box-shadow:0 3px 12px #11131126}
 .pc-support-launch.pc-btn:hover{background:#2b3029;border-color:#2b3029;color:#fff}
 .pc-support-launch svg{color:var(--pc-green)}
+.pc-support-unread-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--pc-green);color:var(--pc-on-green);font:var(--pc-type-description);font-weight:700;font-variant-numeric:tabular-nums}
 .pc-support-panel{position:fixed;right:max(24px,env(safe-area-inset-right));bottom:max(80px,calc(env(safe-area-inset-bottom) + 56px));width:min(380px,calc(100vw - 32px));max-height:min(570px,calc(100dvh - 100px));display:flex;flex-direction:column;z-index:46;overflow:hidden;border:1px solid var(--pc-line-2);border-radius:var(--pc-radius-card,10px);background:var(--pc-panel);box-shadow:0 12px 48px #11131126}
 .pc-support-bar{display:flex;align-items:center;gap:6px;background:var(--pc-ink);color:white;padding:9px 12px 9px 18px}
 .pc-support-heading{display:grid;gap:2px;flex:1;min-width:0}
@@ -44,6 +45,7 @@ const styles = `<style>
 .pc-support-list a:focus-visible{outline-offset:-2px}
 .pc-support-subject{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .pc-support-subject strong{min-width:0;font-weight:600}
+.pc-support-unread-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--pc-ink)}
 .pc-support-replied{width:fit-content;border-radius:var(--pc-control-radius);padding:2px 8px;background:var(--pc-selection-bg);color:var(--pc-selection-text);font:var(--pc-type-description);font-weight:600}
 .pc-support-widget .pc-support-list a{grid-template-columns:1fr;gap:4px}
 .pc-support-widget .pc-support-list time::before{content:"Updated ";}
@@ -78,7 +80,7 @@ export function supportView(widget: boolean) {
     <form class="pc-support-form" data-form hidden><label for="pc-support-message">Message</label><textarea id="pc-support-message" name="message" rows="3" maxlength="8000" placeholder="How can we help?" required></textarea><button class="pc-btn primary" type="submit">Send message</button></form>
   </div>`;
   return `${styles}<div class="pc-support pc-support-${widget ? 'widget' : 'page'}" data-support>
-    ${widget ? `<button class="pc-btn pc-support-launch" type="button" aria-controls="pc-support-panel" aria-expanded="false" aria-label="Support chat" data-launch>${chat} Support</button>
+    ${widget ? `<button class="pc-btn pc-support-launch" type="button" aria-controls="pc-support-panel" aria-expanded="false" aria-label="Support chat" data-launch>${chat} Support<span class="pc-support-unread-count" data-unread-count aria-hidden="true" hidden></span></button>
     <section class="pc-support-panel" id="pc-support-panel" role="dialog" aria-label="Pagecraft Support" hidden><div class="pc-support-bar"><div class="pc-support-heading"><strong>Pagecraft Support</strong><small>Typically replies within 12 hours.</small></div><a class="pc-support-icon" href="/account/support" data-expand title="Open Support page" aria-label="Open Support page">${expand}</a><button class="pc-support-icon" data-close title="Close support chat" aria-label="Close support chat" type="button">${close}</button></div>${content}</section>` : content}
   </div><script>(${supportClient.toString()})();</script>`;
 }

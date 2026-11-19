@@ -26,6 +26,10 @@ export function registerSupportRoutes(app: Hono, o: {
     c.header('Cache-Control', 'private, no-store');
     await next();
   });
+  app.get('/api/support/unread', async c => {
+    const user = await customer(c);
+    return user ? c.json({ count: await o.store.unreadCount(user.id) }) : c.json({ error: 'Sign in to view support tickets.' }, 401);
+  });
   app.get(base, async c => {
     const user = await customer(c);
     return user ? c.json({ tickets: await o.store.list(user.id) }) : c.json({ error: 'Sign in to view support tickets.' }, 401);
@@ -57,6 +61,19 @@ export function registerSupportRoutes(app: Hono, o: {
       throw error;
     }
   };
+  app.post(base + '/:id/read', bounded, async c => {
+    const user = await customer(c);
+    if (!user) return c.json({ error: 'Sign in to view support tickets.' }, 401);
+    if (c.req.header('origin') !== new URL(o.editorOrigin || c.req.url).origin) return c.json({ error: 'Origin not allowed.' }, 403);
+    if (!/^application\/json(?:\s*;|$)/i.test(c.req.header('content-type') || '')) return c.json({ error: 'Expected JSON.' }, 415);
+    const input = await c.req.json().catch(() => null);
+    try {
+      return c.json({ count: await o.store.markRead(user.id, c.req.param('id')!, input?.messageIds) });
+    } catch (error) {
+      if (error instanceof SupportError) return c.json({ error: error.message }, error.status);
+      throw error;
+    }
+  });
   app.post(base, bounded, send);
   app.post(base + '/:id/messages', bounded, send);
 }
