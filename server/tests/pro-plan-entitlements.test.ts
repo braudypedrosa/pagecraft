@@ -7,7 +7,7 @@ import type { AccountAuth, VerifiedIdentity } from '../src/account-auth.ts';
 import { MemoryOwnedSiteStore, PgOwnedSiteStore } from '../src/accounts.ts';
 import { MemoryStore } from '../src/store.ts';
 import { MemoryAssetStore, type Asset, type AssetQuota } from '../src/assets.ts';
-import { PgAuthStore, PgStore, type Queryable } from '../src/store-pg.ts';
+import { PgAssetStore, PgAuthStore, PgStore, type Queryable } from '../src/store-pg.ts';
 import { FREE_PLAN, PRO_PLAN } from '../src/plans.ts';
 import { blankDoc } from '../src/render.ts';
 
@@ -124,5 +124,31 @@ test('Postgres resolves the assigned plan while preserving atomic Free creation 
     a.equal((await auth.ensureAuthUser('pg-auth', owner.email))?.plan, 'pro');
     a.equal((await auth.usersByIds([owner.id]))[0]?.plan, 'pro');
     a.equal(await owned.owned(owner.id), 2);
+  } finally { await db.close(); }
+});
+
+test('Postgres honors the account exemption for site creation and media while retaining the stored Free plan', async () => {
+  const db = await PGlite.create();
+  try {
+    const query = db as unknown as Queryable;
+    const store = new PgStore(query), auth = new PgAuthStore(query), assets = new PgAssetStore(query);
+    const owned = new PgOwnedSiteStore(query);
+    await store.init(); await auth.init(); await assets.init();
+    const accountId = '328a15d0-0837-4881-8b47-38d316c03f95';
+    await db.query('insert into users (id, email) values ($1,$2)', [accountId, 'workshop@example.test']);
+    const member = await auth.createUser('reader@example.test', 'Reader');
+    for (const ownerId of [accountId, member.id]) {
+      const site = await owned.create({ ownerId, host: ownerId + '.test', name: 'Studio', doc: blankDoc('Studio') });
+      a.ok(site.ok);
+      const next = await owned.create({ ownerId, host: ownerId + '-2.test', name: 'Archive', doc: blankDoc('Archive') });
+      a.equal(next.ok, ownerId === accountId);
+      const asset = { siteId: site.site.id, name: 'cover.webp', type: 'image/webp', w: 1, h: 1, bytes: new Uint8Array([1]) };
+      const quota = { ownerId, limitBytes: Number.MAX_SAFE_INTEGER, originalBytes: 1, optimized: true };
+      const first = await assets.put(asset, quota);
+      await db.query('update assets set stored_bytes = $1 where id = $2', [FREE_PLAN.storageBytes + 1, first.id]);
+      if (ownerId === accountId) await assets.put({ ...asset, name: 'detail.webp' }, quota);
+      else await a.rejects(assets.put({ ...asset, name: 'detail.webp' }, quota), /storage limit/);
+      a.equal((await auth.userById(ownerId))?.plan, 'free');
+    }
   } finally { await db.close(); }
 });

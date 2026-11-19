@@ -22,7 +22,7 @@ import type { SiteTemplateSummary } from './site-templates.ts';
 import { discoveryOptions, getTemplateDiscovery } from './template-discovery.ts';
 import { CUSTOM_SELECT_BOOT_SCRIPT, CUSTOM_SELECT_CSS } from '../../shared/custom-select.js';
 import { DIRECT, NOT_FOUND, OTHER, RANGES, change, type AnalyticsReport, type RangeKey } from './analytics.ts';
-import { planEntitlements } from './plans.ts';
+import { accountEntitlements } from './plans.ts';
 
 const esc = (value: unknown) => String(value ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -765,7 +765,7 @@ export const accountSettingsPage = (
 ) => {
   const providers = new Set(data.providers);
   const hasPassword = providers.has('email');
-  const plan = planEntitlements(user.plan);
+  const plan = accountEntitlements(user.id, user.plan);
   const sitePercent = plan.ownedSites === null
     ? null
     : Math.min(100, Math.round(data.ownerCount / plan.ownedSites * 100));
@@ -773,7 +773,9 @@ export const accountSettingsPage = (
   const siteUsage = plan.ownedSites === null
     ? `<div class="pc-usage-row"><div class="pc-usage-copy"><span>Owned sites</span><span>${data.ownerCount} used · Unlimited</span></div></div>`
     : `<div class="pc-usage-row"><div class="pc-usage-copy"><span>Owned sites</span><span>${data.ownerCount} of ${plan.ownedSites} used</span></div><div class="pc-usage-track" role="meter" aria-label="Owned sites used" aria-valuemin="0" aria-valuemax="${plan.ownedSites}" aria-valuenow="${data.ownerCount}"><span style="width:${sitePercent}%"></span></div></div>`;
-  const planSummary = plan.id === 'pro'
+  const planSummary = plan.id === 'unrestricted'
+    ? `<div class="pc-plan-limits">${siteUsage}<div class="pc-usage-row"><div class="pc-usage-copy"><span>Media storage</span><span>${esc(mediaSize(data.storage.usedBytes))} used · Unlimited</span></div></div></div>`
+    : plan.id === 'pro'
     ? `<div class="pc-plan-price">Complimentary <span>private plan</span></div><div class="pc-plan-limits">${siteUsage}<div class="pc-usage-row"><div class="pc-usage-copy"><span>Media storage</span><span>${esc(mediaSize(data.storage.usedBytes))} of ${esc(mediaSize(plan.storageBytes))}</span></div><div class="pc-usage-track" role="meter" aria-label="Media storage used" aria-valuemin="0" aria-valuemax="${plan.storageBytes}" aria-valuenow="${data.storage.usedBytes}"><span style="width:${storagePercent}%"></span></div></div></div><ul class="pc-plan-list"><li>Unlimited owned sites</li><li>${esc(mediaSize(plan.storageBytes))} optimized media storage</li><li>Storage shared across owned sites</li><li>Collaborator sites do not use your site allowance</li></ul><p class="pc-plan-note">This private complimentary plan is assigned to your account. No payment method or purchase is required.</p>`
     : `<div class="pc-plan-price">$0 <span>current plan</span></div><div class="pc-plan-limits">${siteUsage}<div class="pc-usage-row"><div class="pc-usage-copy"><span>Media storage</span><span>${esc(mediaSize(data.storage.usedBytes))} of ${esc(mediaSize(plan.storageBytes))}</span></div><div class="pc-usage-track" role="meter" aria-label="Media storage used" aria-valuemin="0" aria-valuemax="${plan.storageBytes}" aria-valuenow="${data.storage.usedBytes}"><span style="width:${storagePercent}%"></span></div></div></div><ul class="pc-plan-list"><li>${plan.ownedSites === 1 ? '1 owned site' : `Up to ${plan.ownedSites} owned sites`}, drafts included</li><li>100 MB optimized media storage</li><li>Storage shared across owned sites</li><li>Collaborator sites do not use your site allowance</li></ul><p class="pc-plan-note">Paid plans are not available yet. No payment method is required for the Free plan.</p>`;
   const joined = data.createdAt || user.createdAt;
@@ -835,7 +837,10 @@ export const dashboardPage = (
   user: User, sites: DashboardSite[], ownerCount: number, storage: DashboardStorage,
   templates: SiteTemplateSummary[] = [], error?: string, message?: string, invitationCount = 0
 ) => {
-  const plan = planEntitlements(user.plan);
+  const plan = accountEntitlements(user.id, user.plan);
+  const allowance = plan.id === 'unrestricted'
+    ? `Unrestricted · ${ownerCount} owned ${ownerCount === 1 ? 'site' : 'sites'} · ${esc(mediaSize(storage.usedBytes))} media used`
+    : `${plan.ownedSites === null ? `Unlimited owned sites · ${ownerCount} used` : `${ownerCount} of ${plan.ownedSites} owned sites`} · ${esc(mediaSize(storage.usedBytes))} of ${esc(mediaSize(plan.storageBytes))} media used`;
   const atLimit = plan.ownedSites !== null && ownerCount >= plan.ownedSites;
   const remaining = plan.ownedSites === null ? null : Math.max(0, plan.ownedSites - ownerCount);
   const latestTemplates = latestDashboardTemplates(templates);
@@ -881,7 +886,7 @@ export const dashboardPage = (
   <section class="pc-workspace"><div class="pc-content"><header class="pc-heading pc-workspace-head"><div><h1>Sites</h1><p>Manage and continue building your Pagecraft sites.</p></div>${newSiteAction}</header>
   ${invitationCount ? `<div class="notice"><a href="/invitations">${invitationCount} ${invitationCount === 1 ? 'invitation awaits' : 'invitations await'} your response</a></div>` : ''}
   <div class="pc-toolbar"><label class="pc-search"><span class="sr-only">Search sites</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14" stroke-linecap="round"/></svg><input type="search" placeholder="Search sites" data-site-search></label><label><span class="sr-only">Sort sites</span><select class="pc-sort" data-site-sort><option value="updated">Last edited</option><option value="name">Name</option></select></label></div>
-  ${notice(error, message)}<div class="pc-results-row"><p class="pc-results" aria-live="polite" data-site-results>${sites.length} ${sites.length === 1 ? 'site' : 'sites'}</p><span class="pc-allowance">${plan.ownedSites === null ? `Unlimited owned sites · ${ownerCount} used` : `${ownerCount} of ${plan.ownedSites} owned sites`} · ${esc(mediaSize(storage.usedBytes))} of ${esc(mediaSize(plan.storageBytes))} media used</span></div><section class="pc-site-grid" aria-label="Sites" data-site-grid>${cards}${!sites.length ? `<div class="pc-empty-copy"><h2>Start with a template or a blank page</h2><p>Your builder opens after the site is created. You will still return here whenever you sign in.</p></div>` : ''}<div class="pc-filter-empty pc-list-empty" data-filter-empty hidden><h2 data-filter-title>No sites found</h2><p data-filter-copy></p><button class="pc-btn" type="button" data-filter-action>Show all sites</button></div>${createCard}</section></div></section></div>${createModal}
+  ${notice(error, message)}<div class="pc-results-row"><p class="pc-results" aria-live="polite" data-site-results>${sites.length} ${sites.length === 1 ? 'site' : 'sites'}</p><span class="pc-allowance">${allowance}</span></div><section class="pc-site-grid" aria-label="Sites" data-site-grid>${cards}${!sites.length ? `<div class="pc-empty-copy"><h2>Start with a template or a blank page</h2><p>Your builder opens after the site is created. You will still return here whenever you sign in.</p></div>` : ''}<div class="pc-filter-empty pc-list-empty" data-filter-empty hidden><h2 data-filter-title>No sites found</h2><p data-filter-copy></p><button class="pc-btn" type="button" data-filter-action>Show all sites</button></div>${createCard}</section></div></section></div>${createModal}
   <dialog class="pc-delete-dialog pc-dialog" id="delete-site-dialog" aria-labelledby="delete-site-title" aria-describedby="delete-site-warning"><form method="post" class="pc-dialog-form" id="delete-site-form"><header class="pc-dialog-head"><h2 class="pc-dialog-title" id="delete-site-title">Delete site?</h2><button class="pc-dialog-close" type="button" data-delete-cancel aria-label="Close delete site dialog">${closeIcon}</button></header><div class="pc-dialog-body"><p class="pc-dialog-description" id="delete-site-warning">Permanently deletes this site, its versions, media, access and publishing connections. This cannot be undone.</p><div class="pc-dialog-field"><label for="dashboard-delete-confirm">Type <strong id="delete-site-name"></strong> to confirm</label><input id="dashboard-delete-confirm" name="confirmation" autocomplete="off" required></div></div><div class="pc-delete-dialog-actions pc-dialog-foot"><button class="pc-btn" type="button" id="cancel-site-delete" data-delete-cancel autofocus>Cancel</button><button class="pc-btn" id="confirm-site-delete" type="submit" disabled>Delete site permanently</button></div></form></dialog>
   <style>.pc-site-menu-panel .pc-delete-site-action{color:var(--pc-danger)}.pc-delete-dialog{width:min(480px,calc(100vw - 48px));overflow:auto}.pc-delete-dialog p{margin:0;color:var(--pc-text-2)}.pc-delete-dialog label{overflow-wrap:anywhere}.pc-delete-dialog input{width:100%;box-sizing:border-box;border:1px solid var(--pc-line-2);border-radius:var(--pc-control-radius);padding:var(--pc-control-padding);background:var(--pc-field);color:var(--pc-text)}#confirm-site-delete{background:var(--pc-danger);border-color:var(--pc-danger);color:#fff}</style>
   </main><script>(()=>{

@@ -27,6 +27,9 @@ import { isAssistantToken, type FileAssistantStore, type FileOAuthStore } from '
 import { ASSISTANT_SCOPES, assistantOAuthRoutes, resourceMetadataUrl } from './assistant-oauth.ts';
 import { siteForms, type FileSubmissionStore } from './submissions.ts';
 import { cloudIntegrationRoutes, type CloudIntegrations } from './cloud-integrations-routes.ts';
+import { supportPage, withSupportWidget } from './support-page.ts';
+import { registerSupportRoutes } from './support-routes.ts';
+import type { SupportTicketStore, SupportNotice } from './support-tickets.ts';
 import { cmsDocumentErrors } from './cms-document.ts';
 import {
   isReviewDecision,
@@ -77,7 +80,7 @@ import {
 import { contentOnly, formRoutingChanged } from "./content.ts";
 import { assertTypedCmsWrite } from "./cms-values.ts";
 import { throttle, type NoticeSender } from "./mail.ts";
-import { planEntitlements } from "./plans.ts";
+import { accountEntitlements, isPlanExemptAccount, planEntitlements } from "./plans.ts";
 import {
   ALLOWED,
   documentAssetIds,
@@ -329,6 +332,7 @@ export interface Options {
   sendLink?: LinkSender;
   /** Review assignment, comment, and decision mail. Omitted when SMTP is unset. */
   sendNotice?: NoticeSender;
+  support?: { store: SupportTicketStore; notify?: (notice: SupportNotice) => Promise<void> };
   /** at most so many links per address per window. Absent means the default. */
   loginLimit?: { take(key: string): boolean };
   /** `Secure` on the session cookie. Off in tests and local http, on everywhere real. */
@@ -849,7 +853,7 @@ export function createApp(o: Options) {
 
   // Shared-site uploads consume the storage owner's allowance, not the collaborator's.
   const storageLimitForOwner = async (ownerId: string, knownUser?: User) =>
-    planEntitlements((ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
+    accountEntitlements(ownerId, (ownerId === knownUser?.id ? knownUser : await o.auth.userById(ownerId))?.plan).storageBytes;
 
   /**
    * Who this person is to this site: one identity check and one membership lookup. `allowed`
@@ -1777,8 +1781,8 @@ export function createApp(o: Options) {
         visibleSites(user),
         o.auth.manualImportsForOwner(user.id),
         o.assets
-          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
-          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+          ? o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: accountEntitlements(user.id, user.plan).storageBytes },
       ]);
       const deletion = await accountDeletionPlan(user, identity, mine);
       return c.html(accountSettingsPage(user, {
@@ -2058,17 +2062,18 @@ export function createApp(o: Options) {
       role,
     }));
     const storage = o.assets
-      ? await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
+      ? await o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
       : null;
     return c.json({
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        plan: user.plan || "free",
+        plan: isPlanExemptAccount(user.id) ? null : user.plan || "free",
+        ...(isPlanExemptAccount(user.id) && { planExempt: true }),
       },
       sites: mine,
-      storage,
+      storage: storage && { ...storage, limitBytes: isPlanExemptAccount(user.id) ? null : storage.limitBytes },
     });
   });
 
@@ -2167,8 +2172,8 @@ export function createApp(o: Options) {
       const [visible, storage, pendingInvitations] = await Promise.all([
         visibleSites(user),
         o.assets
-          ? o.assets.usage(user.id, planEntitlements(user.plan).storageBytes)
-          : { usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes },
+          ? o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
+          : { usedBytes: 0, limitBytes: accountEntitlements(user.id, user.plan).storageBytes },
         invitations.listForUser(user.id),
       ]);
       const mine = visible.sort((a, b) =>
@@ -2179,7 +2184,7 @@ export function createApp(o: Options) {
         console.error('site template catalog unavailable', error);
         return [];
       })) : [];
-      return c.html(dashboardPage(
+      const dashboard = dashboardPage(
         user,
         await Promise.all(mine.map(async ({ site, role }) => {
           const cached = await sitePreviews.get(site.id);
@@ -2202,7 +2207,8 @@ export function createApp(o: Options) {
         c.req.query("error"),
         c.req.query("message"),
         pendingInvitations.length,
-      ));
+      );
+      return c.html(o.support ? withSupportWidget(dashboard) : dashboard);
     }
     if (!user) return c.html(signInPage());
 
@@ -2790,6 +2796,8 @@ export function createApp(o: Options) {
     return c.redirect(`${base}?message=Review+updated.`, 303);
   });
 
+  if (o.support) registerSupportRoutes(app, { ...o.support, who, editorOrigin: o.editorOrigin, page: supportPage });
+
   app.get("/api/notifications/mini", async (c) => {
     const user = await who(c);
     if (!user) return c.json({ error: "unauthorized" }, 401);
@@ -3190,7 +3198,7 @@ export function createApp(o: Options) {
           o.assets && mediaOwnerId ? o.assets.usage(mediaOwnerId) : { usedBytes: 0 },
           mediaOwnerId ? storageLimitForOwner(mediaOwnerId, gate.user) : FREE_STORAGE_BYTES,
         ]);
-        return { usedBytes: usage.usedBytes, limitBytes };
+        return { usedBytes: usage.usedBytes, limitBytes: isPlanExemptAccount(mediaOwnerId) ? null : limitBytes };
       }),
       timed("editor.wordpress", () => wordpressContentForSite(site.id)),
       // Local files beside the publication bytes; injected so opening Publish needs no request.
@@ -3260,10 +3268,9 @@ export function createApp(o: Options) {
   app.get("/api/storage", async (c) => {
     const user = await who(c);
     if (!user) return deny(c, 401);
-    if (!o.assets) {
-      return c.json({ usedBytes: 0, limitBytes: planEntitlements(user.plan).storageBytes });
-    }
-    return c.json(await o.assets.usage(user.id, planEntitlements(user.plan).storageBytes));
+    const limitBytes = accountEntitlements(user.id, user.plan).storageBytes;
+    const usage = o.assets ? await o.assets.usage(user.id, limitBytes) : { usedBytes: 0, limitBytes };
+    return c.json({ ...usage, limitBytes: isPlanExemptAccount(user.id) ? null : limitBytes });
   });
 
   app.get("/api/sites/:id", async (c) => {
@@ -4278,8 +4285,8 @@ export function createApp(o: Options) {
             ? c.redirect("/?error=limit", 303)
             : c.json({
               error: "site_limit_reached",
-              limit: planEntitlements(user.plan).ownedSites,
-              detail: siteLimitDetail(planEntitlements(user.plan).ownedSites),
+              limit: accountEntitlements(user.id, user.plan).ownedSites,
+              detail: siteLimitDetail(accountEntitlements(user.id, user.plan).ownedSites),
             }, 409);
         }
         return htmlForm ? c.redirect("/?error=account", 303) : c.json({

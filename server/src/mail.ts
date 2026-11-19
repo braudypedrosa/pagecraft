@@ -123,6 +123,20 @@ export function smtpSender(cfg: MailConfig, transport?: Transporter): LinkSender
   };
 }
 
+export function smtpSupportSender(cfg: MailConfig, domain: string, transport?: Transporter) {
+  const tx = mailTransport(cfg, transport);
+  return async (notice: import('./support-tickets.ts').SupportNotice) => {
+    await tx.sendMail({
+      from: cfg.from,
+      to: 'hello@braudyp.dev',
+      replyTo: `support-replies+${notice.replyToken}@${domain}`,
+      subject: `[Pagecraft Support · ${notice.ticketId.slice(0, 8)}] ${notice.subject}`,
+      text: `From: ${notice.accountEmail}\n\n${notice.body}\n\nReply to this email to respond in Pagecraft.`,
+      messageId: `<${notice.messageId}@${domain}>`,
+    });
+  };
+}
+
 export type NoticeSender = (to: string, subject: string, text: string) => Promise<void> | void;
 
 export function smtpNoticeSender(cfg: MailConfig, transport?: Transporter): NoticeSender {
