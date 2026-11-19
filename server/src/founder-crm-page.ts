@@ -484,7 +484,12 @@ function supportListRegion(support: CrmSupportInbox | undefined) {
 }
 
 function supportThreadRegion(ticket: NonNullable<CrmSupportInbox['selected']>) {
-  const messages = ticket.messages.map(message => `<li><div><strong>${message.role === 'support' ? 'Pagecraft Support' : 'Customer'}</strong>${date(message.createdAt, true)}</div><p>${esc(message.body)}</p></li>`).join('');
+  const messages = ticket.messages.map(message => {
+    const author = message.role === 'support'
+      ? '<strong class="support-staff-author">Pagecraft Support <span>Admin</span></strong>'
+      : '<strong>Customer</strong>';
+    return `<li><div>${author}${date(message.createdAt, true)}</div><p>${esc(message.body)}</p></li>`;
+  }).join('');
   return `<ol class="support-messages" aria-label="Conversation" data-support-thread>${messages}</ol>`;
 }
 
@@ -612,6 +617,8 @@ button,input,select,textarea{font:inherit}a{color:inherit}button,a,select,input,
 .support-detail{min-width:0;max-height:none;position:static;overflow:visible}.support-detail .detail-head{margin-bottom:0}
 .support-detail h2,.support-detail .detail-head p{overflow-wrap:anywhere}
 .support-messages li{padding:16px 0}.support-messages li>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}
+.support-staff-author{display:inline-flex;align-items:center;gap:6px;color:var(--green-dark)}
+.support-staff-author span{padding:2px 7px;border-radius:999px;background:var(--pc-selection-bg);font-size:12px;line-height:1.4}
 .support-messages p{margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:76ch}
 .support-detail textarea{width:100%;min-height:90px;resize:vertical}
 @media(max-width:850px){.support-screen.has-ticket{display:block}.support-screen.has-ticket>.list-pane{display:none}.support-detail{padding:16px}.support-tickets a{align-items:start}}

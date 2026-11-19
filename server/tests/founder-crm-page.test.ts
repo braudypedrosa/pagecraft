@@ -485,7 +485,10 @@ test('the founder inbox keeps support context separate and shares safe, composer
   const ticket = { id:'88229ace-1388-4029-ad26-8583197ac95a', subject:'A <title> question', accountEmail:'sam@example.test', updatedAt:'2026-11-19T08:00:00Z', latestMessageRole:'customer' as const };
   const support: CrmSupportInbox = {
     environment:'staging', sourceLabel: 'Staging support', state:'available', tickets:[ticket], requestId:'63c7257f-fef4-48f0-9a75-58b825acc969',
-    selected:{ ...ticket, messages:[{ role:'customer', body:'Hello <script>message()</script>', createdAt:ticket.updatedAt }] },
+    selected:{ ...ticket, messages:[
+      { role:'customer', body:'Hello <script>message()</script>', createdAt:ticket.updatedAt },
+      { role:'support', body:'Thanks for the details.', createdAt:ticket.updatedAt },
+    ] },
     draftBody:'A reply </textarea><img src=x>',
   };
   const doc = new JSDOM(founderCrmSupportPage(founder, input({ section:'support', support, error:'Please retry.' }))).window.document;
@@ -498,6 +501,8 @@ test('the founder inbox keeps support context separate and shares safe, composer
   a.equal(doc.querySelector('[data-support-inbox]').dataset.supportRefresh, '/support?environment=staging&ticket='+ticket.id);
   a.match(doc.querySelector('[data-support-inbox]').textContent, /sam@example.test.*Needs reply/);
   a.equal(doc.querySelector('[data-support-thread] p').textContent, support.selected!.messages[0].body);
+  a.deepEqual([...doc.querySelectorAll('[data-support-thread] li strong')].map(author => author.textContent),
+    ['Customer', 'Pagecraft Support Admin']);
   a.equal(doc.querySelector('[data-support-thread] script, [data-support-inbox] title, img'), null);
   const form = doc.querySelector('.support-detail form');
   a.equal(form.getAttribute('action'), '/support/'+ticket.id+'/replies?environment=staging');
