@@ -53,6 +53,16 @@ test('builder actions expose production inspector disclosures and synchronize ac
  motion.click();expect(motion.closest('.group')?.classList.contains('closed')).toBe(true);expect(motion.getAttribute('aria-expanded')).toBe('false');expect(motionBody.getAttribute('aria-hidden')).toBe('true');expect(motionBody.hasAttribute('inert')).toBe(true);await settleAndClose(dom);
 });
 test('cloud actions omit builder-only inspector disclosure specimens',()=>{const dom=new JSDOM(componentGalleryPage(editor,'cloud','actions'));expect(dom.window.document.querySelector('[data-gallery-disclosure]')).toBeNull();dom.window.close();});
+test('Cloud feedback shows persistent account notices beside their associated content',()=>{
+  const cloud = new JSDOM(componentGalleryPage(editor,'cloud','feedback'));
+  const builder = new JSDOM(componentGalleryPage(editor,'builder','feedback'));
+  const notices = cloud.window.document.querySelectorAll('.pc-settings-content > .notice');
+  expect([...notices].map(notice => notice.firstElementChild?.getAttribute('role'))).toEqual(['alert','status']);
+  for (const notice of notices) expect(notice.nextElementSibling?.matches('.pc-provider')).toBe(true);
+  expect(builder.window.document.querySelector('.pc-settings-content > .notice')).toBeNull();
+  cloud.window.close();
+  builder.window.close();
+});
 test('dialog variants retain input state, empty footer and return focus',async()=>{
  const dom=interactive('dialogs');await Promise.resolve();const d=dom.window.document,opener=d.querySelector('[data-dialog=empty]'),dialog=d.querySelector('dialog');opener.click();expect(dialog.open).toBe(true);expect(dialog.querySelector('footer')?.childElementCount).toBe(0);(d.querySelector('#dialog-name')).value='Unsaved preview';d.querySelector('[data-close]').click();expect(dialog.open).toBe(false);expect(d.activeElement).toBe(opener);d.querySelector('[data-dialog=danger]').click();expect(dialog.querySelector('[data-dialog-save]')?.textContent).toBe('Delete sample');expect((d.querySelector('#dialog-name')).value).toBe('Unsaved preview');await settleAndClose(dom);
 });

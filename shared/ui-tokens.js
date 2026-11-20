@@ -65,6 +65,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-type-table-label:600 var(--pc-text-label)/1.4 var(--pc-font-label);
   --pc-control-font:var(--pc-text-body);
   --pc-control-radius:7px;
+  --pc-notice-radius:8px;
   --pc-space-1:4px;
   --pc-space-2:8px;
   --pc-space-3:12px;
