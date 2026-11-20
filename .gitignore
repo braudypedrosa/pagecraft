@@ -41,3 +41,7 @@ supabase/.temp/
 # Draft packages/previews are reproducible and must not be confused with releases.
 premade-sites/*/*/draft/
 premade-sites/.promotion-lock/
+
+# Local environment files hold secrets. Commit examples under another name.
+.env
+.env.*

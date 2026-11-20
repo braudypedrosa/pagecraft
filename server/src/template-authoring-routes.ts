@@ -140,7 +140,12 @@ export function templateAuthoringRoutes(app: Hono, d: Dependencies) {
     }
     const html = renderSite(draft.document, assets).files.get(path);
     if (!html || !path.endsWith('.html')) return c.notFound();
-    c.header('content-security-policy', "sandbox allow-scripts allow-same-origin; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
+    /* The draft is served on the editor origin and its assets sit behind the operator's cookie,
+       so the page keeps that origin to load them. It must then never run script: with
+       `allow-scripts` beside `allow-same-origin`, draft content written through the authoring
+       credential would act with the operator's session. This matches the dashboard and proposal
+       previews; interactions can be checked in the editor. */
+    c.header('content-security-policy', "sandbox allow-same-origin; default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:; form-action 'none'; frame-ancestors 'self'; base-uri 'none'; object-src 'none'");
     return c.html(html);
   }));
   app.get('/api/template-drafts/:id/:version', guarded(async c => {

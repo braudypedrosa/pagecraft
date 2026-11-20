@@ -90,6 +90,9 @@ test('operator-only MCP creates, edits, previews and exports an immutable native
     const preview = await r.call('/owner/template-drafts/linden-dental/1.0.0/preview/index.html?revision=2');
     a.equal(preview.status, 200); a.match(await preview.text(), /Care for your whole family/);
     a.match(preview.headers.get('content-security-policy')!, /form-action 'none'/);
+    // Same-origin (for the operator-only assets) must never come with script.
+    a.match(preview.headers.get('content-security-policy')!, /script-src 'none'/);
+    a.doesNotMatch(preview.headers.get('content-security-policy')!, /allow-scripts/);
     const editor = await r.call('/owner/template-drafts/linden-dental/1.0.0/edit');
     a.match(await editor.text(), /"templateDraft":true/);
     const exported = await r.tool('pagecraft_template_export', { id: 'linden-dental', version: '1.0.0', revision: 2 });
