@@ -563,3 +563,62 @@ test('component root rejects sibling insertion without changing the document or 
   expect(w.eval('cdoc.getElementById("s-drop")')).toBeNull();
   expect(errors).toEqual([]);
 });
+
+/* E2: Client review and the live link sit in one labelled Share menu that mirrors the original
+   buttons (offered, enabled, label, action); History and Preview keep their words. */
+const shareItems = d => Array.from(d.querySelectorAll('#shareMenuPop [data-share-target]')).filter(item => !item.hidden);
+
+test.each([
+  { label: 'standalone', config: null, wordpress: false, offered: false, items: [] },
+  { label: 'Cloud owner', config: { url: 'https://example.test/live' }, wordpress: false, offered: true, items: ['clientReviewBtn', 'shareBtn'] },
+  { label: 'Cloud content account', config: { role: 'content', url: 'https://example.test/live' }, wordpress: false, offered: true, items: ['shareBtn'] },
+])('Share menu reflects $label capabilities', async ({ config, wordpress, offered, items }) => {
+  const { d, errors } = await editor(config, wordpress, { width: 1280 });
+  const trigger = d.querySelector('#shareMenuBtn');
+  expect(trigger.hidden).toBe(!offered);
+  if (offered) {
+    expect(trigger.querySelector('.shareLabel').textContent).toBe('Share');
+    expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
+    trigger.click();
+    expect(d.querySelector('#shareMenuPop').hidden).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(shareItems(d).map(item => item.dataset.shareTarget)).toEqual(items);
+    for (const item of shareItems(d)) {
+      const source = d.getElementById(item.dataset.shareTarget);
+      expect(item.disabled).toBe(source.disabled);
+      expect(item.textContent).toBe(source.getAttribute('aria-label') || source.title);
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
+test('Share explains the live link before the first publish and opens Client review from the menu', async () => {
+  const { d, errors } = await editor({ url: 'https://example.test/live' }, false, { width: 1280 });
+  const trigger = d.querySelector('#shareMenuBtn'), menu = d.querySelector('#shareMenuPop');
+  trigger.dispatchEvent(new d.defaultView.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  const live = menu.querySelector('[data-share-target="shareBtn"]');
+  expect(live.disabled).toBe(true);
+  expect(live.textContent).toBe('Publish the site before copying a live link');
+  const review = menu.querySelector('[data-share-target="clientReviewBtn"]');
+  expect(d.activeElement).toBe(review);
+  review.click();
+  expect(menu.hidden).toBe(true);
+  expect(d.querySelector('#mTitle').textContent).toBe('Client review');
+  expect(errors).toEqual([]);
+});
+
+test('Share is left to More tools on a narrow toolbar', async () => {
+  const { d } = await editor({ url: 'https://example.test/live' }, false, { width: 600 });
+  d.querySelector('#shareMenuBtn').click();
+  expect(d.querySelector('#shareMenuPop').hidden).toBe(true);
+});
+
+test('History and Preview carry labels, and Preview keeps one while it toggles', async () => {
+  const { w, d } = await editor({ url: 'https://example.test/live' }, false, { width: 1280 });
+  expect(d.querySelector('#historyBtn .actionLabel').textContent).toBe('History');
+  expect(d.querySelector('#previewBtn .collapseLabel').textContent).toBe('Preview');
+  w.togglePreview();
+  expect(d.querySelector('#previewBtn .collapseLabel').textContent).toBe('Edit');
+  w.togglePreview();
+  expect(d.querySelector('#previewBtn .collapseLabel').textContent).toBe('Preview');
+});
