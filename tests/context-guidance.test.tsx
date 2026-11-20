@@ -91,12 +91,12 @@ test('responsive scope stays at the field and reset restores inherited values', 
 test('committing a Padding edit refreshes its badge without remounting the field', () => {
   inspect(C.N('section'), 'style', 'tablet');
   const spacing = r.$$('.group').find(group => group.querySelector('.gh')?.textContent?.includes('Spacing'))!;
-  const top = spacing.querySelector('input[data-field-part="top"]') as HTMLInputElement;
+  const top = spacing.querySelector('input[data-field-part="top and bottom"]') as HTMLInputElement;
   top.focus(); r.type(top, '84');
-  assert.equal(r.$('input[data-field-part="top"]'), top);
+  assert.equal(r.$('input[data-field-part="top and bottom"]'), top);
   assert.equal(document.activeElement, top);
   top.blur();
-  assert.equal(r.$('input[data-field-part="top"]'), top);
+  assert.equal(r.$('input[data-field-part="top and bottom"]'), top);
   const reset = spacing.querySelector('button.rsp[aria-label="Clear Tablet override for Padding"]')!;
   assert.ok(reset);
   r.click(reset);

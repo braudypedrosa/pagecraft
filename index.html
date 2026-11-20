@@ -905,12 +905,23 @@ select.ctl{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
   padding-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.boxctl-sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap-1)}
+/* I4: one row per property. Two axis fields (↕ ↔) when opposite sides match, four side
+   fields (T R B L) when they differ; then the link toggle and the unit. It was a 2×2 grid
+   of labelled sides plus a Unit row, about 230 px for each property. */
+.boxctl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) 28px 58px;gap:var(--sp-2);align-items:end}
+.boxctl.split{grid-template-columns:repeat(4,minmax(0,1fr)) 28px 58px}
+.boxctl-axis{display:grid;grid-template-columns:14px minmax(0,1fr);align-items:center;gap:4px;min-width:0}
+.boxctl-axis>span{display:grid;place-items:center;color:var(--text-3)}
 .boxctl-side{display:grid;gap:3px;min-width:0}
-.boxctl-side>span,.boxctl-unit>span{font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3)}
-.boxctl-side>.ctl{width:100%;min-width:0}
-.boxctl-unit{display:grid;grid-template-columns:minmax(0,1fr) 88px;align-items:center;gap:var(--gap-1);margin-top:var(--gap-1)}
-.boxctl-unit>.ctl,.boxctl-unit>.pc-custom-select-trigger{width:100%;min-width:0}
+.boxctl-side>span{font-family:var(--label);font-size:var(--fs-1);letter-spacing:.04em;color:var(--text-3);text-align:center}
+.boxctl-axis>.ctl,.boxctl-side>.ctl{width:100%;min-width:0;text-align:center;font-variant-numeric:tabular-nums;padding-inline:4px;-moz-appearance:textfield;appearance:textfield}
+/* The side fields are narrow, so the browser's number arrows would hide the value; arrow keys
+   still step it. */
+.boxctl .ctl::-webkit-inner-spin-button,.boxctl .ctl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.boxctl-link{display:grid;place-items:center;width:28px;height:var(--h-ctl);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel);color:var(--text-3)}
+.boxctl-link:hover{background:var(--lift-bg);border-color:var(--lift-line);color:var(--text)}
+.boxctl-link.on{background:var(--pc-selection-bg);border-color:var(--ink);color:var(--text)}
+.boxctl>.boxctl-unit,.boxctl>.pc-custom-select-trigger{width:100%;min-width:0}
 .unit{display:flex;gap:0}
 .unit input{
   flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;
@@ -25481,6 +25492,13 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     }
     return values;
   }
+  var AXIS_V = /* @__PURE__ */ u2("svg", { viewBox: "0 0 16 16", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true", children: /* @__PURE__ */ u2("path", { d: "M8 2v12M5 4.5L8 2l3 2.5M5 11.5L8 14l3-2.5" }) });
+  var AXIS_H = /* @__PURE__ */ u2("svg", { viewBox: "0 0 16 16", width: "12", height: "12", fill: "none", stroke: "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true", children: /* @__PURE__ */ u2("path", { d: "M2 8h12M4.5 5L2 8l2.5 3M11.5 5L14 8l-2.5 3" }) });
+  var LINK_ICON = /* @__PURE__ */ u2("svg", { viewBox: "0 0 16 16", width: "13", height: "13", fill: "none", stroke: "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true", children: [
+    /* @__PURE__ */ u2("path", { d: "M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" }),
+    /* @__PURE__ */ u2("path", { d: "M6.5 9.5l3-3" })
+  ] });
+  var SIDE_MARK = ["T", "R", "B", "L"];
   function BoxCtl({ n: n2, c: c3 }) {
     const key2 = n2.id + "|" + (c3.c || c3.k || c3.t);
     const w3 = writer(n2, c3);
@@ -25490,23 +25508,44 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const choiceKey = [n2.id, c3.c || c3.k || c3.t, C2.dk(), C2.state.ui.st || "", C2.state.ui.target || ""].join("|");
     const [choice, setChoice] = d2({ key: choiceKey, unit: resolvedUnit });
     const u4 = withUnit ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
+    const same = (a3, b2) => a3.n === b2.n && (a3.u || "") === (b2.u || "");
+    const symmetric = same(vals[0], vals[2]) && same(vals[1], vals[3]);
+    const [split, setSplit] = d2({ key: choiceKey, on: false });
+    const sides = !symmetric || split.key === choiceKey && split.on;
+    const label = c3.label || "Spacing";
     const push = (root) => {
       L2.tx(key2);
       const unit = root.querySelector("select").value;
       C2.applyC(n2, c3, "");
-      root.querySelectorAll("input").forEach((inp, i3) => {
-        const input = inp;
+      const fields = [...root.querySelectorAll("input")];
+      const clean = (input) => {
         const raw = input.value.trim();
         const parsed = Number(raw);
         const v3 = !c3.neg && raw !== "" && Number.isFinite(parsed) && parsed < 0 ? "0" : raw;
         if (v3 !== raw) input.value = v3;
-        C2.applyC(n2, { c: c3.c + "-" + SIDES[i3], r: c3.r }, v3 === "" ? "" : v3 + unit);
-      });
+        return v3;
+      };
+      const values = fields.length === 2 ? (([v3, h3]) => [v3, h3, v3, h3])(fields.map(clean)) : fields.map(clean);
+      values.forEach((v3, i3) => C2.applyC(n2, { c: c3.c + "-" + SIDES[i3], r: c3.r }, v3 === "" ? "" : v3 + unit));
       L2.repaintCss();
     };
-    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "boxctl", children: [
-      /* @__PURE__ */ u2("div", { class: "boxctl-sides", children: SIDES.map((s3, k3) => /* @__PURE__ */ u2("label", { class: "boxctl-side", children: [
-        /* @__PURE__ */ u2("span", { "aria-hidden": "true", children: s3 }),
+    const toggle = () => {
+      if (sides) {
+        setSplit({ key: choiceKey, on: false });
+        const now = boxValues(n2, c3.c).map(C2.parseU);
+        if (!(same(now[0], now[2]) && same(now[1], now[3]))) {
+          L2.tx(key2);
+          C2.applyC(n2, c3, "");
+          const pair = [now[0], now[3], now[0], now[3]];
+          pair.forEach((v3, i3) => C2.applyC(n2, { c: c3.c + "-" + SIDES[i3], r: c3.r }, v3.n === "" ? "" : v3.n + (v3.u || u4)));
+          L2.repaintCss();
+          w3.done();
+        }
+      } else setSplit({ key: choiceKey, on: true });
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "boxctl" + (sides ? " split" : ""), children: [
+      sides ? SIDES.map((s3, k3) => /* @__PURE__ */ u2("label", { class: "boxctl-side", children: [
+        /* @__PURE__ */ u2("span", { "aria-hidden": "true", title: s3, children: SIDE_MARK[k3] }),
         /* @__PURE__ */ u2(
           "input",
           {
@@ -25522,31 +25561,57 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
             onBlur: w3.done
           }
         )
-      ] }, s3)) }),
-      /* @__PURE__ */ u2("div", { class: "boxctl-unit", children: [
-        /* @__PURE__ */ u2("span", { "aria-hidden": "true", children: "Unit" }),
+      ] }, s3)) : [["top and bottom", AXIS_V, vals[0].n], ["left and right", AXIS_H, vals[1].n]].map(([part, icon, value]) => /* @__PURE__ */ u2("label", { class: "boxctl-axis", children: [
+        /* @__PURE__ */ u2("span", { title: part, children: icon }),
         /* @__PURE__ */ u2(
-          "select",
+          "input",
           {
-            "data-field-part": "unit",
+            "data-field-part": part,
             class: "ctl",
-            value: u4,
-            style: { fontSize: "var(--fs-1)" },
-            onChange: (e3) => {
-              const select = e3.target;
-              setChoice({ key: choiceKey, unit: select.value });
-              const root = select.closest(".boxctl");
-              const hasValue = [...root.querySelectorAll("input")].some((input) => input.value.trim() !== "");
-              if (hasValue) {
-                push(root);
-                w3.done();
-              }
-            },
-            children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
-          },
-          `${choiceKey}|${u4}`
+            type: "number",
+            step: "any",
+            min: c3.neg ? void 0 : 0,
+            value,
+            placeholder: "0",
+            title: part,
+            onInput: (e3) => push(e3.target.closest(".boxctl")),
+            onBlur: w3.done
+          }
         )
-      ] })
+      ] }, part)),
+      /* @__PURE__ */ u2(
+        "button",
+        {
+          type: "button",
+          class: "boxctl-link" + (sides ? "" : " on"),
+          "aria-pressed": sides ? "false" : "true",
+          "aria-label": sides ? `${label}: link opposite sides` : `${label}: set each side separately`,
+          title: sides ? "Link opposite sides (top with bottom, left with right)" : "Set each side separately",
+          onClick: toggle,
+          children: LINK_ICON
+        }
+      ),
+      /* @__PURE__ */ u2(
+        "select",
+        {
+          "data-field-part": "unit",
+          class: "ctl boxctl-unit",
+          value: u4,
+          style: { fontSize: "var(--fs-1)" },
+          onChange: (e3) => {
+            const select = e3.target;
+            setChoice({ key: choiceKey, unit: select.value });
+            const root = select.closest(".boxctl");
+            const hasValue = [...root.querySelectorAll("input")].some((input) => input.value.trim() !== "");
+            if (hasValue) {
+              push(root);
+              w3.done();
+            }
+          },
+          children: ["px", "rem", "%", "em"].map((x2) => /* @__PURE__ */ u2("option", { value: x2, children: x2 }, x2))
+        },
+        `${choiceKey}|${u4}`
+      )
     ] }) });
   }
   var BORDER_TARGETS = [

@@ -141,7 +141,8 @@ for (const device of ['desktop', 'tablet', 'mobile'] as const) for (const side o
     assert.ok(swatch, 'the real Section inspector exposes a background picker');
     await act(async () => { swatch.click(); await new Promise(resolve => setTimeout(resolve, 40)); });
     assert.ok(right.querySelector('[role="dialog"]'));
-    const padding = right.querySelector<HTMLInputElement>(`input[aria-label="Padding ${side}"]`)!;
+    // I4: matching sides show as one axis field (top and bottom, left and right).
+    const padding = right.querySelector<HTMLInputElement>(`input[aria-label="Padding ${side}"], input[aria-label="Padding ${side === 'top' ? 'top and bottom' : 'left and right'}"]`)!;
     assert.ok(padding);
     await act(async () => {
       padding.dispatchEvent(new Event('pointerdown', { bubbles: true }));

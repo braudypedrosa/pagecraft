@@ -34,6 +34,7 @@ test('empty box unit choice stays UI-only, then applies to first value', () => {
   assert.equal(n.css.d['padding-top'], undefined);
   assert.equal(C.hist.u.length, beforeHistory, 'unit choice alone must not create history');
 
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!));
   act(() => r.type(r.$('input[data-field-part="top"]')!, '8'));
   assert.equal(n.css.d['padding-top'], '8rem');
   assert.equal(n.css.d['padding-right'], undefined);

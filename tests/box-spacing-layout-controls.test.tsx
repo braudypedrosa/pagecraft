@@ -15,13 +15,18 @@ test('spacing controls retain contextual names, native numeric constraints and s
   const c: Control = { t: 'box', c: 'padding', label: 'Padding', r: 1 };
   r.draw(<Ctl n={n} c={c} />);
 
+  // I4: matching opposite sides open as two axis fields; the link button splits them.
+  expect(r.$$('input,select').map(control => control.getAttribute('aria-label')))
+    .toEqual(['Padding top and bottom', 'Padding left and right', 'Padding unit']);
+  expect(r.$('.boxctl-link')!.getAttribute('aria-label')).toBe('Padding: set each side separately');
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!));
   expect(r.$$('input,select').map(control => control.getAttribute('aria-label')))
     .toEqual(['Padding top', 'Padding right', 'Padding bottom', 'Padding left', 'Padding unit']);
   for (const input of r.$$('input') as HTMLInputElement[]) {
     expect(input.type).toBe('number');
     expect(input.step).toBe('any');
     expect(input.min).toBe('0');
-    expect([...input.labels!].some(label => label.querySelector('span')?.textContent === input.dataset.fieldPart)).toBe(true);
+    expect([...input.labels!].some(label => label.querySelector('span')?.title === input.dataset.fieldPart)).toBe(true);
   }
   const unit = r.$('select') as HTMLSelectElement;
   expect([...unit.options].map(option => option.value)).toEqual(['px', 'rem', '%', 'em']);

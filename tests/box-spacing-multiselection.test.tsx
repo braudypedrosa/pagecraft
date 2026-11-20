@@ -34,6 +34,7 @@ test('box spacing updates exactly the selected parent and children and removes e
   const negativeBefore = structuredClone(f.unselected);
   const selectedBefore = f.selected.map(n => ({ ...n.css.d }));
   r.draw(<Ctl n={f.column} c={padding} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   act(() => r.type(input('top'), '13'));
 
   f.selected.forEach((n, index) => {
@@ -50,6 +51,7 @@ test('box fanout respects the active responsive state without replacing resting 
   C.state.ui.dev = 'tablet';
   C.state.ui.st = 'hover';
   r.draw(<Ctl n={f.column} c={padding} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   act(() => r.pick(r.$('select[data-field-part="unit"]')!, 'rem'));
   act(() => r.type(input('left'), '1.5'));
 
@@ -66,6 +68,7 @@ test('box fanout respects the active responsive state without replacing resting 
 test('shared unit changes, clearing and numeric normalization reach every selected box', () => {
   const f = fixture();
   r.draw(<Ctl n={f.column} c={padding} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   for (const unit of ['rem', '%', 'em', 'px']) {
     act(() => r.pick(r.$('select[data-field-part="unit"]')!, unit));
     for (const n of f.selected) {
@@ -80,6 +83,7 @@ test('shared unit changes, clearing and numeric normalization reach every select
 
   const margin: Control = { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 };
   r.draw(<Ctl n={f.column} c={margin} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   act(() => r.pick(r.$('select[data-field-part="unit"]')!, 'em'));
   act(() => r.type(input('bottom'), '-1.25'));
   for (const n of f.selected) expect(n.css.d['margin-bottom']).toBe('-1.25em');
@@ -100,6 +104,7 @@ test('a primary class target is written once while selected elements retain thei
     deleteProperty(target, key: string) { writes[key] = (writes[key] || 0) + 1; delete target[key]; return true; }
   });
   r.draw(<Ctl n={f.column} c={padding} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   act(() => r.type(input('top'), '13'));
 
   expect(writes).toEqual({ padding: 1, 'padding-top': 1, 'padding-right': 1, 'padding-bottom': 1, 'padding-left': 1 });
@@ -115,6 +120,7 @@ test('a coalesced box edit restores the whole selection with one Undo and Redo',
   L.tx = key => { if (txKey !== key) { txKey = key; C.checkpoint(); } };
   L.endTx = () => { txKey = null; };
   r.draw(<Ctl n={f.column} c={padding} />);
+  if (!r.$('.boxctl.split')) act(() => r.click(r.$('.boxctl-link')!)); // I4: per-side fields
   act(() => r.type(input('top'), '13'));
   act(() => r.type(input('top'), '14'));
   act(() => { input('top').dispatchEvent(new window.Event('blur')); });
