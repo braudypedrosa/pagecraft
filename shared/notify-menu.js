@@ -7,7 +7,7 @@ export const NOTIFY_MENU_CSS = `
 .pc-notify>summary.pc-iconbtn:hover,.pc-notify[open]>summary.pc-iconbtn{color:var(--pc-rail-text,#f8f6ef);background:#ffffff0f;filter:none}
 .pc-notify>summary.pc-iconbtn svg{display:block;color:inherit;stroke:currentColor}
 .pc-notify-badge{position:absolute;top:4px;right:4px;width:8px;min-width:8px;height:8px;padding:0;border:2px solid var(--pc-rail,#111311);border-radius:999px;background:var(--pc-green,#b7f34a);box-sizing:border-box;pointer-events:none;line-height:0;overflow:hidden}
-.pc-notify-badge[data-count]{top:1px;right:0;width:auto;min-width:17px;height:17px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:var(--pc-on-green,#111311);font-family:"DM Sans",system-ui,sans-serif;font-size:10px;font-weight:700;line-height:1;letter-spacing:0}
+.pc-notify-badge[data-count]{top:1px;right:0;width:auto;min-width:17px;height:17px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:var(--pc-on-green,#111311);font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-label);font-weight:700;line-height:1;letter-spacing:0}
 .pc-notify-panel{position:absolute;right:0;top:46px;width:min(340px,calc(100vw - 24px));padding:10px;background:var(--pc-panel,#fff);border:1px solid var(--pc-line,var(--pc-border));border-radius:8px;box-shadow:0 14px 30px rgba(17,19,17,.16);color:var(--pc-text,#171a17);z-index:60}
 .pc-notify-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 6px 10px;border-bottom:1px solid var(--pc-line,var(--pc-border))}
 .pc-notify-head strong{font-size:.82rem;font-weight:650;letter-spacing:-.01em}
@@ -21,7 +21,7 @@ export const NOTIFY_MENU_CSS = `
 .pc-notify-item.is-new .pc-notify-item-icon{border-color:#c5d9b0;background:#f4f8ef}
 .pc-notify-item-copy{min-width:0;display:grid;gap:3px;padding-top:2px}
 .pc-notify-item-copy strong{font-size:var(--pc-text-body,14px);font-weight:650;line-height:1.35;color:var(--pc-text,#171a17)}
-.pc-notify-item-copy time{font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-caption,12px);color:var(--pc-text-2,#6f7771)}
+.pc-notify-item-copy time{font-family:"DM Sans",system-ui,sans-serif;font-size:var(--pc-text-caption,13px);color:var(--pc-text-2,#6f7771)}
 .pc-notify-empty{margin:0;padding:18px 8px;color:var(--pc-text-2,#6f7771);font-size:var(--pc-text-body,14px);line-height:1.45}
 `;
 

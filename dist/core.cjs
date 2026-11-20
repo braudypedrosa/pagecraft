@@ -552,7 +552,7 @@ var UI_TOKENS_CSS = `:root{
   --pc-table-icon-gap:8px;
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
-  --pc-text-caption:12px;
+  --pc-text-caption:var(--pc-text-label);
   --pc-text-label:${UI_TEXT_SIZES.label};
   --pc-text-body:${UI_TEXT_SIZES.body};
   --pc-text-prose:16px;
@@ -11218,12 +11218,12 @@ ${m.css || ""}
   display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
   width:var(--icon-size,30px);height:var(--icon-size,30px);min-width:18px;min-height:18px;
   border:1px dashed #cbd2d8;border-radius:6px;color:#6f7771;background:#f5f7f880;
-  font:600 12px "DM Sans",system-ui,sans-serif;
+  font:600 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;
 }
 .s-held{
   display:block;margin-top:8px;padding:7px 10px;border-radius:6px;
   background:#f5f7f8;border:1px dashed #cbd2d8;color:#6f7771;
-  font:500 11.5px "DM Sans",system-ui,sans-serif;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;
 }
 [data-editing]{outline:1.5px solid #111311 !important;outline-offset:2px;cursor:text !important}
 [data-editing] *{cursor:text !important}
@@ -11250,7 +11250,7 @@ ${m.css || ""}
 /* nothing stays pinned over the canvas \u2014 the way out lives in the chrome */
 .s-lockchip,.s-lockopen{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;
-  font:500 12px "DM Sans",system-ui,sans-serif;white-space:nowrap;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;white-space:nowrap;
   background:#fff;border:1px solid #dfe4e7;color:#4b504b;box-shadow:0 8px 20px -10px #11131140;
 }
 .s-lockchip svg{color:#6f7771}
@@ -11272,7 +11272,7 @@ ${m.css || ""}
 }
 .s-openadd:hover{background:#2a2e2a}
 .s-startheroes{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:4px 0 12px}
-.s-starthero{display:flex;flex-direction:column;gap:6px;width:168px;padding:8px;border:1px solid #dfe3dd;border-radius:10px;background:#fff;cursor:pointer;color:#111311;font:600 12px/1.2 "Manrope",system-ui,sans-serif;transition:border-color .12s,box-shadow .12s}
+.s-starthero{display:flex;flex-direction:column;gap:6px;width:168px;padding:8px;border:1px solid #dfe3dd;border-radius:10px;background:#fff;cursor:pointer;color:#111311;font:600 ${UI_TEXT_SIZES.label}/1.2 "Manrope",system-ui,sans-serif;transition:border-color .12s,box-shadow .12s}
 .s-starthero:hover,.s-starthero:focus-visible{border-color:#b7f34a;box-shadow:0 0 0 3px rgba(183,243,74,.35);outline:none}
 .s-starthero .pvw{display:block;width:100%;height:auto;border-radius:6px;background:#f3f5f1}
 .s-starthero .pv-b{fill:#d5dad3}.s-starthero .pv-l{fill:#adb7bf}.s-starthero .pv-h{fill:#8f9a90}.s-starthero .pv-g{fill:#b7f34a}
@@ -11308,7 +11308,7 @@ ${m.css || ""}
   position:absolute;transform:scale(calc(1 / var(--z,1))) translate(-50%,-100%);
   transform-origin:50% 100%;background:#111311;color:#f5f7f8;
   border-radius:5px;padding:3px 7px;pointer-events:none;white-space:nowrap;
-  font:500 11px "DM Sans",system-ui,sans-serif;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;
 }
 #s-hud .qa{position:absolute;pointer-events:auto;width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border:2px solid #111311;border-radius:50%;background:#b7f34a;color:#111311;display:grid;place-items:center;cursor:pointer;transform:scale(calc(1 / var(--z,1)));box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
 #s-hud .qa[data-side=top]{transform:scale(calc(1 / var(--z,1))) translateY(-15px)}
@@ -11320,14 +11320,14 @@ ${m.css || ""}
 #s-hud .qa-line{position:absolute;background:#b7f34a;pointer-events:none;border-radius:2px;box-shadow:0 0 0 1px rgba(17,19,17,.35)}
 #s-hud .qa-line.top,#s-hud .qa-line.bottom{height:calc(4px / var(--z,1));margin-top:calc(-2px / var(--z,1))}
 #s-hud .qa-line.left,#s-hud .qa-line.right{width:calc(4px / var(--z,1));margin-left:calc(-2px / var(--z,1))}
-#s-hud .rev-chip{position:absolute;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:0 0 6px 6px;background:#111311;color:#b7f34a;font:600 11px/1.2 system-ui,sans-serif;pointer-events:auto;white-space:nowrap;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0}
+#s-hud .rev-chip{position:absolute;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:0 0 6px 6px;background:#111311;color:#b7f34a;font:600 ${UI_TEXT_SIZES.label}/1.2 system-ui,sans-serif;pointer-events:auto;white-space:nowrap;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0}
 #s-hud .rev-chip svg{width:11px;height:11px}
 #s-hud .bar{
   position:absolute;display:flex;flex-wrap:wrap;align-items:center;gap:1px;background:#111311;color:#f5f7f8;
   box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);
   border-radius:6px 6px 0 0;padding:3px 3px 3px 8px;pointer-events:auto;white-space:nowrap;
   transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;
-  font:500 12px "DM Sans",system-ui,sans-serif;
+  font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;
 }
 #s-hud .bar .nm{padding-right:6px}
 #s-hud .bar button{
@@ -11337,7 +11337,7 @@ ${m.css || ""}
 #s-hud .bar button:hover{background:#ffffff26;opacity:1;color:#b7f34a}
 #s-hud .bar button.g{cursor:grab}
 #s-drop{position:absolute;z-index:9999;pointer-events:none;background:#b7f34a;border-radius:2px;box-shadow:0 0 0 calc(1px / var(--z,1)) #11131126}
-#s-drop-label{position:absolute;z-index:10000;pointer-events:none;box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);padding:5px 8px;border-radius:4px;background:#111311;color:#f5f7f8;font:500 12px "DM Sans",system-ui,sans-serif;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;white-space:normal}
+#s-drop-label{position:absolute;z-index:10000;pointer-events:none;box-sizing:border-box;width:max-content;max-width:calc(100vw * var(--z,1) - 8px);padding:5px 8px;border-radius:4px;background:#111311;color:#f5f7f8;font:500 ${UI_TEXT_SIZES.label} "DM Sans",system-ui,sans-serif;transform:scale(calc(1 / var(--z,1)));transform-origin:0 0;white-space:normal}
 #s-drop.box{background:#b7f34a24;border:1.5px solid #b7f34a;border-radius:8px;box-shadow:none}
 ` : "");
 }

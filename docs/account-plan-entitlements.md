@@ -3,6 +3,8 @@
 | Plan | Publicly available | Owned sites | Optimized media pool |
 | --- | --- | --- | --- |
 | Free | Yes; default for new profiles | 1 in total, including drafts | 100 MB |
+| Launch | Assigned or subscribed | 5 | 1 GB |
+| Studio | Assigned or subscribed | 20 | 5 GB |
 | Pro | No; privately assigned | Unlimited | 5 GB |
 
 Pro is complimentary. It has no checkout, public upgrade option, or payment obligation.
@@ -17,7 +19,7 @@ plan stays intact and Account settings displays Unrestricted.
 The canonical catalog is `supabase/functions/pagecraft-db/plan-entitlements.ts`, re-exported
 by `server/src/plans.ts`. The Node deployment bundles that one pure module; the gateway
 deployment includes it alongside the function entrypoint. Unknown values fail closed to
-Free, and the database constraint permits only `free` and `pro`.
+Free. The database permits `free`, `launch`, `studio` and `pro`.
 
 The Free allowance changed from 3 to 1 owned site on 2026-11-16 (user decision). Existing
 Free accounts that already own more sites keep every one of them: nothing is deleted, hidden
@@ -43,10 +45,15 @@ Curated-template installation retains its existing media ownership and accountin
 file size checks, document limits, and invitation permissions remain independent of plans.
 
 For a private assignment, resolve the exact signed-in profile and confirmed Auth identity,
-then update only that profile through trusted database administration. Do not match display
+then use the trusted gateway’s `plan.grant` operation for that profile. The gateway computes
+the stored plan from current grants and subscriptions. Do not match display
 name alone. Verify the stored value, rendered plan, storage endpoint, and site creation past
 the Free limit. No browser-facing plan assignment endpoint is provided.
 
 The current staging and production installation shares account records. A plan assignment
 is therefore account data shared by both environments; frontend/server promotion remains
 a separate deployment. A future clean production database needs its own deliberate grant.
+
+## Production billing availability
+
+The customer app registers Paddle checkout, webhooks and plan-management routes when the billing configuration and database gateway are present. Production keeps Paddle unconfigured. Account settings still show the stored account allowances, and customers can contact Support for plan help.

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-19T12:36:05.132Z",
+  "capturedAt": "2026-11-20T01:47:55.392Z",
   "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -51,8 +51,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": false,
-        "dark": true
+        "light": true,
+        "dark": false
       }
     },
     "browserCommandLine": {
@@ -95,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "84e33f36088a5fb25327002a033d03e6be706386426537ffb9e00865f9121c3f",
+    "builder.html": "761b869c4c3d8aef303e993308a9e6a0a31d953e9c712adb9d4974897057275d",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -108,7 +108,7 @@
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
-    "shared/ui-tokens.js": "179120ced695d04215925ee829dc3f98ba6970da151a23875dd96f7151d96e9e",
+    "shared/ui-tokens.js": "157ca35c3e89542c90c088e8b1c90861e2a6a50cadc3b39f955823276e6bc1c1",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
@@ -117,9 +117,9 @@
     "shared/dialog-styles.js": "69dec71c358816f39a565f833feb3542ee23276af69005ac936a346375f8b28c",
     "shared/custom-select.js": "d7c26c7734f32bcd41c752dd5bb229eadcbf07e39f58f6a833bf6d7a025ee3ba",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
-    "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
-    "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "04652bfb8528cfa30d8f919cb8c7323264898849c972b9933cc479964c746aab",
+    "shared/notify-menu.js": "ef44b48de1eea1e43615ce3d10169da99118b19e5a4435fcf49a127d3f22fbf0",
+    "server/src/cloud-header.ts": "5e85dc5d2915496be1b3ab163ffe6ed707633e5be42bcb7ac6e03e5c190adcf8",
+    "server/src/account-pages.ts": "e0ba16cbcba5be89bcfdce3724dccbf4e8cdd15c5c495504ff2b9e7609998444",
     "server/src/component-gallery.ts": "f5aea66c3554fa97d3cbfa566c6bf7cad03c7bbc9daf1e89262174f3a80cf1f9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -130,526 +130,152 @@
     {
       "host": "cloud",
       "check": "Select Escape preserves Home, closes picker and returns focus",
-      "passed": true,
-      "detail": {
-        "before": "Home",
-        "opened": {
-          "expanded": "true",
-          "popovers": 1
-        },
-        "after": {
-          "expanded": "false",
-          "popovers": 0,
-          "role": "combobox",
-          "value": "Home"
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
-      "passed": true,
-      "detail": {
-        "before": {
-          "modal": true,
-          "receivesPointer": true,
-          "topLayer": true,
-          "withinViewport": true
-        },
-        "resized": {
-          "anchored": true,
-          "menuVisible": true,
-          "overflow": false,
-          "value": "public"
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
-      "passed": true,
-      "detail": {
-        "escaped": {
-          "expanded": "false",
-          "focus": "Sample access",
-          "menus": 0,
-          "open": true,
-          "value": "private"
-        },
-        "tabbed": {
-          "focusInDialog": true,
-          "menus": 0,
-          "open": true
-        },
-        "backwards": "dialog-name",
-        "parentClosed": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
-      "passed": true,
-      "detail": {
-        "reopened": {
-          "expanded": "true",
-          "visible": true
-        },
-        "closed": {
-          "menus": 0,
-          "open": false,
-          "topLayer": 0
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Unsaved dialog value survives resize from 1440px to 768px",
-      "passed": true,
-      "detail": {
-        "open": true,
-        "overflow": false,
-        "value": "Sample page (unsaved QA edit)"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Dialog Escape closes and returns focus to opener after exit animation",
-      "passed": true,
-      "detail": {
-        "opened": true,
-        "focus": "Open dialog",
-        "open": false
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Empty dialog footer has no displayed box",
-      "passed": true,
-      "detail": {
-        "border": "1px",
-        "children": 0,
-        "display": "none",
-        "height": 0,
-        "open": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Long native form keeps fixed dialog edges and a scrolling body",
-      "passed": true,
-      "detail": {
-        "measurements": [
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 258,
-            "scrollBefore": 0,
-            "width": 1440
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 600,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 558,
-            "scrollBefore": 0,
-            "width": 768
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 258,
-            "scrollBefore": 0,
-            "width": 768
-          }
-        ],
-        "closed": {
-          "focus": "Open long form dialog",
-          "open": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Processing prevents duplicate activation",
-      "passed": true,
-      "detail": {
-        "busy": {
-          "busy": "true",
-          "disabled": true,
-          "label": "Processing preview…",
-          "x": 296.0546875,
-          "y": 433.03125
-        },
-        "still": {
-          "disabled": true,
-          "finishEnabled": true
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Success restores action",
-      "passed": true,
-      "detail": {
-        "busy": null,
-        "disabled": false,
-        "finishDisabled": true,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Failure restores action with recoverable error",
-      "passed": true,
-      "detail": {
-        "alert": "Preview failed. Try Start processing again.",
-        "busy": null,
-        "disabled": false,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Disclosure remains mounted during exit and survives rapid reopening",
-      "passed": true,
-      "detail": {
-        "open": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "exiting": {
-          "expanded": "false",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "reopened": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Reduced-motion disclosure exit completes",
-      "passed": true,
-      "detail": {
-        "expanded": "false",
-        "hidden": true
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Refresh failure retains previous result and offers retry",
-      "passed": true,
-      "detail": {
-        "errorShown": true,
-        "previous": "Sample inbox · 3 entries",
-        "retryEnabled": true,
-        "role": "alert"
-      }
+      "passed": true
     },
     {
       "host": "cloud",
       "check": "Refresh recovery clears error silently and retains result",
-      "passed": true,
-      "detail": {
-        "errorHidden": true,
-        "previous": "Sample inbox · 3 entries",
-        "noticesAdded": 0
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Select Escape preserves Home, closes picker and returns focus",
-      "passed": true,
-      "detail": {
-        "before": "Home",
-        "opened": {
-          "expanded": "true",
-          "popovers": 1
-        },
-        "after": {
-          "expanded": "false",
-          "popovers": 0,
-          "role": "combobox",
-          "value": "Home"
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker receives pointer input above the dialog and preserves value on resize",
-      "passed": true,
-      "detail": {
-        "before": {
-          "modal": true,
-          "receivesPointer": true,
-          "topLayer": true,
-          "withinViewport": true
-        },
-        "resized": {
-          "anchored": true,
-          "menuVisible": true,
-          "overflow": false,
-          "value": "public"
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker Escape cancels first and Tab preserves dialog navigation",
-      "passed": true,
-      "detail": {
-        "escaped": {
-          "expanded": "false",
-          "focus": "Sample access",
-          "menus": 0,
-          "open": true,
-          "value": "private"
-        },
-        "tabbed": {
-          "focusInDialog": true,
-          "menus": 0,
-          "open": true
-        },
-        "backwards": "dialog-name",
-        "parentClosed": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Modal picker rapid reopening cancels exit and parent close leaves no orphan",
-      "passed": true,
-      "detail": {
-        "reopened": {
-          "expanded": "true",
-          "visible": true
-        },
-        "closed": {
-          "menus": 0,
-          "open": false,
-          "topLayer": 0
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Unsaved dialog value survives resize from 1440px to 768px",
-      "passed": true,
-      "detail": {
-        "open": true,
-        "overflow": false,
-        "value": "Sample page (unsaved QA edit)"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Dialog Escape closes and returns focus to opener after exit animation",
-      "passed": true,
-      "detail": {
-        "opened": true,
-        "focus": "Open dialog",
-        "open": false
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Empty dialog footer has no displayed box",
-      "passed": true,
-      "detail": {
-        "border": "1px",
-        "children": 0,
-        "display": "none",
-        "height": 0,
-        "open": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Long native form keeps fixed dialog edges and a scrolling body",
-      "passed": true,
-      "detail": {
-        "measurements": [
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 334,
-            "scrollBefore": 0,
-            "width": 1440
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 600,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 634,
-            "scrollBefore": 0,
-            "width": 768
-          },
-          {
-            "actualBottomPadding": 16,
-            "bodyScrollable": true,
-            "footerInside": true,
-            "footerPadding": 16,
-            "headerInside": true,
-            "height": 900,
-            "horizontalOverflow": false,
-            "inputHeights": [
-              44
-            ],
-            "modal": true,
-            "open": true,
-            "scrollAfter": 334,
-            "scrollBefore": 0,
-            "width": 768
-          }
-        ],
-        "closed": {
-          "focus": "Open long form dialog",
-          "open": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Processing prevents duplicate activation",
-      "passed": true,
-      "detail": {
-        "busy": {
-          "busy": "true",
-          "disabled": true,
-          "label": "Processing preview…",
-          "x": 296.0546875,
-          "y": 427.03125
-        },
-        "still": {
-          "disabled": true,
-          "finishEnabled": true
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Success restores action",
-      "passed": true,
-      "detail": {
-        "busy": null,
-        "disabled": false,
-        "finishDisabled": true,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Failure restores action with recoverable error",
-      "passed": true,
-      "detail": {
-        "alert": "Preview failed. Try Start processing again.",
-        "busy": null,
-        "disabled": false,
-        "label": "Start processing"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Disclosure remains mounted during exit and survives rapid reopening",
-      "passed": true,
-      "detail": {
-        "open": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "exiting": {
-          "expanded": "false",
-          "height": 45.59375,
-          "hidden": false
-        },
-        "reopened": {
-          "expanded": "true",
-          "height": 45.59375,
-          "hidden": false
-        }
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Reduced-motion disclosure exit completes",
-      "passed": true,
-      "detail": {
-        "expanded": "false",
-        "hidden": true
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Refresh failure retains previous result and offers retry",
-      "passed": true,
-      "detail": {
-        "errorShown": true,
-        "previous": "Sample inbox · 3 entries",
-        "retryEnabled": true,
-        "role": "alert"
-      }
+      "passed": true
     },
     {
       "host": "builder",
       "check": "Refresh recovery clears error silently and retains result",
-      "passed": true,
-      "detail": {
-        "errorHidden": true,
-        "previous": "Sample inbox · 3 entries",
-        "noticesAdded": 0
-      }
+      "passed": true
     }
   ],
   "images": {
@@ -802,7 +428,7 @@
       }
     },
     "cloud-tables-1440.png": {
-      "sha256": "60b0956aaad6931d25e84264a8dde761d88c0624df1eed6d5533dbf59ece0e21",
+      "sha256": "573a8f4bd5c4a78d50c709cab2665c751f31656e32aa7adac05dd8342058f871",
       "width": 1440,
       "height": 1106,
       "state": "First row hovered, second row neutral, empty result",
@@ -839,7 +465,7 @@
       }
     },
     "cloud-tables-768.png": {
-      "sha256": "1fb1079447d0a839a7fa908e15754baf094d84da57095f7279a6ea051c5d2a20",
+      "sha256": "cfa19bea83b13509d88b11cb4573f3e8a4066c939dbbe69b451da4731c89c459",
       "width": 768,
       "height": 1172,
       "state": "First row hovered, second row neutral, empty result",
@@ -1024,7 +650,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "53b64323b60f7d8f8eecce98d02da1d639c2a61cc9ec40a2cc04ee95df7898c5",
+      "sha256": "3f0c250f77653aa9474ba42486eeabf9a29e85f20546bfa1120c8c1553fa9aa7",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1061,7 +687,7 @@
       }
     },
     "cloud-feedback-768.png": {
-      "sha256": "0ca93df8823a419a103cd40f6c0d631598c45496cfe1e041dc97a26cd13a3872",
+      "sha256": "809b06812ad7fce8f31f1b55dc821dca947928c9ef5244022b1408c20b42ccef",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1098,7 +724,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "b8b789a9af294f1f5a58ddbfaf5091f0ee36c7d0e2c373b4bad5e68a5536aa2a",
+      "sha256": "084ffbfcc75623e1f6ee57699f4ce308b87be6b6b8ef27c1d3aa5344ed009885",
       "width": 1440,
       "height": 1166,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1135,7 +761,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "5af9201687b53e5656ca011406896321b64d6d575753e1dcd8812127b8102b8e",
+      "sha256": "4e023ff7a2a284609b3b3126039a7a0d1ede15a14a52b1a16964f3f78e459445",
       "width": 768,
       "height": 1883,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -1246,14 +872,14 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "5de38f0823e5c5906a97dd31efba8a8127fcde1db67d2fb4fcc925e2e34adc46",
+      "sha256": "5406c6ca9933a1021729670f0ff4e881fcc6c801e03a0494a33be3b9eb4fac0d",
       "width": 1440,
-      "height": 1228,
+      "height": 1231,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 1440,
-          "height": 1228,
+          "height": 1231,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -1267,7 +893,7 @@
             "x": 0,
             "y": 0,
             "width": 1440,
-            "height": 1228,
+            "height": 1231,
             "scale": 1
           }
         }
@@ -1283,14 +909,14 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "63a8bb1f397d341376d5d0dca0e7181bc746f25cdfc8de89913d5e139169b696",
+      "sha256": "a5a731b918fb0fb7bf8ffb8899d1056f94aa024060b799a2c8e76c3412951b90",
       "width": 768,
-      "height": 1284,
+      "height": 1287,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 768,
-          "height": 1284,
+          "height": 1287,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -1304,7 +930,7 @@
             "x": 0,
             "y": 0,
             "width": 768,
-            "height": 1284,
+            "height": 1287,
             "scale": 1
           }
         }
@@ -1468,7 +1094,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "1d083123eab1d4fe11ac36eade48ab0b9f8b8fd935f80014ce8243ffd5ce8a3a",
+      "sha256": "7ab51df615dbfa5814fe261e200cd0d201df80aa3ccb2fa621fcc4a81d817945",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1505,7 +1131,7 @@
       }
     },
     "builder-feedback-768.png": {
-      "sha256": "e89ef5b21645a8f9bf2293c70c745b4dadc7c5b142b1a43b554a4e6beca052e3",
+      "sha256": "52983aed44ffeab5ebc93e5ebce2ecdfadd1928cde7db6e05afb67b5ca81bab9",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

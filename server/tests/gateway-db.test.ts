@@ -731,3 +731,120 @@ test('a client running against the gateway reaches the deletion actions', async 
   a.deepEqual(await auth.deleteAccount(user), { status: 'deleted', authUserDeleted: true });
   a.equal(await auth.userById(user), null);
 });
+
+test('plan grants recompute the cached account plan under the user lock', async () => {
+  const userId = 'plan-grant-user';
+  await db.query(`insert into users (id, email) values ($1, $2)`, [userId, 'plan-grant-user@example.test']);
+  const plan = async () => (await db.query<{ plan: string; plan_source: string }>(
+    `select plan, plan_source from users where id=$1`, [userId])).rows[0];
+
+  harness.statements.length = 0;
+  const launch = await operation('plan.grant', { userId, plan: 'launch', reason: 'Beta tester', grantedBy: 'founder' });
+  a.equal(launch.status, 200, JSON.stringify(launch.body));
+  a.deepEqual(launch.body.plan, { plan: 'launch', source: 'grant', changed: true });
+  a.deepEqual(await plan(), { plan: 'launch', plan_source: 'grant' });
+  a.ok(harness.statements.some(text => /select id, plan, plan_source from users where id = \$1 for update/.test(text)),
+    'recompute reads the account under its row lock');
+
+  const studio = await operation('plan.grant', { userId, plan: 'studio', reason: 'Partner', grantedBy: 'founder' });
+  a.equal(studio.body.plan.plan, 'studio', 'the higher grant wins');
+
+  const status = await operation('plan.status', { userId });
+  a.equal(status.body.plan, 'studio');
+  a.equal(status.body.grants.length, 2);
+
+  const revoked = await operation('plan.revokeGrant', { grantId: studio.body.grant.id, revokedBy: 'founder' });
+  a.deepEqual(revoked.body, { revoked: true, plan: { plan: 'launch', source: 'grant', changed: true } });
+  a.equal((await operation('plan.revokeGrant', { grantId: studio.body.grant.id, revokedBy: 'founder' })).body.revoked, false);
+
+  await db.query(`insert into billing_subscriptions
+    (paddle_subscription_id, environment, user_id, price_id, plan, status, last_event_at)
+    values ('sub_plan_test', 'sandbox', $1, 'pri_test', 'launch', 'active', now())`, [userId]);
+  await operation('plan.revokeGrant', { grantId: launch.body.grant.id, revokedBy: 'founder' });
+  a.deepEqual(await plan(), { plan: 'launch', plan_source: 'subscription' },
+    'an active subscription keeps the plan after every grant is revoked');
+
+  await db.query(`update billing_subscriptions set status='canceled' where paddle_subscription_id='sub_plan_test'`);
+  a.deepEqual((await operation('plan.recompute', { userId })).body, { plan: 'free', source: 'free', changed: true });
+  a.deepEqual((await operation('plan.recompute', { userId })).body, { plan: 'free', source: 'free', changed: false });
+});
+
+test('plan grants refuse invalid input and unknown accounts', async () => {
+  const bad = [
+    { userId: 'plan-grant-user', plan: 'free', reason: 'x', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'enterprise', reason: 'x', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: '', grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x'.repeat(201), grantedBy: 'founder' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: '' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: 'founder', expiresAt: '2000-01-01T00:00:00Z' },
+    { userId: 'plan-grant-user', plan: 'pro', reason: 'x', grantedBy: 'founder', expiresAt: 'soon' },
+  ];
+  for (const args of bad) {
+    const response = await call('plan.grant', args);
+    a.equal(response.status, 400, JSON.stringify(args));
+    a.equal(response.body.code, 'INVALID_PLAN_REQUEST');
+  }
+  const missing = await call('plan.grant', { userId: 'nobody', plan: 'pro', reason: 'x', grantedBy: 'founder' });
+  a.equal(missing.status, 404);
+  a.equal((await call('plan.revokeGrant', { grantId: randomUUID(), revokedBy: 'founder' })).status, 404);
+  a.equal(await count(`select * from plan_grants where user_id='nobody'`), 0);
+});
+
+test('billing and plan tables are inaccessible to client roles', async () => {
+  for (const table of ['plan_grants', 'billing_customers', 'billing_subscriptions', 'billing_events', 'crm_contacts']) {
+    for (const role of ['anon', 'authenticated']) {
+      const permissions = await db.query<{ allowed: boolean }>(`select has_table_privilege($1, $2, 'SELECT') as allowed`, [role, table]);
+      a.equal(permissions.rows[0].allowed, false, `${role} cannot read ${table}`);
+    }
+    const security = await db.query<{ enabled: boolean }>(`select relrowsecurity as enabled from pg_class where oid=$1::regclass`, [table]);
+    a.equal(security.rows[0].enabled, true);
+  }
+});
+
+test('Paddle subscription events apply once, in order, to the account their checkout named', async () => {
+  const userId = randomUUID(), other = randomUUID();
+  await db.query(`insert into users (id, email, name) values ($1, 'Payer@Billing.test', 'Pat Payer'), ($2, 'other@billing.test', '')`, [userId, other]);
+  const event = (patch: Record<string, unknown> = {}) => ({
+    environment: 'sandbox', eventId: `evt_${randomUUID().replace(/-/g, '').slice(0, 26)}`, eventType: 'subscription.created',
+    occurredAt: '2026-11-19T01:00:00.000Z', subscriptionId: 'sub_01billingtest0001', customerId: 'ctm_01billingtest0001',
+    userId, priceId: 'pri_01launchmonthly01', plan: 'launch', status: 'active', currentPeriodEnd: '2026-12-19T01:00:00.000Z',
+    scheduledChange: null, ...patch,
+  });
+  const plan = async (id = userId) => (await db.query<{ plan: string; plan_source: string }>(`select plan, plan_source from users where id=$1`, [id])).rows[0];
+
+  const first = event();
+  const applied = await operation('billing.applySubscription', first);
+  a.equal(applied.status, 200, JSON.stringify(applied.body));
+  a.equal(applied.body.outcome, 'applied');
+  a.deepEqual(await plan(), { plan: 'launch', plan_source: 'subscription' });
+  const contact = (await db.query<{ stage: string; email: string; account_id: string }>(`select stage, email, account_id from crm_contacts where account_id=$1`, [userId])).rows;
+  a.deepEqual(contact, [{ stage: 'customer', email: 'payer@billing.test', account_id: userId }], 'a paying account becomes a CRM customer');
+
+  a.equal((await operation('billing.applySubscription', first)).body.outcome, 'duplicate');
+  const older = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T00:00:00.000Z', status: 'canceled' }));
+  a.equal(older.body.outcome, 'stale', 'an older event never overwrites newer state');
+  a.equal((await plan()).plan, 'launch');
+
+  const moved = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T02:00:00.000Z', userId: other }));
+  a.equal(moved.body.outcome, 'refused', 'custom data cannot move a subscription to another account');
+  a.equal((await plan(other)).plan, 'free');
+  const stolenCustomer = await operation('billing.applySubscription', event({ subscriptionId: 'sub_01billingtest0002', userId: other, occurredAt: '2026-11-19T02:30:00.000Z' }));
+  a.equal(stolenCustomer.body.outcome, 'refused', 'a customer stays with its first account');
+  const nobody = await operation('billing.applySubscription', event({ subscriptionId: 'sub_01billingtest0003', customerId: 'ctm_01billingtest0003', userId: null }));
+  a.equal(nobody.body.outcome, 'refused');
+
+  await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T03:00:00.000Z', status: 'past_due' }));
+  a.equal((await plan()).plan, 'launch', 'past due keeps the plan during the grace window');
+  await db.query(`update billing_subscriptions set status_changed_at = now() - interval '8 days' where paddle_subscription_id='sub_01billingtest0001'`);
+  const stale = await operation('plan.recomputeStale', {});
+  a.ok(stale.body.changed >= 1);
+  a.deepEqual(await plan(), { plan: 'free', plan_source: 'free' }, 'the periodic recompute ends the grace window');
+
+  const canceled = await operation('billing.applySubscription', event({ occurredAt: '2026-11-19T04:00:00.000Z', status: 'canceled' }));
+  a.equal(canceled.body.outcome, 'applied');
+  a.equal((await plan()).plan, 'free');
+  a.equal(await count(`select * from billing_events where error is not null`), 3);
+  for (const bad of [{ plan: 'free' }, { environment: 'prod' }, { status: 'gone' }, { eventId: 'nope' }, { occurredAt: 'later' }]) {
+    a.equal((await call('billing.applySubscription', event(bad))).status, 400, JSON.stringify(bad));
+  }
+});

@@ -47,7 +47,7 @@ export const UI_TOKENS_CSS = `:root{
   --pc-table-icon-gap:8px;
   --pc-font-body:Manrope,system-ui,-apple-system,sans-serif;
   --pc-font-label:"DM Sans",system-ui,-apple-system,sans-serif;
-  --pc-text-caption:12px;
+  --pc-text-caption:var(--pc-text-label);
   --pc-text-label:${UI_TEXT_SIZES.label};
   --pc-text-body:${UI_TEXT_SIZES.body};
   --pc-text-prose:16px;

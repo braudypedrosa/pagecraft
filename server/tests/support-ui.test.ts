@@ -64,6 +64,11 @@ test('widget retries the same request and the full page continues the same threa
     assert.equal(link, 'https://app.example.test/account/support?ticket=ticket-one');
     page = open(false, link);
     await tick();
+    const header = page.window.document.querySelector('.pc-topbar');
+    assert.equal(header.querySelector('.pc-docname').textContent, 'Support');
+    for (const selector of ['[aria-label="Help"]', '[data-notify-root]', '#account-menu']) {
+      assert.equal(header.querySelector(selector).outerHTML, doc.querySelector('.pc-topbar').querySelector(selector).outerHTML);
+    }
     doc.dispatchEvent(new widget.window.Event('visibilitychange'));
     await tick();
     for (const surface of [widget, page]) {

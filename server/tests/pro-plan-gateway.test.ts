@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { test } from "vitest";
 import {
   accountEntitlements,
+  isPaidPlan,
   FREE_PLAN,
   planEntitlements,
   PRO_PLAN,
@@ -41,7 +42,7 @@ test("only the designated Pagecraft account receives runtime unrestricted entitl
   a.equal(accountEntitlements(undefined, "pro"), PRO_PLAN);
   a.equal(accountEntitlements(owner + "1", "unrestricted"), FREE_PLAN);
   a.equal(planEntitlements("unrestricted"), FREE_PLAN);
-  a.equal(planEntitlements("studio"), FREE_PLAN);
+  a.equal(isPaidPlan("unrestricted"), false);
 });
 
 test("gateway reads plan while holding each quota owner row lock", () => {

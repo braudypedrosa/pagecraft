@@ -1,4 +1,6 @@
 import { LiveReviewStore } from './live-reviews.ts';
+import { billingRoutes, manageableSubscription } from './billing-routes.ts';
+import { checkoutReady } from './paddle-billing.ts';
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { HTTPException } from "hono/http-exception";
 import type { ServerErrorLog } from "./system-health.ts";
@@ -316,6 +318,8 @@ const oauthCredential = (
 export interface Options {
   /** Internal, authenticated UI reference; disabled unless the host explicitly opts in. */
   componentGallery?: boolean;
+  /** Paddle checkout and the signed subscription webhook. Absent: every billing route is off. */
+  billing?: import('./billing-routes.ts').BillingRouteOptions;
   store: Store;
   auth: AuthStore;
   /** where the images live. Absent means a site renders with placeholders. */
@@ -807,6 +811,8 @@ export function createApp(o: Options) {
     }
     return pending;
   };
+
+  if (o.billing) billingRoutes(app, o.billing, who);
 
   app.get('/internal/components', async c => {
     if (!o.componentGallery || !o.editorHtml) return c.notFound();
@@ -1613,13 +1619,24 @@ export function createApp(o: Options) {
       async (c) => {
         const body = await form(c);
         const next = safeNext(body.next);
+        const link = body.intent === "link";
+        const origin = o.editorOrigin || new URL(c.req.url).origin;
+        if (link) {
+          const identity = await verifiedIdentity(c);
+          if (!identity) return c.redirect("/sign-in?next=%2Faccount", 303);
+          if (identity.providers?.includes("google")) return c.redirect("/account", 303);
+          if (!authSourceLimit.take(requestSource(c))) return c.redirect("/account?error=google_link_start", 303);
+          const url = await o.accountAuth!.oauth(c, {
+            provider: "google", redirectTo: `${origin}/auth/confirm?link=google`, link: true,
+          });
+          return c.redirect(url || "/account?error=google_link_start", 303);
+        }
         if (!authSourceLimit.take(requestSource(c))) {
           return c.redirect(
             `/sign-in?error=oauth&next=${encodeURIComponent(next)}`,
             303,
           );
         }
-        const origin = o.editorOrigin || new URL(c.req.url).origin;
         const redirectTo = `${origin}/auth/confirm?next=${
           encodeURIComponent(next)
         }`;
@@ -1666,6 +1683,15 @@ export function createApp(o: Options) {
       const type = c.req.query("type");
       const next = safeNext(c.req.query("next"));
       const code = c.req.query("code");
+      if (c.req.query("link") === "google") {
+        const current = await verifiedIdentity(c);
+        if (!current) return c.redirect("/sign-in?next=%2Faccount", 303);
+        if (c.req.query("error_code") === "identity_already_exists") return c.redirect("/account?error=google_link_conflict", 303);
+        if (!code || c.req.query("error")) return c.redirect("/account?error=google_link", 303);
+        const linked = await o.accountAuth!.confirm(c, { code, linkUserId: current.authUserId, flowId: c.req.query("sb_flow_id") });
+        return c.redirect(linked?.authUserId === current.authUserId && linked.providers?.includes("google")
+          ? "/account" : "/account?error=google_link", 303);
+      }
       const tokenHash = c.req.query("token_hash");
       if (tokenHash && !code) {
         return c.html(confirmLinkPage({ tokenHash, type: type || "", next }));
@@ -1777,15 +1803,19 @@ export function createApp(o: Options) {
       const tab = requestedTab === "security" || requestedTab === "plan"
         ? requestedTab
         : "profile";
-      const [mine, wordpress, storage] = await Promise.all([
+      const [mine, wordpress, storage, planStatus] = await Promise.all([
         visibleSites(user),
         o.auth.manualImportsForOwner(user.id),
         o.assets
           ? o.assets.usage(user.id, accountEntitlements(user.id, user.plan).storageBytes)
           : { usedBytes: 0, limitBytes: accountEntitlements(user.id, user.plan).storageBytes },
+        o.billing && checkoutReady(o.billing.config) ? o.billing.plans.status(user.id).catch(() => null) : null,
       ]);
       const deletion = await accountDeletionPlan(user, identity, mine);
       return c.html(accountSettingsPage(user, {
+        billingDetailsAvailable: !!o.billing,
+        subscription: o.billing ? manageableSubscription(o.billing.config, planStatus) : undefined,
+        paidPlans: checkoutReady(o.billing?.config),
         providers: identity.providers || [],
         createdAt: identity.createdAt || user.createdAt,
         ownerCount: await ownedSiteCount(user, mine),
@@ -7885,7 +7915,7 @@ const shell = (title: string, body: string) =>
   .card--consent{width:min(calc(100vw - 32px),620px);padding:0;overflow:hidden}
   h1{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
   p{margin:0 0 18px;color:#5f6660;font-size:var(--pc-text-body)}
-  label{display:block;font-size:12px;color:#5f6660;margin-bottom:6px}
+  label{display:block;font-size:var(--pc-text-label);color:#5f6660;margin-bottom:6px}
   input{width:100%;box-sizing:border-box;padding:var(--pc-control-padding);border:1px solid var(--pc-border-strong);border-radius:var(--pc-control-radius);min-height:var(--pc-control-height);
         font:inherit;font-size:var(--pc-control-font);margin-bottom:12px}
   button{width:100%;min-height:var(--pc-control-height);padding:var(--pc-control-padding);border:0;border-radius:var(--pc-control-radius);background:#b7f34a;color:#111311;
@@ -7893,7 +7923,7 @@ const shell = (title: string, body: string) =>
   a{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:6px;
     border:1px solid var(--pc-border);border-radius:8px;color:inherit;text-decoration:none}
   a:hover{background:var(--pc-hover-bg);border-color:#5f6660}
-  small{color:#5f6660;font-size:12px}
+  small{color:#5f6660;font-size:var(--pc-text-label)}
   .ok{padding:11px 12px;border-radius:8px;background:var(--pc-surface-subtle);font-size:var(--pc-text-body)}
   .consent__header{padding:32px 36px 28px;background:var(--pc-surface-subtle);border-bottom:1px solid var(--pc-border)}
   .consent__brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;font-weight:700;font-size:16px}
@@ -7902,7 +7932,7 @@ const shell = (title: string, body: string) =>
   .consent__header p{max-width:58ch;margin:0;font-size:14px}
   .consent__body{padding:28px 36px 36px}
   .consent__destination{padding-bottom:20px;border-bottom:1px solid var(--pc-border)}
-  .consent__destination span{display:block;color:#5f6660;font-size:12px;font-weight:600}
+  .consent__destination span{display:block;color:#5f6660;font-size:var(--pc-text-label);font-weight:600}
   .consent__destination strong{display:block;margin-top:5px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
   .consent__note{max-width:58ch;margin:18px 0 24px;font-size:13px;line-height:1.55}
   .consent__actions{margin:0}
