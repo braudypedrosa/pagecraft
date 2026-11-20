@@ -235,11 +235,8 @@ test("anonymous visitors are sent to sign in and a verified identity always sees
   a.match(html, /height:52px/);
   a.match(html, /width:var\(--pc-rail-width\)/);
   a.match(html, /padding:0 var\(--pc-rail-padding-x\)/);
-  a.match(
-    html,
-    /<button type="button" data-site-view="sites" aria-pressed="true">/,
-  );
-  a.doesNotMatch(html, /data-site-view="recent"/);
+  a.match(html, /<nav class="pc-rail" aria-label="Sites navigation"><a href="\/" aria-current="page">/);
+  a.doesNotMatch(html, /data-site-view=/, "no shared sites, so no Owned/Shared filter");
   a.doesNotMatch(html, /class="pc-rail-account"/);
   a.doesNotMatch(html, /data-account-open/);
 });
@@ -607,7 +604,7 @@ test("dashboard renders searchable builder-style site cards and the owner quota"
   a.match(html, />Owner<\/div>/);
   a.match(html, /1 site remaining/);
   a.match(html, /0 of 1 owned sites · 0 KB of 100 MB media used/);
-  a.match(html, /data-site-view="owned"/);
+  a.doesNotMatch(html, /data-site-view="owned"/, "a solo owner gets no filter");
   a.match(html, /data-filter-empty/);
   a.match(html, /No sites match your search/);
   a.match(html, /No shared sites yet/);
