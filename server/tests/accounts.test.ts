@@ -43,17 +43,20 @@ class FakeAccountAuth implements AccountAuth {
   current: VerifiedIdentity | null = null;
   signup: { email: string; name: string; captchaToken: string } | null = null;
   oauthRedirectTo: string | null = null;
+  oauthLink = false;
+  oauthAvailable = true;
   emailRedirectTo: string | null = null;
   passwordUpdate: { password: string; currentPassword?: string } | null = null;
-  confirmations: { code?: string; tokenHash?: string; type?: string }[] = [];
+  confirmations: { code?: string; tokenHash?: string; type?: string; linkUserId?: string }[] = [];
   forgotten: string[] = [];
   resets = 0;
   async identity(_c: Context) {
     return this.current;
   }
-  async oauth(_c: Context, input: { provider: "google"; redirectTo: string }) {
+  async oauth(_c: Context, input: { provider: "google"; redirectTo: string; link?: boolean }) {
     this.oauthRedirectTo = input.redirectTo;
-    return "https://accounts.example.test/google";
+    this.oauthLink = !!input.link;
+    return this.oauthAvailable ? "https://accounts.example.test/google" : null;
   }
   async signUp(
     _c: Context,
@@ -87,7 +90,7 @@ class FakeAccountAuth implements AccountAuth {
   }
   async confirm(
     _c: Context,
-    input: { code?: string; tokenHash?: string; type?: string },
+    input: { code?: string; tokenHash?: string; type?: string; linkUserId?: string },
   ) {
     this.confirmations.push(input);
     return this.current;
@@ -1707,6 +1710,38 @@ test("Google sign in uses the Supabase PKCE callback and preserves only a safe l
     "/auth/confirm?code=valid&next=https%3A%2F%2Fevil.test",
   );
   a.equal(unsafe.headers.get("location"), "/");
+});
+
+test("Google linking starts from the signed-in profile and returns there after confirmation", async () => {
+  const { request, accountAuth } = rig();
+  const start = () => request("/auth/google", posted({ intent: "link" }));
+  a.equal((await start()).headers.get("location"), "/sign-in?next=%2Faccount");
+  a.equal(accountAuth.oauthRedirectTo, null);
+  accountAuth.current = { authUserId: "profile-1", email: "profile@example.test", name: "Casey", providers: ["email"] };
+  const profile = await (await request("/account")).text();
+  a.match(profile, /action="\/auth\/google"><input type="hidden" name="intent" value="link"><button[^>]+>Connect Google<\/button>/);
+  const rejectedOrigin = await request("/auth/google", posted({ intent: "link" }, { origin: "https://elsewhere.test" }));
+  a.equal(rejectedOrigin.status, 403);
+  accountAuth.oauthAvailable = false;
+  a.equal((await start()).headers.get("location"), "/account?error=google_link_start");
+  accountAuth.oauthAvailable = true;
+  a.equal((await start()).headers.get("location"), "https://accounts.example.test/google");
+  a.equal(accountAuth.oauthLink, true);
+  a.equal(accountAuth.oauthRedirectTo, "http://admin.test/auth/confirm?link=google");
+  const callback = (suffix: string) => request("/auth/confirm?link=google&" + suffix);
+  a.equal((await callback("error=access_denied")).headers.get("location"), "/account?error=google_link");
+  a.equal((await callback("error_code=identity_already_exists")).headers.get("location"), "/account?error=google_link_conflict");
+  a.deepEqual(accountAuth.confirmations, []);
+  a.equal((await callback("code=linked&sb_flow_id=profile-flow")).headers.get("location"), "/account?error=google_link");
+  a.deepEqual(accountAuth.confirmations[0], { code: "linked", linkUserId: "profile-1", flowId: "profile-flow" });
+  accountAuth.current.providers!.push("google");
+  a.equal((await callback("code=linked")).headers.get("location"), "/account");
+  a.equal((await start()).headers.get("location"), "/account");
+  const connected = await (await request("/account")).text();
+  a.match(connected, /Google<\/strong><span>Connected/);
+  a.doesNotMatch(connected, />Connect Google<\/button>/);
+  accountAuth.current = null;
+  a.equal((await callback("code=linked")).headers.get("location"), "/sign-in?next=%2Faccount");
 });
 
 test("signup validates a human challenge and does not provision an unconfirmed profile", async () => {

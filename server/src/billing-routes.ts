@@ -30,6 +30,18 @@ const MESSAGES: Record<string, string> = {
   subscription_updated: 'Paddle confirmed your change. Your billing details may take a moment to update.',
 };
 
+function liveSubscriptions(config: PaddleBillingConfig, status: AccountPlanStatus | null) {
+  return status?.subscriptions.filter(row => row.environment === config.environment && LIVE_STATUSES.has(row.status)) ?? [];
+}
+
+export function manageableSubscription(config: PaddleBillingConfig, status: AccountPlanStatus | null) {
+  const live = liveSubscriptions(config, status);
+  const row = live[0];
+  if (live.length === 1 && (row.status === 'active' || row.status === 'trialing') &&
+      (row.scheduledChange === null || row.scheduledChange === 'cancel') &&
+      config.prices.some(price => price.priceId === row.priceId && price.plan === row.plan)) return row;
+}
+
 export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Context) => Promise<User | null>) {
   const checkouts = throttle(10, 15 * 60 * 1000, 5000);
   const report = o.report ?? ((message: string) => console.error(message));
@@ -57,13 +69,8 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
     }
   });
 
-  const liveRows = (status: AccountPlanStatus | null) =>
-    status?.subscriptions.filter(row => row.environment === o.config.environment && LIVE_STATUSES.has(row.status)) ?? [];
   const listedPrice = (row: BillingSubscriptionSummary) =>
     o.config.prices.find(price => price.priceId === row.priceId && price.plan === row.plan);
-  const manageable = (row: BillingSubscriptionSummary) =>
-    !!listedPrice(row) && (row.status === 'active' || row.status === 'trialing') &&
-    (row.scheduledChange === null || row.scheduledChange === 'cancel');
 
   let catalog: { expires: number; amounts: Promise<Map<string, string>> } | undefined;
   const catalogAmounts = () => {
@@ -73,7 +80,8 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
     return catalog.amounts;
   };
   const plansPage = (user: User, status: AccountPlanStatus | null, notice?: PlansPageInput['notice'], review?: PlansPageInput['review'], amounts?: ReadonlyMap<string, string>) => {
-    const live = liveRows(status);
+    const live = liveSubscriptions(o.config, status);
+    const manageable = manageableSubscription(o.config, status);
     const ready = !!status && checkoutReady(o.config);
     const plans = [...new Set(o.config.prices.map(price => price.plan))];
     return accountPlansPage({
@@ -88,7 +96,7 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
         return { plan, intervals: configured.map(price => price.interval), prices };
       }) : [],
       checkoutReady: ready,
-      subscriptions: live.map(row => ({ ...row, interval: listedPrice(row)?.interval, manageable: ready && live.length === 1 && manageable(row) })),
+      subscriptions: live.map(row => ({ ...row, interval: listedPrice(row)?.interval, manageable: ready && row === manageable })),
       supportEmail: 'hello@braudyp.dev', notice, review,
     });
   };
@@ -151,9 +159,8 @@ export function billingRoutes(app: Hono, o: BillingRouteOptions, who: (c: Contex
     const status = await o.plans.status(user.id).catch(() => null);
     const fail = (message: string, code: 409 | 422 | 503) => c.html(plansPage(user, status, { error: message }), code);
     if (!status || !checkoutReady(o.config)) return fail('Your billing details are unavailable. Please try again.', 503);
-    const live = liveRows(status);
-    const row = live[0];
-    if (live.length !== 1 || !manageable(row)) return fail('This subscription cannot be changed here. Contact support for help.', 409);
+    const row = manageableSubscription(o.config, status);
+    if (!row) return fail('This subscription cannot be changed here. Contact support for help.', 409);
     if (confirming && (parts.length !== 5 || !/^[0-9a-f]{64}$/.test(parts[4]) || !Number.isSafeInteger(expiry) || expiry < Date.now())) {
       return fail('This review has expired. Review the change again.', 409);
     }

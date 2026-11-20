@@ -28,6 +28,7 @@ test('the active component badge passes canvas clicks through while a locked reg
   const editBar = document.querySelector<HTMLElement>('[data-state="edit"] > .s-lockbar')!;
   const lockedBar = document.querySelector<HTMLElement>('[data-state="locked"] > .s-lockbar')!;
   const editButton = lockedBar.querySelector<HTMLButtonElement>('button.s-lockopen')!;
+  assert.equal(getComputedStyle(editButton).fontSize, '13px');
   assert.equal(getComputedStyle(editBar).opacity, '1', 'the active badge stays visible on hover');
   assert.equal(getComputedStyle(editBar).pointerEvents, 'none', 'the active badge cannot cover its root');
   assert.equal(getComputedStyle(lockedBar).pointerEvents, 'auto', 'locked regions retain their action target');

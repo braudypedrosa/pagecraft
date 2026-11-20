@@ -1,4 +1,4 @@
-import { accountBillingShell } from './account-pages.ts';
+import { accountWorkspaceShell, billingDate, renewalForm } from './account-pages.ts';
 import type { User } from './auth.ts';
 import { PLAN_RANK, planEntitlements, type AccountPlan } from './plans.ts';
 
@@ -55,19 +55,11 @@ const CSS = `
 @media(max-width:600px){.pc-plan-card{padding:var(--pc-space-4)}.pc-plans-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.pc-plans-facts>div:has(time){grid-column:1/-1}.pc-interval label{min-height:var(--pc-control-height)}}
 `;
 
-const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-
-function billingDate(value?: string | null) {
-  if (!value) return '';
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? '' : `<time datetime="${esc(value)}">${dateFormat.format(date)}</time>`;
-}
-
 function billingPage(user: User, title: string, description: string, content: string, backToPlans = false, scripts = '') {
   const back = backToPlans ? ['/account/plans', 'Plans'] : ['/account?tab=plan', 'Plan &amp; billing'];
-  return accountBillingShell(user, title, `<div class="pc-content">
+  return accountWorkspaceShell(user, title, `<div class="pc-content">
 <header class="pc-workspace-head"><div><a class="pc-plans-back" href="${back[0]}">${backIcon}${back[1]}</a><h1>${esc(title)}</h1><p>${esc(description)}</p></div></header>
-<div class="pc-plans-body">${content}</div></div>`, CSS, scripts);
+<div class="pc-plans-body">${content}</div></div>`, { styles: CSS, scripts });
 }
 
 type Interval = 'monthly' | 'yearly';
@@ -99,10 +91,6 @@ export interface PlansPageInput {
   supportEmail: string;
   notice?: { error?: string; message?: string };
   review?: PlanReview;
-}
-
-function renewalForm(action: 'cancel' | 'renew', text: string) {
-  return `<form method="post" action="/account/plans/review"><input type="hidden" name="action" value="${action}"><button class="pc-btn" type="submit">${text}</button></form>`;
 }
 
 function subscriptionSummary(input: PlansPageInput) {
@@ -188,7 +176,7 @@ ${date ? `<div><dt>Next billing date</dt><dd>${date}</dd></div>` : ''}</dl>`;
     description = 'Turning off auto-renew cancels your subscription at the end of this billing period.';
     confirm = 'Confirm cancellation';
     details = `<h2>Keep ${plan} until ${date || 'the end of this billing period'}</h2>
-<p class="pc-plans-section-copy">${input.unrestricted ? 'Your account keeps unrestricted access.' : 'Your existing sites and media stay in your account.'} You can turn auto-renew back on before the subscription ends.</p>`;
+<p class="pc-plans-section-copy">${input.unrestricted ? 'Your account keeps unrestricted access.' : 'Your published sites stay online and your sites and media remain in your account.'} You can turn auto-renew back on before the subscription ends.</p>`;
   } else {
     title = 'Turn on auto-renew';
     description = 'Resume automatic billing for your subscription.';

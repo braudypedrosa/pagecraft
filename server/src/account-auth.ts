@@ -17,12 +17,12 @@ export interface VerifiedIdentity {
 
 export interface AccountAuth {
   identity(c: Context): Promise<VerifiedIdentity | null>;
-  oauth(c: Context, input: { provider: 'google'; redirectTo: string }): Promise<string | null>;
+  oauth(c: Context, input: { provider: 'google'; redirectTo: string; link?: boolean }): Promise<string | null>;
   /* 'challenge' means Auth refused the human-challenge token, so the attempt proved nothing
      about the address or password and must not count against either. */
   signUp(c: Context, input: { email: string; password: string; name: string; redirectTo: string; captchaToken: string }): Promise<'confirmation_required' | 'exists' | 'challenge'>;
   signIn(c: Context, input: { email: string; password: string; captchaToken: string }): Promise<VerifiedIdentity | 'challenge' | null>;
-  confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string }): Promise<VerifiedIdentity | null>;
+  confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string; linkUserId?: string; flowId?: string }): Promise<VerifiedIdentity | null>;
   forgot(c: Context, input: { email: string; redirectTo: string; captchaToken: string }): Promise<void | 'challenge'>;
   reset(c: Context, password: string): Promise<boolean>;
   updateEmail(c: Context, input: { email: string; redirectTo: string }): Promise<boolean>;
@@ -88,7 +88,7 @@ export class SupabaseAccountAuth implements AccountAuth {
     return typeof data?.claims?.sub === 'string' ? data.claims.sub : undefined;
   }
 
-  private client(c: Context): SupabaseClient {
+  private client(c: Context, write: (apply: () => void) => void = apply => apply()): SupabaseClient {
     const incoming = getCookie(c);
     return createServerClient(this.options.url, this.options.publishableKey, {
       cookieOptions: {
@@ -97,7 +97,7 @@ export class SupabaseAccountAuth implements AccountAuth {
       },
       cookies: {
         getAll: () => Object.entries(incoming).map(([name, value]) => ({ name, value })),
-        setAll: cookies => {
+        setAll: cookies => write(() => {
           for (const item of cookies) {
             const supplied = item.options as CookieOptionsWithName;
             setCookie(c, item.name, item.value, {
@@ -106,7 +106,7 @@ export class SupabaseAccountAuth implements AccountAuth {
               secure: this.options.secureCookies
             });
           }
-        }
+        })
       },
       auth: { flowType: 'pkce', autoRefreshToken: false, detectSessionInUrl: false, persistSession: true }
     });
@@ -144,7 +144,14 @@ export class SupabaseAccountAuth implements AccountAuth {
     return 'confirmation_required' as const;
   }
 
-  async oauth(c: Context, input: { provider: 'google'; redirectTo: string }) {
+  async oauth(c: Context, input: { provider: 'google'; redirectTo: string; link?: boolean }) {
+    if (input.link) {
+      const { data, error } = await this.client(c).auth.linkIdentity({
+        provider: input.provider,
+        options: { redirectTo: input.redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } }
+      });
+      return error ? null : data.url;
+    }
     const { data, error } = await this.client(c).auth.signInWithOAuth({
       provider: input.provider,
       options: { redirectTo: input.redirectTo }
@@ -160,7 +167,20 @@ export class SupabaseAccountAuth implements AccountAuth {
     return verified(data.user);
   }
 
-  async confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string }) {
+  async confirm(c: Context, input: { code?: string; tokenHash?: string; type?: string; linkUserId?: string; flowId?: string }) {
+    if (input.linkUserId) {
+      if (!input.code) return null;
+      // A link must keep the current Pagecraft account. Commit the PKCE session cookies
+      // only after Auth confirms the Google identity belongs to this same verified user.
+      const writes: (() => void)[] = [];
+      const client = this.client(c, apply => writes.push(apply));
+      const { data, error } = await client.auth.exchangeCodeForSession(input.code, { flowId: input.flowId });
+      const identity = error ? null : verified(data.user);
+      if (identity?.authUserId !== input.linkUserId || !data.user?.identities?.some(item => item.provider === 'google')) return null;
+      for (const apply of writes) apply();
+      this.forget(identity.authUserId);
+      return identity;
+    }
     const client = this.client(c);
     if (input.code) {
       const { data, error } = await client.auth.exchangeCodeForSession(input.code);

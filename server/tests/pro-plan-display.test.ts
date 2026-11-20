@@ -133,3 +133,17 @@ test('Paid account settings show the paid plan allowances, not the Free copy', (
   a.doesNotMatch(html, /\$0 <span>|100 MB optimized/);
   a.match(html, /href="\/account\/plans">Manage plan<\/a>/);
 });
+
+test('account billing opens the cancellation review and offers renewal once cancellation is scheduled', () => {
+  const data = { providers: ['email'], ownerCount: 1, storage: { usedBytes: 0, limitBytes: GB }, paidPlans: true };
+  const period = { currentPeriodEnd: '2026-12-19T22:28:42Z' };
+  const panel = (scheduledChange: 'cancel' | null) => accountSettingsPage(user('launch'), {
+    ...data, subscription: { ...period, scheduledChange },
+  }, { tab: 'plan' }).split('id="settings-panel-plan"')[1].split('</section>')[0];
+  a.match(panel(null), /action="\/account\/plans\/review"[^>]*><input type="hidden" name="action" value="cancel"><button[^>]*>Cancel plan</);
+  const scheduled = panel('cancel');
+  a.match(scheduled, /Auto-renew is off\.[\s\S]*December 19, 2026<\/time>\.[\s\S]*published sites stay online/);
+  a.match(scheduled, /name="action" value="renew"><button[^>]*>Turn on auto-renew</);
+  a.doesNotMatch(scheduled, />Cancel plan</);
+  a.doesNotMatch(accountSettingsPage(user('launch'), data), />Cancel plan</);
+});

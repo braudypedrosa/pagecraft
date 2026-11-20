@@ -31,6 +31,43 @@ test('setting a first password does not invent a current-password value', async 
   assert.deepEqual(sent,{password:'first-test-password'});
 });
 
+test('Google linking uses the authenticated Supabase operation and only commits cookies for the same linked user', async () => {
+  const adapter = new SupabaseAccountAuth({url:'https://example.invalid',publishableKey:'test',secureCookies:false});
+  const redirectTo = 'https://pagecraft.test/auth/confirm?link=google';
+  const url = 'https://accounts.example.test/choose';
+  let available = true;
+  let cookieWrites = 0;
+  const user = {
+    id: 'original', email: 'casey@example.test', email_confirmed_at: '2026-11-01',
+    app_metadata: { providers: ['email', 'google'] }, identities: [{ provider: 'email' }],
+  };
+  Object.defineProperty(adapter, 'client', {value: (_c: Context, stage?: (apply: () => void) => void) => ({auth: {
+    linkIdentity: async (input: unknown) => {
+      assert.deepEqual(input, { provider: 'google', options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } } });
+      return available ? { data: { url }, error: null } : { data: { url: null }, error: { code: 'manual_linking_disabled' } };
+    },
+    exchangeCodeForSession: async (code: string, options: { flowId?: string }) => {
+      assert.equal(code, 'return-code');
+      assert.equal(options.flowId, 'profile-flow');
+      stage!(() => { cookieWrites++; });
+      return { data: { user }, error: null };
+    },
+  }})});
+  const c = {} as Context;
+  assert.equal(await adapter.oauth(c, { provider: 'google', link: true, redirectTo }), url);
+  available = false;
+  assert.equal(await adapter.oauth(c, { provider: 'google', link: true, redirectTo }), null);
+  const confirm = () => adapter.confirm(c, { code: 'return-code', linkUserId: 'original', flowId: 'profile-flow' });
+  assert.equal(await confirm(), null, 'provider metadata alone does not confirm a linked Google identity');
+  user.identities.push({ provider: 'google' });
+  user.id = 'different';
+  assert.equal(await confirm(), null);
+  assert.equal(cookieWrites, 0, 'a different session must never replace the signed-in account');
+  user.id = 'original';
+  assert.equal((await confirm())?.authUserId, 'original');
+  assert.equal(cookieWrites, 1);
+});
+
 async function publicationRig() {
   const root = await mkdtemp(join(tmpdir(),'pc-publish-regression-'));
   onTestFinished(()=>rm(root,{recursive:true,force:true}));

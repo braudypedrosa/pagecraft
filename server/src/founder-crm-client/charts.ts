@@ -296,7 +296,7 @@ export function buildCrmChartOption(spec: CrmChartSpec, reducedMotion = false): 
         data: prepared.points.map(point => point.label),
         axisLine: { lineStyle: { color: '#cfd5cc' } },
         axisTick: { show: false },
-        axisLabel: { color: '#667067', hideOverlap: true, margin: 12 },
+        axisLabel: { fontSize: 13, color: '#667067', hideOverlap: true, margin: 12 },
       },
       yAxis: {
         type: 'value',
@@ -305,7 +305,7 @@ export function buildCrmChartOption(spec: CrmChartSpec, reducedMotion = false): 
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { lineStyle: { color: '#e1e5de', type: 'dashed' } },
-        axisLabel: { color: '#667067', formatter: (value: number) => axisFormatter(value, spec, prepared) },
+        axisLabel: { fontSize: 13, color: '#667067', formatter: (value: number) => axisFormatter(value, spec, prepared) },
       },
       dataZoom: [
         { type: 'inside', xAxisIndex: 0, filterMode: 'none', start: 0, end: 100 },
@@ -345,14 +345,14 @@ export function buildCrmChartOption(spec: CrmChartSpec, reducedMotion = false): 
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { lineStyle: { color: '#e1e5de', type: 'dashed' } },
-        axisLabel: { color: '#667067', hideOverlap: true, formatter: (value: number) => axisFormatter(value, spec, prepared) },
+        axisLabel: { fontSize: 13, color: '#667067', hideOverlap: true, formatter: (value: number) => axisFormatter(value, spec, prepared) },
       },
       yAxis: {
         type: 'category',
         data: prepared.points.map(point => point.label),
         axisLine: { lineStyle: { color: '#cfd5cc' } },
         axisTick: { show: false },
-        axisLabel: { color: '#354038', width: 90, overflow: 'truncate' },
+        axisLabel: { fontSize: 13, color: '#354038', width: 90, overflow: 'truncate' },
       },
       series: [{
         name: spec.title,

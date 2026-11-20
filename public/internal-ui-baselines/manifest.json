@@ -1,41 +1,30 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-20T00:19:34.184Z",
-  "browser": "Headless Chrome",
+  "capturedAt": "2026-11-20T01:10:54.248Z",
+  "browser": "Codex In-app Browser",
   "captureSchemaVersion": 2,
   "browserVersion": {
-    "supported": true,
-    "value": {
-      "protocolVersion": "1.3",
-      "product": "Chrome/156.0.8078.82",
-      "revision": "@58d3ba996be0cba47b6bcd928490da32a0e0edaf",
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
-      "jsVersion": "15.6.75.27"
-    }
-  },
-  "declaredBrowserVersion": {
-    "value": "Chrome/156.0.8078.82",
-    "verified": true
+    "supported": false
   },
   "captureEnvironment": {
     "runtime": {
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
       "platform": "MacIntel",
       "userAgentData": {
         "supported": true,
         "value": {
           "brands": [
             {
-              "brand": "Not:A-Brand",
-              "version": "8"
-            },
-            {
-              "brand": "Chromium",
-              "version": "156"
+              "brand": "Not-A.Brand",
+              "version": "99"
             },
             {
               "brand": "Google Chrome",
-              "version": "156"
+              "version": "157"
+            },
+            {
+              "brand": "Chromium",
+              "version": "157"
             }
           ],
           "mobile": false,
@@ -45,10 +34,10 @@
       "devicePixelRatio": 1,
       "visualViewportScale": 1,
       "screen": {
-        "width": 800,
-        "height": 600,
-        "availWidth": 800,
-        "availHeight": 600,
+        "width": 2560,
+        "height": 1440,
+        "availWidth": 2560,
+        "availHeight": 1440,
         "colorDepth": 24,
         "pixelDepth": 24
       },
@@ -106,7 +95,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "f2243864a94ae23610e1d5050c00361984d2204bfe081381304e93c70bfaef13",
+    "builder.html": "662b9bd0673cde1f04d923b1d90f4da8084045af55906734655530494d7632a3",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -119,7 +108,7 @@
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
     "shared/builder-header.js": "414a7ed8ef34f6f43eb4dffd673ba4165e884a44e25ee7a32c22f0a70c2dc990",
-    "shared/ui-tokens.js": "f726903f3f4ede8a28ad05d0509e0734f26984fa7e1eb3e9981a437a0b147da5",
+    "shared/ui-tokens.js": "d37db9ae9d5807e75e10b742c1932480d38ef04cd426d7f4a183efaa6d6362fa",
     "shared/ui-fonts.js": "62d80e70fb359f0e5fcaa68c143c6ace69886cf0689ec75d291e9a36cf4c30da",
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
@@ -128,9 +117,9 @@
     "shared/dialog-styles.js": "6e83e6a6197d90f162f7d24c5ec9535dbdc447e8a5136105b62538b50edc79ce",
     "shared/custom-select.js": "d7c26c7734f32bcd41c752dd5bb229eadcbf07e39f58f6a833bf6d7a025ee3ba",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
-    "shared/notify-menu.js": "acdb57b0d52663936918a3659b5f709885a63be474dfc63da57fe09a6746f6b8",
-    "server/src/cloud-header.ts": "56d1ff9ec6720ed09e06d1b0887ec08dd12abb4619145918a471e2d95f6d6c77",
-    "server/src/account-pages.ts": "9f3eddd3fd86857ff9bf70bd18ca82900e181d0deb76e670e0b2b8243088960e",
+    "shared/notify-menu.js": "ef44b48de1eea1e43615ce3d10169da99118b19e5a4435fcf49a127d3f22fbf0",
+    "server/src/cloud-header.ts": "5e85dc5d2915496be1b3ab163ffe6ed707633e5be42bcb7ac6e03e5c190adcf8",
+    "server/src/account-pages.ts": "ba62be622ef44ace0a8ee740e9bda9f3c44e4a12541f21afbb1d4f030ac03255",
     "server/src/component-gallery.ts": "2c7bdaffd647498b5192bb36857100e4894cdd0264de6756491e86bea79b81d9",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
@@ -291,7 +280,7 @@
   ],
   "images": {
     "cloud-fields-1440.png": {
-      "sha256": "38d6d56ee3f71d2a14a3f3c235a28367e88df2b2408c1691a81840d1b1eb370e",
+      "sha256": "dd4e1c577d4b7dcb518484ee2c6dba58051925597422ef3b79d104a3e06680e7",
       "width": 1440,
       "height": 1098,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -328,7 +317,7 @@
       }
     },
     "cloud-fields-768.png": {
-      "sha256": "91b4250245d982c75a39e47e491045b07bda55d651135ebe5eb8ef824f849679",
+      "sha256": "b51a507fb6a9afe19b132d191d5efccab6fcb6d3cf4ec6fb5eefb54e0e622815",
       "width": 768,
       "height": 1587,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -365,7 +354,7 @@
       }
     },
     "cloud-actions-1440.png": {
-      "sha256": "c8c4f23d2cdfc5d11fc996d251df29e6a7bf0ccfb102c4f2f4ad9beaa9325d86",
+      "sha256": "d02b44c869e4090ad43cc8b605a2f44c70f5ac7df2d3ba7f621ed69e76e991cc",
       "width": 1440,
       "height": 959,
       "state": "Processing action, disabled and destructive actions",
@@ -402,7 +391,7 @@
       }
     },
     "cloud-actions-768.png": {
-      "sha256": "33e1def5db33a3d8c174a06e6a067faa1adf5313921a1863db2dcb0c2ac6bc98",
+      "sha256": "52ffcba6374af96069b2168b86bc3960325f1b00c31db43bb97e98c73a72d1bb",
       "width": 768,
       "height": 1015,
       "state": "Processing action, disabled and destructive actions",
@@ -439,7 +428,7 @@
       }
     },
     "cloud-tables-1440.png": {
-      "sha256": "035aaa96eb268338f59143096a3ed115555030a9a089584246971625b832099b",
+      "sha256": "5cd672e9f68cb71f6c7be7b75b6276fe598ba1e062328a333fbfe834f4d98032",
       "width": 1440,
       "height": 1102,
       "state": "First row hovered, second row neutral, empty result",
@@ -476,7 +465,7 @@
       }
     },
     "cloud-tables-768.png": {
-      "sha256": "4413939d4724a57e9576815a2f187ad77e2e14e8151eaee64b341ce3ffd64ad9",
+      "sha256": "c248a2b325efb4c4b2b0e235c654021ad597e6fc2b28ebe4f1ef91644c99a2f9",
       "width": 768,
       "height": 1168,
       "state": "First row hovered, second row neutral, empty result",
@@ -513,7 +502,7 @@
       }
     },
     "cloud-menus-1440.png": {
-      "sha256": "57d6d6daeb8d998375bd058115880363eb4bfc47518ea666c76af6d6f3b2ec92",
+      "sha256": "dc35bff5df10c7f98c7db10b07be9aa5d5188df7a63330bd09b444361b35df01",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -550,7 +539,7 @@
       }
     },
     "cloud-menus-768.png": {
-      "sha256": "ced891b3c0ebc12247633a83828ff5cb46f4315590c3849dfa33f6c2b7ad0e98",
+      "sha256": "78440ced07d0dd0a9c2656a7c19be167e6a65c4052ce661434f2bca293733d6a",
       "width": 768,
       "height": 1016,
       "state": "Open picker, selected/disabled options and menu items",
@@ -587,7 +576,7 @@
       }
     },
     "cloud-dialogs-1440.png": {
-      "sha256": "a4637db8c3bc71cfd36cb5e386db660155a6fb19152fe9de68c577c760cd9d31",
+      "sha256": "5e4f01e25858de23f7c7dd0a1a88f544b05674f08e132a3fa56ca8fab7014400",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -624,7 +613,7 @@
       }
     },
     "cloud-dialogs-768.png": {
-      "sha256": "6b4d18c9aae5923646c7b3145677dab2c12f157cbcc7e93ad6e37434e435dc89",
+      "sha256": "4cf3547bdb85e2f72c706a51dfed165b2211a0246b4fd060ea287c01437efe05",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -661,7 +650,7 @@
       }
     },
     "cloud-feedback-1440.png": {
-      "sha256": "2437857cc34579186fe6abbd05ecbe10ae2f10faf2778a7c4e9da15064cb59ef",
+      "sha256": "a4b5776e97d7fe288b09132f0df15761170c0890d3a7e0467394fb5de4bbeefd",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -698,7 +687,7 @@
       }
     },
     "cloud-feedback-768.png": {
-      "sha256": "b729650aa8e2805202f2d682e1d5871cb136cf84e4cace51e0f35961dcb9854a",
+      "sha256": "e194f6cc4587789f54d230df4bbb81f5d42b38d974f8aaaeb7388924cec30d09",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -735,7 +724,7 @@
       }
     },
     "builder-fields-1440.png": {
-      "sha256": "83da92ace029b617b901bd0b5b5102f5df09028a209576e332ba05471e64f95a",
+      "sha256": "a879a4b59984c9b73bde761ccac200b59e75b1fca4e2a854955faa9a3d891477",
       "width": 1440,
       "height": 1158,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -772,7 +761,7 @@
       }
     },
     "builder-fields-768.png": {
-      "sha256": "f9c96374dfbb67ffb3ce928f23b7882ce5611e919c5ee4b339bcd3b657de970e",
+      "sha256": "ed283153176669d41329dfd43d9dac2057f0da6f3a4490a786596f37a7eb4139",
       "width": 768,
       "height": 1875,
       "state": "Focused field, readonly, disabled and validation samples",
@@ -809,7 +798,7 @@
       }
     },
     "builder-actions-1440.png": {
-      "sha256": "ca7d0f1699039e03688516363b953fb14f75b7bfda163a227160a14b4307e1ff",
+      "sha256": "5c8f680f4ab428f1a1c6d81f61c72db212df0e94446ed16c62142b834003b78e",
       "width": 1440,
       "height": 1204,
       "state": "Processing action, disabled and destructive actions",
@@ -846,7 +835,7 @@
       }
     },
     "builder-actions-768.png": {
-      "sha256": "aae5e923ddf99ca7c67c6b03080f27d799c8e2d9abee86c2d44a5818c26fa912",
+      "sha256": "2f702f8ba28cf8d072db6231f6a0921b7a2433a0c9c8ee3909a5cc0f52cb2759",
       "width": 768,
       "height": 1259,
       "state": "Processing action, disabled and destructive actions",
@@ -883,14 +872,14 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "7da6d9078a8932175027ef3eb63ad733b7d9a1ee0250da642bf7db7f83a439df",
+      "sha256": "16b1b265cb730c4bd3a8f16b073edaf1b6395af4a8dbf773c60c8b16a5e2952e",
       "width": 1440,
-      "height": 1224,
+      "height": 1227,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 1440,
-          "height": 1224,
+          "height": 1227,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -904,7 +893,7 @@
             "x": 0,
             "y": 0,
             "width": 1440,
-            "height": 1224,
+            "height": 1227,
             "scale": 1
           }
         }
@@ -920,14 +909,14 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "388e8c15e78bbc4c531d148c48db2ecdfbf90775e8ed50ffed27017072353eaf",
+      "sha256": "8f820af0d70d2afd3b36ca51f3bac2bc495ea2cc75b676c08fda6c5b219aa64d",
       "width": 768,
-      "height": 1280,
+      "height": 1283,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 768,
-          "height": 1280,
+          "height": 1283,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -941,7 +930,7 @@
             "x": 0,
             "y": 0,
             "width": 768,
-            "height": 1280,
+            "height": 1283,
             "scale": 1
           }
         }
@@ -957,7 +946,7 @@
       }
     },
     "builder-menus-1440.png": {
-      "sha256": "b58372471742a19fb11dd40f38425f9c7fd3fe71ba2dfc245a9e6be4e31a1df1",
+      "sha256": "d94bd33597d07cfe02446fd42b5868f8dc049045d31641f32eb19dd7a9bc72ec",
       "width": 1440,
       "height": 900,
       "state": "Open picker, selected/disabled options and menu items",
@@ -994,7 +983,7 @@
       }
     },
     "builder-menus-768.png": {
-      "sha256": "eb2d4e9c4e50bb7afe1d36b24d73ccb68d33533912035686bb4da518d306a632",
+      "sha256": "0a8f9a0728b82af673c86ab358cbe214723afe38089d81ba12c33949563cbbd6",
       "width": 768,
       "height": 967,
       "state": "Open picker, selected/disabled options and menu items",
@@ -1031,7 +1020,7 @@
       }
     },
     "builder-dialogs-1440.png": {
-      "sha256": "888329f71a0f5358c2a76cbe7435f7f60ee0a24e6616747c354cb35bfc5c777e",
+      "sha256": "8a4cf49c6647931ae834ce024e0407ed1eb256208a862f540bc366667b663cd1",
       "width": 1440,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1068,7 +1057,7 @@
       }
     },
     "builder-dialogs-768.png": {
-      "sha256": "c6fb7a6d65902d0fa0ed1198ff980843035d9127362bf8ef526d4d1e0affd849",
+      "sha256": "1b3f105664620dc4ae6a8b577535e45ec77efb0dcd14069e6d98c3184bb48910",
       "width": 768,
       "height": 900,
       "state": "Open dialog with header, body and footer",
@@ -1105,7 +1094,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "c8c05c4fa8758b076975cfaa84f3efcbc8cde2c8024d194bacc831a0c03f77bb",
+      "sha256": "116c71c92316214bf1f7a46d229cb08e80791c5bf8847ddf683349defc7e9d6f",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",
@@ -1142,7 +1131,7 @@
       }
     },
     "builder-feedback-768.png": {
-      "sha256": "f24394a7ad7474b06475eb47c62c31a44b54237eb94f88a184fa8589f9b54cbc",
+      "sha256": "2e4d0233dab961b17d1e75e32c4c0acca3472ec718aa686410192617ece1c900",
       "width": 768,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

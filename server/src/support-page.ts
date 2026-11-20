@@ -1,10 +1,5 @@
 import type { User } from './auth.ts';
-import { cloudHeader, CLOUD_HEADER_CSS } from './cloud-header.ts';
-import { UI_FONTS_CSS } from '../../shared/ui-fonts.js';
-import { UI_TOKENS_CSS } from '../../shared/ui-tokens.js';
-import { UI_TYPOGRAPHY_CSS } from '../../shared/ui-typography.js';
-import { UI_FOCUS_CSS } from '../../shared/ui-focus.js';
-import { WORKSPACE_CSS } from '../../shared/workspace-styles.js';
+import { accountWorkspaceShell } from './account-pages.ts';
 import { supportClient } from './support-client.ts';
 
 // Iconify Lucide icons, used by the existing Pagecraft workspaces.
@@ -61,7 +56,7 @@ const styles = `<style>
 .pc-support-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
 .pc-support-meta strong{font:var(--pc-type-control)}
 .pc-support-staff-author{display:inline-flex;align-items:center;gap:6px;color:#315f15}
-.pc-support-staff-author span{padding:2px 7px;border-radius:999px;background:var(--pc-selection-bg);font-size:12px;line-height:1.4}
+.pc-support-staff-author span{padding:2px 7px;border-radius:999px;background:var(--pc-selection-bg);font-size:var(--pc-text-label);line-height:1.4}
 .pc-support-thread p{margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
 .pc-support-form{padding:16px 18px;display:grid;gap:8px;border-top:1px solid var(--pc-line);min-height:0;overflow:auto}
 .pc-support-form label{font:var(--pc-type-control)}
@@ -89,38 +84,12 @@ export function supportView(widget: boolean) {
 
 /** The caller supplies the signed-in Sites dashboard. Keep its normal navigation and chrome. */
 export function withSupportWidget(html: string) {
-  return html.replace('href="mailto:hello@braudyp.dev" title="Help"', 'href="/account/support" title="Help"')
-    .replace('</main>', () => supportView(true) + '</main>');
+  return html.replace('</main>', () => supportView(true) + '</main>');
 }
 
-const pageStyles = `
-*{box-sizing:border-box}
-body{margin:0;color-scheme:light}
-.dashboard-app{--pc-ink:#111311;--pc-green:#b7f34a;--pc-green-hi:#c5fa63;--pc-on-green:#111311;--pc-line-2:var(--pc-border-strong);--pc-panel:#fff;--pc-danger:#8f312b;display:flex;flex-direction:column;height:100svh;min-height:0;background:var(--pc-surface-subtle);color:var(--pc-text)}
-.pc-support-account{color:var(--pc-rail-text);padding:6px 10px;text-decoration:none;display:flex;gap:8px;align-items:center;min-width:0}
-.pc-support-account span{max-width:18ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pc-support-account:hover{background:#ffffff16;border-radius:var(--pc-control-radius)}
-.pc-support-main{display:flex;flex:1;min-height:0}
-.pc-support-nav{display:flex;flex-direction:column;align-self:stretch;flex:0 0 var(--pc-rail-width);background:#111311;padding:0;gap:4px}
-.pc-support-nav a{min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-decoration:none;color:#aeb5ad;font:var(--pc-type-toolbar)}
-.pc-support-nav a:hover{color:white;background:#272b27}
-.pc-support-nav a[aria-current]{background:var(--pc-green);color:var(--pc-ink)}
-.pc-support-main .pc-workspace{min-width:0;flex:1;overflow:auto}
-.pc-support-main .pc-btn{border:1px solid var(--pc-line-2);border-radius:var(--pc-control-radius);height:var(--pc-control-height);padding:var(--pc-control-padding);background:var(--pc-panel);color:var(--pc-text);font:var(--pc-type-control)}
-.pc-support-main .pc-btn.primary{background:var(--pc-green);border-color:var(--pc-green)}
-button{cursor:pointer}
-button:disabled{cursor:default;opacity:.55}
-@media(max-width:520px){.pc-support-nav{flex-basis:56px}.pc-support-nav a{min-height:52px}.pc-support-nav a span,.pc-support-account span{display:none}}
-`;
-
 export function supportPage(user: User) {
-  const accountName = (user.name || user.email).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-  const accountIcon = icon('<circle cx="12" cy="8" r="3"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/>');
   const sitesIcon = icon('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>');
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" type="image/svg+xml" href="/brand/pagecraft-favicon.svg"><title>Support — Pagecraft</title>
-<style>${UI_FONTS_CSS}${UI_TOKENS_CSS}${CLOUD_HEADER_CSS}${WORKSPACE_CSS}${UI_TYPOGRAPHY_CSS}${UI_FOCUS_CSS}${pageStyles}</style></head><body>
-<main class="dashboard-app">${cloudHeader('Support', `<a class="pc-support-account" href="/account" aria-label="Account settings"><span>${accountName}</span>${accountIcon}</a>`)}
-<div class="pc-support-main"><nav class="pc-support-nav" aria-label="Workspace"><a href="/" aria-label="Sites">${sitesIcon}<span>Sites</span></a><a href="/account/support" aria-label="Support" aria-current="page">${chat}<span>Support</span></a></nav>
-<section class="pc-workspace"><div class="pc-content"><header class="pc-workspace-head"><div><h1>Support</h1><p>View your tickets and continue the conversation with Pagecraft Support.</p></div></header>
-${supportView(false)}</div></section></div></main></body></html>`;
+  const rail = `<nav class="pc-rail" aria-label="Workspace"><a href="/" aria-label="Sites">${sitesIcon}<span>Sites</span></a><a href="/account/support" class="on" aria-current="page">${chat}<span>Support</span></a></nav>`;
+  return accountWorkspaceShell(user, 'Support', `<div class="pc-content"><header class="pc-workspace-head"><div><h1>Support</h1><p>View your tickets and continue the conversation with Pagecraft Support.</p></div></header>
+${supportView(false)}</div>`, { section: 'Support', rail });
 }
