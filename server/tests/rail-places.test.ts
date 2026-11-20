@@ -2,8 +2,9 @@ import { test } from 'vitest';
 import a from 'node:assert/strict';
 import {
   dashboardPage, notificationsPage, siteOverviewPage, siteSettingsPage, sitePeoplePage, siteReviewsPage,
-  siteIntegrationsPage, siteSubmissionsPage, siteAnalyticsPage,
+  siteIntegrationsPage, siteSubmissionsPage, siteAnalyticsPage, accountSettingsPage,
 } from '../src/account-pages.ts';
+import { accountPlansPage } from '../src/account-plans-page.ts';
 import { cloudHeader } from '../src/cloud-header.ts';
 
 /* D5 + S8 (option A): rails hold places. Owned/Shared filter the site list from the toolbar, and only
@@ -45,9 +46,32 @@ test('D5: the toolbar filter narrows the list in the page', async () => {
   window.close();
 });
 
-test('D5: account pages share the places-only rail', () => {
+test('A2: notifications is one of the account pages, under Sites / Account', () => {
   const html = notificationsPage(user, []);
-  a.deepEqual(railLabels(html), ['Sites']);
+  a.deepEqual(railLabels(html), ['Profile', 'Security', 'Billing', 'Notifications']);
+  a.match(rail(html), /<a href="\/notifications" aria-current="page">/);
+  a.equal((rail(html).match(/aria-current/g) || []).length, 1);
+  a.match(html, /<a class="pc-crumb" href="\/">Sites<\/a><span class="pc-crumbsep" aria-hidden="true">\/<\/span><span aria-current="page">Account<\/span>/);
+});
+
+test('A2: each account section is its own page with one highlighted rail item', () => {
+  const data = { providers: ['email'], ownerCount: 0, storage: { usedBytes: 0, limitBytes: 1 } } as never;
+  const expected = { profile: ['/account', 'Profile'], security: ['/account?tab=security', 'Security'], plan: ['/account?tab=plan', 'Plan &amp; billing'] } as const;
+  for (const [tab, [href, h1]] of Object.entries(expected)) {
+    const html = accountSettingsPage(user, data, { tab: tab as never });
+    a.deepEqual(railLabels(html), ['Profile', 'Security', 'Billing', 'Notifications'], tab);
+    a.equal((rail(html).match(/aria-current/g) || []).length, 1, `${tab}: one current item`);
+    a.ok(rail(html).includes(`<a href="${href}" aria-current="page">`), `${tab}: ${href} is current`);
+    a.ok(html.includes(`<h1>${h1}</h1>`), `${tab}: page title`);
+    a.equal((html.match(/class="pc-settings-section"/g) || []).length, 1, `${tab}: one section only`);
+    a.doesNotMatch(html, /pc-settings-nav|role="tab"/, `${tab}: no inner tab list`);
+  }
+});
+
+test('A2: the plans page sits under Billing', () => {
+  const html = accountPlansPage({ user, current: 'free', offers: [], subscriptions: [], checkoutReady: false, supportEmail: 'help@example.invalid' } as never);
+  a.match(rail(html), /<a href="\/account\?tab=plan" aria-current="page">/);
+  a.match(html, /<span aria-current="page">Account<\/span>/);
 });
 
 test('S8: site pages have eight rail items and Sites / site name in the top bar', () => {

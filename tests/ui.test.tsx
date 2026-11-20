@@ -1382,7 +1382,14 @@ test('Pages workspace searches by name or path and opens canvas or SEO deliberat
   r.click(r.$('.pagerow-main'));
   a.deepEqual(r.arg('openPage'),[index]);
   r.calls.length=0;
-  r.click(r.$('.pagerow > .btn'));
+  // E11: one icon per row, named by its tooltip and for screen readers; no repeated text button.
+  const seo = r.$('.pagerow > .page-settings')!;
+  a.equal(seo.getAttribute('title'), 'Settings & SEO');
+  a.match(seo.getAttribute('aria-label') || '', /^Page settings and SEO for /);
+  a.equal(seo.textContent!.trim(), '');
+  a.ok(seo.querySelector('svg'));
+  a.equal(r.$('.pagerow > .btn'), null);
+  r.click(seo);
   a.deepEqual(r.arg('openPage'),[index,true]);
   r.type(r.$('#pages-search')!, 'no matching page here');
   await new Promise(resolve => setTimeout(resolve, 0));

@@ -57,7 +57,9 @@ function PageRow({ i }: { i: number }) {
       </button>
       <span class="page-path">{C.isFront(p) ? '/' : '/' + p.slug}</span>
       <span class="page-kind">{collection ? 'CMS template' : C.isFront(p) ? 'Front page' : C.isNotFound(p) ? 'Not found' : 'Page'}</span>
-      <button class="btn tiny" onClick={() => L.openPage(i, true)} aria-label={'Page settings and SEO for ' + p.name}>Settings &amp; SEO</button>
+      {/* E11: one quiet icon per row instead of a full button; the name stays in the tooltip and for screen readers. */}
+      <button type="button" class="iconbtn page-settings" onClick={() => L.openPage(i, true)}
+        title="Settings & SEO" aria-label={'Page settings and SEO for ' + p.name}><Icon name="sliders" size={16} /></button>
       {L.canStructure() && <details class="page-actions"
         onToggle={e => { if (e.currentTarget.open && !e.currentTarget.hasAttribute('data-pc-menu-closing')) window.__pcMotion?.enter(e.currentTarget.querySelector<HTMLElement>('.act')!, { kind: 'popover' }); }}
         onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) closeActions(e.currentTarget); }}

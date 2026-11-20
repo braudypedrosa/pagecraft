@@ -629,8 +629,10 @@ test('the rail groups Build and Manage tools in that order', async () => {
   const { d, errors } = await editor({ url: 'https://example.test/live' }, false, { width: 1440 });
   const rail = d.querySelector('#leftRail');
   const order = Array.from(rail.children).filter(e => e.matches('button,.railGroup') && !e.hidden)
-    .map(e => e.matches('.railGroup') ? `[${e.textContent}]` : (e.dataset.t || e.dataset.act));
-  expect(order).toEqual(['[Build]', 'add', 'layers', 'cms', '[Manage]', 'pages', 'media', 'submissions', 'proposals', 'project']);
+    .map(e => e.matches('.railGroup') ? (e.classList.contains('manage') ? '|' : '^') : (e.dataset.t || e.dataset.act));
+  expect(order).toEqual(['^', 'add', 'layers', 'cms', '|', 'pages', 'media', 'submissions', 'proposals', 'project']);
+  // K3: the groups are told apart by a divider; no 9 px capitals.
+  for (const group of rail.querySelectorAll('.railGroup')) expect(group.textContent).toBe('');
   for (const label of rail.querySelectorAll('.railGroup')) expect(label.getAttribute('aria-hidden')).toBe('true');
   expect(errors).toEqual([]);
 });

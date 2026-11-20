@@ -23,7 +23,7 @@ test('the exempt account has unlimited site and media rows regardless of its sto
   for (const plan of ['free', 'launch', 'studio', 'pro'] as const) {
     const html = accountSettingsPage({ ...owner, plan }, { providers: [], ownerCount: 13, storage, billingDetailsAvailable: true }, { tab: 'plan' });
     const panel = html.split('id="settings-panel-plan"')[1].split('</section>')[0];
-    a.match(panel, /<span class="pc-plan-badge">Unrestricted<\/span>/);
+    a.match(html.split('</header>')[1], /<span class="pc-plan-badge">Unrestricted<\/span>/, 'beside the page title');
     a.match(panel, /13 used · Unlimited/);
     a.match(panel, /25 MB used · Unlimited/);
     a.match(panel, /href="\/account\/plans">Billing details/);
