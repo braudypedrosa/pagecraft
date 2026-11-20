@@ -1,0 +1,49 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "salt-house",
+  "version": "2.0.0",
+  "name": "Vacation Rental Collection",
+  "sampleName": "Salt House",
+  "description": "A six-page Mediterranean coastal holiday-home collection with interactive seasonal tabs, residence carousel, property lightbox galleries, tariff schedules, island field guide, host profiles and direct stay inquiry flow.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "pages": [
+    {
+      "id": "salt-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "salt-page-homes",
+      "name": "The Homes",
+      "slug": "homes"
+    },
+    {
+      "id": "salt-page-dune-house",
+      "name": "Dune House",
+      "slug": "dune-house"
+    },
+    {
+      "id": "salt-page-blue-shutter-cottage",
+      "name": "Blue Shutter Cottage",
+      "slug": "blue-shutter-cottage"
+    },
+    {
+      "id": "salt-page-coast",
+      "name": "The Coast",
+      "slug": "coast"
+    },
+    {
+      "id": "salt-page-plan-your-stay",
+      "name": "Plan Your Stay",
+      "slug": "plan-your-stay"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "d8cd00ad2178103cfad4c65b6e61013d1bbfc2132f4b6b04e55806cf2c22b3a3",
+  "previewPage": "index.html",
+  "assetCount": 26,
+  "assetBytes": 6330560
+}

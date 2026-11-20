@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "salt-house",
+  "version": "2.0.0",
+  "sampleName": "Salt House",
+  "packageSha256": "d8cd00ad2178103cfad4c65b6e61013d1bbfc2132f4b6b04e55806cf2c22b3a3",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}

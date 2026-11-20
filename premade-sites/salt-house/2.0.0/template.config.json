@@ -1,0 +1,208 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "salt-house",
+  "version": "2.0.0",
+  "name": "Vacation Rental Collection",
+  "sampleName": "Salt House",
+  "description": "A six-page Mediterranean coastal holiday-home collection with interactive seasonal tabs, residence carousel, property lightbox galleries, tariff schedules, island field guide, host profiles and direct stay inquiry flow.",
+  "categories": [
+    "Vacation rentals",
+    "Hospitality"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 118,
+      "height": 24
+    },
+    {
+      "id": "coast-cove-aerial",
+      "file": "assets/coast-cove-aerial.webp",
+      "name": "coast-cove-aerial.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "coast-harbor-boats",
+      "file": "assets/coast-harbor-boats.webp",
+      "name": "coast-harbor-boats.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "cta-evening-cove",
+      "file": "assets/cta-evening-cove.webp",
+      "name": "cta-evening-cove.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "detail-outdoor-shower",
+      "file": "assets/detail-outdoor-shower.webp",
+      "name": "detail-outdoor-shower.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "detail-terrace-arch",
+      "file": "assets/detail-terrace-arch.webp",
+      "name": "detail-terrace-arch.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "id": "hero-dune-terrace",
+      "file": "assets/hero-dune-terrace.webp",
+      "name": "hero-dune-terrace.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "home-blue-shutter-exterior",
+      "file": "assets/home-blue-shutter-exterior.webp",
+      "name": "home-blue-shutter-exterior.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "home-blue-shutter-living",
+      "file": "assets/home-blue-shutter-living.webp",
+      "name": "home-blue-shutter-living.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "home-casita-courtyard",
+      "file": "assets/home-casita-courtyard.webp",
+      "name": "home-casita-courtyard.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "home-cottage-courtyard",
+      "file": "assets/home-cottage-courtyard.webp",
+      "name": "home-cottage-courtyard.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "home-dune-bedroom",
+      "file": "assets/home-dune-bedroom.webp",
+      "name": "home-dune-bedroom.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "icon-anchor",
+      "file": "assets/icon-anchor.svg",
+      "name": "icon-anchor.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-compass",
+      "file": "assets/icon-compass.svg",
+      "name": "icon-compass.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-key",
+      "file": "assets/icon-key.svg",
+      "name": "icon-key.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-sun",
+      "file": "assets/icon-sun.svg",
+      "name": "icon-sun.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "logo-light",
+      "file": "assets/logo-light.svg",
+      "name": "logo-light.svg",
+      "width": 264,
+      "height": 48
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 264,
+      "height": 48
+    },
+    {
+      "id": "portrait-aina-mercadal",
+      "file": "assets/portrait-aina-mercadal.webp",
+      "name": "portrait-aina-mercadal.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-mateu-serra",
+      "file": "assets/portrait-mateu-serra.webp",
+      "name": "portrait-mateu-serra.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-pau-cardona",
+      "file": "assets/portrait-pau-cardona.webp",
+      "name": "portrait-pau-cardona.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "tab-autumn-coast",
+      "file": "assets/tab-autumn-coast.webp",
+      "name": "tab-autumn-coast.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-morning-cove",
+      "file": "assets/tab-morning-cove.webp",
+      "name": "tab-morning-cove.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-pergola-lunch",
+      "file": "assets/tab-pergola-lunch.webp",
+      "name": "tab-pergola-lunch.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-village-market",
+      "file": "assets/tab-village-market.webp",
+      "name": "tab-village-market.webp",
+      "width": 1673,
+      "height": 940
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:salt-house:2.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "d8cd00ad2178103cfad4c65b6e61013d1bbfc2132f4b6b04e55806cf2c22b3a3"
+}

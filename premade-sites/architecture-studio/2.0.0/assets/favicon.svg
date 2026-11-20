@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Common Ground icon">
+  <rect x="3" y="3" width="42" height="42" fill="#F7F4EE" stroke="#7A3B2E" stroke-width="2.2"/>
+  <path d="M12 38V20a12 12 0 0 1 24 0v18" fill="none" stroke="#7A3B2E" stroke-width="2.2"/>
+  <path d="M18 38V25a6 6 0 0 1 12 0v13" fill="none" stroke="#231F1D" stroke-width="1.8"/>
+  <line x1="8" y1="38" x2="40" y2="38" stroke="#7A3B2E" stroke-width="2.2"/>
+</svg>
