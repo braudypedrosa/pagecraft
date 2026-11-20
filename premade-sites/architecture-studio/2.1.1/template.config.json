@@ -1,0 +1,215 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "architecture-studio",
+  "version": "2.1.1",
+  "name": "Architecture Studio",
+  "sampleName": "Common Ground",
+  "description": "A six-page architecture and adaptive reuse practice website with interactive typology tabs, project plates carousel, monograph case study gallery, material schedules, studio team profiles and commission inquiry flow.",
+  "categories": [
+    "Architecture",
+    "Design"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "cta-evening-courtyard",
+      "file": "assets/cta-evening-courtyard.webp",
+      "name": "cta-evening-courtyard.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "detail-garden-threshold",
+      "file": "assets/detail-garden-threshold.webp",
+      "name": "detail-garden-threshold.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "detail-joinery-stair",
+      "file": "assets/detail-joinery-stair.webp",
+      "name": "detail-joinery-stair.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "id": "hero-courtyard-brick",
+      "file": "assets/hero-courtyard-brick.webp",
+      "name": "hero-courtyard-brick.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "icon-compass",
+      "file": "assets/icon-compass.svg",
+      "name": "icon-compass.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-layers",
+      "file": "assets/icon-layers.svg",
+      "name": "icon-layers.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-ruler",
+      "file": "assets/icon-ruler.svg",
+      "name": "icon-ruler.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "icon-sun",
+      "file": "assets/icon-sun.svg",
+      "name": "icon-sun.svg",
+      "width": 40,
+      "height": 40
+    },
+    {
+      "id": "logo-light",
+      "file": "assets/logo-light.svg",
+      "name": "logo-light.svg",
+      "width": 260,
+      "height": 44
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 260,
+      "height": 44
+    },
+    {
+      "id": "portrait-elena-rostova",
+      "file": "assets/portrait-elena-rostova.webp",
+      "name": "portrait-elena-rostova.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-julian-vance",
+      "file": "assets/portrait-julian-vance.webp",
+      "name": "portrait-julian-vance.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-marcus-thorne",
+      "file": "assets/portrait-marcus-thorne.webp",
+      "name": "portrait-marcus-thorne.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-sora-takahashi",
+      "file": "assets/portrait-sora-takahashi.webp",
+      "name": "portrait-sora-takahashi.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "project-courtyard-interior",
+      "file": "assets/project-courtyard-interior.webp",
+      "name": "project-courtyard-interior.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "project-kiln-townhouse",
+      "file": "assets/project-kiln-townhouse.webp",
+      "name": "project-kiln-townhouse.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "project-reading-room",
+      "file": "assets/project-reading-room.webp",
+      "name": "project-reading-room.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "project-timber-pavilion",
+      "file": "assets/project-timber-pavilion.webp",
+      "name": "project-timber-pavilion.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "studio-drafting-hall",
+      "file": "assets/studio-drafting-hall.webp",
+      "name": "studio-drafting-hall.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "studio-material-library",
+      "file": "assets/studio-material-library.webp",
+      "name": "studio-material-library.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "studio-model-table",
+      "file": "assets/studio-model-table.webp",
+      "name": "studio-model-table.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-adaptive-reuse",
+      "file": "assets/tab-adaptive-reuse.webp",
+      "name": "tab-adaptive-reuse.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-civic-commons",
+      "file": "assets/tab-civic-commons.webp",
+      "name": "tab-civic-commons.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "tab-courtyard-living",
+      "file": "assets/tab-courtyard-living.webp",
+      "name": "tab-courtyard-living.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-material-research",
+      "file": "assets/tab-material-research.webp",
+      "name": "tab-material-research.webp",
+      "width": 1536,
+      "height": 1024
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:architecture-studio:2.1.1",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "8a29310249a3e3162932bfb66bbfcde905016379dbbd4c2d94b246621c6ec43f"
+}

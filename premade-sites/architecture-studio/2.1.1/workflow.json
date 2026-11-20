@@ -1,0 +1,19 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "id": "architecture-studio",
+  "version": "2.1.1",
+  "sampleName": "Common Ground",
+  "packageSha256": "8a29310249a3e3162932bfb66bbfcde905016379dbbd4c2d94b246621c6ec43f",
+  "customCssPolicy": "native-only",
+  "gates": {
+    "packageValidation": "passed",
+    "linkAndAssetAudit": "passed",
+    "cloudSiteCheck": "passed",
+    "responsiveBreakpoints": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  }
+}
