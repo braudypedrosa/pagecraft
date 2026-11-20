@@ -59,7 +59,7 @@ test('clearing responsive unit and box overrides refreshes enhanced unit labels 
 
   act(() => r.click(r.$('button.rsp')));
   await settle();
-  assert.equal((r.$('input[aria-label="Padding top"]') as HTMLInputElement).value, '1.5');
+  assert.equal((r.$('input[aria-label="Padding top and bottom"]') as HTMLInputElement).value, '1.5');
   assert.equal(unit('Padding').value, 'em');
   assert.equal(trigger('Padding unit').textContent?.trim(), 'em');
 });

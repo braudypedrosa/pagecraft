@@ -900,12 +900,23 @@ select.ctl{
   font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3);
   padding-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.boxctl-sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap-1)}
+/* I4: one row per property. Two axis fields (↕ ↔) when opposite sides match, four side
+   fields (T R B L) when they differ; then the link toggle and the unit. It was a 2×2 grid
+   of labelled sides plus a Unit row, about 230 px for each property. */
+.boxctl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) 28px 58px;gap:var(--sp-2);align-items:end}
+.boxctl.split{grid-template-columns:repeat(4,minmax(0,1fr)) 28px 58px}
+.boxctl-axis{display:grid;grid-template-columns:14px minmax(0,1fr);align-items:center;gap:4px;min-width:0}
+.boxctl-axis>span{display:grid;place-items:center;color:var(--text-3)}
 .boxctl-side{display:grid;gap:3px;min-width:0}
-.boxctl-side>span,.boxctl-unit>span{font-family:var(--label);font-size:var(--fs-1);letter-spacing:.02em;color:var(--text-3)}
-.boxctl-side>.ctl{width:100%;min-width:0}
-.boxctl-unit{display:grid;grid-template-columns:minmax(0,1fr) 88px;align-items:center;gap:var(--gap-1);margin-top:var(--gap-1)}
-.boxctl-unit>.ctl,.boxctl-unit>.pc-custom-select-trigger{width:100%;min-width:0}
+.boxctl-side>span{font-family:var(--label);font-size:var(--fs-1);letter-spacing:.04em;color:var(--text-3);text-align:center}
+.boxctl-axis>.ctl,.boxctl-side>.ctl{width:100%;min-width:0;text-align:center;font-variant-numeric:tabular-nums;padding-inline:4px;-moz-appearance:textfield;appearance:textfield}
+/* The side fields are narrow, so the browser's number arrows would hide the value; arrow keys
+   still step it. */
+.boxctl .ctl::-webkit-inner-spin-button,.boxctl .ctl::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.boxctl-link{display:grid;place-items:center;width:28px;height:var(--h-ctl);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel);color:var(--text-3)}
+.boxctl-link:hover{background:var(--lift-bg);border-color:var(--lift-line);color:var(--text)}
+.boxctl-link.on{background:var(--pc-selection-bg);border-color:var(--ink);color:var(--text)}
+.boxctl>.boxctl-unit,.boxctl>.pc-custom-select-trigger{width:100%;min-width:0}
 .unit{display:flex;gap:0}
 .unit input{
   flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;

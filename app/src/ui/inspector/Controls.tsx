@@ -565,6 +565,14 @@ function boxValues(n: PcNode, base: string): string[] {
   return values;
 }
 
+/* I4: Padding and Margin take two fields when opposite sides match (↕ top and bottom,
+   ↔ left and right), and split into four when they differ or when the author asks. The CSS
+   written is the same four longhands either way; only the number of fields changes. */
+const AXIS_V = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 2v12M5 4.5L8 2l3 2.5M5 11.5L8 14l3-2.5" /></svg>;
+const AXIS_H = <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 8h12M4.5 5L2 8l2.5 3M11.5 5L14 8l-2.5 3" /></svg>;
+const LINK_ICON = <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 4.5l1-1a2.8 2.8 0 014 4l-1 1M9 11.5l-1 1a2.8 2.8 0 01-4-4l1-1" /><path d="M6.5 9.5l3-3" /></svg>;
+const SIDE_MARK = ['T', 'R', 'B', 'L'];
+
 function BoxCtl({ n, c }: P) {
   const key = n.id + '|' + (c.c || c.k || c.t);
   const w = writer(n, c);
@@ -577,51 +585,86 @@ function BoxCtl({ n, c }: P) {
      scope until author enters first value; changing breakpoint, state, or class target
      starts from current resolved CSS again. */
   const u = withUnit ? resolvedUnit : choice.key === choiceKey ? choice.unit : resolvedUnit;
+  const same = (a: { n: string; u: string }, b: { n: string; u: string }) => a.n === b.n && (a.u || '') === (b.u || '');
+  const symmetric = same(vals[0], vals[2]) && same(vals[1], vals[3]);
+  /* Split is remembered for this field and editing scope; a box whose sides differ is always
+     shown split, since two fields cannot hold it. */
+  const [split, setSplit] = useState({ key: choiceKey, on: false });
+  const sides = !symmetric || (split.key === choiceKey && split.on);
+  const label = c.label || 'Spacing';
 
-  /* all four sides are written on every change, reading the unit off the select — one
-     side holding an old unit is a value nobody asked for */
+  /* All four sides are written on every change, reading the unit off the select — one side
+     holding an old unit is a value nobody asked for. Two axis fields write their pairs. */
   const push = (root: HTMLElement) => {
     L.tx(key);
     const unit = (root.querySelector('select') as HTMLSelectElement).value;
     /* Once an author edits any side, materialize all four and remove the shorthand from this
        breakpoint. The inspector and the generated CSS now have one unambiguous source. */
     C.applyC(n, c, '');
-    root.querySelectorAll('input').forEach((inp, i) => {
-      const input = inp as HTMLInputElement;
+    const fields = [...root.querySelectorAll<HTMLInputElement>('input')];
+    const clean = (input: HTMLInputElement) => {
       const raw = input.value.trim();
       const parsed = Number(raw);
       const v = !c.neg && raw !== '' && Number.isFinite(parsed) && parsed < 0 ? '0' : raw;
       if (v !== raw) input.value = v;
-      C.applyC(n, { c: c.c + '-' + SIDES[i], r: c.r }, v === '' ? '' : v + unit);
-    });
+      return v;
+    };
+    const values = fields.length === 2
+      ? (([v, h]) => [v, h, v, h])(fields.map(clean))
+      : fields.map(clean);
+    values.forEach((v, i) => C.applyC(n, { c: c.c + '-' + SIDES[i], r: c.r }, v === '' ? '' : v + unit));
     L.repaintCss();
   };
 
+  /* Linking makes opposite sides equal: bottom takes top, right takes left. */
+  const toggle = () => {
+    if (sides) {
+      setSplit({ key: choiceKey, on: false });
+      // Read the sides now: a side typed a moment ago may not have re-rendered this control yet.
+      const now = boxValues(n, c.c!).map(C.parseU);
+      if (!(same(now[0], now[2]) && same(now[1], now[3]))) {
+        L.tx(key);
+        C.applyC(n, c, '');
+        const pair = [now[0], now[3], now[0], now[3]];
+        pair.forEach((v, i) => C.applyC(n, { c: c.c + '-' + SIDES[i], r: c.r }, v.n === '' ? '' : v.n + (v.u || u)));
+        L.repaintCss();
+        w.done();
+      }
+    } else setSplit({ key: choiceKey, on: true });
+  };
+
   return <Field n={n} c={c}>
-    <div class="boxctl">
-      <div class="boxctl-sides">
-        {SIDES.map((s, k) => (
+    <div class={'boxctl' + (sides ? ' split' : '')}>
+      {sides
+        ? SIDES.map((s, k) => (
           <label class="boxctl-side" key={s}>
-            <span aria-hidden="true">{s}</span>
+            <span aria-hidden="true" title={s}>{SIDE_MARK[k]}</span>
             <input data-field-part={s} class="ctl" type="number" step="any" min={c.neg ? undefined : 0} value={vals[k].n} placeholder="0" title={s}
               onInput={e => push((e.target as HTMLElement).closest('.boxctl')!)} onBlur={w.done} />
           </label>
+        ))
+        : [['top and bottom', AXIS_V, vals[0].n], ['left and right', AXIS_H, vals[1].n]].map(([part, icon, value]) => (
+          <label class="boxctl-axis" key={part as string}>
+            <span title={part as string}>{icon}</span>
+            <input data-field-part={part as string} class="ctl" type="number" step="any" min={c.neg ? undefined : 0} value={value as string} placeholder="0" title={part as string}
+              onInput={e => push((e.target as HTMLElement).closest('.boxctl')!)} onBlur={w.done} />
+          </label>
         ))}
-      </div>
-      <div class="boxctl-unit">
-        <span aria-hidden="true">Unit</span>
-        <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl" value={u} style={{ fontSize: 'var(--fs-1)' }}
-          onChange={e => {
-            const select = e.target as HTMLSelectElement;
-            setChoice({ key: choiceKey, unit: select.value });
-            const root = select.closest<HTMLElement>('.boxctl')!;
-            const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
-              .some(input => input.value.trim() !== '');
-            if (hasValue) { push(root); w.done(); }
-          }}>
-          {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
-        </select>
-      </div>
+      <button type="button" class={'boxctl-link' + (sides ? '' : ' on')} aria-pressed={sides ? 'false' : 'true'}
+        aria-label={sides ? `${label}: link opposite sides` : `${label}: set each side separately`}
+        title={sides ? 'Link opposite sides (top with bottom, left with right)' : 'Set each side separately'}
+        onClick={toggle}>{LINK_ICON}</button>
+      <select key={`${choiceKey}|${u}`} data-field-part="unit" class="ctl boxctl-unit" value={u} style={{ fontSize: 'var(--fs-1)' }}
+        onChange={e => {
+          const select = e.target as HTMLSelectElement;
+          setChoice({ key: choiceKey, unit: select.value });
+          const root = select.closest<HTMLElement>('.boxctl')!;
+          const hasValue = [...root.querySelectorAll<HTMLInputElement>('input')]
+            .some(input => input.value.trim() !== '');
+          if (hasValue) { push(root); w.done(); }
+        }}>
+        {['px', 'rem', '%', 'em'].map(x => <option key={x} value={x}>{x}</option>)}
+      </select>
     </div>
   </Field>;
 }
