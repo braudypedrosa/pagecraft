@@ -144,20 +144,28 @@ export function assistantRoutes(app: Hono, d: AssistantDeps) {
     return { ok: true as const, gate, site, assistants: d.assistants };
   };
 
+  /* E15: most sites have no proposals. Reading the fresh draft is the slow part of this route
+     (a database round trip for the whole document), and it only matters for previews and
+     staleness, so an empty list answers as soon as the permission check passes. */
   app.get('/api/sites/:id/proposals', async c => {
-    const g = await editorGate(c);
-    if (!g.ok) return g.response;
-    const all = await g.assistants.proposals(g.site.id);
+    if (!d.assistants) return c.json({ error: 'assistants are unavailable' }, 503);
+    const id = c.req.param('id')!;
+    const gate = await d.allowed(c, id, 'admin');
+    if (!gate.ok) return c.json({ error: gate.status === 401 ? 'sign in' : 'not allowed' }, gate.status);
     const status = c.req.query('status');
+    const all = await d.assistants.proposals(id);
     const list = status ? all.filter(p => p.status === status) : all;
+    if (!list.length) return c.json({ proposals: [] });
+    const site = await d.store.byId(id, { fresh: true });
+    if (!site) return c.json({ error: 'not found' }, 404);
     return c.json({ proposals: list.slice(0, 50).map(p => {
       const { application, ...proposal } = p;
       const waiting = p.status === 'pending' || p.status === 'applying';
-      const matches = g.site.version === (waiting ? p.baseVersion : p.appliedVersion);
+      const matches = site.version === (waiting ? p.baseVersion : p.appliedVersion);
       return {
         ...proposal, ...(waiting && !matches ? { reviewIssue: staleDetail } : {}),
         recoveryAvailable: !!application && p.status === 'applying',
-        previews: matches ? previewPaths(g.site.doc, p.regions) : [],
+        previews: matches ? previewPaths(site.doc, p.regions) : [],
       };
     }) });
   });

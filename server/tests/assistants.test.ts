@@ -380,3 +380,26 @@ test('assistant proposals and content saves reject effective form routing change
   a.equal((await r.call(sitePath, { method: 'PUT', json: { doc: rerouted, version: r.site.version + 2 } })).status, 200, 'the owner retains direct routing control');
   await mcp.close();
 });
+
+test('E15: an empty proposal list answers without reading the fresh draft', async () => {
+  const r = await rig();
+  const byId = r.store.byId.bind(r.store) as (id: string, opts?: { fresh?: boolean }) => ReturnType<typeof r.store.byId>;
+  const fresh: string[] = [];
+  (r.store as any).byId = (id: string, opts?: { fresh?: boolean }) => { if (opts?.fresh) fresh.push(id); return byId(id, opts); };
+  const empty = await r.call(`/api/sites/${r.site.id}/proposals`);
+  a.equal(empty.status, 200);
+  a.deepEqual(await empty.json(), { proposals: [] });
+  a.equal(fresh.length, 0, 'no fresh draft read for an empty list');
+  a.equal((await r.call(`/api/sites/${r.site.id}/proposals`, { cookie: r.editorCookie })).status, 403, 'still owners only');
+
+  const mcp = await r.mcpFor(await r.newAssistantToken());
+  await mcp.callTool({ name: 'pagecraft_propose_changes', arguments: {
+    baseVersion: r.site.version, title: 'Clearer welcome', changes: [{ type: 'text', nodeId: 'h1', value: 'Workshops for everyone' }],
+  } });
+  await mcp.close();
+  a.deepEqual(await (await r.call(`/api/sites/${r.site.id}/proposals?status=applied`)).json(), { proposals: [] }, 'a filter with no match is empty too');
+  const list = await (await r.call(`/api/sites/${r.site.id}/proposals`)).json() as any;
+  a.equal(list.proposals.length, 1);
+  a.deepEqual(list.proposals[0].previews.map((v: { path: string }) => v.path), ['index.html'], 'a real list still gets previews');
+  a.ok(fresh.includes(r.site.id), 'previews read the fresh draft');
+});

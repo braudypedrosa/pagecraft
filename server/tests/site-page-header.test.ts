@@ -56,3 +56,20 @@ test('the Submissions view inside the editor keeps Back to builder', () => {
   const embedded = siteSubmissionsPage(user, site(), 'owner' as never, [], [], '', '', 1, true);
   a.match(header(embedded), /pagecraft:close-submissions[^>]*>Back to builder<\/button>/);
 });
+
+test('S7: settings save buttons start secondary and wake up only when their field changes', async () => {
+  const { JSDOM } = await import('jsdom' as string) as { JSDOM: new (html: string, options?: object) => any };
+  const html = siteSettingsPage(user, site());
+  a.match(html, /<button class="pc-btn" type="submit" data-dirty-submit>Save name<\/button>/);
+  a.match(html, /<button class="pc-btn" type="submit" data-dirty-submit>Update address<\/button>/);
+  const dom = new JSDOM(html, { runScripts: 'dangerously' });
+  const { document, Event } = dom.window;
+  const save = [...document.querySelectorAll('[data-dirty-submit]')] as HTMLButtonElement[];
+  a.deepEqual(save.map(b => b.disabled), [true, true], 'nothing to save yet');
+  const name = document.querySelector('#site-settings-name') as HTMLInputElement;
+  name.value = 'Header QA renamed'; name.dispatchEvent(new Event('input'));
+  a.equal(save[0].disabled, false); a.ok(save[0].classList.contains('primary'));
+  a.equal(save[1].disabled, true, 'the other section stays asleep');
+  name.value = 'Header QA'; name.dispatchEvent(new Event('input'));
+  a.equal(save[0].disabled, true, 'back to the saved value');
+});
