@@ -1,0 +1,104 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Home bakers, culinary enthusiasts, working cooks and private teams seeking small-group, hands-on workshops in sourdough baking, laminated pastry, botanical fermentation and seasonal hearth cooking.",
+    "primaryAction": "Explore the four teaching disciplines and cohort schedule, then submit a workshop seat or private bench inquiry on the Contact page.",
+    "pages": [
+      "about",
+      "calendar",
+      "contact",
+      "index",
+      "workshops"
+    ],
+    "content": "Five-page culinary and fermentation workshop school website (Home, Workshops, Calendar, About, Contact) featuring an interactive four-discipline curriculum Tabs explorer with rich editable panels, a featured workshop Slider carousel using the reusable sorrel-workshop-card component, an unnumbered workshop day rhythm narrative, a 3-room studio Gallery with lightbox, top-aligned FAQ Accordions, two comparative curriculum and dated cohort Tables with direct action links below, four resident instructor portraits and biographies, ingredient provenance cards and a seven-field seat request Form.",
+    "imagery": "Eighteen distinct scene-specific photographs generated for Sorrel & Stone plus eight original vector SVG assets (dark and light outlined Fraunces wordmarks with stone-arch and sorrel-leaf mark and bp signature, standalone favicon, bp-mark and four semantic icons).",
+    "provenance": [
+      { "asset": "logo", "source": "Original vector stone-arch & sorrel-leaf mark with outlined Fraunces 600 wordmark and bp signature", "license": "Original Pagecraft template artwork" },
+      { "asset": "logo-light", "source": "Original light-on-dark vector stone-arch & sorrel-leaf mark with outlined Fraunces 600 wordmark and bp signature", "license": "Original Pagecraft template artwork" },
+      { "asset": "favicon", "source": "Original standalone 64x64 stone-arch & sorrel-leaf vector mark", "license": "Original Pagecraft template artwork" },
+      { "asset": "bp-mark", "source": "Original Braudy Pedrosa creator signature mark", "license": "Original creator mark" },
+      { "asset": "icon-grain", "source": "Original 24x24 wheat/grain vector icon in brand emerald (#0A6C57)", "license": "Original Pagecraft template artwork" },
+      { "asset": "icon-flame", "source": "Original 24x24 hearth flame vector icon in brand emerald (#0A6C57)", "license": "Original Pagecraft template artwork" },
+      { "asset": "icon-clock", "source": "Original 24x24 fermentation clock vector icon in brand emerald (#0A6C57)", "license": "Original Pagecraft template artwork" },
+      { "asset": "icon-leaf", "source": "Original 24x24 sorrel leaf vector icon in brand emerald (#0A6C57)", "license": "Original Pagecraft template artwork" },
+      { "asset": "hero-kitchen-bench", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "tab-sourdough-scoring", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "tab-pastry-lamination", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "tab-fermentation-jars", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "tab-seasonal-butchery", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "workshop-rye-loaves", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "workshop-croissant-layers", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "workshop-koji-crocks", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "workshop-handmade-pasta", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "bench-morning-coffee", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "studio-bakehouse-ovens", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "studio-larder-cellar", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "studio-conservatory-table", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "cta-evening-table", "source": "Generated scene-specific editorial photograph (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "portrait-claire-vance", "source": "Generated scene-specific editorial portrait (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "portrait-mateo-solis", "source": "Generated scene-specific editorial portrait (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "portrait-hana-lindqvist", "source": "Generated scene-specific editorial portrait (2026-11-20)", "license": "Demonstration template asset" },
+      { "asset": "portrait-julian-marsh", "source": "Generated scene-specific editorial portrait (2026-11-20)", "license": "Demonstration template asset" }
+    ]
+  },
+  "directions": [
+    {
+      "id": "working-bakehouse-bench",
+      "thesis": "Split deep-sorrel-pine and sunlit bakehouse hero leading into an interactive four-discipline curriculum Tabs explorer, reusable workshop Slider cards, unnumbered day rhythm, studio lightbox Gallery and top-aligned FAQ.",
+      "fingerprint": {
+        "header": "Optically centered outlined SVG wordmark with stone-arch mark, tablet-collapsing fullscreen nav and desktop seat request CTA",
+        "hero": "Full-width split stage with deep pine editorial column + 3 practical bench facts on left and sunlit ash workbench photography on right",
+        "textAnchor": "Stacked section introductions with Fraunces 600 display serif headings and Karla body copy",
+        "inventory": "Rich editable 4-tab discipline explorer + 4-slide reusable sorrel-workshop-card carousel + 8-row curriculum and cohort tables",
+        "cta": "Full-bleed candlelit evening table photograph with high-contrast dark pine card and dual action buttons",
+        "footer": "Compact deep-pine footer with light SVG logo, single wrapping navigation group and bp-mark creator credit row"
+      },
+      "comparison": "Chosen implementation direction; uses the unassigned Fraunces + Karla font pair and Emerald & Porcelain palette from style-rotation.json.",
+      "sections": [
+        { "purpose": "Hero", "archetype": "split-stage", "composition": "1.08fr dark pine editorial column with 3-column facts bar beside 0.92fr full-bleed workbench photo", "typography": "Fraunces 64px H1 + Karla 20px lead", "imagery": "hero-kitchen-bench.webp", "action": "Explore workshops / Season calendar" },
+        { "purpose": "Curriculum explorer", "archetype": "rich-tabs", "composition": "4 native editable tab panels, each pairing 3 icon-backed skill outcomes with a discipline photograph", "typography": "Fraunces 42px H2 + 34px H3 panel titles", "imagery": "tab-sourdough-scoring, tab-pastry-lamination, tab-fermentation-jars, tab-seasonal-butchery", "action": "Discipline syllabus links" },
+        { "purpose": "Featured workshops", "archetype": "component-carousel", "composition": "Native slider with 4 instances of reusable sorrel-workshop-card component", "typography": "Fraunces 25px H3 card titles + Karla metadata", "imagery": "workshop-rye-loaves, workshop-croissant-layers, workshop-koji-crocks, workshop-handmade-pasta", "action": "Syllabus & bench details" }
+      ]
+    },
+    {
+      "id": "editorial-syllabus-ledger",
+      "thesis": "Typography-first academic catalog opening with a syllabus index table before photography.",
+      "fingerprint": {
+        "header": "Minimal top rule header",
+        "hero": "Centered typographic statement above a 4-column syllabus index",
+        "textAnchor": "Left-rail chapter labels with wide reading column",
+        "inventory": "Static ledger rows grouped by quarter",
+        "cta": "Bordered paper card invitation",
+        "footer": "Two-column academic colophon"
+      },
+      "comparison": "Alternative candidate; less tactile and less illustrative of the physical teaching rooms than working-bakehouse-bench.",
+      "sections": [
+        { "purpose": "Hero", "archetype": "typographic-index", "composition": "Centered headline over 4-column directory", "typography": "Display serif", "imagery": "Single bench panorama below fold", "action": "Download syllabus" },
+        { "purpose": "Directory", "archetype": "table-ledger", "composition": "Full-width table of courses", "typography": "Tabular body", "imagery": "None", "action": "Select cohort" }
+      ]
+    },
+    {
+      "id": "conservatory-field-journal",
+      "thesis": "Story-led botanical journal focusing on seasonal harvests and cellar notes.",
+      "fingerprint": {
+        "header": "Centered stacked masthead",
+        "hero": "Panoramic glasshouse photograph with caption bar below",
+        "textAnchor": "Editorial essay blocks",
+        "inventory": "Alternating two-column seasonal essays",
+        "cta": "Dark botanical band",
+        "footer": "Compact colophon"
+      },
+      "comparison": "Alternative candidate; emphasizes editorial stories over practical workshop comparison and cohort scheduling.",
+      "sections": [
+        { "purpose": "Hero", "archetype": "panorama-caption", "composition": "Wide conservatory photo above two-column intro", "typography": "Editorial serif", "imagery": "Conservatory table", "action": "Read journal" },
+        { "purpose": "Essays", "archetype": "editorial-pairs", "composition": "Paired image and essay columns", "typography": "Serif + sans", "imagery": "Cellar jars", "action": "Explore courses" }
+      ]
+    }
+  ],
+  "selection": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

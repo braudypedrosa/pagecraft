@@ -88,13 +88,14 @@ const visibleCards = (document: Document) => [
   ...document.querySelectorAll<HTMLElement>("[data-template-card]"),
 ].filter(card => !card.hidden);
 
-test("template picker renders the six named templates and represented facets", async () => {
+test("template picker renders the seven named templates and represented facets", async () => {
   const { document } = await renderPicker();
   const names = [...document.querySelectorAll("[data-template-card] strong")]
     .map(node => node.textContent);
   a.deepEqual(names, [
     "Common Ground · Architecture Studio",
     "Marea · Coastal Stays",
+    "Sorrel & Stone · Culinary School",
     "Linden Dental · Dental Clinic",
     "Northline · Creative Studio",
     "Salt House · Holiday Homes",
@@ -107,6 +108,8 @@ test("template picker renders the six named templates and represented facets", a
       ["", "All industries"],
       ["architecture-design", "Architecture & Design"],
       ["creative-services", "Creative Services"],
+      ["education-and-learning", "Education & Learning"],
+      ["food-and-drink", "Food & Drink"],
       ["health-and-wellness", "Health & Wellness"],
       ["travel-hospitality", "Travel & Hospitality"],
     ],
@@ -118,6 +121,7 @@ test("template picker renders the six named templates and represented facets", a
       ["", "All site types"],
       ["accommodation", "Accommodation"],
       ["business", "Business"],
+      ["education", "Education"],
       ["portfolio", "Portfolio"],
     ],
   );
@@ -160,7 +164,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 6);
+  a.equal(visibleCards(document).length, 7);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

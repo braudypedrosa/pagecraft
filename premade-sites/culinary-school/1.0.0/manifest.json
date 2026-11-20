@@ -1,0 +1,45 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "culinary-school",
+  "version": "1.0.0",
+  "name": "Culinary & Fermentation School",
+  "sampleName": "Sorrel & Stone",
+  "description": "A five-page culinary, pastry, sourdough and botanical fermentation workshop school website with interactive curriculum tabs, workshop carousel, cohort calendar, studio gallery, instructor profiles and seat inquiry flow.",
+  "categories": [
+    "Education",
+    "Food-and-Drink",
+    "Workshops"
+  ],
+  "pages": [
+    {
+      "id": "sorrel-page-index",
+      "name": "Home",
+      "slug": "index"
+    },
+    {
+      "id": "sorrel-page-workshops",
+      "name": "Workshops",
+      "slug": "workshops"
+    },
+    {
+      "id": "sorrel-page-calendar",
+      "name": "Calendar",
+      "slug": "calendar"
+    },
+    {
+      "id": "sorrel-page-about",
+      "name": "About",
+      "slug": "about"
+    },
+    {
+      "id": "sorrel-page-contact",
+      "name": "Contact",
+      "slug": "contact"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "619c8c5b62445a58fdf6b3ef6918c92b39681390a1d2cb9a8fe4d8543c551689",
+  "previewPage": "index.html",
+  "assetCount": 26,
+  "assetBytes": 6031539
+}

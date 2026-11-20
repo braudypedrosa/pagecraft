@@ -43,6 +43,12 @@ test('known templates receive clear names and separate controlled facets', () =>
       siteTypes: ['Accommodation'],
     },
     {
+      id: 'culinary-school',
+      name: 'Sorrel & Stone · Culinary School',
+      industries: ['Education & Learning', 'Food & Drink'],
+      siteTypes: ['Education', 'Business'],
+    },
+    {
       id: 'dental-clinic-a2',
       name: 'Linden Dental · Dental Clinic',
       industries: ['Health & Wellness'],

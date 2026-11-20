@@ -15,6 +15,7 @@ interface TemplateDiscoveryConfig {
 
 const architectureDesign = { id: 'architecture-design', label: 'Architecture & Design' };
 const creativeServices = { id: 'creative-services', label: 'Creative Services' };
+const educationAndLearning = { id: 'education-and-learning', label: 'Education & Learning' };
 const foodAndDrink = { id: 'food-and-drink', label: 'Food & Drink' };
 const healthAndWellness = { id: 'health-and-wellness', label: 'Health & Wellness' };
 const professionalServices = { id: 'professional-services', label: 'Professional Services' };
@@ -23,6 +24,7 @@ const travelHospitality = { id: 'travel-hospitality', label: 'Travel & Hospitali
 const portfolio = { id: 'portfolio', label: 'Portfolio' };
 const business = { id: 'business', label: 'Business' };
 const accommodation = { id: 'accommodation', label: 'Accommodation' };
+const education = { id: 'education', label: 'Education' };
 const restaurant = { id: 'restaurant', label: 'Restaurant' };
 
 const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
@@ -39,6 +41,13 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     industries: [travelHospitality],
     siteTypes: [accommodation],
     aliases: ['coastal stays', 'holiday rental', 'short-term rental', 'vacation rental', 'guest house'],
+  },
+  'culinary-school': {
+    name: 'Sorrel & Stone · Culinary School',
+    description: 'A five-page culinary, pastry, sourdough and botanical fermentation workshop school website with interactive curriculum tabs, workshop carousel, cohort calendar, studio gallery, instructor profiles and seat inquiry flow.',
+    industries: [educationAndLearning, foodAndDrink],
+    siteTypes: [education, business],
+    aliases: ['cooking school', 'culinary workshop', 'baking classes', 'fermentation workshop', 'course provider'],
   },
   'dental-clinic-a2': {
     name: 'Linden Dental · Dental Clinic',

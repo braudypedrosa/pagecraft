@@ -1,0 +1,209 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "culinary-school",
+  "version": "1.0.0",
+  "name": "Culinary & Fermentation School",
+  "sampleName": "Sorrel & Stone",
+  "description": "A five-page culinary, pastry, sourdough and botanical fermentation workshop school website with interactive curriculum tabs, workshop carousel, cohort calendar, studio gallery, instructor profiles and seat inquiry flow.",
+  "categories": [
+    "Education",
+    "Food-and-Drink",
+    "Workshops"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bench-morning-coffee",
+      "file": "assets/bench-morning-coffee.webp",
+      "name": "bench-morning-coffee.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "cta-evening-table",
+      "file": "assets/cta-evening-table.webp",
+      "name": "cta-evening-table.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "hero-kitchen-bench",
+      "file": "assets/hero-kitchen-bench.webp",
+      "name": "hero-kitchen-bench.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "icon-clock",
+      "file": "assets/icon-clock.svg",
+      "name": "icon-clock.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "icon-flame",
+      "file": "assets/icon-flame.svg",
+      "name": "icon-flame.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "icon-grain",
+      "file": "assets/icon-grain.svg",
+      "name": "icon-grain.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "icon-leaf",
+      "file": "assets/icon-leaf.svg",
+      "name": "icon-leaf.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "id": "logo-light",
+      "file": "assets/logo-light.svg",
+      "name": "logo-light.svg",
+      "width": 309,
+      "height": 68
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 309,
+      "height": 68
+    },
+    {
+      "id": "portrait-claire-vance",
+      "file": "assets/portrait-claire-vance.webp",
+      "name": "portrait-claire-vance.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-hana-lindqvist",
+      "file": "assets/portrait-hana-lindqvist.webp",
+      "name": "portrait-hana-lindqvist.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-julian-marsh",
+      "file": "assets/portrait-julian-marsh.webp",
+      "name": "portrait-julian-marsh.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "portrait-mateo-solis",
+      "file": "assets/portrait-mateo-solis.webp",
+      "name": "portrait-mateo-solis.webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "id": "studio-bakehouse-ovens",
+      "file": "assets/studio-bakehouse-ovens.webp",
+      "name": "studio-bakehouse-ovens.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "studio-conservatory-table",
+      "file": "assets/studio-conservatory-table.webp",
+      "name": "studio-conservatory-table.webp",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "id": "studio-larder-cellar",
+      "file": "assets/studio-larder-cellar.webp",
+      "name": "studio-larder-cellar.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-fermentation-jars",
+      "file": "assets/tab-fermentation-jars.webp",
+      "name": "tab-fermentation-jars.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-pastry-lamination",
+      "file": "assets/tab-pastry-lamination.webp",
+      "name": "tab-pastry-lamination.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-seasonal-butchery",
+      "file": "assets/tab-seasonal-butchery.webp",
+      "name": "tab-seasonal-butchery.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "tab-sourdough-scoring",
+      "file": "assets/tab-sourdough-scoring.webp",
+      "name": "tab-sourdough-scoring.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "workshop-croissant-layers",
+      "file": "assets/workshop-croissant-layers.webp",
+      "name": "workshop-croissant-layers.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "workshop-handmade-pasta",
+      "file": "assets/workshop-handmade-pasta.webp",
+      "name": "workshop-handmade-pasta.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "workshop-koji-crocks",
+      "file": "assets/workshop-koji-crocks.webp",
+      "name": "workshop-koji-crocks.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "workshop-rye-loaves",
+      "file": "assets/workshop-rye-loaves.webp",
+      "name": "workshop-rye-loaves.webp",
+      "width": 1200,
+      "height": 896
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:culinary-school:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "619c8c5b62445a58fdf6b3ef6918c92b39681390a1d2cb9a8fe4d8543c551689"
+}
