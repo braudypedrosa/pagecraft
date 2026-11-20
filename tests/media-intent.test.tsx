@@ -159,7 +159,8 @@ function intentHarness() {
   };
   const source = readFileSync('builder.html', 'utf8');
   const start = source.indexOf('function mediaSelectedImageTarget()');
-  const end = source.indexOf('function mediaModal()', start);
+  // The Media library opener follows the helpers (rail Media opens it as a workspace, E4).
+  const end = source.indexOf('let mediaWorkspace = false;', start);
   vm.createContext(context);
   vm.runInContext(source.slice(start, end), context);
   return {context:context as typeof context & {
