@@ -100,6 +100,26 @@ test('preview labeling is explicit, escaped, and opt-in on dashboard and sign-in
   }
 });
 
+test('persistent CRM feedback has a full border and uses the control radius', () => {
+  const pages = [
+    founderCrmSignInPage({ dataEnvironment: 'staging', previewLabel: 'Local preview', error: 'sign_in_failed' }),
+    founderCrmSupportPage(founder, input({ message: 'Reply sent.' })),
+  ];
+  for (const html of pages) {
+    const { window } = new JSDOM(html);
+    const notices = window.document.querySelectorAll('.notice,.preview-banner');
+    a.equal(notices.length, 2);
+    for (const notice of notices) {
+      const style = window.getComputedStyle(notice);
+      a.equal(style.borderRadius, 'var(--pc-control-radius)');
+      for (const side of ['top', 'right', 'bottom', 'left']) {
+        a.equal(style.getPropertyValue(`border-${side}-width`), '1px');
+        a.equal(style.getPropertyValue(`border-${side}-style`), 'solid');
+      }
+    }
+  }
+});
+
 test('private pages load same-origin libraries and carry export context while sign-in stays light', () => {
   const doc = new JSDOM(founderCrmPage(founder, base(), input())).window.document;
   a.equal(doc.querySelector('script[src]')?.getAttribute('src'), '/assets/founder-crm.js');
