@@ -59,7 +59,7 @@ function billingPage(user: User, title: string, description: string, content: st
   const back = backToPlans ? ['/account/plans', 'Plans'] : ['/account?tab=plan', 'Plan &amp; billing'];
   return accountWorkspaceShell(user, title, `<div class="pc-content">
 <header class="pc-workspace-head"><div><a class="pc-plans-back" href="${back[0]}">${backIcon}${back[1]}</a><h1>${esc(title)}</h1><p>${esc(description)}</p></div></header>
-<div class="pc-plans-body">${content}</div></div>`, { styles: CSS, scripts });
+<div class="pc-plans-body">${content}</div></div>`, { styles: CSS, scripts, account: 'plan' });
 }
 
 type Interval = 'monthly' | 'yearly';

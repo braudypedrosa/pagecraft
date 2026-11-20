@@ -171,7 +171,8 @@ test('reviewers cannot edit, publish, inspect submissions, or open unassigned sn
   a.match(noticeHtml, /class="pc-inbox-item is-new"/);
   a.match(noticeHtml, /pc-inbox-state">New</);
   a.match(noticeHtml, /pc-inbox-icon/);
-  a.match(noticeHtml, /aria-label="Sites navigation"/);
+  a.match(noticeHtml, /aria-label="Account navigation"/);
+  a.match(noticeHtml, /<a href="\/notifications" aria-current="page">/);
   a.match(noticeHtml, /class="pc-rail"/);
   a.match(noticeHtml, /data-notify-root/);
   a.match(noticeHtml, /View all/);

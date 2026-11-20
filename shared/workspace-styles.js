@@ -68,7 +68,9 @@ ${DIALOG_CSS}
   min-height:var(--pc-control-editor);height:var(--pc-control-editor);padding:var(--pc-control-padding);
 }
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
-.cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4}
+.cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4;font-weight:600}
+/* K3: editor headings are 600, like every other editor heading; Cloud pages keep their own. */
+:is(.pages-workspace,.cms-workspace) .pc-workspace-head h1{font-weight:600}
 .cms-workspace .cms-entry-row{padding:var(--pc-table-cell-padding);gap:16px}
 .cms-workspace .cms-entry-open{padding:0;font-weight:500}
 .cms-workspace .cms-entry-open b{font-weight:500}
@@ -79,10 +81,10 @@ ${DIALOG_CSS}
 .cms-workspace .cms-collections .btn:not(.primary):hover{background:var(--pc-ui-hover)}
 :is(.pages-workspace,.cms-workspace) :is(.ctl,.pc-custom-select-trigger){border-radius:var(--pc-control-radius)}
 .project-settings .mh{padding:24px var(--pc-workspace-x);min-height:104px}
-.project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:700}
+.project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:600}
 .project-settings .settings-nav{width:220px;flex-basis:220px;padding:24px 16px}
 .project-settings .settings-content{container-type:inline-size}
-.project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4}
+.project-settings .settings-content h2{font-size:var(--pc-section-title);line-height:1.4;font-weight:600}
 @container(max-width:560px){.project-settings .pc-field-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:1050px){.project-settings .settings-nav{width:146px;flex-basis:146px;padding:16px 8px}}
 
@@ -92,7 +94,6 @@ ${DIALOG_CSS}
 :is(.lrow.sel,.lrow.sel2,.lrow.region.live,.mcard.on,.pickrow.on,.navitem.on){
   --text-2:var(--pc-selection-muted);--text-3:var(--pc-selection-muted);
 }
-.dashboard-app .pc-settings-nav button[aria-selected="true"],
 .dashboard-app .pc-create-modal .pc-template-choice:has(input:checked),
 .dashboard-app .pc-template-choice:has(input:checked),
 .dashboard-app .pc-property-choice:has(input:checked){
@@ -126,10 +127,8 @@ ${DIALOG_CSS}
 .dashboard-app .pc-btn.danger:hover{background:var(--pc-danger-soft,var(--pc-hover-bg))}
 .dashboard-app .pc-workspace :is(h2,h3){letter-spacing:-.015em;line-height:1.4}
 .dashboard-app :is(.pc-settings-title,.pc-site-setting-copy,.pc-members-head,.pc-manage-summary,.pc-manage-section) h2{font-size:var(--pc-section-title)}
-.dashboard-app .pc-settings-layout{grid-template-columns:220px minmax(0,980px);gap:32px;padding-top:0}
-.dashboard-app .pc-settings-nav{top:0}
+.dashboard-app .pc-settings-layout{grid-template-columns:minmax(0,800px);padding-top:0}
 .dashboard-app .pc-settings-main{max-width:800px}
-.dashboard-app .pc-settings-nav button{font-family:var(--pc-ui-font);font-size:var(--pc-control-font);font-weight:500}
 .dashboard-app .pc-toolbar{margin-top:0}
 /* Empty results are message rows, not equal-height site cards. */
 .dashboard-app .pc-site-grid:has(>.pc-list-empty:not([hidden])){grid-auto-rows:auto}

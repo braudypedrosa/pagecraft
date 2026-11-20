@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-20T16:41:08.775Z",
+  "capturedAt": "2026-11-20T18:21:12.535Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,11 +106,11 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "4fe051bffea7a6e0abaff04729e1b0a5cd71a5ac52ffe12c0808996341ad2c7f",
+    "builder.html": "108065bf66676e98086fa83557ccabc454c7b757b33f1a96ee745b5f223e6bf7",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
-    "app/src/ui/Pages.tsx": "03c9777e12c672205af347da0b6af4b5f2837898368ffb1b1fd7dba5d23ac9c6",
+    "app/src/ui/Pages.tsx": "a011539003569a6eab777ab0adf54640a22fa385ad754ba63ea4a27068de5305",
     "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "62c5e8967ce4cc0ea0f7295cb97c6a59e2b858bf4e8ca72c7d3549ab335cbe89",
@@ -124,14 +124,14 @@
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
-    "shared/workspace-styles.js": "69c8f0677f4a07cbf2d27617f3311d0056167249f94a41633f673f81807a7c7d",
+    "shared/workspace-styles.js": "01db6e07d38ced2d65c0dec96964f6264a87d4664de5c21c9c85ada4dd39b4ab",
     "shared/dialog-styles.js": "6e83e6a6197d90f162f7d24c5ec9535dbdc447e8a5136105b62538b50edc79ce",
     "shared/custom-select.js": "d7c26c7734f32bcd41c752dd5bb229eadcbf07e39f58f6a833bf6d7a025ee3ba",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "ef44b48de1eea1e43615ce3d10169da99118b19e5a4435fcf49a127d3f22fbf0",
     "server/src/cloud-header.ts": "3172cf78c3f7e4e571e7b9f694e78c19736de09bded9f5e02b9ee7b396721db1",
-    "server/src/account-pages.ts": "f9596b4770d47aa3abd17322a1540430f3affec26f071f5cb4b79ae9dcc0dcfa",
-    "server/src/component-gallery.ts": "be303626829e7fc23b368b77a02aab7da1620e494f987f6f1094b10ece79c485",
+    "server/src/account-pages.ts": "e5310414e67452b796f06fb9abea11be82e5ea0beb3987cb63e02dc5ee009391",
+    "server/src/component-gallery.ts": "fc92cec19a8539a70c32d0d82e04115ef8141be3630ce7c806051cabd75ca48e",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",
     "brand/fonts/DMSans-Medium.ttf": "aa81507c0064d1ff68d65d0add99ffe77de6d5ca40464e87f2b6170a00959534",
@@ -883,14 +883,14 @@
       }
     },
     "builder-tables-1440.png": {
-      "sha256": "66273f663785aebaa91c11e7caed7c1b314441b9cdcdbf322d543af6aeb9cde5",
+      "sha256": "b9a51ed1231694fe5fc5df9f963784988e91ddd319158a30495274b5842671bb",
       "width": 1440,
-      "height": 1227,
+      "height": 1224,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 1440,
-          "height": 1227,
+          "height": 1224,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -904,7 +904,7 @@
             "x": 0,
             "y": 0,
             "width": 1440,
-            "height": 1227,
+            "height": 1224,
             "scale": 1
           }
         }
@@ -920,14 +920,14 @@
       }
     },
     "builder-tables-768.png": {
-      "sha256": "b12dbfd6366187339114845023037a1e36e24d3908072d2148949da90ed1bf73",
+      "sha256": "fd65089e04a3f72545e99189acd6b75e6956583c125be1c629313b52cea45885",
       "width": 768,
-      "height": 1283,
+      "height": 1280,
       "state": "First row hovered, second row neutral, empty result",
       "captureParameters": {
         "metricsOverride": {
           "width": 768,
-          "height": 1283,
+          "height": 1280,
           "deviceScaleFactor": 1,
           "mobile": false,
           "scale": 1
@@ -941,7 +941,7 @@
             "x": 0,
             "y": 0,
             "width": 768,
-            "height": 1283,
+            "height": 1280,
             "scale": 1
           }
         }

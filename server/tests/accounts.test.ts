@@ -510,7 +510,7 @@ test("reaching the Free site limit offers a way to ask for more, not a dead end"
   a.match(html, /<a class="pc-btn primary pc-limit-action" href="mailto:hello@braudyp\.dev\?subject=More%20Pagecraft%20sites">Ask for more sites<\/a>/);
   a.match(html, /class="pc-limit-contact">hello@braudyp\.dev<\/p>/, "the address is readable without a mail app");
 
-  const account = await (await request("/account")).text();
+  const account = await (await request("/account?tab=plan")).text();
   a.match(account, />Ask for more sites<\/a>/);
 });
 
@@ -1328,48 +1328,44 @@ test("account settings shows profile, security, providers, and real free-plan us
   };
   await auth.ensureAuthUser("auth-1", "builder@example.test", "Builder");
 
+  /* A2: each account section is its own page in the account rail. */
   const response = await request("/account");
   a.equal(response.status, 200);
   const html = await response.text();
-  a.match(html, /<h1>Account settings<\/h1>/);
+  a.match(html, /<h1>Profile<\/h1>/);
   a.match(html, /action="\/account\/profile"/);
   a.match(html, /value="Builder"/);
   a.match(html, /value="builder@example\.test"/);
   a.match(html, /Email and password<\/strong><span>Connected/);
   a.match(html, /Google<\/strong><span>Connected/);
-  a.match(html, /action="\/account\/password"/);
-  a.match(html, /Current password/);
-  a.match(html, /Plan &amp; billing/);
-  a.match(html, /<h3 class="pc-plan-name">Current Plan: Free<\/h3>/);
-  a.match(html, /0 of 1 used/);
-  a.match(html, /1 owned site, drafts included/);
-  a.match(html, /0 KB of 100 MB/);
-  a.match(html, /Paid plans are not available yet/);
+  a.doesNotMatch(html, /action="\/account\/password"/, "security lives on its own page");
+  a.doesNotMatch(html, /role="tablist"|data-settings-tab/);
   a.match(html, /Joined <time datetime="2026-01-12T00:00:00.000Z" data-local="date">Jan 12, 2026<\/time>/, "a UTC date the browser rewrites in its own time zone");
-  a.match(html, /role="tablist" aria-label="Account settings"/);
-  a.match(html, /aria-label="Sites navigation"/);
+  a.match(html, /aria-label="Account navigation"/);
+  a.match(html, /<a href="\/account" aria-current="page">[\s\S]*?<span>Profile<\/span><\/a>/);
+  a.match(html, /<a class="pc-crumb" href="\/">Sites<\/a><span class="pc-crumbsep" aria-hidden="true">\/<\/span><span aria-current="page">Account<\/span>/);
   a.doesNotMatch(html, /\.pc-settings-section\{[^}]*border-bottom:1px solid/);
-  a.match(
-    html,
-    /role="tab" aria-controls="settings-panel-profile" data-settings-tab="profile" aria-selected="true" tabindex="0"/,
-  );
-  a.match(
-    html,
-    /role="tabpanel" aria-labelledby="settings-tab-security" tabindex="0" data-settings-panel="security"/,
-  );
-  a.match(html, /event\.key==='ArrowRight'/);
-  a.match(html, /panel\.hidden=panel\.dataset\.settingsPanel!==name/);
   a.match(
     html,
     /\.pc-settings-links\{margin-top:auto;padding-top:24px;border-top:1px solid var\(--pc-line\)\}/,
   );
+  a.match(html, /location\.replace\('\/account\?tab='\+legacy\)/, "old #security and #plan links still land on the right page");
 
-  const planResponse = await request("/account?tab=plan");
-  const planHtml = await planResponse.text();
-  a.match(
-    planHtml,
-    /data-settings-tab="plan" aria-selected="true" tabindex="0"/,
-  );
+  const security = await (await request("/account?tab=security")).text();
+  a.match(security, /<h1>Security<\/h1>/);
+  a.match(security, /action="\/account\/password"/);
+  a.match(security, /Current password/);
+  a.match(security, /<a href="\/account\?tab=security" aria-current="page">/);
+  a.doesNotMatch(security, /action="\/account\/profile"/);
+
+  const planHtml = await (await request("/account?tab=plan")).text();
+  a.match(planHtml, /<h1>Plan &amp; billing<\/h1>/);
+  a.match(planHtml, /<a href="\/account\?tab=plan" aria-current="page">[\s\S]*?<span>Billing<\/span><\/a>/);
+  a.match(planHtml, /<h3 class="pc-plan-name">Current Plan: Free<\/h3>/);
+  a.match(planHtml, /0 of 1 used/);
+  a.match(planHtml, /1 owned site, drafts included/);
+  a.match(planHtml, /0 KB of 100 MB/);
+  a.match(planHtml, /Paid plans are not available yet/);
 });
 
 test("account profile updates the local name and starts verified email change", async () => {
