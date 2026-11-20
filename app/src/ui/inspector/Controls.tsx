@@ -699,6 +699,8 @@ function BorderCtl({ n }: P) {
   const side = choice.nodeId === n.id ? choice.side : initialBorderTarget(n);
   const prefix = borderPrefix(side);
   const sideLabel = BORDER_TARGETS.find(([value]) => value === side)?.[1] || 'All';
+  /* I7: the whole box reads as plain Style / Width / Colour; an edge names itself. */
+  const fieldLabel = (part: string) => side === 'all' ? part : `${sideLabel} ${part.toLowerCase()}`;
   const setOn = (value: BorderTarget) => !!(
     C.styleSeen(n, borderPrefix(value) + '-style')
     || C.styleSeen(n, borderPrefix(value) + '-width')
@@ -734,11 +736,11 @@ function BorderCtl({ n }: P) {
       </div>
     </div>
     <SelectCtl n={n} c={{
-      t: 'select', c: prefix + '-style', label: sideLabel + ' style', r: 1,
+      t: 'select', c: prefix + '-style', label: fieldLabel('Style'), r: 1,
       opts: [['', 'Inherit'], ['none', 'None'], ['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']]
     }} />
-    <UnitCtl n={n} c={{ t: 'unit', c: prefix + '-width', label: sideLabel + ' width', r: 1, units: C.U.border }} />
-    <ColorCtl n={n} c={{ t: 'color', c: prefix + '-color', label: sideLabel + ' colour', r: 1 }} />
+    <UnitCtl n={n} c={{ t: 'unit', c: prefix + '-width', label: fieldLabel('Width'), r: 1, units: C.U.border }} />
+    <ColorCtl n={n} c={{ t: 'color', c: prefix + '-color', label: fieldLabel('Colour'), r: 1 }} />
   </div>;
 }
 
@@ -920,7 +922,7 @@ function TstyleCtl({ n, c }: P) {
             title={canUpdate
               ? "Share this element's typography. Spacing, backgrounds and borders stay local."
               : "Change this element's typography to update the text style. Spacing, backgrounds and borders stay local."}
-            onClick={push}>Update typography{!sitewide && used > 1 ? ` · ${used} uses` : ''}</button>
+            onClick={push}>Update style to match{!sitewide && used > 1 ? ` · ${used} uses` : ''}</button>
           <button class="btn"
             title="Keep the look, stop following the style"
             onClick={() => { C.edit(() => C.tsUnlink(n), 'Detach text style'); L.toast('Detached — the look is now local'); }}>

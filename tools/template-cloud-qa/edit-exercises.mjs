@@ -29,7 +29,7 @@ const run = async (check, fn) => {
     await fn();
   } catch (error) { record(check, false, 'exercise threw', { error: error.message }); try { await b.key('Escape'); await b.editor(site); } catch {} }
 };
-const openSettings = async section => { await b.button('Project settings'); await sleep(400); await b.button(section, { exact: true }); await sleep(400); };
+const openSettings = async section => { await b.button('Design settings'); await sleep(400); await b.button(section, { exact: true }); await sleep(400); };
 const closeSettings = async () => { await b.button('Close', { exact: true }).catch(() => b.key('Escape')); await sleep(500); };
 const pick = async (comboLabel, avoid) => {
   await b.button(comboLabel); await sleep(300);
@@ -185,12 +185,12 @@ try {
     await b.key('Escape'); await b.canvas(a); await b.button('Style', { exact: true }); await sleep(300);
     await b.field('Size value', '31');
     const instanceOnly = [await size(a), await size(c)];
-    // Shared: the "Update typography" action pushes this element's look to every use of the style.
+    // Shared: the "Update style to match" action pushes this element's look to every use of the style.
     await b.button('Content', { exact: true });
-    const shared = await b.has('Update typography');
+    const shared = await b.has('Update style to match');
     let confirm = null;
     if (shared) {
-      await b.button('Update typography'); await sleep(700);
+      await b.button('Update style to match'); await sleep(700);
       confirm = await b.eval(() => [...document.querySelectorAll('[role=dialog],[role=alertdialog]')].filter(e => e.offsetParent).map(e => e.innerText.split('\n')[0])[0] || null);
       if (confirm) await b.button('Update typography', { within: '[role=dialog],[role=alertdialog]', exact: true });
       await sleep(900);

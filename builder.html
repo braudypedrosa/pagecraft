@@ -174,6 +174,10 @@ input,select,textarea{font:inherit;color:inherit}
 .topbar .iconbtn{color:var(--rail-text-2)}
 .topbar .iconbtn:hover{background:#ffffff0f;color:var(--rail-text)}
 .topbar .iconbtn:disabled:hover{background:none;color:var(--rail-text-2)}
+/* E3: one size and one corner for everything in the top bar. Site checks and Publish were 36 px
+   beside 32 px neighbours, and the icon buttons had 4 px corners against the text buttons' 8 px. */
+.topbar .iconbtn{border-radius:var(--r-md);flex:none}
+.topbar .btn{height:var(--ic-lg);min-height:var(--ic-lg)}
 
 /* button hierarchy, exactly the three chips from the brand board:
    dark / paper / green — green only for the committed action */
@@ -1043,7 +1047,7 @@ select.ctl{
   content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
 }
 .borderpick button.on.set::after{background:var(--pc-selection-text)}
-.borderctl>.f{margin-bottom:var(--gap-3)}
+.borderctl>.f{margin-bottom:var(--gap-2)} /* K2: the field step, like every other field */
 .sw-tog{
   width:36px;height:20px;flex:0 0 36px;border-radius:var(--r-pill);background:var(--line-2);
   border:none;position:relative;transition:background .16s;
@@ -1655,7 +1659,7 @@ body.preview #canvasFocusBtn{display:none}
   content:"";position:absolute;right:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--green);
 }
 .borderpick button.on.set::after{background:var(--pc-selection-text)}
-.borderctl>.f{margin-bottom:var(--gap-3)}
+.borderctl>.f{margin-bottom:var(--gap-2)} /* K2: the field step, like every other field */
 body.submissions-loading::after{content:"Loading submissions…";position:fixed;inset:52px 0 0 var(--pc-rail-width);display:grid;place-items:center;background:var(--panel);color:var(--text-2);z-index:20;pointer-events:none}
 #submissions-workspace[hidden]{display:none}
 #submissions-workspace{flex:1;min-width:0;min-height:0;border:0;background:var(--panel)}
@@ -1895,7 +1899,7 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.8l6 3.1-6 3.1-6-3.1z"/><path d="M2 8.4l6 3.1 6-3.1"/><path d="M2 11.3l6 3.1 6-3.1"/></svg>
         <span>Navigator</span>
       </button>
-      <button data-t="cms" title="Content collections">
+      <button data-t="cms" title="CMS collections">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/></svg>
         <span>CMS</span>
       </button>
@@ -2150,6 +2154,9 @@ function applyHostFeatures() {
     if (IS_TEMPLATE_DRAFT) remove('#leftRail [data-t="cms"]');
   }
   if (!HOST_FEATURES.projectExport) remove('[data-act="project"]');
+  /* E7: a hosted site is a site everywhere else in Pagecraft, so its editor settings are the
+     site's design settings rather than a "project". */
+  if (SRV && !IS_WORDPRESS) document.querySelector('[data-act="project"]')?.setAttribute('title', 'Design settings');
 }
 
 /* WordPress's native-content index is only a link catalogue. Treat the injected payload as
@@ -3456,7 +3463,7 @@ function warnSaveFailed(err) {
 const backupJson = event => withAction(event?.currentTarget || null, 'Preparing backup…', () => download(
   slugify(state.meta.name) + '-backup.json',
   JSON.stringify({ ...doc(), v: SCHEMA, cur: state.cur }, null, 2),
-  'application/json'), 'Project backup ready. Download started.', {key:'project-backup', paint:true});
+  'application/json'), 'Backup ready. Download started.', {key:'project-backup', paint:true});
 
 window.addEventListener('beforeunload', e => {
   if (loadBlocked || deliberateReload) return; // explicit recovery owns this navigation
@@ -7142,7 +7149,8 @@ function itemBarHtml() {
     <small aria-label="Entry ${at + 1} of ${col.items.length}">${at + 1}/${col.items.length}</small></span>`;
 }
 
-const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Page settings & SEO', cms: 'Content' };
+/* E7: the panel is named for the rail button that opens it. */
+const PANEL_TITLE = { add: 'Add elements', layers: 'Page content', pages: 'Page settings & SEO', cms: 'CMS' };
 function renderPanelHead() {
   const h = $('#panelHead');
   if (!h) return;
@@ -8199,9 +8207,9 @@ function projectModal() {
   const m = state.meta;
   const wordpressPageWasDirty = IS_WORDPRESS && typeof wordpressSaveState !== 'undefined'
     ? wordpressSaveState.dirty : false;
-  openModal(IS_WORDPRESS ? 'Pagecraft design settings' : 'Project settings', `
+  openModal(IS_WORDPRESS ? 'Pagecraft design settings' : SRV ? 'Design settings' : 'Project settings', `
     <div class="fgrid">
-      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">Project name</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV && !IS_TEMPLATE_DRAFT ? '<div class="pc-field-actions"><button class="btn" type="button" id="mSaveName">Save name</button></div>' : ''}</div>`}
+      ${IS_WORDPRESS ? '' : `<div class="f"><label for="mName">${SRV ? 'Site name' : 'Project name'}</label><input class="ctl" id="mName" value="${esc(PC_UI.projectIdentity(m.name, SRV?.name))}" maxlength="120">${SRV && !IS_TEMPLATE_DRAFT ? '<div class="pc-field-actions"><button class="btn" type="button" id="mSaveName">Save name</button></div>' : ''}</div>`}
       <div class="f"><label for="mMax">Container max width</label>${unitField('mMax', m.maxWidth, ['px', 'rem', '%', 'vw'])}</div>
       <div class="f"><label>Body font</label><div id="mFontBox"></div></div>
       <div class="f"><label>Heading font</label><div id="mHeadBox"></div></div>
@@ -8300,9 +8308,15 @@ function projectModal() {
     }
     const advanced = $('#settings-advanced .settings-fields');
     const reset = document.createElement('div'); reset.className = 'settings-reset';
-    reset.innerHTML = '<h3>Reset content</h3><p>These actions replace your pages. Download a project backup first.</p><div class="settings-reset-actions"></div>';
-    reset.querySelector('div').append($('#mBlank'), $('#mReset')); advanced.append(reset);
-    $('#mFoot').insertAdjacentHTML('afterbegin', `<span class="note">${SRV ? 'Design changes save automatically. Use Save name to update the project name.' : 'Changes save automatically. Check the save status in the header.'}</span>`);
+    /* E17: a hosted site starts from a template or from blank, so "Reset to demo content"
+       (Pagecraft's own sample site) is not offered there. The backup the copy asks for is
+       one click away beside the action that needs it. */
+    if (SRV) $('#mReset').remove();
+    reset.innerHTML = '<h3>Reset content</h3><p>' + (SRV ? 'Starting an empty site replaces your pages.' : 'These actions replace your pages.') + ' Download a backup first to keep a copy.</p><div class="settings-reset-actions"><button class="btn" id="mBackup" type="button">Download backup</button></div>';
+    const resetActions = reset.querySelector('div');
+    resetActions.append(...[$('#mBlank'), $('#mReset')].filter(Boolean)); advanced.append(reset);
+    $('#mBackup').addEventListener('click', event => backupJson(event));
+    $('#mFoot').insertAdjacentHTML('afterbegin', `<span class="note">${SRV ? 'Design changes save automatically. Use Save name to update the site name.' : 'Changes save automatically. Check the save status in the header.'}</span>`);
     $('#mDone').textContent = 'Close';
   }
 
@@ -8439,7 +8453,7 @@ function projectModal() {
 
   const resetButton = $('#mReset');
   if (resetButton) resetButton.addEventListener('click', async () => {
-    if (!await askConfirm('Replace everything?', '<b>Your current pages are lost.</b> Export a project JSON first to keep them.', { ok: 'Replace with demo' })) return;
+    if (!await askConfirm('Replace everything?', '<b>Your current pages are lost.</b> Download a backup first to keep them.', { ok: 'Replace with demo' })) return;
     checkpoint('Replace with demo');
     seed(); selSet([]); closeModal(); render(); writeNow(); toast('Demo content restored');
   });
@@ -8633,7 +8647,7 @@ function helpModal() {
     ['Add an element below', '⇧↵ or the + on an edge'],
     ['Copy · cut · paste', '⌘C · ⌘X · ⌘V'],
     ['Copy · paste the <b>styling</b>', '⌘⇧C · ⌘⇧V'], ['Duplicate', '⌘D'], ['Delete', '⌫'],
-    ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'],
+    ['Undo / redo', '⌘Z · ⌘⇧Z'], ['Back to one element, then the parent', 'esc'], ['Clear the selection', '⇧esc'],
     ['Find and replace, across the project', '⌘F'],
     ...(HOST_FEATURES.preview ? [['Preview', '⌘P']] : []),
     ...(HOST_FEATURES.projectExport ? [['Export static HTML', '⌘E']] : []),
@@ -8912,6 +8926,9 @@ function hotkey(e) {
   }
   if (k === 'escape') {
     if (IS_WORDPRESS && !$('#rightAux')?.hidden) { closeRightSurface(); return; }
+    /* C5: Escape walks up one level per press, so clearing a deep selection took a press per
+       ancestor. Shift+Escape clears it in one go. */
+    if (e.shiftKey) { if (state.ui.sel) { e.preventDefault(); select(null); } return; }
     /* one step per press: back to a single element first, then up the tree.
        Doing both at once would lose the set before you could see what you had. */
     if (multiOn()) { select(state.ui.sel); return; }

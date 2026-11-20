@@ -764,7 +764,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'text', k: 'source', label: 'Source URL', ph: 'https://…',
           note: 'Links the attribution, and records the source.' },
         { t: 'tstyle', k: 'ts', label: 'Text style' },
-        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, when: inFlow, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
       style: [
         { t: 'unit', c: 'font-size', label: 'Size', layout: 'inline', r: 1, units: U.size },
@@ -808,7 +808,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'dims', label: 'Intrinsic size', note: 'Stops the page shifting as it loads.' },
         { t: 'text', k: 'caption', label: 'Caption', ph: 'Optional' },
         { t: 'link', k: 'link', label: 'Link' },
-        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, when: inFlow, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         { t: 'toggle', k: 'lazy', label: 'Lazy load' }
       ],
       style: [
@@ -869,7 +869,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'link', k: 'link', label: 'Link' },
         { t: 'select', k: 'variant', label: 'Variant', opts: [['solid', 'Solid'], ['outline', 'Outline'], ['ghost', 'Ghost'], ['link', 'Text link']] },
         { t: 'select', k: 'icon', label: 'Trailing icon', opts: [['none', 'None'], ['arrow', 'Arrow'], ['check', 'Check'], ['plus', 'Plus']] },
-        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, when: inFlow, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR'], ['stretch', 'Fill']] },
         {
           t: 'select', c: 'margin-top', label: 'Position', r: 1,
           opts: [['', 'Default'], ['0', 'In the normal flow'], ['auto', 'Push to column bottom']],
@@ -1254,7 +1254,7 @@ const DEF: Record<string, WidgetDef> = {
           note: 'Empty is hidden from screen readers.'
         },
         { t: 'link', k: 'link', label: 'Link' },
-        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
+        { t: 'pick', c: 'align-self', label: 'Alignment', r: 1, when: inFlow, opts: [['flex-start', 'alignL'], ['center', 'alignC'], ['flex-end', 'alignR']] }
       ],
       style: [
         { t: 'unit', c: '--icon-size', label: 'Glyph size', layout: 'inline', r: 1, units: U.size },
@@ -1631,6 +1631,14 @@ const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleS
 
     A declaration rather than a const: `DEF` is built above this line and reads it, and a
     const would still be in its temporal dead zone there. */
+/** I11: align-self only moves an element that sits in its parent's flow. A template's cover
+    image or overlay is placed with position absolute, where Alignment changed nothing on the
+    canvas, so the control is not offered there. A declaration for the same reason as
+    notASlide below: `DEF` reads it before this line runs. */
+function inFlow(n: PcNode): boolean {
+  return !/^(absolute|fixed)$/.test(styleSeen(n, 'position').trim());
+}
+
 function notASlide(n: PcNode): boolean {
   const pid = parentOf(n.id);
   const h = pid ? locate(pid) : null;
@@ -1658,7 +1666,7 @@ const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
          top rule as a separator; exposing only `border-style` made that stored Pagecraft value
          render on the canvas while the inspector appeared to say there was no border. */
       { t: 'border', label: 'Border' },
-      { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
+      { t: 'unit', c: 'border-radius', label: 'Radius', r: 1, units: U.radius },
       { t: 'opt', c: 'box-shadow', label: 'Shadow', r: 1, opts: SHADOWS, ph: '0 20px 40px -12px rgba(17,19,17,.2)' }
     ]
   },

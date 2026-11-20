@@ -37,7 +37,7 @@ test('WordPress confirms a one-local-use typography update as sitewide', async (
 test('WordPress omits the document-local use count from its update action and confirmation', async () => {
   const { update } = fixture(true, true);
   const confirm = vi.spyOn(L, 'askConfirm').mockResolvedValue(true);
-  expect(update().textContent).toBe('Update typography');
+  expect(update().textContent).toBe('Update style to match');
   await act(async () => update().click());
   expect(confirm.mock.calls[0][1]).not.toMatch(/\d+ uses/);
 });
@@ -106,7 +106,7 @@ test('disabled WordPress update never confirms or changes history', async () => 
 test('Cloud keeps its two-use label and existing confirmation copy', async () => {
   const { update } = fixture(false, true);
   const confirm = vi.spyOn(L, 'askConfirm').mockResolvedValue(false);
-  expect(update().textContent).toBe('Update typography · 2 uses');
+  expect(update().textContent).toBe('Update style to match · 2 uses');
   await act(async () => update().click());
   expect(confirm.mock.calls[0][0]).toBe('Update typography everywhere?');
   expect(confirm.mock.calls[0][1]).toContain('(2 uses)');

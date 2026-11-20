@@ -25,7 +25,7 @@ function linkedButtons() {
 test('appearance-only button edits cannot claim a shared typography update', async () => {
   linkedButtons();
   const update = r.$('.pc-text-style-actions button') as HTMLButtonElement;
-  a.match(update.textContent || '', /^Update typography · 2 uses$/);
+  a.match(update.textContent || '', /^Update style to match · 2 uses$/);
   a.equal(update.disabled, true);
   a.match(update.title, /typography/i);
   a.match(update.title, /Spacing, backgrounds and borders stay local/i);

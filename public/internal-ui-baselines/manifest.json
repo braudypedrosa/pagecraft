@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-20T10:02:25.528Z",
+  "capturedAt": "2026-11-20T15:58:09.546Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "2a60a85294ab7a06bf34dcca82e07f2b26b48002ed3f698ebea48ea1d7d1f30f",
+    "builder.html": "4fe051bffea7a6e0abaff04729e1b0a5cd71a5ac52ffe12c0808996341ad2c7f",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
@@ -114,7 +114,7 @@
     "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",
     "app/src/ui/inspector/ColorPop.tsx": "62c5e8967ce4cc0ea0f7295cb97c6a59e2b858bf4e8ca72c7d3549ab335cbe89",
-    "app/src/ui/inspector/Controls.tsx": "971a8338abb5b8eb991079681eceb89a4e4520e13a22b95bf290a690dd956925",
+    "app/src/ui/inspector/Controls.tsx": "209fb62f94e54bc54df3345e739eff4ee4bea9194d23bf9e595860f1a5c7ce9e",
     "app/src/ui/inspector/Inspector.tsx": "b73f6bbd2d2b7a8925e808555536876ed5bd187cf6af0bfdbcbedf5e68aded70",
     "app/src/ui/inspector/scope.ts": "2686618ba4a4e626293d8bb6ed4dc9d6e3396db993a919ebc080092c6be1b9bb",
     "app/src/ui/inspector/Lists.tsx": "44df83b313c8f1508ba8573b874f66639ff6681ffc563b5abe1a962fdd38d425",
@@ -130,7 +130,7 @@
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
     "shared/notify-menu.js": "ef44b48de1eea1e43615ce3d10169da99118b19e5a4435fcf49a127d3f22fbf0",
     "server/src/cloud-header.ts": "5e85dc5d2915496be1b3ab163ffe6ed707633e5be42bcb7ac6e03e5c190adcf8",
-    "server/src/account-pages.ts": "11976c6dcd5e820b0349418bb2a509dc31ec2820dcffbcc37b7f40e24b5542d3",
+    "server/src/account-pages.ts": "eadf1243088a801ff596489ed336c37038f5283d10e40c7d1dae7a8277bb9778",
     "server/src/component-gallery.ts": "be303626829e7fc23b368b77a02aab7da1620e494f987f6f1094b10ece79c485",
     "brand/fonts/Manrope-VariableFont_wght.ttf": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
     "brand/fonts/DMSans-Regular.ttf": "bc7a58e9cf1e4e623f887d1f0656ffac1661d5fd4d2fc63378fca52dc8e918ea",

@@ -94,6 +94,6 @@ export function FirstEditGuide() {
       : <><b>{missing || !guide.tasks.length ? 'Continue with your page' : 'Your first edits are saved'}</b>
         <p>{missing || !guide.tasks.length ? 'Choose content directly on the canvas to personalize this template. ' : ''}Preview the result at each screen size. Configure any form destination before publishing.</p>
         <button type="button" class="btn" onClick={() => L.guidePreview()}>Preview your page</button></>}
-    <small>Progress reflects saved changes. Undoing a change can reopen its step.</small>
+    <small>A step is ticked once your change saves. Undo the change and the step comes back.</small>
   </section>;
 }
