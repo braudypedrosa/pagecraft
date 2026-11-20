@@ -317,6 +317,8 @@ input,select,textarea{font:inherit;color:inherit}
 .rail button svg{transition:transform .14s ease}
 /* settles the settings item against the foot of the rail */
 .railgap{flex:1}
+.railGroup{display:block;padding:10px 4px 2px;font-family:var(--label);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rail-text-2);text-align:center;opacity:.8}
+.railGroup.manage{margin-top:4px;border-top:1px solid var(--rail-line)}
 .rail button.on{color:var(--ink);background:var(--green)}
 .rail button.on:hover{color:var(--ink)}
 /* While Media or Settings is open as a dialog, its rail item is the current one; the panel
@@ -1323,8 +1325,18 @@ body.dragging{cursor:grabbing !important;user-select:none}
 }
 
 /* Site settings retain the builder shell and separate everyday controls from code. */
-.mask:has(.project-settings){inset:52px 0 0 var(--pc-rail-width);padding:0;background:var(--panel);backdrop-filter:none}
-.project-settings{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;box-shadow:none}
+.mask:has(#modalBox.workspace){inset:52px 0 0 var(--pc-rail-width);padding:0;background:var(--panel);backdrop-filter:none}
+#modalBox.workspace{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;box-shadow:none}
+/* E4: Settings and the rail's Media library are workspaces like Pages: the same header,
+   title size and Back to builder, beside a rail that stays usable. */
+#modalBox.workspace>.mh{padding:24px 32px;border-bottom:1px solid var(--line)}
+#modalBox.workspace #mTitle{font-size:22px;line-height:1.3;font-weight:700}
+#mClose .mCloseLabel{display:none}
+#modalBox.workspace #mClose svg{display:none}
+#modalBox.workspace #mClose .mCloseLabel{display:inline}
+/* The shared dialog close is a 32px square; as Back to builder it is a normal button. */
+#modalBox.workspace #mClose{display:inline-flex;align-items:center;flex:none;width:auto;height:auto;min-width:0;min-height:var(--h-ctl);padding:var(--pc-control-padding);white-space:nowrap;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--panel);color:var(--text);font-size:var(--fs-3);font-weight:500;line-height:1.4}
+#modalBox.workspace #mClose:hover{background:var(--lift-bg);border-color:var(--lift-line)}
 .project-settings #mBody{padding:0;overflow:hidden;flex:1;min-height:0;display:flex}
 .settings-layout{display:flex;flex:1;min-width:0;min-height:0}
 .settings-nav{width:184px;flex:0 0 184px;border-right:1px solid var(--line);padding:20px 12px;display:flex;flex-direction:column;gap:4px}
@@ -1615,6 +1627,8 @@ body.preview #canvasFocusBtn{display:none}
   .rail{width:48px;flex-basis:48px}
   .rail button{height:49px}
   .rail button span{display:none}
+  .railGroup{display:none}
+  .railGroup.manage{display:block;height:0;padding:0;margin:4px 8px;font-size:0}
   .left,.right{
     position:absolute;top:0;bottom:0;z-index:28;box-shadow:var(--shadow-lg);
     max-width:calc(100vw - 48px)
@@ -2229,6 +2243,8 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
   <div class="main">
     <!-- ============ LEFT ============ -->
     <nav class="rail" id="leftRail" aria-label="Tools">
+      <!-- E4: building tools open a panel beside the canvas; managing the site opens a workspace. -->
+      <span class="railGroup" aria-hidden="true">Build</span>
       <button data-t="add" class="on" title="Add elements">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2.5v11M2.5 8h11"/></svg>
         <span>Add</span>
@@ -2237,13 +2253,14 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.8l6 3.1-6 3.1-6-3.1z"/><path d="M2 8.4l6 3.1 6-3.1"/><path d="M2 11.3l6 3.1 6-3.1"/></svg>
         <span>Navigator</span>
       </button>
-      <button data-t="pages" title="Pages">
-        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
-        <span>Pages</span>
-      </button>
       <button data-t="cms" title="Content collections">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><ellipse cx="8" cy="3.8" rx="5.5" ry="2.3"/><path d="M2.5 3.8v8.4c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3V3.8"/><path d="M2.5 8c0 1.27 2.46 2.3 5.5 2.3s5.5-1.03 5.5-2.3"/></svg>
         <span>CMS</span>
+      </button>
+      <span class="railGroup manage" aria-hidden="true">Manage</span>
+      <button data-t="pages" title="Pages">
+        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="1.5" width="11" height="13" rx="1.6"/><path d="M5 5h6M5 8h6M5 11h4" stroke-linecap="round"/></svg>
+        <span>Pages</span>
       </button>
       <button data-act="media" title="Media library">
         <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.8" y="3" width="12.4" height="10" rx="1.6"/><circle cx="5.6" cy="6.6" r="1.1"/><path d="M2.2 11.4l3.3-2.9 2.9 2.5 2.2-1.9 3.6 3.2" stroke-linejoin="round"/></svg>
@@ -2295,6 +2312,7 @@ input:is([type=checkbox],[type=radio],[type=range],[type=color]):focus-visible{f
   <div class="modal pc-dialog" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
     <div class="mh pc-dialog-head"><b class="pc-dialog-title" id="mTitle">Title</b><button class="iconbtn pc-dialog-close" id="mClose" aria-label="Close dialog">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      <span class="mCloseLabel">Back to builder</span>
     </button></div>
     <div class="mb pc-dialog-body" id="mBody"></div>
     <div class="mf pc-dialog-foot" id="mFoot"></div>
@@ -31569,7 +31587,7 @@ if (SRV && !IS_WORDPRESS && !IS_TEMPLATE_DRAFT) {
   submissions.dataset.act = 'submissions';
   submissions.setAttribute('aria-label', 'Submissions');
   submissions.innerHTML = '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 5 8 6 8-6"/></svg><span>Submissions</span>';
-  document.querySelector('#leftRail [data-t="cms"]').after(submissions);
+  document.querySelector('#leftRail [data-act="media"]').after(submissions);
   /* Assistant proposals (Phase 7) are the owner's to review, so only an owner gets the button. */
   if (SRV.role === 'owner' && !SRV.editorSessionToken) {
     const proposals = document.createElement('button');
@@ -36243,7 +36261,9 @@ function mediaInsertHint() {
   return `click an image to add it to ${where}`;
 }
 
-function mediaModal() {
+let mediaWorkspace = false;
+function mediaModal(asWorkspace = mediaWorkspace) {
+  mediaWorkspace = asWorkspace;
   if (editing.on) exitEdit();
   const target = mediaSelectedImageTarget();
   const browserState = {intent: target ? 'replace' : 'insert'};
@@ -36266,6 +36286,7 @@ function mediaModal() {
        </div>` : ''}
        ${orphans && !IS_TEMPLATE_DRAFT ? `<button class="btn" id="mmPrune">Remove ${orphans} unused</button>` : ''}
        <button class="btn primary" id="mmDone">Done</button>`, 'lg media-library');
+    if (asWorkspace) setModalWorkspace(true);
 
     // The Library|Upload tabs are the one way to the upload view; Choose files carries progress.
     const zone = $('.media-library-drop', $('#mBody')), upload = $('[data-media-choose]', zone);
@@ -37011,13 +37032,23 @@ function syncDialogLayers() {
     if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
     else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
   };
-  const settingsOpen = modalOpen && $('#modalBox').classList.contains('project-settings');
+  const settingsOpen = modalOpen && $('#modalBox').classList.contains('workspace');
   lock(app, askOpen || (modalOpen && !settingsOpen));
-  /* Settings occupies the workspace, but the visible tool rail remains navigation. */
+  /* A workspace (Settings, Media) occupies the work area, but the visible tool rail remains navigation. */
   $$('#app > :not(.main), #app > .main > :not(#leftRail)').forEach(el => lock(el, settingsOpen));
   $('#modalBox').setAttribute('aria-modal', settingsOpen ? 'false' : 'true');
   lock(modal, modalOpen && askOpen);
   lock($('#ask'), false);
+}
+/* E4: the dialog as a workspace beside the rail (Settings, the rail's Media library). Its
+   close control reads Back to builder, as Pages and Submissions do. */
+function setModalWorkspace(on) {
+  $('#modalBox').classList.toggle('workspace', !!on);
+  const close = $('#mClose');
+  close.classList.toggle('btn', !!on);
+  close.classList.toggle('iconbtn', !on);
+  close.setAttribute('aria-label', on ? 'Back to builder' : 'Close dialog');
+  syncDialogLayers();
 }
 function openModal(title, bodyHtml, footHtml, size) {
   clearPublicationFrames();
@@ -37026,6 +37057,8 @@ function openModal(title, bodyHtml, footHtml, size) {
   const wasHidden = mask.hidden || mask.hasAttribute('data-pc-motion-closing');
   if (wasHidden) modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   box.className = 'modal pc-dialog' + (size ? ' ' + size : '');
+  const close = $('#mClose');
+  close.classList.remove('btn'); close.classList.add('iconbtn'); close.setAttribute('aria-label', 'Close dialog');
   $('#mTitle').textContent = title;
   $('#mBody').innerHTML = bodyHtml;
   $('#mFoot').innerHTML = footHtml || '';
@@ -37061,7 +37094,7 @@ const closeModal = afterClose => {
 $('#mClose').addEventListener('click', closeModal);
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
 $('#modal').addEventListener('keydown', e => {
-  if ($('#modalBox').classList.contains('project-settings') && e.key !== 'Escape') return;
+  if ($('#modalBox').classList.contains('workspace') && e.key !== 'Escape') return;
   trapDialogKey(e, $('#modalBox'), closeModal);
 });
 
@@ -37749,7 +37782,7 @@ function projectModal() {
 
   if (!IS_WORDPRESS) {
     $('#modalBox').classList.add('project-settings');
-    syncDialogLayers();
+    setModalWorkspace(true);
     const body = $('#mBody');
     const sections = [
       ['general', 'General', ['mName', 'mMax', 'mLang', 'mBase', 'mFavBox', 'mOgBox']],
@@ -38624,9 +38657,10 @@ function bindTop() {
      place: every site has one, and its title and description are content. */
   if (SRV && !canStructure()) showPanel('pages');
   $$('#leftRail button').forEach(b => b.addEventListener('click', () => {
-    if (!$('#modal').hidden && $('#modalBox').classList.contains('project-settings')) {
+    if (!$('#modal').hidden && $('#modalBox').classList.contains('workspace')) {
+      const same = railDialog && railDialog.button === b;
       closeModal();
-      if (b.dataset.act === 'project') return;
+      if (same) return;
     }
     /* Media and Project open dialogs rather than swapping the panel, so they set
        neither `state.ui.tab` nor the `on` treatment — the panel behind them has not
@@ -38637,7 +38671,7 @@ function bindTop() {
     closeSubmissions();
     closePages();
     if (b.dataset.t) document.body.classList.remove('cms-open');
-    const dialog = { media: mediaModal, project: projectModal, account: accountDialog }[b.dataset.act];
+    const dialog = { media: () => mediaModal(true), project: projectModal, account: accountDialog }[b.dataset.act];
     if (dialog) {
       dialog();
       if (b.dataset.act !== 'account' && layerOpen($('#modal'))) {

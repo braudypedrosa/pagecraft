@@ -622,3 +622,53 @@ test('History and Preview carry labels, and Preview keeps one while it toggles',
   w.togglePreview();
   expect(d.querySelector('#previewBtn .collapseLabel').textContent).toBe('Preview');
 });
+
+/* E4: building tools open beside the canvas; managing the site opens a workspace beside a rail
+   that stays usable. */
+test('the rail groups Build and Manage tools in that order', async () => {
+  const { d, errors } = await editor({ url: 'https://example.test/live' }, false, { width: 1440 });
+  const rail = d.querySelector('#leftRail');
+  const order = Array.from(rail.children).filter(e => e.matches('button,.railGroup') && !e.hidden)
+    .map(e => e.matches('.railGroup') ? `[${e.textContent}]` : (e.dataset.t || e.dataset.act));
+  expect(order).toEqual(['[Build]', 'add', 'layers', 'cms', '[Manage]', 'pages', 'media', 'submissions', 'proposals', 'project']);
+  for (const label of rail.querySelectorAll('.railGroup')) expect(label.getAttribute('aria-hidden')).toBe('true');
+  expect(errors).toEqual([]);
+});
+
+test('the rail Media library opens as a workspace and the rail keeps working', async () => {
+  const { d, errors } = await editor({ url: 'https://example.test/live' }, false, { width: 1440 });
+  d.querySelector('#leftRail [data-act="media"]').click();
+  const box = d.querySelector('#modalBox'), close = d.querySelector('#mClose');
+  expect(box.classList.contains('media-library')).toBe(true);
+  expect(box.classList.contains('workspace')).toBe(true);
+  expect(close.getAttribute('aria-label')).toBe('Back to builder');
+  expect(close.classList.contains('btn')).toBe(true);
+  expect(box.getAttribute('aria-modal')).toBe('false');
+  expect(d.querySelector('#leftRail').hasAttribute('inert')).toBe(false);
+  expect(d.querySelector('#leftRail [data-act="media"]').classList.contains('rail-dialog')).toBe(true);
+
+  // Another Manage item replaces it; Settings is a workspace too.
+  d.querySelector('#leftRail [data-act="project"]').click();
+  await new Promise(resolve => setTimeout(resolve, 400));
+  expect(box.classList.contains('project-settings')).toBe(true);
+  expect(box.classList.contains('workspace')).toBe(true);
+  expect(close.getAttribute('aria-label')).toBe('Back to builder');
+
+  // The same item again goes back to the builder.
+  d.querySelector('#leftRail [data-act="project"]').click();
+  await new Promise(resolve => setTimeout(resolve, 400));
+  expect(d.querySelector('#modal').hidden).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('an ordinary dialog keeps its close button after a workspace', async () => {
+  const { w, d } = await editor({ url: 'https://example.test/live' }, false, { width: 1440 });
+  d.querySelector('#leftRail [data-act="media"]').click();
+  d.querySelector('#mClose').click();
+  await new Promise(resolve => setTimeout(resolve, 400));
+  w.openModal('Something', '<p>Body</p>');
+  const close = d.querySelector('#mClose');
+  expect(d.querySelector('#modalBox').classList.contains('workspace')).toBe(false);
+  expect(close.getAttribute('aria-label')).toBe('Close dialog');
+  expect(close.classList.contains('iconbtn')).toBe(true);
+});
