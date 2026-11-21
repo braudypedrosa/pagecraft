@@ -13,6 +13,7 @@ import { useImageUpload } from '../useImageUpload';
 import { useProcessingAction } from '../useProcessingAction';
 import { valueOf, bound, writer } from './ctl';
 import { ColorPop } from './ColorPop';
+import { FocalCtl } from './FocalPoint';
 import { HelpTip } from '../HelpTip';
 import { ItemsCtl, FieldsCtl, QaCtl, ImgsCtl } from './Lists';
 import { WordPressContentPicker, wordpressDestinationForValue } from '../WordPressContentPicker';
@@ -1274,7 +1275,7 @@ const KINDS: Record<string, (p: P) => any> = {
   color: ColorCtl, pick: PickCtl, toggle: ToggleCtl, box: BoxCtl, border: BorderCtl, img: ImgCtl,
   opt: OptCtl, dims: DimsCtl, link: LinkCtl, rich: RichCtl, tstyle: TstyleCtl,
   source: SourceCtl, items: ItemsCtl, fields: FieldsCtl, qa: QaCtl, imgs: ImgsCtl,
-  icon: IconCtl, cols: ColsCtl, order: OrderCtl, stack: StackCtl
+  icon: IconCtl, cols: ColsCtl, order: OrderCtl, stack: StackCtl, focal: FocalCtl
 };
 
 /** Every kind the inspector can draw. Exported so a test — and the build — can check

@@ -3409,6 +3409,8 @@ var DEF = {
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
         { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
         { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+        /* I10: only a cropping fit has a part to choose. */
+        { t: "focal", c: "object-position", label: "Focal point", r: 1, when: cropsImage },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
         { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
@@ -4289,6 +4291,9 @@ var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
 function inFlow(n) {
   return !/^(absolute|fixed)$/.test(styleSeen(n, "position").trim());
+}
+function cropsImage(n) {
+  return /^(cover|none)$/.test(styleSeen(n, "object-fit").trim());
 }
 function notASlide(n) {
   const pid = parentOf(n.id);
@@ -10710,7 +10715,18 @@ var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
-var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
+var IMAGE_CONTENT_STYLE_LEGACY = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
+var IMAGE_CONTENT_STYLE_CURRENT = /* @__PURE__ */ new Set([...IMAGE_CONTENT_STYLE_LEGACY, "object-position"]);
+var IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT;
+var FOCAL_IMAGE_SCHEMA = 17;
+function withImageStyles(schemaVersion, render) {
+  IMAGE_CONTENT_STYLE = (schemaVersion ?? SCHEMA) < FOCAL_IMAGE_SCHEMA ? IMAGE_CONTENT_STYLE_LEGACY : IMAGE_CONTENT_STYLE_CURRENT;
+  try {
+    return render();
+  } finally {
+    IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT;
+  }
+}
 function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
   const authoredButton = /* @__PURE__ */ new Set();
@@ -10768,6 +10784,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
     const reset = {};
     if (imageMap.height !== void 0) reset.height = "auto";
     if (imageMap["object-fit"] !== void 0) reset["object-fit"] = "initial";
+    if (imageMap["object-position"] !== void 0) reset["object-position"] = "initial";
     if (imageMap["border-radius"] !== void 0) reset["border-radius"] = "0";
     if (imageMap.opacity !== void 0) reset.opacity = "1";
     if (imageMap.filter !== void 0) reset.filter = "none";
@@ -10803,6 +10820,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       const reset = {};
       if (imageState.height !== void 0) reset.height = "auto";
       if (imageState["object-fit"] !== void 0) reset["object-fit"] = "initial";
+      if (imageState["object-position"] !== void 0) reset["object-position"] = "initial";
       if (imageState["border-radius"] !== void 0) reset["border-radius"] = "0";
       if (imageState.opacity !== void 0) reset.opacity = "1";
       if (imageState.filter !== void 0) reset.filter = "none";
@@ -10993,7 +11011,10 @@ ${PUBLIC_DATE_CSS}` : "");
 function publicFormControlCssFor(lists, editing) {
   return editing ? "" : publicFormControlCss(publicFormControlsUsed(lists));
 }
-function wordpressStyles(pg2) {
+function wordpressStyles(pg2, schemaVersion) {
+  return withImageStyles(schemaVersion, () => wordpressStylesFor(pg2));
+}
+function wordpressStylesFor(pg2) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
   const pageMoves = animUsed(pageTrees(pg2));
@@ -12473,7 +12494,7 @@ function buildPage(pg2, ctx = {}) {
     pages: ctx.pages || 1,
     pg: pg2
   };
-  const css = treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false);
+  const css = withImageStyles(ctx.schemaVersion, () => treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false));
   const moves = animUsed([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")]);
   const allNodes = [...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")];
   const occupied = /* @__PURE__ */ new Set();

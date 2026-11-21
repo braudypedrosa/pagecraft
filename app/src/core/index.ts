@@ -815,6 +815,8 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: 'width', label: 'Width', layout: 'inline', r: 1, units: U.len },
         { t: 'unit', c: 'height', label: 'Height', layout: 'inline', r: 1, units: U.len },
         { t: 'select', c: 'object-fit', label: 'Fit', r: 1, opts: [['cover', 'Cover'], ['contain', 'Contain'], ['fill', 'Fill'], ['none', 'None']] },
+        /* I10: only a cropping fit has a part to choose. */
+        { t: 'focal', c: 'object-position', label: 'Focal point', r: 1, when: cropsImage },
         { t: 'unit', c: 'border-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius },
         { t: 'slider', c: 'opacity', label: 'Opacity', r: 1, min: 0, max: 1, step: .01, raw: 1 },
         { t: 'opt', c: 'filter', label: 'Filter', r: 1, opts: FILTERS, ph: 'grayscale(1) blur(2px)' }
@@ -1637,6 +1639,10 @@ const hasBackdrop = (n: PcNode) => !!(styleSeen(n, 'background-image') || styleS
     notASlide below: `DEF` reads it before this line runs. */
 function inFlow(n: PcNode): boolean {
   return !/^(absolute|fixed)$/.test(styleSeen(n, 'position').trim());
+}
+/* I10: Cover and None crop the photo; Contain and Fill show all of it, so there is no focal point. */
+function cropsImage(n: PcNode): boolean {
+  return /^(cover|none)$/.test(styleSeen(n, 'object-fit').trim());
 }
 
 function notASlide(n: PcNode): boolean {
@@ -8979,7 +8985,18 @@ const autoId = (n: PcNode) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replac
 const domIdOf = (n: PcNode) => (n.adv && n.adv.htmlId) ? n.adv.htmlId : autoId(n);
 const selOf = (n: PcNode) => '.' + nodeClass(n);
 
-const IMAGE_CONTENT_STYLE = new Set(['height', 'object-fit', 'border-radius', 'opacity', 'filter']);
+/* I10: object-position belongs on the <img> like object-fit; on a caption's figure or a link's
+   anchor it did nothing. Frozen legacy exports (schema < 17) must rebuild byte-for-byte, so
+   they keep the original list while their page renders. */
+const IMAGE_CONTENT_STYLE_LEGACY = new Set(['height', 'object-fit', 'border-radius', 'opacity', 'filter']);
+const IMAGE_CONTENT_STYLE_CURRENT = new Set([...IMAGE_CONTENT_STYLE_LEGACY, 'object-position']);
+let IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT;
+const FOCAL_IMAGE_SCHEMA = 17;
+/** Render with the image style list of a document schema (see above). */
+function withImageStyles<T>(schemaVersion: number | undefined, render: () => T): T {
+  IMAGE_CONTENT_STYLE = (schemaVersion ?? SCHEMA) < FOCAL_IMAGE_SCHEMA ? IMAGE_CONTENT_STYLE_LEGACY : IMAGE_CONTENT_STYLE_CURRENT;
+  try { return render(); } finally { IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT; }
+}
 
 /* per-node CSS for one breakpoint bucket */
 function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = null,
@@ -9062,6 +9079,7 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
     const reset: Decls = {};
     if (imageMap.height !== undefined) reset.height = 'auto';
     if (imageMap['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+    if (imageMap['object-position'] !== undefined) reset['object-position'] = 'initial';
     if (imageMap['border-radius'] !== undefined) reset['border-radius'] = '0';
     if (imageMap.opacity !== undefined) reset.opacity = '1';
     if (imageMap.filter !== undefined) reset.filter = 'none';
@@ -9116,6 +9134,7 @@ function bucket(n: PcNode, b: Bp, _editing: boolean, parent: PcNode | null = nul
       const reset: Decls = {};
       if (imageState.height !== undefined) reset.height = 'auto';
       if (imageState['object-fit'] !== undefined) reset['object-fit'] = 'initial';
+      if (imageState['object-position'] !== undefined) reset['object-position'] = 'initial';
       if (imageState['border-radius'] !== undefined) reset['border-radius'] = '0';
       if (imageState.opacity !== undefined) reset.opacity = '1';
       if (imageState.filter !== undefined) reset.filter = 'none';
@@ -9378,7 +9397,10 @@ function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
   return editing ? '' : publicFormControlCss(publicFormControlsUsed(lists));
 }
 
-function wordpressStyles(pg: Page) {
+function wordpressStyles(pg: Page, schemaVersion?: number) {
+  return withImageStyles(schemaVersion, () => wordpressStylesFor(pg));
+}
+function wordpressStylesFor(pg: Page) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
   const pageMoves = animUsed(pageTrees(pg));
@@ -11271,7 +11293,7 @@ function buildPage(pg: Page, ctx: {
     edit: false, col: ctx.col || null, item: ctx.item || null, rel: ctx.rel || '',
     variants: !!ctx.variants, pageNo: ctx.pageNo || 1, pages: ctx.pages || 1, pg
   };
-  const css = treeCss([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], false);
+  const css = withImageStyles(ctx.schemaVersion, () => treeCss([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')], false));
   /* per page, not per project: two pages of a site can differ, and 34 KB is most of the weight
      of a page that has nothing moving on it */
   const moves = animUsed([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')]);
