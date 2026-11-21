@@ -39,7 +39,7 @@ describe('Add element discovery', () => {
     expect(commonLabels()).toEqual([]);
     expect(r.$('.addContext')).toBeNull();
     expect(r.$$('.pc-add-category').map(group => group.querySelector('.gh')?.textContent)).toEqual([
-      'Layout9', 'Content9', 'Interactive7', 'Spacing2'
+      'Layout10', 'Content10', 'Interactive9', 'Spacing2'
     ]);
     expect(r.$$('.pc-add-category').every(group => group.querySelector('.gh')?.getAttribute('aria-expanded') === 'true')).toBe(false);
     expect(r.$('.pc-add-guide')?.textContent).toBe('Browse starter sections');
@@ -84,7 +84,7 @@ describe('Add element discovery', () => {
   test('search uses aliases and exposes matches from collapsed groups without duplicates', () => {
     type('layout');
     expect(labels()).toEqual([
-      'Section', 'Columns', 'Row', 'Flex', 'Grid', 'Box', 'Link block', 'Slider', 'Collection'
+      'Section', 'Columns', 'Row', 'Flex', 'Grid', 'Box', 'Link block', 'Slider', 'Marquee', 'Collection'
     ]);
     expect(new Set(labels()).size).toBe(labels().length);
     expect(r.$('.pc-add-category')).toBeNull();

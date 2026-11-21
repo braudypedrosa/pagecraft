@@ -23,7 +23,8 @@ export type ParentType = WidgetType | null;
 
 export type WidgetType =
   | 'section' | 'row' | 'list' | 'slider' | 'column' | 'box'
-  | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'icon'
+  | 'heading' | 'text' | 'quote' | 'image' | 'gallery' | 'video' | 'audio' | 'icon'
+  | 'countdown' | 'marquee' | 'filter'
   | 'tabs' | 'table' | 'code' | 'crumbs'
   | 'button' | 'nav' | 'form' | 'accordion' | 'embed'
   | 'spacer' | 'divider';
@@ -68,6 +69,7 @@ export interface BoxProps {
   tag?: string;
   link?: string;
   target?: string;
+  tags?: string;
 }
 
 /* ---- per-widget props ---------------------------------------------------
@@ -236,6 +238,20 @@ export interface AccordionProps {
 }
 export interface QaItem { q?: string; a?: string }
 export interface EmbedProps { html?: string; ratio?: string }
+export interface AudioProps {
+  src?: string; title?: string; subtitle?: string; artwork?: string;
+  autoplay?: 0 | 1; loop?: 0 | 1; controls?: 0 | 1;
+}
+export interface CountdownProps {
+  target?: string; done?: string; showSeconds?: 0 | 1; display?: 'cards' | 'inline';
+  lblDays?: string; lblHours?: string; lblMins?: string; lblSecs?: string;
+}
+export interface MarqueeProps {
+  dir?: string; speed?: string; gap?: string; pause?: 0 | 1; fade?: 0 | 1;
+}
+export interface FilterProps {
+  group?: string; all?: string; tags?: string; align?: string;
+}
 export interface SpacerProps { }
 export interface DividerProps { }
 
@@ -243,8 +259,9 @@ export interface DividerProps { }
 export interface PropsByType {
   section: SectionProps; row: RowProps; list: ListProps; column: ColumnProps; box: BoxProps;
   heading: HeadingProps; text: TextProps; quote: QuoteProps; image: ImageProps; gallery: GalleryProps;
-  video: VideoProps; icon: IconProps; button: ButtonProps; nav: NavProps;
+  video: VideoProps; audio: AudioProps; icon: IconProps; button: ButtonProps; nav: NavProps;
   form: FormProps; accordion: AccordionProps; tabs: TabsProps; table: TableProps; code: CodeProps; crumbs: CrumbsProps; slider: SliderProps; embed: EmbedProps;
+  countdown: CountdownProps; marquee: MarqueeProps; filter: FilterProps;
   spacer: SpacerProps; divider: DividerProps;
 }
 

@@ -565,10 +565,11 @@ test('the signed golden artifact exercises the complete connected component cont
     section: 'pagecraft-section', row: 'pagecraft-row', list: 'pagecraft-list',
     slider: 'pagecraft-slider', column: 'pagecraft-column', box: 'pagecraft-box',
     heading: 'pagecraft-heading', text: 'pagecraft-wysiwyg', quote: 'pagecraft-quote',
-    image: 'pagecraft-figure', gallery: 'pagecraft-gallery', video: 'pagecraft-video',
+    image: 'pagecraft-figure', gallery: 'pagecraft-gallery', video: 'pagecraft-video', audio: 'pagecraft-audio',
     icon: 'pagecraft-icon', tabs: 'pagecraft-tabs', table: 'pagecraft-table-wrap',
     code: 'pagecraft-code', crumbs: 'pagecraft-crumbs', button: 'pagecraft-button',
     nav: 'pagecraft-nav-menu', form: 'pagecraft-form', accordion: 'pagecraft-accordion',
+    countdown: 'pagecraft-countdown', marquee: 'pagecraft-marquee', filter: 'pagecraft-filter',
     embed: 'pagecraft-embed', spacer: 'pagecraft-spacer', divider: 'pagecraft-divider'
   };
   for (const type of MATRIX_WIDGETS) {
