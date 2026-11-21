@@ -1047,6 +1047,17 @@ select.ctl{
 .clr .x,.tgx{width:var(--ic-md);flex:0 0 var(--ic-md);height:var(--h-ctl);color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
 .clr .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pick{display:flex;gap:var(--sp-2);background:var(--field);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
+/* I10: focal point. The whole photo, the part the frame keeps, and a dot to drag. */
+.pc-focal{display:grid;gap:var(--gap-1)}
+.pc-focal-pad{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-md);background:var(--field);cursor:crosshair;touch-action:none;user-select:none;line-height:0;min-height:64px}
+.pc-focal-pad.is-locked{cursor:default;opacity:var(--dim)}
+.pc-focal-pad img{display:block;width:100%;height:auto;max-height:240px;object-fit:contain;pointer-events:none}
+.pc-focal-empty{display:grid;place-items:center;min-height:64px;line-height:1.4;font-size:var(--fs-2);color:var(--text-3)}
+.pc-focal-kept{position:absolute;border:1.5px dashed #fff;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
+.pc-focal-dot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid #fff;background:rgba(183,243,74,.4);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.35);cursor:grab}
+.pc-focal-dot:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.pc-focal-row{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-2);font-size:var(--fs-2);color:var(--text-2)}
+.pc-focal-value{font-variant-numeric:tabular-nums;color:var(--text)}
 .pick button{flex:1;padding:6px 2px;border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;font-size:var(--fs-2);font-weight:500}
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
@@ -5259,6 +5270,8 @@ var DEF = {
         { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
         { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
         { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+        /* I10: only a cropping fit has a part to choose. */
+        { t: "focal", c: "object-position", label: "Focal point", r: 1, when: cropsImage },
         { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
         { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
         { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
@@ -6139,6 +6152,9 @@ var canDo = (n, cap) => (DEF[n.type].caps || []).includes(cap);
 var hasBackdrop = (n) => !!(styleSeen(n, "background-image") || styleSeen(n, "background"));
 function inFlow(n) {
   return !/^(absolute|fixed)$/.test(styleSeen(n, "position").trim());
+}
+function cropsImage(n) {
+  return /^(cover|none)$/.test(styleSeen(n, "object-fit").trim());
 }
 function notASlide(n) {
   const pid = parentOf(n.id);
@@ -12560,7 +12576,18 @@ var nodeClass = (n) => PFX + String(n.id).replace(/^n/, "");
 var autoId = (n) => `${PFX}${widgetSlug(n.type)}-${String(n.id).replace(/^n/, "")}`;
 var domIdOf = (n) => n.adv && n.adv.htmlId ? n.adv.htmlId : autoId(n);
 var selOf = (n) => "." + nodeClass(n);
-var IMAGE_CONTENT_STYLE = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
+var IMAGE_CONTENT_STYLE_LEGACY = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
+var IMAGE_CONTENT_STYLE_CURRENT = /* @__PURE__ */ new Set([...IMAGE_CONTENT_STYLE_LEGACY, "object-position"]);
+var IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT;
+var FOCAL_IMAGE_SCHEMA = 17;
+function withImageStyles(schemaVersion, render) {
+  IMAGE_CONTENT_STYLE = (schemaVersion ?? SCHEMA) < FOCAL_IMAGE_SCHEMA ? IMAGE_CONTENT_STYLE_LEGACY : IMAGE_CONTENT_STYLE_CURRENT;
+  try {
+    return render();
+  } finally {
+    IMAGE_CONTENT_STYLE = IMAGE_CONTENT_STYLE_CURRENT;
+  }
+}
 function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
   const map = { ...n.css[b] || {} };
   const authoredButton = /* @__PURE__ */ new Set();
@@ -12618,6 +12645,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
     const reset = {};
     if (imageMap.height !== void 0) reset.height = "auto";
     if (imageMap["object-fit"] !== void 0) reset["object-fit"] = "initial";
+    if (imageMap["object-position"] !== void 0) reset["object-position"] = "initial";
     if (imageMap["border-radius"] !== void 0) reset["border-radius"] = "0";
     if (imageMap.opacity !== void 0) reset.opacity = "1";
     if (imageMap.filter !== void 0) reset.filter = "none";
@@ -12653,6 +12681,7 @@ function bucket(n, b, _editing, parent = null, detachedComponentRoot = false) {
       const reset = {};
       if (imageState.height !== void 0) reset.height = "auto";
       if (imageState["object-fit"] !== void 0) reset["object-fit"] = "initial";
+      if (imageState["object-position"] !== void 0) reset["object-position"] = "initial";
       if (imageState["border-radius"] !== void 0) reset["border-radius"] = "0";
       if (imageState.opacity !== void 0) reset.opacity = "1";
       if (imageState.filter !== void 0) reset.filter = "none";
@@ -12843,7 +12872,10 @@ ${PUBLIC_DATE_CSS}` : "");
 function publicFormControlCssFor(lists, editing) {
   return editing ? "" : publicFormControlCss(publicFormControlsUsed(lists));
 }
-function wordpressStyles(pg2) {
+function wordpressStyles(pg2, schemaVersion) {
+  return withImageStyles(schemaVersion, () => wordpressStylesFor(pg2));
+}
+function wordpressStylesFor(pg2) {
   const globalTrees = [state.header, state.footer];
   const globalMoves = animUsed(globalTrees);
   const pageMoves = animUsed(pageTrees(pg2));
@@ -14323,7 +14355,7 @@ function buildPage(pg2, ctx = {}) {
     pages: ctx.pages || 1,
     pg: pg2
   };
-  const css = treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false);
+  const css = withImageStyles(ctx.schemaVersion, () => treeCss([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")], false));
   const moves = animUsed([pageRegion(pg2, "header"), pg2.tree, pageRegion(pg2, "footer")]);
   const allNodes = [...pageRegion(pg2, "header"), ...pg2.tree, ...pageRegion(pg2, "footer")];
   const occupied = /* @__PURE__ */ new Set();
@@ -23544,6 +23576,180 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     ] });
   }
 
+  // app/src/ui/inspector/FocalPoint.tsx
+  var WORDS = { left: 0, top: 0, center: 50, right: 100, bottom: 100 };
+  function parseFocal(value) {
+    const parts = String(value || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { x: 50, y: 50 };
+    const num = (s3) => s3 in WORDS ? WORDS[s3] : /^-?\d+(\.\d+)?%$/.test(s3) ? parseFloat(s3) : null;
+    let x2 = null, y3 = null;
+    if (parts.length === 1) {
+      const p3 = parts[0];
+      if (p3 === "top" || p3 === "bottom") y3 = WORDS[p3];
+      else x2 = num(p3);
+    } else {
+      const [a3, b2] = parts;
+      if (a3 === "top" || a3 === "bottom" || b2 === "left" || b2 === "right") {
+        y3 = num(a3);
+        x2 = num(b2);
+      } else {
+        x2 = num(a3);
+        y3 = num(b2);
+      }
+    }
+    const clamp3 = (v3) => v3 == null || !Number.isFinite(v3) ? 50 : Math.min(100, Math.max(0, v3));
+    return { x: clamp3(x2), y: clamp3(y3) };
+  }
+  var formatFocal = (p3) => `${Math.round(p3.x)}% ${Math.round(p3.y)}%`;
+  function keptBox(fit, natural, frame, p3) {
+    if (!natural.w || !natural.h || !frame.w || !frame.h) return null;
+    const scale = fit === "none" ? 1 : Math.max(frame.w / natural.w, frame.h / natural.h);
+    const fw = Math.min(1, frame.w / (natural.w * scale));
+    const fh = Math.min(1, frame.h / (natural.h * scale));
+    return { left: (1 - fw) * p3.x / 100, top: (1 - fh) * p3.y / 100, width: fw, height: fh };
+  }
+  var canvasImage = (n2) => {
+    const doc = document.getElementById("canvas")?.contentDocument;
+    return doc?.querySelector(`img[data-id="${n2.id}"], [data-id="${n2.id}"] img`) || null;
+  };
+  var keyboardFocus = null;
+  var dragging = null;
+  var dragTop = null;
+  var scroller = (el) => {
+    for (let p3 = el?.parentElement; p3; p3 = p3.parentElement) {
+      const o3 = getComputedStyle(p3).overflowY;
+      if ((o3 === "auto" || o3 === "scroll") && p3.scrollHeight > p3.clientHeight) return p3;
+    }
+    return null;
+  };
+  var holdPad = (id) => {
+    const el = padOf(id), top = el?.getBoundingClientRect().top;
+    if (!el || top == null || dragTop == null || Math.abs(top - dragTop) < 0.5) return;
+    const sc = scroller(el);
+    if (sc) sc.scrollTop += top - dragTop;
+  };
+  var padOf = (id) => document.querySelector(`.pc-focal-pad[data-focal="${CSS.escape(id)}"]`);
+  function FocalCtl({ n: n2, c: c3 }) {
+    const w3 = writer(n2, c3);
+    const start = parseFocal(String(valueOf(n2, c3) ?? ""));
+    const [, setLoaded] = d2(0);
+    const img = canvasImage(n2);
+    const src = img?.currentSrc || img?.src || String(C2.propVal(n2, "src") || "");
+    const fit = String(C2.cssVal(C2.tgtObj(n2), "object-fit", true).v || "cover").trim();
+    const locked = !!bound(n2, c3).fid;
+    const place2 = (p3) => {
+      const el = padOf(n2.id);
+      if (!el) return;
+      const dot = el.querySelector(".pc-focal-dot");
+      dot.style.left = p3.x + "%";
+      dot.style.top = p3.y + "%";
+      dot.setAttribute("aria-valuenow", String(Math.round(p3.x)));
+      dot.setAttribute("aria-valuetext", `${Math.round(p3.x)}% across, ${Math.round(p3.y)}% down`);
+      const box = el.querySelector(".pc-focal-kept");
+      const live = canvasImage(n2);
+      const kept = live ? keptBox(fit, { w: live.naturalWidth, h: live.naturalHeight }, { w: live.clientWidth, h: live.clientHeight }, p3) : null;
+      if (box) {
+        box.hidden = !kept || kept.width >= 0.999 && kept.height >= 0.999;
+        if (kept) Object.assign(box.style, { left: kept.left * 100 + "%", top: kept.top * 100 + "%", width: kept.width * 100 + "%", height: kept.height * 100 + "%" });
+      }
+      const out = el.parentElement?.querySelector(".pc-focal-value");
+      if (out) out.textContent = formatFocal(p3).replace(" ", " \xB7 ");
+    };
+    _2(() => {
+      if (dragging === n2.id) holdPad(n2.id);
+      place2(parseFocal(String(valueOf(n2, c3) ?? "")));
+      if (keyboardFocus === n2.id && (!document.activeElement || document.activeElement === document.body))
+        padOf(n2.id)?.querySelector(".pc-focal-dot")?.focus({ preventScroll: true });
+    });
+    const set = (p3) => {
+      place2(p3);
+      w3.live(formatFocal(p3));
+    };
+    const at = (e3) => {
+      const el = padOf(n2.id);
+      if (!el) return null;
+      const r3 = el.getBoundingClientRect();
+      return { x: Math.min(100, Math.max(0, (e3.clientX - r3.left) / r3.width * 100)), y: Math.min(100, Math.max(0, (e3.clientY - r3.top) / r3.height * 100)) };
+    };
+    const onDown = (e3) => {
+      if (locked || e3.button !== 0) return;
+      e3.preventDefault();
+      dragging = n2.id;
+      dragTop = padOf(n2.id)?.getBoundingClientRect().top ?? null;
+      const move = (ev) => {
+        if (dragging !== n2.id || ev.pointerId !== e3.pointerId) return;
+        holdPad(n2.id);
+        const p4 = at(ev);
+        if (p4) set(p4);
+      };
+      const up = (ev) => {
+        if (ev.pointerId !== e3.pointerId) return;
+        dragging = null;
+        dragTop = null;
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        window.removeEventListener("pointercancel", up);
+        w3.done();
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      window.addEventListener("pointercancel", up);
+      const p3 = at(e3);
+      if (p3) set(p3);
+    };
+    const onKey = (e3) => {
+      if (locked) return;
+      const step = e3.shiftKey ? 10 : 1;
+      const now = parseFocal(String(valueOf(n2, c3) ?? ""));
+      const d3 = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+      let next = null;
+      if (e3.key === "Home" || e3.key === "End") next = { x: e3.key === "Home" ? 0 : 100, y: now.y };
+      else if (d3[e3.key]) next = { x: Math.min(100, Math.max(0, Math.round(now.x) + d3[e3.key][0])), y: Math.min(100, Math.max(0, Math.round(now.y) + d3[e3.key][1])) };
+      if (!next) return;
+      e3.preventDefault();
+      e3.stopPropagation();
+      keyboardFocus = n2.id;
+      set(next);
+    };
+    const onBlur = (e3) => {
+      if (!(e3.relatedTarget instanceof HTMLElement)) {
+        if (!e3.currentTarget.isConnected) return;
+      }
+      keyboardFocus = null;
+      w3.done();
+    };
+    return /* @__PURE__ */ u2(Field, { n: n2, c: c3, children: /* @__PURE__ */ u2("div", { class: "pc-focal", children: [
+      /* @__PURE__ */ u2("div", { class: "pc-focal-pad" + (locked ? " is-locked" : ""), "data-focal": n2.id, onPointerDown: onDown, children: [
+        src ? /* @__PURE__ */ u2("img", { src, alt: "", draggable: false, onLoad: () => setLoaded((v3) => v3 + 1) }) : /* @__PURE__ */ u2("span", { class: "pc-focal-empty", children: "Choose an image first" }),
+        /* @__PURE__ */ u2("span", { class: "pc-focal-kept", "aria-hidden": "true", hidden: true }),
+        /* @__PURE__ */ u2(
+          "span",
+          {
+            class: "pc-focal-dot",
+            role: "slider",
+            tabIndex: locked ? -1 : 0,
+            "aria-label": `${c3.label}: arrow keys move it, Shift moves further`,
+            "aria-valuemin": 0,
+            "aria-valuemax": 100,
+            "aria-valuenow": Math.round(start.x),
+            "aria-valuetext": `${Math.round(start.x)}% across, ${Math.round(start.y)}% down`,
+            "aria-disabled": locked ? "true" : void 0,
+            style: { left: start.x + "%", top: start.y + "%" },
+            onKeyDown: onKey,
+            onBlur
+          }
+        )
+      ] }),
+      /* @__PURE__ */ u2("div", { class: "pc-focal-row", children: [
+        /* @__PURE__ */ u2("span", { children: [
+          "Drag to choose what stays in view \xB7 ",
+          /* @__PURE__ */ u2("span", { class: "pc-focal-value", children: formatFocal(start).replace(" ", " \xB7 ") })
+        ] }),
+        /* @__PURE__ */ u2("button", { type: "button", class: "btn tiny", disabled: locked, onClick: () => w3.hard(""), children: "Reset" })
+      ] })
+    ] }) });
+  }
+
   // app/src/ui/WordPressContentPicker.tsx
   function wordpressContentTargets() {
     if (C2.cloudFormsEnabled()) return [];
@@ -23786,7 +23992,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     const arr = list(n2, c3);
     const [open, setOpen] = d2(arr.length ? 0 : null);
     const [, setLabelRevision] = d2(0);
-    const [dragging, setDragging] = d2(null);
+    const [dragging2, setDragging] = d2(null);
     const [dragOver, setDragOver] = d2(null);
     const [nativePendingId, setNativePendingId] = d2(null);
     const dragFrom = A2(null);
@@ -23927,7 +24133,7 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
         const mode = nativePending ? "native" : destination.mode ? "page" : nativeMode ? "native" : wordpress || reference ? "wordpress" : "custom";
         const page2 = destination.slug;
         const anchors = mode === "page" && destination.page ? C2.anchorsOf(page2) : [];
-        const isDragging = dragging === k3;
+        const isDragging = dragging2 === k3;
         const itemContext = `${it.label || "untitled link"}, item ${k3 + 1}`;
         return /* @__PURE__ */ u2(
           "div",
@@ -26450,7 +26656,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
     icon: IconCtl,
     cols: ColsCtl,
     order: OrderCtl,
-    stack: StackCtl
+    stack: StackCtl,
+    focal: FocalCtl
   };
   var CONTROL_KINDS = Object.keys(KINDS);
   function Ctl({ n: n2, c: c3 }) {
@@ -29447,6 +29654,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
           { t: "unit", c: "width", label: "Width", layout: "inline", r: 1, units: U.len },
           { t: "unit", c: "height", label: "Height", layout: "inline", r: 1, units: U.len },
           { t: "select", c: "object-fit", label: "Fit", r: 1, opts: [["cover", "Cover"], ["contain", "Contain"], ["fill", "Fill"], ["none", "None"]] },
+          /* I10: only a cropping fit has a part to choose. */
+          { t: "focal", c: "object-position", label: "Focal point", r: 1, when: cropsImage },
           { t: "unit", c: "border-radius", label: "Radius", layout: "inline", r: 1, units: U.radius },
           { t: "slider", c: "opacity", label: "Opacity", r: 1, min: 0, max: 1, step: 0.01, raw: 1 },
           { t: "opt", c: "filter", label: "Filter", r: 1, opts: FILTERS, ph: "grayscale(1) blur(2px)" }
@@ -30132,6 +30341,9 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   function inFlow(n2) {
     return !/^(absolute|fixed)$/.test(styleSeen(n2, "position").trim());
   }
+  function cropsImage(n2) {
+    return /^(cover|none)$/.test(styleSeen(n2, "object-fit").trim());
+  }
   function notASlide(n2) {
     const pid = parentOf(n2.id);
     const h3 = pid ? locate(pid) : null;
@@ -30745,6 +30957,8 @@ dialog.pc-dialog[data-pc-motion-closing]::backdrop{animation:pc-scrim-out var(--
   var PH = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="#f1eee3"/><g fill="none" stroke="#c2beb0" stroke-width="10"><circle cx="300" cy="180" r="42"/><path d="M120 380l150-130 120 104 100-86 190 162z" stroke-linejoin="round"/></g></svg>`
   );
+  var IMAGE_CONTENT_STYLE_LEGACY = /* @__PURE__ */ new Set(["height", "object-fit", "border-radius", "opacity", "filter"]);
+  var IMAGE_CONTENT_STYLE_CURRENT = /* @__PURE__ */ new Set([...IMAGE_CONTENT_STYLE_LEGACY, "object-position"]);
   function vidSrc(p3) {
     const src = String(p3.src || "").trim();
     if (!src) return { kind: "none", id: "" };
