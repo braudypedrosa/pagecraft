@@ -38,13 +38,13 @@ const PAL: { g: string; items: [string, string][] }[] = [
          offered "Box" and a dropdown would hide two layouts this editor never had behind a
          control nobody would open. */
       ['flex', 'Flex'], ['grid', 'Grid'], ['box', 'Box'], ['linkbox', 'Link block'],
-      ['slider', 'Slider'], ['list', 'Collection']
+      ['slider', 'Slider'], ['marquee', 'Marquee'], ['list', 'Collection']
     ]
   },
   {
     g: 'Content', items: [
       ['heading', 'Heading'], ['text', 'Rich text'], ['quote', 'Quote'], ['table', 'Table'], ['code', 'Code'],
-      ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['icon', 'Icon']
+      ['image', 'Image'], ['gallery', 'Gallery'], ['video', 'Video'], ['audio', 'Audio'], ['icon', 'Icon']
     ]
   },
   {
@@ -52,7 +52,7 @@ const PAL: { g: string; items: [string, string][] }[] = [
        Accordion sits with the Form: both are things a visitor operates. */
     g: 'Interactive', items: [
       ['button', 'Button'], ['nav', 'Nav menu'], ['crumbs', 'Breadcrumb'], ['form', 'Form'], ['accordion', 'Accordion'],
-      ['tabs', 'Tabs'], ['embed', 'Embed']
+      ['tabs', 'Tabs'], ['countdown', 'Countdown'], ['filter', 'Tag filter'], ['embed', 'Embed']
     ]
   },
   { g: 'Spacing', items: [['divider', 'Divider'], ['spacer', 'Spacer']] }
@@ -93,6 +93,10 @@ const ALIASES: Record<string, string> = {
   box: 'layout container wrapper',
   linkbox: 'layout clickable card link',
   slider: 'carousel slideshow',
+  marquee: 'ticker ribbon scrolling logos strip',
+  audio: 'podcast player sound mp3 track episode',
+  countdown: 'timer event deadline clock launch',
+  filter: 'tags category tabs portfolio schedule',
   list: 'collection cms dynamic',
 };
 

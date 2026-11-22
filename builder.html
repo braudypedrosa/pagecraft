@@ -4173,7 +4173,7 @@ function paintCss() {
   if (!el) return;
   const editing = !document.body.classList.contains('preview');
   const sets = curSets();
-  el.textContent = assetsToBlob(treeCss(sets, editing) + publicFormControlCssFor(sets, editing));
+  el.textContent = assetsToBlob(treeCss(sets, editing) + publicFormControlCssFor(sets, editing) + extraWidgetCssFor(sets, editing));
   positionHud();
 }
 
@@ -4255,6 +4255,9 @@ function runPreviewRuntime(html, editing = false) {
     [/data-lightbox/.test(html), LB_JS],
     [/data-pagecraft-select/.test(html), PUBLIC_SELECT_JS],
     [/data-pagecraft-date/.test(html), PUBLIC_DATE_JS],
+    [/data-audio/.test(html), AUDIO_JS],
+    [/data-countdown/.test(html), COUNTDOWN_JS],
+    [/data-filter-group/.test(html), FILTER_JS],
     [/\bbp-animate\b/.test(html), ANIM_JS]
   ];
   try {
@@ -4340,7 +4343,7 @@ function paint() {
   const slideOffsets = new Map($$('[data-slides]', cdoc).map(el => [el.id, el.scrollLeft]));
   const scope = scopeOf();
   const sets = curSets();
-  const css = treeCss(sets, editing) + publicFormControlCssFor(sets, editing);
+  const css = treeCss(sets, editing) + publicFormControlCssFor(sets, editing) + extraWidgetCssFor(sets, editing);
   /* A Follow mobile-menu definition has no copied links of its own. In component Preview,
      carry the exact validated parent that opened the definition just as edit rendering does;
      export rendering stays independent of transient editor ownership. */

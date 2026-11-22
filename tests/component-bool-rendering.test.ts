@@ -137,11 +137,11 @@ test('binding normalization follows toggle destinations and preserves text/selec
 });
 
 
-test('all 18 declared toggle destinations normalize bound zero/one without changing storage', () => {
+test('all 24 declared toggle destinations normalize bound zero/one without changing storage', () => {
   const controls = Object.entries(C.DEF).flatMap(([type, definition]) =>
     definition.controls.content.filter(control => control.t === 'toggle' && control.k)
       .map(control => ({ type: type as PcNode['type'], key: control.k! })));
-  a.equal(controls.length, 18, 'finite current toggle destination catalogue');
+  a.equal(controls.length, 24, 'finite current toggle destination catalogue');
   for (const { type, key } of controls) {
     C.blankProject('Toggle destination ' + type + '.' + key);
     const instance = C.insert(type, null, 0)!;

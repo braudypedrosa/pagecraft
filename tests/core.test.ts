@@ -5890,7 +5890,7 @@ test('every responsive inspector declaration round-trips and compiles at all thr
         `${owner} ${c.label || c.c || c.k} did not compile ${bucket}`);
     }
   }
-  a.equal(declarations.length, 152,
+  a.equal(declarations.length, 169,
     'adding or removing a responsive inspector row requires updating the exhaustive acceptance count');
 });
 
@@ -9072,7 +9072,7 @@ test('alsoHolds is read, and says what the hardcoded pair used to', () => {
   a.equal(C.holds('column', 'slider'), true);
   a.equal(C.holds('column', 'list'), false);
   a.equal(C.DEF.section.alsoHolds, undefined, 'a section restates nothing the level rule says');
-  a.deepEqual(C.DEF.column.alsoHolds, ['row', 'slider', 'box']);
+  a.deepEqual(C.DEF.column.alsoHolds, ['row', 'slider', 'box', 'marquee', 'filter']);
 });
 
 test('the layout is a class, so an author cannot half-overwrite it', () => {

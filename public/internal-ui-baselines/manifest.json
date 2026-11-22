@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-21T00:15:32.388Z",
+  "capturedAt": "2026-11-22T22:09:18.272Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -106,10 +106,10 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "6bf3cca6a8dfb4e44db695b40a4570b7f4c23dd973181ed5cd637676a37c94d9",
+    "builder.html": "f6b29f3446d25713add3368be70d5cbf0f8c1113b179da16bb087f3938383b05",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
-    "app/src/ui/Add.tsx": "aaa0bde259614199e964f888a64814470bc5876b6a9b6a31fbff98511809699b",
+    "app/src/ui/Add.tsx": "b119c14f8ba9c8f3dca69be031cbde2f8364331866646482b253b8ea176d6b80",
     "app/src/ui/Pages.tsx": "a011539003569a6eab777ab0adf54640a22fa385ad754ba63ea4a27068de5305",
     "app/src/ui/CmsWorkspace.tsx": "da8353ac86f8ac889d9878402df2d3d0b95b27045c9b6af82710e4795c60eef8",
     "app/src/ui/MotionPresence.tsx": "e2e9b42162da2b89352ad76470cf2ad15f1883606152ce1873cab3dfbd509d9c",

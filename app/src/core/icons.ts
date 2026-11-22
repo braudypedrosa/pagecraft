@@ -84,7 +84,11 @@ const IC: Record<string, string> = {
   tabs:'<path d="M1.8 6.2h12.4v7.6a.9.9 0 01-.9.9H2.7a.9.9 0 01-.9-.9z" stroke-linejoin="round"/><path d="M1.8 6.2l1.4-3.4h3.6l.7 3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   accordion:'<rect x="1.5" y="2.2" width="13" height="3.6" rx="1"/><rect x="1.5" y="7.4" width="13" height="6.4" rx="1"/><path d="M4 9.9h6M4 11.9h4" opacity=".5"/>',
   gallery:'<rect x="1.5" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="9.1" y="2.5" width="5.4" height="5.4" rx="1"/><rect x="1.5" y="9.6" width="5.4" height="3.9" rx="1"/><rect x="9.1" y="9.6" width="5.4" height="3.9" rx="1"/>',
-  pipette:'<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>'
+  pipette:'<path d="M9.6 2.4l4 4" stroke-linecap="round"/><path d="M12.3 5.1L6.2 11.2l-2.9.9.9-2.9 6.1-6.1z" stroke-linecap="round" stroke-linejoin="round"/>',
+  audio:'<path d="M2.5 9.5v-3M5.5 11.5v-7M8.5 13.5v-11M11.5 10.5v-5M14 9v-2" stroke-linecap="round"/>',
+  countdown:'<circle cx="8" cy="9" r="5.2"/><path d="M6.2 2.2h3.6M8 9V6.5l1.8 1.3" stroke-linecap="round" stroke-linejoin="round"/>',
+  marquee:'<rect x="1.5" y="4.5" width="13" height="7" rx="1.2" opacity=".45"/><path d="M3.5 8h9M10.5 6l2 2-2 2" stroke-linecap="round" stroke-linejoin="round"/>',
+  filter:'<path d="M2 3.2h12L9.4 8.5v4.1l-2.8 1.2V8.5z" stroke-linejoin="round"/>'
 };
 const svg = (n: string, s: number = 14, cls: string = ''): string =>
   `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${IC[n] || ''}</svg>`;

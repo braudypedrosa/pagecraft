@@ -3,9 +3,9 @@ import type { Doc, Node as PcNode } from './types';
 type NodePlace = { node: PcNode; parent: string; index: number; region: string };
 const KIND: Record<string, string> = {
   section: 'section', row: 'row', column: 'column', box: 'box', heading: 'heading', text: 'text', quote: 'quote',
-  image: 'image', gallery: 'gallery', video: 'video', icon: 'icon', button: 'button', nav: 'menu', form: 'form',
+  image: 'image', gallery: 'gallery', video: 'video', audio: 'audio player', icon: 'icon', button: 'button', nav: 'menu', form: 'form',
   accordion: 'accordion', tabs: 'tabs', table: 'table', code: 'code', crumbs: 'breadcrumbs', slider: 'slider',
-  embed: 'embed', spacer: 'spacer', divider: 'divider', list: 'list'
+  embed: 'embed', countdown: 'countdown', marquee: 'marquee', filter: 'tag filter', spacer: 'spacer', divider: 'divider', list: 'list'
 };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const kind = (node: PcNode) => KIND[node.type] || 'element';

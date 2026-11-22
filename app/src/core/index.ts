@@ -31,6 +31,7 @@ import { sha256 } from './libraries.ts';
 import { conciseHistoryLabel, inferHistoryAction } from './history-labels.ts';
 import { PUBLIC_DATE_CSS, PUBLIC_SELECT_CSS } from './public-form-controls-css.ts';
 import { PUBLIC_DATE_JS, PUBLIC_SELECT_JS } from './public-form-controls.generated.ts';
+import { AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS } from './extra-widgets.ts';
 
 /* ---------------------------------------------------------------- utils */
 let _seq = 0;
@@ -616,7 +617,7 @@ const DEF: Record<string, WidgetDef> = {
   },
 
   column: {
-    label: 'Column', icon: 'column', level: 3, alsoHolds: ['row', 'slider', 'box'],
+    label: 'Column', icon: 'column', level: 3, alsoHolds: ['row', 'slider', 'box', 'marquee', 'filter'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: {}, css: { d: { 'flex-grow': '100', [COLUMN_V_ALIGN]: 'follow', 'align-items': 'stretch', gap: '16px' }, t: {}, m: { 'flex-basis': '100%' } } }),
     controls: {
@@ -650,7 +651,7 @@ const DEF: Record<string, WidgetDef> = {
      do it: a link lived on a heading, a button or an image, so a clickable card meant a
      transparent button stretched over it. */
   box: {
-    label: 'Box', icon: 'section', level: 2, takes: 4, alsoHolds: ['box', 'row', 'slider', 'column'],
+    label: 'Box', icon: 'section', level: 2, takes: 4, alsoHolds: ['box', 'row', 'slider', 'column', 'marquee', 'filter'],
     caps: ['spacing', 'decoration', 'effects', 'animation'],
     make: () => ({ props: { layout: 'block', tag: 'div', link: '', target: '' }, css: { d: {}, t: {}, m: {} } }),
     controls: {
@@ -669,7 +670,8 @@ const DEF: Record<string, WidgetDef> = {
            common CSS grid surprise, and not one an author should have to know. */
         { t: 'select', c: 'grid-template-columns', label: 'Columns', r: 1, when: n => n.props.layout === 'grid', opts: GRID_COLS },
         { t: 'select', k: 'tag', label: 'HTML tag', layout: 'inline', when: n => !String(n.props.link || '').trim(), opts: [['div', 'div'], ['article', 'article'], ['aside', 'aside'], ['nav', 'nav'], ['header', 'header'], ['footer', 'footer'], ['main', 'main'], ['section', 'section'], ['ul', 'ul'], ['ol', 'ol'], ['li', 'li']] },
-        { t: 'link', k: 'link', label: 'Link', note: 'A whole box that is one link.' }
+        { t: 'link', k: 'link', label: 'Link', note: 'A whole box that is one link.' },
+        { t: 'text', k: 'tags', label: 'Filter tags', ph: 'Investigation, Science', when: inFilter }
       ],
       style: []
     }
@@ -1297,6 +1299,132 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'unit', c: '--g-radius', label: 'Tile radius', layout: 'inline', r: 1, units: U.radius }
       ]
     }
+  },
+
+  audio: {
+    label: 'Audio', icon: 'audio', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: { src: '', title: 'Episode 01', subtitle: 'Field recording · 18 min', artwork: '', controls: 1, autoplay: 0, loop: 0 },
+      css: {
+        d: {
+          width: '100%', '--au-bg': cvar('surface'), '--au-text': cvar('ink'),
+          '--au-muted': cvar('muted'), '--au-accent': cvar('ink'), '--au-accent-ink': cvar('surface'),
+          '--au-line': cvar('line'), '--au-radius': '12px'
+        }, t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'src', label: 'Audio URL', ph: 'https://.../episode.mp3 or asset:...' },
+        { t: 'text', k: 'title', label: 'Track title', ph: 'Episode title' },
+        { t: 'text', k: 'subtitle', label: 'Subtitle', ph: 'Show, artist or duration' },
+        { t: 'img', k: 'artwork', label: 'Artwork' },
+        { t: 'toggle', k: 'controls', label: 'Show full player bar' },
+        { t: 'toggle', k: 'loop', label: 'Loop' },
+        { t: 'toggle', k: 'autoplay', label: 'Autoplay' }
+      ],
+      style: [
+        { t: 'color', c: '--au-bg', label: 'Background', r: 1 },
+        { t: 'color', c: '--au-text', label: 'Text colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--au-accent', label: 'Button fill', r: 1, layout: 'inline' },
+        { t: 'color', c: '--au-accent-ink', label: 'Button icon', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--au-radius', label: 'Radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  countdown: {
+    label: 'Countdown', icon: 'countdown', level: 4,
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: {
+        target: '2027-09-18T16:00:00Z', done: 'Event started',
+        showSeconds: 1, display: 'cards',
+        lblDays: 'Days', lblHours: 'Hours', lblMins: 'Mins', lblSecs: 'Secs'
+      },
+      css: {
+        d: {
+          width: '100%', '--cd2-card': cvar('surface'), '--cd2-text': cvar('ink'),
+          '--cd2-num': cvar('ink'), '--cd2-muted': cvar('muted'),
+          '--cd2-line': cvar('line'), '--cd2-radius': '10px', '--cd2-gap': '12px'
+        }, t: {}, m: { '--cd2-gap': '8px' }
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'target', label: 'Target ISO date', ph: '2027-09-18T16:00:00Z',
+          note: 'ISO 8601 date and time, for example 2027-09-18T16:00:00Z.' },
+        { t: 'text', k: 'done', label: 'Completed message', ph: 'Event started' },
+        { t: 'select', k: 'display', label: 'Layout', opts: [['cards', 'Metric cards'], ['inline', 'Inline strip']] },
+        { t: 'toggle', k: 'showSeconds', label: 'Show seconds' },
+        { t: 'text', k: 'lblDays', label: 'Days label', ph: 'Days' },
+        { t: 'text', k: 'lblHours', label: 'Hours label', ph: 'Hours' },
+        { t: 'text', k: 'lblMins', label: 'Minutes label', ph: 'Mins' },
+        { t: 'text', k: 'lblSecs', label: 'Seconds label', ph: 'Secs', when: n => n.props.showSeconds !== 0 }
+      ],
+      style: [
+        { t: 'color', c: '--cd2-card', label: 'Card background', r: 1 },
+        { t: 'color', c: '--cd2-num', label: 'Number colour', r: 1, layout: 'inline' },
+        { t: 'color', c: '--cd2-muted', label: 'Label colour', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--cd2-num-size', label: 'Number size', layout: 'inline', r: 1, units: U.size },
+        { t: 'unit', c: '--cd2-gap', label: 'Gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'unit', c: '--cd2-radius', label: 'Card radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
+  },
+
+  marquee: {
+    label: 'Marquee', icon: 'marquee', level: 2, takes: 4, alsoHolds: ['box', 'row', 'slider', 'column'],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: { dir: 'left', speed: '28s', gap: '32px', pause: 1, fade: 1 },
+      css: { d: { width: '100%' }, t: {}, m: {} }
+    }),
+    controls: {
+      content: [
+        { t: 'pick', k: 'dir', label: 'Direction', opts: [['left', 'Left'], ['right', 'Right']], text: 1 },
+        { t: 'text', k: 'speed', label: 'Cycle duration', ph: '28s',
+          note: 'Time for one full loop, for example 28s or 45s.' },
+        { t: 'text', k: 'gap', label: 'Item gap', ph: '32px' },
+        { t: 'toggle', k: 'pause', label: 'Pause on hover and focus' },
+        { t: 'toggle', k: 'fade', label: 'Fade strip edges' }
+      ],
+      style: [
+        { t: 'unit', c: '--mq-gap', label: 'Gap override', layout: 'inline', r: 1, units: U.space }
+      ]
+    }
+  },
+
+  filter: {
+    label: 'Tag filter', icon: 'filter', level: 2, takes: 4, alsoHolds: ['box', 'row', 'slider', 'column'],
+    caps: ['spacing', 'decoration', 'effects', 'animation'],
+    make: () => ({
+      props: { group: 'default', all: 'All', tags: '', align: 'start' },
+      css: {
+        d: {
+          width: '100%', '--fl-gap': '20px', '--fl-accent': cvar('ink'),
+          '--fl-accent-ink': cvar('surface'), '--fl-line': cvar('line'),
+          '--fl-btn-text': cvar('ink'), '--fl-pill-radius': '999px'
+        }, t: {}, m: {}
+      }
+    }),
+    controls: {
+      content: [
+        { t: 'text', k: 'group', label: 'Group key', ph: 'default' },
+        { t: 'text', k: 'all', label: 'Reset tab label', ph: 'All' },
+        { t: 'text', k: 'tags', label: 'Tag tabs', ph: 'Investigation, Fieldwork, Archive',
+          note: 'Comma-separated tags, or leave blank to discover tags from child Boxes.' },
+        { t: 'pick', k: 'align', label: 'Tab alignment', opts: [['start', 'alignL'], ['center', 'alignC'], ['end', 'alignR']] }
+      ],
+      style: [
+        { t: 'select', c: '--fl-cols', label: 'Card columns', r: 1, opts: [['', 'Auto / stacked'], ['repeat(2, minmax(0, 1fr))', '2 columns'], ['repeat(3, minmax(0, 1fr))', '3 columns'], ['repeat(4, minmax(0, 1fr))', '4 columns']] },
+        { t: 'unit', c: '--fl-gap', label: 'Gap', layout: 'inline', r: 1, units: U.space },
+        { t: 'color', c: '--fl-accent', label: 'Active tab fill', r: 1 },
+        { t: 'color', c: '--fl-accent-ink', label: 'Active tab text', r: 1, layout: 'inline' },
+        { t: 'unit', c: '--fl-pill-radius', label: 'Tab radius', layout: 'inline', r: 1, units: U.radius }
+      ]
+    }
   }
 };
 
@@ -1651,6 +1779,17 @@ function notASlide(n: PcNode): boolean {
   return !h || h.node.type !== 'slider';
 }
 
+function inFilter(n: PcNode): boolean {
+  let cur = parentOf(n.id);
+  while (cur) {
+    const h = locate(cur);
+    if (!h) break;
+    if (h.node.type === 'filter') return true;
+    cur = h.parent ? h.parent.id : null;
+  }
+  return false;
+}
+
 const COMMON_STYLE: { g: string; cap: Capability; items: Control[] }[] = [
   { g: 'Spacing', cap: 'spacing', items: [{ t: 'box', c: 'padding', label: 'Padding', r: 1 }, { t: 'box', c: 'margin', label: 'Margin', r: 1, neg: 1 }] },
   {
@@ -1864,6 +2003,10 @@ const nameOf = (n: PcNode) => {
   if (n.type === 'row') return `Row · ${n.children.length} col`;
   if (n.type === 'slider') return `Slider · ${n.children.length} slide${n.children.length === 1 ? '' : 's'}`;
   if (n.type === 'image') return n.props.alt ? 'Image · ' + n.props.alt.slice(0, 18) : 'Image';
+  if (n.type === 'audio') return n.props.title ? 'Audio · ' + String(n.props.title).slice(0, 18) : d.label;
+  if (n.type === 'countdown') return n.props.target ? 'Countdown · ' + String(n.props.target).slice(0, 10) : d.label;
+  if (n.type === 'marquee') return `Marquee · ${n.children.length} item${n.children.length === 1 ? '' : 's'}`;
+  if (n.type === 'filter') return `Tag filter · ${collectFilterTags(n).length} tag${collectFilterTags(n).length === 1 ? '' : 's'}`;
   return d.label;
 };
 
@@ -4159,6 +4302,12 @@ function lint() {
       if (n.type === 'code' && !String(n.props.body || '').trim())
         add('warn', 'code-empty', `A code block in the ${region} is empty, so it exports nothing.`, w, n.id);
 
+      if (n.type === 'countdown') {
+        const target = String(n.props.target || '').trim();
+        if (!target || !Number.isFinite(Date.parse(target)))
+          add('error', 'countdown-invalid-date', `A countdown in the ${region} has an invalid or missing ISO date, so it cannot count down.`, w, n.id);
+      }
+
       if (n.type === 'table') {
         const grid = tableGrid(n.props.body);
         if (!grid.length) add('warn', 'table-empty', `A table in the ${region} has no rows, so it exports nothing.`, w, n.id);
@@ -4535,6 +4684,14 @@ function lint() {
             queueContext('warn', 'eager-video',
               `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`,
               region, n, scoped);
+        }
+
+        if (n.type === 'audio') {
+          const p = boundProps(n, scoped.col, scoped.item, context.inst, context.cdef);
+          const source = audioSrc(p);
+          if (source.kind === 'invalid') queueContext('error', 'audio-invalid-source',
+            `An audio player in the ${region} has an unsupported source. Use an uploaded audio asset or a complete http:// or https:// audio URL.`,
+            region, n, scoped);
         }
 
         /* A Collection List renders its children once for every row. `listItems` is the same
@@ -4973,7 +5130,10 @@ const TEXT_SLOTS = {
   accordion: [['items', 'q', 'a']],
   gallery: [['items', 'alt', 'caption']],
   nav: [['items', 'label']],
-  form: [['fields', 'label', 'ph']]
+  form: [['fields', 'label', 'ph']],
+  audio: ['title', 'subtitle'],
+  countdown: ['done', 'lblDays', 'lblHours', 'lblMins', 'lblSecs'],
+  filter: ['all', 'tags']
 };
 /* Embed HTML remains searchable, but it is executable on the published page and therefore only
    an owner may edit it. Shared by the inspector and the server-side content boundary. */
@@ -4983,7 +5143,10 @@ const PAGE_TEXT = [['title', 'Browser title'], ['desc', 'Meta description'], ['n
 const SLOT_LABEL = {
   text: 'Text', html: 'Rich text', label: 'Label', alt: 'Alt text', caption: 'Caption',
   q: 'Question', a: 'Answer', ph: 'Placeholder', by: 'Attribution', panel: 'Panel',
-  body: 'Rows', title: 'File name', home: 'Front page name'
+  body: 'Rows', title: 'File name', home: 'Front page name',
+  subtitle: 'Subtitle', done: 'Completed message', lblDays: 'Days label',
+  lblHours: 'Hours label', lblMins: 'Minutes label', lblSecs: 'Seconds label',
+  all: 'Reset label', tags: 'Filter tags'
 };
 
 /* Where an asset reference can sit. Same shape as `TEXT_SLOTS`: a bare string is a prop, an
@@ -4999,6 +5162,7 @@ const SLOT_LABEL = {
 const ASSET_SLOTS: Record<string, (string | string[])[]> = {
   image: ['src'],
   video: ['src', 'poster'],
+  audio: ['src', 'artwork'],
   gallery: [['items', 'src']]
 };
 
@@ -9397,6 +9561,29 @@ function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
   return editing ? '' : publicFormControlCss(publicFormControlsUsed(lists));
 }
 
+function extraWidgetsUsed(lists: PcNode[][]) {
+  let audio = false, countdown = false, marquee = false, filter = false;
+  const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
+  rendered.forEach(list => eachNode(list, node => {
+    if (node.type === 'audio') audio = true;
+    else if (node.type === 'countdown') countdown = true;
+    else if (node.type === 'marquee') marquee = true;
+    else if (node.type === 'filter') filter = true;
+  }));
+  return { audio, countdown, marquee, filter };
+}
+
+function extraWidgetCss(used: { audio: boolean; countdown: boolean; marquee: boolean; filter: boolean }) {
+  return (used.audio ? `\n${AUDIO_CSS}` : '')
+    + (used.countdown ? `\n${COUNTDOWN_CSS}` : '')
+    + (used.marquee ? `\n${MARQUEE_CSS}` : '')
+    + (used.filter ? `\n${FILTER_CSS}` : '');
+}
+
+function extraWidgetCssFor(lists: PcNode[][], _editing: boolean) {
+  return extraWidgetCss(extraWidgetsUsed(lists));
+}
+
 function wordpressStyles(pg: Page, schemaVersion?: number) {
   return withImageStyles(schemaVersion, () => wordpressStylesFor(pg));
 }
@@ -9406,14 +9593,23 @@ function wordpressStylesFor(pg: Page) {
   const pageMoves = animUsed(pageTrees(pg));
   const globalControls = publicFormControlsUsed(globalTrees);
   const pageControls = publicFormControlsUsed(pageTrees(pg));
+  const globalExtra = extraWidgetsUsed(globalTrees);
+  const pageExtra = extraWidgetsUsed(pageTrees(pg));
   return {
     global: tidy(foundationCss(false) + treeRuleCss(globalTrees, false)
       + publicFormControlCss(globalControls)
+      + extraWidgetCss(globalExtra)
       + (globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : '')),
     page: tidy(treeRuleCss(pageTrees(pg), false)
       + publicFormControlCss({
         select: pageControls.select && !globalControls.select,
         date: pageControls.date && !globalControls.date,
+      })
+      + extraWidgetCss({
+        audio: pageExtra.audio && !globalExtra.audio,
+        countdown: pageExtra.countdown && !globalExtra.countdown,
+        marquee: pageExtra.marquee && !globalExtra.marquee,
+        filter: pageExtra.filter && !globalExtra.filter,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
   };
@@ -9929,6 +10125,86 @@ ${m.css || ''}
 ` : '');
 }
 
+function audioSrc(p: PropBag) {
+  const src = String(p.src || '').trim();
+  if (!src) return { kind: 'none' as const, url: '' };
+  if (/^[\\/]{2}/.test(src) || /[\u0000-\u001f\u007f]/.test(src)
+    || /^(?:%(?:0[0-9a-f]|1[0-9a-f]|7f))/i.test(src)) return { kind: 'invalid' as const, url: '' };
+  if (/^asset:[A-Za-z0-9][A-Za-z0-9._:-]*(?:@\d+)?$/.test(src)
+    || /^data:audio\/[a-z0-9.+-]+(?:;[^,]*)?,/i.test(src)) return { kind: 'valid' as const, url: src };
+  const scheme = /^([A-Za-z][A-Za-z0-9+.-]*):/.exec(src);
+  if (scheme) {
+    if (!/^https?$/i.test(scheme[1]) || !/^https?:\/\//i.test(src)) return { kind: 'invalid' as const, url: '' };
+    try {
+      const url = new URL(src);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return { kind: 'invalid' as const, url: '' };
+      return { kind: 'valid' as const, url: src };
+    } catch { return { kind: 'invalid' as const, url: '' }; }
+  }
+  return /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba)(\?|#|$)/i.test(src) || /^\/[^/]/.test(src)
+    ? { kind: 'valid' as const, url: src }
+    : { kind: 'invalid' as const, url: '' };
+}
+
+function stripDuplicateIds(html: string) {
+  return html
+    .replace(/\s+id=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/\s+tabindex=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/<(a|button|input|select|textarea|summary)(?=[\s>])/gi, '<$1 tabindex="-1"');
+}
+
+function parseTagList(raw: unknown): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of String(raw == null ? '' : raw).split(',')) {
+    const clean = part.trim();
+    const key = clean.toLowerCase();
+    if (clean && !seen.has(key)) {
+      seen.add(key);
+      out.push(clean);
+    }
+  }
+  return out;
+}
+
+function collectFilterTags(n: PcNode): string[] {
+  const authored = parseTagList(n.props.tags);
+  if (authored.length) return authored;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const walk = (nodes: PcNode[]) => {
+    for (const child of nodes) {
+      if (child.type === 'box' && child.props.tags) {
+        for (const tag of parseTagList(child.props.tags)) {
+          const key = tag.toLowerCase();
+          if (!seen.has(key)) { seen.add(key); out.push(tag); }
+        }
+      }
+      if (child.children?.length) walk(child.children);
+    }
+  };
+  walk(n.children || []);
+  return out;
+}
+
+function countdownParts(target: unknown) {
+  const raw = String(target == null ? '' : target).trim();
+  if (!raw) return { valid: false, done: false, d: '--', h: '--', m: '--', s: '--' };
+  const ms = Date.parse(raw);
+  if (!Number.isFinite(ms)) return { valid: false, done: false, d: '--', h: '--', m: '--', s: '--' };
+  const diff = ms - Date.now();
+  if (diff <= 0) return { valid: true, done: true, d: '0', h: '00', m: '00', s: '00' };
+  const totalSec = Math.floor(diff / 1000);
+  const pad = (v: number) => v < 10 ? '0' + v : String(v);
+  return {
+    valid: true, done: false,
+    d: String(Math.floor(totalSec / 86400)),
+    h: pad(Math.floor((totalSec % 86400) / 3600)),
+    m: pad(Math.floor((totalSec % 3600) / 60)),
+    s: pad(totalSec % 60)
+  };
+}
+
 /* --------------------------------------------------------- node markup */
 /* One place that understands a video URL, used by both the embed and the facade */
 function vidSrc(p: any) {
@@ -10313,6 +10589,8 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
          than every row storing it. */
       const mode = p.layout === 'flex' || p.layout === 'grid' ? ' l-' + p.layout : '';
       const href = pageHref(p.link, o);
+      const tags = String(p.tags == null ? '' : p.tags).trim();
+      const tagAttr = tags ? ` data-filter-tags="${esc(tags)}"` : '';
       // An empty painted, positioned layer is decorative, not an unfinished content slot.
       const decorative = n.css.d?.position === 'absolute'
         && !!(n.css.d?.['background-image'] || n.css.d?.['background-color'] || n.css.d?.background);
@@ -10320,10 +10598,10 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       if (href) {
         /* An anchor, and never a nested one: an `<a>` inside an `<a>` is invalid markup that
            browsers silently unnest, so the review flags it rather than this render guessing. */
-        return `<a ${at()} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}>${inner}</a>`;
+        return `<a ${at()} ${cx('pagecraft-box' + mode)} href="${esc(href)}"${blank}${tagAttr}>${inner}</a>`;
       }
       const tag = p.tag && BOX_TAGS.includes(p.tag) ? p.tag : 'div';
-      return `<${tag} ${at()} ${cx('pagecraft-box' + mode)}>${inner}</${tag}>`;
+      return `<${tag} ${at()} ${cx('pagecraft-box' + mode)}${tagAttr}>${inner}</${tag}>`;
     }
     case 'slider': {
       /* `tabindex` on the track, because a scrollable region a keyboard cannot reach is a
@@ -10775,6 +11053,95 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       const ratio = cssRatio(p.ratio);
       return `<div ${at()} ${cx('pagecraft-gallery' + (ratio ? ' pagecraft-gallery-fixed' : ''))}${p.lightbox ? ' data-lightbox' : ''}`
         + `${ratio ? ` style="--g-ratio:${esc(ratio)};--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"` : ` style="--g-fit:${p.fit === 'contain' ? 'contain' : 'cover'}"`}>${tiles}</div>`;
+    }
+    case 'audio': {
+      const source = audioSrc(p);
+      const hasSrc = source.kind === 'valid';
+      const title = String(p.title == null ? '' : p.title).trim();
+      const subtitle = String(p.subtitle == null ? '' : p.subtitle).trim();
+      const artwork = String(p.artwork == null ? '' : p.artwork).trim();
+      const compact = p.controls === 0;
+      const playIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3.2v9.6l8-4.8z"/></svg>';
+      const pauseIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="3" width="3.2" height="10" rx=".8"/><rect x="9.3" y="3" width="3.2" height="10" rx=".8"/></svg>';
+      const artHtml = artwork ? `<img class="pagecraft-audio-art" src="${esc(artwork)}" alt="" loading="lazy" decoding="async">` : '';
+      const headHtml = (title || subtitle)
+        ? `<div class="pagecraft-audio-head">${title ? `<div class="pagecraft-audio-title">${esc(title)}</div>` : ''}${subtitle ? `<div class="pagecraft-audio-sub">${esc(subtitle)}</div>` : ''}</div>`
+        : '';
+      const dis = hasSrc ? '' : ' disabled';
+      const toggleLabel = title ? `Play ${title}` : 'Play audio';
+      const audioEl = hasSrc
+        ? `<audio class="pagecraft-audio-native" preload="metadata" src="${esc(source.url)}"${p.loop ? ' loop' : ''}${p.autoplay && !o.edit ? ' autoplay' : ''} controls></audio>`
+        : '';
+      return `<div ${at()} ${cx('pagecraft-audio')} data-audio${o.edit ? ' data-audio-edit' : ''}${compact ? ' data-audio-compact' : ''}${title ? ` data-audio-title="${esc(title)}"` : ''}>`
+        + artHtml
+        + `<div class="pagecraft-audio-main">${headHtml}`
+        + `<div class="pagecraft-audio-bar">`
+        + `<button type="button" class="pagecraft-audio-btn" data-audio-toggle aria-label="${esc(toggleLabel)}" aria-pressed="false"${dis}>`
+        + `<span class="pagecraft-audio-ic-play" aria-hidden="true">${playIcon}</span>`
+        + `<span class="pagecraft-audio-ic-pause" aria-hidden="true">${pauseIcon}</span></button>`
+        + `<div class="pagecraft-audio-track"><input type="range" class="pagecraft-audio-range" data-audio-seek min="0" max="100" value="0" aria-label="Seek audio position"${dis}>`
+        + `<div class="pagecraft-audio-times"><span class="pagecraft-audio-cur" data-audio-cur>0:00</span><span class="pagecraft-audio-dur" data-audio-dur>0:00</span></div></div>`
+        + `<button type="button" class="pagecraft-audio-rate" data-audio-rate aria-label="Playback speed: 1x"${dis}>1x</button>`
+        + `</div>${audioEl}</div></div>`;
+    }
+    case 'countdown': {
+      const target = String(p.target == null ? '' : p.target).trim();
+      const done = String(p.done == null || p.done === '' ? 'Event started' : p.done);
+      const showSec = p.showSeconds !== 0;
+      const parts = countdownParts(target);
+      const isDone = parts.done && !o.edit;
+      const unit = (k: string, val: string, lbl: string) =>
+        `<div class="pagecraft-countdown-unit"><span class="pagecraft-countdown-val" data-cd-unit="${k}">${esc(val)}</span>`
+        + `<span class="pagecraft-countdown-lbl">${esc(lbl)}</span></div>`;
+      const cls = 'pagecraft-countdown' + ((p.display ?? p.layout) === 'inline' ? ' pagecraft-countdown-inline' : '');
+      return `<div ${at()} ${cx(cls)} data-countdown="${esc(target)}" data-cd-done="${esc(done)}" role="timer" aria-live="off">`
+        + `<div class="pagecraft-countdown-grid" data-cd-grid${isDone ? ' hidden' : ''}>`
+        + unit('d', parts.d, String(p.lblDays || 'Days'))
+        + unit('h', parts.h, String(p.lblHours || 'Hours'))
+        + unit('m', parts.m, String(p.lblMins || 'Mins'))
+        + (showSec ? unit('s', parts.s, String(p.lblSecs || 'Secs')) : '')
+        + `</div>`
+        + `<div class="pagecraft-countdown-done" data-cd-ended${isDone ? '' : ' hidden'}>${esc(done)}</div>`
+        + `</div>`;
+    }
+    case 'marquee': {
+      const dir = p.dir === 'right' ? 'right' : 'left';
+      const pause = p.pause === 0 ? '0' : '1';
+      const fade = p.fade !== 0;
+      const speedRaw = String(p.speed || '').trim();
+      const speed = /^\d+(?:\.\d+)?(?:ms|s)$/i.test(speedRaw) ? speedRaw : '28s';
+      const gapRaw = String(p.gap || '').trim();
+      const gap = /^\d+(?:\.\d+)?(?:px|rem|em|vw|%)$/i.test(gapRaw) ? gapRaw : '';
+      const styleBits = [`--mq-speed:${speed}`, ...(gap && !styleSeen(n, '--mq-gap') ? [`--mq-gap:${gap}`] : [])];
+      const cls = 'pagecraft-marquee' + (fade ? ' pagecraft-marquee-fade' : '');
+      if (!kids) {
+        return o.edit
+          ? `<div ${at()} ${cx(cls)} data-marquee-edit data-marquee-dir="${dir}" data-marquee-pause="${pause}" style="${esc(styleBits.join(';'))}"><div class="s-empty">${svg('plus', 12)} Drop logos, badges, or cards here</div></div>`
+          : '';
+      }
+      if (o.edit) {
+        return `<div ${at()} ${cx(cls)} data-marquee-edit data-marquee-dir="${dir}" data-marquee-pause="${pause}" style="${esc(styleBits.join(';'))}"><div class="pagecraft-marquee-track">${kids}</div></div>`;
+      }
+      return `<div ${at()} ${cx(cls)} data-marquee data-marquee-dir="${dir}" data-marquee-pause="${pause}" style="${esc(styleBits.join(';'))}">`
+        + `<div class="pagecraft-marquee-track">${kids}</div>`
+        + `<div class="pagecraft-marquee-track pagecraft-marquee-dup" aria-hidden="true">${stripDuplicateIds(kids)}</div>`
+        + `</div>`;
+    }
+    case 'filter': {
+      const group = String(p.group == null || p.group === '' ? 'default' : p.group).trim() || 'default';
+      const allLabel = String(p.all == null || p.all === '' ? 'All' : p.all);
+      const align = p.align === 'center' ? 'center' : p.align === 'end' ? 'flex-end' : 'flex-start';
+      const tags = collectFilterTags(n);
+      const barBtns = [
+        `<button type="button" class="pagecraft-filter-btn is-active" role="tab" aria-selected="true" tabindex="0" data-filter-btn data-filter-tag="*">${esc(allLabel)}</button>`,
+        ...tags.map(tag => `<button type="button" class="pagecraft-filter-btn" role="tab" aria-selected="false" tabindex="-1" data-filter-btn data-filter-tag="${esc(tag)}">${esc(tag)}</button>`)
+      ].join('');
+      const inner = kids || (o.edit ? `<div class="s-empty">${svg('plus', 12)} Drop Boxes or cards here and set Filter tags</div>` : '');
+      return `<div ${at()} ${cx('pagecraft-filter')} data-filter-group="${esc(group)}">`
+        + `<div class="pagecraft-filter-bar" role="tablist" aria-label="Filter items" style="justify-content:${align}">${barBtns}</div>`
+        + `<div class="pagecraft-filter-grid">${inner}</div>`
+        + `<p class="pagecraft-filter-empty" data-filter-empty role="status" hidden>No matching items.</p>`
+        + `</div>`;
     }
     case 'spacer': return `<div ${at()} ${cx('pagecraft-spacer')} aria-hidden="true"></div>`;
     case 'divider': return `<hr ${at()} ${cx('pagecraft-divider')}>`;
@@ -11317,6 +11684,7 @@ function buildPage(pg: Page, ctx: {
     + SHARED_FOOTER_START + footer + SHARED_FOOTER_END;
   const hasPublicSelect = /data-pagecraft-select/.test(body);
   const hasPublicDate = /data-pagecraft-date/.test(body);
+  const extraCss = extraWidgetCss(extraWidgetsUsed([pageRegion(pg, 'header'), pg.tree, pageRegion(pg, 'footer')]));
   const title = pg.title || `${pg.name} — ${m.name}`;
   const base = String(m.baseUrl || '').replace(/\/+$/, '');
   const abs = (u: string) => !u ? '' : (/^https?:/i.test(u) ? u : (base ? base + '/' + String(u).replace(/^\/+/, '') : u));
@@ -11332,14 +11700,14 @@ function buildPage(pg: Page, ctx: {
 ${pg.desc ? `<meta name="description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<link rel="canonical" href="${esc(canon)}">\n` : ''}${m.favicon ? `<link rel="icon" href="${esc(pageHref(m.favicon, o))}">\n` : ''}${ctx.fontCss ? `<style>\n${ctx.fontCss}\n</style>\n` : gfontsLink()}<meta property="og:type" content="${ctx.item && ctx.col ? 'article' : 'website'}">
 <meta property="og:title" content="${esc(title)}">
 ${pg.desc ? `<meta property="og:description" content="${esc(pg.desc)}">\n` : ''}${canon ? `<meta property="og:url" content="${esc(canon)}">\n` : ''}${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">\n<meta name="twitter:card" content="summary_large_image">\n` : ''}${jsonLd(pg, { col: o.col, item: o.item, pageNo: o.pageNo })}<style>
-${tidy(css)}${hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : ''}${hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : ''}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
+${tidy(css)}${hasPublicSelect ? `\n${PUBLIC_SELECT_CSS}` : ''}${hasPublicDate ? `\n${PUBLIC_DATE_CSS}` : ''}${extraCss}${moves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''}
 </style>
 ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainTags(m.headHtml || '')}${demoteMainTags(pg.headHtml || '')}
 </head>
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -11848,7 +12216,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

@@ -189,6 +189,12 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
     C.N('form', { mode: 'external', action: 'https://example.test/submit', method: 'post', submit: 'Send roundtrip', fields: [{ type: 'email', label: 'Email', name: 'email', required: 1, width: 50 }, { type: 'select', label: 'Topic', name: 'topic', opts: 'One,Two', width: 50 }] }),
     C.N('accordion', { items: [{ q: 'Roundtrip question?', a: 'Roundtrip answer.' }], open: 'first', single: 1, marker: 'plus' }),
     C.N('embed', { html: '<iframe src="https://example.test/embed" title="Roundtrip embed"></iframe>', ratio: '16/9' }),
+    C.N('audio', { src: 'https://example.test/audio.mp3', title: 'Roundtrip episode', subtitle: 'Episode 1' }),
+    C.N('countdown', { target: '2030-06-15T18:00:00Z', done: 'Roundtrip live' }),
+    C.N('marquee', { speed: '24s' }, {}, [C.N('heading', { text: 'Roundtrip marquee', level: 'h3' })]),
+    C.N('filter', { group: 'roundtrip' }, {}, [
+      C.N('box', { tags: 'Feature' }, {}, [C.N('text', { html: '<p>Filter card.</p>' })]),
+    ]),
     C.N('divider'),
     C.N('spacer'),
     componentInstance,
@@ -222,14 +228,14 @@ function fullDocument(): { doc: Doc; componentId: string; variantId: string } {
 beforeEach(reset);
 
 describe('full customer document round trip', () => {
-  test('all 27 Add choices map to stable persisted module shapes', () => {
+  test('all 31 Add choices map to stable persisted module shapes', () => {
     const direct = Object.keys(C.DEF).filter(type => !['column', 'box'].includes(type));
     const choices = [
       ...direct,
       ...Object.keys(C.BASE),
     ];
-    expect(choices).toHaveLength(27);
-    expect(new Set(choices)).toHaveLength(27);
+    expect(choices).toHaveLength(31);
+    expect(new Set(choices)).toHaveLength(31);
     for (const choice of choices) {
       const node = C.makeFor(choice);
       expect(C.DEF[node.type], `${choice} did not create a real module`).toBeTruthy();
