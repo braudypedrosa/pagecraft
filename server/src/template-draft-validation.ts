@@ -2,7 +2,7 @@ import * as Core from '../../app/src/core/index.ts';
 import { adoptHostDocument, DocumentSchemaError } from '../../app/src/host/schema.ts';
 import type { Doc, Node } from '../../app/src/core/types.ts';
 
-export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','video','icon','tabs','table','crumbs','button','nav','form','accordion','spacer','divider']);
+export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','video','audio','icon','countdown','marquee','filter','tabs','table','crumbs','button','nav','form','accordion','spacer','divider']);
 const nodeKeys = new Set(['id','type','props','css','st','anim','hide','cls','adv','children','use','vals','variant','slot','bind']);
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = (message: string): never => { throw new Error(`invalid template document: ${message}`); };
@@ -76,7 +76,7 @@ export function validateTemplateDraftDocument(input: unknown, assetIds: readonly
   const scanValues = (v: unknown, key = ''): void => {
     if (typeof v === 'string') {
       if (/<\s*\/?\s*(script|iframe|object|embed|style|svg|math|link|meta|form)\b|\bon[a-z]+\s*=|javascript\s*:|data\s*:\s*text\/html|expression\s*\(|@import/i.test(v)) fail('unsafe content');
-      if (/^(action|href|src|link|url)$/i.test(key) && /^(?!https?:|mailto:|tel:|asset:|\/|#|\.|$)[a-z][a-z0-9+.-]*:/i.test(v.trim())) fail('unsafe URL');
+      if (/^(action|href|src|link|url)$/i.test(key) && /^(?!https?:|mailto:|tel:|asset:|data:audio\/[a-z0-9.+-]+(?:;[^,]*)?,|\/|#|\.|$)[a-z][a-z0-9+.-]*:/i.test(v.trim())) fail('unsafe URL');
       for (const match of v.matchAll(/asset:([a-z0-9]+(?:-[a-z0-9]+)*)/g)) if (!assetIds.includes(match[1])) fail(`unknown asset ${match[1]}`);
     } else if (Array.isArray(v)) v.forEach(x => scanValues(x, key));
     else if (object(v)) for (const [k,x] of Object.entries(v)) { if (/^on[a-z]+$/i.test(k) || ['__proto__','constructor','prototype'].includes(k)) fail('unsafe field'); scanValues(x,k); }

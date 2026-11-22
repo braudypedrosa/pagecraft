@@ -41,7 +41,10 @@ export function mediaReferences(document: Doc): MediaReference[] {
     const base = [...path, i];
     const where = { ...context, nodeId: node.id };
     const props = node.props as unknown as Record<string, unknown>;
-    const fields = node.type === 'image' ? ['src'] : node.type === 'video' ? ['src', 'poster'] : [];
+    const fields = node.type === 'image' ? ['src']
+      : node.type === 'video' ? ['src', 'poster']
+      : node.type === 'audio' ? ['src', 'artwork']
+      : [];
     fields.forEach(key => scan(props[key], [...base, 'props', key], where));
     if (node.type === 'gallery' && Array.isArray(props.items)) props.items.forEach((item, j) =>
       scan(item.src, [...base, 'props', 'items', j, 'src'], where));

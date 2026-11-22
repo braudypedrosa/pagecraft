@@ -36,7 +36,7 @@ async function harness() {
     editing: { on: false }, exitEdit: vi.fn(), svg: () => '',
     canvasCsp: nonce => `script-src 'nonce-${nonce}'`, bindCanvas, paintSel, layoutCanvas,
     scopeOf: () => 'main', curSets: () => [[w.state.form]],
-    treeCss: () => '', publicFormControlCssFor: () => '',
+    treeCss: () => '', publicFormControlCssFor: () => '', extraWidgetCssFor: () => '',
     regions: () => [{ kind: 'main', get: () => [w.state.form] }],
     pageCtx: () => ({}), renderPublicLists: () => [form()], renderList: form,
     assetsToBlob: value => value, syncFonts: vi.fn(), runPreviewRuntime: vi.fn(),

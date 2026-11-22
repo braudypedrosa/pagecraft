@@ -70,6 +70,8 @@ const conditionalSetup: Record<string, {
   'box:Wrap': { off: n => { n.props.layout = 'grid'; }, on: n => { n.props.layout = 'flex'; } },
   'box:Columns': { off: n => { n.props.layout = 'flex'; }, on: n => { n.props.layout = 'grid'; } },
   'box:HTML tag': { off: n => { n.props.link = '#target'; }, on: n => { n.props.link = ''; } },
+  'box:Filter tags': { off: () => {}, on: () => {}, offParent: 'section', onParent: 'filter' },
+  'countdown:Seconds label': { off: n => { n.props.showSeconds = 0; }, on: n => { n.props.showSeconds = 1; } },
   'image:Link label': {
     off: n => { n.props.decorative = 0; n.props.link = ''; },
     on: n => { n.props.decorative = 1; n.props.link = 'https://example.com/details'; },
@@ -106,7 +108,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 41 conditional declarations render only in their applicable state', () => {
+test('all 43 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -115,7 +117,7 @@ test('all 41 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(41);
+  expect(declarations).toHaveLength(43);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );
@@ -174,7 +176,7 @@ test('all eight shared Advanced controls render and its five CSS controls compil
   }
 });
 
-test('all 24 module renderers emit their representative authored value', () => {
+test('all 28 module renderers emit their representative authored value', () => {
   const contracts: Record<string, { expected: RegExp; configure?: (n: PcNode) => void }> = {
     section: { expected: /^<article\b/, configure: n => { n.props.tag = 'article'; } },
     row: { expected: /class="pagecraft-row / },
@@ -206,6 +208,10 @@ test('all 24 module renderers emit their representative authored value', () => {
     embed: { expected: /title="QA map"/, configure: n => { n.props.html = '<iframe src="https://example.com/qa" title="QA map"></iframe>'; } },
     icon: { expected: /aria-label="QA icon"/, configure: n => { n.props.name = 'check'; n.props.label = 'QA icon'; } },
     gallery: { expected: /alt="QA gallery image"/, configure: n => { n.props.items = [{ src: 'https://example.com/gallery.jpg', alt: 'QA gallery image', caption: 'QA caption' }]; } },
+    audio: { expected: /QA episode/, configure: n => { n.props.src = 'https://example.com/qa.mp3'; n.props.title = 'QA episode'; } },
+    countdown: { expected: /data-countdown="2035-06-15T18:00:00Z"/, configure: n => { n.props.target = '2035-06-15T18:00:00Z'; } },
+    marquee: { expected: /QA marquee item/, configure: n => { n.children = [C.N('heading', { text: 'QA marquee item' })]; } },
+    filter: { expected: /data-filter-tag="QA tag"/, configure: n => { n.children = [C.N('box', { tags: 'QA tag' })]; } },
   };
   expect(Object.keys(contracts).sort()).toEqual(Object.keys(C.DEF).sort());
   for (const [type, contract] of Object.entries(contracts)) {
@@ -270,10 +276,12 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(85);
+  expect(declarations).toHaveLength(110);
   for (const { owner, control } of declarations) {
-    const n = place(owner);
+    const setup = conditionalSetup[`${owner}:${control.label}`];
+    const n = place(owner, setup?.onParent);
     makeApplicable(owner, n, control);
+    setup?.on(n);
     expect(!control.when || control.when(n), `${owner}:${control.label} fixture`).toBe(true);
     const before = C.propVal(n, control.k);
     const requested = propertyValue(control, n, before);
@@ -306,7 +314,7 @@ function cssValue(c: Control, n: PcNode, before: unknown) {
   return 'initial';
 }
 
-test('all 156 CSS declarations compile and share the same Undo/save model', () => {
+test('all 173 CSS declarations compile and share the same Undo/save model', () => {
   const declarations: Array<{ owner: string; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF))
     for (const control of [...def.controls.content, ...def.controls.style])
@@ -316,7 +324,7 @@ test('all 156 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(156);
+  expect(declarations).toHaveLength(173);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];
