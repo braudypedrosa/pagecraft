@@ -1,0 +1,24 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "maren-and-tomas",
+  "version": "1.0.0",
+  "name": "Maren & Tomás",
+  "sampleName": "Maren & Tomás · Lisbon 2027",
+  "description": "Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.",
+  "categories": [
+    "Weddings & Celebrations",
+    "One Page"
+  ],
+  "pages": [
+    {
+      "id": "nfdr481van",
+      "name": "Home",
+      "slug": "index"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "a967fd4a9bb1d1a47fe8a4d2a9b2f06050400952b4b45920ed572020b90c5f8d",
+  "previewPage": "index.html",
+  "assetCount": 8,
+  "assetBytes": 1000856
+}

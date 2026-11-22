@@ -88,16 +88,21 @@ const visibleCards = (document: Document) => [
   ...document.querySelectorAll<HTMLElement>("[data-template-card]"),
 ].filter(card => !card.hidden);
 
-test("template picker renders the seven named templates and represented facets", async () => {
+test("template picker renders the twelve named templates and represented facets", async () => {
   const { document } = await renderPicker();
   const names = [...document.querySelectorAll("[data-template-card] strong")]
     .map(node => node.textContent);
   a.deepEqual(names, [
     "Common Ground · Architecture Studio",
+    "Bramble Vet · Veterinary Clinic",
     "Marea · Coastal Stays",
     "Sorrel & Stone · Culinary School",
     "Linden Dental · Dental Clinic",
+    "Devon Park · Systems Engineer",
+    "Fieldwork Radio · Podcast & Live Show",
     "Northline · Creative Studio",
+    "Kairn Climbing · Bouldering Gym",
+    "Maren & Tomás · Destination Wedding",
     "Salt House · Holiday Homes",
     "Stillwood · Cabin Retreat",
   ]);
@@ -111,6 +116,7 @@ test("template picker renders the seven named templates and represented facets",
       ["education-and-learning", "Education & Learning"],
       ["food-and-drink", "Food & Drink"],
       ["health-and-wellness", "Health & Wellness"],
+      ["professional-services", "Professional Services"],
       ["travel-hospitality", "Travel & Hospitality"],
     ],
   );
@@ -164,7 +170,7 @@ test("search and facets combine, include aliases, and clear a zero-result state"
   a.equal(siteType.value, "");
   a.equal(industry.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All industries");
   a.equal(siteType.parentElement?.querySelector(".pc-custom-select-trigger span")?.textContent, "All site types");
-  a.equal(visibleCards(document).length, 7);
+  a.equal(visibleCards(document).length, 12);
   a.equal(radios.filter(radio => radio.checked).length, 1);
   a.equal(next.disabled, false);
   a.equal(document.activeElement, search);

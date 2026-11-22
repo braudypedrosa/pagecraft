@@ -35,6 +35,13 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [portfolio, business],
     aliases: ['architect', 'architecture portfolio', 'design practice', 'design studio', 'project portfolio'],
   },
+  'bramble-vet': {
+    name: 'Bramble Vet · Veterinary Clinic',
+    description: 'Single-page fear-free veterinary clinic landing site featuring a friendly split phone header, arch-masked patient portrait hero, click-to-play clinic video tour facade, ruled care pricing, care team slider, pet parent quotes, and appointment picker.',
+    industries: [healthAndWellness],
+    siteTypes: [business],
+    aliases: ['veterinarian', 'vet clinic', 'animal hospital', 'pet care', 'fear-free vet'],
+  },
   'coastal-rentals': {
     name: 'Marea · Coastal Stays',
     description: 'An image-led accommodation site for independent hosts, with multiple stays, guest services, about and contact pages.',
@@ -56,6 +63,20 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     siteTypes: [business],
     aliases: ['dentist', 'dental practice', 'family dentistry'],
   },
+  'devon-park': {
+    name: 'Devon Park · Systems Engineer',
+    description: 'Swiss grid single-page portfolio and CV for an independent distributed systems engineer, featuring a desktop sticky identity sidebar, impact metrics, tag-filtered systems work, copyable benchmark code block, chronological career spine, and inquiry form.',
+    industries: [professionalServices],
+    siteTypes: [portfolio],
+    aliases: ['software engineer', 'resume', 'cv', 'developer portfolio', 'personal site', 'systems engineer'],
+  },
+  'fieldwork-radio': {
+    name: 'Fieldwork Radio · Podcast & Live Show',
+    description: 'Broadsheet single-page site for an investigative audio documentary series featuring an inline playable episode player, tag-filtered audio archive, host byline strip, ruled live tour table, and tip-line intake.',
+    industries: [educationAndLearning],
+    siteTypes: [portfolio, business],
+    aliases: ['podcast', 'audio documentary', 'radio show', 'investigative journalism', 'media show'],
+  },
   'neighborhood-cafe': {
     name: 'Morning Field · Neighborhood Café',
     description: 'A warm four-page neighborhood cafe site with an editorial menu, story and visit details across Home, Menu, Story and Visit pages.',
@@ -76,6 +97,20 @@ const discoveryById: Readonly<Record<string, TemplateDiscoveryConfig>> = {
     industries: [creativeServices],
     siteTypes: [portfolio, business],
     aliases: ['creative agency', 'creative practice', 'design portfolio', 'design studio', 'independent studio'],
+  },
+  'kairn-climbing': {
+    name: 'Kairn Climbing · Bouldering Gym',
+    description: 'Single-page bouldering and strength gym landing site featuring an edge-to-edge split hero, kinetic grade marquee, steep wall zone breakdowns, ruled drop-in ledger, and horizontal waiver booking form.',
+    industries: [healthAndWellness],
+    siteTypes: [business],
+    aliases: ['climbing gym', 'bouldering', 'fitness studio', 'athletic training', 'sports facility'],
+  },
+  'maren-and-tomas': {
+    name: 'Maren & Tomás · Destination Wedding',
+    description: 'Single-page destination wedding invitation with centered monogram header, double-bordered linen poster hero, live countdown widget, vertical weekend itinerary spine, travel & venue map, and interactive RSVP form.',
+    industries: [travelHospitality],
+    siteTypes: [portfolio],
+    aliases: ['wedding', 'destination wedding', 'wedding invitation', 'event invitation', 'rsvp'],
   },
   'photographic-portfolio': {
     name: 'Noor Vale · Photography Portfolio',

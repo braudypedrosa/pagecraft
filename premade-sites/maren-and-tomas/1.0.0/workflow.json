@@ -1,0 +1,21 @@
+{
+  "format": "pagecraft.template-workflow.v1",
+  "brief": {
+    "audience": "Define the intended audience",
+    "primaryAction": "Define the primary action",
+    "pages": [
+      "index"
+    ],
+    "content": "Write the content brief",
+    "imagery": "Assign image roles",
+    "provenance": []
+  },
+  "directions": [],
+  "selection": null,
+  "patchOf": null,
+  "targets": null,
+  "findings": [],
+  "qa": [],
+  "visualReview": null,
+  "approval": null
+}

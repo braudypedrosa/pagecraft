@@ -1,0 +1,3707 @@
+{
+  "footer": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--nav-gap": "18px",
+                      "--nav-hover": "var(--c-ink)",
+                      "--nav-panel": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "color": "var(--c-ink)",
+                      "font-size": "13px",
+                      "font-weight": "500",
+                      "justify-content": "flex-start",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "--nav-gap": "12px"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-footer-nav",
+                  "props": {
+                    "aria": "Footer navigation",
+                    "collapse": "never",
+                    "items": [
+                      {
+                        "href": "#manifesto",
+                        "id": "fd-man",
+                        "label": "Manifesto"
+                      },
+                      {
+                        "href": "#work",
+                        "id": "fd-wrk",
+                        "label": "Systems Work"
+                      },
+                      {
+                        "href": "#experience",
+                        "id": "fd-exp",
+                        "label": "Experience"
+                      },
+                      {
+                        "href": "#contact",
+                        "id": "fd-cnt",
+                        "label": "Inquiry"
+                      }
+                    ],
+                    "mobileMenu": "dropdown"
+                  },
+                  "type": "nav"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "line-height": "1.45",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-footer-copy",
+                  "props": {
+                    "html": "<p>Devon Park · Independent Systems Architect · Seattle, WA</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "8px",
+                  "width": "auto"
+                },
+                "m": {
+                  "width": "100%"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "dvp-footer-left",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-self": "center",
+                      "border-radius": "0px",
+                      "height": "20px",
+                      "max-width": "100%",
+                      "object-fit": "contain",
+                      "width": "20px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-bp-mark",
+                  "props": {
+                    "alt": "",
+                    "caption": "",
+                    "decorative": 1,
+                    "h": "137",
+                    "label": "",
+                    "lazy": 0,
+                    "link": "",
+                    "src": "asset:bp-mark",
+                    "target": "",
+                    "w": "137"
+                  },
+                  "type": "image"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "transparent",
+                      "border-color": "transparent",
+                      "border-radius": "0px",
+                      "border-width": "0px",
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "font-weight": "500",
+                      "padding-bottom": "2px",
+                      "padding-left": "0px",
+                      "padding-right": "0px",
+                      "padding-top": "2px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-creator-btn",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "https://braudyp.dev/",
+                    "target": "_blank",
+                    "text": "Created by braudyp.dev",
+                    "ts": "btn",
+                    "variant": "outline",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "flex-wrap": "nowrap",
+                  "gap": "8px",
+                  "margin-left": "auto",
+                  "width": "auto"
+                },
+                "m": {
+                  "margin-left": "0px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "dvp-creator-credit",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "border-top": "1px solid var(--c-line)",
+              "display": "flex",
+              "flex-wrap": "wrap",
+              "gap": "16px",
+              "justify-content": "space-between",
+              "padding-top": "18px",
+              "width": "100%"
+            },
+            "m": {
+              "align-items": "flex-start",
+              "flex-direction": "column",
+              "gap": "12px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "dvp-footer-bottom",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "var(--c-bg)",
+          "padding-bottom": "24px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "24px"
+        },
+        "m": {
+          "padding-bottom": "20px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "20px"
+        },
+        "t": {}
+      },
+      "hide": {},
+      "id": "dvp-footer",
+      "props": {
+        "inner": "",
+        "tag": "footer",
+        "width": "boxed"
+      },
+      "type": "section"
+    }
+  ],
+  "header": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-self": "flex-start",
+                      "border-radius": "6px",
+                      "height": "32px",
+                      "max-width": "100%",
+                      "object-fit": "contain",
+                      "width": "32px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-logo",
+                  "props": {
+                    "alt": "Devon Park monogram",
+                    "caption": "",
+                    "decorative": 0,
+                    "h": "48",
+                    "label": "",
+                    "lazy": 0,
+                    "link": "#manifesto",
+                    "src": "asset:logo",
+                    "target": "",
+                    "w": "48"
+                  },
+                  "type": "image"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-ink)",
+                      "font-size": "14px",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-hdr-txt",
+                  "props": {
+                    "html": "<p><strong>Devon Park</strong> · Distributed Systems &amp; Storage Engines</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "gap": "10px",
+                  "width": "auto"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "dvp-hdr-id",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-loc",
+                  "props": {
+                    "html": "<p>Seattle, WA · UTC-8</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "#111418",
+                      "border-radius": "6px",
+                      "color": "#FFFFFF",
+                      "font-size": "13px",
+                      "padding-bottom": "8px",
+                      "padding-left": "14px",
+                      "padding-right": "14px",
+                      "padding-top": "8px",
+                      "white-space": "nowrap",
+                      "width": "auto"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-hdr-cta",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "#contact",
+                    "target": "",
+                    "text": "Advisory Inquiry",
+                    "ts": "btn",
+                    "variant": "solid",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "flex-wrap": "nowrap",
+                  "gap": "16px",
+                  "width": "auto"
+                },
+                "m": {
+                  "flex-wrap": "wrap",
+                  "gap": "10px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "dvp-hdr-right",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "display": "flex",
+              "flex-wrap": "nowrap",
+              "gap": "16px",
+              "justify-content": "space-between",
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "max-width": "1180px"
+            },
+            "m": {
+              "flex-wrap": "wrap",
+              "gap": "8px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "dvp-hdr-bar",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "var(--c-surface)",
+          "border-bottom": "1px solid var(--c-line)",
+          "padding-bottom": "10px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "10px"
+        },
+        "m": {
+          "padding-bottom": "10px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "10px"
+        },
+        "t": {}
+      },
+      "hide": {},
+      "id": "dvp-header",
+      "props": {
+        "inner": "",
+        "tag": "header",
+        "width": "full"
+      },
+      "type": "section"
+    }
+  ],
+  "meta": {
+    "baseUrl": "",
+    "blocks": [],
+    "collections": [],
+    "css": "",
+    "favicon": "asset:favicon",
+    "font": "'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Space Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headHtml": "",
+    "lang": "en",
+    "maxWidth": "1180px",
+    "name": "Devon Park · Systems Engineer",
+    "ogImage": "",
+    "size": "16px",
+    "tokens": {
+      "classes": [],
+      "colors": [
+        {
+          "id": "bg",
+          "name": "Swiss Paper",
+          "value": "#F7F8FA"
+        },
+        {
+          "id": "surface",
+          "name": "Clean White",
+          "value": "#FFFFFF"
+        },
+        {
+          "id": "ink",
+          "name": "Carbon",
+          "value": "#111418"
+        },
+        {
+          "id": "text",
+          "name": "Graphite",
+          "value": "#272C35"
+        },
+        {
+          "id": "muted",
+          "name": "Slate",
+          "value": "#525A66"
+        },
+        {
+          "id": "line",
+          "name": "Grid Line",
+          "value": "#DDE2EA"
+        },
+        {
+          "id": "brand",
+          "name": "Electric Cobalt",
+          "value": "#1D4ED8"
+        }
+      ],
+      "text": [
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "48px",
+              "font-weight": "600",
+              "letter-spacing": "-0.03em",
+              "line-height": "1.08"
+            },
+            "m": {
+              "font-size": "32px"
+            },
+            "t": {
+              "font-size": "40px"
+            }
+          },
+          "id": "display",
+          "name": "Display",
+          "tag": "h1"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "30px",
+              "font-weight": "600",
+              "letter-spacing": "-0.02em",
+              "line-height": "1.16"
+            },
+            "m": {
+              "font-size": "25px"
+            },
+            "t": {}
+          },
+          "id": "title",
+          "name": "Section title",
+          "tag": "h2"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "20px",
+              "font-weight": "600",
+              "line-height": "1.3"
+            },
+            "m": {
+              "font-size": "18px"
+            },
+            "t": {}
+          },
+          "id": "subtitle",
+          "name": "Card title",
+          "tag": "h3"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-muted)",
+              "font-size": "18px",
+              "line-height": "1.65"
+            },
+            "m": {
+              "font-size": "16px"
+            },
+            "t": {}
+          },
+          "id": "lead",
+          "name": "Lead",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-text)",
+              "font-size": "15px",
+              "line-height": "1.68"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "body",
+          "name": "Body",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "#1D4ED8",
+              "font-size": "12px",
+              "font-weight": "600",
+              "letter-spacing": "0.07em",
+              "text-transform": "uppercase"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "eyebrow",
+          "name": "Eyebrow",
+          "tag": "div"
+        },
+        {
+          "css": {
+            "d": {
+              "font-size": "14px",
+              "font-weight": "600"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "btn",
+          "name": "Button label"
+        }
+      ]
+    }
+  },
+  "pages": [
+    {
+      "desc": "One-page CV and systems portfolio featuring Rust storage engines, Raft consensus benchmarks, career timeline, and advisory booking.",
+      "id": "nex0qq1v9x",
+      "name": "Home",
+      "ogImage": "",
+      "slug": "index",
+      "title": "Devon Park — Principal Distributed Systems & Storage Engineer",
+      "tree": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": "dvp-sidebar"
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "8px",
+                          "height": "240px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-avatar",
+                      "props": {
+                        "alt": "Portrait of systems engineer Devon Park against a neutral architectural wall",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "880",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:portrait-devon",
+                        "target": "",
+                        "w": "880"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "font-size": "24px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-name",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Devon Park",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-role",
+                          "props": {
+                            "html": "<p>Principal Storage &amp; Consensus Architect</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-id-head",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "#ECFDF3",
+                          "border": "1px solid #BBF7D0",
+                          "border-radius": "6px",
+                          "color": "#166534",
+                          "font-size": "11px",
+                          "margin-bottom": "0px",
+                          "padding-bottom": "7px",
+                          "padding-left": "10px",
+                          "padding-right": "10px",
+                          "padding-top": "7px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-avail",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "● Available Q1 2027 · Advisory & Reviews",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "6px",
+                              "border-width": "0px",
+                              "color": "var(--c-ink)",
+                              "font-size": "14px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "padding-bottom": "7px",
+                              "padding-left": "8px",
+                              "padding-right": "8px",
+                              "padding-top": "7px",
+                              "text-align": "left",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-sn-man",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#manifesto",
+                            "target": "",
+                            "text": "Manifesto & Benchmarks",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "st": {
+                            "hover": {
+                              "background-color": "#EEF2FF",
+                              "color": "#1D4ED8"
+                            }
+                          },
+                          "type": "button"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "6px",
+                              "border-width": "0px",
+                              "color": "var(--c-ink)",
+                              "font-size": "14px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "padding-bottom": "7px",
+                              "padding-left": "8px",
+                              "padding-right": "8px",
+                              "padding-top": "7px",
+                              "text-align": "left",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-sn-wrk",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#work",
+                            "target": "",
+                            "text": "Selected Systems Work",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "st": {
+                            "hover": {
+                              "background-color": "#EEF2FF",
+                              "color": "#1D4ED8"
+                            }
+                          },
+                          "type": "button"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "6px",
+                              "border-width": "0px",
+                              "color": "var(--c-ink)",
+                              "font-size": "14px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "padding-bottom": "7px",
+                              "padding-left": "8px",
+                              "padding-right": "8px",
+                              "padding-top": "7px",
+                              "text-align": "left",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-sn-exp",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#experience",
+                            "target": "",
+                            "text": "Experience & Talks",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "st": {
+                            "hover": {
+                              "background-color": "#EEF2FF",
+                              "color": "#1D4ED8"
+                            }
+                          },
+                          "type": "button"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "6px",
+                              "border-width": "0px",
+                              "color": "var(--c-ink)",
+                              "font-size": "14px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "padding-bottom": "7px",
+                              "padding-left": "8px",
+                              "padding-right": "8px",
+                              "padding-top": "7px",
+                              "text-align": "left",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-sn-qts",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#notes",
+                            "target": "",
+                            "text": "Peer Endorsements",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "st": {
+                            "hover": {
+                              "background-color": "#EEF2FF",
+                              "color": "#1D4ED8"
+                            }
+                          },
+                          "type": "button"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-bg)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "transparent",
+                              "border-radius": "6px",
+                              "border-width": "0px",
+                              "color": "var(--c-ink)",
+                              "font-size": "14px",
+                              "font-weight": "500",
+                              "justify-content": "flex-start",
+                              "padding-bottom": "7px",
+                              "padding-left": "8px",
+                              "padding-right": "8px",
+                              "padding-top": "7px",
+                              "text-align": "left",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-sn-cnt",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#contact",
+                            "target": "",
+                            "text": "Book Advisory Review",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "st": {
+                            "hover": {
+                              "background-color": "#EEF2FF",
+                              "color": "#1D4ED8"
+                            }
+                          },
+                          "type": "button"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "4px",
+                          "grid-template-columns": "minmax(0, 1fr)",
+                          "padding-top": "12px",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-side-nav",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-self": "start",
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px",
+                      "padding-bottom": "24px",
+                      "padding-left": "22px",
+                      "padding-right": "22px",
+                      "padding-top": "24px",
+                      "position": "sticky",
+                      "top": "28px"
+                    },
+                    "m": {
+                      "position": "static"
+                    },
+                    "t": {
+                      "position": "static"
+                    }
+                  },
+                  "hide": {},
+                  "id": "dvp-sidebar",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": "manifesto"
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-mn-k",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Systems Engineering Practice",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-mn-h1",
+                          "props": {
+                            "level": "h1",
+                            "link": "",
+                            "target": "",
+                            "text": "Predictable tail latency starts with simple failure domains and zero hidden queues.",
+                            "ts": "display"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-mn-p",
+                          "props": {
+                            "html": "<p>Over the past twelve years I have built write-ahead logs, Raft consensus engines, and NVMe-backed object indices handling multi-petabyte production traffic. Today I partner directly with infrastructure teams on architecture audits, deterministic simulation testing, and storage bottleneck elimination.</p>",
+                            "ts": "lead"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "#1D4ED8",
+                                      "font-size": "30px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-1-v",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "1.4M IOPS",
+                                    "ts": "title"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "13px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-1-c",
+                                  "props": {
+                                    "html": "<p>Sustained mixed read/write throughput per NVMe ring shard</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "4px",
+                                  "padding-bottom": "18px",
+                                  "padding-left": "18px",
+                                  "padding-right": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-mt-1",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "#1D4ED8",
+                                      "font-size": "30px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-2-v",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "180 µs",
+                                    "ts": "title"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "13px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-2-c",
+                                  "props": {
+                                    "html": "<p>P99 fsync quorum commit ceiling in cross-AZ benchmarks</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "4px",
+                                  "padding-bottom": "18px",
+                                  "padding-left": "18px",
+                                  "padding-right": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-mt-2",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "#1D4ED8",
+                                      "font-size": "30px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-3-v",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "40k Seeds",
+                                    "ts": "title"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "13px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-mt-3-c",
+                                  "props": {
+                                    "html": "<p>Deterministic network-partition test runs prior to release</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "4px",
+                                  "padding-bottom": "18px",
+                                  "padding-left": "18px",
+                                  "padding-right": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-mt-3",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "grid",
+                              "gap": "14px",
+                              "grid-template-columns": "repeat(3, minmax(0, 1fr))"
+                            },
+                            "m": {
+                              "grid-template-columns": "minmax(0, 1fr)"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-metrics-row",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-self": "flex-start",
+                              "border": "1px solid var(--c-line)",
+                              "border-radius": "10px",
+                              "height": "320px",
+                              "max-width": "100%",
+                              "object-fit": "cover",
+                              "width": "100%"
+                            },
+                            "m": {
+                              "height": "210px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-lab-img",
+                          "props": {
+                            "alt": "Compact aluminum rack storage test bench with cobalt fiber optic patch cables and mechanical keyboard",
+                            "caption": "",
+                            "decorative": 0,
+                            "h": "768",
+                            "label": "",
+                            "lazy": 0,
+                            "link": "",
+                            "src": "asset:lab-workstation",
+                            "target": "",
+                            "w": "1376"
+                          },
+                          "type": "image"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-manifesto",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": "work"
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-wk-k",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Selected Open-Source & Production Systems",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-wk-h2",
+                          "props": {
+                            "level": "h2",
+                            "link": "",
+                            "target": "",
+                            "text": "Filter core storage, Raft consensus, and Rust runtime projects.",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-1-h",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "Kestrel WAL — Lock-Free Group Commit Log",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "#1D4ED8",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-1-tags",
+                                      "props": {
+                                        "level": "div",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "RUST · IO_URING · MIT",
+                                        "ts": "eyebrow"
+                                      },
+                                      "type": "heading"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "align-items": "baseline",
+                                      "display": "flex",
+                                      "flex-wrap": "wrap",
+                                      "gap": "12px",
+                                      "justify-content": "space-between"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-1-hdr",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-1-s",
+                                  "props": {
+                                    "html": "<p>Zero-allocation append-only write-ahead log batching io_uring SQE chains across four dedicated NVMe submission queues.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "14px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-1-o",
+                                  "props": {
+                                    "html": "<p><strong>Measured Impact:</strong> Cut P99.9 write stall spikes by 74% under heavy background compaction.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "10px",
+                                  "padding-bottom": "22px",
+                                  "padding-left": "24px",
+                                  "padding-right": "24px",
+                                  "padding-top": "22px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-pr-1",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "tags": "Rust, Storage",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-2-h",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "CairnKV — Deterministic Consensus Engine",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "#1D4ED8",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-2-tags",
+                                      "props": {
+                                        "level": "div",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "DISTRIBUTED · RAFT",
+                                        "ts": "eyebrow"
+                                      },
+                                      "type": "heading"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "align-items": "baseline",
+                                      "display": "flex",
+                                      "flex-wrap": "wrap",
+                                      "gap": "12px",
+                                      "justify-content": "space-between"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-2-hdr",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-2-s",
+                                  "props": {
+                                    "html": "<p>Partition-tolerant Raft metadata cluster backed by simulated clock, disk bit-rot injection, and seeded packet reordering.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "14px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-2-o",
+                                  "props": {
+                                    "html": "<p><strong>Measured Impact:</strong> Eliminated split-brain lease drift across 1,800 production cluster nodes.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "10px",
+                                  "padding-bottom": "22px",
+                                  "padding-left": "24px",
+                                  "padding-right": "24px",
+                                  "padding-top": "22px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-pr-2",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "tags": "Distributed, Storage",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-3-h",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "SlabTrace — eBPF Queue Depth Profiler",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "#1D4ED8",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-3-tags",
+                                      "props": {
+                                        "level": "div",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "RUST · EMBEDDED",
+                                        "ts": "eyebrow"
+                                      },
+                                      "type": "heading"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "align-items": "baseline",
+                                      "display": "flex",
+                                      "flex-wrap": "wrap",
+                                      "gap": "12px",
+                                      "justify-content": "space-between"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-3-hdr",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-3-s",
+                                  "props": {
+                                    "html": "<p>Low-overhead ring buffer sampler attaching to blk-mq completion tracepoints to flag noisy-neighbor tail queues live.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "14px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-3-o",
+                                  "props": {
+                                    "html": "<p><strong>Measured Impact:</strong> Adopted across three managed database fleets at < 0.8% CPU cost.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "10px",
+                                  "padding-bottom": "22px",
+                                  "padding-left": "24px",
+                                  "padding-right": "24px",
+                                  "padding-top": "22px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-pr-3",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "tags": "Rust",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-4-h",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "SieveGate — Adaptive Hedged Read Router",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "#1D4ED8",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-pr-4-tags",
+                                      "props": {
+                                        "level": "div",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "DISTRIBUTED · QUORUM",
+                                        "ts": "eyebrow"
+                                      },
+                                      "type": "heading"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "align-items": "baseline",
+                                      "display": "flex",
+                                      "flex-wrap": "wrap",
+                                      "gap": "12px",
+                                      "justify-content": "space-between"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-4-hdr",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-4-s",
+                                  "props": {
+                                    "html": "<p>Cross-zone object read hedger tracking per-disk moving P95 latency rather than static timeout thresholds.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "font-size": "14px",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-pr-4-o",
+                                  "props": {
+                                    "html": "<p><strong>Measured Impact:</strong> Reduced speculative duplicate network bytes by 61% without hurting tail SLA.</p>",
+                                    "ts": "body"
+                                  },
+                                  "type": "text"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "var(--c-surface)",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "display": "flex",
+                                  "flex-direction": "column",
+                                  "gap": "10px",
+                                  "padding-bottom": "22px",
+                                  "padding-left": "24px",
+                                  "padding-right": "24px",
+                                  "padding-top": "22px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-pr-4",
+                              "props": {
+                                "layout": "flex",
+                                "link": "",
+                                "tag": "div",
+                                "tags": "Distributed",
+                                "target": ""
+                              },
+                              "type": "box"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--fl-accent": "#1D4ED8",
+                              "--fl-accent-ink": "#FFFFFF",
+                              "--fl-btn-text": "var(--c-ink)",
+                              "--fl-cols": "minmax(0, 1fr)",
+                              "--fl-gap": "14px",
+                              "--fl-line": "var(--c-line)",
+                              "--fl-pill-radius": "6px",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-proj-filter",
+                          "props": {
+                            "align": "start",
+                            "all": "All Systems",
+                            "group": "systems",
+                            "tags": "Rust, Storage, Distributed"
+                          },
+                          "type": "filter"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "margin-top": "8px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-cd-h3",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Deterministic Ring Verification Harness (Excerpt)",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--cd-bg": "#111418",
+                              "--cd-com": "#8C97AA",
+                              "--cd-key": "#E2E8F0",
+                              "--cd-kw": "#93C5FD",
+                              "--cd-line": "#252B36",
+                              "--cd-num": "#FCD34D",
+                              "--cd-pad": "16px 18px",
+                              "--cd-radius": "10px",
+                              "--cd-size": "13px",
+                              "--cd-str": "#86EFAC",
+                              "--cd-text": "#E6ECF5",
+                              "width": "100%"
+                            },
+                            "m": {
+                              "--cd-pad": "12px 13px",
+                              "--cd-size": "13px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-bench-code",
+                          "props": {
+                            "body": "// Seeded quorum commit simulation: verify strict linearizability across partitions\nexport function runSeededPartitionTest(seed: number, ops = 25000): boolean {\n  const cluster = createCluster({ nodes: 5, seed, dropRate: 0.08 });\n  for (let seq = 1; seq <= ops; seq++) {\n    if (seq % 1400 === 0) cluster.healPartition();\n    else if (seq % 900 === 0) cluster.isolateLeader();\n    const res = cluster.propose({ key: `k-${seq % 64}`, val: seq });\n    if (res.committed && res.term < cluster.minCommittedTerm()) return false;\n  }\n  return cluster.verifyAllReplicasConverged();\n}",
+                            "copy": 1,
+                            "lang": "ts",
+                            "numbers": 1,
+                            "softwrap": 0,
+                            "title": "ring_verify.ts"
+                          },
+                          "type": "code"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "20px",
+                          "padding-top": "44px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-work",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": "experience"
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ex-k",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Career & Invited Talks",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ex-h2",
+                          "props": {
+                            "level": "h2",
+                            "link": "",
+                            "target": "",
+                            "text": "Experience & Technical Speaking",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-1-per",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "2024 – PRESENT",
+                                    "ts": "eyebrow"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "font-size": "18px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-1-rl",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "Principal Systems Consultant — Independent Advisory",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "var(--c-muted)",
+                                          "font-size": "15px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-1-sc",
+                                      "props": {
+                                        "html": "<p>Deep-dive storage engine audits, Raft verification harnesses, and tail-latency triage for database and observability startups.</p>",
+                                        "ts": "body"
+                                      },
+                                      "type": "text"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "display": "flex",
+                                      "flex-direction": "column",
+                                      "gap": "4px"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-1-r",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "border-bottom": "1px solid var(--c-line)",
+                                  "display": "grid",
+                                  "gap": "20px",
+                                  "grid-template-columns": "170px minmax(0, 1fr)",
+                                  "padding-bottom": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {
+                                  "gap": "6px",
+                                  "grid-template-columns": "minmax(0, 1fr)"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-ex-1",
+                              "props": {
+                                "layout": "grid",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-2-per",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "2021 – 2024",
+                                    "ts": "eyebrow"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "font-size": "18px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-2-rl",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "Staff Storage Architect — Helios Cloud Storage",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "var(--c-muted)",
+                                          "font-size": "15px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-2-sc",
+                                      "props": {
+                                        "html": "<p>Led core Rust log-structured merge engine team of eleven engineers serving 42 PB across North American and European availability zones.</p>",
+                                        "ts": "body"
+                                      },
+                                      "type": "text"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "display": "flex",
+                                      "flex-direction": "column",
+                                      "gap": "4px"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-2-r",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "border-bottom": "1px solid var(--c-line)",
+                                  "display": "grid",
+                                  "gap": "20px",
+                                  "grid-template-columns": "170px minmax(0, 1fr)",
+                                  "padding-bottom": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {
+                                  "gap": "6px",
+                                  "grid-template-columns": "minmax(0, 1fr)"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-ex-2",
+                              "props": {
+                                "layout": "grid",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-3-per",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "2018 – 2021",
+                                    "ts": "eyebrow"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "font-size": "18px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-3-rl",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "Senior Distributed Systems Engineer — Northstar Systems",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "var(--c-muted)",
+                                          "font-size": "15px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-3-sc",
+                                      "props": {
+                                        "html": "<p>Built consensus replication, snapshot streaming, and multi-region failover automation from ground zero to GA.</p>",
+                                        "ts": "body"
+                                      },
+                                      "type": "text"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "display": "flex",
+                                      "flex-direction": "column",
+                                      "gap": "4px"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-3-r",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "border-bottom": "1px solid var(--c-line)",
+                                  "display": "grid",
+                                  "gap": "20px",
+                                  "grid-template-columns": "170px minmax(0, 1fr)",
+                                  "padding-bottom": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {
+                                  "gap": "6px",
+                                  "grid-template-columns": "minmax(0, 1fr)"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-ex-3",
+                              "props": {
+                                "layout": "grid",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "color": "var(--c-muted)",
+                                      "margin-bottom": "0px",
+                                      "text-align": "left"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-4-per",
+                                  "props": {
+                                    "level": "div",
+                                    "link": "",
+                                    "target": "",
+                                    "text": "RUSTCONF · 2025",
+                                    "ts": "eyebrow"
+                                  },
+                                  "type": "heading"
+                                },
+                                {
+                                  "adv": {
+                                    "cls": "",
+                                    "css": "",
+                                    "htmlId": ""
+                                  },
+                                  "children": [
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "font-size": "18px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-4-rl",
+                                      "props": {
+                                        "level": "h3",
+                                        "link": "",
+                                        "target": "",
+                                        "text": "“Testing Five Thousand Split-Brains Before Breakfast” — Selected Conference Talk",
+                                        "ts": "subtitle"
+                                      },
+                                      "type": "heading"
+                                    },
+                                    {
+                                      "adv": {
+                                        "cls": "",
+                                        "css": "",
+                                        "htmlId": ""
+                                      },
+                                      "children": [],
+                                      "cls": [],
+                                      "css": {
+                                        "d": {
+                                          "color": "var(--c-muted)",
+                                          "font-size": "15px",
+                                          "margin-bottom": "0px",
+                                          "text-align": "left"
+                                        },
+                                        "m": {},
+                                        "t": {}
+                                      },
+                                      "hide": {},
+                                      "id": "dvp-ex-4-sc",
+                                      "props": {
+                                        "html": "<p>Design patterns for fault-injecting virtual clocks, NVMe flush reordering, and reproducible failure seeds in production Rust suites.</p>",
+                                        "ts": "body"
+                                      },
+                                      "type": "text"
+                                    }
+                                  ],
+                                  "cls": [],
+                                  "css": {
+                                    "d": {
+                                      "display": "flex",
+                                      "flex-direction": "column",
+                                      "gap": "4px"
+                                    },
+                                    "m": {},
+                                    "t": {}
+                                  },
+                                  "hide": {},
+                                  "id": "dvp-ex-4-r",
+                                  "props": {
+                                    "layout": "flex",
+                                    "link": "",
+                                    "tag": "div",
+                                    "target": ""
+                                  },
+                                  "type": "box"
+                                }
+                              ],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "border-bottom": "1px solid var(--c-line)",
+                                  "display": "grid",
+                                  "gap": "20px",
+                                  "grid-template-columns": "170px minmax(0, 1fr)",
+                                  "padding-bottom": "18px",
+                                  "padding-top": "18px"
+                                },
+                                "m": {
+                                  "gap": "6px",
+                                  "grid-template-columns": "minmax(0, 1fr)"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-ex-4",
+                              "props": {
+                                "layout": "grid",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "border-top": "1px solid var(--c-line)",
+                              "display": "flex",
+                              "flex-direction": "column"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ex-list",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "16px",
+                          "padding-top": "44px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-experience",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": "notes"
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-nt-k",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Peer Endorsements",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-nt-h2",
+                          "props": {
+                            "level": "h2",
+                            "link": "",
+                            "target": "",
+                            "text": "Working with Engineering Leadership",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "align-self": "flex-start",
+                                  "background-color": "#FFFFFF",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "box-shadow": "0 2px 10px -4px rgba(17,20,24,0.06)",
+                                  "color": "var(--c-ink)",
+                                  "font-size": "16px",
+                                  "height": "100%",
+                                  "line-height": "1.55",
+                                  "max-width": "none",
+                                  "padding-bottom": "18px",
+                                  "padding-left": "18px",
+                                  "padding-right": "18px",
+                                  "padding-top": "18px",
+                                  "width": "100%"
+                                },
+                                "m": {
+                                  "font-size": "20px"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-qt-1",
+                              "props": {
+                                "by": "Hannah Lind · VP Infrastructure, LatticeDB",
+                                "source": "Storage Engine Audit",
+                                "text": "Devon found two subtle fsync ordering races in our log compactor during day three of a two-week review and wrote the deterministic test reproducing both.",
+                                "ts": "lead"
+                              },
+                              "type": "quote"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "align-self": "flex-start",
+                                  "background-color": "#FFFFFF",
+                                  "border": "1px solid var(--c-line)",
+                                  "border-radius": "10px",
+                                  "box-shadow": "0 2px 10px -4px rgba(17,20,24,0.06)",
+                                  "color": "var(--c-ink)",
+                                  "font-size": "16px",
+                                  "height": "100%",
+                                  "line-height": "1.55",
+                                  "max-width": "none",
+                                  "padding-bottom": "18px",
+                                  "padding-left": "18px",
+                                  "padding-right": "18px",
+                                  "padding-top": "18px",
+                                  "width": "100%"
+                                },
+                                "m": {
+                                  "font-size": "20px"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "dvp-qt-2",
+                              "props": {
+                                "by": "Kenji Takahashi · Principal Engineer, VectorScale",
+                                "source": "Distributed Systems Review",
+                                "text": "Clear architectural memos without theater — gave our storage team a six-month roadmap that dropped P99 compaction latency below half a millisecond.",
+                                "ts": "lead"
+                              },
+                              "type": "quote"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "grid",
+                              "gap": "18px",
+                              "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                            },
+                            "m": {
+                              "grid-template-columns": "minmax(0, 1fr)"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-qt-grid",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "20px",
+                          "padding-top": "44px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-notes",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": "contact"
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ct-k",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Engage for Q1 2027",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ct-h2",
+                          "props": {
+                            "level": "h2",
+                            "link": "",
+                            "target": "",
+                            "text": "Architecture Review & Advisory Inquiry",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--f-bg": "#F7F8FA",
+                              "--f-border": "var(--c-line)",
+                              "--f-btn-bg": "#1D4ED8",
+                              "--f-btn-fg": "#FFFFFF",
+                              "--f-gap": "12px",
+                              "--f-label": "var(--c-ink)",
+                              "--f-pad": "10px 13px",
+                              "--f-radius": "6px",
+                              "--f-text": "var(--c-ink)",
+                              "font-size": "15px",
+                              "width": "100%"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-ct-form",
+                          "props": {
+                            "action": "",
+                            "aria": "Systems engineering advisory inquiry form",
+                            "fields": [
+                              {
+                                "half": 1,
+                                "label": "Name & Team",
+                                "name": "name",
+                                "ph": "Alex Kim · Core Storage",
+                                "required": 1,
+                                "type": "text"
+                              },
+                              {
+                                "half": 1,
+                                "label": "Work Email",
+                                "name": "email",
+                                "ph": "alex@company.example",
+                                "required": 1,
+                                "type": "email"
+                              },
+                              {
+                                "half": 0,
+                                "label": "Engagement Scope",
+                                "name": "scope",
+                                "opts": "Two-Week Storage / Raft Architecture Audit,Fractional Principal Systems Advisor,Technical Workshop / Speaking",
+                                "required": 1,
+                                "type": "select"
+                              },
+                              {
+                                "half": 0,
+                                "label": "System Context & Bottleneck",
+                                "name": "details",
+                                "ph": "Runtime stack, throughput targets, failure mode concerns...",
+                                "required": 1,
+                                "type": "textarea"
+                              }
+                            ],
+                            "method": "post",
+                            "mode": "external",
+                            "submit": "Send Engineering Inquiry"
+                          },
+                          "type": "form"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "13px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "dvp-form-note",
+                          "props": {
+                            "html": "<p>Direct response within one business day · Mutual NDA and architecture briefing packet available on request.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "var(--c-surface)",
+                          "border": "1px solid var(--c-line)",
+                          "border-radius": "12px",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "14px",
+                          "padding-bottom": "28px",
+                          "padding-left": "28px",
+                          "padding-right": "28px",
+                          "padding-top": "28px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "dvp-contact",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "44px",
+                      "min-width": "0px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "dvp-right-stream",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "40px",
+                  "grid-template-columns": "300px minmax(0, 1fr)"
+                },
+                "m": {
+                  "gap": "24px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "28px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "dvp-split",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "72px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "40px"
+            },
+            "m": {
+              "padding-bottom": "48px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "24px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "dvp-shell",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 17,
+  "v": 17
+}

@@ -1,0 +1,75 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "fieldwork-radio",
+  "version": "1.0.0",
+  "name": "Fieldwork Radio",
+  "sampleName": "Fieldwork Radio",
+  "description": "Broadsheet single-page site for an investigative audio documentary series featuring an inline playable episode player, tag-filtered audio archive, host byline strip, ruled live tour table, and tip-line intake.",
+  "categories": [
+    "Media & Podcast",
+    "One Page"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "cover-latest",
+      "file": "assets/cover-latest.webp",
+      "name": "cover-latest.webp",
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "host-ines",
+      "file": "assets/host-ines.webp",
+      "name": "host-ines.webp",
+      "width": 960,
+      "height": 960
+    },
+    {
+      "id": "host-mira",
+      "file": "assets/host-mira.webp",
+      "name": "host-mira.webp",
+      "width": 911,
+      "height": 911
+    },
+    {
+      "id": "host-tariq",
+      "file": "assets/host-tariq.webp",
+      "name": "host-tariq.webp",
+      "width": 960,
+      "height": 960
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 340,
+      "height": 44
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:fieldwork-radio:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "890245312749435d407d5104e9ce30a545439455d206b0f2b3b2c7ea92d6f928"
+}

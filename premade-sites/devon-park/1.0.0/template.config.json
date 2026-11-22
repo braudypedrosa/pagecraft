@@ -1,0 +1,61 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "devon-park",
+  "version": "1.0.0",
+  "name": "Devon Park",
+  "sampleName": "Devon Park · Systems Engineer",
+  "description": "Swiss grid single-page portfolio and CV for an independent distributed systems engineer, featuring a desktop sticky identity sidebar, impact metrics, tag-filtered systems work, copyable benchmark code block, chronological career spine, and inquiry form.",
+  "categories": [
+    "Personal & CV",
+    "One Page"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "lab-workstation",
+      "file": "assets/lab-workstation.webp",
+      "name": "lab-workstation.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "id": "portrait-devon",
+      "file": "assets/portrait-devon.webp",
+      "name": "portrait-devon.webp",
+      "width": 880,
+      "height": 880
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:devon-park:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "64bba78cb11d630cccb37ada586b735b00d3b589200b93482d9cdcffdc8b8cae"
+}

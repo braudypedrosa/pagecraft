@@ -1,0 +1,24 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "devon-park",
+  "version": "1.0.0",
+  "name": "Devon Park",
+  "sampleName": "Devon Park · Systems Engineer",
+  "description": "Swiss grid single-page portfolio and CV for an independent distributed systems engineer, featuring a desktop sticky identity sidebar, impact metrics, tag-filtered systems work, copyable benchmark code block, chronological career spine, and inquiry form.",
+  "categories": [
+    "Personal & CV",
+    "One Page"
+  ],
+  "pages": [
+    {
+      "id": "nex0qq1v9x",
+      "name": "Home",
+      "slug": "index"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "64bba78cb11d630cccb37ada586b735b00d3b589200b93482d9cdcffdc8b8cae",
+  "previewPage": "index.html",
+  "assetCount": 5,
+  "assetBytes": 131099
+}

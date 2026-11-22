@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60">
+  <defs>
+    <g id="olive-sprig">
+      <path d="M68 30 Q45 29 18 33" fill="none" stroke="#5B645A" stroke-width="1.15" stroke-linecap="round"/>
+      <path d="M58 29.5 C53 20 44 19 42 25 C46 29 53 30 58 29.5 Z" fill="#2D3B2D"/>
+      <path d="M52 30.2 C48 39 39 40 37 34 C41 30.5 47 30 52 30.2 Z" fill="#5B645A"/>
+      <path d="M40 30.8 C35 22 26 22 25 27.5 C29 30.8 35 31.2 40 30.8 Z" fill="#2D3B2D"/>
+      <path d="M33 31.5 C29 39.5 21 40 20 34.5 C23.5 31.5 28.5 31 33 31.5 Z" fill="#5B645A"/>
+      <path d="M20 32.8 C15 27.5 8 29 8.5 33.5 C12.5 35.5 16.5 34.5 20 32.8 Z" fill="#2D3B2D"/>
+      <circle cx="48" cy="27.5" r="2.1" fill="#9E4B34"/>
+      <circle cx="30" cy="34.2" r="1.9" fill="#9E4B34"/>
+    </g>
+  </defs>
+  <use href="#olive-sprig"/>
+  <g transform="translate(240,0) scale(-1,1)">
+    <use href="#olive-sprig"/>
+  </g>
+  <ellipse cx="120" cy="30" rx="48" ry="24" fill="#FFFDF9" stroke="#C7B89C" stroke-width="1.2"/>
+  <ellipse cx="120" cy="30" rx="43.5" ry="20" fill="none" stroke="#D8CEBC" stroke-width="0.75"/>
+  <polygon points="120,4 122.3,6.3 120,8.6 117.7,6.3" fill="#9E4B34"/>
+  <polygon points="120,51.4 122.3,53.7 120,56 117.7,53.7" fill="#9E4B34"/>
+  <text x="96" y="37" text-anchor="middle" fill="#2D3B2D" font-family="Georgia, 'Times New Roman', serif" font-size="21" font-weight="500">M</text>
+  <text x="120" y="36" text-anchor="middle" fill="#9E4B34" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-style="italic">&amp;</text>
+  <text x="144" y="37" text-anchor="middle" fill="#2D3B2D" font-family="Georgia, 'Times New Roman', serif" font-size="21" font-weight="500">T</text>
+</svg>

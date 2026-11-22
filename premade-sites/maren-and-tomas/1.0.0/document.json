@@ -1,0 +1,3185 @@
+{
+  "footer": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--nav-gap": "18px",
+                      "--nav-hover": "var(--c-ink)",
+                      "--nav-panel": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "color": "var(--c-ink)",
+                      "font-size": "13px",
+                      "font-weight": "500",
+                      "justify-content": "flex-start",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "--nav-gap": "12px"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-footer-nav",
+                  "props": {
+                    "aria": "Footer navigation",
+                    "collapse": "never",
+                    "items": [
+                      {
+                        "href": "#story",
+                        "id": "fm-story",
+                        "label": "Story"
+                      },
+                      {
+                        "href": "#weekend",
+                        "id": "fm-weekend",
+                        "label": "Weekend"
+                      },
+                      {
+                        "href": "#travel",
+                        "id": "fm-travel",
+                        "label": "Travel"
+                      },
+                      {
+                        "href": "#rsvp",
+                        "id": "fm-rsvp",
+                        "label": "RSVP"
+                      }
+                    ],
+                    "mobileMenu": "dropdown"
+                  },
+                  "type": "nav"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "line-height": "1.45",
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-footer-copy",
+                  "props": {
+                    "html": "<p>Maren & Tomás · Casa do Pátio, Lisbon · September 17–19, 2027</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "8px",
+                  "width": "auto"
+                },
+                "m": {
+                  "width": "100%"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-footer-left",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-self": "center",
+                      "border-radius": "0px",
+                      "height": "20px",
+                      "max-width": "100%",
+                      "object-fit": "contain",
+                      "width": "20px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-bp-mark",
+                  "props": {
+                    "alt": "",
+                    "caption": "",
+                    "decorative": 1,
+                    "h": "137",
+                    "label": "",
+                    "lazy": 0,
+                    "link": "",
+                    "src": "asset:bp-mark",
+                    "target": "",
+                    "w": "137"
+                  },
+                  "type": "image"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--pc-solid-fg": "var(--c-bg)",
+                      "align-self": "flex-start",
+                      "background-color": "transparent",
+                      "border-color": "transparent",
+                      "border-radius": "0px",
+                      "border-width": "0px",
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "font-weight": "500",
+                      "padding-bottom": "2px",
+                      "padding-left": "0px",
+                      "padding-right": "0px",
+                      "padding-top": "2px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-creator-btn",
+                  "props": {
+                    "align": "flex-start",
+                    "icon": "none",
+                    "link": "https://braudyp.dev/",
+                    "target": "_blank",
+                    "text": "Created by braudyp.dev",
+                    "ts": "btn",
+                    "variant": "outline",
+                    "wrap": "inline-flex"
+                  },
+                  "type": "button"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "flex",
+                  "flex-wrap": "nowrap",
+                  "gap": "8px",
+                  "margin-left": "auto",
+                  "width": "auto"
+                },
+                "m": {
+                  "margin-left": "0px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-creator-credit",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "border-top": "1px solid var(--c-line)",
+              "display": "flex",
+              "flex-wrap": "wrap",
+              "gap": "16px",
+              "justify-content": "space-between",
+              "padding-top": "18px",
+              "width": "100%"
+            },
+            "m": {
+              "align-items": "flex-start",
+              "flex-direction": "column",
+              "gap": "12px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-footer-bottom",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "var(--c-bg)",
+          "padding-bottom": "24px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "26px"
+        },
+        "m": {
+          "padding-bottom": "20px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "22px"
+        },
+        "t": {}
+      },
+      "hide": {},
+      "id": "mtw-footer",
+      "props": {
+        "inner": "",
+        "tag": "footer",
+        "width": "boxed"
+      },
+      "type": "section"
+    }
+  ],
+  "header": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-self": "center",
+                  "border-radius": "0px",
+                  "height": "52px",
+                  "margin-left": "auto",
+                  "margin-right": "auto",
+                  "max-width": "100%",
+                  "object-fit": "contain",
+                  "width": "auto"
+                },
+                "m": {
+                  "height": "44px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-logo",
+              "props": {
+                "alt": "Maren and Tomás monogram",
+                "caption": "",
+                "decorative": 0,
+                "h": "60",
+                "label": "",
+                "lazy": 0,
+                "link": "#top",
+                "src": "asset:logo",
+                "target": "",
+                "w": "240"
+              },
+              "type": "image"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "--nav-gap": "26px",
+                  "--nav-hover": "#9E4B34",
+                  "--nav-panel": "var(--c-bg)",
+                  "align-self": "center",
+                  "color": "var(--c-ink)",
+                  "font-size": "14px",
+                  "font-weight": "500",
+                  "justify-content": "center",
+                  "width": "auto"
+                },
+                "m": {
+                  "--nav-gap": "16px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-nav",
+              "props": {
+                "aria": "Wedding sections",
+                "collapse": "never",
+                "items": [
+                  {
+                    "href": "#story",
+                    "id": "nav-story",
+                    "label": "Story"
+                  },
+                  {
+                    "href": "#weekend",
+                    "id": "nav-weekend",
+                    "label": "Weekend"
+                  },
+                  {
+                    "href": "#travel",
+                    "id": "nav-travel",
+                    "label": "Travel & Dress"
+                  },
+                  {
+                    "href": "#rsvp",
+                    "id": "nav-rsvp",
+                    "label": "RSVP"
+                  }
+                ],
+                "mobileMenu": "dropdown"
+              },
+              "type": "nav"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "display": "flex",
+              "flex-direction": "column",
+              "gap": "10px",
+              "justify-content": "center"
+            },
+            "m": {
+              "gap": "8px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-hdr-stack",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "var(--c-bg)",
+          "border-bottom": "1px solid var(--c-line)",
+          "padding-bottom": "14px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "14px"
+        },
+        "m": {
+          "padding-bottom": "12px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "12px"
+        },
+        "t": {
+          "padding-bottom": "14px",
+          "padding-top": "14px"
+        }
+      },
+      "hide": {},
+      "id": "mtw-header",
+      "props": {
+        "inner": "",
+        "tag": "header",
+        "width": "boxed"
+      },
+      "type": "section"
+    }
+  ],
+  "meta": {
+    "baseUrl": "",
+    "blocks": [],
+    "collections": [],
+    "css": "",
+    "favicon": "asset:favicon",
+    "font": "'Source Sans 3',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Cormorant Garamond',Georgia,'Times New Roman',serif",
+    "headHtml": "",
+    "lang": "en",
+    "maxWidth": "1060px",
+    "name": "Maren & Tomás · Lisbon 2027",
+    "ogImage": "",
+    "size": "16px",
+    "tokens": {
+      "classes": [],
+      "colors": [
+        {
+          "id": "bg",
+          "name": "Linen",
+          "value": "#F8F4ED"
+        },
+        {
+          "id": "surface",
+          "name": "Ivory",
+          "value": "#FFFDF9"
+        },
+        {
+          "id": "ink",
+          "name": "Deep Olive",
+          "value": "#2D3B2D"
+        },
+        {
+          "id": "text",
+          "name": "Warm Charcoal",
+          "value": "#384037"
+        },
+        {
+          "id": "muted",
+          "name": "Sage Grey",
+          "value": "#5B645A"
+        },
+        {
+          "id": "line",
+          "name": "Antique Rule",
+          "value": "#D8CEBC"
+        },
+        {
+          "id": "brand",
+          "name": "Terracotta",
+          "value": "#9E4B34"
+        }
+      ],
+      "text": [
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "66px",
+              "font-weight": "500",
+              "letter-spacing": "-0.02em",
+              "line-height": "1.0"
+            },
+            "m": {
+              "font-size": "40px"
+            },
+            "t": {
+              "font-size": "52px"
+            }
+          },
+          "id": "display",
+          "name": "Display",
+          "tag": "h1"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "40px",
+              "font-weight": "500",
+              "line-height": "1.1"
+            },
+            "m": {
+              "font-size": "30px"
+            },
+            "t": {
+              "font-size": "34px"
+            }
+          },
+          "id": "title",
+          "name": "Section title",
+          "tag": "h2"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "24px",
+              "font-weight": "600",
+              "line-height": "1.25"
+            },
+            "m": {
+              "font-size": "22px"
+            },
+            "t": {}
+          },
+          "id": "subtitle",
+          "name": "Subheading",
+          "tag": "h3"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-muted)",
+              "font-size": "19px",
+              "line-height": "1.65"
+            },
+            "m": {
+              "font-size": "17px"
+            },
+            "t": {}
+          },
+          "id": "lead",
+          "name": "Lead",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-text)",
+              "font-size": "16px",
+              "line-height": "1.7"
+            },
+            "m": {
+              "font-size": "15px"
+            },
+            "t": {}
+          },
+          "id": "body",
+          "name": "Body",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "#9E4B34",
+              "font-size": "12px",
+              "font-weight": "600",
+              "letter-spacing": "0.14em",
+              "text-transform": "uppercase"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "eyebrow",
+          "name": "Eyebrow",
+          "tag": "div"
+        },
+        {
+          "css": {
+            "d": {
+              "font-size": "14px",
+              "font-weight": "600",
+              "letter-spacing": "0.06em"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "btn",
+          "name": "Button label"
+        }
+      ]
+    }
+  },
+  "pages": [
+    {
+      "desc": "Destination wedding weekend schedule, Lisbon hotel guide, live countdown, and RSVP for Maren Lindqvist and Tomás Ferreira.",
+      "id": "nfdr481van",
+      "name": "Home",
+      "ogImage": "",
+      "slug": "index",
+      "title": "Maren & Tomás — Lisbon · September 2027",
+      "tree": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "top"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-inv-kick",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Together With Our Families · Lisbon, Portugal",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "center"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-inv-h1",
+                      "props": {
+                        "level": "h1",
+                        "link": "",
+                        "target": "",
+                        "text": "Maren Lindqvist & Tomás Ferreira",
+                        "ts": "display"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "max-width": "620px",
+                          "text-align": "center"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-inv-sub",
+                      "props": {
+                        "html": "<p>Invite you to celebrate three September afternoons of courtyard aperitivos, long-table dinners under olive trees, and late music overlooking the Tagus.</p>",
+                        "ts": "lead"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-ink)",
+                          "margin-bottom": "0px",
+                          "text-align": "center"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-inv-date",
+                      "props": {
+                        "html": "<p><strong>Saturday, September 18, 2027 · Four-Thirty in the Afternoon · Casa do Pátio</strong></p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--cd2-card": "#F8F4ED",
+                              "--cd2-gap": "12px",
+                              "--cd2-line": "#D8CEBC",
+                              "--cd2-muted": "#5B645A",
+                              "--cd2-num": "#2D3B2D",
+                              "--cd2-radius": "8px",
+                              "--cd2-text": "var(--c-ink)",
+                              "width": "100%"
+                            },
+                            "m": {
+                              "--cd2-gap": "6px",
+                              "--cd2-num-size": "22px"
+                            },
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-countdown",
+                          "props": {
+                            "display": "cards",
+                            "done": "Today in Lisbon — celebrations have begun",
+                            "lblDays": "Days",
+                            "lblHours": "Hours",
+                            "lblMins": "Mins",
+                            "lblSecs": "Secs",
+                            "showSeconds": 1,
+                            "target": "2027-09-18T16:30:00Z"
+                          },
+                          "type": "countdown"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "6px",
+                          "margin-top": "6px",
+                          "max-width": "580px",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-countdown-wrap",
+                      "props": {
+                        "layout": "block",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "6px",
+                          "height": "420px",
+                          "margin-top": "10px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "height": "260px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-hero-courtyard",
+                      "props": {
+                        "alt": "Sunlit historic Lisbon limestone courtyard framed by potted olive trees and terracotta walls",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "768",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:courtyard-hero",
+                        "target": "",
+                        "w": "1376"
+                      },
+                      "type": "image"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "border": "1px solid var(--c-line)",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "18px",
+                      "padding-bottom": "44px",
+                      "padding-left": "36px",
+                      "padding-right": "36px",
+                      "padding-top": "48px",
+                      "text-align": "center"
+                    },
+                    "m": {
+                      "gap": "14px",
+                      "padding-bottom": "26px",
+                      "padding-left": "14px",
+                      "padding-right": "14px",
+                      "padding-top": "28px"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-poster-inner",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "background-color": "var(--c-surface)",
+                  "border": "1px solid var(--c-line)",
+                  "padding-bottom": "8px",
+                  "padding-left": "8px",
+                  "padding-right": "8px",
+                  "padding-top": "8px"
+                },
+                "m": {
+                  "padding-bottom": "5px",
+                  "padding-left": "5px",
+                  "padding-right": "5px",
+                  "padding-top": "5px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-poster-outer",
+              "props": {
+                "layout": "block",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "56px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "52px"
+            },
+            "m": {
+              "padding-bottom": "36px",
+              "padding-left": "12px",
+              "padding-right": "12px",
+              "padding-top": "28px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-hero",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "story"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-kick",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Five Years & One Coastal Train",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "From a delayed ferry in Cascais to an autumn table in Alfama.",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-left-color": "#9E4B34",
+                          "border-left-width": "3px",
+                          "color": "var(--c-ink)",
+                          "font-size": "20px",
+                          "line-height": "1.55",
+                          "max-width": "none",
+                          "padding-left": "18px",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "font-size": "20px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-quote",
+                      "props": {
+                        "by": "Maren & Tomás",
+                        "source": "Cascais Ferry Notes",
+                        "text": "We spent four hours waiting out a September Atlantic squall over shared thermos coffee and half a crossword, convinced that every detour counts twice.",
+                        "ts": "lead"
+                      },
+                      "type": "quote"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-p",
+                      "props": {
+                        "html": "<p>Five autumns later, we are bringing family and old friends back to the hillside courtyard above the Tagus where we spent our first quiet week together.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-story-copy",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "6px",
+                          "height": "380px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "height": "240px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-img1",
+                      "props": {
+                        "alt": "Maren and Tomás walking hand in hand down an Alfama limestone street",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1200",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:story-portrait-1",
+                        "target": "",
+                        "w": "896"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "6px",
+                          "height": "310px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "height": "210px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-st-img2",
+                      "props": {
+                        "alt": "Maren and Tomás laughing over morning espresso and pastries under potted olive trees",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1200",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:story-portrait-2",
+                        "target": "",
+                        "w": "896"
+                      },
+                      "type": "image"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "end",
+                      "display": "grid",
+                      "gap": "18px",
+                      "grid-template-columns": "1.05fr 0.95fr"
+                    },
+                    "m": {
+                      "gap": "12px",
+                      "grid-template-columns": "1fr 1fr"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-story-photos",
+                  "props": {
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "display": "grid",
+                  "gap": "40px",
+                  "grid-template-columns": "0.95fr 1.05fr"
+                },
+                "m": {
+                  "gap": "24px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "28px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "mtw-story-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "64px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "60px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "40px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-story",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "weekend"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-kick",
+                  "props": {
+                    "level": "div",
+                    "link": "",
+                    "target": "",
+                    "text": "Friday to Sunday · September 17–19, 2027",
+                    "ts": "eyebrow"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "margin-bottom": "0px",
+                      "text-align": "left"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-h2",
+                  "props": {
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "text": "The Weekend Order of Gatherings",
+                    "ts": "title"
+                  },
+                  "type": "heading"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "10px",
+                  "margin-bottom": "28px"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-wk-head",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#9E4B34",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-fri-dt",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Friday · 18:30",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-fri-ven",
+                          "props": {
+                            "html": "<p>Taberna das Flores, Bairro Alto</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-fri-when",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-fri-t",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Welcome Wine & Tinned Seafood Table",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-fri-n",
+                          "props": {
+                            "html": "<p>Casual coastal bites, cold Vinho Verde, and early hugs once flights land. Dress is relaxed summer linen.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-left": "2px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "6px",
+                          "padding-left": "20px"
+                        },
+                        "m": {
+                          "border-left": "0px",
+                          "padding-left": "0px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-fri-desc",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "border-bottom": "1px solid var(--c-line)",
+                      "display": "grid",
+                      "gap": "28px",
+                      "grid-template-columns": "220px minmax(0, 1fr)",
+                      "padding-bottom": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {
+                      "gap": "10px",
+                      "grid-template-columns": "minmax(0, 1fr)"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-fri",
+                  "props": {
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#9E4B34",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat1-dt",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Saturday · 16:30",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat1-ven",
+                          "props": {
+                            "html": "<p>Casa do Pátio Upper Terrace</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sat1-when",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat1-t",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Courtyard Ceremony & Brass Quartet",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat1-n",
+                          "props": {
+                            "html": "<p>Gates open at four for citrus spritzes in the shade. Ceremony begins promptly at four-thirty under the olive pergola.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-left": "2px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "6px",
+                          "padding-left": "20px"
+                        },
+                        "m": {
+                          "border-left": "0px",
+                          "padding-left": "0px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sat1-desc",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "border-bottom": "1px solid var(--c-line)",
+                      "display": "grid",
+                      "gap": "28px",
+                      "grid-template-columns": "220px minmax(0, 1fr)",
+                      "padding-bottom": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {
+                      "gap": "10px",
+                      "grid-template-columns": "minmax(0, 1fr)"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-sat1",
+                  "props": {
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#9E4B34",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat2-dt",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Saturday · 19:00",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat2-ven",
+                          "props": {
+                            "html": "<p>Olive Garden Cloister</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sat2-when",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat2-t",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Candlelit Long-Table Dinner & Late Fado / Vinyl",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sat2-n",
+                          "props": {
+                            "html": "<p>Family-style roasted sea bass, charred fig greens, late midnight bifanas, and dancing indoors after eleven.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-left": "2px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "6px",
+                          "padding-left": "20px"
+                        },
+                        "m": {
+                          "border-left": "0px",
+                          "padding-left": "0px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sat2-desc",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "border-bottom": "1px solid var(--c-line)",
+                      "display": "grid",
+                      "gap": "28px",
+                      "grid-template-columns": "220px minmax(0, 1fr)",
+                      "padding-bottom": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {
+                      "gap": "10px",
+                      "grid-template-columns": "minmax(0, 1fr)"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-sat2",
+                  "props": {
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#9E4B34",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sun-dt",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Sunday · 11:00",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sun-ven",
+                          "props": {
+                            "html": "<p>Miraflores Greenhouse terrace</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "4px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sun-when",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sun-t",
+                          "props": {
+                            "level": "h3",
+                            "link": "",
+                            "target": "",
+                            "text": "Slow Goodbye Espresso & Garden Pastries",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-wk-sun-n",
+                          "props": {
+                            "html": "<p>Drop in anytime before heading to the train station or coast — warm broa bread, seasonal figs, and espresso shots.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-left": "2px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "6px",
+                          "padding-left": "20px"
+                        },
+                        "m": {
+                          "border-left": "0px",
+                          "padding-left": "0px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-wk-sun-desc",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "border-bottom": "1px solid var(--c-line)",
+                      "display": "grid",
+                      "gap": "28px",
+                      "grid-template-columns": "220px minmax(0, 1fr)",
+                      "padding-bottom": "22px",
+                      "padding-top": "22px"
+                    },
+                    "m": {
+                      "gap": "10px",
+                      "grid-template-columns": "minmax(0, 1fr)"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-wk-sun",
+                  "props": {
+                    "layout": "grid",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "border-top": "1px solid var(--c-line)",
+                  "display": "flex",
+                  "flex-direction": "column"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-wk-spine",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-surface)",
+              "border-bottom": "1px solid var(--c-line)",
+              "border-top": "1px solid var(--c-line)",
+              "padding-bottom": "64px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "64px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "40px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-weekend",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "travel"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-tr-kick",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Logistics & Attire",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-tr-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Staying in Príncipe Real & Dressing for Warm Stone.",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-tr-p",
+                      "props": {
+                        "html": "<p>We reserved room blocks at <strong>Memmo Príncipe Real</strong> (use code MARENTOMAS before June 1) and <strong>Casa do Carmo Guesthouse</strong>, both an eight-minute cab or scenic walk from Casa do Pátio. We recommend block heels or loafers for Lisbon cobblestones.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "font-size": "19px",
+                          "margin-bottom": "0px",
+                          "margin-top": "6px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-tr-pal",
+                      "props": {
+                        "level": "h3",
+                        "link": "",
+                        "target": "",
+                        "text": "Suggested Garden-Formal Palette",
+                        "ts": "subtitle"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "#2D3B2D",
+                                  "border": "1px solid rgba(0,0,0,0.12)",
+                                  "border-radius": "999px",
+                                  "color": "#FFFFFF",
+                                  "height": "24px",
+                                  "width": "24px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-olive-dot",
+                              "props": {
+                                "layout": "block",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "font-size": "14px",
+                                  "font-weight": "600",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-olive-lbl",
+                              "props": {
+                                "html": "<p>Olive Leaf</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "center",
+                              "background-color": "var(--c-surface)",
+                              "border": "1px solid var(--c-line)",
+                              "border-radius": "8px",
+                              "display": "grid",
+                              "gap": "10px",
+                              "grid-template-columns": "24px minmax(0, 1fr)",
+                              "padding-bottom": "10px",
+                              "padding-left": "12px",
+                              "padding-right": "14px",
+                              "padding-top": "10px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-sw-olive",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "#9E4B34",
+                                  "border": "1px solid rgba(0,0,0,0.12)",
+                                  "border-radius": "999px",
+                                  "color": "#FFFFFF",
+                                  "height": "24px",
+                                  "width": "24px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-terra-dot",
+                              "props": {
+                                "layout": "block",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "font-size": "14px",
+                                  "font-weight": "600",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-terra-lbl",
+                              "props": {
+                                "html": "<p>Terracotta</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "center",
+                              "background-color": "var(--c-surface)",
+                              "border": "1px solid var(--c-line)",
+                              "border-radius": "8px",
+                              "display": "grid",
+                              "gap": "10px",
+                              "grid-template-columns": "24px minmax(0, 1fr)",
+                              "padding-bottom": "10px",
+                              "padding-left": "12px",
+                              "padding-right": "14px",
+                              "padding-top": "10px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-sw-terra",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "#E6DCCB",
+                                  "border": "1px solid rgba(0,0,0,0.12)",
+                                  "border-radius": "999px",
+                                  "color": "#2D3B2D",
+                                  "height": "24px",
+                                  "width": "24px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-oat-dot",
+                              "props": {
+                                "layout": "block",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "font-size": "14px",
+                                  "font-weight": "600",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-oat-lbl",
+                              "props": {
+                                "html": "<p>Raw Linen</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "center",
+                              "background-color": "var(--c-surface)",
+                              "border": "1px solid var(--c-line)",
+                              "border-radius": "8px",
+                              "display": "grid",
+                              "gap": "10px",
+                              "grid-template-columns": "24px minmax(0, 1fr)",
+                              "padding-bottom": "10px",
+                              "padding-left": "12px",
+                              "padding-right": "14px",
+                              "padding-top": "10px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-sw-oat",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "background-color": "#C89D54",
+                                  "border": "1px solid rgba(0,0,0,0.12)",
+                                  "border-radius": "999px",
+                                  "color": "#2D3B2D",
+                                  "height": "24px",
+                                  "width": "24px"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-ochre-dot",
+                              "props": {
+                                "layout": "block",
+                                "link": "",
+                                "tag": "div",
+                                "target": ""
+                              },
+                              "type": "box"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "font-size": "14px",
+                                  "font-weight": "600",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "mtw-sw-ochre-lbl",
+                              "props": {
+                                "html": "<p>Sun Ochre</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "center",
+                              "background-color": "var(--c-surface)",
+                              "border": "1px solid var(--c-line)",
+                              "border-radius": "8px",
+                              "display": "grid",
+                              "gap": "10px",
+                              "grid-template-columns": "24px minmax(0, 1fr)",
+                              "padding-bottom": "10px",
+                              "padding-left": "12px",
+                              "padding-right": "14px",
+                              "padding-top": "10px"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "mtw-sw-ochre",
+                          "props": {
+                            "layout": "grid",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "grid",
+                          "gap": "10px",
+                          "grid-template-columns": "repeat(2, minmax(0, 1fr))"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-swatches",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-tr-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border": "1px solid var(--c-line)",
+                          "border-radius": "10px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-map-img",
+                      "props": {
+                        "alt": "Illustrated map showing Príncipe Real hotels, Casa do Pátio venue, Graça viewpoint, and Tagus estuary",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "360",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:venue-map",
+                        "target": "",
+                        "w": "640"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "10px",
+                          "height": "240px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "mtw-dinner-img",
+                      "props": {
+                        "alt": "Candlelit long outdoor linen dinner table arranged under ancient olive trees",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "896",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:dinner-table",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "18px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-tr-right",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "40px",
+                  "grid-template-columns": "1fr 1fr"
+                },
+                "m": {
+                  "gap": "24px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "28px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "mtw-tr-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "64px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "64px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "40px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-travel",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "rsvp"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "margin-bottom": "0px",
+                      "text-align": "center"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-rs-kick",
+                  "props": {
+                    "level": "div",
+                    "link": "",
+                    "target": "",
+                    "text": "Kindly Reply By June 30, 2027",
+                    "ts": "eyebrow"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "margin-bottom": "0px",
+                      "text-align": "center"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-rs-h2",
+                  "props": {
+                    "level": "h2",
+                    "link": "",
+                    "target": "",
+                    "text": "Reserve Your Place at the Lisbon Table",
+                    "ts": "title"
+                  },
+                  "type": "heading"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "--f-bg": "#FBF9F4",
+                      "--f-border": "var(--c-line)",
+                      "--f-btn-bg": "#2D3B2D",
+                      "--f-btn-fg": "#F8F4ED",
+                      "--f-gap": "14px",
+                      "--f-label": "var(--c-ink)",
+                      "--f-pad": "11px 14px",
+                      "--f-radius": "6px",
+                      "--f-text": "var(--c-ink)",
+                      "font-size": "15px",
+                      "width": "100%"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-rsvp-form",
+                  "props": {
+                    "action": "",
+                    "aria": "Wedding weekend RSVP form",
+                    "fields": [
+                      {
+                        "half": 1,
+                        "label": "Guest Name(s)",
+                        "name": "guest_names",
+                        "ph": "Clára Sousa & Henrik Holm",
+                        "required": 1,
+                        "type": "text"
+                      },
+                      {
+                        "half": 1,
+                        "label": "Email for Weekend Updates",
+                        "name": "email",
+                        "ph": "clara@example.com",
+                        "required": 1,
+                        "type": "email"
+                      },
+                      {
+                        "half": 1,
+                        "label": "Attendance",
+                        "name": "attendance",
+                        "opts": "Delighted to attend all three days,Attending Saturday Ceremony & Dinner only,Sending warm wishes from afar",
+                        "required": 1,
+                        "type": "select"
+                      },
+                      {
+                        "half": 1,
+                        "label": "Main Dinner Preference",
+                        "name": "meal",
+                        "opts": "Roasted Atlantic Sea Bass,Charred Leek & Almond Risotto (Vegan),Herb-Braised Lamb Shoulder",
+                        "required": 1,
+                        "type": "select"
+                      },
+                      {
+                        "half": 0,
+                        "label": "Song That Pulls You onto the Floor",
+                        "name": "song",
+                        "ph": "Artist or track title",
+                        "required": 0,
+                        "type": "text"
+                      },
+                      {
+                        "half": 0,
+                        "label": "Dietary Allergies or Accessibility Notes",
+                        "name": "notes",
+                        "ph": "Gluten-free, nut allergy, step-free courtyard seating...",
+                        "required": 0,
+                        "type": "textarea"
+                      }
+                    ],
+                    "method": "post",
+                    "mode": "external",
+                    "submit": "Send RSVP"
+                  },
+                  "type": "form"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "color": "var(--c-muted)",
+                      "font-size": "13px",
+                      "margin-bottom": "0px",
+                      "text-align": "center"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "mtw-form-note",
+                  "props": {
+                    "html": "<p>Kindly reply by June 30, 2027 · Travel or dietary questions? Write to maren.tomas@lisbon2027.example</p>",
+                    "ts": "body"
+                  },
+                  "type": "text"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "background-color": "var(--c-surface)",
+                  "border": "1px solid var(--c-line)",
+                  "border-radius": "12px",
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "gap": "16px",
+                  "margin-left": "auto",
+                  "margin-right": "auto",
+                  "max-width": "780px",
+                  "padding-bottom": "42px",
+                  "padding-left": "40px",
+                  "padding-right": "40px",
+                  "padding-top": "42px"
+                },
+                "m": {
+                  "padding-bottom": "28px",
+                  "padding-left": "20px",
+                  "padding-right": "20px",
+                  "padding-top": "28px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "mtw-rsvp-card",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "72px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "24px"
+            },
+            "m": {
+              "padding-bottom": "48px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "16px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "mtw-rsvp",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 17,
+  "v": 17
+}

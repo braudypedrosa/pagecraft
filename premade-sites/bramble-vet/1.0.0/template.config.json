@@ -1,0 +1,89 @@
+{
+  "format": "pagecraft.site-template-source.v1",
+  "sourceKind": "document-json-v1",
+  "id": "bramble-vet",
+  "version": "1.0.0",
+  "name": "Bramble Vet",
+  "sampleName": "Bramble Vet",
+  "description": "Single-page fear-free veterinary clinic landing site featuring a friendly split phone header, arch-masked patient portrait hero, click-to-play clinic video tour facade, ruled care pricing, care team slider, pet parent quotes, and appointment picker.",
+  "categories": [
+    "Pet Care & Health",
+    "One Page"
+  ],
+  "source": "document.json",
+  "previewPage": "index.html",
+  "assets": [
+    {
+      "id": "bg-hero-sanctuary",
+      "file": "assets/bg-hero-sanctuary.webp",
+      "name": "bg-hero-sanctuary.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "bg-hours-clinic",
+      "file": "assets/bg-hours-clinic.webp",
+      "name": "bg-hours-clinic.webp",
+      "width": 1200,
+      "height": 670
+    },
+    {
+      "id": "bg-voices-garden",
+      "file": "assets/bg-voices-garden.webp",
+      "name": "bg-voices-garden.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "bp-mark",
+      "file": "assets/bp-mark.svg",
+      "name": "bp-mark.svg",
+      "width": 137,
+      "height": 137
+    },
+    {
+      "id": "clinic-tour-poster",
+      "file": "assets/clinic-tour-poster.webp",
+      "name": "clinic-tour-poster.webp",
+      "width": 1376,
+      "height": 768
+    },
+    {
+      "id": "favicon",
+      "file": "assets/favicon.svg",
+      "name": "favicon.svg",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "hero-arch-dog",
+      "file": "assets/hero-arch-dog.webp",
+      "name": "hero-arch-dog.webp",
+      "width": 896,
+      "height": 1200
+    },
+    {
+      "id": "logo",
+      "file": "assets/logo.svg",
+      "name": "logo.svg",
+      "width": 228,
+      "height": 44
+    },
+    {
+      "id": "vet-dr-lin",
+      "file": "assets/vet-dr-lin.webp",
+      "name": "vet-dr-lin.webp",
+      "width": 896,
+      "height": 1200
+    }
+  ],
+  "customCssPolicy": "native-only",
+  "provenance": {
+    "exportedBy": "Pagecraft curated templates",
+    "format": "pagecraft.provenance.v1",
+    "origin": "pagecraft-cloud",
+    "sourceId": "template:bramble-vet:1.0.0",
+    "sourceVersion": 1
+  },
+  "importedPackageSha256": "77bf1d06c8a0a24ee14ecf4f1c238727302d7332e2093d475e17df32dcf6fbf0"
+}

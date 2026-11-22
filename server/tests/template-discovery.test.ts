@@ -37,6 +37,12 @@ test('known templates receive clear names and separate controlled facets', () =>
       siteTypes: ['Portfolio', 'Business'],
     },
     {
+      id: 'bramble-vet',
+      name: 'Bramble Vet · Veterinary Clinic',
+      industries: ['Health & Wellness'],
+      siteTypes: ['Business'],
+    },
+    {
       id: 'coastal-rentals',
       name: 'Marea · Coastal Stays',
       industries: ['Travel & Hospitality'],
@@ -53,6 +59,30 @@ test('known templates receive clear names and separate controlled facets', () =>
       name: 'Linden Dental · Dental Clinic',
       industries: ['Health & Wellness'],
       siteTypes: ['Business'],
+    },
+    {
+      id: 'devon-park',
+      name: 'Devon Park · Systems Engineer',
+      industries: ['Professional Services'],
+      siteTypes: ['Portfolio'],
+    },
+    {
+      id: 'fieldwork-radio',
+      name: 'Fieldwork Radio · Podcast & Live Show',
+      industries: ['Education & Learning'],
+      siteTypes: ['Portfolio', 'Business'],
+    },
+    {
+      id: 'kairn-climbing',
+      name: 'Kairn Climbing · Bouldering Gym',
+      industries: ['Health & Wellness'],
+      siteTypes: ['Business'],
+    },
+    {
+      id: 'maren-and-tomas',
+      name: 'Maren & Tomás · Destination Wedding',
+      industries: ['Travel & Hospitality'],
+      siteTypes: ['Portfolio'],
     },
     {
       id: 'neighborhood-cafe',

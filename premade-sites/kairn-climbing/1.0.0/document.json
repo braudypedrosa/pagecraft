@@ -1,0 +1,4957 @@
+{
+  "footer": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--nav-gap": "18px",
+                          "--nav-hover": "#E2DFD6",
+                          "--nav-panel": "var(--c-bg)",
+                          "align-self": "flex-start",
+                          "color": "#E2DFD6",
+                          "font-size": "13px",
+                          "font-weight": "500",
+                          "justify-content": "flex-start",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "--nav-gap": "12px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-footer-nav",
+                      "props": {
+                        "aria": "Footer navigation",
+                        "collapse": "never",
+                        "items": [
+                          {
+                            "href": "#walls",
+                            "id": "f-walls",
+                            "label": "Walls"
+                          },
+                          {
+                            "href": "#rates",
+                            "id": "f-rates",
+                            "label": "Rates"
+                          },
+                          {
+                            "href": "#hours",
+                            "id": "f-hours",
+                            "label": "Hours"
+                          },
+                          {
+                            "href": "#pass",
+                            "id": "f-pass",
+                            "label": "Day Pass"
+                          }
+                        ],
+                        "mobileMenu": "dropdown"
+                      },
+                      "type": "nav"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#B7B4AC",
+                          "font-size": "13px",
+                          "line-height": "1.45",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-footer-copy",
+                      "props": {
+                        "html": "<p>Kairn Climbing · 918 NW 15th Ave · hello@kairnclimbing.example</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "8px",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "width": "100%"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-footer-left",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "center",
+                          "border-radius": "0px",
+                          "height": "20px",
+                          "max-width": "100%",
+                          "object-fit": "contain",
+                          "width": "20px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-bp-mark",
+                      "props": {
+                        "alt": "",
+                        "caption": "",
+                        "decorative": 1,
+                        "h": "137",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:bp-mark",
+                        "target": "",
+                        "w": "137"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--pc-solid-fg": "var(--c-ink)",
+                          "align-self": "flex-start",
+                          "background-color": "transparent",
+                          "border-color": "transparent",
+                          "border-radius": "0px",
+                          "border-width": "0px",
+                          "color": "#B7B4AC",
+                          "font-size": "13px",
+                          "font-weight": "500",
+                          "padding-bottom": "2px",
+                          "padding-left": "0px",
+                          "padding-right": "0px",
+                          "padding-top": "2px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-creator-btn",
+                      "props": {
+                        "align": "flex-start",
+                        "icon": "none",
+                        "link": "https://braudyp.dev/",
+                        "target": "_blank",
+                        "text": "Created by braudyp.dev",
+                        "ts": "btn",
+                        "variant": "outline",
+                        "wrap": "inline-flex"
+                      },
+                      "type": "button"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "display": "flex",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "margin-left": "auto",
+                      "width": "auto"
+                    },
+                    "m": {
+                      "margin-left": "0px"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-creator-credit",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "center",
+                  "border-top": "1px solid #2D322F",
+                  "display": "flex",
+                  "flex-wrap": "wrap",
+                  "gap": "16px",
+                  "justify-content": "space-between",
+                  "padding-top": "18px",
+                  "width": "100%"
+                },
+                "m": {
+                  "align-items": "flex-start",
+                  "flex-direction": "column",
+                  "gap": "12px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "krn-footer-bottom",
+              "props": {
+                "layout": "flex",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "max-width": "1180px"
+            },
+            "m": {},
+            "t": {}
+          },
+          "hide": {},
+          "id": "krn-ftr-wrap",
+          "props": {
+            "layout": "block",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "#151716",
+          "color": "#E2DFD6",
+          "padding-bottom": "24px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "28px"
+        },
+        "m": {
+          "padding-bottom": "20px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "22px"
+        },
+        "t": {
+          "padding-bottom": "22px",
+          "padding-top": "24px"
+        }
+      },
+      "hide": {},
+      "id": "krn-footer",
+      "props": {
+        "inner": "",
+        "tag": "footer",
+        "width": "full"
+      },
+      "type": "section"
+    }
+  ],
+  "header": [
+    {
+      "adv": {
+        "cls": "",
+        "css": "",
+        "htmlId": ""
+      },
+      "children": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-self": "flex-start",
+                  "border-radius": "0px",
+                  "height": "36px",
+                  "max-width": "100%",
+                  "object-fit": "contain",
+                  "width": "auto"
+                },
+                "m": {
+                  "height": "28px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "krn-logo-link",
+              "props": {
+                "alt": "Kairn Climbing home",
+                "caption": "",
+                "decorative": 0,
+                "h": "44",
+                "label": "",
+                "lazy": 0,
+                "link": "#top",
+                "src": "asset:logo",
+                "target": "",
+                "w": "210"
+              },
+              "type": "image"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "--nav-gap": "24px",
+                  "--nav-hover": "#C8F542",
+                  "--nav-panel": "#151716",
+                  "align-self": "center",
+                  "color": "#E7E4DC",
+                  "font-size": "14px",
+                  "font-weight": "500",
+                  "justify-content": "flex-end",
+                  "width": "auto"
+                },
+                "m": {
+                  "--nav-gap": "14px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "krn-nav",
+              "props": {
+                "aria": "Primary navigation",
+                "collapse": "mobile",
+                "items": [
+                  {
+                    "href": "#walls",
+                    "id": "nav-walls",
+                    "label": "Walls"
+                  },
+                  {
+                    "href": "#rates",
+                    "id": "nav-rates",
+                    "label": "Rates"
+                  },
+                  {
+                    "href": "#hours",
+                    "id": "nav-hours",
+                    "label": "Hours"
+                  },
+                  {
+                    "href": "#pass",
+                    "id": "nav-pass",
+                    "label": "Day Pass"
+                  }
+                ],
+                "mobileMenu": "dropdown"
+              },
+              "type": "nav"
+            },
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [],
+              "cls": [],
+              "css": {
+                "d": {
+                  "--pc-solid-fg": "var(--c-ink)",
+                  "align-self": "flex-start",
+                  "background-color": "#C8F542",
+                  "border-radius": "6px",
+                  "color": "#151716",
+                  "font-size": "12px",
+                  "padding-bottom": "9px",
+                  "padding-left": "14px",
+                  "padding-right": "14px",
+                  "padding-top": "9px",
+                  "white-space": "nowrap",
+                  "width": "auto"
+                },
+                "m": {
+                  "font-size": "11px",
+                  "padding-bottom": "7px",
+                  "padding-left": "10px",
+                  "padding-right": "10px",
+                  "padding-top": "7px"
+                },
+                "t": {}
+              },
+              "hide": {},
+              "id": "krn-hdr-status",
+              "props": {
+                "align": "flex-start",
+                "icon": "none",
+                "link": "#hours",
+                "target": "",
+                "text": "OPEN UNTIL 22:00",
+                "ts": "btn",
+                "variant": "solid",
+                "wrap": "inline-flex"
+              },
+              "type": "button"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "align-items": "center",
+              "display": "flex",
+              "flex-wrap": "nowrap",
+              "gap": "20px",
+              "justify-content": "space-between",
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "max-width": "1180px"
+            },
+            "m": {
+              "flex-wrap": "nowrap",
+              "gap": "8px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "krn-hdr-bar",
+          "props": {
+            "layout": "flex",
+            "link": "",
+            "tag": "div",
+            "target": ""
+          },
+          "type": "box"
+        }
+      ],
+      "cls": [],
+      "css": {
+        "d": {
+          "background-color": "#151716",
+          "border-bottom": "1px solid #2A2F2C",
+          "padding-bottom": "12px",
+          "padding-left": "24px",
+          "padding-right": "24px",
+          "padding-top": "12px"
+        },
+        "m": {
+          "padding-bottom": "10px",
+          "padding-left": "16px",
+          "padding-right": "16px",
+          "padding-top": "10px"
+        },
+        "t": {
+          "padding-bottom": "12px",
+          "padding-left": "20px",
+          "padding-right": "20px",
+          "padding-top": "12px"
+        }
+      },
+      "hide": {},
+      "id": "krn-header",
+      "props": {
+        "inner": "",
+        "tag": "header",
+        "width": "full"
+      },
+      "type": "section"
+    }
+  ],
+  "meta": {
+    "baseUrl": "",
+    "blocks": [],
+    "collections": [],
+    "css": "",
+    "favicon": "asset:favicon",
+    "font": "'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
+    "headFont": "'Oswald',system-ui,-apple-system,sans-serif",
+    "headHtml": "",
+    "lang": "en",
+    "maxWidth": "1180px",
+    "name": "Kairn Climbing",
+    "ogImage": "",
+    "size": "16px",
+    "tokens": {
+      "classes": [],
+      "colors": [
+        {
+          "id": "bg",
+          "name": "Chalkstone",
+          "value": "#F3F1EB"
+        },
+        {
+          "id": "surface",
+          "name": "Limestone Card",
+          "value": "#FFFFFF"
+        },
+        {
+          "id": "ink",
+          "name": "Basalt",
+          "value": "#151716"
+        },
+        {
+          "id": "text",
+          "name": "Graphite",
+          "value": "#272B29"
+        },
+        {
+          "id": "muted",
+          "name": "Slate",
+          "value": "#4D5450"
+        },
+        {
+          "id": "line",
+          "name": "Chalk Rule",
+          "value": "#D7D2C7"
+        },
+        {
+          "id": "brand",
+          "name": "Safety Lime",
+          "value": "#C8F542"
+        }
+      ],
+      "text": [
+        {
+          "css": {
+            "d": {
+              "color": "#F3F1EB",
+              "font-size": "64px",
+              "font-weight": "600",
+              "letter-spacing": "-0.015em",
+              "line-height": "0.98",
+              "text-transform": "uppercase"
+            },
+            "m": {
+              "font-size": "38px"
+            },
+            "t": {
+              "font-size": "48px"
+            }
+          },
+          "id": "display",
+          "name": "Display",
+          "tag": "h1"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "38px",
+              "font-weight": "600",
+              "letter-spacing": "-0.01em",
+              "line-height": "1.08",
+              "text-transform": "uppercase"
+            },
+            "m": {
+              "font-size": "28px"
+            },
+            "t": {
+              "font-size": "32px"
+            }
+          },
+          "id": "title",
+          "name": "Section title",
+          "tag": "h2"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-ink)",
+              "font-size": "22px",
+              "font-weight": "600",
+              "line-height": "1.25"
+            },
+            "m": {
+              "font-size": "20px"
+            },
+            "t": {}
+          },
+          "id": "subtitle",
+          "name": "Zone title",
+          "tag": "h3"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "#D7D5CE",
+              "font-size": "18px",
+              "line-height": "1.6"
+            },
+            "m": {
+              "font-size": "16px"
+            },
+            "t": {}
+          },
+          "id": "lead",
+          "name": "Lead",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "var(--c-text)",
+              "font-size": "16px",
+              "line-height": "1.65"
+            },
+            "m": {
+              "font-size": "15px"
+            },
+            "t": {}
+          },
+          "id": "body",
+          "name": "Body",
+          "tag": "p"
+        },
+        {
+          "css": {
+            "d": {
+              "color": "#8C381C",
+              "font-size": "12px",
+              "font-weight": "700",
+              "letter-spacing": "0.1em",
+              "text-transform": "uppercase"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "eyebrow",
+          "name": "Eyebrow",
+          "tag": "div"
+        },
+        {
+          "css": {
+            "d": {
+              "font-size": "14px",
+              "font-weight": "700",
+              "letter-spacing": "0.03em"
+            },
+            "m": {},
+            "t": {}
+          },
+          "id": "btn",
+          "name": "Button label"
+        }
+      ]
+    }
+  },
+  "pages": [
+    {
+      "desc": "Steep indoor bouldering terrain, four monthly-reset climbing zones, tension loft, and transparent drop-in passes in Portland.",
+      "id": "newvcz1vm4",
+      "name": "Home",
+      "ogImage": "",
+      "slug": "index",
+      "title": "Kairn Climbing — Indoor Bouldering & Training Gym",
+      "tree": [
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "top"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hero-kicker",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Portland Pearl District · 14,500 Sq Ft Bouldering",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hero-h1",
+                      "props": {
+                        "level": "h1",
+                        "link": "",
+                        "target": "",
+                        "text": "Steep limestone terrain, reset every Tuesday.",
+                        "ts": "display"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hero-lead",
+                      "props": {
+                        "html": "<p>Ninety-four hand-stripped problems across four climbing angles, paired with a tension board loft, finger-strength rung station, and quiet recovery sauna.</p>",
+                        "ts": "lead"
+                      },
+                      "type": "text"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-ink)",
+                              "align-self": "flex-start",
+                              "background-color": "#C8F542",
+                              "border-radius": "6px",
+                              "color": "#151716",
+                              "padding-bottom": "13px",
+                              "padding-left": "22px",
+                              "padding-right": "22px",
+                              "padding-top": "13px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-cta-pass",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#pass",
+                            "target": "",
+                            "text": "Reserve First-Visit Pass",
+                            "ts": "btn",
+                            "variant": "solid",
+                            "wrap": "inline-flex"
+                          },
+                          "type": "button"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "--pc-solid-fg": "var(--c-ink)",
+                              "align-self": "flex-start",
+                              "background-color": "transparent",
+                              "border-color": "#4B524E",
+                              "border-radius": "6px",
+                              "border-width": "1px",
+                              "color": "#F3F1EB",
+                              "padding-bottom": "12px",
+                              "padding-left": "20px",
+                              "padding-right": "20px",
+                              "padding-top": "12px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-cta-rates",
+                          "props": {
+                            "align": "flex-start",
+                            "icon": "none",
+                            "link": "#rates",
+                            "target": "",
+                            "text": "View Drop-In Rates",
+                            "ts": "btn",
+                            "variant": "outline",
+                            "wrap": "inline-flex"
+                          },
+                          "type": "button"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "center",
+                          "display": "flex",
+                          "flex-wrap": "wrap",
+                          "gap": "14px",
+                          "margin-top": "6px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hero-actions",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F3F1EB",
+                                  "font-size": "19px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {
+                                  "font-size": "16px"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-1-v",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "94 Boulders",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#A5A8A1",
+                                  "font-size": "12px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-1-l",
+                              "props": {
+                                "html": "<p>Active Problems</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-sp-1",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#F3F1EB",
+                                  "font-size": "19px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {
+                                  "font-size": "16px"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-2-v",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "45° Arch",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#A5A8A1",
+                                  "font-size": "12px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-2-l",
+                              "props": {
+                                "html": "<p>Max Overhang</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-sp-2",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#C8F542",
+                                  "font-size": "19px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {
+                                  "font-size": "16px"
+                                },
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-3-v",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "Tuesdays",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#A5A8A1",
+                                  "font-size": "12px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-sp-3-l",
+                              "props": {
+                                "html": "<p>Weekly Strip &amp; Set</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "2px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-sp-3",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid #2A2F2C",
+                          "display": "flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "16px",
+                          "justify-content": "space-between",
+                          "margin-top": "12px",
+                          "padding-top": "20px"
+                        },
+                        "m": {
+                          "display": "flex",
+                          "flex-wrap": "nowrap",
+                          "gap": "10px",
+                          "justify-content": "space-between",
+                          "padding-top": "16px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hero-specs",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "20px",
+                      "justify-content": "center",
+                      "padding-bottom": "56px",
+                      "padding-left": "clamp(36px, 9vw, 130px)",
+                      "padding-right": "48px",
+                      "padding-top": "56px"
+                    },
+                    "m": {
+                      "gap": "16px",
+                      "padding-bottom": "36px",
+                      "padding-left": "18px",
+                      "padding-right": "18px",
+                      "padding-top": "36px"
+                    },
+                    "t": {
+                      "padding-bottom": "44px",
+                      "padding-left": "24px",
+                      "padding-right": "24px",
+                      "padding-top": "48px"
+                    }
+                  },
+                  "hide": {},
+                  "id": "krn-hero-copy",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "0px",
+                          "height": "660px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "object-position": "center 25%",
+                          "width": "100%"
+                        },
+                        "m": {
+                          "height": "380px"
+                        },
+                        "t": {
+                          "height": "480px"
+                        }
+                      },
+                      "hide": {},
+                      "id": "krn-hero-img",
+                      "props": {
+                        "alt": "Climber working a steep basalt bouldering wall dusted in white chalk",
+                        "caption": "",
+                        "decorative": 0,
+                        "h": "1200",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:hero-wall",
+                        "target": "",
+                        "w": "896"
+                      },
+                      "type": "image"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "height": "660px",
+                      "overflow": "hidden"
+                    },
+                    "m": {
+                      "height": "380px"
+                    },
+                    "t": {
+                      "height": "480px"
+                    }
+                  },
+                  "hide": {},
+                  "id": "krn-hero-media",
+                  "props": {
+                    "layout": "block",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "stretch",
+                  "display": "grid",
+                  "grid-template-columns": "repeat(2, minmax(0, 1fr))",
+                  "min-height": "640px"
+                },
+                "m": {
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "grid-template-columns": "minmax(0, 1fr)",
+                  "min-height": "0px"
+                }
+              },
+              "hide": {},
+              "id": "krn-hero-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "#151716",
+              "padding-bottom": "0px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "0px"
+            },
+            "m": {
+              "padding-bottom": "0px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "0px"
+            },
+            "t": {
+              "padding-bottom": "0px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "0px"
+            }
+          },
+          "hide": {},
+          "id": "krn-hero",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "full"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": ""
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-a-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Cave Arch",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-a-g",
+                      "props": {
+                        "html": "<p>V4–V10 Steep Roof</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-a",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-b-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Birch Slab",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-b-g",
+                      "props": {
+                        "html": "<p>V0–V5 Technical Footwork</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-b",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-c-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Tuesday Reset",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-c-g",
+                      "props": {
+                        "html": "<p>18 Fresh Problems Weekly</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-c",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-d-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Comp Wall",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-d-g",
+                      "props": {
+                        "html": "<p>Dual-Tex Macro Volumes</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-d",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-e-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Kilter 16×12",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-e-g",
+                      "props": {
+                        "html": "<p>Hydraulic 0°–70°</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-e",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-f-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Campus Bay",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-f-g",
+                      "props": {
+                        "html": "<p>20mm Edge & Recovery</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-f",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-g-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "MoonBoard",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-g-g",
+                      "props": {
+                        "html": "<p>40° LED Benchmark Wall</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-g",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-h-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Cedar Sauna",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-h-g",
+                      "props": {
+                        "html": "<p>Post-Session Recovery</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-h",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-i-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Mat Depth",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-i-g",
+                      "props": {
+                        "html": "<p>32cm Triple-Density Foam</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-i",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#C8F542",
+                          "flex-shrink": "0",
+                          "font-size": "12px",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-j-s",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Intro Clinics",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "#F3F1EB",
+                          "flex-shrink": "0",
+                          "font-size": "14px",
+                          "font-weight": "600",
+                          "margin-bottom": "0px",
+                          "text-align": "left",
+                          "white-space": "nowrap",
+                          "width": "auto"
+                        },
+                        "m": {
+                          "font-size": "13px"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-tk-j-g",
+                      "props": {
+                        "html": "<p>Thu 18:00 Technique Lab</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "align-items": "center",
+                      "background-color": "#212523",
+                      "border": "1px solid #353B38",
+                      "border-radius": "999px",
+                      "display": "flex",
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "10px",
+                      "min-width": "max-content",
+                      "padding-bottom": "9px",
+                      "padding-left": "16px",
+                      "padding-right": "16px",
+                      "padding-top": "9px",
+                      "white-space": "nowrap",
+                      "width": "max-content"
+                    },
+                    "m": {
+                      "flex-shrink": "0",
+                      "flex-wrap": "nowrap",
+                      "gap": "8px",
+                      "min-width": "max-content",
+                      "padding-bottom": "7px",
+                      "padding-left": "12px",
+                      "padding-right": "12px",
+                      "padding-top": "7px",
+                      "width": "max-content"
+                    },
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-tk-j",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "width": "100%"
+                },
+                "m": {},
+                "t": {}
+              },
+              "hide": {},
+              "id": "krn-marquee",
+              "props": {
+                "dir": "left",
+                "fade": 1,
+                "gap": "16px",
+                "pause": 1,
+                "speed": "38s"
+              },
+              "type": "marquee"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "#1B1E1C",
+              "border-bottom": "1px solid #2A2F2C",
+              "border-top": "1px solid #2A2F2C",
+              "padding-bottom": "16px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "16px"
+            },
+            "m": {
+              "padding-bottom": "12px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "12px"
+            },
+            "t": {
+              "padding-bottom": "14px",
+              "padding-left": "0px",
+              "padding-right": "0px",
+              "padding-top": "14px"
+            }
+          },
+          "hide": {},
+          "id": "krn-ticker-sec",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "full"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "walls"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-self": "flex-start",
+                          "border-radius": "10px",
+                          "max-width": "100%",
+                          "object-fit": "cover",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-cave-img",
+                      "props": {
+                        "alt": "Interior of Kairn Climbing 45-degree overhanging birch and basalt arch cave with crash mats",
+                        "caption": "The North Arch — 45° continuous roof into vertical top-out mantle.",
+                        "decorative": 0,
+                        "h": "896",
+                        "label": "",
+                        "lazy": 0,
+                        "link": "",
+                        "src": "asset:zone-cave",
+                        "target": "",
+                        "w": "1200"
+                      },
+                      "type": "image"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "background-color": "var(--c-surface)",
+                          "border": "1px solid var(--c-line)",
+                          "border-radius": "8px",
+                          "font-size": "14px",
+                          "margin-bottom": "0px",
+                          "padding-bottom": "16px",
+                          "padding-left": "18px",
+                          "padding-right": "18px",
+                          "padding-top": "16px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zone-specs",
+                      "props": {
+                        "html": "<p><strong>Mat Depth:</strong> 32 cm triple-density closed-cell foam across the entire perimeter, inspected weekly for seam tension and fall-zone clearance.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-zones-photo-col",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zones-kicker",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Wall Architecture",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "8px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zones-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Four terrain zones stripped and re-textured every month.",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-cave-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "The Basalt Cave",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#7D3219",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-cave-meta",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "45° Overhang · V3–V10",
+                                "ts": "eyebrow"
+                              },
+                              "type": "heading"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "baseline",
+                              "display": "flex",
+                              "flex-wrap": "wrap",
+                              "gap": "12px",
+                              "justify-content": "space-between"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-cave-top",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-cave-p",
+                          "props": {
+                            "html": "<p>Thuggy roof pulls linked into heel-hook bicycles on custom geometric birch volumes.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zn-cave",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-slab-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Clerestory Birch Slab",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#7D3219",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-slab-meta",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "5° Positive · V0–V5",
+                                "ts": "eyebrow"
+                              },
+                              "type": "heading"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "baseline",
+                              "display": "flex",
+                              "flex-wrap": "wrap",
+                              "gap": "12px",
+                              "justify-content": "space-between"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-slab-top",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-slab-p",
+                          "props": {
+                            "html": "<p>North-lit delicate balance sets built for smearing precision, gaston transitions, and quiet feet.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zn-slab",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-comp-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Dual-Tex Comp Headwall",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#7D3219",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-comp-meta",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "25°–35° Wall · V2–V9",
+                                "ts": "eyebrow"
+                              },
+                              "type": "heading"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "baseline",
+                              "display": "flex",
+                              "flex-wrap": "wrap",
+                              "gap": "12px",
+                              "justify-content": "space-between"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-comp-top",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-comp-p",
+                          "props": {
+                            "html": "<p>Sixteen-foot tall dynamic coordination climbs mixing glossy fiberglass scoops with sandpaper crimps.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zn-comp",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-ink)",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-kilter-h",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Kilter & Strength Loft",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "#7D3219",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-zn-kilter-meta",
+                              "props": {
+                                "level": "div",
+                                "link": "",
+                                "target": "",
+                                "text": "0°–70° Adjustable · All Grades",
+                                "ts": "eyebrow"
+                              },
+                              "type": "heading"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "align-items": "baseline",
+                              "display": "flex",
+                              "flex-wrap": "wrap",
+                              "gap": "12px",
+                              "justify-content": "space-between"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-kilter-top",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-muted)",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-zn-kilter-p",
+                          "props": {
+                            "html": "<p>Full hydraulic 16×12 board beside calibrated 18mm/20mm hangboards, kettlebells, and wooden rings.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "8px",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-zn-kilter",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "12px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-zones-index-col",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "48px",
+                  "grid-template-columns": "1.08fr 0.92fr"
+                },
+                "m": {
+                  "gap": "28px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "32px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "krn-zones-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "72px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "72px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "44px"
+            },
+            "t": {
+              "padding-bottom": "56px",
+              "padding-top": "56px"
+            }
+          },
+          "hide": {},
+          "id": "krn-walls",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "rates"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rates-kicker",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "Transparent Access",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rates-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Simple rates with zero initiation fees.",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rates-note",
+                      "props": {
+                        "html": "<p>Month-to-month memberships include unlimited training loft access, Tuesday setter talks, and one guest pass every billing cycle.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "12px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-rates-intro",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "font-size": "20px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-day-name",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Single Day Pass",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "14px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-day-note",
+                              "props": {
+                                "html": "<p>Full access to all boulder zones, Kilter loft, and locker showers.</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "4px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-day-left",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-ink)",
+                              "font-size": "22px",
+                              "margin-bottom": "0px",
+                              "text-align": "right",
+                              "white-space": "nowrap"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-day-price",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "$24",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "baseline",
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "20px",
+                          "grid-template-columns": "minmax(0, 1fr) auto",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "minmax(0, 1fr)"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rt-day",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "font-size": "20px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-rental-name",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Rental Gear Kit",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "14px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-rental-note",
+                              "props": {
+                                "html": "<p>Resoled climbing shoes plus washable liquid chalk pouch for the day.</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "4px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-rental-left",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-ink)",
+                              "font-size": "22px",
+                              "margin-bottom": "0px",
+                              "text-align": "right",
+                              "white-space": "nowrap"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-rental-price",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "$7",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "baseline",
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "20px",
+                          "grid-template-columns": "minmax(0, 1fr) auto",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "minmax(0, 1fr)"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rt-rental",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "font-size": "20px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-pack-name",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Ten-Visit Punch Card",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "14px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-pack-note",
+                              "props": {
+                                "html": "<p>Shareable across household members, valid for twenty-four months.</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "4px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-pack-left",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-ink)",
+                              "font-size": "22px",
+                              "margin-bottom": "0px",
+                              "text-align": "right",
+                              "white-space": "nowrap"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-pack-price",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "$205",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "baseline",
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "20px",
+                          "grid-template-columns": "minmax(0, 1fr) auto",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "minmax(0, 1fr)"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rt-pack",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "font-size": "20px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-unlim-name",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Unlimited Monthly Membership",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "14px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-unlim-note",
+                              "props": {
+                                "html": "<p>No contract freeze penalty, one guest pass per month, and sauna access.</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "4px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-unlim-left",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-ink)",
+                              "font-size": "22px",
+                              "margin-bottom": "0px",
+                              "text-align": "right",
+                              "white-space": "nowrap"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-unlim-price",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "$98 / mo",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "baseline",
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "20px",
+                          "grid-template-columns": "minmax(0, 1fr) auto",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "minmax(0, 1fr)"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rt-unlim",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "font-size": "20px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-offpeak-name",
+                              "props": {
+                                "level": "h3",
+                                "link": "",
+                                "target": "",
+                                "text": "Morning Shift Pass (06:30–14:00)",
+                                "ts": "subtitle"
+                              },
+                              "type": "heading"
+                            },
+                            {
+                              "adv": {
+                                "cls": "",
+                                "css": "",
+                                "htmlId": ""
+                              },
+                              "children": [],
+                              "cls": [],
+                              "css": {
+                                "d": {
+                                  "color": "var(--c-muted)",
+                                  "font-size": "14px",
+                                  "margin-bottom": "0px",
+                                  "text-align": "left"
+                                },
+                                "m": {},
+                                "t": {}
+                              },
+                              "hide": {},
+                              "id": "krn-rt-offpeak-note",
+                              "props": {
+                                "html": "<p>Weekday early sessions for shift workers, freelancers, and students.</p>",
+                                "ts": "body"
+                              },
+                              "type": "text"
+                            }
+                          ],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "gap": "4px",
+                              "width": "auto"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-offpeak-left",
+                          "props": {
+                            "layout": "flex",
+                            "link": "",
+                            "tag": "div",
+                            "target": ""
+                          },
+                          "type": "box"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "var(--c-ink)",
+                              "font-size": "22px",
+                              "margin-bottom": "0px",
+                              "text-align": "right",
+                              "white-space": "nowrap"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-rt-offpeak-price",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "$74 / mo",
+                            "ts": "subtitle"
+                          },
+                          "type": "heading"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "align-items": "baseline",
+                          "border-bottom": "1px solid var(--c-line)",
+                          "display": "grid",
+                          "gap": "20px",
+                          "grid-template-columns": "minmax(0, 1fr) auto",
+                          "padding-bottom": "18px",
+                          "padding-top": "18px"
+                        },
+                        "m": {
+                          "gap": "6px",
+                          "grid-template-columns": "minmax(0, 1fr)"
+                        },
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-rt-offpeak",
+                      "props": {
+                        "layout": "grid",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "border-top": "1px solid var(--c-line)",
+                      "display": "flex",
+                      "flex-direction": "column"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-rates-list",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "start",
+                  "display": "grid",
+                  "gap": "48px",
+                  "grid-template-columns": "0.38fr 0.62fr"
+                },
+                "m": {
+                  "gap": "20px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "24px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "krn-rates-wrap",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "background-color": "var(--c-surface)",
+              "border-bottom": "1px solid var(--c-line)",
+              "border-top": "1px solid var(--c-line)",
+              "padding-bottom": "68px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "68px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "44px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "krn-rates",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        },
+        {
+          "adv": {
+            "cls": "",
+            "css": "",
+            "htmlId": "hours"
+          },
+          "children": [
+            {
+              "adv": {
+                "cls": "",
+                "css": "",
+                "htmlId": ""
+              },
+              "children": [
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": ""
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#C8F542",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-kick",
+                          "props": {
+                            "level": "div",
+                            "link": "",
+                            "target": "",
+                            "text": "Schedule & Weekly Reset",
+                            "ts": "eyebrow"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F3F1EB",
+                              "font-size": "30px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-h2",
+                          "props": {
+                            "level": "h2",
+                            "link": "",
+                            "target": "",
+                            "text": "Climbing Hours & Sector Resets",
+                            "ts": "title"
+                          },
+                          "type": "heading"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#BFC2BA",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-intro",
+                          "props": {
+                            "html": "<p>Early morning strength sessions open six-thirty sharp; rotated zone strips stay isolated so the rest of the floor never closes.</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "12px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hr-top",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F3F1EB",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-1",
+                          "props": {
+                            "html": "<p><strong>Weekday Open Climb:</strong> 06:30 – 22:00</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#F3F1EB",
+                              "font-size": "15px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-2",
+                          "props": {
+                            "html": "<p><strong>Weekend Floor Hours:</strong> 08:00 – 20:00</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#D7D5CE",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-3",
+                          "props": {
+                            "html": "<p><strong>Tuesday Strip &amp; Set:</strong> 09:00 – 13:00 (rotating wall only)</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        },
+                        {
+                          "adv": {
+                            "cls": "",
+                            "css": "",
+                            "htmlId": ""
+                          },
+                          "children": [],
+                          "cls": [],
+                          "css": {
+                            "d": {
+                              "color": "#D7D5CE",
+                              "font-size": "14px",
+                              "margin-bottom": "0px",
+                              "text-align": "left"
+                            },
+                            "m": {},
+                            "t": {}
+                          },
+                          "hide": {},
+                          "id": "krn-hr-4",
+                          "props": {
+                            "html": "<p><strong>Address &amp; Gear Check:</strong> 918 NW 15th Ave, Bay 4 · Covered bike lockers, showers &amp; cedar sauna included</p>",
+                            "ts": "body"
+                          },
+                          "type": "text"
+                        }
+                      ],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid #2A2F2C",
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "gap": "14px",
+                          "padding-top": "18px"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hr-facts",
+                      "props": {
+                        "layout": "flex",
+                        "link": "",
+                        "tag": "div",
+                        "target": ""
+                      },
+                      "type": "box"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "border-top": "1px solid #2A2F2C",
+                          "color": "#C8F542",
+                          "font-size": "13px",
+                          "margin-bottom": "0px",
+                          "padding-top": "16px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-hr-foot",
+                      "props": {
+                        "html": "<p><strong>First-Time Visitors:</strong> Plan fifteen minutes early for shoe fitting and our five-minute mat orientation.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "#151716",
+                      "border-radius": "12px",
+                      "color": "#F3F1EB",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "20px",
+                      "height": "100%",
+                      "justify-content": "space-between",
+                      "padding-bottom": "32px",
+                      "padding-left": "28px",
+                      "padding-right": "28px",
+                      "padding-top": "32px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-hours-card",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                },
+                {
+                  "adv": {
+                    "cls": "",
+                    "css": "",
+                    "htmlId": "pass"
+                  },
+                  "children": [
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-ps-kick",
+                      "props": {
+                        "level": "div",
+                        "link": "",
+                        "target": "",
+                        "text": "New Climber Check-In",
+                        "ts": "eyebrow"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "font-size": "28px",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-ps-h2",
+                      "props": {
+                        "level": "h2",
+                        "link": "",
+                        "target": "",
+                        "text": "Reserve a First-Visit Session & Waiver",
+                        "ts": "title"
+                      },
+                      "type": "heading"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "--f-bg": "#F9F8F5",
+                          "--f-border": "var(--c-line)",
+                          "--f-btn-bg": "#151716",
+                          "--f-btn-fg": "#C8F542",
+                          "--f-gap": "14px",
+                          "--f-label": "var(--c-ink)",
+                          "--f-pad": "11px 14px",
+                          "--f-radius": "6px",
+                          "--f-text": "var(--c-ink)",
+                          "font-size": "15px",
+                          "width": "100%"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-waiver-form",
+                      "props": {
+                        "action": "",
+                        "aria": "First-visit waiver and date reservation",
+                        "fields": [
+                          {
+                            "half": 1,
+                            "label": "Full Name",
+                            "name": "full_name",
+                            "ph": "Jordan Morales",
+                            "required": 1,
+                            "type": "text"
+                          },
+                          {
+                            "half": 1,
+                            "label": "Email Address",
+                            "name": "email",
+                            "ph": "jordan@example.com",
+                            "required": 1,
+                            "type": "email"
+                          },
+                          {
+                            "half": 1,
+                            "label": "Preferred Visit Date",
+                            "name": "visit_date",
+                            "required": 1,
+                            "type": "date"
+                          },
+                          {
+                            "half": 1,
+                            "label": "Session Type",
+                            "name": "session_type",
+                            "opts": "Open Bouldering + Rental Shoes,Intro Technique Orientation (18:00),Morning Shift Trial Pass",
+                            "required": 1,
+                            "type": "select"
+                          },
+                          {
+                            "half": 0,
+                            "label": "I understand indoor bouldering carries inherent falling risk and will complete the on-site mat briefing.",
+                            "name": "waiver_ack",
+                            "required": 1,
+                            "type": "checkbox"
+                          }
+                        ],
+                        "method": "post",
+                        "mode": "external",
+                        "submit": "Confirm Session Request"
+                      },
+                      "type": "form"
+                    },
+                    {
+                      "adv": {
+                        "cls": "",
+                        "css": "",
+                        "htmlId": ""
+                      },
+                      "children": [],
+                      "cls": [],
+                      "css": {
+                        "d": {
+                          "color": "var(--c-muted)",
+                          "font-size": "13px",
+                          "margin-bottom": "0px",
+                          "text-align": "left"
+                        },
+                        "m": {},
+                        "t": {}
+                      },
+                      "hide": {},
+                      "id": "krn-form-note",
+                      "props": {
+                        "html": "<p>Bring government photo ID on arrival · Rental shoes and chalk bags are sized at the front desk.</p>",
+                        "ts": "body"
+                      },
+                      "type": "text"
+                    }
+                  ],
+                  "cls": [],
+                  "css": {
+                    "d": {
+                      "background-color": "var(--c-surface)",
+                      "border": "1px solid var(--c-line)",
+                      "border-radius": "12px",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "gap": "16px",
+                      "height": "100%",
+                      "padding-bottom": "32px",
+                      "padding-left": "28px",
+                      "padding-right": "28px",
+                      "padding-top": "32px"
+                    },
+                    "m": {},
+                    "t": {}
+                  },
+                  "hide": {},
+                  "id": "krn-pass-box",
+                  "props": {
+                    "layout": "flex",
+                    "link": "",
+                    "tag": "div",
+                    "target": ""
+                  },
+                  "type": "box"
+                }
+              ],
+              "cls": [],
+              "css": {
+                "d": {
+                  "align-items": "stretch",
+                  "display": "grid",
+                  "gap": "40px",
+                  "grid-template-columns": "0.42fr 0.58fr"
+                },
+                "m": {
+                  "gap": "24px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                },
+                "t": {
+                  "gap": "28px",
+                  "grid-template-columns": "minmax(0, 1fr)"
+                }
+              },
+              "hide": {},
+              "id": "krn-hf-grid",
+              "props": {
+                "layout": "grid",
+                "link": "",
+                "tag": "div",
+                "target": ""
+              },
+              "type": "box"
+            }
+          ],
+          "cls": [],
+          "css": {
+            "d": {
+              "padding-bottom": "72px",
+              "padding-left": "24px",
+              "padding-right": "24px",
+              "padding-top": "72px"
+            },
+            "m": {
+              "padding-bottom": "44px",
+              "padding-left": "16px",
+              "padding-right": "16px",
+              "padding-top": "44px"
+            },
+            "t": {}
+          },
+          "hide": {},
+          "id": "krn-hours",
+          "props": {
+            "inner": "",
+            "tag": "section",
+            "width": "boxed"
+          },
+          "type": "section"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 17,
+  "v": 17
+}

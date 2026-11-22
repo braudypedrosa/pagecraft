@@ -1,0 +1,24 @@
+{
+  "format": "pagecraft.site-template.v1",
+  "id": "kairn-climbing",
+  "version": "1.0.0",
+  "name": "Kairn Climbing",
+  "sampleName": "Kairn Climbing",
+  "description": "Single-page bouldering and strength gym landing site featuring an edge-to-edge split hero, kinetic grade marquee, steep wall zone breakdowns, ruled drop-in ledger, and horizontal waiver booking form.",
+  "categories": [
+    "Sports & Fitness",
+    "One Page"
+  ],
+  "pages": [
+    {
+      "id": "newvcz1vm4",
+      "name": "Home",
+      "slug": "index"
+    }
+  ],
+  "packageFile": "site.pagecraft-site.zip",
+  "packageSha256": "c7cc66bf0581fa8cb8478f7d71f078215e5ac4b013b4512d45e2309176469cb9",
+  "previewPage": "index.html",
+  "assetCount": 5,
+  "assetBytes": 250157
+}
