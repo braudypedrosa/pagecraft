@@ -54,6 +54,7 @@ const runtimeSource = [
   Core.ACCORDION_JS,
   Core.NAV_JS,
   Core.FACADE_JS,
+  Core.VIDEO_LIGHTBOX_JS,
   Core.LB_JS,
   Core.PUBLIC_SELECT_JS,
   Core.PUBLIC_DATE_JS,

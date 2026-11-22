@@ -2,7 +2,7 @@ import * as Core from '../../app/src/core/index.ts';
 import { adoptHostDocument, DocumentSchemaError } from '../../app/src/host/schema.ts';
 import type { Doc, Node } from '../../app/src/core/types.ts';
 
-export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','video','audio','icon','countdown','marquee','filter','tabs','table','crumbs','button','nav','form','accordion','spacer','divider']);
+export const TEMPLATE_DRAFT_WIDGETS = new Set(['section','row','list','slider','column','box','heading','text','quote','image','gallery','video','audio','icon','countdown','marquee','filter','tabs','table','code','crumbs','button','nav','form','accordion','spacer','divider']);
 const nodeKeys = new Set(['id','type','props','css','st','anim','hide','cls','adv','children','use','vals','variant','slot','bind']);
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = (message: string): never => { throw new Error(`invalid template document: ${message}`); };

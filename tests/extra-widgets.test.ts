@@ -309,7 +309,15 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
       C.N('heading', { text: 'Partner Studio', level: 'h3' }),
     ]);
     const fl = C.N('filter', { group: 'dispatch' }, {}, [c1, c2]);
-    doc.pages[0].tree = [C.N('section', {}, {}, [mq, fl])];
+    const cd = C.N('code', { lang: 'ts', title: 'worker.ts', body: 'export const ok = true;\n' });
+    const vl = C.N('video', {
+      src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      ratio: '16 / 9',
+      facade: 1,
+      lightbox: 1,
+      muted: 0,
+    });
+    doc.pages[0].tree = [C.N('section', {}, {}, [mq, fl, cd, vl])];
 
     expect(() => validateTemplateDraftDocument(doc)).not.toThrow();
 
@@ -329,5 +337,82 @@ describe('extra native widgets (audio, countdown, marquee, filter)', () => {
     expect(built.artifact.routes[0].bodyHtml).toContain('pagecraft-countdown');
     expect(built.artifact.routes[0].bodyHtml).toContain('pagecraft-marquee');
     expect(built.artifact.routes[0].bodyHtml).toContain('pagecraft-filter');
+    expect(built.artifact.routes[0].bodyHtml).toContain('pagecraft-code');
+    expect(built.artifact.routes[0].bodyHtml).toContain('data-video-lightbox');
+  });
+
+  test('video Open in lightbox control, markup, and modal playback/teardown runtime', () => {
+    const lightboxCtl = C.DEF.video.controls.content.find(c => c.k === 'lightbox');
+    expect(lightboxCtl).toMatchObject({ t: 'toggle', k: 'lightbox', label: 'Open in lightbox' });
+    expect(C.DEF.video.make().props.lightbox).toBe(0);
+
+    const yt = C.N('video', {
+      src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+      ratio: '16 / 9',
+      facade: 1,
+      lightbox: 1,
+      muted: 0,
+    });
+    const mp4 = C.N('video', {
+      src: 'https://cdn.example.com/tour.mp4',
+      ratio: '4 / 3',
+      controls: 1,
+      lightbox: 1,
+      muted: 1,
+    });
+    C.state.pages[0].tree = [C.N('section', {}, {}, [yt, mp4])];
+
+    const pageHtml = C.buildPage(C.state.pages[0]);
+    expect(pageHtml).toContain('data-video-lightbox');
+    expect(pageHtml).not.toContain('data-facade');
+    expect(pageHtml).toContain('Play video in lightbox');
+    expect(pageHtml).toContain('data-video-src="https://cdn.example.com/tour.mp4"');
+    expect(pageHtml).toContain('pagecraft-video-lightbox');
+
+    const markup = `${C.renderNode(yt, { edit: false })}${C.renderNode(mp4, { edit: false })}`;
+    const dom = domFor(markup);
+    const { window: win } = dom;
+    win.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+    win.HTMLDialogElement.prototype.close = function () {
+      this.open = false;
+      this.dispatchEvent(new win.Event('close'));
+    };
+    win.eval(scriptBody(C.VIDEO_LIGHTBOX_JS));
+
+    const buttons = win.document.querySelectorAll<HTMLButtonElement>('.pagecraft-video-play');
+    expect(buttons.length).toBe(2);
+
+    // 1. Open YouTube video in modal lightbox
+    buttons[0].click();
+    const dlg = win.document.querySelector<HTMLDialogElement>('dialog.pagecraft-video-lightbox')!;
+    expect(dlg).not.toBeNull();
+    expect(dlg.open).toBe(true);
+    const ytFrame = dlg.querySelector<HTMLIFrameElement>('iframe')!;
+    expect(ytFrame).not.toBeNull();
+    expect(ytFrame.src).toContain('https://www.youtube.com/embed/aqz-KE-bpKQ');
+    expect(ytFrame.src).toContain('autoplay=1');
+    // Trigger remains intact on the page behind the modal
+    expect(buttons[0].isConnected).toBe(true);
+
+    // Closing via close button stops/clears player
+    dlg.querySelector<HTMLButtonElement>('.pagecraft-lightbox-close')!.click();
+    expect(dlg.open).toBe(false);
+    expect(dlg.querySelector('iframe')).toBeNull();
+
+    // 2. Open direct MP4 video in modal lightbox
+    buttons[1].click();
+    expect(dlg.open).toBe(true);
+    const mp4Video = dlg.querySelector<HTMLVideoElement>('video')!;
+    expect(mp4Video).not.toBeNull();
+    expect(mp4Video.src).toBe('https://cdn.example.com/tour.mp4');
+    expect(mp4Video.controls).toBe(true);
+    expect(mp4Video.muted).toBe(true);
+
+    // Clicking backdrop stage closes modal and removes video element
+    dlg.querySelector<HTMLElement>('.pagecraft-video-lightbox-stage')!.click();
+    expect(dlg.open).toBe(false);
+    expect(dlg.querySelector('video')).toBeNull();
+
+    dom.window.close();
   });
 });

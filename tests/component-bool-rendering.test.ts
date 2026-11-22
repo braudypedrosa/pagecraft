@@ -50,29 +50,30 @@ test('Image default, local false, variant false, reset and restore render distin
   a.equal(C.instValue(C.locate(second.id)!.node, C.findComponent(cid), decorative), '0');
 });
 
-for (const flag of ['controls', 'autoplay', 'muted', 'loop', 'facade']) {
+for (const flag of ['controls', 'autoplay', 'muted', 'loop', 'facade', 'lightbox']) {
   test(`Video ${flag} binding renders actual false/true DOM in editor and public output`, () => {
     const original = C.insert('video', null, 0)!;
-    Object.assign(original.props, { src: flag === 'facade' ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : 'https://example.invalid/qa.mp4',
-      autoplay: 0, muted: 0, loop: 0, facade: 0, controls: 1, [flag]: 1 });
+    const yt = flag === 'facade' || flag === 'lightbox';
+    Object.assign(original.props, { src: yt ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : 'https://example.invalid/qa.mp4',
+      autoplay: 0, muted: 0, loop: 0, facade: 0, lightbox: 0, controls: 1, [flag]: 1 });
     const cid = C.componentFromNode(original.id, 'Video flags')!;
     const key = expose(cid, flag), second = C.instanceInsert(cid, null, C.tree().length)!;
     C.instSet(second, key, '0');
     C.variantFromInstance(second, 'Off');
+    const attr = flag === 'facade' ? 'data-facade' : flag === 'lightbox' ? 'data-video-lightbox' : null;
+    const hasFlag = (row: Element) => attr ? row.hasAttribute(attr) : row.querySelector('video')!.hasAttribute(flag);
     const check = () => {
       for (const edit of [true, false]) {
         const rows = [...dom(edit).querySelectorAll('.pagecraft-video')];
         a.equal(rows.length, 2);
-        rows.forEach((row, i) => flag === 'facade'
-          ? a.equal(row.hasAttribute('data-facade'), i === 0, `edit=${edit} facade${i}`)
-          : a.equal(row.querySelector('video')!.hasAttribute(flag), i === 0, `edit=${edit} ${flag}${i}`));
+        rows.forEach((row, i) => a.equal(hasFlag(row), i === 0, `edit=${edit} ${flag}${i}`));
       }
     };
     check();
     C.instSet(second, key, '1');
     for (const edit of [true, false]) {
       const rows = [...dom(edit).querySelectorAll('.pagecraft-video')];
-      a.equal(flag === 'facade' ? rows[1].hasAttribute('data-facade') : rows[1].querySelector('video')!.hasAttribute(flag), true);
+      a.equal(hasFlag(rows[1]), true);
     }
     C.instSet(second, key, undefined); check();
     C.restore(C.migrate(JSON.parse(JSON.stringify(C.doc())))!); check();
@@ -137,11 +138,11 @@ test('binding normalization follows toggle destinations and preserves text/selec
 });
 
 
-test('all 24 declared toggle destinations normalize bound zero/one without changing storage', () => {
+test('all 25 declared toggle destinations normalize bound zero/one without changing storage', () => {
   const controls = Object.entries(C.DEF).flatMap(([type, definition]) =>
     definition.controls.content.filter(control => control.t === 'toggle' && control.k)
       .map(control => ({ type: type as PcNode['type'], key: control.k! })));
-  a.equal(controls.length, 24, 'finite current toggle destination catalogue');
+  a.equal(controls.length, 25, 'finite current toggle destination catalogue');
   for (const { type, key } of controls) {
     C.blankProject('Toggle destination ' + type + '.' + key);
     const instance = C.insert(type, null, 0)!;

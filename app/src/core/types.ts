@@ -115,6 +115,7 @@ export interface VideoProps {
   src?: string; poster?: string; ratio?: string;
   autoplay?: 0 | 1 | boolean; loop?: 0 | 1 | boolean;
   muted?: 0 | 1 | boolean; controls?: 0 | 1 | boolean; facade?: 0 | 1 | boolean;
+  lightbox?: 0 | 1 | boolean;
 }
 export interface IconProps extends Linkable { name?: string; label?: string }
 export interface ButtonProps extends Linkable, Styled {

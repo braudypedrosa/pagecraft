@@ -830,7 +830,7 @@ const DEF: Record<string, WidgetDef> = {
     label: 'Video', icon: 'video', level: 4,
     caps: ['spacing', 'effects', 'animation'],
     make: () => ({
-      props: { src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', ratio: '16 / 9', autoplay: 0, loop: 0, muted: 1, controls: 1, poster: '', facade: 1 },
+      props: { src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', ratio: '16 / 9', autoplay: 0, loop: 0, muted: 1, controls: 1, poster: '', facade: 1, lightbox: 0 },
       css: { d: { width: '100%', 'border-radius': '10px', overflow: 'hidden' }, t: {}, m: {} }
     }),
     controls: {
@@ -840,6 +840,7 @@ const DEF: Record<string, WidgetDef> = {
         { t: 'img', k: 'poster', label: 'Poster image' },
         { t: 'toggle', k: 'facade', label: 'Load player on click',
           when: n => !n.props.autoplay && ['youtube', 'vimeo'].includes(vidSrc(n.props).kind) },
+        { t: 'toggle', k: 'lightbox', label: 'Open in lightbox' },
         { t: 'toggle', k: 'controls', label: 'Show controls' },
         { t: 'toggle', k: 'autoplay', label: 'Autoplay',
           note: 'Autoplay videos play without sound.' },
@@ -4680,7 +4681,7 @@ function lint() {
           else if (source.kind === 'invalid') queueContext('error', 'video-invalid-source',
             `A video in the ${region} has an unsupported source. Use YouTube, Vimeo, a video file or a complete http:// or https:// embed URL.`,
             region, n, scoped);
-          else if (!canFacade(p) && ['youtube', 'vimeo'].includes(source.kind) && !p.autoplay)
+          else if (!canFacade(p) && !canVideoLightbox(p) && ['youtube', 'vimeo'].includes(source.kind) && !p.autoplay)
             queueContext('warn', 'eager-video',
               `A video in the ${region} loads its player on page load. Turn on “Load on click” to defer it.`,
               region, n, scoped);
@@ -9561,23 +9562,38 @@ function publicFormControlCssFor(lists: PcNode[][], editing: boolean) {
   return editing ? '' : publicFormControlCss(publicFormControlsUsed(lists));
 }
 
+const VIDEO_LIGHTBOX_CSS = `.pagecraft-video-lightbox-stage{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  padding:clamp(16px,5vw,64px);box-sizing:border-box;
+}
+.pagecraft-video-lightbox-frame{
+  position:relative;width:min(100%,1120px,calc((100vh - 96px) * var(--pc-vr,16 / 9)));
+  aspect-ratio:var(--pc-vr,16 / 9);background:#000;border-radius:12px;overflow:hidden;
+  box-shadow:0 28px 80px rgba(0,0,0,.65);
+}
+.pagecraft-video-lightbox-frame>iframe,.pagecraft-video-lightbox-frame>video{
+  position:absolute;inset:0;width:100%;height:100%;border:0;display:block;
+}`;
+
 function extraWidgetsUsed(lists: PcNode[][]) {
-  let audio = false, countdown = false, marquee = false, filter = false;
+  let audio = false, countdown = false, marquee = false, filter = false, videoLightbox = false;
   const rendered = [...usedComponents(lists).map(component => [component.node]), ...lists];
   rendered.forEach(list => eachNode(list, node => {
     if (node.type === 'audio') audio = true;
     else if (node.type === 'countdown') countdown = true;
     else if (node.type === 'marquee') marquee = true;
     else if (node.type === 'filter') filter = true;
+    else if (node.type === 'video' && (node.props.lightbox || node.bind?.lightbox)) videoLightbox = true;
   }));
-  return { audio, countdown, marquee, filter };
+  return { audio, countdown, marquee, filter, videoLightbox };
 }
 
-function extraWidgetCss(used: { audio: boolean; countdown: boolean; marquee: boolean; filter: boolean }) {
+function extraWidgetCss(used: { audio: boolean; countdown: boolean; marquee: boolean; filter: boolean; videoLightbox?: boolean }) {
   return (used.audio ? `\n${AUDIO_CSS}` : '')
     + (used.countdown ? `\n${COUNTDOWN_CSS}` : '')
     + (used.marquee ? `\n${MARQUEE_CSS}` : '')
-    + (used.filter ? `\n${FILTER_CSS}` : '');
+    + (used.filter ? `\n${FILTER_CSS}` : '')
+    + (used.videoLightbox ? `\n${VIDEO_LIGHTBOX_CSS}` : '');
 }
 
 function extraWidgetCssFor(lists: PcNode[][], _editing: boolean) {
@@ -9610,6 +9626,7 @@ function wordpressStylesFor(pg: Page) {
         countdown: pageExtra.countdown && !globalExtra.countdown,
         marquee: pageExtra.marquee && !globalExtra.marquee,
         filter: pageExtra.filter && !globalExtra.filter,
+        videoLightbox: pageExtra.videoLightbox && !globalExtra.videoLightbox,
       })
       + (pageMoves && !globalMoves ? `\n${ANIM_CSS}\n${ANIM_CALM}` : ''))
   };
@@ -10265,6 +10282,7 @@ const embedUrl = (p: any) => {
 };
 /* A facade keeps the player's ~600KB off the page until someone clicks it. */
 const canFacade = (p: any) => p.facade && !p.autoplay && ['youtube', 'vimeo'].includes(vidSrc(p).kind);
+const canVideoLightbox = (p: any) => !!p.lightbox && !['none', 'invalid'].includes(vidSrc(p).kind);
 
 function vid(p: any) {
   const source = vidSrc(p);
@@ -10717,11 +10735,17 @@ function renderNode(n: PcNode, o: RenderOpts & { formRouting?: FormRoutingInspec
       return `<img ${at()} src="${src}"${ss}${alt}${dim}${lz} ${cx('pagecraft-image')}>`;
     }
     case 'video': {
-      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(cssRatio(p.ratio) || '16 / 9')}"`;
-      if (!canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
+      const ratio = cssRatio(p.ratio) || '16 / 9';
+      const box = `${at()} ${cx('pagecraft-video')} style="aspect-ratio:${esc(ratio)}"`;
+      const lb = canVideoLightbox(p);
+      if (!lb && !canFacade(p)) return `<div ${box}>${vid(p)}</div>`;
       const poster = vidPoster(p);
-      return `<div ${box} data-facade>`
-        + `<button class="pagecraft-video-play" type="button" data-embed="${esc(embedUrl(p))}" aria-label="Play video">`
+      const source = vidSrc(p);
+      const playAttrs = lb && source.kind === 'file'
+        ? `data-video-src="${esc(source.id)}"${p.controls ? ' data-video-controls=""' : ''}${p.loop ? ' data-video-loop=""' : ''}${p.muted ? ' data-video-muted=""' : ''}`
+        : `data-embed="${esc(embedUrl(lb ? { ...p, autoplay: 0 } : p))}"`;
+      return `<div ${box}${lb ? ` data-video-lightbox data-ratio="${esc(ratio)}"` : ' data-facade'}>`
+        + `<button class="pagecraft-video-play" type="button" ${playAttrs} aria-label="${lb ? 'Play video in lightbox' : 'Play video'}">`
         + (poster ? `<img src="${esc(poster)}" alt="" loading="lazy" decoding="async">` : '')
         + `<span class="pagecraft-video-icon" aria-hidden="true"></span></button></div>`;
     }
@@ -11462,6 +11486,63 @@ b.parentNode.replaceChild(f,b);if(k)f.focus();
 <\/script>
 `;
 
+/* Opens a video in a modal lightbox dialog on click. Emitted only when a page has one. */
+const VIDEO_LIGHTBOX_JS = `<script>
+(function(){
+var bs=document.querySelectorAll('[data-video-lightbox] .pagecraft-video-play');if(!bs.length)return;
+var dlg=null,stage=null,frame=null,closeB=null,opener=null;
+function stop(){
+if(!frame)return;
+var v=frame.querySelector('video');
+if(v){if(v.pause)v.pause();v.removeAttribute('src');if(v.load)v.load();}
+frame.innerHTML='';
+}
+function ensureDialog(){
+if(dlg)return dlg;
+dlg=document.createElement('dialog');dlg.className='pagecraft-lightbox pagecraft-video-lightbox';dlg.setAttribute('aria-label','Video player');
+stage=document.createElement('div');stage.className='pagecraft-video-lightbox-stage';
+frame=document.createElement('div');frame.className='pagecraft-video-lightbox-frame';
+stage.appendChild(frame);
+closeB=document.createElement('button');closeB.className='pagecraft-lightbox-btn pagecraft-lightbox-close';closeB.type='button';closeB.setAttribute('aria-label','Close video');closeB.textContent='\u00d7';
+dlg.appendChild(stage);dlg.appendChild(closeB);
+document.body.appendChild(dlg);
+closeB.addEventListener('click',function(){dlg.close();});
+dlg.addEventListener('click',function(e){if(e.target===dlg||e.target===stage)dlg.close();});
+dlg.addEventListener('close',function(){stop();if(opener&&opener.focus)opener.focus();opener=null;});
+return dlg;
+}
+function makeNode(b,k){
+var vsrc=b.getAttribute('data-video-src');
+if(vsrc){
+var v=document.createElement('video');v.src=vsrc;v.autoplay=true;v.playsInline=true;
+if(b.hasAttribute('data-video-controls'))v.controls=true;
+if(b.hasAttribute('data-video-loop'))v.loop=true;
+if(b.hasAttribute('data-video-muted'))v.muted=true;
+return v;
+}
+var emb=b.getAttribute('data-embed')||'',f=document.createElement('iframe');
+f.src=emb+(emb.indexOf('?')<0?'?':'&')+'autoplay=1';
+f.title='Video';f.allow='accelerometer;autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture';
+f.setAttribute('allowfullscreen','');if(k)f.setAttribute('data-pagecraft-keyboard-focus','');
+function c(){f.removeAttribute('data-pagecraft-keyboard-focus')}f.addEventListener('blur',c);f.addEventListener('pointerdown',c);
+return f;
+}
+Array.prototype.forEach.call(bs,function(b){
+b.addEventListener('click',function(){
+var k=b.matches(':focus-visible'),w=b.closest&&b.closest('[data-video-lightbox]');
+if(w&&typeof HTMLDialogElement==='function'){
+ensureDialog();stop();opener=b;
+frame.style.setProperty('--pc-vr',w.getAttribute('data-ratio')||'16 / 9');
+frame.appendChild(makeNode(b,k));
+dlg.showModal();closeB.focus();
+return;
+}
+var f=makeNode(b,k);
+b.parentNode.replaceChild(f,b);if(k)f.focus();
+});});})();
+<\/script>
+`;
+
 /* Emitted only onto pages with a Gallery whose lightbox is on. Every tile is
    already a working link to the full image, so this script never adds a
    capability — it upgrades a navigation into an overlay, and steps aside for a
@@ -11707,7 +11788,7 @@ ${isNotFound(pg) ? '<meta name="robots" content="noindex">\n' : ''}${demoteMainT
 <body>
 <a class="pagecraft-skip" href="#${mainId}">Skip to content</a>
 ${body}
-${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
+${/data-slider/.test(body) ? SLIDE_JS : ''}${/data-copy/.test(body) ? CODE_JS : ''}${/data-tabs/.test(body) ? ((ctx.schemaVersion ?? SCHEMA) < 15 ? LEGACY_TABS_JS : TABS_JS) : ''}${(ctx.schemaVersion ?? SCHEMA) >= 17 && /pagecraft-accordion/.test(body) ? ACCORDION_JS : ''}${/data-nav/.test(body) ? NAV_JS : ''}${/data-facade/.test(body) ? FACADE_JS : ''}${/data-video-lightbox/.test(body) ? VIDEO_LIGHTBOX_JS : ''}${/data-lightbox/.test(body) ? LB_JS : ''}${hasPublicSelect ? PUBLIC_SELECT_JS : ''}${hasPublicDate ? PUBLIC_DATE_JS : ''}${/data-audio/.test(body) ? AUDIO_JS : ''}${/data-countdown/.test(body) ? COUNTDOWN_JS : ''}${/data-filter-group/.test(body) ? FILTER_JS : ''}${moves ? `<script>\n${ANIM_JS}\n</script>\n` : ''}</body>
 </html>
 `;
 }
@@ -12216,7 +12297,7 @@ export { STYLE_CLIP_KEY, STYLE_CLIP_VERSION, setStyleClipProject, styleClipLoad,
 export type { EditContext };
 export {
   PROPOSAL_LIMITS, proposalPrepare, proposalCheck, proposalApply, proposalOutline, proposalNodeId,
-  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, SEC_TAGS, FACADE_JS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
+  esc, safeUrl, safeRichUrl, buildWordPressContentReference, parseWordPressContentReference, wordpressContentToken, parseWordPressContentToken, uid, clone, slugify, formFieldName, dbounce, DEF, TRANSITIONS, styleSeen, canDo, hasBackdrop, IC, ICONS, ICON_PATHS, ICON_NAMES, iconSvg, COMMON_STYLE, GF, stackFor, familyOf, isGoogle, usedFamilies, gfontsHref, gfontsLink, FONT_SUBSETS, parseFontCss, fontFaceCss, fontFile, fontGroups, FONT_BASE, LAYOUTS, COUNTS, DEFAULT_COLS, BASE, makeFor, labelOf, iconOf, rowRatios, matchLayout, N, cols, BOX, state, doc, page, tree, dk, DEV_KEY, DEV_LABEL, DEV_W, canvasWidth, fitZoom, ZOOMS, zoomFor, locate, locateAny, eachNode, nameOf, kindOf, lvl, holds, fitsIn, wrap, insert, moveNode, reid, pageMove, pageDup, pageDelete, dupNode, delNode, applyCols, seed, blankProject, quickAddSides, quickAdd, QUICK_SIDES, quickAddSections, quickAddSection, MIN_COL, BP_CHAIN, cssAt, rowRatiosAt, resizeCols, applyColsAt, rowStacked, rowReversed, setRowReversed, rowOrderProp, rowStacksOnTablet, setRowStackOnTablet, selIds, selNodes, multiOn, selSet, selToggle, selOrder, selRange, topMost, dupMany, delMany, moveMany, layerTarget, menuFor, ADV_SHARED, ctlKeys, fanTargets, RESERVED, TYPO_KEYS, TS_TYPES, tokenId, cvar, isRef, refId, colors, styles, classes, findColor, findStyle, findClass, nodeClasses, classAdd, classApply, classRemove, classFrom, classUsage, classDeleteCheck, classDelete, classMove, parseU, cssVal, setCss, STATES, stRead, stWrite, tgtObj, tgtIsClass, propVal, VAL, linkOf, kb, resolveColor, defaultTokens, ensureTokens, initUi, tokenVars, tokenCss, stripTypo, grabTypo, tsApply, tsUnlink, tsCanUpdateFrom, tsUpdateFrom, tsCreateFrom, tsUsage, styleAdd, styleDelete, U, colorDeleteCheck, colorDelete, colorAdd, colorUsage, clip, copyNode, pasteNode, dropTree, styleClip, copyStyles, stylePasteCheck, pasteStyles, pasteStylesMany, TEXT_SLOTS, SLOT_LABEL, PAGE_TEXT, contentKeys, textSlots, slotGet, slotSet, slotName, outsideTags, searchText, slotHits, snippet, searchAll, searchCount, replaceAll, blocks, findBlock, blockRootType, blockSave, blockInsert, blockDelete, components, findComponent, mobileMenuComponents, ensureMobileMenuComponent, findProp, instValue, instSet, imageSizeKey, imageSizeValue, instImageSizeSet, slotsOf, slotMark, slotKids, variantsOf, findVariant, instOwn, variantSet, variantFromInstance, variantUsage, variantDelete, variantRename, instControls, contentControls, contentKeysOf, CONTENT_PROP, propFromControl, PROP_KIND, componentFromNode, instanceInsert, instances, componentUsage, propAdd, propDelete, propRename, propMove, componentDelete, componentRename, componentOpen, componentClose, FIELD_TYPES, collections, findCollection, findField, findItem, uniqueId, collectionAdd, collectionDelete, collectionRename, fieldAdd, fieldDelete, collectionsReplace, collectionFieldSettingUsage, fieldMove, titleField, itemTitle, itemSlug, REF_DEPTH, fieldPaths, published, FILTER_OPS, matches, itemAdd, itemDelete, itemMove, itemSet, itemSetSlug, itemDraft, listItems, pageHref, isDetailTemplate, linkablePages, templateFor, exportTargets, contentJson, contentImport, sitePlan, bindableKeys, cmsBindable, cmsFieldTypes, COLL_CTL, bindGet, bindSet, bindField, boundField, COND_OPS, condValue, showsNode, condSet, srcSet, bindScope, BIND_CTL, bindSlots, guessBindings, applyBindings, previewIndex, previewItem, fieldValue, boundProps, TEMPLATES, templatePreview, pageFromTemplate, PATTERNS, patternInsert, flatten, step, smartTarget, crc32, CRC_T, applyOne, applyC, parentOf, firstChildOf, nudge, nudgeMany, atEdge, sendEdge, HOOKS, hist, checkpoint, edit, restore, historyLabel, undo, redo, LANGS, anchorsOf, parseLink, buildLink, pagedPath, pagedRel, listPageCount, paginatorOf, pageAt, ANIM_NAMES, ANIM_PFX, ANIM_SHA, animOf, animAttrs, animUsed, relink, pageSlugSet, FRONT, isFront, pageFront, NOT_FOUND, isNotFound, lint, gridTracks, lintCounts, lintGroups, sitemapXml, robotsTxt, jsonLd, jsonLdGraph, contrast, hex2rgb, parseColor, fmtColor, rgb2hsv, hsv2rgb, effective, chainTo, effectiveAt, SRCSET_W, imageWidths, sizesFor, A_RE, assetFile, assetPaths, ASSET_SLOTS, SCHEMA, migrate, PH, MQ, decl, selOf, PFX, widgetSlug, nodeClass, autoId, domIdOf, bucket, nodeCss, treeCss, publicFormControlCssFor, wordpressStyles, baseCss, LIGHTBOX_FAILURE_CSS, navCollapse, pager, TABS_JS, ACCORDION_JS, SLIDE_JS, CODE_JS, CODE_LANGS, codeSpans, tableGrid, collectionIndex, crumbTrail, crumbsShown, vid, vidSrc, vidPoster, embedUrl, canFacade, canVideoLightbox, SEC_TAGS, FACADE_JS, VIDEO_LIGHTBOX_JS, VIDEO_LIGHTBOX_CSS, LB_JS, para, stripScripts, renderNode, renderList, renderPublicLists, tidy, NAV_JS, PUBLIC_SELECT_JS, PUBLIC_DATE_JS, PUBLIC_SELECT_CSS, PUBLIC_DATE_CSS, AUDIO_CSS, AUDIO_JS, COUNTDOWN_CSS, COUNTDOWN_JS, MARQUEE_CSS, FILTER_CSS, FILTER_JS, extraWidgetCssFor, audioSrc, SHARED_HEADER_START, SHARED_HEADER_END, SHARED_FOOTER_START, SHARED_FOOTER_END, buildPage, fieldAt, EMBED_FRAME_JS, EMBED_FRAME_HASH, canvasCsp, cleanRich,
 };
 
 export { mobileMenuMode, mobileMenuDefinition, mobileMenuLinksNode, mobileMenuOwner, prepareMobileMenuEdit, setMobileMenuMode };

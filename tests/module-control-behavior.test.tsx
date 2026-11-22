@@ -277,7 +277,7 @@ test('every primitive property declaration survives edit, Undo, Redo and documen
   for (const control of advControls(C.N('heading')))
     if (control.k && primitivePropertyKinds.has(control.t)) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(110);
+  expect(declarations).toHaveLength(111);
   for (const { owner, control } of declarations) {
     const setup = conditionalSetup[`${owner}:${control.label}`];
     const n = place(owner, setup?.onParent);
