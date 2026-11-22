@@ -63,6 +63,7 @@ const conditionalSetup: Record<string, {
   'image:Alignment': { off: n => { n.css.d.position = 'absolute'; }, on: n => { delete n.css.d.position; } },
   'button:Alignment': { off: n => { n.css.d.position = 'absolute'; }, on: n => { delete n.css.d.position; } },
   'icon:Alignment': { off: n => { n.css.d.position = 'absolute'; }, on: n => { delete n.css.d.position; } },
+  'image:Focal point': { off: n => { n.css.d['object-fit'] = 'contain'; }, on: n => { n.css.d['object-fit'] = 'cover'; } },
   'box:Direction': { off: n => { n.props.layout = 'block'; }, on: n => { n.props.layout = 'flex'; } },
   'box:Gap': { off: n => { n.props.layout = 'block'; }, on: n => { n.props.layout = 'grid'; } },
   'box:Distribute': { off: n => { n.props.layout = 'block'; }, on: n => { n.props.layout = 'flex'; } },
@@ -108,7 +109,7 @@ const conditionalSetup: Record<string, {
   'shared:Repeat': { off: n => { n.css.d['background-image'] = ''; }, on: n => { n.css.d['background-image'] = 'url(qa.jpg)'; } },
 };
 
-test('all 43 conditional declarations render only in their applicable state', () => {
+test('all 44 conditional declarations render only in their applicable state', () => {
   const declarations: Array<{ owner: string; tab: 'content' | 'style'; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF)) {
     for (const tab of ['content', 'style'] as const)
@@ -117,7 +118,7 @@ test('all 43 conditional declarations render only in their applicable state', ()
   for (const group of C.COMMON_STYLE)
     for (const control of group.items) if (control.when) declarations.push({ owner: 'shared', tab: 'style', control });
 
-  expect(declarations).toHaveLength(43);
+  expect(declarations).toHaveLength(44);
   expect(Object.keys(conditionalSetup).sort()).toEqual(
     declarations.map(({ owner, control }) => `${owner}:${control.label}`).sort(),
   );
@@ -314,7 +315,7 @@ function cssValue(c: Control, n: PcNode, before: unknown) {
   return 'initial';
 }
 
-test('all 173 CSS declarations compile and share the same Undo/save model', () => {
+test('all 174 CSS declarations compile and share the same Undo/save model', () => {
   const declarations: Array<{ owner: string; control: Control }> = [];
   for (const [owner, def] of Object.entries(C.DEF))
     for (const control of [...def.controls.content, ...def.controls.style])
@@ -324,7 +325,7 @@ test('all 173 CSS declarations compile and share the same Undo/save model', () =
   for (const control of advControls(C.N('heading')))
     if (control.c) declarations.push({ owner: 'heading', control });
 
-  expect(declarations).toHaveLength(173);
+  expect(declarations).toHaveLength(174);
   for (const { owner, control } of declarations) {
     const type = owner === 'shared' ? 'section' : owner;
     const setup = conditionalSetup[`${owner}:${control.label}`];

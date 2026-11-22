@@ -272,7 +272,7 @@ function build(kind: PortablePackageKind, rawDocument: unknown, assets: readonly
   const rendered = renderSite(renderDocument, selectedAssets);
   const wordpressStyleFiles = new Map(exportTargets().map(target => [
     target.path,
-    wordpressStyles(target.pg)
+    wordpressStyles(target.pg, renderDocument.schemaVersion)
   ]));
   const firstStyles = wordpressStyleFiles.values().next().value as ReturnType<typeof wordpressStyles> | undefined;
   const content: PackageContent[] = [

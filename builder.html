@@ -1042,6 +1042,17 @@ select.ctl{
 .clr .x,.tgx{width:var(--ic-md);flex:0 0 var(--ic-md);height:var(--h-ctl);color:var(--text-3);border-radius:var(--r-sm);display:grid;place-items:center}
 .clr .x:hover{background:var(--risk-bg);color:var(--risk-fg)}
 .pick{display:flex;gap:var(--sp-2);background:var(--field);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
+/* I10: focal point. The whole photo, the part the frame keeps, and a dot to drag. */
+.pc-focal{display:grid;gap:var(--gap-1)}
+.pc-focal-pad{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-md);background:var(--field);cursor:crosshair;touch-action:none;user-select:none;line-height:0;min-height:64px}
+.pc-focal-pad.is-locked{cursor:default;opacity:var(--dim)}
+.pc-focal-pad img{display:block;width:100%;height:auto;max-height:240px;object-fit:contain;pointer-events:none}
+.pc-focal-empty{display:grid;place-items:center;min-height:64px;line-height:1.4;font-size:var(--fs-2);color:var(--text-3)}
+.pc-focal-kept{position:absolute;border:1.5px dashed #fff;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
+.pc-focal-dot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid #fff;background:rgba(183,243,74,.4);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.35);cursor:grab}
+.pc-focal-dot:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.pc-focal-row{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-2);font-size:var(--fs-2);color:var(--text-2)}
+.pc-focal-value{font-variant-numeric:tabular-nums;color:var(--text)}
 .pick button{flex:1;padding:6px 2px;border-radius:var(--r-sm);color:var(--text-3);display:grid;place-items:center;font-size:var(--fs-2);font-weight:500}
 .pick button svg{width:13px;height:13px}
 .pick button:hover{color:var(--text);background:var(--panel)}
