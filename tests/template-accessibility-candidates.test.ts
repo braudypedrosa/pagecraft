@@ -46,10 +46,10 @@ describe('template accessibility draft candidates', () => {
       .find(node => node.id === 'northline-v2-node-0038');
     expect(digital?.css.d.color).toBe('var(--c-red)');
     expect(renderSite(document).findings.filter(finding => finding.code === 'contrast')).toEqual([]);
+    // 2.0.10 changes only the colour: the approved release leaves the Home heading as 2.0.9 set it.
     const hero = nodes(document.pages.find(page => page.slug === 'index')!.tree)
       .find(node => node.id === 'northline-v2-node-0011')!;
-    expect(hero.css.d['max-width']).toBe('100%');
-    expect(hero.css.t['max-width']).toBe('100%');
+    expect(hero.css.d['max-width']).toBe('10.5ch');
   });
 
   it('keeps inquiry instructions consistent with the actual publication host', () => {

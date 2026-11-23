@@ -17,8 +17,8 @@ const KNOWN: Record<string, string[]> = {
   'salt-house': [],
   'architecture-studio': [],
   'coastal-rentals': [],
-  // Small red text on paper is 3.40:1. Fixing it changes the brand red: a design decision.
-  'independent-studio': ['contrast'],
+  // 2.0.10 darkened Signal red to #bd3028 (5.11:1 on paper; C1, 23 Nov 2026).
+  'independent-studio': [],
   'dental-clinic-a2': [],
   'culinary-school': [],
   'bramble-vet': [],

@@ -117,9 +117,10 @@ export async function openBrowser({ width = 1600, height = 1000 } = {}) {
         const fr = document.getElementById('canvas'); const d = fr.contentDocument;
         const el = target.startsWith('#') || target.includes('[') || target.includes(' ') || target.includes('.') ? d.querySelector(target) : d.querySelector(`[data-id="${target}"]`);
         if (!el) return null;
+        // A section taller than the canvas scrolls its top out of view when centred; click inside the visible part.
         el.scrollIntoView({ block: 'center' });
         const R = fr.getBoundingClientRect(), s = R.width / fr.clientWidth, r = el.getBoundingClientRect();
-        return { x: R.x + (r.x + Math.min(r.width / 2, 40)) * s, y: R.y + (r.y + Math.min(r.height / 2, 20)) * s };
+        return { x: R.x + (r.x + Math.min(r.width / 2, 40)) * s, y: R.y + (Math.max(r.y, 0) + Math.min(r.height / 2, 20)) * s };
       }, target);
       if (!box) throw new Error(`No canvas element ${target}`);
       await sleep(250);
@@ -127,7 +128,7 @@ export async function openBrowser({ width = 1600, height = 1000 } = {}) {
         const fr = document.getElementById('canvas'); const d = fr.contentDocument;
         const el = target.startsWith('#') || target.includes('[') || target.includes(' ') || target.includes('.') ? d.querySelector(target) : d.querySelector(`[data-id="${target}"]`);
         const R = fr.getBoundingClientRect(), s = R.width / fr.clientWidth, r = el.getBoundingClientRect();
-        return { x: R.x + (r.x + Math.min(r.width / 2, 40)) * s, y: R.y + (r.y + Math.min(r.height / 2, 20)) * s };
+        return { x: R.x + (r.x + Math.min(r.width / 2, 40)) * s, y: R.y + (Math.max(r.y, 0) + Math.min(r.height / 2, 20)) * s };
       }, target);
       await b.click(again.x, again.y, opts);
     },

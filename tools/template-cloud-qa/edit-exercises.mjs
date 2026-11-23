@@ -266,13 +266,15 @@ try {
     const findParent = (nodes, id, up = null) => { for (const n of nodes || []) { if (n.id === id) return up; const f = findParent(n.children, id, n); if (f) return f; } return null; };
     const home0 = (await doc()).pages[0];
     const hasImage = n => { let y = false; walk([n], x => { if (x.type === 'image') y = true; }); return y; };
+    // Photo cards are boxes, or columns in a row (Independent Studio's service cards).
+    const photoCard = c => (c.type === 'box' || c.type === 'column') && hasImage(c);
     // The repeated cards: instances of one component, or (in a template without components) a row of
-    // three or more boxes that each carry a photo. Other children of the row are left alone.
+    // three or more boxes or columns that each carry a photo. Other children of the row are left alone.
     let parent, component = null, inst = firstPage.instance;
     if (inst) { parent = findParent(home0.tree, inst).id; walk(home0.tree, n => { if (n.id === inst) component = n.use; }); }
-    else { walk(home0.tree, n => { if (!parent && (n.children || []).filter(c => c.type === 'box' && hasImage(c)).length >= 3) { parent = n.id; inst = n.children.find(c => c.type === 'box' && hasImage(c)).id; } }); }
+    else { walk(home0.tree, n => { if (!parent && (n.children || []).filter(photoCard).length >= 3) { parent = n.id; inst = n.children.find(photoCard).id; } }); }
     if (!parent) return record('stress-content', false, 'no repeated cards on the home page to stress', {});
-    const isCard = c => component ? c.use === component : c.type === 'box' && hasImage(c);
+    const isCard = c => component ? c.use === component : photoCard(c);
     const kids = async () => { await b.saved(); let node; walk((await doc()).pages[0].tree, n => { if (n.id === parent) node = n; }); return (node?.children || []).filter(isCard).map(c => c.id); };
     const geometry = async () => { const ids = await kids(); return b.canvasEval((d, ids) => { const k = ids.map(id => d.querySelector(`[data-id="${id}"]`)).filter(Boolean); return { n: ids.length, rendered: k.length, overflow: d.documentElement.scrollWidth > d.documentElement.clientWidth + 1, minWidth: Math.min(...k.map(x => Math.round(x.getBoundingClientRect().width))), broken: k.flatMap(x => [...x.querySelectorAll('img')]).filter(i => i.complete && !i.naturalWidth).length }; }, ids); };
     const start = (await kids()).length;
@@ -323,9 +325,27 @@ try {
   });
 
   await run('form-behavior', async () => {
+    const hasForm = p => JSON.stringify(p.tree).includes('"type":"form"');
+    let d = await doc(), added = null;
+    if (!d.pages.some(hasForm)) {
+      // A template without a form (Independent Studio): the owner adds one to Contact from the Add
+      // panel, publishes, and the published form must reach Submissions.
+      const target = d.pages.find(p => /contact/i.test(p.slug)) || d.pages[d.pages.length - 1];
+      await b.editor(site);
+      await b.choose('Current page', o => o.startsWith(target.name)); await sleep(1200);
+      if (!(await b.eval(() => [...document.querySelectorAll('input[type=search]')].some(e => e.offsetParent && e.placeholder.startsWith('Search text, photo'))))) { await b.button('Add elements'); await sleep(400); }
+      await b.field('Search text, photo, layout…', 'Form', { commit: false }); await sleep(500);
+      await b.button('Form', { exact: true, within: '[aria-label="Elements to add"]' }); await sleep(900);
+      await b.saved();
+      d = await doc();
+      added = { page: target.slug, formSaved: hasForm(d.pages.find(p => p.id === target.id)) };
+      await b.button('Publish this draft'); await sleep(900);
+      if (await b.has('Create publication preview')) { await b.button('Create publication preview'); await sleep(3500); }
+      await b.button('Publish reviewed version'); await sleep(1500);
+      if (await b.has('Publish this release')) { await b.button('Publish this release'); await sleep(2000); }
+    }
     const s = (await api('/api/sites')).find(x => x.id === site);
-    const d = await doc();
-    const formPage = d.pages.find(p => JSON.stringify(p.tree).includes('"type":"form"') && /contact|plan|stay/i.test(p.slug)) || d.pages.find(p => JSON.stringify(p.tree).includes('"type":"form"'));
+    const formPage = d.pages.find(p => hasForm(p) && /contact|plan|stay/i.test(p.slug)) || d.pages.find(hasForm);
     await b.goto(`${ORIGIN}/${s.slug}/${formPage.slug === 'index' ? '' : formPage.slug}`); await sleep(800);
     const form = await b.eval(() => { const f = [...document.forms].find(f => (f.method || '').toLowerCase() === 'post') || document.forms[0]; return f && { action: f.getAttribute('action'), method: f.method, fields: [...f.elements].filter(e => e.name).map(e => ({ name: e.name, type: e.type, required: e.required, label: e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') })) }; });
     // Fill each field with test data through real typing, then submit.
@@ -361,7 +381,7 @@ try {
     const landed = await b.eval(() => ({ url: location.href, h1: document.querySelector('h1')?.textContent.trim(), text: document.body.innerText.slice(0, 200), invalid: [...document.querySelectorAll(':invalid')].filter(e => e.name).map(e => `${e.name}: ${e.validationMessage}`) }));
     const subs = await (await fetch(`${ORIGIN}/sites/${site}/submissions?embedded=1`)).text();
     const stored = subs.includes('qa-guest@example.invalid') || subs.includes('QA test');
-    record('form-behavior', !!form && /^https?:|^\//.test(form.action || '') && stored, `Published ${formPage.slug} form filled with test data and submitted`, { form, landed, storedInSubmissions: stored });
+    record('form-behavior', !!form && /^https?:|^\//.test(form.action || '') && stored && (!added || added.formSaved), `${added ? 'Added a Form to ' + added.page + ' from the Add panel and published; ' : ''}Published ${formPage.slug} form filled with test data and submitted`, { added, form, landed, storedInSubmissions: stored });
   });
 } finally {
   log.finishedAt = new Date().toISOString(); log.chrome = b.version;
