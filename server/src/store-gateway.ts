@@ -1911,6 +1911,12 @@ export class GatewayHostedPublishPreparer
    its result is reused briefly. Identity is still verified per request by account auth, and
    memberships and authorization are never cached here. */
 export const AUTH_USER_CACHE_MS = 30_000;
+/* After the fresh window, a cached user is still served at once while one background upsert
+   refreshes it, so a request no longer waits a cross-region round trip just because the person
+   paused for 30 s. Past this limit (or on a first sign-in, a changed email or name, a profile
+   edit or a deletion) the request waits for the database as before. Plan limits are enforced
+   from fresh database reads, so a briefly stale plan only affects what a page displays. */
+export const AUTH_USER_STALE_MS = 10 * 60_000;
 const AUTH_USER_CACHE_MAX = 1000;
 /* Site access is checked on nearly every request, and each check was a ~0.3 s gateway round
    trip. Only granted access is remembered, so a new site or an accepted invitation is never
@@ -1922,7 +1928,10 @@ const MEMBERSHIP_CACHE_MAX = 2000;
 export class GatewayAuthStore implements AuthStore {
   private gateway: PagecraftGateway;
   private now: () => number;
-  private identities = new Map<string, { until: number; key: string; user: User }>();
+  private identities = new Map<string, { until: number; staleUntil: number; key: string; user: User }>();
+  private refreshing = new Map<string, Promise<User>>();
+  /** Bumped whenever cached users are forgotten, so an upsert already in flight cannot restore them. */
+  private identityEpoch = 0;
   private memberships = new Map<string, { until: number; membership: Membership }>();
   constructor(gateway: PagecraftGateway, now: () => number = Date.now) {
     this.gateway = gateway;
@@ -1937,6 +1946,7 @@ export class GatewayAuthStore implements AuthStore {
     }
   }
   private forgetUser(userId: string) {
+    this.identityEpoch++;
     for (const [authUserId, entry] of this.identities) {
       if (entry.user.id === userId) this.identities.delete(authUserId);
     }
@@ -1962,20 +1972,43 @@ export class GatewayAuthStore implements AuthStore {
   async ensureAuthUser(authUserId: string, email: string, name = "") {
     const key = `${normalEmail(email)}\n${name.trim()}`;
     const hit = this.identities.get(authUserId);
-    if (hit && hit.key === key && hit.until > this.now()) return { ...hit.user };
-    const user = toUser(
-      await this.gateway.call<UserWire>("auth.ensureAuthUser", {
-        id: crypto.randomUUID(),
-        authUserId,
-        email: normalEmail(email),
-        name: name.trim(),
-      }),
-    );
-    if (this.identities.size >= AUTH_USER_CACHE_MAX) {
-      this.identities.delete(this.identities.keys().next().value!);
+    const now = this.now();
+    if (hit && hit.key === key && hit.until > now) return { ...hit.user };
+    if (hit && hit.key === key && hit.staleUntil > now) {
+      // Serve the cached user now; one shared background upsert refreshes it.
+      this.upsertIdentity(authUserId, email, name, key).catch((error) => {
+        console.warn("auth.ensureAuthUser background refresh failed", error instanceof Error ? error.message : error);
+      });
+      return { ...hit.user };
     }
-    this.identities.set(authUserId, { until: this.now() + AUTH_USER_CACHE_MS, key, user });
-    return { ...user };
+    return { ...(await this.upsertIdentity(authUserId, email, name, key)) };
+  }
+  private upsertIdentity(authUserId: string, email: string, name: string, key: string): Promise<User> {
+    const flightKey = `${authUserId}\n${key}`;
+    const inFlight = this.refreshing.get(flightKey);
+    if (inFlight) return inFlight;
+    const epoch = this.identityEpoch;
+    const pending = (async () => {
+      const user = toUser(
+        await this.gateway.call<UserWire>("auth.ensureAuthUser", {
+          id: crypto.randomUUID(),
+          authUserId,
+          email: normalEmail(email),
+          name: name.trim(),
+        }),
+      );
+      // A profile edit or deletion while this upsert ran forgot the user; don't cache the older answer.
+      if (epoch === this.identityEpoch) {
+        if (!this.identities.has(authUserId) && this.identities.size >= AUTH_USER_CACHE_MAX) {
+          this.identities.delete(this.identities.keys().next().value!);
+        }
+        const at = this.now();
+        this.identities.set(authUserId, { until: at + AUTH_USER_CACHE_MS, staleUntil: at + AUTH_USER_STALE_MS, key, user });
+      }
+      return user;
+    })().finally(() => this.refreshing.delete(flightKey));
+    this.refreshing.set(flightKey, pending);
+    return pending;
   }
   async updateProfile(userId: string, input: { name: string }) {
     const row = await this.gateway.call<UserWire | null>("auth.updateProfile", {
