@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "capturedAt": "2026-11-22T22:34:27.618Z",
+  "capturedAt": "2026-11-23T10:38:15.954Z",
   "browser": "Headless Chrome",
   "captureSchemaVersion": 2,
   "browserVersion": {
@@ -62,8 +62,8 @@
         "high": false
       },
       "colorScheme": {
-        "light": true,
-        "dark": false
+        "light": false,
+        "dark": true
       }
     },
     "browserCommandLine": {
@@ -106,7 +106,7 @@
   "deviceScaleFactor": 1,
   "reducedMotion": true,
   "sources": {
-    "builder.html": "3b4475e2a35fa8b7857082529ce291c128b65de114228ba4acdf7a05e0a694c4",
+    "builder.html": "cd5a964ae1048bce85c1fb1da283bcc0a73cf88f5dc40f9b27e7578aa3092ab6",
     "app/src/ui/index.tsx": "0cc85efa4019065f57fc2c47c1679a116c674ce524c22b105c03461b2398423b",
     "app/src/ui/Disclosure.tsx": "3d085a84763e8276a0356723181783ffd1dcabba0b42e6914735ab5fd451ba23",
     "app/src/ui/Add.tsx": "b119c14f8ba9c8f3dca69be031cbde2f8364331866646482b253b8ea176d6b80",
@@ -124,7 +124,7 @@
     "shared/ui-typography.js": "46c0e124216b38c3731cc9a9d204c3138de8104c09f780801fa8dcdbf981456c",
     "shared/ui-focus.js": "b3c453ab590275d301b4cfb02e8e8aaba3c2ff61a19e69e26d1159c4063435b2",
     "shared/ui-motion.js": "5716ef990b045e94797d91c55b963677cae8c62cfbf2b19b72c737ec7aa2a9f3",
-    "shared/workspace-styles.js": "01db6e07d38ced2d65c0dec96964f6264a87d4664de5c21c9c85ada4dd39b4ab",
+    "shared/workspace-styles.js": "9eb7eb46ed339d7e5503da1fc09ca25c483dfd664d46d41340e73871c2aaf753",
     "shared/dialog-styles.js": "6e83e6a6197d90f162f7d24c5ec9535dbdc447e8a5136105b62538b50edc79ce",
     "shared/custom-select.js": "d7c26c7734f32bcd41c752dd5bb229eadcbf07e39f58f6a833bf6d7a025ee3ba",
     "shared/action-feedback.js": "235c8830abb00ed398a3413cf1b3f2289a9a4df94e35e92710e61363abb4a66e",
@@ -1105,7 +1105,7 @@
       }
     },
     "builder-feedback-1440.png": {
-      "sha256": "5cf009f79fb5a23bdeb8b7396420c4e74cdac419fdd1ae83ad861af9cc1f7178",
+      "sha256": "e4b100400b6372c540f4b5471de9f0d0bb799312a0065c3fe7fd4d071a0f48f6",
       "width": 1440,
       "height": 900,
       "state": "Recoverable inline failure and alert notification",

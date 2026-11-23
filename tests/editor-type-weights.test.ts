@@ -24,13 +24,23 @@ test('13 px labels are 500, not 600', () => {
 
 test('editor workspace and dialog titles are 600', () => {
   expect(chrome).toContain('#modalBox.workspace #mTitle{font-size:22px;line-height:1.3;font-weight:600}');
-  expect(chrome).toMatch(/\.pw-head h1\{[^}]*font-size:var\(--pc-workspace-title\)[^}]*font-weight:600/);
   expect(chrome).toMatch(/\.docname b\{font-weight:600\}/);
-  expect(workspace).toContain(':is(.pages-workspace,.cms-workspace) .pc-workspace-head h1{font-weight:600}');
+  expect(workspace).toContain(':is(.pages-workspace,.cms-workspace,.pw) .pc-workspace-head h1{font-weight:600}');
   expect(workspace).toContain('.project-settings #mTitle{font-size:var(--pc-workspace-title);line-height:1.3;font-weight:600}');
 });
 
 test('the rail groups are dividers without text', () => {
   expect(html).toContain('<span class="railGroup" aria-hidden="true"></span>');
   expect(html).toContain('<span class="railGroup manage" aria-hidden="true"></span>');
+});
+
+test('E6: Proposals uses the shared workspace header, and link buttons are not underlined', () => {
+  const proposals = readFileSync(new URL('../app/src/ui/ProposalsWorkspace.tsx', import.meta.url), 'utf8');
+  expect(proposals).toContain('<header class="pw-head pc-workspace-head">');
+  expect(chrome).not.toMatch(/\.pw-head\{/);
+  expect(chrome).not.toMatch(/\.pw-head (h1|p)\{/);
+  for (const part of ['{', ' h1{', ' p{', ' :is(.btn,.pc-btn){']) {
+    expect(workspace).toContain(':is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head' + part);
+  }
+  expect(chrome).toMatch(/\n\.btn\{[^}]*text-decoration:none/);
 });

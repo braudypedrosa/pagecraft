@@ -219,7 +219,7 @@ export function ProposalsWorkspace({ focus, close, changed }: { focus?: string; 
   const pending = list?.filter(p => p.status === 'pending').length || 0;
   return (
     <div class="pw" role="region" aria-label="Assistant proposals">
-      <header class="pw-head">
+      <header class="pw-head pc-workspace-head">
         <div>
           <h1>Proposals</h1>
           <p>Changes AI assistants suggested for this site. Nothing changes until you apply it.</p>
