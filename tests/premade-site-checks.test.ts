@@ -29,7 +29,10 @@ const KNOWN: Record<string, string[]> = {
 };
 
 /* Drafts of the next release of a template. Each must open clean apart from the listed reminders. */
-const DRAFTS: Record<string, string[]> = {};
+const DRAFTS: Record<string, string[]> = {
+  // Signal red darkened to #bd3028 (5.11:1 on paper); remove this and the KNOWN contrast line on promotion.
+  'independent-studio/2.0.10': [],
+};
 
 const catalog = JSON.parse(readFileSync('premade-sites/catalog.json', 'utf8')).templates as { id: string; version: string }[];
 const released = new Map<string, string>();

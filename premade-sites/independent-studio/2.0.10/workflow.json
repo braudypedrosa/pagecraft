@@ -2,22 +2,450 @@
   "format": "pagecraft.template-workflow.v1",
   "brief": {
     "audience": "Independent creative practices using the existing Northline Studio template",
-    "primaryAction": "Preserve the approved Northline site while correcting confirmed accessibility and Home heading-wrap findings",
+    "primaryAction": "Preserve the approved Northline site while correcting the Signal red contrast finding",
     "pages": [
       "index",
       "about",
       "services",
       "contact"
     ],
-    "content": "Keep the released copy, composition, features, and identities unchanged. Correct the red token contrast and let the native Home heading use its full column width so long editable copy wraps between words.",
+    "content": "Keep the released copy, composition, features, and identities unchanged. Darken the Signal red token from #ef3f32 to #bd3028 so the Digital service label passes WCAG AA for small text.",
     "imagery": "Reuse the five released Northline assets without substitution.",
     "provenance": []
   },
   "directions": [],
   "selection": null,
-  "targets": null,
-  "findings": [],
-  "qa": [],
-  "visualReview": null,
-  "approval": null
+  "targets": {
+    "wordpress": {
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147"
+    },
+    "cloud": {
+      "hostRevision": "pagecraft@a48d92ac local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:56b05a43d4536b3b5661089a6f510d28555b67ab3c217fe9bd26931836ba8e3f"
+    }
+  },
+  "findings": [
+    {
+      "severity": "error",
+      "page": "index",
+      "node": "northline-v2-node-0038",
+      "viewport": "all",
+      "detail": "Digital service label is 14 px Signal red #ef3f32 on Warm paper: 3.40:1, below WCAG AA 4.5:1 (Site check contrast suggestion on every new site).",
+      "correction": "Signal red token set to #bd3028 (5.11:1); user chose option A on 23 Nov 2026.",
+      "resolved": true
+    }
+  ],
+  "qa": [
+    {
+      "host": "wordpress",
+      "method": "package-check",
+      "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd",
+      "hostRevision": "pagecraft-wordpress@ba76cb75283f533de224fcb72aaf762487a3f787 package-check",
+      "editorVersion": "Pagecraft Builder 0.2.2 / Preview 147",
+      "at": "2026-11-23T00:19:46Z",
+      "editChecks": [],
+      "pages": [],
+      "breakpointChecks": "Not applicable: package check only; no WordPress rendering or editing was exercised.",
+      "evidence": [
+        {
+          "path": "evidence/wordpress-package-check.txt",
+          "sha256": "edc84a9f69c17c064b21181afbce072f35973ca5b191250ae19c353b1642eea0"
+        },
+        {
+          "path": "evidence/wordpress-package-check.php",
+          "sha256": "a25cada5e2a239daeb15cbfe024651b5266cfa410658481849cf16c602c95a4a"
+        }
+      ]
+    },
+    {
+      "host": "cloud",
+      "method": "interactive",
+      "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd",
+      "hostRevision": "pagecraft@a48d92ac local template-candidate-qa (createApp, in-memory store, fictional account), headless Chrome",
+      "editorVersion": "index.html sha256:56b05a43d4536b3b5661089a6f510d28555b67ab3c217fe9bd26931836ba8e3f",
+      "at": "2026-11-23T00:19:46Z",
+      "editChecks": [
+        "global-colors",
+        "global-typography",
+        "replace-images",
+        "long-headings",
+        "duplicate-reorder-delete",
+        "shared-and-instance-styles",
+        "responsive-inspector",
+        "save-reopen",
+        "publish-output",
+        "media-and-links",
+        "global-navigation-footer",
+        "form-behavior",
+        "stress-content"
+      ],
+      "pages": [
+        {
+          "slug": "index",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "index",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "about",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "services",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 390,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 768,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1024,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        },
+        {
+          "slug": "contact",
+          "viewport": 1440,
+          "checks": [
+            "text-floor",
+            "containers",
+            "image-crops",
+            "overflow",
+            "keyboard",
+            "mobile-menu",
+            "console",
+            "composition",
+            "responsive-hierarchy"
+          ]
+        }
+      ],
+      "breakpointChecks": "Every page published and measured at 390/768/1024/1440 (matrix.json); the display H2 larger than H1 on Home and About matches 2.0.9 and is pixel-identical to it. Responsive inspector exercise saved a mobile override separately from desktop.",
+      "evidence": [
+        {
+          "path": "evidence/cloud-qa/REPORT.md",
+          "sha256": "421026d5f4299001f45a77483436cf26b582131236eab44cf341d5b6d62563ac"
+        },
+        {
+          "path": "evidence/cloud-qa/matrix.json",
+          "sha256": "6d2c42fe7e0241112460d263a205dbebd27e8545424ae6d84456e9ee2fbc580b"
+        },
+        {
+          "path": "evidence/cloud-qa/editing-exercises.json",
+          "sha256": "428185ad1d927231ada9fd74dce0f20e78a8ae4b8174ec2f1bf218e85b1d6104"
+        },
+        {
+          "path": "evidence/cloud-qa/publish.json",
+          "sha256": "d5d0e1270bad44c22f7b74022aff68505f495850563e1fac018f996055e49a29"
+        },
+        {
+          "path": "evidence/cloud-qa/pixel-diff-2.0.9.jsonl",
+          "sha256": "1664258109556e32f4586cfdcde8e8110705421243c7e92ae133a1ea2337b7a4"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--index-390.jpg",
+          "sha256": "6b6b0b7f3f3dd66850f465b4b3cc4175dae7d35ec204d704246df8aed6df1d7a"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--index-768.jpg",
+          "sha256": "7895afebfe68bfd98223949c8a41abbcc85039013c620eaa328d48896fc2a557"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--index-1024.jpg",
+          "sha256": "fc8aac4bdf82804646b6b5d6161ebdac2289fd697afe527f08defba700fb8703"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--index-1440.jpg",
+          "sha256": "3b2ecbb7fdab6d90884e6544aa00e6f20f10e208734b576205c7ec263a663d9c"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--about-390.jpg",
+          "sha256": "acc26401e3ba6829c860779db458e21ea64dec0fa7aa795e424a0bb2f1a0eac5"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--about-768.jpg",
+          "sha256": "aeff26b7b62127b15192e6d018fbf6a7c27a9254d2624a757a5bfac02eece40e"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--about-1024.jpg",
+          "sha256": "744b44686d58627dddbccfe23db65a1df69a21210dce63abfb02e8ec21f1eab2"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--about-1440.jpg",
+          "sha256": "d881153bf9b8f08ac553b0337ce549eac90b9e37e677567fce5311db492ff5a6"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--services-390.jpg",
+          "sha256": "346395e00c1957a778f61d38810b7361a08563d64eb90a656def3734a680f73a"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--services-768.jpg",
+          "sha256": "587b05c6635a5d239e11324e03372372bb7a640244e195967438cf255e754760"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--services-1024.jpg",
+          "sha256": "a64c4639697703945b98136beb73e1293349c7abcb1d4c612955c3f6c6fc5383"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--services-1440.jpg",
+          "sha256": "25f5306765457bd6866450610ac1e3c6df4c1bf020225bb26340b6077c7d61a7"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--contact-390.jpg",
+          "sha256": "1a3ff4ea1323e38ff38e315508fda6eee30dae8c20044daa99e757bf536aebc8"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--contact-768.jpg",
+          "sha256": "5e931349284c75510fd89278201b2dfc075d48830650d7ea9da35290f16fdda7"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--contact-1024.jpg",
+          "sha256": "1288f495104102b0631f188b491e0b7211df22229ca89c783a1c0125a575cc8b"
+        },
+        {
+          "path": "evidence/cloud-qa/northline-qa--contact-1440.jpg",
+          "sha256": "110a2b6880734b4834e1052a099eda8ea348453f223242d1354d3aff83a2ce4a"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd",
+    "verdict": "pass",
+    "rationale": "Separate rendered pass on every page at 390/768/1024/1440 from full-page captures, the Home card row at full resolution, and a pixel comparison against 2.0.9 published the same way (only the Digital label changes). See RENDERED-REVIEW.md. Agent assessment, not user approval.",
+    "evidence": [
+      {
+        "path": "evidence/cloud-qa/RENDERED-REVIEW.md",
+        "sha256": "ef402ed36150e464acb5e12b581a8be68fbb026cce07decf6fa4cbe331ace415"
+      },
+      {
+        "path": "evidence/cloud-qa/pixel-diff-2.0.9.jsonl",
+        "sha256": "1664258109556e32f4586cfdcde8e8110705421243c7e92ae133a1ea2337b7a4"
+      },
+      {
+        "path": "evidence/cloud-qa/diff-2.0.9-vs-2.0.10-index-390.png",
+        "sha256": "11ffe8945c292c082808cde6f18179125975ebfe2e864e4c66071e35fa728231"
+      },
+      {
+        "path": "evidence/cloud-qa/diff-2.0.9-vs-2.0.10-index-768.png",
+        "sha256": "cd2411b7941e6a8a48f6fac1e6b38d1824dd90549f596d70b25360d3ac7c539b"
+      },
+      {
+        "path": "evidence/cloud-qa/diff-2.0.9-vs-2.0.10-index-1024.png",
+        "sha256": "c2522afdae25050de2ea8bc72b1e1394b5adb9c7c9861b9b0c0a66639dc80e10"
+      },
+      {
+        "path": "evidence/cloud-qa/diff-2.0.9-vs-2.0.10-index-1440.png",
+        "sha256": "b82aa6500170295fdc2a473090f2bdf02b274bffdf1e4f62fdcacaf949eae719"
+      }
+    ]
+  },
+  "approval": null,
+  "patchOf": {
+    "version": "2.0.9",
+    "packageSha256": "61467fdc9507c40ca7aeabc2d60b8d61b35d05bfe7717a3674589d1407f55340",
+    "scope": "Signal red token darkened from #ef3f32 to #bd3028 so the Home Digital service label reaches 5.11:1 on paper (was 3.40:1). Nothing else changes."
+  }
 }

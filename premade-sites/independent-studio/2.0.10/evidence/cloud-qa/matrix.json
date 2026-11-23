@@ -1,0 +1,930 @@
+{
+ "slug": "northline-qa",
+ "chrome": "Chrome/156.0.8078.82",
+ "origin": "http://127.0.0.1:4951",
+ "pages": [
+  {
+   "page": "index",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/northline-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 51,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 6266
+   },
+   "title": "Northline Studio \u2014 Ideas with consequence",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-390.jpg"
+  },
+  {
+   "page": "index",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/northline-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 64,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4924
+   },
+   "title": "Northline Studio \u2014 Ideas with consequence",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-768.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/northline-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 64,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [
+     "H2 71.68px > H1 64px"
+    ],
+    "height": 4783
+   },
+   "title": "Northline Studio \u2014 Ideas with consequence",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1024.jpg"
+  },
+  {
+   "page": "index",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/northline-qa/",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 5,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 84,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [
+     "H2 88px > H1 84px"
+    ],
+    "height": 5174
+   },
+   "title": "Northline Studio \u2014 Ideas with consequence",
+   "lang": "en",
+   "keyboard": {
+    "stops": 13,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "index-1440.jpg"
+  },
+  {
+   "page": "about",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/northline-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 42,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [
+     "H2 43px > H1 42px"
+    ],
+    "height": 3294
+   },
+   "title": "About \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-390.jpg"
+  },
+  {
+   "page": "about",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/northline-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 54,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2826
+   },
+   "title": "About \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-768.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/northline-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 55.296,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [
+     "H2 71.68px > H1 55.296px"
+    ],
+    "height": 2798
+   },
+   "title": "About \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1024.jpg"
+  },
+  {
+   "page": "about",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/northline-qa/about",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 2,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 72,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [
+     "H2 88px > H1 72px"
+    ],
+    "height": 3024
+   },
+   "title": "About \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "about-1440.jpg"
+  },
+  {
+   "page": "services",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/northline-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 45,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 4089
+   },
+   "title": "Services \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-390.jpg"
+  },
+  {
+   "page": "services",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/northline-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3503
+   },
+   "title": "Services \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-768.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/northline-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 71.68,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3503
+   },
+   "title": "Services \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1024.jpg"
+  },
+  {
+   "page": "services",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/northline-qa/services",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 3,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 88,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 3746
+   },
+   "title": "Services \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 8,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "services-1440.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 390,
+   "url": "http://127.0.0.1:4951/northline-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 390,
+    "width": 390,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 44,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2227
+   },
+   "title": "Contact \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-390.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 768,
+   "url": "http://127.0.0.1:4951/northline-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 768,
+    "width": 768,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 60,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1902
+   },
+   "title": "Contact \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-768.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1024,
+   "url": "http://127.0.0.1:4951/northline-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1024,
+    "width": 1024,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 63.488,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 1909
+   },
+   "title": "Contact \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1024.jpg"
+  },
+  {
+   "page": "contact",
+   "width": 1440,
+   "url": "http://127.0.0.1:4951/northline-qa/contact",
+   "textFloor": {
+    "minFont": 14,
+    "small": []
+   },
+   "overflow": {
+    "scrollWidth": 1440,
+    "width": 1440,
+    "elements": []
+   },
+   "containers": {
+    "cut": [],
+    "squeezed": []
+   },
+   "images": {
+    "count": 1,
+    "broken": [],
+    "distorted": [],
+    "noAlt": [],
+    "fits": [
+     "cover"
+    ],
+    "lazyAboveFold": 0,
+    "noSize": 0
+   },
+   "hierarchy": {
+    "h1": 1,
+    "h1Size": 82,
+    "firstLevel": 1,
+    "skips": [],
+    "bigger": [],
+    "height": 2046
+   },
+   "title": "Contact \u2014 Northline Studio",
+   "lang": "en",
+   "keyboard": {
+    "stops": 9,
+    "problems": []
+   },
+   "menu": {
+    "hasToggle": true,
+    "linksVisible": 0,
+    "links": 4,
+    "collapsed": true,
+    "toggle": "Main navigation menu",
+    "opened": 4,
+    "expanded": "true"
+   },
+   "console": {
+    "errors": [],
+    "failedRequests": []
+   },
+   "capture": "contact-1440.jpg"
+  }
+ ],
+ "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd"
+}
