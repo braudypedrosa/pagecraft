@@ -188,7 +188,7 @@ input,select,textarea{font:inherit;color:inherit}
 /* button hierarchy, exactly the three chips from the brand board:
    dark / paper / green — green only for the committed action */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-4);
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-4);text-decoration:none;
   min-height:var(--h-ctl);padding:var(--pc-control-padding);border-radius:var(--r-md);font-size:var(--fs-3);line-height:1.4;font-weight:500;
   background:var(--panel);border:1px solid var(--line-2);color:var(--text);
   transition:background .14s ease,border-color .14s ease,color .14s ease;
@@ -1693,9 +1693,9 @@ body.proposals-open #app>.main>.left,body.proposals-open #app>.main>.stage,body.
 #leftRail .rail-badge{position:absolute;top:7px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--green);color:var(--on-green);font-size:var(--fs-1);font-weight:500;line-height:16px;text-align:center}
 #leftRail .rail-badge[hidden]{display:none}
 .pw{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--panel);color:var(--text);font-size:var(--fs-3)}
-.pw-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-5);padding:18px 24px;border-bottom:1px solid var(--line)}
-.pw-head h1{margin:0;font-size:var(--pc-workspace-title);line-height:1.3;font-weight:600;letter-spacing:-.02em}.pw :is(b,strong){font-weight:600}.pw-head p{margin:4px 0 0;color:var(--text-3);font-size:var(--fs-2)}
+.pw :is(b,strong){font-weight:600}
 .pw-head-actions{display:flex;gap:var(--sp-3);flex-wrap:wrap;justify-content:flex-end}
+/* E6: Proposals shares the workspace header (shared/workspace-styles.js); only its action group is local. */
 .pw-empty{margin:0;padding:28px 24px;max-width:70ch;color:var(--text-2);line-height:1.55}.pw-empty p{margin:0 0 14px}
 .pw-main{flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
 .pw-list{border-right:1px solid var(--line);overflow:auto;padding:8px}
@@ -1959,25 +1959,25 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
   --pc-section-title:var(--pc-text-section);
   --pc-dialog-title:var(--pc-text-dialog);
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
   gap:24px;padding:24px var(--pc-workspace-x);border-bottom:1px solid var(--pc-ui-border);
   background:var(--pc-ui-surface);flex-shrink:0;
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head h1{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head h1{
   font-family:var(--pc-ui-font);font-size:var(--pc-workspace-title);line-height:1.3;
   letter-spacing:-.02em;font-weight:700;margin:0;color:var(--pc-ui-text);overflow-wrap:anywhere;
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head p{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head p{
   font-size:var(--pc-control-font);line-height:1.5;margin:6px 0 0;color:var(--pc-ui-secondary);
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head :is(.btn,.pc-btn){
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head :is(.btn,.pc-btn){
   min-height:var(--pc-control-editor);height:var(--pc-control-editor);padding:var(--pc-control-padding);
 }
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
 .cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4;font-weight:600}
 /* K3: editor headings are 600, like every other editor heading; Cloud pages keep their own. */
-:is(.pages-workspace,.cms-workspace) .pc-workspace-head h1{font-weight:600}
+:is(.pages-workspace,.cms-workspace,.pw) .pc-workspace-head h1{font-weight:600}
 .cms-workspace .cms-entry-row{padding:var(--pc-table-cell-padding);gap:16px}
 .cms-workspace .cms-entry-open{padding:0;font-weight:500}
 .cms-workspace .cms-entry-open b{font-weight:500}
@@ -2084,8 +2084,8 @@ body.cms-open #app>.main>.left,body.cms-open #app>.main>.stage,body.cms-open #ap
   .dashboard-app .pc-sub-pager{flex-wrap:wrap}
 }
 @media(max-width:700px){
-  :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head{align-items:flex-start;gap:16px}
-  :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head>div:first-child{flex-basis:100%}
+  :is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head{align-items:flex-start;gap:16px}
+  :is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head>div:first-child{flex-basis:100%}
   .dashboard-app .pc-sub-actions{margin-left:0;flex-wrap:wrap}
 }
 
@@ -19645,7 +19645,7 @@ var PC_UI = (() => {
     const current = list2?.find((p3) => p3.id === selected) || null;
     const pending2 = list2?.filter((p3) => p3.status === "pending").length || 0;
     return /* @__PURE__ */ u2("div", { class: "pw", role: "region", "aria-label": "Assistant proposals", children: [
-      /* @__PURE__ */ u2("header", { class: "pw-head", children: [
+      /* @__PURE__ */ u2("header", { class: "pw-head pc-workspace-head", children: [
         /* @__PURE__ */ u2("div", { children: [
           /* @__PURE__ */ u2("h1", { children: "Proposals" }),
           /* @__PURE__ */ u2("p", { children: "Changes AI assistants suggested for this site. Nothing changes until you apply it." })

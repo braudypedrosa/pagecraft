@@ -52,25 +52,25 @@ ${DIALOG_CSS}
   --pc-section-title:var(--pc-text-section);
   --pc-dialog-title:var(--pc-text-dialog);
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
   gap:24px;padding:24px var(--pc-workspace-x);border-bottom:1px solid var(--pc-ui-border);
   background:var(--pc-ui-surface);flex-shrink:0;
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head h1{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head h1{
   font-family:var(--pc-ui-font);font-size:var(--pc-workspace-title);line-height:1.3;
   letter-spacing:-.02em;font-weight:700;margin:0;color:var(--pc-ui-text);overflow-wrap:anywhere;
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head p{
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head p{
   font-size:var(--pc-control-font);line-height:1.5;margin:6px 0 0;color:var(--pc-ui-secondary);
 }
-:is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head :is(.btn,.pc-btn){
+:is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head :is(.btn,.pc-btn){
   min-height:var(--pc-control-editor);height:var(--pc-control-editor);padding:var(--pc-control-padding);
 }
 :is(.pages-workspace,.cms-workspace) .pc-workspace-body{padding:var(--pc-workspace-y) var(--pc-workspace-x)}
 .cms-workspace h2{font-size:var(--pc-section-title);line-height:1.4;font-weight:600}
 /* K3: editor headings are 600, like every other editor heading; Cloud pages keep their own. */
-:is(.pages-workspace,.cms-workspace) .pc-workspace-head h1{font-weight:600}
+:is(.pages-workspace,.cms-workspace,.pw) .pc-workspace-head h1{font-weight:600}
 .cms-workspace .cms-entry-row{padding:var(--pc-table-cell-padding);gap:16px}
 .cms-workspace .cms-entry-open{padding:0;font-weight:500}
 .cms-workspace .cms-entry-open b{font-weight:500}
@@ -177,8 +177,8 @@ ${DIALOG_CSS}
   .dashboard-app .pc-sub-pager{flex-wrap:wrap}
 }
 @media(max-width:700px){
-  :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head{align-items:flex-start;gap:16px}
-  :is(.pages-workspace,.cms-workspace,.dashboard-app) .pc-workspace-head>div:first-child{flex-basis:100%}
+  :is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head{align-items:flex-start;gap:16px}
+  :is(.pages-workspace,.cms-workspace,.dashboard-app,.pw) .pc-workspace-head>div:first-child{flex-basis:100%}
   .dashboard-app .pc-sub-actions{margin-left:0;flex-wrap:wrap}
 }
 `;
