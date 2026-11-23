@@ -17,8 +17,8 @@ const KNOWN: Record<string, string[]> = {
   'salt-house': [],
   'architecture-studio': [],
   'coastal-rentals': [],
-  // Small red text on paper is 3.40:1. Fixing it changes the brand red: a design decision.
-  'independent-studio': ['contrast'],
+  // 2.0.10 darkened Signal red to #bd3028 (5.11:1 on paper; C1, 23 Nov 2026).
+  'independent-studio': [],
   'dental-clinic-a2': [],
   'culinary-school': [],
   'bramble-vet': [],
@@ -29,10 +29,7 @@ const KNOWN: Record<string, string[]> = {
 };
 
 /* Drafts of the next release of a template. Each must open clean apart from the listed reminders. */
-const DRAFTS: Record<string, string[]> = {
-  // Signal red darkened to #bd3028 (5.11:1 on paper); remove this and the KNOWN contrast line on promotion.
-  'independent-studio/2.0.10': [],
-};
+const DRAFTS: Record<string, string[]> = {};
 
 const catalog = JSON.parse(readFileSync('premade-sites/catalog.json', 'utf8')).templates as { id: string; version: string }[];
 const released = new Map<string, string>();

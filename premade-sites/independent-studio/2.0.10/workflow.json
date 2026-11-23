@@ -442,7 +442,16 @@
       }
     ]
   },
-  "approval": null,
+  "approval": {
+    "packageSha256": "0b78fc82e8f35fb74a0698b73593ba3155361aef71ee19b3d2a2723c875bc8bd",
+    "decision": {
+      "actor": "user",
+      "outcome": "approved",
+      "quote": "Approve 2.0.10",
+      "at": "2026-11-23T00:27:03Z",
+      "evidence": "Current conversation (23 Nov 2026): approval of independent-studio 2.0.10, package 0b78fc82, after the C1 mockup (option A, \"Build A\"), Cloud QA, the WordPress package check, the pixel comparison with 2.0.9 and PR #49."
+    }
+  },
   "patchOf": {
     "version": "2.0.9",
     "packageSha256": "61467fdc9507c40ca7aeabc2d60b8d61b35d05bfe7717a3674589d1407f55340",
