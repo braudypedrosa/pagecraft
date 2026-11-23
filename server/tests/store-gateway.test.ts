@@ -6,6 +6,7 @@ import a from "node:assert/strict";
 import {
   GatewayAssetStore,
   AUTH_USER_CACHE_MS,
+  AUTH_USER_STALE_MS,
   EDITOR_SOURCE_CACHE_MS,
   SITE_CACHE_MS,
   GatewayAuthStore,
@@ -1397,6 +1398,79 @@ test("the signed-in identity upsert is reused briefly, but never across a change
   clock += AUTH_USER_CACHE_MS + 1;
   await auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
   a.equal(ensures(), 4, "the cache expires");
+});
+
+test("a paused session reuses its cached user at once and refreshes it in the background", async () => {
+  let clock = 1_000;
+  let plan = "free";
+  let fail = false;
+  const pending: Array<() => void> = [];
+  const calls: string[] = [];
+  const request = async (_input: string | URL | Request, init?: RequestInit) => {
+    const call = JSON.parse(String(init?.body || "{}")) as Call;
+    calls.push(call.op);
+    if (call.op === "auth.updateProfile") {
+      return Response.json({ data: { id: "u1", email: "owner@example.test", name: String(call.args.name), auth_user_id: "auth-1", plan, created_at: "2026-08-27T00:00:00.000Z" } });
+    }
+    await new Promise<void>((release) => pending.push(release));
+    if (fail) return Response.json({ error: "gateway unavailable" }, { status: 503 });
+    return Response.json({ data: { id: "u1", email: String(call.args.email), name: String(call.args.name), auth_user_id: "auth-1", plan, created_at: "2026-08-27T00:00:00.000Z" } });
+  };
+  const auth = new GatewayAuthStore(new PagecraftGateway("https://gateway.invalid/", "test-key", request as typeof fetch), () => clock);
+  const ensures = () => calls.filter((op) => op === "auth.ensureAuthUser").length;
+  const settle = async () => { while (pending.length) pending.shift()!(); await new Promise((r) => setTimeout(r, 0)); };
+  const quick = async <T>(work: Promise<T>) => {
+    const timer = new Promise<"waited">((r) => setTimeout(() => r("waited"), 20));
+    return Promise.race([work, timer]);
+  };
+
+  const first = auth.ensureAuthUser("auth-1", "owner@example.test", "Owner");
+  a.equal(await quick(first), "waited", "a first sign-in waits for the database");
+  await settle();
+  a.equal((await first).plan, "free");
+
+  clock += AUTH_USER_CACHE_MS + 1;
+  plan = "pro";
+  const stale = await quick(auth.ensureAuthUser("auth-1", "owner@example.test", "Owner"));
+  a.notEqual(stale, "waited", "after the fresh window the cached user is returned without waiting");
+  a.equal((stale as { plan?: string }).plan, "free", "the cached answer is served while it refreshes");
+  await quick(auth.ensureAuthUser("auth-1", "owner@example.test", "Owner"));
+  a.equal(ensures(), 2, "concurrent stale requests share one background refresh");
+  await settle();
+  a.equal((await auth.ensureAuthUser("auth-1", "owner@example.test", "Owner")).plan, "pro", "the refresh replaces the cached user");
+  a.equal(ensures(), 2, "a fresh entry needs no further upsert");
+
+  clock += AUTH_USER_CACHE_MS + 1;
+  fail = true;
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  a.equal((await auth.ensureAuthUser("auth-1", "owner@example.test", "Owner")).plan, "pro");
+  await settle();
+  a.equal(warn.mock.calls.length, 1, "a failed background refresh is logged, not thrown");
+  warn.mockRestore();
+  a.equal((await quick(auth.ensureAuthUser("auth-1", "owner@example.test", "Owner")) as { plan?: string }).plan, "pro", "and the cached user stays usable");
+  await settle();
+  fail = false;
+
+  clock += AUTH_USER_STALE_MS + 1;
+  const expired = auth.ensureAuthUser("auth-1", "owner@example.test", "Owner");
+  a.equal(await quick(expired), "waited", "past the stale limit the request waits again");
+  await settle();
+  await expired;
+
+  const changed = auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
+  a.equal(await quick(changed), "waited", "a changed email always waits for the database");
+  await settle();
+  a.equal((await changed).email, "new@example.test");
+
+  clock += AUTH_USER_CACHE_MS + 1;
+  plan = "studio";
+  await auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
+  await auth.updateProfile("u1", { name: "Renamed" });
+  await settle();
+  const after = auth.ensureAuthUser("auth-1", "new@example.test", "Owner");
+  a.equal(await quick(after), "waited", "a profile change during a refresh is not undone by the refresh");
+  await settle();
+  await after;
 });
 
 test("libraries go through fixed gateway operations and map rows to camelCase", async () => {
